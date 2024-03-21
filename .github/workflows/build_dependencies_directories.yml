@@ -1,0 +1,90 @@
+name: build_dependencies_directories
+
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - 'v*'
+
+jobs:
+    build_php_directories:
+        runs-on: ubuntu-latest
+        container:
+            image: wiilog/wiistock-initializer:v2
+            credentials:
+                username: ${{ secrets.DOCKER_USER }}
+                password: ${{ secrets.DOCKER_PULL_TOKEN }}
+            env:
+                APP_ENV: prod
+            options: --user root
+
+        steps:
+            -   name: Go to project
+                run: mkdir /project && cd /project
+
+            -   name: Checkout wiistock
+                uses: actions/checkout@v4
+
+            -   name: Install php dependencies
+                run: composer install --no-dev --optimize-autoloader --classmap-authoritative --no-ansi --no-scripts
+
+            -   name: Install zip
+                run: apk add zip
+
+            -   name: Zip vendor
+                run: zip -r -y -qq vendor.zip vendor
+
+            -   name: Upload zip
+                uses: actions/upload-artifact@v4
+                with:
+                    name: vendor.zip
+                    path: vendor.zip
+
+            -   name: Upload zip on the release
+                uses: svenstaro/upload-release-action@v2
+                with:
+                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    file: vendor.zip
+                    asset_name: vendor.zip
+                    tag: ${{ github.ref }}
+
+    build_js_directories:
+        runs-on: ubuntu-latest
+        container:
+            image: wiilog/wiistock-initializer:v2
+            credentials:
+                username: ${{ secrets.DOCKER_USER }}
+                password: ${{ secrets.DOCKER_PULL_TOKEN }}
+            env:
+                APP_ENV: prod
+            options: --user root
+
+        steps:
+            -   name: Go to project
+                run: mkdir /project && cd /project
+
+            -   name: Checkout wiistock
+                uses: actions/checkout@v4
+
+            -   name: Install js dependencies
+                run: yarn install
+
+            -   name: Install zip
+                run: apk add zip
+
+            -   name: Zip node_modules
+                run: zip -r -y -qq node_modules.zip node_modules
+
+            -   name: Upload js dependencies
+                uses: actions/upload-artifact@v4
+                with:
+                    name: node_modules.zip
+                    path: node_modules.zip
+
+            -   name: Upload zip on the release
+                uses: svenstaro/upload-release-action@v2
+                with:
+                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    file: node_modules.zip
+                    asset_name: node_modules.zip
+                    tag: ${{ github.ref }}

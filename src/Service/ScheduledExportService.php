@@ -8,6 +8,8 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
+use App\Entity\Language;
+use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
@@ -17,10 +19,12 @@ use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -63,12 +67,15 @@ class ScheduledExportService
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
 
+    #[Required]
+    public LanguageService $languageService;
+
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
-        $this->cacheService->set(CacheService::EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
+        $this->cacheService->set(CacheService::COLLECTION_EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
     }
 
     public function getScheduledCache(EntityManagerInterface $entityManager): array {
-        return $this->cacheService->get(CacheService::EXPORTS, "scheduled", fn() => $this->buildScheduledExportsCache($entityManager));
+        return $this->cacheService->get(CacheService::COLLECTION_EXPORTS, "scheduled", fn() => $this->buildScheduledExportsCache($entityManager));
     }
 
     private function buildScheduledExportsCache(EntityManagerInterface $entityManager): array {
@@ -160,8 +167,6 @@ class ScheduledExportService
             $this->dataExportService->exportRefLocation($storageRules, $output);
         } else if($exportToRun->getEntity() === Export::ENTITY_DISPATCH) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
-            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $dispatches = $dispatchRepository->getByDates($startDate, $endDate);
 
@@ -169,9 +174,42 @@ class ScheduledExportService
                 ->keymap(fn($dispatch) => [
                     $dispatch['id'], $dispatch['freeFields']
                 ])->toArray();
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+            $columnToExport = $exportToRun->getColumnToExport();
 
-            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($freeFieldsConfig));
-            $this->dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
+            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($entityManager, $columnToExport));
+            $this->dataExportService->exportDispatch($dispatches, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
+        } else if($exportToRun->getEntity() === Export::ENTITY_PRODUCTION) {
+            $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
+            $languageRepository = $entityManager->getRepository(Language::class);
+
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::PRODUCTION_REQUEST]);
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+
+            $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+            $defaultLanguage = $languageRepository->findOneBy(["slug" => $defaultSlug]);
+            $language = $languageRepository->findOneBy(["selected" => 1]);
+
+            $productionRequests = $productionRequestRepository->getByDates(
+                $startDate,
+                $endDate,
+                new InputBag([
+                    "date-choice_createdAt" => true,
+                ]),
+                [
+                    "userDateFormat" => Language::DMY_FORMAT,
+                    "defaultLanguage" => $defaultLanguage,
+                    "language" => $language,
+                ]
+            );
+
+            $freeFieldsById = Stream::from($productionRequests)
+                ->keymap(static fn(array $productionRequest) => [
+                    $productionRequest['id'], $productionRequest['freeFields']
+                ])->toArray();
+
+            $this->csvExportService->putLine($output, $this->dataExportService->createProductionRequestsHeader());
+            $this->dataExportService->exportProductionRequest($productionRequests, $output, $freeFieldsConfig, $freeFieldsById);
         } else {
             throw new RuntimeException("Unknown entity type");
         }
@@ -269,7 +307,7 @@ class ScheduledExportService
         }
 
         return match($rule->getFrequency()) {
-            ScheduleRule::ONCE => "le {$rule->getBegin()?->format("d/m/Y H:i")}",
+            ScheduleRule::ONCE => "le {$rule->getBegin()?->format("d/m/Y à H:i")}",
             ScheduleRule::HOURLY => "toutes les {$rule->getIntervalPeriod()} heures",
             ScheduleRule::DAILY => "tous les $periodStr à {$rule->getIntervalTime()}",
             ScheduleRule::WEEKLY => "toutes les $periodStr à {$rule->getIntervalTime()} les $days",

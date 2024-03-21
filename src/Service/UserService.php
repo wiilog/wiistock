@@ -73,13 +73,12 @@ class UserService
         return $this->security->getUser();
     }
 
-    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
+    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null): bool {
         $key = $this->roleService->getPermissionKey($menuLabel, $actionLabel);
         return isset($this->roleService->getPermissions($user ?: $this->getUser())[$key]);
     }
 
-    public function getDataForDatatable(InputBag $params)
-    {
+    public function getDataForDatatable(InputBag $params): array {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $result = $utilisateurRepository->findByParams($params);
 
@@ -234,6 +233,7 @@ class UserService
             'deliveryOrder' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DELIVERY_ORDER, $user),
             'manualDelivery' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUAL_DELIVERY, $user),
             'collectOrder' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_COLLECT_ORDER, $user),
+            'manualCollect' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUAL_COLLECT, $user),
             'transferOrder' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRANSFER_ORDER, $user),
             'manualTransfer' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUAL_TRANSFER, $user),
             'inventory' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_INVENTORY, $user),

@@ -402,6 +402,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_DELIVERY_ORDER,
                 Action::MODULE_ACCESS_MANUAL_DELIVERY,
                 Action::MODULE_ACCESS_COLLECT_ORDER,
+                Action::MODULE_ACCESS_MANUAL_COLLECT,
                 Action::MODULE_ACCESS_TRANSFER_ORDER,
                 Action::MODULE_ACCESS_MANUAL_TRANSFER,
                 Action::MODULE_ACCESS_INVENTORY,

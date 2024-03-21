@@ -46,9 +46,7 @@
                 }]
                 : [],
             includeParams: '[name=type]',
-            additionalAttributes: productionRequest.type
-                ? []
-                : [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
+            additionalAttributes: [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
         }) }}
         <div class="error-empty-status d-none">
             {% include 'utils/warningSelectEmpty.html.twig' with {
@@ -63,7 +61,7 @@
                 block: true,
                 rights: {
                     menu: constant('App\\Entity\\Menu::PARAM'),
-                    action: constant('App\\Entity\\Action::CREATE')
+                    action: constant('App\\Entity\\Action::EDIT')
                 }
             } %}
         </div>
@@ -79,22 +77,13 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency').name %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence'), requiredOnform, {
-                items: emergencies|map(item => ({
-                    value: item,
-                    label: item,
-                    selected: productionRequest.emergency == item,
-                })),
-                emptyOption: {
-                    selected: not productionRequest.emergency,
-                    label: trans('Demande', 'Général', 'Non urgent', false)
-                }
-            }) }}
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.productArticleCode) }}
         </div>
     {% endif %}
 
@@ -112,23 +101,24 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').name %}
-    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').value %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.projectNumber) }}
-        </div>
-    {% endif %}
-
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').name %}
-    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
-    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
-    {% if displayOnform %}
-        <div class="col-6 mb-2">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.productArticleCode) }}
+            {{ form.select(fieldCode, fieldLabel, requiredOnform, {
+                type: 'location',
+                value: productionRequest.dropLocation ? productionRequest.dropLocation.id : null,
+                items: productionRequest.dropLocation ? [{
+                    value: productionRequest.dropLocation.id,
+                    label: productionRequest.dropLocation.label
+                }],
+                additionalAttributes: [
+                    {name: "data-other-params"},
+                    {name: "data-other-params-typeDispatchDropLocation", value: productionRequest.type ? productionRequest.type.id : ""},
+                ],
+            }) }}
         </div>
     {% endif %}
 
@@ -158,24 +148,32 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').name %}
-    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, fieldLabel, requiredOnform, {
-                type: 'location',
-                value: productionRequest.dropLocation ? productionRequest.dropLocation.id : null,
-                items: productionRequest.dropLocation ? [{
-                    value: productionRequest.dropLocation.id,
-                    label: productionRequest.dropLocation.label
-                }],
-                additionalAttributes: [
-                    {name: "data-other-params"},
-                    {name: "data-other-params-typeDispatchDropLocation", value: productionRequest.type ? productionRequest.type.id : ""},
-                ],
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence'), requiredOnform, {
+                items: emergencies|map(item => ({
+                    value: item,
+                    label: item,
+                    selected: productionRequest.emergency == item,
+                })),
+                emptyOption: {
+                    selected: not productionRequest.emergency,
+                    label: trans('Demande', 'Général', 'Non urgent', false)
+                }
             }) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').value %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.projectNumber) }}
         </div>
     {% endif %}
 

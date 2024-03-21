@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalTreatPurchaseRequest">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -7,17 +9,17 @@
 
             <div class="modal-body modal-input">
                 {% if statuses is not empty %}
-                    <div class="form-group row">
-                        <label class="col-12">Statut*</label>
-                        <div class="col-12">
-                            <select class="form-control data needed "
-                                    name="status"
-                                    title="Statut">
-                                <option value=""></option>
-                                {% for status in statuses %}
-                                    <option value="{{ status.id }}">{{ status.nom }}</option>
-                                {% endfor %}
-                            </select>
+                    <div class="row">
+                        <div class="form-group col-12">
+                            {{ form.select('status', 'Statut', true, {
+                                multiple: false,
+                                type: '',
+                                search: false,
+                                items: statuses|map((status) => ({
+                                    label: status.nom,
+                                    value: status.id,
+                                })),
+                            }) }}
                         </div>
                     </div>
                 {% else %}
@@ -33,7 +35,7 @@
                         block: true,
                         rights: {
                             menu: constant('App\\Entity\\Menu::PARAM'),
-                            action: constant('App\\Entity\\Action::CREATE')
+                            action: constant('App\\Entity\\Action::EDIT')
                         }
                     } %}
                 {% endif %}

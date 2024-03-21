@@ -13,6 +13,7 @@ use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\ImportException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -79,11 +80,11 @@ class ProductionRequestService
 
     private ?array $freeFieldsConfig = null;
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $forExport = false): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, bool $forExport = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
-        $columnsVisible = $currentUser->getVisibleColumns()['productionRequest'];
+        $columnsVisible = $currentUser ? $currentUser->getVisibleColumns()['productionRequest'] : [];
 
         $columns = [
             ...!$forExport
@@ -193,18 +194,7 @@ class ProductionRequestService
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $oldValues = [
-            "status" => $productionRequest->getStatus(),
-            "comment" => $productionRequest->getComment(),
-            "dropLocation" => $productionRequest->getDropLocation(),
-            "manufacturingOrderNumber" => $productionRequest->getManufacturingOrderNumber(),
-            "emergency" => $productionRequest->getEmergency(),
-            "expectedAt" => $productionRequest->getExpectedAt(),
-            "projectNumber" => $productionRequest->getProjectNumber(),
-            "productArticleCode" => $productionRequest->getProductArticleCode(),
-            "quantity" => $productionRequest->getQuantity(),
-            "lineCount" => $productionRequest->getLineCount(),
-        ];
+        $oldValues = $productionRequest->serialize();
         $now = new DateTime();
 
         if(!$productionRequest->getId()){
@@ -235,15 +225,16 @@ class ProductionRequestService
 
             if($status->isTreated()){
                 $productionRequest
-                    ->setTreatedAt($now)
-                    ->setTreatedAt(new DateTime());
+                    ->setTreatedAt($now);
             }
         }
 
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
             $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
-            $productionRequest->setDropLocation($dropLocation);
+        } else {
+            $dropLocation = $productionRequest->getType()?->getDropLocation();
         }
+        $productionRequest->setDropLocation($dropLocation);
 
         if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)) {
             $productionRequest->setManufacturingOrderNumber($data->get(FixedFieldEnum::manufacturingOrderNumber->name));
@@ -301,12 +292,12 @@ class ProductionRequestService
         return $productionRequest;
     }
 
-    private function persistHistoryRecords(EntityManagerInterface $entityManager,
+    public function persistHistoryRecords(EntityManagerInterface $entityManager,
                                            ProductionRequest      $productionRequest,
                                            Utilisateur            $currentUser,
                                            DateTime               $date,
-                                           array                  $oldValues,
-                                           array                  $addedAttachments): void {
+                                           array                  $oldValues = [],
+                                           array                  $addedAttachments = []): void {
         $oldStatus = $oldValues["status"] ?? null;
         $newStatus = $productionRequest->getStatus();
         if ($newStatus
@@ -431,19 +422,19 @@ class ProductionRequestService
             ],
         ];
 
-        return $this->fixedFieldService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_PRODUCTION);
+        return $config;
     }
 
     public function buildCustomProductionHistoryMessage(ProductionRequest $productionRequest,
                                                         array             $oldValues): string {
-        $oldDropLocation = $oldValues['dropLocation'] ?? null;
-        $oldManufacturingOrderNumber = $oldValues['manufacturingOrderNumber'] ?? null;
-        $oldEmergency = $oldValues['emergency'] ?? null;
-        $oldExpectedAt = $oldValues['expectedAt'] ?? null;
-        $oldProjectNumber = $oldValues['projectNumber'] ?? null;
-        $oldProductArticleCode = $oldValues['productArticleCode'] ?? null;
-        $oldQuantity = $oldValues['quantity'] ?? null;
-        $oldLineCount = $oldValues['lineCount'] ?? null;
+        $oldDropLocation = $oldValues[FixedFieldEnum::dropLocation->name] ?? null;
+        $oldManufacturingOrderNumber = $oldValues[FixedFieldEnum::manufacturingOrderNumber->name] ?? null;
+        $oldEmergency = $oldValues[FixedFieldEnum::emergency->name] ?? null;
+        $oldExpectedAt = $oldValues[FixedFieldEnum::expectedAt->name] ?? null;
+        $oldProjectNumber = $oldValues[FixedFieldEnum::projectNumber->name] ?? null;
+        $oldProductArticleCode = $oldValues[FixedFieldEnum::productArticleCode->name] ?? null;
+        $oldQuantity = $oldValues[FixedFieldEnum::quantity->name] ?? null;
+        $oldLineCount = $oldValues[FixedFieldEnum::lineCount->name] ?? null;
 
         $message = "<br>";
         if ($productionRequest->getDropLocation()
@@ -638,5 +629,118 @@ class ProductionRequestService
             ]),
             $to,
         );
+    }
+
+    public function importProductionRequest(EntityManagerInterface $entityManager,
+                                            array                  $data,
+                                            Utilisateur            $importUser,
+                                            ?bool                  &$isCreation): void {
+
+        $updateStats = $updateStats ?? fn() => null;
+
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $now = new DateTime();
+        $productionRequest = new ProductionRequest();
+
+        $number = $this->uniqueNumberService->create($entityManager, ProductionRequest::NUMBER_PREFIX, ProductionRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_PRODUCTION_REQUEST, $now);
+
+        if(!empty($data[FixedFieldEnum::createdBy->name])) {
+            $user = $userRepository->findOneBy(['username' => $data[FixedFieldEnum::createdBy->name]]);
+            if (empty($user)) {
+                throw new ImportException("La colonne " . FixedFieldEnum::createdBy->value . " n'est pas valide.");
+            }
+        }
+        else {
+            $user = $importUser;
+        }
+
+        $productionRequest
+            ->setNumber($number)
+            ->setCreatedAt($now)
+            ->setCreatedBy($user)
+            ->setManufacturingOrderNumber($data[FixedFieldEnum::manufacturingOrderNumber->name]);
+
+        if (isset($data[FixedFieldEnum::type->name])) {
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::PRODUCTION, $data[FixedFieldEnum::type->name]);
+
+            if ($type) {
+                $productionRequest->setType($type);
+            } else {
+                throw new ImportException("Le type n'existe pas.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::status->name])) {
+            $status = $statusRepository->findOneBy([
+                "nom" => $data[FixedFieldEnum::status->name],
+                "type" => $productionRequest->getType(),
+            ]);
+
+            if ($status) {
+                $productionRequest->setStatus($status);
+
+                if ($status->isTreated()) {
+                    $productionRequest
+                        ->setTreatedBy($user)
+                        ->setTreatedAt($now);
+                }
+            }
+            else {
+                throw new ImportException("Le statut n'existe pas ou n'est pas lié au type.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::expectedAt->name])) {
+            $expectedAt = $this->formatService->parseDatetime($data[FixedFieldEnum::expectedAt->name]);
+
+            if ($expectedAt) {
+                $productionRequest->setExpectedAt($expectedAt);
+            } else {
+                throw new ImportException("Le format de la date attendue n'est pas valide.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::emergency->name])) {
+            $productionRequest->setEmergency($data[FixedFieldEnum::emergency->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::projectNumber->name])) {
+            $productionRequest->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::productArticleCode->name])) {
+            $productionRequest->setProductArticleCode($data[FixedFieldEnum::productArticleCode->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::dropLocation->name])) {
+            $dropLocation = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
+            if ($dropLocation) {
+                $productionRequest->setDropLocation($dropLocation);
+            } else {
+                throw new ImportException("L'emplacement de dépose n'existe pas.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::comment->name])) {
+            $productionRequest->setComment($data[FixedFieldEnum::comment->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::quantity->name])) {
+            $productionRequest->setQuantity(intval($data[FixedFieldEnum::quantity->name]));
+        }
+
+        if (isset($data[FixedFieldEnum::lineCount->name])) {
+            $productionRequest->setLineCount(intval($data[FixedFieldEnum::lineCount->name]));
+        }
+
+        $this->persistHistoryRecords($entityManager, $productionRequest, $user, $now);
+
+        $entityManager->persist($productionRequest);
+
+        $isCreation = true; // increment new entity counter
     }
 }

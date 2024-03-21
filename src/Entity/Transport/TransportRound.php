@@ -423,6 +423,11 @@ class TransportRound extends StatusHistoryContainer {
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function countRejectedPacks(): int {
         return Stream::from($this->getTransportRoundLines())->map(function(TransportRoundLine $line) {
             return $line->getOrder()->countRejectedPacks();

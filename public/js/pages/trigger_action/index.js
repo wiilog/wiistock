@@ -59,11 +59,6 @@ $(function() {
     InitModal($modalEditTriggerAction, $submitEditTriggerAction, urlEditTriggerAction, {tables: [table]});
 });
 
-function deleteRowLine(button, $submit) {
-    let id = button.data('id');
-    $submit.attr('value', id);
-}
-
 function submitSensor(val = null) {
     if(val) {
         const route = Routing.generate("get_sensor_by_name", {name: $sensorSelect.val() || $sensorInput.val()});
@@ -94,7 +89,8 @@ function onTemplateTypeChange($select) {
     const type = $select.val();
     if (['request', 'alert'].includes(type)) {
         const $templatesSelect = $select.parents('.trigger-action-data').find('select[name^=templates]');
-
+        const selectedTemplateType = $modal.find('[name=selectedTemplateType]').val();
+        const selectedTemplate = $modal.find('[name=selectedTemplate]').val();
         if (type) {
             AJAX
                 .route(AJAX.GET, 'get_templates', {type})
@@ -102,7 +98,8 @@ function onTemplateTypeChange($select) {
                 .then(({results}) => {
                     $templatesSelect.empty();
                     for (let option of results) {
-                        $templatesSelect.append(`<option value="${option['id']}">${option['text']}</option>`)
+                        const selected = selectedTemplateType === type && Number(selectedTemplate) === Number(option['id']) ? 'selected' : '';
+                        $templatesSelect.append(`<option value="${option['id']}" ${selected}>${option['text']}</option>`)
                     }
                 });
         } else {

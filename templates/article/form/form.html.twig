@@ -225,7 +225,7 @@
                         {% if article.id %}
                             {% set managers = article.referenceArticle.managers|map((manager) => manager.username)|join(', ') %}
                             {% set plural = article.referenceArticle.managers | length > 1 ? 's' : '' %}
-                            <div class="col-12 col-md-6 mt-3">
+                            <div class="col-12 col-md-6 mt-3 d-flex">
                                 <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Gestionnaire{{ plural }}</span>

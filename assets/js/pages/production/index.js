@@ -2,6 +2,8 @@ import AJAX, {POST, GET} from "@app/ajax";
 import Camera from "@app/camera";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
+import {displayAttachmentRequired} from './form'
+import {getUserFiltersByPage} from '@app/utils';
 
 let tableProduction;
 
@@ -39,7 +41,9 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
-    getUserFiltersByPage(PAGE_PRODUCTION);
+    const fromDashboard = $('[name="fromDashboard"]').val() === '1';
+
+    getUserFiltersByPage(PAGE_PRODUCTION, {preventPrefillFilters: fromDashboard});
 
     $(`.export-button`).on(`click`, function () {
         exportFile(`production_request_export`, {}, {
@@ -132,13 +136,4 @@ function onProductionRequestTypeChange($select){
         $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
     }
     $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
-}
-
-function displayAttachmentRequired($select) {
-    const $modal = $select.closest(`.modal`);
-    const statusData = $select.select2(`data`)[0];
-
-    const requiredAttachment = statusData && statusData.requiredAttachment ? 1 : 0;
-    $modal.find(`[name=isFileNeeded]`).val(requiredAttachment);
-    $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
 }

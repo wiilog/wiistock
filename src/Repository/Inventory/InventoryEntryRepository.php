@@ -9,16 +9,9 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
-/**
- * @method InventoryEntry|null find($id, $lockMode = null, $lockVersion = null)
- * @method InventoryEntry|null findOneBy(array $criteria, array $orderBy = null)
- * @method InventoryEntry[]    findAll()
- * @method InventoryEntry[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class InventoryEntryRepository extends EntityRepository
 {
 	private const DtToDbLabels = [
@@ -31,130 +24,81 @@ class InventoryEntryRepository extends EntityRepository
 		'barCode' => 'barCode',
 	];
 
-    public function getAnomaliesOnRef(bool $forceValidLocation = false, $anomaliesIds = []) {
-		$queryBuilder = $this->createQueryBuilder('ie')
+    public function getAnomalies(bool $forceValidLocation = false, array $anomalyIds = []): array {
+        $queryBuilder = $this->createQueryBuilder("inventory_entry");
+
+        $queryBuilder
             ->distinct()
-            ->select('ie.id')
-            ->addSelect('ra.reference')
-            ->addSelect('ra.libelle as label')
-            ->addSelect('e.label as location')
-            ->addSelect('ra.quantiteStock as quantity')
-            ->addSelect('ie.quantity as countedQuantity')
-            ->addSelect('1 as is_ref')
-            ->addSelect('0 as treated')
-            ->addSelect('ra.barCode as barCode')
-            ->addSelect('MIN(CASE WHEN (
-                referenceStatus.nom = :referenceStatusAvailable
-                AND (
-                    preparation_order_reference_lines.id IS NULL
-                    OR (
-                        preparationStatus.nom != :preparationStatusToTreat
-                        AND preparationStatus.nom != :preparationStatusInProgress
-                        AND
-                        (
-                            livraison.id IS NULL
-                            OR livraisonStatus.nom != :livraisonStatusToTreat
-                        )
-                    )
-                )
-            ) THEN 1 ELSE 0 END) AS isTreatable')
-            ->addSelect('mission.id as mission_id')
-            ->addSelect('mission.startPrevDate AS mission_start')
-            ->addSelect('mission.endPrevDate AS mission_end')
-            ->addSelect('mission.name AS mission_name')
-            ->join('ie.refArticle', 'ra')
-            ->leftJoin('ie.mission', 'mission')
-            ->leftJoin('ra.emplacement', 'e')
-            ->leftJoin('ra.preparationOrderReferenceLines', 'preparation_order_reference_lines')
-            ->leftJoin('preparation_order_reference_lines.preparation', 'preparation')
-            ->leftJoin('preparation.statut', 'preparationStatus')
-            ->leftJoin('preparation.livraison', 'livraison')
-            ->leftJoin('livraison.statut', 'livraisonStatus')
-            ->leftJoin('ra.statut', 'referenceStatus')
-            ->groupBy('ie.id')
-            ->addGroupBy('ra.reference')
-            ->addGroupBy('label')
-            ->addGroupBy('location')
-            ->addGroupBy('quantity')
-            ->addGroupBy('countedQuantity')
-            ->addGroupBy('is_ref')
-            ->addGroupBy('treated')
-            ->addGroupBy('barCode')
-            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
-            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
-            ->setParameter('livraisonStatusToTreat', Livraison::STATUT_A_TRAITER)
-            ->setParameter('referenceStatusAvailable', ReferenceArticle::STATUT_ACTIF)
-            ->andWhere('ie.anomaly = 1');
-
-		if ($forceValidLocation) {
-            $queryBuilder->andWhere('e IS NOT NULL');
-        }
-
-        if (!empty($anomaliesIds)) {
-            $queryBuilder
-                ->andWhere('ie.id IN (:inventoryEntries)')
-                ->setParameter("inventoryEntries", $anomaliesIds, Connection::PARAM_STR_ARRAY);
-        }
-
-		return $queryBuilder
-            ->getQuery()
-            ->getArrayResult();
-	}
-
-    public function getAnomaliesOnArt(bool $forceValidLocation = false, $anomaliesIds = []) {
-        $subQueryBuilder = $this->createQueryBuilder('sub_entry')
-            ->select('
-                MIN(CASE WHEN
-                    (
-                        sub_articleStatus.nom = :articleStatusAvailable
-                        OR sub_articleStatus.nom = :articleStatusDispute
-                    )
-                    THEN 1 ELSE 0 END) AS sub_isTreatable
-            ')
-            ->join('sub_entry.article', 'sub_article')
-            ->join('sub_article.statut', 'sub_articleStatus')
-            ->where('sub_entry.id = entry.id')
-            ->groupBy('sub_entry.id');
-
-        $isTreatableDQL = $subQueryBuilder
-            ->getQuery()
-            ->getDQL();
-
-        $queryBuilder = $this->createQueryBuilder('entry')
-            ->select('entry.id')
-            ->addSelect('article.reference')
-            ->addSelect('article.label')
-            ->addSelect('articleLocation.label as location')
-            ->addSelect('article.quantite as quantity')
-            ->addSelect('0 as is_ref')
-            ->addSelect('0 as treated')
-            ->addSelect('article.barCode as barCode')
-            ->addSelect("($isTreatableDQL) AS isTreatable")
-            ->addSelect('mission.id as mission_id')
-            ->addSelect('mission.startPrevDate AS mission_start')
-            ->addSelect('mission.endPrevDate AS mission_end')
-            ->addSelect('mission.name AS mission_name')
-            ->join('entry.article', 'article')
-            ->leftJoin('article.emplacement', 'articleLocation')
-            ->leftJoin('entry.mission', 'mission')
-            ->andWhere('entry.anomaly = 1')
-            ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
-            ->setParameter('articleStatusDispute', Article::STATUT_EN_LITIGE);
+            ->select("inventory_entry.id AS id")
+            ->addSelect("COALESCE(join_articleReferenceArticle.reference, join_referenceArticle.reference) AS reference")
+            ->addSelect("COALESCE(join_article.label, join_referenceArticle.libelle) AS label")
+            ->addSelect("COALESCE(join_articleLocation.label, join_referenceArticleLocation.label) AS location")
+            ->addSelect("COALESCE(join_article.quantite, join_referenceArticle.quantiteStock) AS quantity")
+            ->addSelect("inventory_entry.quantity AS countedQuantity")
+            ->addSelect("IF(join_article.id IS NOT NULL, 0, 1) AS is_ref")
+            ->addSelect("0 AS treated")
+            ->addSelect("COALESCE(join_article.barCode, join_referenceArticle.barCode) AS barCode")
+            ->addSelect("IF(
+                join_article.id IS NOT NULL,
+                IF(join_articleStatus.nom IN (:articleStatusAvailable, :articleStatusDispute), 1, 0),
+                MIN(IF((
+                      join_referenceArticleStatus.nom = :referenceStatusAvailable
+                      AND (
+                          join_preparationOrderReferenceLines.id IS NULL
+                          OR (
+                                  join_preparationStatus.nom != :preparationStatusToTreat
+                              AND join_preparationStatus.nom != :preparationStatusInProgress
+                              AND
+                                  (
+                                      join_deliveryOrder.id IS NULL
+                                      OR join_deliveryOrderStatus.nom != :deliveryOrderStatusToTreat
+                                  )
+                          )
+                      )
+                ), 1, 0))
+            ) AS isTreatable")
+            ->addSelect("join_inventoryMission.id AS mission_id")
+            ->addSelect("join_inventoryMission.startPrevDate AS mission_start")
+            ->addSelect("join_inventoryMission.endPrevDate AS mission_end")
+            ->addSelect("join_inventoryMission.name AS mission_name")
+            ->leftJoin("inventory_entry.refArticle", "join_referenceArticle")
+            ->leftJoin("join_referenceArticle.statut", "join_referenceArticleStatus")
+            ->leftJoin("join_referenceArticle.emplacement", "join_referenceArticleLocation")
+            ->leftJoin("join_referenceArticle.preparationOrderReferenceLines", "join_preparationOrderReferenceLines")
+            ->leftJoin("inventory_entry.article", "join_article")
+            ->leftJoin("join_article.statut", "join_articleStatus")
+            ->leftJoin("join_article.articleFournisseur", "join_supplierArticle")
+            ->leftJoin("join_supplierArticle.referenceArticle", "join_articleReferenceArticle")
+            ->leftJoin("join_article.emplacement", "join_articleLocation")
+            ->innerJoin("inventory_entry.mission", "join_inventoryMission")
+            ->leftJoin("join_preparationOrderReferenceLines.preparation", "join_preparation")
+            ->leftJoin("join_preparation.statut", "join_preparationStatus")
+            ->leftJoin("join_preparation.livraison", "join_deliveryOrder")
+            ->leftJoin("join_deliveryOrder.statut", "join_deliveryOrderStatus")
+            ->setParameter("preparationStatusToTreat", Preparation::STATUT_A_TRAITER)
+            ->setParameter("preparationStatusInProgress", Preparation::STATUT_EN_COURS_DE_PREPARATION)
+            ->setParameter("deliveryOrderStatusToTreat", Livraison::STATUT_A_TRAITER)
+            ->setParameter("referenceStatusAvailable", ReferenceArticle::STATUT_ACTIF)
+            ->setParameter("articleStatusAvailable", Article::STATUT_ACTIF)
+            ->setParameter("articleStatusDispute", Article::STATUT_EN_LITIGE)
+            ->andWhere("inventory_entry.anomaly = 1");
 
         if ($forceValidLocation) {
-            $queryBuilder->andWhere('articleLocation IS NOT NULL');
+            $queryBuilder->andWhere("COALESCE(join_articleLocation.id, join_referenceArticleLocation.id) IS NOT NULL");
         }
 
-        if (!empty($anomaliesIds)) {
+        if (!empty($anomalyIds)) {
             $queryBuilder
-                ->andWhere('entry.id IN (:inventoryEntries)')
-                ->setParameter("inventoryEntries", $anomaliesIds, Connection::PARAM_STR_ARRAY);
+                ->andWhere("inventory_entry.id IN (:inventoryEntries)")
+                ->setParameter("inventoryEntries", $anomalyIds);
         }
+
+        $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ["isTreatable"]);
 
         return $queryBuilder
             ->getQuery()
-            ->getScalarResult();
-	}
+            ->getResult();
+    }
 
     /**
      * @param array|null $params

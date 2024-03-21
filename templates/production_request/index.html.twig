@@ -12,6 +12,8 @@
         statusFilter: statusFilter,
         statuses : statuses,
         typesFilter: typesFilter,
+        dateChoices,
+        disabled: fromDashboard ? 'disabled' : '',
     } %}
 {% endblock %}
 
@@ -48,6 +50,8 @@
             </div>
         </div>
     </div>
+
+    <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
 
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

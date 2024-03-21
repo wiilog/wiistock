@@ -13,6 +13,7 @@
     ) %}
 
 {% block page_content %}
+    <input type="hidden" id="purchaseRequestId" value="{{ request.id }}"/>
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -76,10 +77,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{ request.id }};
-    </script>
-
-    <script src="{{ asset('js/pages/purchase_request/index.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/purchase_request/show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('purchase-request-show') }}
 {% endblock %}

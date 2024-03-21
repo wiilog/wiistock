@@ -153,6 +153,8 @@ class DashboardSettingsController extends AbstractController {
         $languageRepository = $entityManager->getRepository(Language::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
+        $dispatchEmergencies = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+
         $values = json_decode($request->request->get('values'), true);
         $values += [ //default values should be initialized here
             "locations" => [],
@@ -365,7 +367,7 @@ class DashboardSettingsController extends AbstractController {
         }
 
         if(!empty($values['dispatchEmergencies'])) {
-            $values['dispatchEmergencies'] = Stream::from($fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY))
+            $values['dispatchEmergencies'] = Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                 ->filter(static fn($emergency) => in_array($emergency, $values['dispatchEmergencies']))
                 ->toArray();
         }
@@ -441,7 +443,6 @@ class DashboardSettingsController extends AbstractController {
         $deliveryOrderStatuses = $statusRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
         $productionStatuses = $statusRepository->findByCategorieName(CategorieStatut::PRODUCTION);
-        $dispatchEmergencies = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
         $natures = $natureRepository->findAll();
         if($templateName) {
@@ -473,7 +474,7 @@ class DashboardSettingsController extends AbstractController {
                     'entityStatuses' => $entityStatuses,
                     'natures' => $natures,
                     'values' => $values,
-                    'dispatchEmergencies' => Stream::from($dispatchEmergencies)
+                    'dispatchEmergencies' => Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                         ->map(static fn(string $emergency) => [
                             'label' => $emergency,
                             'value' => $emergency,

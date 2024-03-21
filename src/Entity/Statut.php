@@ -140,6 +140,9 @@ class Statut {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
     private ?string $groupedSignatureColor = Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
 
+    #[ORM\Column(type: Types::STRING, length: 7, nullable: true)]
+    private ?string $color = null;
+
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedOnSchedule = null;
 
@@ -151,6 +154,9 @@ class Statut {
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $requiredAttachment = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $preventStatusChangeWithoutDeliveryFees = null;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -866,6 +872,18 @@ class Statut {
         return $this;
     }
 
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): self
+    {
+        $this->color = $color;
+
+        return $this;
+    }
+
     public function getNotifiedUsers(): Collection {
         return $this->notifiedUsers;
     }
@@ -915,6 +933,16 @@ class Statut {
 
     public function setRequiredAttachment(?bool $requiredAttachment): self {
         $this->requiredAttachment = $requiredAttachment;
+
+        return $this;
+    }
+
+    public function isPreventStatusChangeWithoutDeliveryFees(): ?bool {
+        return $this->preventStatusChangeWithoutDeliveryFees;
+    }
+
+    public function setPreventStatusChangeWithoutDeliveryFees(?bool $preventStatusChangeWithoutDeliveryFees): self {
+        $this->preventStatusChangeWithoutDeliveryFees = $preventStatusChangeWithoutDeliveryFees;
 
         return $this;
     }

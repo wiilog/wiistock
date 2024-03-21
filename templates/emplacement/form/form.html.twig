@@ -6,7 +6,7 @@
 
 <div class="form-group d-flex align-content-center">
     {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::status') %}
-    {{ form.switch(field.name, field.value, true, [
+    {{ form.switch(field.name, field.value, false, [
         {label: 'Actif', value: true, checked: location.isActive},
         {label: 'Inactif', value: false, checked: not location.isActive},
     ]) }}

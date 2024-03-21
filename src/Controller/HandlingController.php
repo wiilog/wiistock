@@ -75,20 +75,20 @@ class HandlingController extends AbstractController {
         $user = $this->getUser();
         $dateChoice = [
             [
-                'name' => 'creationDate',
+                'value' => 'creationDate',
                 'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
             ],
             [
-                'name' => 'expectedDate',
+                'value' => 'expectedDate',
                 'label' => $translationService->translate('Demande', 'Services', 'Date attendue'),
             ],
             [
-                'name' => 'treatmentDate',
+                'value' => 'treatmentDate',
                 'label' => $translationService->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
-            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['name'], 'handling', $user);
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['value'], 'handling', $user);
         }
         if (Stream::from($dateChoice)->every(function ($choice) { return !$choice['default']; })) {
             $dateChoice[0]['default'] = true;

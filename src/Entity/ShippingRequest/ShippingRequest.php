@@ -464,6 +464,11 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function getShipment(): ?string {
         return $this->shipment;
     }

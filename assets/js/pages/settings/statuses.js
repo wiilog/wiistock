@@ -190,6 +190,11 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             modes: [MODE_DISPATCH]
         },
         {
+            data: `preventStatusChangeWithoutDeliveryFees`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Blocage du changement de statut si frais de livraison non rempli</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
+        },
+        {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
@@ -221,7 +226,17 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             title: `<div class='small-column'>PJ obligatoire</div>`,
             modes: [MODE_PRODUCTION]
         },
-        {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
+        {
+            data: 'color',
+            title: `<div class='small-column'>Couleur</div>`,
+            modes: [MODE_PRODUCTION],
+        },
+        {
+            data: `order`,
+            title: `<div class='small-column'>Ordre</div>`,
+            class: `maxw-70px`,
+            required: true
+        },
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
@@ -258,23 +273,31 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         overconsumptionBillGenerationStatus: `<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data'/></div>`,
         sendReport: hasRightGroupedSignature ? `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>` : null,
         groupedSignatureType:  hasRightGroupedSignature ? `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>` : null,
-        groupedSignatureColor: hasRightGroupedSignature ? `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>
-                        <datalist id='type-color'>
-                            <option>#D76433</option>
-                            <option>#D7B633</option>
-                            <option>#A5D733</option>
-                            <option>#33D7D1</option>
-                            <option>#33A5D7</option>
-                            <option>#3353D7</option>
-                            <option>#6433D7</option>
-                            <option>#D73353</option>
-                        </datalist>` : null,
+        groupedSignatureColor: hasRightGroupedSignature ? getInputColor('groupedSignatureColor') : null,
+        color: getInputColor('color'),
+        preventStatusChangeWithoutDeliveryFees: `<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data'/></div>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
+}
+
+function getInputColor(name) {
+    return `
+        <input type='color' class='form-control wii-color-picker data' name='${name}' value='#3353D7' list='type-color'/>
+        <datalist>
+            <option>#D76433</option>
+            <option>#D7B633</option>
+            <option>#A5D733</option>
+            <option>#33D7D1</option>
+            <option>#33A5D7</option>
+            <option>#3353D7</option>
+            <option>#6433D7</option>
+            <option>#D73353</option>
+        </datalist>
+    `
 }
 
 function initializeStatusesByTypes($container, canEdit, mode) {

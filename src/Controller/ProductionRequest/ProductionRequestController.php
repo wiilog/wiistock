@@ -69,6 +69,7 @@ class ProductionRequestController extends AbstractController
         $query = $request->query;
         $typesFilter = $query->has('types') ? $query->all('types', '') : [];
         $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
         // case type filter selected
         if (!empty($typesFilter)) {
@@ -87,28 +88,7 @@ class ProductionRequestController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
         $attachmentAssigned = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("attachmentsAssigned", 'production', $currentUser);
 
-        $dateChoices =
-            [
-                [
-                    'name' => 'createdAd',
-                    'label' => 'Date de création',
-                ],
-                [
-                    'name' => 'expectedAt',
-                    'label' => 'Date attendue',
-                ],
-            ];
-
-        foreach ($dateChoices as &$choice) {
-            $choice['default'] = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'production', $currentUser);
-        }
-
-        $dateChoicesHasDefault = Stream::from($dateChoices)
-            ->some(static fn($choice) => ($choice['default'] ?? false));
-
-        if ($dateChoicesHasDefault) {
-            $dateChoices[0]['default'] = true;
-        }
+        $dateChoices = FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class];
 
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
@@ -130,6 +110,7 @@ class ProductionRequestController extends AbstractController
                 }, []),
             "typesFilter" => $typesFilter,
             "statusFilter" => $statusesFilter,
+            "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
             "typeFreeFields" => Stream::from($types)
@@ -379,8 +360,10 @@ class ProductionRequestController extends AbstractController
                 $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::PRODUCTION_REQUEST]);
                 $freeFieldsById = Stream::from($productionRequests)
                     ->keymap(static fn($productionRequest) => [
-                        $productionRequest['id'], $productionRequest['freeFields']
-                    ])->toArray();
+                        $productionRequest['id'],
+                        $productionRequest['freeFields']
+                    ])
+                    ->toArray();
 
                 foreach ($productionRequests as $productionRequest) {
                     $productionRequestService->productionRequestPutLine($output, $productionRequest, $freeFieldsConfig, $freeFieldsById);
@@ -389,5 +372,51 @@ class ProductionRequestController extends AbstractController
         } else {
             throw new BadRequestHttpException();
         }
+    }
+
+    #[Route("/{productionRequest}/update-status-content", name: "update_status_content", options: ["expose" => true], methods: [self::GET])]
+    public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
+                                                         ProductionRequest      $productionRequest): JsonResponse {
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
+        $html = $this->renderView('production_request/planning/update-status-form.html.twig', [
+            "productionRequest" => $productionRequest,
+            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+        ]);
+
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
+    }
+
+    #[Route("/{productionRequest}/update-status", name: "update_status", options: ["expose" => true], methods: self::POST)]
+    public function updateStatus(EntityManagerInterface   $entityManager,
+                                 ProductionRequest        $productionRequest,
+                                 Request                  $request,
+                                 ProductionRequestService $productionRequestService): JsonResponse {
+
+        $productionRequestService->checkRoleForEdition($productionRequest);
+
+        $currentUser = $this->getUser();
+
+        $inputBag = new InputBag([
+            FixedFieldEnum::status->name => $request->request->get(FixedFieldEnum::status->name),
+            FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
+        ]);
+
+        $oldStatus = $productionRequest->getStatus();
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
+
+        $entityManager->flush();
+
+        if($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
+            $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        }
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La demande de production a été modifiée avec succès.",
+        ]);
     }
 }

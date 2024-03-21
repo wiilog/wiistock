@@ -232,11 +232,11 @@ class TranslationService {
 
     public function generateCache(?string $slug = null, ?bool $force = false) {
         if($force) {
-            $this->cacheService->delete(CacheService::TRANSLATIONS);
+            $this->cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
         }
 
         if($slug) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() use($slug) {
+            $this->translations[$slug] = $this->cacheService->get(CacheService::COLLECTION_TRANSLATIONS, $slug, function() use($slug) {
                 $this->loadTranslations($slug);
                 return $this->translations[$slug];
             });
@@ -262,8 +262,7 @@ class TranslationService {
             }
         }
 
-        $content = "//generated file for translations\n";
-        $content .= "const DEFAULT_SLUG = `{$this->languageService->getDefaultSlug()}`;\n";
+        $content = "const DEFAULT_SLUG = `{$this->languageService->getDefaultSlug()}`;\n";
         $content .= "const TRANSLATIONS = " . json_encode($this->translations) . ";\n";
 
         file_put_contents("$outputDirectory/translations.js", $content);

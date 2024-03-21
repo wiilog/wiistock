@@ -457,7 +457,7 @@ class ReferenceArticleController extends AbstractController
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
-            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
@@ -979,7 +979,7 @@ class ReferenceArticleController extends AbstractController
                 "dispatch" => $request->query->get("dispatch"),
             ]),
             "types" => $types,
-            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_REFERENCE),
             'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
@@ -1070,7 +1070,7 @@ class ReferenceArticleController extends AbstractController
         $data = $request->query->all();
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
-        $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
+
         $applicant = $userRepository->find($data['applicant']);
         $follower = $userRepository->find($data['follower']);
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
@@ -1079,23 +1079,20 @@ class ReferenceArticleController extends AbstractController
         $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]);
         $referenceExist = isset($data['article']) && $reference;
 
-        if(!$reference){
-            $reference = new ReferenceArticle();
-        }
+        if (!$reference) {
+            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
 
-        $reference
-            ->setReference($data['reference'])
-            ->setLibelle($data['label'])
-            ->setStatut($status)
-            ->setCommentaire($data['comment'])
-            ->setCreatedBy($userRepository->getKioskUser())
-            ->setCreatedAt(new DateTime());
-
-        if(!$referenceExist){
-            $reference
+            $reference = (new ReferenceArticle())
+                ->setReference($data['reference'])
+                ->setLibelle($data['label'])
+                ->setCreatedBy($userRepository->getKioskUser())
+                ->setCreatedAt(new DateTime())
+                ->setStatut($status)
                 ->setType($type)
-                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);;
         }
+
+        $reference->setCommentaire($data['comment']);
 
         if($applicant){
             $reference->addManager($applicant);
@@ -1103,10 +1100,6 @@ class ReferenceArticleController extends AbstractController
 
         if($follower){
             $reference->addManager($follower);
-        }
-
-        if(!$referenceExist){
-            $reference->setBarCode($refArticleDataService->generateBarCode());
         }
 
         if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
@@ -1152,11 +1145,13 @@ class ReferenceArticleController extends AbstractController
                 ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
                 ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
 
+            $newQuantity = $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?: 1;
+
             $collecteReference = new CollecteReference();
             $collecteReference
                 ->setCollecte($collecte)
                 ->setReferenceArticle($reference)
-                ->setQuantite($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?? 1);
+                ->setQuantite($newQuantity);
             $entityManager->persist($collecteReference);
             $collecte->addCollecteReference($collecteReference);
             $entityManager->persist($collecte);
@@ -1178,7 +1173,7 @@ class ReferenceArticleController extends AbstractController
                     'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
-                    'quantite' => 1,
+                    'quantite' => $newQuantity,
                 ]);
                 $article
                     ->setReference($reference->getReference())
@@ -1187,7 +1182,9 @@ class ReferenceArticleController extends AbstractController
                 $entityManager->persist($article);
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
-                $article->setQuantite(1)->setCreatedOnKioskAt($date);
+                $article
+                    ->setQuantite($newQuantity)
+                    ->setCreatedOnKioskAt($date);
             }
 
             $barcodesToPrint[] = [

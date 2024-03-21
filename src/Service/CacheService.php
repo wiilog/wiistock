@@ -11,11 +11,12 @@ class CacheService
 
     private const CACHE_FOLDER = "/cache";
 
-    public const PERMISSIONS = "permissions";
-    public const TRANSLATIONS = "translations";
-    public const LANGUAGES = "languages";
-    public const EXPORTS = "exports";
-    public const IMPORTS = "imports";
+    public const COLLECTION_PERMISSIONS = "permissions";
+    public const COLLECTION_TRANSLATIONS = "translations";
+    public const COLLECTION_LANGUAGES = "languages";
+    public const COLLECTION_EXPORTS = "exports";
+    public const COLLECTION_IMPORTS = "imports";
+    public const COLLECTION_SETTINGS = "settings";
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;

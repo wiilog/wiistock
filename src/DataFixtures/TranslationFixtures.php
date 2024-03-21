@@ -1925,6 +1925,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête\nEmails",
                         ],
                         [
+                            "fr" => "Date statut partiel",
+                            "en" => "Partial status date",
+                            "tooltip" => "Zone liste - Nom de colonnes",
+                        ],
+                        [
                             "fr" => "N° tracking transporteur",
                             "en" => "Carrier tracking ID",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête\nEmails",

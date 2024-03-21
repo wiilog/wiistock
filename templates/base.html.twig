@@ -20,10 +20,11 @@
     {# datetime picker #}
     <link rel="stylesheet" href="{{ asset('css/bootstrap-datetimepicker.css') }}"/>
     <link rel="stylesheet" href="{{ asset('css/bootstrap-checkbox.css') }}"/>
-    {{ encore_entry_link_tags('app') }}
     <style>
-        {% include '@generated/font.css' %}
+        {{ render(controller('App\\Controller\\AppController::fontCSS')) }}
     </style>
+
+    {{ encore_entry_link_tags('app') }}
     {% block stylesheets %}{% endblock %}
 
 </head>
@@ -52,7 +53,7 @@
         <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/fileSaver.js') }}"></script>
 
         {# scripts wiilog #}
-        <script src="{{ asset('generated/translations.js') }}?v={{ date().timestamp }}"></script>
+        <script src="{{ asset('generated/translations.js') }}?v={{ getSettingTimestamp() }}"></script>
         <script src="{{ asset('js/alerts.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/translations.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/select2.js') }}?v={{ web_version }}"></script>
@@ -62,7 +63,6 @@
         <script src="{{ asset('js/script-menu.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/datatable.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/collapsible.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/pages/purchase_request/new.js') }}?v={{ web_version }}"></script>
         <script src="{{ asset('js/pages/iot-common.js') }}?v={{ web_version }}"></script>
     {% endblock %}
 

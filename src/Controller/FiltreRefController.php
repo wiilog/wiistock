@@ -22,22 +22,16 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * Class FiltreRefController
- * @package App\Controller
- * @Route("/filtre-ref")
- */
+
+#[Route("/filtre-ref", name: "filter_ref_")]
 class FiltreRefController extends AbstractController
 {
 
-    /**
-     * @Route("/creer", name="filter_ref_new", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function new(Request $request,
-                        VisibleColumnService $visibleColumnService,
-                        RefArticleDataService $refArticleDataService,
-                        EntityManagerInterface $entityManager): Response
-    {
+    #[Route("/creer", name: "new", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    public function new(Request                 $request,
+                        VisibleColumnService    $visibleColumnService,
+                        RefArticleDataService   $refArticleDataService,
+                        EntityManagerInterface  $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
@@ -119,12 +113,9 @@ class FiltreRefController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
-     */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
-    {
+    #[Route("/supprimer", name: "delete", options: ["expose" => true], methods: [self::DELETE], condition: "request.isXmlHttpRequest()")]
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager): Response {
         $filterId = $request->request->get('filterId');
         $success = false;
         $message = "Le filtre n'a pas pu être supprimé";
@@ -143,16 +134,11 @@ class FiltreRefController extends AbstractController
         return new JsonResponse(['success' => $success, 'msg' => $message]);
     }
 
-    /**
-     * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/affiche-liste", name: "display_field_elements", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
 	public function displayFieldElements(Request $request,
                                          VisibleColumnService $visibleColumnService,
-                                         EntityManagerInterface $entityManager)
-	{
+                                         EntityManagerInterface $entityManager): JsonResponse {
 		if ($data = json_decode($request->getContent(), true)) {
-
-
 			$value = $data['value'];
 			$multiple = false;
             $options = [];
@@ -205,11 +191,8 @@ class FiltreRefController extends AbstractController
 		throw new BadRequestHttpException();
 	}
 
-    /**
-     * @Route("/update-filters", name="update_filters", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     */
-    public function updateFilters(EntityManagerInterface $manager): Response
-    {
+    #[Route("/pdate-filters", name: "update", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    public function updateFilters(EntityManagerInterface $manager): Response {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 

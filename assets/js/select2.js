@@ -210,7 +210,18 @@ export default class Select2 {
                             .trigger('change');
                     }
                 }
-            })
+            });
+
+            if ($element.is(`[data-keep-selected-order]`)) {
+                $element.on(`select2:select`, function (event) {
+                    const $option = $(event.params.data.element);
+
+                    $option.detach();
+                    $(this)
+                        .append($option)
+                        .trigger(`change`);
+                });
+            }
 
             $(document).arrive(`.select2-dropdown [data-highlighted]`, function () {
                 const $highlighted = $(this);
@@ -421,7 +432,7 @@ export default class Select2 {
     }
 }
 
-$(document).ready(() => {
+$(() => {
     $(`[data-s2]`).each((id, elem) => {
         Select2.proceed($(elem))
     });

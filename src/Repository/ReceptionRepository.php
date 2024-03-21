@@ -117,6 +117,8 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('reception.manualUrgent AS receptionEmergency')
             ->addSelect('reception.urgentArticles AS referenceEmergency')
             ->addSelect('join_storageLocation.label AS storageLocation')
+            ->addSelect('receptionReferenceArticle.unitPrice  AS receptionReferenceArticleUnitPrice')
+            ->addSelect('purchaseRequestLines_purchaseRequest.deliveryFee AS deliveryFee')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 
@@ -133,6 +135,8 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
+            ->leftJoin('reception.purchaseRequestLines', 'purchaseRequestLines')
+            ->leftJoin('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
 
             ->setParameters([
                 'dateMin' => $dateMin,
@@ -280,6 +284,11 @@ class ReceptionRepository extends EntityRepository
                             $qb
                                 ->leftJoin('reception.storageLocation', 'join_storageLocation')
                                 ->addOrderBy('join_storageLocation.label', $order);
+                        } else if($column === 'deliveryFee'){
+                            $qb
+                                ->leftJoin('reception.purchaseRequestLines', 'purchaseRequestLines')
+                                ->leftJoin('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
+                                ->addOrderBy('purchaseRequestLines_purchaseRequest.deliveryFee', $order);
                         } else if (property_exists(Reception::class, $column)) {
                             $qb
                                 ->addOrderBy('reception.' . $column, $order);

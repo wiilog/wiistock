@@ -95,6 +95,8 @@
                             <span class="mr-2 wii-icon wii-icon-{{ switch.wiiIcon }}"></span>
                         {% elseif switch.iconUrl ?? false %}
                             <img src="{{ switch.iconUrl }}" alt="" width="15px" class="mr-2">
+                        {% elseif switch.color?? false %}
+                            <div class="mr-2 dt-type-color" style="background: {{ switch.color }}"></div>
                         {% endif %}
                         {% if switch.label is iterable %}
                             {{ switch.label.text }}

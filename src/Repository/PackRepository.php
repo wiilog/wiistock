@@ -14,6 +14,7 @@ use App\Entity\ReceptionLine;
 use App\Entity\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -35,6 +36,10 @@ class PackRepository extends EntityRepository
 
     public const PACKS_MODE = 'packs';
     public const GROUPS_MODE = 'groups';
+
+    public const GET_LAST_DROP_IN_LU = 0;
+    public const GET_REF_ARTICLE_FROM_PACK = 1;
+    public const GET_REF_ARTICLE_FROM_STOCK_MOVEMENT = 2;
 
     private const DtToDbLabels = [
         'packNum' => 'code',
@@ -367,6 +372,7 @@ class PackRepository extends EntityRepository
         $limit = $options['limit'] ?? null;
         $order = $options['order'] ?? 'desc';
         $onlyLate = $options['onlyLate'] ?? false;
+        $fromOnGoing = $options['fromOnGoing'] ?? false;
 
         $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
@@ -374,10 +380,20 @@ class PackRepository extends EntityRepository
             ->select($isCount ? $queryBuilderExpr->count($field) : $field)
             ->leftJoin('pack.nature', 'nature')
             ->leftJoin('pack.arrivage', 'pack_arrival')
-            ->leftjoin('pack.article', 'article')
-            ->join('pack.lastDrop', 'lastDrop')
-            ->join('lastDrop.emplacement', 'emplacement')
-            ->where('pack.groupIteration IS NULL');
+            ->leftJoin('pack.article', 'article')
+            ->innerJoin('pack.lastDrop', 'lastDrop')
+            ->innerJoin('lastDrop.emplacement', 'emplacement')
+            ->andWhere('pack.groupIteration IS NULL');
+
+        if($fromOnGoing) {
+            $queryBuilder
+                ->addSelect("COALESCE(join_referenceArticle.reference, join_article_referenceArticle.reference) AS reference_reference")
+                ->addSelect("COALESCE(join_referenceArticle.libelle, join_article.label) AS reference_label")
+                ->leftJoin('pack.referenceArticle', 'join_referenceArticle')
+                ->leftJoin('pack.article', 'join_article')
+                ->leftJoin("join_article.articleFournisseur", "join_article_supplierArticle")
+                ->leftJoin("join_article_supplierArticle.referenceArticle", "join_article_referenceArticle");
+        }
 
         if (!empty($locations)) {
             $queryBuilder

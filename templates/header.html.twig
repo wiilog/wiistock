@@ -8,6 +8,7 @@
 {% set titleLink = titleLink is defined ? titleLink : '' %}
 {% set dateFormat = language_service.getDateFormats %}
 {% set defaultLangage = language_service.defaultLanguage %}
+{% set maxLengthUserLabel = 20 %}
 
 <div class="main-header">
     <div class="px-lg-3 w-100">
@@ -97,7 +98,7 @@
                         and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::CREATE_PRODUCTION_REQUEST'))
                         ) %}
                     <div class="col-auto pr-0 mr-0">
-                        <a class="header-icon cart" href="{{ path('cart') }}">
+                        <a class="header-icon cart" href="{{ path('cart_index') }}">
                             {% set referencesQuantity = app.user.cart.references|length %}
                             {% set articlesQuantity = app.user.cart.articles|length %}
                             {% set logisticUnitsQuantity = app.user.cart.articles|filter(article => article.currentLogisticUnit)|map(article => article.currentLogisticUnit.id)|unique|length %}
@@ -247,12 +248,17 @@
                                'modal-edit-id': app.user.id
                            }) }}">
                             <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                            <div class="username flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                            <div class="d-flex flex-column w-auto">
+                                <span class="lh-1 username flex-fill text-center">{{ app.user.username|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                                <span class="lh-1 role flex-fill text-center">{{ app.user.role.label|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                            </div>
                         </a>
                     {% else %}
-                        <div class="col col-lg-auto user d-flex align-items-center user-select-none">
-                            <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                            <div class="username flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                        <div class="col col-lg-auto user d-flex pl-0 align-items-center user-select-none">
+                            <div class="d-flex flex-column w-auto">
+                                <span class="lh-1 username flex-fill text-center">{{ app.user.username|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                                <span class="lh-1 role flex-fill text-center">{{ app.user.role.label|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                            </div>
                         </div>
                     {% endif %}
 

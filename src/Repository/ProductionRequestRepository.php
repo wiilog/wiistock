@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Attachment;
 use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
@@ -18,14 +19,6 @@ use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
-/**
- * @extends EntityRepository<ProductionRequest>
- *
- * @method ProductionRequest|null find($id, $lockMode = null, $lockVersion = null)
- * @method ProductionRequest|null findOneBy(array $criteria, array $orderBy = null)
- * @method ProductionRequest[]    findAll()
- * @method ProductionRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class ProductionRequestRepository extends EntityRepository
 {
 
@@ -46,8 +39,10 @@ class ProductionRequestRepository extends EntityRepository
             ->groupBy('production_request.id');
 
         $total = QueryBuilderHelper::count($qb, 'production_request');
-        $dateChoice = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')["value"] ?? '';
 
+        $dateChoiceConfig = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')
+            ?? Stream::from(FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class])->find(static fn($config) => $config['default'] ?? false);
+        $dateChoice = $dateChoiceConfig["value"] ?? '';
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -247,7 +242,7 @@ class ProductionRequestRepository extends EntityRepository
         $language = $options["language"] ?: $defaultLanguage;
         $dateFormat = Language::MYSQL_DATE_FORMATS[$options["userDateFormat"]] . " %H:%i:%s";
 
-        $referenceDate = $filters->getBoolean("date-choice_createdAd") ? "createdAt" : "expectedAt";
+        $referenceDate = $filters->getBoolean("date-choice_createdAt") ? "createdAt" : "expectedAt";
         $types = $filters->has("multipleTypes")
             ? Stream::from($filters->all("multipleTypes"))
                 ->map(static fn(array $type) => intval($type["id"]))
@@ -344,8 +339,16 @@ class ProductionRequestRepository extends EntityRepository
         }
 
         if($hasAttachments) {
+            $subAttachmentQueryBuilder = $this->getEntityManager()
+                ->createQueryBuilder()
+                ->from(Attachment::class, "attachment")
+                ->select("attachment.id")
+                ->andWhere("attachment MEMBER OF production_request.attachments")
+                ->getQuery()
+                ->getDQL();
+
             $queryBuilder
-                ->innerJoin("production_request.attachments", "join_attachments");
+                ->andWhere("FIRST($subAttachmentQueryBuilder) IS NOT NULL");
         }
 
         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $language, $defaultLanguage, ["status", "type"]);
@@ -500,5 +503,31 @@ class ProductionRequestRepository extends EntityRepository
                 ->setParameter('productionTypes', $productionTypesFilter);
         }
         return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('production_request')
+                ->select('production_request.createdAt AS date')
+                ->innerJoin('production_request.status', 'status')
+                ->innerJoin('production_request.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state = :treatedState')
+                ->addOrderBy('production_request.createdAt', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedState', Statut::NOT_TREATED)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res["date"] ?? null;
+        }
+        else {
+            return null;
+        }
     }
 }

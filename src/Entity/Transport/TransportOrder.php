@@ -399,6 +399,11 @@ class TransportOrder extends StatusHistoryContainer {
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function getSignature(): ?Attachment {
         return $this->signature;
     }

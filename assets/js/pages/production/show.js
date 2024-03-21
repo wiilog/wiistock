@@ -1,10 +1,12 @@
 import AJAX, {DELETE, GET} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
-import Camera from "@app/camera";
+import Camera from "@app/camera"
+import {displayAttachmentRequired, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 
 global.deleteProductionRequest = deleteProductionRequest;
 global.openModalEditProductionRequest = openModalEditProductionRequest;
+global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
     const $modalEditProductionRequest = $('#modalEditProductionRequest');
@@ -28,6 +30,15 @@ $(function () {
 
     getStatusHistory(productionRequestId);
     getOperationHistory(productionRequestId);
+
+    const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
+
+    $(document).on('click', '.open-modal-update-production-request-status', $modalUpdateProductionRequestStatus, (event) => {
+        openModalUpdateProductionRequestStatus($(this), $modalUpdateProductionRequestStatus, productionRequestId, () => {
+            window.location.reload();
+        })
+    });
+
 });
 
 function getStatusHistory(productionRequestId) {
