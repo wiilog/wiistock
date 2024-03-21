@@ -1295,14 +1295,14 @@ class DispatchController extends AbstractController {
                 ->toArray();
 
             // same order than header column
-            $exportableColumns = Stream::from($exportableColumns)
+            $exportableColumnCodes = Stream::from($exportableColumns)
                 ->map(fn(array $column) => $column['code'] ?? '')
                 ->toArray();
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $exportableColumns, $freeFieldsConfig, $freeFieldsById, $user) {
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById, $user) {
                     foreach ($dispatches as $dispatch) {
-                        $dispatchService->putDispatchLine($output, $dispatch, $exportableColumns, $freeFieldsConfig, $freeFieldsById, $user);
+                        $dispatchService->putDispatchLine($output, $dispatch, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById, $user);
                     }
                 },
                 'export_acheminements.csv',
