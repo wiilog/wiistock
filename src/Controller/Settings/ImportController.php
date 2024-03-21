@@ -20,6 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use WiiCommon\Helper\StringHelper;
@@ -273,8 +274,13 @@ class ImportController extends AbstractController
                                    EntityManagerInterface $entityManager,
                                    CSVExportService       $CSVExportService,
                                    ImportService          $importService): Response {
+        $entityLabel = Import::ENTITY_LABEL[$entity] ?? null;
+        if (!$entityLabel) {
+            throw new NotFoundHttpException("Not found template");
+        }
+
         $headers = $importService->getFieldsToAssociate($entityManager, $entity);
-        $cleanedEntityName = StringHelper::slugify(str_replace(" ","-", Import::ENTITY_LABEL[$entity]));
+        $cleanedEntityName = StringHelper::slugify(str_replace(" ","-", $entityLabel));
 
         return $CSVExportService->streamResponse(function () {}, "modele-$cleanedEntityName.csv", $headers);
     }

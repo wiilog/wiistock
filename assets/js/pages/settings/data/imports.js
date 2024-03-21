@@ -12,20 +12,6 @@ global.updateOptions = updateOptions;
 global.launchImport = launchImport;
 global.toggleImportType = toggleImportType;
 
-const TEMPLATE_LABELS = {
-    ART: `articles`,
-    REF: `références`,
-    FOU: `fournisseurs`,
-    ART_FOU: `articles fournisseurs`,
-    RECEP: `réceptions`,
-    USER: `utilisateurs`,
-    DELIVERY: `livraisons`,
-    LOCATION: `emplacements`,
-    CUSTOMER: `clients`,
-    PROJECT: `projets`,
-    REF_LOCATION: `quantités référence par emplacement`,
-};
-
 let tableImport;
 
 export function initializeImports() {
@@ -221,35 +207,48 @@ function launchImport($modal, importId, force = false) {
     }
 }
 
-function importTemplateChanged($dataTypeImport = null) {
+function importTemplateChanged($dataTypeImport) {
     const $linkToTemplate = $(`.link-to-template`);
 
     $linkToTemplate.empty();
 
-    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : ``;
+
+
+    const valTypeImport = $dataTypeImport.val();
     differentialDataToggle($dataTypeImport);
 
-    if (TEMPLATE_LABELS[valTypeImport]) {
-        const label = TEMPLATE_LABELS[valTypeImport];
+    const importTemplates = $dataTypeImport.find(`option`)
+        .map((_, option) => ({
+            value: $(option).val(),
+            text: $(option).text().trim(),
+        }))
+        .toArray()
+        .filter(Boolean);
+
+    const templateConfig = importTemplates.find(({value}) => value === valTypeImport);
+
+    if (templateConfig) {
+        const {text: label} = templateConfig;
 
         const url = Routing.generate(`import_template`, {entity: valTypeImport});
         $linkToTemplate
             .append(`
                 <div class="col-12 wii-small-text">
-                    Un <a class="underlined" href="${url}">fichier de modèle d'import</a>  est disponible pour les ${label}.
-                </div>`);
+                    Un <a class="underlined" href="${url}">fichier de modèle d'import</a> est disponible pour les ${label}.
+                </div>
+            `);
         if(valTypeImport === `USER`) {
             $linkToTemplate
-                .append(`<div class="col-12 mt-3"><i class="fas fa-question-circle"></i>
-                            <span class="wii-small-text">Les nouveaux utilisateurs seront créés avec un mot de passe aléatoire. Ils devront configurer ce dernier via la fonctionnalité "<strong>Mot de passe oublié</strong>".</span>
-                        </div>`)
+                .append(`
+                    <div class="col-12 mt-3">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="wii-small-text">Les nouveaux utilisateurs seront créés avec un mot de passe aléatoire. Ils devront configurer ce dernier via la fonctionnalité "<strong>Mot de passe oublié</strong>".</span>
+                    </div>
+                `)
         }
     }
-    else if (valTypeImport === ``) {
-        $linkToTemplate.append(`<div class="col-12 wii-small-text">Des fichiers de modèles d'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>`);
-    }
     else {
-        $linkToTemplate.append(`<div class="col-12 wii-small-text">Aucun modèle d'import n'est disponible pour ce type de données.</div>`);
+        $linkToTemplate.append(`<div class="col-12 wii-small-text">Des fichiers de modèles d'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>`);
     }
 }
 
@@ -305,7 +304,7 @@ function toggleImportType($input) {
         }
     }
 
-    importTemplateChanged();
+    importTemplateChanged($modal.find('[entity]'));
     clearFormErrors($modal);
     $modal.find(`.attachement`).remove();
     $modal.find(`.isRight`).removeClass(`isRight`);
