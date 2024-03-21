@@ -123,6 +123,10 @@ class ImportService
             "dangerousGoods",
             "onuCode",
             "productClass",
+            "supplierName",
+            "supplierCode",
+            "supplierArticleReference",
+            "supplierArticleLabel",
         ],
         Import::ENTITY_FOU => [
             'nom',
@@ -995,6 +999,7 @@ class ImportService
                 $refArt->setLibelle($data['libelle']);
             }
         }
+
         if (isset($data['needsMobileSync'])) {
             $value = strtolower($data['needsMobileSync']);
             if ($value !== 'oui' && $value !== 'non') {
@@ -1225,6 +1230,39 @@ class ImportService
             ->find(fn(string $type) => !in_array($type, $this->scalarCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
         if (!empty($invalidAssociatedDocumentType)) {
             throw new ImportException("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
+        }
+
+        $supplierStream = Stream::from(["supplierName", "supplierCode", "supplierArticleReference", "supplierArticleLabel"]);
+        if ($supplierStream->some(static fn($field) => isset($data[$field]))) {
+
+            $missingFields = $supplierStream->filter(static fn(string $field) => !isset($data[$field]));
+            if(!$missingFields->isEmpty()) {
+                $joinedFields = $missingFields
+                    ->map(static fn(string $field) => Import::FIELDS_ENTITY["default"][$field])
+                    ->join(", ");
+
+                $start = $missingFields->count() > 1
+                    ? "Les champs $joinedFields sont"
+                    : "Le champ $joinedFields est";
+
+                throw new ImportException("$start requis pour pouvoir ajouter un article fournisseur sur la référence.");
+            }
+
+            $supplierArticleReference = $data["supplierArticleReference"];
+            try {
+                $this->articleFournisseurService->createArticleFournisseur([
+                    "fournisseur" => $data["supplierCode"],
+                    "article-reference" => $refArt,
+                    "label" => $data["supplierArticleLabel"],
+                    "reference" => $supplierArticleReference,
+                ], false, $this->entityManager);
+            } catch (Throwable $throwable) {
+                if ($throwable->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                    throw new ImportException("La référence $supplierArticleReference existe déjà pour un article fournisseur.");
+                } else {
+                    throw $throwable;
+                }
+            }
         }
 
         $description = [
