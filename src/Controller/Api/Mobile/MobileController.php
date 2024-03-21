@@ -3776,11 +3776,11 @@ class MobileController extends AbstractApiController
                         $refArticle,
                         MouvementStock::TYPE_ENTREE
                     );
-                    $mouvementStockService->finishStockMovement(
-                        $mvtStock,
-                        $date,
-                        $refArticle->getEmplacement()
-                    );
+
+                    $refArticle
+                        ->setEditedBy($this->getUser())
+                        ->setEditedAt($date);
+                    $mvtStock->setEmplacementTo($refArticle->getEmplacement());
                     $entityManager->persist($mvtStock);
                 }
             } else if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
