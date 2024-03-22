@@ -7,7 +7,7 @@ $(function () {
         $modalNewMvtTraca.find('[name=pack]').trigger('change');
     })
 
-    $($modalNewMvtTraca).arrive('select[name=pack]', function() {
+    $modalNewMvtTraca.arrive('select[name=pack]', function() {
         const $warningMessage = $modalNewMvtTraca.find('.warning-message');
         const $select = $(this);
         let $locationSelect = $modalNewMvtTraca.find('[name=emplacement-prise]');
@@ -29,7 +29,7 @@ $(function () {
             {});
     });
 
-    $($modalNewMvtTraca).arrive('input[name=pack]', function() {
+    $modalNewMvtTraca.arrive('input[name=pack]', function() {
         const $warningMessage = $modalNewMvtTraca.find('.warning-message');
         const $input = $(this);
         let $locationSelect = $modalNewMvtTraca.find('[name=emplacement]');
