@@ -399,7 +399,9 @@ class ProductionRequestController extends AbstractController
         $inputBag = new InputBag([
             FixedFieldEnum::status->name => $request->request->get(FixedFieldEnum::status->name),
             FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
-            'savedFiles' => $request->request->all('savedFiles', []),
+            'files' => $request->request->has('savedFiles')
+                ? $request->request->all('savedFiles')
+                : [],
         ]);
 
         $oldStatus = $productionRequest->getStatus();

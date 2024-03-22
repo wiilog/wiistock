@@ -230,9 +230,12 @@ class ProductionRequestService
         }
 
         $attachments = $productionRequest->getAttachments()->toArray();
+        $alreadySavedFiles = $data->has('files')
+            ? $data->all('files')
+            : [];
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
-            if($data->has('savedFiles') && !in_array($attachment->getId(), $data->all('savedFiles'))) {
+            if(!in_array($attachment->getId(), $alreadySavedFiles)) {
                 $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
             }
         }
