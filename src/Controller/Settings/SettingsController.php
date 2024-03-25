@@ -56,6 +56,7 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\DispatchService;
+use App\Service\ExceptionLoggerService;
 use App\Service\FormService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -3484,21 +3485,23 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/trigger-reminder-emails", name="trigger_reminder_emails", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
-    public function triggerReminderEmails(EntityManagerInterface $manager, PackService $packService): Response {
+    #[Route("/trigger-reminder-emails", name: "trigger_reminder_emails", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    public function triggerReminderEmails(EntityManagerInterface $manager,
+                                          PackService $packService,
+                                          ExceptionLoggerService $loggerService,
+                                          Request $request): Response {
         try {
             $packService->launchPackDeliveryReminder($manager);
             $response = [
                 'success' => true,
                 'msg' => "Les mails de relance ont bien été envoyés",
             ];
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
             $response = [
                 'success' => false,
                 'msg' => "Une erreur est survenue lors de l'envoi des mails de relance",
             ];
+            $loggerService->sendLog($exception, $request);
         }
 
         return $this->json($response);
