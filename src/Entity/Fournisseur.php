@@ -48,6 +48,19 @@ class Fournisseur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'provider')]
     private Collection $emergencies;
 
+    #[ORM\Column(type:'text', nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(type:'string', length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(type:'string', length: 255, nullable: true)]
+    private ?string $phoneNumber = null;
+
+    #[ORM\ManyToOne(inversedBy: 'receivers')]
+    private ?Utilisateur $receiver = null;
+
+
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -311,6 +324,51 @@ class Fournisseur {
         return $this;
     }
 
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): void
+    {
+        $this->address = $address;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): void
+    {
+        $this->email = $email;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): void
+    {
+        $this->phoneNumber = $phoneNumber;
+    }
+
+    public function getReceiver(): ?Utilisateur
+    {
+        return $this->receiver;
+    }
+
+    public function setReceiver(?Utilisateur $receiver): self {
+        if($this->receiver && $this->receiver !== $receiver) {
+            $this->receiver->removeReceiver($this);
+        }
+        $this->receiver = $receiver;
+        $receiver?->addReceiver($this);
+
+        return $this;
+    }
+
     public function serialize(): array {
         return [
             'name' => $this->getNom(),
@@ -319,5 +377,4 @@ class Fournisseur {
             'urgent' => FormatHelper::bool($this->isUrgent()),
         ];
     }
-
 }

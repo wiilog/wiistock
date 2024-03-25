@@ -331,6 +331,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ProductionRequest::class)]
     private Collection $createdProductionRequests;
 
+    #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Fournisseur::class)]
+    private Collection $receivers;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -379,6 +382,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
         $this->treatedProductionRequests = new ArrayCollection();
         $this->createdProductionRequests = new ArrayCollection();
+        $this->receivers = new ArrayCollection();
     }
 
     public function getId() {
@@ -2069,5 +2073,37 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Fournisseur>
+     */
+    public function getReceivers(): Collection
+    {
+        return $this->receivers;
+    }
+
+    public function addReceiver(Fournisseur $receiver): static
+    {
+        if (!$this->receivers->contains($receiver)) {
+            $this->receivers->add($receiver);
+            $receiver->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceiver(Fournisseur $receiver): static
+    {
+        if ($this->receivers->removeElement($receiver)) {
+            // set the owning side to null (unless already changed)
+            if ($receiver->getReceiver() === $this) {
+                $receiver->setReceiver(null);
+            }
+        }
+
+        return $this;
+    }
+
+
 
 }
