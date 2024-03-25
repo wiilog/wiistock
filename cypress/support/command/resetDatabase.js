@@ -38,6 +38,10 @@ Cypress.Commands.add(
                 cy.doctrineSchemaUpdate();
                 //load fixtures
                 cy.doctrineFixturesLoad();
+                //clear cache before build
+                cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /var/www/bin/console app:cache:clear'`);
+                //fixtures fixed fields
+                cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /var/www/bin/console app:update:fixed-fields'`);
                  // build assets
                 cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
             }

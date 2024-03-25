@@ -20,7 +20,12 @@
                             {{ form.select('fournisseur', 'Fournisseur', supplierRequired, {
                                 type: 'provider',
                                 multiple: false,
-                                items: fournisseurs|map((supplier) => {value: supplier.id, label: supplier.nom, selected: (keptFields[supplierFieldCode] ?? null) == supplier.id, 'possible-customs': supplier.possibleCustoms ? 1:0}),
+                                items: fournisseurs|map((supplier) => {
+                                    value: supplier.id,
+                                    label: supplier.nom,
+                                    selected: (keptFields[supplierFieldCode] ?? null) == supplier.id,
+                                    'possible-customs': supplier.possibleCustoms ? 1:0
+                                }),
                             }) }}
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
@@ -288,11 +293,13 @@
                             {% set defaultLocation = defaultLocation ?? null %}
                             {{ form.select('dropLocation', 'Emplacement de dépose', dropLocationRequired, {
                                 type: 'location',
-                                emptyOption: {
-                                    text: keptDropLocation ? keptDropLocation.label : (defaultLocation ? defaultLocation.label : ''),
-                                    value: keptDropLocation ? keptDropLocation.id : (defaultLocation ? defaultLocation.id : ''),
-                                    selected: ((defaultLocation is defined and defaultLocation != null) or keptDropLocation) ? true : false,
-                                }
+                                items: keptDropLocation or defaultLocation
+                                    ? [{
+                                        label: keptDropLocation.label ?? defaultLocation.label,
+                                        value: keptDropLocation.id ?? defaultLocation.id,
+                                        selected: true,
+                                    }]
+                                    : [],
                             }) }}
                         </div>
                     {% endif %}

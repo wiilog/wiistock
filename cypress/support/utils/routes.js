@@ -24,7 +24,7 @@ export const routes = {
     },
     location_api_new: {
         method: 'GET',
-        route: '/emplacement/api-new',
+        route: '/emplacement/form',
         alias: 'location_api_new'
     },
     emplacement_edit: {
@@ -79,17 +79,17 @@ export const routes = {
     },
     nature_api: {
         method: 'POST',
-        route: '/nature-unite-logistique/api',
+        route: '/nature/api',
         alias: 'nature_api'
     },
     nature_new: {
         method: 'POST',
-        route: '/nature-unite-logistique/creer',
+        route: '/nature/new',
         alias: 'nature_new'
     },
     nature_edit: {
         method: 'POST',
-        route: '/nature-unite-logistique/modifier',
+        route: '/natureedit',
         alias: 'nature_edit'
     },
     vehicule_api: {

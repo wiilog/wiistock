@@ -69,9 +69,14 @@ Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId, intercepto
     let buttonSelector = `${modalId} button#${submitButtonId}`;
 
     // If searchWithSubmitType is true, search for submit button based on type=submit attribute
-    searchWithSubmitType ? buttonSelector = `${modalId} button[type=submit]` : buttonSelector;
+    if (searchWithSubmitType) {
+        buttonSelector = `${modalId} button[type=submit]`;
+    }
 
-    customId ? buttonSelector = customId : buttonSelector;
+    // If customId is provided, use it as the button selector
+    if (customId) {
+        buttonSelector = customId;
+    }
 
     cy.get(buttonSelector).click().wait(`@${interceptorAlias}`).then((xhr) => {
         expect(xhr.response.statusCode).to.equal(200);

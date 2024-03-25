@@ -20,10 +20,10 @@
 <div class="form-group">
     {{ form.select('transporteur', 'Transporteur', false, {
         type: 'carrier',
-        items: [{
+        items: transporteur ? [{
             value: transporteur.id,
             label: transporteur.label,
             selected: true
-        }]
+        }] : []
     } ) }}
 </div>

@@ -48,8 +48,8 @@ jobs:
             -   name: Change db string URL .env.local
                 run: sed -i 's/root@127\.0\.0\.1:3306/root:example@mysql:3306/g' projects/wiistock/.env.local
 
-            -   name: Change APP_ENV=prod to APP_ENV=dev
-                run: sed -i 's/APP_ENV=prod/APP_ENV=dev/g' projects/wiistock/.env.local
+            -   name: Change APP_ENV= to APP_ENV=dev
+                run: sed -i 's/APP_ENV=.*/APP_ENV=dev/g' projects/wiistock/.env.local
 
             -   name: Add generated.yaml to wiistock
                 run: |

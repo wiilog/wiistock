@@ -102,9 +102,33 @@
         </div>
     </div>
 
-    {% include "emplacement/modalDeleteEmplacement.html.twig" %}
-    {% include "emplacement/modalEditEmplacement.html.twig" %}
-    {% include "emplacement/modalNewEmplacement.html.twig" %}
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalNewLocation',
+        size: 'modal-lg',
+        header: {
+            title: "Nouvel emplacement",
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'},
+            ],
+        }
+    } %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditLocation',
+        size: 'modal-lg',
+        header: {
+            title: "Modifier un emplacement"
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
+            ],
+        }
+    } %}
 
     {% include "location_group/new.html.twig" %}
     {% include "location_group/edit.html.twig" %}
@@ -116,5 +140,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/emplacement.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('location-index') }}
 {% endblock %}

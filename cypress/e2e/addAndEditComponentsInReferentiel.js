@@ -28,14 +28,14 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     })
 
     it('should add a new location', () => {
-        const selectorModal = '#modalNewEmplacement';
+        const selectorModal = '#modalNewLocation';
         const newLocation = {
-            label: 'STOCK',
+            name: 'STOCK',
             description: 'Non défini',
             zone: 'Activité Standard',
         }
         const propertiesMap = {
-            'Nom': 'label',
+            'Nom': 'name',
             'Description': 'description',
             'Zone': 'zone',
         }
@@ -51,13 +51,13 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
             cy.select2Ajax('zone', newLocation.zone);
 
             // Close and verify modal
-            cy.closeAndVerifyModal(selectorModal, 'submitNewEmplacement', 'emplacement_new');
+            cy.closeAndVerifyModal(selectorModal, null, 'emplacement_new',true);
 
             // Wait for the datatable to be reloaded
             cy.wait('@emplacement_api');
 
             // Check data in datatable
-            cy.checkDataInDatatable(newLocation, 'label', 'locationsTable', propertiesMap);
+            cy.checkDataInDatatable(newLocation, 'name', 'locationsTable', propertiesMap);
         });
 
         // Ensure modal is not visible
@@ -71,17 +71,17 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         const locationToEdit = ['EMPLACEMENT', 'ZONE 41']
 
         const newLocations = [{
-            label: 'ZONE 007',
+            name: 'ZONE 007',
             description: 'Cypress',
             zone: 'Activité Standard',
         }, {
-            label: 'LABO 666',
+            name: 'LABO 666',
             description: 'Cypress',
             zone: 'Activité Standard',
         }]
 
         const propertiesMap = {
-            'Nom': 'label',
+            'Nom': 'name',
             'Description': 'description',
             'Zone': 'zone',
         }
@@ -91,7 +91,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         }
 
         const editLocation = (locationToEditName, newLocationData) => {
-            const selectorModal = '#modalEditEmplacement';
+            const selectorModal = '#modalEditLocation';
             // Click on the location to edit
             cy.clickOnRowInDatatable('locationsTable', locationToEditName);
             cy.get(selectorModal).should('be.visible');
@@ -101,11 +101,11 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
             cy.select2Ajax('zone', newLocationData.zone);
 
             // Submit the form
-            cy.closeAndVerifyModal(selectorModal, 'submitEditEmplacement', 'emplacement_edit');
+            cy.closeAndVerifyModal(selectorModal, null, 'emplacement_edit', true);
             cy.wait('@emplacement_api');
 
             // Check all data in datatable are correct after edit
-            cy.checkDataInDatatable(newLocationData, 'label', 'locationsTable', propertiesMap);
+            cy.checkDataInDatatable(newLocationData, 'name', 'locationsTable', propertiesMap);
         };
 
         locationToEdit.forEach((locationToEditName, index) => {
@@ -498,7 +498,7 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
         cy.login(user);
         cy.visit('/');
-        cy.navigateInNavMenu('referentiel', 'nature_param_index');
+        cy.navigateInNavMenu('referentiel', 'nature_index');
     })
 
     it('should add a new nature', () => {

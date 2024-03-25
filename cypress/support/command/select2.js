@@ -3,41 +3,25 @@ import {defaultTypeSpeed} from '../utils/constants';
 Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldClick = true, requestAlias = '/select/*', shouldWait = true) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
-    let getName;
-    if (modalName !== '') {
-        getName = `#${modalName} [name=${selectName}]`;
-    } else {
-        getName = `[name=${selectName}]`
-    }
+    const selectorPrefix = modalName !== '' ? `#${modalName} ` : '';
+    const getName = `${selectorPrefix}[name=${selectName}]`;
 
-    if (shouldClick) {
-        cy.get(getName)
-            .siblings('.select2')
-            .click()
-            .parents()
-            .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
-            .type(value)
-            .then(() => {
-                if (shouldWait) {
-                    cy
-                        .wait(`@${requestAlias}Request`, {timeout: 20000})
-                        .its('response.statusCode').should('eq', 200)
-                }
-            })
-    } else {
-        cy.get(getName)
-            .siblings('.select2')
-            .parents()
-            .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
-            .type(value)
-            .then(() => {
-                if (shouldWait) {
-                    cy
-                        .wait(`@${requestAlias}Request`, {timeout: 20000})
-                        .its('response.statusCode').should('eq', 200)
-                }
-            })
+    const select = cy.get(getName).siblings('.select2')
+
+    if(shouldClick){
+        select.click()
     }
+    select.parents()
+        .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
+        .type(value)
+        .then(() => {
+            if (shouldWait) {
+                cy
+                    .wait(`@${requestAlias}Request`, {timeout: 20000})
+                    .its('response.statusCode').should('eq', 200)
+            }
+        })
+
     cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .parents('.select2-dropdown')
         .find('.select2-results__option')

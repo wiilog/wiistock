@@ -4,13 +4,13 @@ Cypress.Commands.add('navigateInNavMenu', (menu, subMenu) => {
         .click()
         .get('.dropdown-menu')
         .should('be.visible')
-        .get(`.wii-icon-${menu}`)
+        .get(`[data-cy-container="${menu}"]`)
         .click()
         .then((element) => {
             if (subMenu === undefined) {
                 return;
             }
-            cy.get(`nav .dropdown-menu .wii-icon-${menu}`)
+            cy.get(`nav [data-cy-icon="${menu}"`)
                 .parents('.dropdown-item-sub')
                 .siblings('.dropdown-menu.dropdown-menu-sub')
                 .should('be.visible')
