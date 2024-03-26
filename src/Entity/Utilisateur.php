@@ -2070,11 +2070,4 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    /**
-     * @return Collection<int, Fournisseur>
-     */
-    public function getReceivers(): Collection
-    {
-        return $this->receivers;
-    }
 }
