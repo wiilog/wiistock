@@ -229,6 +229,23 @@ class ProductionRequestService
             }
         }
 
+        $attachments = $productionRequest->getAttachments()->toArray();
+        $alreadySavedFiles = $data->has('files')
+            ? $data->all('files')
+            : [];
+        foreach($attachments as $attachment) {
+            /** @var Attachment $attachment */
+            if(!in_array($attachment->getId(), $alreadySavedFiles)) {
+                $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
+            }
+        }
+
+        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
+
+        if ($productionRequest->getAttachments()->isEmpty() && $productionRequest->getStatus()->isRequiredAttachment()) {
+            throw new FormException("Vous devez ajouter une pièce jointe pour passer à ce statut");
+        }
+
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
             $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
         } else {
@@ -269,16 +286,6 @@ class ProductionRequestService
         }
 
         $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
-
-        $attachments = $productionRequest->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if($data->has('files') && !in_array($attachment->getId(), $data->all('files'))) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
-            }
-        }
-
-        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
 
         $this->persistHistoryRecords(
             $entityManager,
