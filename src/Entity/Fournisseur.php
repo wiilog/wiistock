@@ -6,6 +6,7 @@ use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FournisseurRepository::class)]
@@ -48,10 +49,10 @@ class Fournisseur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'provider')]
     private Collection $emergencies;
 
-    #[ORM\Column(type:'text', nullable: true)]
+    #[ORM\Column(type:Types::TEXT, nullable: true)]
     private ?string $address = null;
 
-    #[ORM\Column(type:'string', length: 255, nullable: true)]
+    #[ORM\Column(type:Types::STRING, length: 255, nullable: true)]
     private ?string $email = null;
 
     #[ORM\Column(type:'string', length: 255, nullable: true)]
@@ -329,9 +330,10 @@ class Fournisseur {
         return $this->address;
     }
 
-    public function setAddress(?string $address): void
+    public function setAddress(?string $address): self
     {
         $this->address = $address;
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -339,9 +341,10 @@ class Fournisseur {
         return $this->email;
     }
 
-    public function setEmail(?string $email): void
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
+        return $this;
     }
 
     public function getPhoneNumber(): ?string
@@ -349,9 +352,10 @@ class Fournisseur {
         return $this->phoneNumber;
     }
 
-    public function setPhoneNumber(?string $phoneNumber): void
+    public function setPhoneNumber(?string $phoneNumber): self
     {
         $this->phoneNumber = $phoneNumber;
+        return $this;
     }
 
     public function getReceiver(): ?Utilisateur

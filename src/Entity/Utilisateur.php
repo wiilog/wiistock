@@ -331,10 +331,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ProductionRequest::class)]
     private Collection $createdProductionRequests;
 
-    #[ORM\OneToMany(mappedBy: 'receiver', targetEntity: Fournisseur::class)]
-    private Collection $receivers;
-
-
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
