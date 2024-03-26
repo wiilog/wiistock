@@ -363,13 +363,9 @@ class Fournisseur {
         return $this->receiver;
     }
 
-    public function setReceiver(?Utilisateur $receiver): self {
-        if($this->receiver && $this->receiver !== $receiver) {
-            $this->receiver->removeReceiver($this);
-        }
+    public function setReceiver(?Utilisateur $receiver): self
+    {
         $this->receiver = $receiver;
-        $receiver?->addReceiver($this);
-
         return $this;
     }
 

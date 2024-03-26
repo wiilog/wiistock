@@ -20,6 +20,7 @@ use App\Service\MailerService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\EquatableInterface;
@@ -89,22 +90,22 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     #[Assert\NotBlank(message: 'Le champ ne peut pas être vide.')]
     private ?string $username = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     #[Assert\NotBlank(message: 'Le champ ne peut pas être vide.')]
     #[Assert\Email(message: "Le format de l'adresse email n'est pas valide.")]
     private ?string $email = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type:Types::STRING, length: 255)]
     private ?string $password = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type:Types::STRING, length: 255, nullable: true)]
     private ?string $signatoryPassword = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type:Types::STRING, length: 255, nullable: true)]
     private ?string $token = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: FiltreSup::class)]
@@ -114,19 +115,19 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[Assert\NotBlank(message: 'Le champ ne peut pas être vide.')]
     private ?string $plainPassword = null;
 
-    #[ORM\Column(type: 'array')]
+    #[ORM\Column(type: Types::ARRAY)]
     private ?array $roles;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: Types::BOOLEAN)]
     private ?bool $status = null;
 
     #[ORM\ManyToOne(targetEntity: 'Role', inversedBy: 'users')]
     private ?Role $role = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $lastLogin = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $address = null;
 
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Reception::class)]
@@ -147,7 +148,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $mobileLoginKey = null;
 
     #[ORM\OneToMany(mappedBy: 'requester', targetEntity: Handling::class)]
@@ -180,7 +181,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Arrivage::class)]
     private Collection $arrivagesUtilisateur;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $recherche;
 
     #[ORM\ManyToMany(targetEntity: Type::class, inversedBy: 'deliveryUsers')]
@@ -210,22 +211,22 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $rechercheForArticle;
 
-    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
+    #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true])]
     private ?int $pageLengthForArrivage = 100;
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: Types::JSON)]
     private ?array $savedDispatchDeliveryNoteData = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: Types::JSON)]
     private ?array $savedDeliveryDeliveryNoteData = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: Types::JSON)]
     private ?array $savedDispatchWaybillData = [];
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: Types::JSON)]
     private ?array $savedDeliveryWaybillData = [];
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $phone = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'utilisateurs')]
@@ -237,7 +238,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'userThatTriggeredEmergency', targetEntity: ReferenceArticle::class)]
     private Collection $referencesEmergenciesTriggered;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $secondaryEmails = [];
 
     #[ORM\OneToMany(mappedBy: 'reporter', targetEntity: Dispute::class)]
@@ -274,28 +275,28 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToMany(targetEntity: VisibilityGroup::class, mappedBy: 'users')]
     private Collection $visibilityGroups;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $columnsOrder = [];
 
-    #[ORM\Column(type: 'array', nullable: true)]
+    #[ORM\Column(type: Types::ARRAY, nullable: true)]
     private ?array $searches = [];
 
-    #[ORM\Column(type: 'array', nullable: true)]
+    #[ORM\Column(type: Types::ARRAY, nullable: true)]
     private ?array $pageIndexes = [];
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $visibleColumns;
 
     #[ORM\OneToOne(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
     private ?Vehicle $vehicle = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $dateFormat = null;
 
     #[ORM\ManyToOne(targetEntity: Language::class)]
     private ?Language $language = null;
 
-    #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private ?bool $deliverer = false;
 
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: TransportRequest::class)]
@@ -313,7 +314,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptFieldValue::class)]
     private Collection $keptFieldValues;
 
-    #[ORM\Column(type: "boolean", nullable: false, options: ["default" => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private ?bool $kioskUser = false;
 
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
@@ -322,7 +323,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $dispatchBusinessUnit = null;
 
     #[ORM\OneToMany(mappedBy: 'treatedBy', targetEntity: ProductionRequest::class)]
@@ -2077,29 +2078,4 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     {
         return $this->receivers;
     }
-
-    public function addReceiver(Fournisseur $receiver): static
-    {
-        if (!$this->receivers->contains($receiver)) {
-            $this->receivers->add($receiver);
-            $receiver->setReceiver($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReceiver(Fournisseur $receiver): static
-    {
-        if ($this->receivers->removeElement($receiver)) {
-            // set the owning side to null (unless already changed)
-            if ($receiver->getReceiver() === $this) {
-                $receiver->setReceiver(null);
-            }
-        }
-
-        return $this;
-    }
-
-
-
 }
