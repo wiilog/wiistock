@@ -1076,6 +1076,7 @@ class ReferenceArticleController extends AbstractController
                 ->setLibelle($data['label'])
                 ->setCreatedBy($userRepository->getKioskUser())
                 ->setCreatedAt(new DateTime())
+                ->setBarCode($refArticleDataService->generateBarCode())
                 ->setStatut($status)
                 ->setType($type)
                 ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);;
