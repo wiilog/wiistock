@@ -2755,13 +2755,13 @@ class MobileController extends AbstractApiController
             }
         }
 
+        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
+        ArticleQuantityNotifier::$disableArticleUpdate = true;
+        ArticleQuantityNotifier::$referenceArticlesUpdating = true;
+
         $entityManager->flush();
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
-
-
-        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
-        ArticleQuantityNotifier::$disableArticleUpdate = true;
 
         $this->mobileApiService->treatInventoryArticles($entityManager, $articlesOnLocations, $tags, $validator, $now);
 
@@ -2774,6 +2774,7 @@ class MobileController extends AbstractApiController
 
         RefArticleQuantityNotifier::$disableReferenceUpdate = false;
         ArticleQuantityNotifier::$disableArticleUpdate = false;
+        ArticleQuantityNotifier::$referenceArticlesUpdating = false;
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
