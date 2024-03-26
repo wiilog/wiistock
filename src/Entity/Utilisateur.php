@@ -379,7 +379,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
         $this->treatedProductionRequests = new ArrayCollection();
         $this->createdProductionRequests = new ArrayCollection();
-        $this->receivers = new ArrayCollection();
     }
 
     public function getId() {
