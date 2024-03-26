@@ -1,20 +1,15 @@
 import '@styles/planning.scss';
 import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
-import AJAX, {POST, PUT} from "@app/ajax";
+import AJAX, {PUT} from "@app/ajax";
 import Planning from "@app/planning";
-import Form from "@app/form";
-import Modal from "@app/modal";
 import moment from "moment";
-import Camera from "@app/camera";
+import {openModalUpdateProductionRequestStatus} from '@app/pages/production/form';
 import {getUserFiltersByPage} from '@app/utils';
 
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 
 global.callbackSaveFilter = callbackSaveFilter;
-global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequestStatus;
-
-const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
 
 let planning = null;
 let external = null;
@@ -41,6 +36,14 @@ $(function () {
     if(external) {
         initPlanningRefresh();
     }
+    const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
+
+    $(document).on('click', '.open-modal-update-production-request-status', $modalUpdateProductionRequestStatus, (event) => {
+        const productionRequest = $(event.target).closest(`a`).data(`id`);
+        openModalUpdateProductionRequestStatus($(this), $modalUpdateProductionRequestStatus, productionRequest, () => {
+            planning.fetch();
+        })
+    });
 });
 
 function callbackSaveFilter() {
@@ -200,39 +203,6 @@ function initializePlanningNavigation() {
 function changeNavigationButtonStates() {
     $(`.today-date`)
         .prop(`disabled`, moment().week() === planning.baseDate.week());
-}
-
-function openModalUpdateProductionRequestStatus($container){
-    const productionRequest = $container.closest(`a`).data(`id`);
-    Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
-        .clearOpenListeners()
-        .onOpen(() => {
-            Modal.load(`production_request_planning_update_status_content`,
-                {
-                    productionRequest,
-                },
-                $modalUpdateProductionRequestStatus,
-                $modalUpdateProductionRequestStatus.find(`.modal-body`),
-                {
-                    onOpen: () => {
-                        Camera.init(
-                            $modalUpdateProductionRequestStatus.find(`.take-picture-modal-button`),
-                            $modalUpdateProductionRequestStatus.find(`[name="files[]"]`)
-                        );
-                    },
-                },
-            );
-        })
-        .submitTo(POST, `production_request_planning_update_status`, {
-            routeParams: {
-                productionRequest,
-            },
-            success: () => {
-                planning.fetch();
-            }
-        });
-
-    $modalUpdateProductionRequestStatus.modal(`show`);
 }
 
 function initPlanningRefresh() {

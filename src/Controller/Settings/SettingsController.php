@@ -879,8 +879,8 @@ class SettingsController extends AbstractController {
             $defaultLanguage->setSelected(true);
             $manager->flush();
 
-            $cacheService->delete(CacheService::LANGUAGES);
-            $cacheService->delete(CacheService::TRANSLATIONS);
+            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
+            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -928,8 +928,8 @@ class SettingsController extends AbstractController {
             $manager->remove($language);
             $manager->flush();
 
-            $cacheService->delete(CacheService::LANGUAGES);
-            $cacheService->delete(CacheService::TRANSLATIONS);
+            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
+            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -943,9 +943,10 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function saveTranslationApi(EntityManagerInterface $manager,
-                                       Request $request,
-                                       AttachmentService $attachmentService,
-                                       CacheService $cacheService ): Response {
+                                       Request                $request,
+                                       AttachmentService      $attachmentService,
+                                       SettingsService        $settingsService,
+                                       CacheService           $cacheService): Response {
         $data = $request->request;
         $file = $request->files;
         $languageRepository = $manager->getRepository(Language::class);
@@ -1003,8 +1004,10 @@ class SettingsController extends AbstractController {
 
         $manager->flush();
 
-        $cacheService->delete(CacheService::LANGUAGES);
-        $cacheService->delete(CacheService::TRANSLATIONS);
+        $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
+        $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+
+        $settingsService->getTimestamp(true);
 
         return $this->json([
             "success" => true,
@@ -1077,6 +1080,7 @@ class SettingsController extends AbstractController {
                 "label" => $type->getLabel(),
                 "value" => $type->getId(),
                 "iconUrl" => $type->getLogo()?->getFullPath(),
+                "color" => $type->getColor(),
             ])
             ->toArray();
 
@@ -1773,9 +1777,11 @@ class SettingsController extends AbstractController {
      * @Route("/enregistrer", name="settings_save", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function save(Request $request): Response {
+    public function save(Request $request,
+                         EntityManagerInterface $entityManager,
+                         SettingsService $settingsService): Response {
         try {
-            $result = $this->service->save($request);
+            $result = $settingsService->save($entityManager, $request);
         } catch (RuntimeException $exception) {
             return $this->json([
                 "success" => false,
@@ -1788,7 +1794,7 @@ class SettingsController extends AbstractController {
                 "success" => true,
                 "msg" => "Les nouveaux paramétrages ont été enregistrés",
             ],
-            $result ?? [],
+            $result,
         ));
     }
 
@@ -2313,6 +2319,13 @@ class SettingsController extends AbstractController {
                     ]),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
+                $data[] = [
+                    "label" => "Les statuts de ce type sont réutilisables",
+                    "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type ? $type->hasReusableStatuses() : true),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2424,6 +2437,13 @@ class SettingsController extends AbstractController {
                     "value" => $this->formatService->bool($type->isDefault()) ?: "Non",
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
+                $data[] = [
+                    "label" => "Les statuts de ce type sont réutilisables",
+                    "value" => $this->formatService->bool($type->hasReusableStatuses(), "Non"),
+                ];
+            }
         }
 
         return $this->json([
@@ -2533,6 +2553,7 @@ class SettingsController extends AbstractController {
             if ($edit) {
                 $displayedCreate = $freeField->getDisplayedCreate() ? "checked" : "";
                 $requiredCreate = $freeField->isRequiredCreate() ? "checked" : "";
+                $displayedEdit = $freeField->getDisplayedEdit() ? "checked" : "";
                 $requiredEdit = $freeField->isRequiredEdit() ? "checked" : "";
                 $elements = join(";", $freeField->getElements());
 
@@ -2552,6 +2573,7 @@ class SettingsController extends AbstractController {
                     "type" => $typageCLFr,
                     "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "defaultValue" => "<form>$defaultValue</form>",
                     "elements" => in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])
@@ -2569,11 +2591,13 @@ class SettingsController extends AbstractController {
                     "id" => $freeField->getId(),
                     "actions" => "<button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
                     "label" => $freeField->getLabel() ?: 'Non défini',
-                    "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()
-                        ->getLabel()) : "",
+                    "appliesTo" => $freeField->getCategorieCL()
+                        ? ucfirst($freeField->getCategorieCL()->getLabel())
+                        : "",
                     "type" => $typageCLFr,
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
                     "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
+                    "displayedEdit" => ($freeField->getDisplayedEdit() ? "oui" : "non"),
                     "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
                     "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
@@ -2594,6 +2618,7 @@ class SettingsController extends AbstractController {
                 "appliesTo" => "",
                 "type" => "",
                 "displayedCreate" => "",
+                "displayedEdit" => "",
                 "requiredCreate" => "",
                 "requiredEdit" => "",
                 "defaultValue" => "",
@@ -3460,38 +3485,6 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
-    public function saveTranslations(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        TranslationService $translationService,
-        CacheService $cacheService
-    ): Response {
-        if ($translations = json_decode($request->getContent(), true)) {
-            $translationRepository = $entityManager->getRepository(Translation::class);
-            foreach ($translations as $translation) {
-                $translationObject = $translationRepository->find($translation['id']);
-                if ($translationObject) {
-                    $translationObject
-                        ->setTranslation($translation['val'] ?: null)
-                        ->setUpdated(1);
-                } else {
-                    return new JsonResponse(false);
-                }
-            }
-            $entityManager->flush();
-
-            $cacheService->clear();
-            $translationService->generateTranslationsFile();
-            $translationService->cacheClearWarmUp();
-
-            return new JsonResponse(true);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/trigger-reminder-emails", name="trigger_reminder_emails", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function triggerReminderEmails(EntityManagerInterface $manager, PackService $packService): Response {
@@ -3516,10 +3509,16 @@ class SettingsController extends AbstractController {
      */
     public function deleteRow(EntityManagerInterface $manager, SettingsService $service, string $type, int $id): Response {
         try {
-            match($type) {
-                "timeSlots" => $service->deleteTimeSlot($manager->find(CollectTimeSlot::class, $id)),
-                "startingHours" => $service->deleteStartingHour($manager->find(TransportRoundStartingHour::class, $id)),
-            };
+            switch ($type) {
+                case "timeSlots":
+                    $service->deleteTimeSlot($manager, $manager->find(CollectTimeSlot::class, $id));
+                    break;
+                case "startingHours":
+                    $service->deleteStartingHour($manager, $manager->find(TransportRoundStartingHour::class, $id));
+                    break;
+                default:
+                    break;
+            }
 
             $manager->flush();
 

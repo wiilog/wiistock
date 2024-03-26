@@ -19,7 +19,7 @@
 
 {% set assignedOrder = order is not null and order.status.code == constant('App\\Entity\\Transport\\TransportOrder::STATUS_ASSIGNED') %}
 
-<div class="modal fade"
+<div class="modal fade new-transport-request"
      role="dialog"
      data-modal-type="{{ modeEdit ? 'edit' : 'new' }}">
     <div class="modal-dialog modal-lg" role="document">

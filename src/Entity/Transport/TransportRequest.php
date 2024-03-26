@@ -327,6 +327,11 @@ abstract class TransportRequest extends StatusHistoryContainer {
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function getContact(): ?TransportRequestContact {
         return $this->contact;
     }

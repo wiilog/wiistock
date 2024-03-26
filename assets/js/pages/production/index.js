@@ -41,7 +41,9 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
-    getUserFiltersByPage(PAGE_PRODUCTION);
+    const fromDashboard = $('[name="fromDashboard"]').val() === '1';
+
+    getUserFiltersByPage(PAGE_PRODUCTION, {preventPrefillFilters: fromDashboard});
 
     $(`.export-button`).on(`click`, function () {
         exportFile(`production_request_export`, {}, {

@@ -34,7 +34,7 @@ class FixedFieldService
         return isset($config[$fieldName]) && isset($config[$fieldName][$action]) && $config[$fieldName][$action];
     }
 
-    public function filterHeaderConfig(array $config, string $entityCode, ?Type $type = null) {
+    public function filterHeaderConfig(array $config, string $entityCode, ?Type $type = null): array {
         if ($type) {
             $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
             $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))

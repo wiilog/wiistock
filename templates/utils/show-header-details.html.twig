@@ -16,7 +16,14 @@
                 )
             ) %}
 
-            {% if neededDisplay and datum.value is not null and datum.value != "" %}
+            {% if (
+                (
+                    neededDisplay
+                    or (forceDisplayFilledFields ?? false)
+                )
+                and datum.value is not null
+                and datum.value != ""
+            ) %}
                 <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-3 col-md-4 col-sm-6 col-12' }} mt-3">
                     <div class="row">
                         <div class="col-12 wii-field-name" {{ labelTitle | raw }}>{{ isRaw ? datum.label|raw : datum.label }}</div>

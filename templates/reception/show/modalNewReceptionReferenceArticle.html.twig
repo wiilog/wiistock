@@ -1,5 +1,7 @@
+{% import "form.html.twig" as form %}
+
 <div id="modalNewReceptionReferenceArticle" class="modal fade" role="dialog"
-      data-modal-type="new" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+     data-modal-type="new" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered"
          role="document">
         <div class="modal-content">
@@ -8,21 +10,17 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                <input type="hidden" class="data" name="reception" value="{{ reception.id }}"/>
                 <div class="row">
                     <div class="form-group col-xl-6 col-12">
                         <div class="row no-gutters align-items-end">
                             <div class="col">
-                                <label for="reception-add-ligne"
-                                       title="référence"
-                                       class="wii-field-name">
-                                    {{ trans('Stock', 'Références', 'référence', false) }}*
-                                </label>
-                                <select class="ajax-autocomplete w-100 data form-control needed wii-field-text"
-                                        onchange="articleChanged($(this))"
-                                        id="reception-add-ligne"
-                                        name="referenceArticle">
-                                </select>
+                                {{ form.select("referenceArticle", trans('Stock', 'Références', 'référence'), true, {
+                                    type: "reference",
+                                    attributes: {
+                                        onchange: "articleChanged($(this))",
+                                        "data-other-params-active-only": 1,
+                                    }
+                                }) }}
                             </div>
 
                             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
@@ -38,14 +36,14 @@
                     </div>
                     {% if reception.hasPacks %}
                         <div class="form-group col-xl-6 col-12">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
-                            <select class="ajax-autocomplete w-100 data form-control wii-field-text"
-                                    name="pack"
-                                    data-s2="receptionLogisticUnits"
-                                    data-other-params
-                                    data-other-params-all="1"
-                                    data-other-params-reception="{{ reception.id }}">
-                            </select>
+                            {{ form.select("pack", trans('Traçabilité', 'Général', 'Unité logistique'), false, {
+                                type: "receptionLogisticUnits",
+                                attributes: {
+                                    "data-other-params": "",
+                                    "data-other-params-all": "1",
+                                    "data-other-params-reception": reception.id,
+                                },
+                            }) }}
                         </div>
                     {% endif %}
                     <div id='innerNewRef'
@@ -57,55 +55,49 @@
                         <div class="form-group col-12 emergency d-none">
                             <h1 class="my-0"><i class="fa fa-exclamation-triangle mr-2"></i>Cette référence est en URGENCE.</h1>
                             <div class="form-group commentOverflow h-100 mw-50 text-justify mw-75">
-                                <p class="pl-0">Commentaire de l'urgence : <div class="emergency-comment"></div></p>
+                                <p class="pl-0">Commentaire de l'urgence :
+                                    <div class="emergency-comment"></div>
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group col-6">
-                        <label class="wii-field-name">Numéro de commande d'achat*</label>
+                    <div class="form-group col-md-6 col-12">
                         {% if reception.orderNumber is not empty %}
-                            <select name="commande"
-                                    id="numCommandeAchat"
-                                    class="form-control needed w-100 data">
-                                {% for orderNumber in reception.orderNumber %}
-                                    <option value="{{ orderNumber }}">{{ orderNumber }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.select("commande", "Numéro de commande d'achat", true, {
+                                items: reception.orderNumber|map((orderNumber) => {
+                                    label: orderNumber,
+                                    value: orderNumber,
+                                    selected: false,
+                                }),
+                            }) }}
                         {% else %}
-                            <input type="text"
-                                   class="form-control data needed wii-field-text"
-                                   name="commande">
+                            {{ form.input("commande", "Numéro de commande d'achat", true, null) }}
                         {% endif %}
                     </div>
-                    <div class="form-group col-6">
-                        <label class="wii-field-name">Quantité à recevoir*</label>
-                        <input type="number"
-                               class="form-control data needed wii-field-text"
-                               name="quantiteAR"
-                               min=1
-                               id="quantiteAR">
+                    <div class="form-group col-md-6 col-12">
+                        {{ form.input("quantiteAR", "Quantité à recevoir", true, null, {
+                            type: "number",
+                            min: 1,
+                        }) }}
                     </div>
-                    <div class="form-group col-6">
-                        <label class="wii-field-text">Anomalie</label>
-                        <label class="switch">
-                            <input class="checkbox"
-                                   type="checkbox"
-                                   name="anomalie">
-                            <span class="slider round"></span>
-                        </label>
+                    <div class="form-group col-md-6 col-12">
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::unitPrice') %}
+                        {{ form.input(field.name, field.value, false, null, {
+                            type: "number",
+                            min: 0,
+                            step: 0.001,
+                        }) }}
                     </div>
                     <div class="form-group col-12">
-                        <label class="wii-field-name">Commentaire</label>
-                        <div>
-                            <input id='commentaire'
-                                   class="form-control data"
-                                   name="commentaire"
-                                   type="hidden">
-                            <div class="editor-container" data-wysiwyg></div>
-                        </div>
+                        {{ form.checkbox("anomalie", "Anomalie", false) }}
+                    </div>
+                    <div class="form-group col-12">
+                        {{ form.wysiwyg("commentaire", "Commentaire", false) }}
                     </div>
                 </div>
+
+                {{ form.hidden("reception", reception.id) }}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

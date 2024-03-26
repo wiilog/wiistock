@@ -1,0 +1,9 @@
+<button onclick="clearFilters(
+            {{ page ?? '""' }},
+            {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
+            {{ callback is defined ? callback : 'null' }},
+            {{ needsDateFormatting is defined ? needsDateFormatting : 'false' }})"
+        class="btn clearFiltersBtn">
+    <span  class="text-muted">X</span>
+    <span class="text-muted">Effacer</span>
+</button>

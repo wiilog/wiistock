@@ -15,6 +15,8 @@ global.resetImage = resetImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
 global.exportFile = exportFile;
 global.getUserFiltersByPage = getUserFiltersByPage;
+global.clearFilters = clearFilters;
+global.saveFilters = saveFilters;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -205,4 +207,126 @@ export function getUserFiltersByPage(page,
                 callback();
             }
         });
+}
+
+/**
+    * Allow to clear all filters and save the new preferences
+    * All params is usefully to saveFilters function
+    * @param {string} page
+    * @param {string} tableSelector
+    * @param {function} callback
+    * @param {boolean} needsDateFormatting
+    * @return {void}
+    * @example
+    * clearFilters('page', '#table', () => {
+    *    console.log('filters cleared');
+    * }
+ **/
+function clearFilters (
+    page,
+    tableSelector,
+    callback,
+    needsDateFormatting = false
+) {
+    // function to clear datepicker
+    const clearDatePicker = ($element) => {
+        const $picker = $element.data("DateTimePicker");
+        if ($picker) {
+            $picker.clear();
+        }
+    };
+
+    // clear datepicker
+    clearDatePicker($('.filter-date-min'));
+    clearDatePicker($('.filter-date-max'));
+    clearDatePicker($('.filter-date-expected'));
+
+    // clear inputs
+    document.querySelectorAll('.filters .form-control').forEach(filter => {
+        filter.value = '';
+    });
+
+    // clear checkboxes
+    document.querySelectorAll('.filters .filter-checkbox').forEach(filter => {
+        const dateChoiseFilter = $(filter).closest('.date-choice');
+        if(dateChoiseFilter.length === 0){
+            filter.checked = false;
+        }
+    });
+
+    // clear select2
+    document.querySelectorAll('.filters .select2, .filters .filter-select2').forEach(filter => {
+        $(filter).val(null).trigger('change');
+    });
+
+    // reload datatable & reset filters preferences
+    saveFilters(page, tableSelector, callback, needsDateFormatting);
+};
+
+/**
+ * Allow to save all filters and save the new preferences
+ * @param page
+ * @param tableSelector
+ * @param callback
+ * @param needsDateFormatting
+ * @returns {JQuery.jqXHR}
+ */
+function saveFilters(page, tableSelector, callback, needsDateFormatting = false) {
+    const $table = $(tableSelector);
+    const path = Routing.generate('filter_sup_new');
+
+    const $filterDateMin = $('.filter-date-min');
+    const $filterDateMax = $('.filter-date-max');
+    const $filterDateExpected = $('.filter-date-expected');
+    const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
+    const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
+    const $filterDateExpectedPicker = $filterDateExpected.data("DateTimePicker");
+
+    if ($filterDateMinPicker) {
+        $filterDateMinPicker.format('YYYY-MM-DD');
+    }
+    if ($filterDateMaxPicker) {
+        $filterDateMaxPicker.format('YYYY-MM-DD');
+    }
+    if ($filterDateExpectedPicker) {
+        $filterDateExpectedPicker.format('YYYY-MM-DD');
+    }
+
+    let params = {
+        page,
+        ...serializeFilters($table),
+    }
+
+    let format = 'd/m/Y';
+    if (needsDateFormatting) {
+        const $userFormat = $('#userDateFormat');
+        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+    }
+    if ($filterDateMinPicker) {
+        $filterDateMinPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
+    }
+    if ($filterDateMaxPicker) {
+        $filterDateMaxPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
+    }
+    if ($filterDateExpectedPicker) {
+        $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
+    }
+
+    return $.post(path, JSON.stringify(params), function (response) {
+        if (response) {
+            if (callback) {
+                callback();
+            }
+            if (tableSelector) {
+                $(tableSelector).each(function() {
+                    const $table = $(this);
+                    if ($table && $table.DataTable && $table.is(`:visible`)) {
+                        $table.DataTable().draw();
+                    }
+                })
+            }
+        } else {
+            showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
+        }
+    }, 'json');
 }

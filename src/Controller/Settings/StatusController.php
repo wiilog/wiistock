@@ -40,9 +40,7 @@ class StatusController extends AbstractController
     const MODE_HANDLING = 'handling';
     const MODE_PRODUCTION = 'production';
 
-    /**
-     * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
-     */
+    #[Route("/statuses-api", name: "settings_statuses_api", options: ["expose" => true])]
     public function statusesApi(Request                $request,
                                 UserService            $userService,
                                 StatusService          $statusService,
@@ -110,6 +108,7 @@ class StatusController extends AbstractController
                 : "";
 
             $groupedSignatureColor = $status->getGroupedSignatureColor() ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
+            $color = $status->getColor();
             if ($edit) {
                 $stateOptions = $statusService->getStatusStatesOptions($mode, $status->getState(), true);
                 $groupedSignatureTypes = $dispatchService->getGroupedSignatureTypes($status->getGroupedSignatureType());
@@ -128,6 +127,7 @@ class StatusController extends AbstractController
                 $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
                 $displayOnSchedule = $status->isDisplayedOnSchedule() ? "checked" : "";
                 $requiredAttachment = $status->isRequiredAttachment() ? "checked" : "";
+                $preventStatusChangeWithoutDeliveryFees = $status->isPreventStatusChangeWithoutDeliveryFees() ? "checked" : "";
                 $notifiedUsers = !$status->getnotifiedUsers()->isEmpty()
                     ? Stream::from($status->getNotifiedUsers())
                         ->map(static fn(Utilisateur $user) => [
@@ -152,17 +152,10 @@ class StatusController extends AbstractController
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
                     "overconsumptionBillGenerationStatus" => "<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data' {$overconsumptionBillGenerationStatus}/></div>",
                     "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
-                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$groupedSignatureColor}' list='type-color' {$disabledMobileSyncAndColor}/>
-                        <datalist id='type-color'>
-                            <option>#D76433</option>
-                            <option>#D7B633</option>
-                            <option>#A5D733</option>
-                            <option>#33D7D1</option>
-                            <option>#33A5D7</option>
-                            <option>#3353D7</option>
-                            <option>#6433D7</option>
-                            <option>#D73353</option>
-                        </datalist>",
+                    "groupedSignatureColor" => $formService->macro("color", "color", null, false, $groupedSignatureColor, [
+                            "disabled" => $disabledMobileSyncAndColor
+                        ]),
+                    "color" => $formService->macro("color", "color", null, false, $color),
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSyncAndColor} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
@@ -173,6 +166,7 @@ class StatusController extends AbstractController
                         "items" => $notifiedUsers,
                     ]),
                     "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
+                    "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {
@@ -190,6 +184,7 @@ class StatusController extends AbstractController
                     "overconsumptionBillGenerationStatus" => $this->formatService->bool($status->getOverconsumptionBillGenerationStatus()),
                     "groupedSignatureType" => $status->getGroupedSignatureType(),
                     "groupedSignatureColor" => "<div class='dt-type-color' style='background: {$groupedSignatureColor}'></div>",
+                    "color" => "<div class='dt-type-color' style='background: {$color}'></div>",
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
@@ -198,6 +193,7 @@ class StatusController extends AbstractController
                         ->map(static fn(Utilisateur $user) => $user->getUsername())
                         ->join(", "),
                     "requiredAttachment" => $this->formatService->bool($status->isRequiredAttachment()),
+                    "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
                     "order" => $status->getDisplayOrder(),
                 ];
             }

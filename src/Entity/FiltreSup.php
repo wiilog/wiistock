@@ -112,12 +112,45 @@ class FiltreSup {
     const PAGE_PRODUCTION = "production";
     const PAGE_SHIPPING = 'shipping_request';
 
+    public const DATE_CHOICE_VALUES = [
+        ProductionRequest::class => [
+            [
+                "value" => "createdAt",
+                "label" => "Date de création",
+                "default" => true
+            ],
+            [
+                "value" => "expectedAt",
+                "label" => "Date attendue",
+            ],
+        ],
+        Dispatch::class => [
+            [
+                "value" => "creationDate",
+                "label" => "Date de création",
+                "default" => true
+            ],
+            [
+                "value" => "validationDate",
+                "label" => "Date de validation",
+            ],
+            [
+                "value" => "treatmentDate",
+                "label" => "Date de traitement",
+            ],
+            [
+                "value" => "endDate",
+                "label" => "Date d'échéances",
+            ],
+        ],
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 32)]
+    #[ORM\Column(type: 'string', length: 64)]
     private ?string $field = null;
 
     #[ORM\Column(type: 'text')]

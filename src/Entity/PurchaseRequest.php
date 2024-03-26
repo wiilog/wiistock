@@ -8,6 +8,7 @@ use App\Repository\PurchaseRequestRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -22,26 +23,29 @@ class PurchaseRequest {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: 'string', nullable: false, unique: true)]
+    #[ORM\Column(type: Types::STRING, nullable: false, unique: true)]
     private ?string $number = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $creationDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $validationDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $processingDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $considerationDate = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $deliveryFee = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'purchaseRequestRequesters')]
     #[ORM\JoinColumn(nullable: false)]
@@ -255,6 +259,18 @@ class PurchaseRequest {
     public function setSupplier(?Fournisseur $supplier): self
     {
         $this->supplier = $supplier;
+
+        return $this;
+    }
+
+    public function getDeliveryFee(): ?float
+    {
+        return $this->deliveryFee;
+    }
+
+    public function setDeliveryFee(?float $deliveryFee): self
+    {
+        $this->deliveryFee = $deliveryFee;
 
         return $this;
     }
