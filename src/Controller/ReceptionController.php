@@ -283,10 +283,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "reception_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         ReceptionService $receptionService,
                         EntityManagerInterface $entityManager): Response {
@@ -816,6 +814,7 @@ class ReceptionController extends AbstractController {
                                 . $referenceArticle->getQuantiteDisponible(),
                         ]);
                     } else {
+                        $referenceArticle->setPrixUnitaire($receptionReferenceArticle->getUnitPrice());
                         $mouvementStock = $mouvementStockService->createMouvementStock(
                             $currentUser,
                             null,
@@ -886,10 +885,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
-     */
+    #[Route("/voir/{id}", name: "reception_show", methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE])]
     public function show(EntityManagerInterface     $entityManager,
                          SettingsService            $settingsService,
                          ReceptionService           $receptionService,
@@ -1831,37 +1828,37 @@ class ReceptionController extends AbstractController {
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
                             $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
 
-                                $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                                $mouvements = $mouvementRepository->findByPreparation($preparation);
+                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                            $mouvements = $mouvementRepository->findByPreparation($preparation);
 
-                                try {
-                                    $entityManager->flush();
-                                    if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                        $this->notificationService->toTreat($delivery);
-                                    }
-                                } /** @noinspection PhpRedundantCatchClauseInspection */
-                                catch (UniqueConstraintViolationException $e) {
-                                    return new JsonResponse([
-                                        'success' => false,
-                                        'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
-                                    ]);
+                            try {
+                                $entityManager->flush();
+                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                    $this->notificationService->toTreat($delivery);
                                 }
-                                foreach ($mouvements as $mouvement) {
-                                    $preparationsManagerService->createMovementLivraison(
-                                        $entityManager,
-                                        $mouvement->getQuantity(),
-                                        $currentUser,
-                                        $delivery,
-                                        !empty($mouvement->getRefArticle()),
-                                        $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                                        $preparation,
-                                        false,
-                                        $locationEndPreparation
-                                    );
-                                }
+                            } /** @noinspection PhpRedundantCatchClauseInspection */
+                            catch (UniqueConstraintViolationException $e) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
+                                ]);
+                            }
+                            foreach ($mouvements as $mouvement) {
+                                $preparationsManagerService->createMovementLivraison(
+                                    $entityManager,
+                                    $mouvement->getQuantity(),
+                                    $currentUser,
+                                    $delivery,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $locationEndPreparation
+                                );
                             }
                         }
                     }
+                }
 
                 if (!isset($demande)
                     || !($demande instanceof Demande)) {
@@ -1919,6 +1916,7 @@ class ReceptionController extends AbstractController {
         $createdArticles = [];
         foreach($articles as &$articleArray) {
             $createdLoopArticles = [];
+            $createdLoopEntryStockMovements = [];
 
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
@@ -1980,26 +1978,28 @@ class ReceptionController extends AbstractController {
                     $emergencies[$article->getId()] = [$article, $articleArray['quantityReceived']];
                 }
 
-                $mouvementStock = $mouvementStockService->createMouvementStock(
+                $stockMovement = $mouvementStockService->createMouvementStock(
                     $currentUser,
                     null,
                     $article->getQuantite(),
                     $article,
                     MouvementStock::TYPE_ENTREE
                 );
-                $mouvementStock->setReceptionOrder($reception);
+                $stockMovement->setReceptionOrder($reception);
 
-                $mouvementStockService->finishStockMovement($mouvementStock, $now, $receptionLocation);
+                $mouvementStockService->finishStockMovement($stockMovement, $now, $receptionLocation);
 
-                $entityManager->persist($mouvementStock);
+                $entityManager->persist($stockMovement);
 
                 $entityManager->flush();
                 $createdArticles[] = $article;
                 $createdLoopArticles[] = $article;
+                $createdLoopEntryStockMovements[] = $stockMovement;
             }
 
+            // if logistic unit selected on packing
             if ($pack && $pack->getLastDrop()?->getEmplacement()) {
-                $luMovements = $trackingMovementService->persistLogisticUnitMovements(
+                $trackingMovementService->persistLogisticUnitMovements(
                     $entityManager,
                     $pack,
                     $pack->getLastDrop()?->getEmplacement(),
@@ -2010,12 +2010,6 @@ class ReceptionController extends AbstractController {
                         'trackingDate' => $now
                     ]
                 );
-                if (isset($createdMvt) && $luMovements['success'] && isset($luMovements['movements'])) {
-                    $mainMovement = stream::from($luMovements['movements'])
-                        ->filter(fn(TrackingMovement $mvt) => $mvt->getMainMovement() === null)
-                        ->first();
-                    $createdMvt->setMainMovement($mainMovement);
-                }
                 if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
                     foreach ($createdLoopArticles as $article) {
                         $preparationsManagerService->createMovementLivraison(
@@ -2032,23 +2026,27 @@ class ReceptionController extends AbstractController {
                     }
                 }
             } else if ($receptionLocation) {
-                $createdMvt = $trackingMovementService->createTrackingMovement(
-                    $article->getTrackingPack() ?? $article->getBarCode(),
-                    $receptionLocation,
-                    $currentUser,
-                    $now,
-                    false,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $mouvementStock,
-                        'quantity' => $mouvementStock->getQuantity(),
-                        'from' => $reception,
-                        "refOrArticle" => $article
-                    ]
-                );
-                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                $entityManager->persist($createdMvt);
+                /** @var MouvementStock $stockMovement */
+                foreach($createdLoopEntryStockMovements as $stockMovement) {
+                    $article = $stockMovement->getArticle();
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
+                        $article->getTrackingPack() ?? $article->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $stockMovement,
+                            'quantity' => $stockMovement->getQuantity(),
+                            'from' => $reception,
+                            "refOrArticle" => $article
+                        ]
+                    );
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
+                }
             }
             $entityManager->flush();
         }

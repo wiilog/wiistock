@@ -12,7 +12,6 @@ class SpecificService
     const CLIENT_SAFRAN_NS = 'safran-ns';
     const CLIENT_SAFRAN_MC = 'safran-mc';
 	const CLIENT_TEREGA = 'terega';
-	const CLIENT_AIA = 'aia';
 	const CLIENT_EMERSON = 'emerson';
 	const CLIENT_ARCELOR = 'arcelor';
 	const CLIENT_ARKEMA_SERQUIGNY = 'arkema-serquigny';
@@ -20,9 +19,11 @@ class SpecificService
     const CLIENT_INEO_LAV = 'ineos-lav';
     const CLIENT_BOITE_ROSE_TAVERNY = 'boite-rose-taverny';
     const CLIENT_CLB = 'clb';
-    const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_RATIER_FIGEAC = 'ratier-figeac';
+    const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_AIA_CUERS = 'aia-cuers';
+    const CLIENT_AIA_AMBERIEU = 'aia-amberieu';
+
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
@@ -31,7 +32,6 @@ class SpecificService
         self::CLIENT_SAFRAN_CS => 'Safran CS',
         self::CLIENT_SAFRAN_ED => 'Safran ED',
         self::CLIENT_TEREGA => 'Terega',
-        self::CLIENT_AIA => 'AIA',
         self::CLIENT_EMERSON => 'Emerson',
         self::CLIENT_ARCELOR => 'Arcelor',
         self::CLIENT_ARKEMA_SERQUIGNY => 'Arkema Serquigny',
@@ -40,8 +40,9 @@ class SpecificService
         self::CLIENT_BOITE_ROSE_TAVERNY => 'Boîte rose Taverny',
         self::CLIENT_CLB => 'CLB',
         self::CLIENT_SAFRAN_MC => 'Safran MC',
-        self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',
         self::CLIENT_RATIER_FIGEAC => 'Ratier Figeac',
+        self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',
+        self::CLIENT_AIA_AMBERIEU => 'AIA Amberieu',
         self::CLIENT_AIA_CUERS => 'AIA Cuers',
     ];
 

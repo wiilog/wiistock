@@ -40,7 +40,7 @@ class InventoryEntryRepository extends EntityRepository
             ->addSelect("COALESCE(join_article.barCode, join_referenceArticle.barCode) AS barCode")
             ->addSelect("IF(
                 join_article.id IS NOT NULL,
-                IF(sub_articleStatus.nom IN (:articleStatusAvailable, :articleStatusDispute), 1, 0),
+                IF(join_articleStatus.nom IN (:articleStatusAvailable, :articleStatusDispute), 1, 0),
                 MIN(IF((
                       join_referenceArticleStatus.nom = :referenceStatusAvailable
                       AND (

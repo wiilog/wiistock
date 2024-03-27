@@ -153,8 +153,8 @@ class Type {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $defaultType = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => 1])]
-    private ?bool $reusableStatuses = null;
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => true])]
+    private ?bool $reusableStatuses = true;
 
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
@@ -903,7 +903,7 @@ class Type {
         return $this;
     }
 
-    public function isReusableStatuses(): ?bool {
+    public function hasReusableStatuses(): ?bool {
         return $this->reusableStatuses;
     }
 }

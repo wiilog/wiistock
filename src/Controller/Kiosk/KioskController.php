@@ -76,7 +76,7 @@ class KioskController extends AbstractController
         if (str_starts_with($scannedReference, 'ART')) {
             $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
             $reference = $article->getArticleFournisseur()->getReferenceArticle();
-        } else {
+        } else if ($scannedReference){
             $reference = $referenceArticleRepository->findOneBy(['barCode' => $scannedReference])
                 ?? $referenceArticleRepository->findOneBy(['reference' => $scannedReference])
                 ?? new ReferenceArticle();
@@ -86,7 +86,10 @@ class KioskController extends AbstractController
             } else {
                 $article = null;
             }
+        } else {
+            $reference = new ReferenceArticle();
         }
+
         $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
         return $this->render('kiosk/form.html.twig', [
             'reference' => $reference,

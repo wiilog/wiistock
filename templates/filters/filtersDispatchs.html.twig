@@ -7,7 +7,9 @@
     <input name="fromDashboard" value="{{ fromDashboard }}" type="hidden"/>
     <input name="hasRightGroupedSignature" value="{{ hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GROUPED_SIGNATURE')) }}" type="hidden"/>
     {% if dateChoices is defined %}
-        {% include 'filters/filter_item/filterDateWithChoice.html.twig' %}
+        {% include 'filters/filter_item/filterDateWithChoice.html.twig' with {
+            dateChoices,
+        } %}
     {% else %}
         {% include 'filters/filter_item/filterDate.html.twig' %}
     {% endif %}

@@ -42,7 +42,9 @@ class DispatchRepository extends EntityRepository
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispatch');
 
-        $dateChoice = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')["value"] ?? '';
+        $dateChoiceConfig = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')
+            ?? Stream::from(FiltreSup::DATE_CHOICE_VALUES[Dispatch::class])->find(static fn($config) => $config['default'] ?? false);
+        $dateChoice = $dateChoiceConfig["value"] ?? '';
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -708,7 +710,7 @@ class DispatchRepository extends EntityRepository
         ];
     }
 
-    public function countByFilters(array $filters = []){
+    public function countByFilters(array $filters = []): int {
         $qb = $this->createQueryBuilder('dispatch')
             ->select('COUNT(dispatch)')
             ->innerJoin('dispatch.statut', 'status', JOIN::WITH, 'status.id IN (:statuses)')
@@ -733,6 +735,8 @@ class DispatchRepository extends EntityRepository
                 ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
         }
 
-        return $qb->getQuery()->getSingleScalarResult();
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

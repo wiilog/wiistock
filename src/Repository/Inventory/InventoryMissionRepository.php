@@ -30,11 +30,10 @@ class InventoryMissionRepository extends EntityRepository {
         'type' => 'type',
     ];
 
-    public function getInventoriableArticlesAndReferences(): array {
+    public function getInventoriableArticles(): array {
         $now = (new DateTime())->format("Y-m-d");
 
         $queryBuilder = $this->createQueryBuilder("inventory_mission");
-        $exprBuilder = $queryBuilder->expr();
 
         return $queryBuilder
             ->select('inventory_mission.id AS mission_id')
@@ -43,35 +42,50 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect("inventory_mission.name AS mission_name")
             ->addSelect("inventory_mission.done AS done")
             ->addSelect("inventory_mission.type AS type")
-            ->addSelect("COALESCE(join_referenceArticle.reference, join_articleReferenceArticle.reference) AS reference")
-            ->addSelect("COALESCE(join_referenceArticle.barCode, join_article.barCode) AS barCode")
+            ->addSelect("join_articleReferenceArticle.reference AS reference")
+            ->addSelect("join_article.barCode AS barCode")
             ->addSelect("join_logisticUnit.code AS logistic_unit_code")
             ->addSelect("join_logisticUnit.id AS logistic_unit_id")
             ->addSelect("join_nature.label AS logistic_unit_nature")
-            ->addSelect("COALESCE(join_referenceArticleLocation.label, join_articleLocation.label) AS location")
-            ->addSelect("IF(join_article.id IS NOT NULL, 0, 1) AS is_ref")
-            ->leftJoin('inventory_mission.refArticles', 'join_referenceArticle')
-            ->leftJoin('inventory_mission.articles', 'join_article')
-            ->leftJoin('join_referenceArticle.emplacement', 'join_referenceArticleLocation')
-            ->leftJoin('join_article.emplacement', 'join_articleLocation')
-            ->leftJoin('join_article.articleFournisseur', 'join_supplierArticle')
-            ->leftJoin('join_supplierArticle.referenceArticle', 'join_articleReferenceArticle')
+            ->addSelect("join_articleLocation.label AS location")
+            ->addSelect("0 AS is_ref")
+            ->innerJoin('inventory_mission.articles', 'join_article')
+            ->innerJoin('join_article.emplacement', 'join_articleLocation')
+            ->innerJoin('join_article.articleFournisseur', 'join_supplierArticle')
+            ->innerJoin('join_supplierArticle.referenceArticle', 'join_articleReferenceArticle')
             ->leftJoin('join_article.currentLogisticUnit', 'join_logisticUnit')
             ->leftJoin('join_logisticUnit.nature', 'join_nature')
             ->leftJoin('inventory_mission.entries', 'inventory_entry_articles', Join::WITH, 'inventory_entry_articles.article = join_article')
+            ->andWhere("inventory_entry_articles.id IS NULL")
+            ->andWhere("inventory_mission.startPrevDate <= :now")
+            ->andWhere("inventory_mission.endPrevDate >= :now")
+            ->setParameter("now", $now)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getInventoriableReferences(): array {
+        $now = (new DateTime())->format("Y-m-d");
+
+        $queryBuilder = $this->createQueryBuilder("inventory_mission");
+
+        return $queryBuilder
+            ->select('inventory_mission.id AS mission_id')
+            ->addSelect("inventory_mission.startPrevDate AS mission_start")
+            ->addSelect("inventory_mission.endPrevDate AS mission_end")
+            ->addSelect("inventory_mission.name AS mission_name")
+            ->addSelect("inventory_mission.done AS done")
+            ->addSelect("inventory_mission.type AS type")
+            ->addSelect("join_referenceArticle.reference AS reference")
+            ->addSelect("join_referenceArticle.barCode AS barCode")
+            ->addSelect("join_referenceArticleLocation.label AS location")
+            ->addSelect("1 AS is_ref")
+            ->innerJoin('inventory_mission.refArticles', 'join_referenceArticle')
+            ->innerJoin('join_referenceArticle.emplacement', 'join_referenceArticleLocation')
             ->leftJoin('inventory_mission.entries', 'inventory_entry_references', Join::WITH, 'inventory_entry_references.refArticle = join_referenceArticle')
-            ->andWhere($exprBuilder->andX(
-                "inventory_mission.startPrevDate <= :now",
-                "inventory_mission.endPrevDate >= :now",
-                $exprBuilder->orX(
-                    "(join_article.id IS NOT NULL AND inventory_entry_articles.id IS NULL)",
-                    "(join_referenceArticle.id IS NOT NULL AND inventory_entry_references.id IS NULL)",
-                ),
-            ))
-            ->andWhere($exprBuilder->orX(
-                "join_article.id IS NOT NULL",
-                "join_referenceArticle.id IS NOT NULL",
-            ))
+            ->andWhere("inventory_mission.startPrevDate <= :now")
+            ->andWhere("inventory_mission.endPrevDate >= :now")
+            ->andWhere("inventory_entry_references.id IS NULL")
             ->setParameter("now", $now)
             ->getQuery()
             ->getResult();

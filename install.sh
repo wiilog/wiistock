@@ -85,7 +85,7 @@ install_symfony() {
 
 install_yarn() {
     php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
-    # php bin/console app:update:fixed-fields
+    php bin/console app:update:fixed-fields
 
     yarn build:only:production
 }

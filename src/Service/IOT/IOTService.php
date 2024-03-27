@@ -434,7 +434,7 @@ class IOTService
                                                 SensorWrapper $wrapper,
                                                 CollectRequestTemplate $requestTemplate): Collecte {
         $date = new DateTime('now');
-        $numero = 'C-' . $date->format('YmdHis');
+        $numero = $this->uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
 
         $request = new Collecte();

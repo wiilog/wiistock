@@ -622,6 +622,11 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function getEmails(): ?array {
         return $this->emails;
     }

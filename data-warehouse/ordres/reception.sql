@@ -38,7 +38,7 @@ SELECT reception.id                                                             
        IF(reception.manual_urgent = 1, 'oui', 'non')                                  AS urgence_reception,
        purchase_request.number                                                        AS numero_demande_achat,
        reception.arrival_id                                                           AS arrivage_id,
-       reception_reference_article.unitPrice                                          AS prix_unitaire,
+       reception_reference_article.unit_price                                         AS prix_unitaire,
        purchase_request.delivery_fee                                                  AS frais_livraison
 
 FROM reception

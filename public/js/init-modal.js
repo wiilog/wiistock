@@ -948,15 +948,10 @@ function displayAttachements(files, $dropFrame, isMultiple = true, lineClass = '
 
             let reader = new FileReader();
             reader.addEventListener('load', function () {
-                let icon = `fa-file`;
-                if ($fileBag.is(`[data-icon]`)) {
-                    icon = $fileBag.data(`icon`);
-                }
-
                 $fileBag.append(`
                     <p class="attachement" value="` + withoutExtension(fileName) + `">
                         <a target="_blank" href="` + reader.result + `" class="has-tooltip" title="${fileName}">
-                            <i class="fa ${icon} mr-2"></i>` + fileName + `
+                            <i class="fa fa-file mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer ${lineClass}" onclick="removeAttachment($(this))"></i>
                     </p>`);

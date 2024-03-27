@@ -123,38 +123,7 @@ class DispatchController extends AbstractController {
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
-        $dateChoices = [
-            [
-                'name' => 'creationDate',
-                'label' => 'Date de création',
-            ],
-            [
-                'name' => 'validationDate',
-                'label' => 'Date de validation',
-            ],
-            [
-                'name' => 'treatmentDate',
-                'label' => 'Date de traitement',
-            ],
-            [
-                'name' => 'endDate',
-                'label' => 'Date d\'échéances',
-            ],
-            [
-                'name' => 'lastPartialStatusDate',
-                'label' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Date statut partiel', false),
-            ],
-        ];
-
-        foreach ($dateChoices as &$choice) {
-            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'dispatch', $currentUser);
-        }
-        $dateChoicesHasDefault = Stream::from($dateChoices)
-            ->some(static fn($choice) => ($choice['default'] ?? false));
-
-        if ($dateChoicesHasDefault) {
-            $dateChoices[0]['default'] = true;
-        }
+        $dateChoices = FiltreSup::DATE_CHOICE_VALUES[Dispatch::class];
 
         $dispatchEmergenciesForFilter = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
@@ -573,12 +542,12 @@ class DispatchController extends AbstractController {
             ],
             'dispatchValidate' => [
                 'untreatedStatus' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED]))
-                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->isReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->isReusableStatuses())
+                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->hasReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->hasReusableStatuses())
                     ->toArray(),
             ],
             'dispatchTreat' => [
                 'treatedStatus' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED, Statut::PARTIAL]))
-                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->isReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->isReusableStatuses())
+                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->hasReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->hasReusableStatuses())
                     ->toArray(),
             ],
             'printBL' => $printBL,
@@ -1153,7 +1122,7 @@ class DispatchController extends AbstractController {
                 try {
                     $settingRepository = $entityManager->getRepository(Setting::class);
 
-                    if(!$dispatch->getType()->isReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
+                    if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
 
@@ -1237,7 +1206,7 @@ class DispatchController extends AbstractController {
                 && ($treatedStatus->isTreated() || $treatedStatus->isPartial())
                 && $treatedStatus->getType() === $dispatch->getType()) {
 
-                if(!$dispatch->getType()->isReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $treatedStatus)){
+                if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $treatedStatus)){
                     throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                 }
 
@@ -1282,9 +1251,12 @@ class DispatchController extends AbstractController {
             'state' => 0
         ]);
 
+        $statusHistoryService->clearStatusHistory($entityManager, $dispatch);
+
         $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
             "initiatedBy" => $this->getUser()
         ]);
+
         $entityManager->flush();
 
         return $this->redirectToRoute('dispatch_show', [
@@ -1306,7 +1278,8 @@ class DispatchController extends AbstractController {
 
         if($dateTimeMin && $dateTimeMax) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $userDateFormat = $this->getUser()->getDateFormat();
+            $user = $this->getUser();
+            $userDateFormat = $user->getDateFormat();
             $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
             $freeFieldsById = Stream::from($dispatches)
@@ -1315,12 +1288,21 @@ class DispatchController extends AbstractController {
                 ])->toArray();
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
-            $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig);
+
+            $exportableColumns = $dispatchService->getDispatchExportableColumns($entityManager);
+            $headers = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['label'] ?? '')
+                ->toArray();
+
+            // same order than header column
+            $exportableColumnCodes = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['code'] ?? '')
+                ->toArray();
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $freeFieldsConfig, $freeFieldsById) {
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById, $user) {
                     foreach ($dispatches as $dispatch) {
-                        $dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
+                        $dispatchService->putDispatchLine($output, $dispatch, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById, $user);
                     }
                 },
                 'export_acheminements.csv',
@@ -1934,11 +1916,12 @@ class DispatchController extends AbstractController {
 
     #[Route("/etiquette/{dispatch}", name: "print_dispatch_label", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
-    public function printDispatchLabel(Dispatch          $dispatch,
-                                       DispatchService   $dispatchService,
-                                       AttachmentService $attachmentService): Response
+    public function printDispatchLabel(Dispatch                 $dispatch,
+                                       DispatchService          $dispatchService,
+                                       EntityManagerInterface   $entityManager,
+                                       AttachmentService        $attachmentService): Response
     {
-        $data = $dispatchService->getDispatchLabelData($dispatch);
+        $data = $dispatchService->getDispatchLabelData($dispatch, $entityManager);
 
         $dispatchLabel = $dispatch->getAttachments()->last();
 

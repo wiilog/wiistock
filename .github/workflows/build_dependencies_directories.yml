@@ -10,7 +10,7 @@ jobs:
     build_php_directories:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-initializer:v1
+            image: wiilog/wiistock-initializer:v2
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
@@ -26,7 +26,7 @@ jobs:
                 uses: actions/checkout@v4
 
             -   name: Install php dependencies
-                run: composer install --no-scripts
+                run: composer install --no-dev --optimize-autoloader --classmap-authoritative --no-ansi --no-scripts
 
             -   name: Install zip
                 run: apk add zip
@@ -51,7 +51,7 @@ jobs:
     build_js_directories:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-initializer:v1
+            image: wiilog/wiistock-initializer:v2
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
