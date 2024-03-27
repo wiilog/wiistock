@@ -60,9 +60,8 @@ class Fournisseur {
     #[ORM\Column(type:'string', length: 255, nullable: true)]
     private ?string $phoneNumber = null;
 
-    #[ORM\ManyToOne(inversedBy: 'receivers')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $receiver = null;
-
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
