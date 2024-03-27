@@ -82,6 +82,7 @@ class FournisseurRepository extends EntityRepository
     public function getByParams(InputBag $params = null)
     {
         $qb = $this->createQueryBuilder('supplier');
+        $qb->leftJoin('supplier.receiver', 'receiver');
         $expr = $qb->expr();
 
         $countTotal = QueryBuilderHelper::count($qb, 'supplier');
@@ -101,7 +102,12 @@ class FournisseurRepository extends EntityRepository
                 if (!empty($search)) {
                     $searchOr = $expr->orX(
                         'supplier.nom LIKE :value',
-                        'supplier.codeReference LIKE :value'
+                        'supplier.codeReference LIKE :value',
+                        'supplier.email LIKE :value',
+                        'supplier.phoneNumber LIKE :value',
+                        'supplier.address LIKE :value',
+                        'receiver.email LIKE :value',
+                        'receiver.username LIKE :value'
                     );
 
                     $searchLowercase = strtolower($search);
