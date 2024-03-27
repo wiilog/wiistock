@@ -26,7 +26,7 @@ class ArticleQuantityNotifier {
 
     private static array $referenceArticlesToUpdate = [];
 
-    private static bool $referenceArticlesUpdating = false;
+    public static bool $referenceArticlesUpdating = false;
 
     public static bool $disableArticleUpdate = false;
 
