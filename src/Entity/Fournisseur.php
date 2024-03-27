@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
 use App\Service\FormatService;
@@ -372,14 +373,14 @@ class Fournisseur {
 
     public function serialize(FormatService $formatService): array {
         return [
-            'name' => $this->getNom(),
+            FixedFieldEnum::name->value => $this->getNom(),
             'code' => $this->getCodeReference(),
             'possibleCustoms' => $formatService->bool($this->isPossibleCustoms()),
-            'urgent' => $formatService->bool($this->isUrgent()),
-            "address" => $this->getAddress(),
-            "receiver" => $formatService->user($this->getReceiver()),
-            "phoneNumber" => $formatService->phone($this->getPhoneNumber()),
-            "email" => $this->getEmail(),
+            FixedFieldEnum::urgent->value => $formatService->bool($this->isUrgent()),
+            FixedFieldEnum::address->value => $this->getAddress(),
+            FixedFieldEnum::receiver->value=> $formatService->user($this->getReceiver()),
+            FixedFieldEnum::phoneNumber->value => $formatService->phone($this->getPhoneNumber()),
+            FixedFieldEnum::email->value => $this->getEmail(),
         ];
     }
 }

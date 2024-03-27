@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Service\CSVExportService;
@@ -213,21 +214,21 @@ class FournisseurController extends AbstractController {
         $now = (new DateTime())->format("d-m-Y-H-i-s");
 
         $headers = [
-            'Nom',
+            FixedFieldEnum::name->name,
             'Code',
             'Possible douane',
-            'Urgent',
-            "Adresse",
-            "Destinataire",
-            "Téléphone",
-            "Email",
+            FixedFieldEnum::urgent->name,
+            FixedFieldEnum::address->name,
+            FixedFieldEnum::receiver->name,
+            FixedFieldEnum::phoneNumber->name,
+            FixedFieldEnum::email->name,
         ];
 
         return $csvService->streamResponse(function ($output) use ($formatService, $manager, $csvService) {
             $suppliers = $manager->getRepository(Fournisseur::class)->getForExport();
 
             foreach ($suppliers as $supplier) {
-                $csvService->putLine($output, $supplier->serialize());
+                $csvService->putLine($output, $supplier->serialize($formatService));
             }
         }, "fournisseurs_$now.csv", $headers);
     }
