@@ -2616,7 +2616,7 @@ class MobileController extends AbstractApiController
             try {
                 $res = $inventoryService->doTreatAnomaly(
                     $anomaly['id'],
-                    $anomaly['reference'],
+                    $anomaly['barcode'],
                     $anomaly['is_ref'],
                     $anomaly['quantity'],
                     $anomaly['comment'] ?? null,
@@ -2626,7 +2626,7 @@ class MobileController extends AbstractApiController
                 $success = array_merge($success, $res['treatedEntries']);
 
                 $numberOfRowsInserted++;
-            } catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
+            } catch (ArticleNotAvailableException|RequestNeedToBeProcessedException) {
                 $errors[] = $anomaly['id'];
             } catch (Throwable $throwable) {
                 $exceptionLoggerService->sendLog($throwable, $request);
