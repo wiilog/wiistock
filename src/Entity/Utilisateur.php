@@ -117,13 +117,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[Assert\NotBlank(message: 'Le champ ne peut pas être vide.')]
     private ?string $plainPassword = null;
 
-    #[ORM\Column(type: Types::ARRAY)]
+    #[ORM\Column(type: Types::JSON)]
     private ?array $roles;
 
     #[ORM\Column(type: Types::BOOLEAN)]
     private ?bool $status = null;
 
-    #[ORM\ManyToOne(targetEntity: 'Role', inversedBy: 'users')]
+    #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: 'users')]
     private ?Role $role = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -280,10 +280,10 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $columnsOrder = [];
 
-    #[ORM\Column(type: Types::ARRAY, nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $searches = [];
 
-    #[ORM\Column(type: Types::ARRAY, nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $pageIndexes = [];
 
     #[ORM\Column(type: Types::JSON, nullable: true)]

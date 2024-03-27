@@ -51,13 +51,13 @@ class Fournisseur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'provider')]
     private Collection $emergencies;
 
-    #[ORM\Column(type:Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $address = null;
 
-    #[ORM\Column(type:Types::STRING, length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\Column(type:'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $phoneNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'receivers')]
