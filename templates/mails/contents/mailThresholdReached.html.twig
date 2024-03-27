@@ -11,7 +11,9 @@
         <li>Quantité en stock : <strong>{{ reference.quantiteStock }}</strong></li>
         <li>Seuil d'alerte : <strong>{{ reference.limitWarning }}</strong></li>
         <li>Seuil de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
-        <li>Machine PDT : <strong>{{ machinePDTValue }}</strong></li>
+        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+            <li>Machine PDT : <strong>{{ machinePDTValue }}</strong></li>
+        {% endif %}
         <li>Fournisseur(s) :</li>
         <table class="table"
                style="border: 1px solid black;border-collapse: collapse;"
@@ -59,25 +61,23 @@
 
 
 {% block postScriptum %}
-    {% if (reference.articlesFournisseur | length) is same as 1 %}
-        {% set articlesFournisseur = reference.articlesFournisseur | first %}
+    {% if (reference.articlesFournisseur | length) == 1 %}
+        {% set supplierArticle = reference.articlesFournisseur | first %}
         <div style="text-align: center; width: 100%">
             <div class="redirect-to">
                 <table>
                     <tr>
                         <td class="gt-button">
                             {% set mailto =
-                                "mailto:" ~ articlesFournisseur.fournisseur.email ~ "?" ~
-                                "subject=" ~ "Demande de devis" | url_encode ~ "&" ~
+                                "mailto:" ~ supplierArticle.fournisseur.email ~ "?" ~
+                                "subject=" ~ "Demande de devis" ~ "&" ~
                                 "body=" ~
                                     "Bonjour,
 
-                                    Pourriez vous nous joindre un devis pour la référence suivante s’il vous plaît ?
-                                    Référence fournisseur : " ~ articlesFournisseur.reference | url_encode ~ "
-                                    Libellé fournisseur : " ~ articlesFournisseur.label | url_encode ~ "
+                                    Pourriez-vous nous joindre un devis pour la référence suivante, et nous indiquer une date de livraison s’il vous plaît ?
+                                    Référence article fournisseur : " ~ supplierArticle.reference ~ "
+                                    Libellé article fournisseur : " ~ supplierArticle.label ~ "
                                     Quantité du devis :
-
-                                    Pouvez-vous nous indiquer la date de livraison s’il vous plait ?
 
 
                                     Bonne journée." | url_encode
