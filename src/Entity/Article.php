@@ -168,9 +168,6 @@ class Article implements PairedEntity {
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $productionDate = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
-    private ?bool $statusChangeByPurchaseOrder = false;
-
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -883,14 +880,5 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getIsStatusChangeByPurchaseOrder(): ?bool
-    {
-        return $this->statusChangeByPurchaseOrder;
-    }
 
-    public function setIsStatusChangeByPurchaseOrder(?bool $isAlreadyChangedStatusByPurchaseOrder): self
-    {
-        $this->statusChangeByPurchaseOrder = $isAlreadyChangedStatusByPurchaseOrder;
-        return $this;
-    }
 }
