@@ -439,7 +439,7 @@ class DemandeCollecteService
         ];
     }
 
-    public function createDemandeCollecte(EntityManagerInterface $entityManager, array $data): Collecte{
+    public function createDemandeCollecte(EntityManagerInterface $entityManager, array $data): Collecte {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -447,7 +447,7 @@ class DemandeCollecteService
         $date = new DateTime('now');
 
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
-        $numero = $this->uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
+        $numero = $this->uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);
         $collecte = new Collecte();
         $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
         $type = $typeRepository->find($data['type']);
