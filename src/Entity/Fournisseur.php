@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
+use App\Service\FormatService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -369,12 +370,16 @@ class Fournisseur {
         return $this;
     }
 
-    public function serialize(): array {
+    public function serialize(FormatService $formatService): array {
         return [
             'name' => $this->getNom(),
             'code' => $this->getCodeReference(),
-            'possibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
-            'urgent' => FormatHelper::bool($this->isUrgent()),
+            'possibleCustoms' => $formatService->bool($this->isPossibleCustoms()),
+            'urgent' => $formatService->bool($this->isUrgent()),
+            "address" => $this->getAddress(),
+            "receiver" => $formatService->user($this->getReceiver()),
+            "phoneNumber" => $formatService->phone($this->getPhoneNumber()),
+            "email" => $this->getEmail(),
         ];
     }
 }
