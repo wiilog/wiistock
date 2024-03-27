@@ -46,6 +46,7 @@ use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -1045,6 +1046,7 @@ class ReferenceArticleController extends AbstractController
                                   ArticleFournisseurService $articleFournisseurService,
                                   ArticleDataService $articleDataService,
                                   RefArticleDataService $refArticleDataService,
+                                  UniqueNumberService   $uniqueNumberService,
                                   KioskService $kioskService,
                                   FreeFieldService $freeFieldService,
                                   NotificationService $notificationService): Response {
@@ -1122,7 +1124,7 @@ class ReferenceArticleController extends AbstractController
         }
         $barcodesToPrint = [];
         try {
-            $number = 'C-' . (new DateTime('now'))->format('YmdHis');
+            $number = $uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
             $collecte = new Collecte();
             $collecte
                 ->setNumero($number)
