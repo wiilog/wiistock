@@ -65,6 +65,9 @@ class PurchaseRequest {
     #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
     private ?Fournisseur $supplier = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
+    private ?bool $statusChangeByPurchaseOrder = false;
+
     public function __construct() {
         $this->purchaseRequestLines = new ArrayCollection();
         $this->attachments = new ArrayCollection();
@@ -272,6 +275,17 @@ class PurchaseRequest {
     {
         $this->deliveryFee = $deliveryFee;
 
+        return $this;
+    }
+
+    public function isStatusChangeByPurchaseOrder(): ?bool
+    {
+        return $this->statusChangeByPurchaseOrder;
+    }
+
+    public function setStatusChangeByPurchaseOrder(?bool $isAlreadyChangedStatusByPurchaseOrder): self
+    {
+        $this->statusChangeByPurchaseOrder = $isAlreadyChangedStatusByPurchaseOrder;
         return $this;
     }
 
