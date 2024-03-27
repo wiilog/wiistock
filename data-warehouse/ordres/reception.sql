@@ -39,7 +39,7 @@ SELECT reception.id                                                             
        purchase_request.number                                                        AS numero_demande_achat,
        reception.arrival_id                                                           AS arrivage_id,
        reception_reference_article.unitPrice                                          AS prix_unitaire,
-       purchase_request.delivery_fee                                                  AS delivery_fee
+       purchase_request.delivery_fee                                                  AS frais_livraison
 
 FROM reception
          LEFT JOIN statut ON reception.statut_id = statut.id

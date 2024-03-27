@@ -150,7 +150,7 @@ CREATE TABLE dw_reception
     numero_demande_achat     varchar(255),
     arrivage_id              integer,
     prix_unitaire            float,
-    delivery_fee             float
+    frais_livraison          float
 );
 
 CREATE TABLE dw_reference_article
@@ -482,7 +482,7 @@ CREATE TABLE dw_demande_achat
     date_commande        timestamp(0),
     date_attendue        timestamp(0),
     prix_unitaire        float,
-    delivery_fee         float
+    frais_livraison      float
 );
 
 CREATE TABLE dw_litige
