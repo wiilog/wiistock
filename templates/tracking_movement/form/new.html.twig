@@ -32,14 +32,19 @@
                             </div>
                             <input type="hidden" class="data" name="forced" value="0">
                             <div class="form-group col-12">
-                                <label class="wii-field-name" for="operator my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Opérateur', false) }}*</label>
-                                <select name="operator"
-                                        class="form-control ajax-autocomplete-user data needed operator no-clear w-100">
-                                </select>
-                                <input hidden
-                                       name="logged-user"
-                                       data-username="{{ app.user.username }}"
-                                       data-id="{{ app.user.id }}"/>
+                                {{ form.select('operator', trans('Traçabilité', 'Général', 'Opérateur'), true, {
+                                    type: 'user',
+                                    additionalAttributes: [{
+                                        name: 'data-init',
+                                        value: app.user.id,
+                                    },],
+                                    inputClass: 'w-100 needs-default',
+                                    items: [{
+                                        value: app.user.id,
+                                        label: app.user.username,
+                                        selected: true,
+                                    }]
+                                }) }}
                             </div>
                             <div class="form-group col-12">
                                 {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
@@ -68,10 +73,7 @@
                     <div class="col-6">
                         <div class="row">
                             <div class="form-group col-12 h-fit-content">
-                                <label class="wii-field-name" for="commentaire">{{ trans('Général', '', 'Modale', 'Commentaire', false) }}</label>
-                                <input id="commentaire" class="commentaire form-control data" name="commentaire"
-                                       type="hidden">
-                                <div class="editor-container-new" data-wysiwyg></div>
+                                {{ form.wysiwyg('commentaire', trans('Général', null, 'Modale', 'Commentaire'), false) }}
                             </div>
                             <div class="form-group col-12">
                                 <div>
@@ -94,16 +96,14 @@
                         needsDateFormatting: true
                     } %}
                 </div>
-
-                <input type="hidden" name="empty-round" value="{{ constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') }}">
+                {{ form.hidden('empty-round', constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')) }}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), id: 'submitNewMvtTraca'}
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
                 ],
             } %}
-
         </div>
     </div>
 </div>
