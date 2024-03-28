@@ -1436,7 +1436,7 @@ class DashboardService {
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();
             $latePack
-                ->setDelay($lastLate['delay'])
+                ->setDelay($lastLate['delayTimeStamp'])
                 ->setDate($lastLate['date'])
                 ->setEmp($lastLate['emp'])
                 ->setLU($lastLate['LU']);
