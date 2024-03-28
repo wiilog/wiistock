@@ -357,4 +357,15 @@ class CollecteRepository extends EntityRepository
             ->getResult();
     }
 
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('collecte')
+            ->select('collecte.numero')
+            ->where('collecte.numero LIKE :value')
+            ->orderBy('collecte.date', 'DESC')
+            ->addOrderBy('collecte.date', 'DESC')
+            ->setParameter('value', Collecte::NUMBER_PREFIX . '-' . $date . '%')
+            ->getQuery()
+            ->getResult();
+        return $result ? $result[0]['number'] : null;
+    }
 }
