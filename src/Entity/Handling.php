@@ -48,10 +48,10 @@ class Handling extends StatusHistoryContainer{
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
 
-    #[ORM\Column(type: 'string', length: 64)]
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
     private ?string $destination = null;
 
-    #[ORM\Column(type: 'string', length: 64)]
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
     private ?string $source = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
