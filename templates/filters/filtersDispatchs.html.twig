@@ -31,6 +31,21 @@
             filterTypes: typesFilter,
             disabled,
         } %}
+    {% else %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types: types,
+            filterTypes: typesFilter,
+            onchange : 'onFilterTypeChange($(this))',
+            disabled,
+        } %}
+
+        {% include 'filters/filter_item/filterMultipleStatuses.html.twig' with {
+            filterStatus: statusFilter,
+            disabled,
+        }%}
+    {% endif %}
+
+    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GROUPED_SIGNATURE')) and not fromDashboard %}
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
         {% if fieldCode in onFilterfields %}
             {% include 'filters/filter_item/filterLocation.html.twig' with {
@@ -50,18 +65,6 @@
             } %}
         {% endif %}
     {% else %}
-        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
-            types: types,
-            filterTypes: typesFilter,
-            onchange : 'onFilterTypeChange($(this))',
-            disabled,
-        } %}
-
-        {% include 'filters/filter_item/filterMultipleStatuses.html.twig' with {
-            filterStatus: statusFilter,
-            disabled,
-        }%}
-
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
         {% if fieldCode in onFilterfields %}
             {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {

@@ -497,7 +497,7 @@ class PurchaseRequestController extends AbstractController
         $newStatus = $statusRepository->find($post->get('status'));
         $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
 
-        if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && empty($post->get('deliveryFee'))) {
+        if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && $post->get('deliveryFee') === null) {
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
@@ -611,7 +611,7 @@ class PurchaseRequestController extends AbstractController
         $status = $data['status'];
         $treatedStatus = $statusRepository->find($status);
 
-        if($treatedStatus->isPreventStatusChangeWithoutDeliveryFees() && !$purchaseRequest->getDeliveryFee()){
+        if($treatedStatus->isPreventStatusChangeWithoutDeliveryFees() && $purchaseRequest->getDeliveryFee() === null){
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
