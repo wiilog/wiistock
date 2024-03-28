@@ -128,7 +128,11 @@ class ImportService
             'nom',
             'codeReference',
             'possibleCustoms',
-            'urgent',
+            FixedFieldEnum::urgent->name,
+            FixedFieldEnum::address->name,
+            FixedFieldEnum::phoneNumber->name,
+            FixedFieldEnum::email->name,
+            FixedFieldEnum::receiver->name,
         ],
         Import::ENTITY_RECEPTION => [
             "orderNumber",
@@ -757,6 +761,7 @@ class ImportService
         }
 
         $supplierRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
         $existingSupplier = $supplierRepository->findOneBy(['codeReference' => $data['codeReference']]);
 
         $supplier = $existingSupplier ?? new Fournisseur();
@@ -780,7 +785,20 @@ class ImportService
             $supplier->setUrgent($urgent === 'oui');
         }
 
-        $supplier->setNom($data['nom']);
+        if(isset($data["receiver"])) {
+            // check if the user exists to create the relation
+            $receiver = $userRepository->findOneBy(["username" => $data["receiver"]]);
+            if(!$receiver) {
+                throw new ImportException("L'utilisateur renseigné en tant que destinataire n'existe pas.");
+            }
+            $supplier->setReceiver($receiver);
+        }
+
+        $supplier
+            ->setNom($data['nom'])
+            ->setEmail($data['email'] ?? null)
+            ->setPhoneNumber($data['phoneNumber'] ?? null)
+            ->setAddress($data['address'] ?? null);
 
         $this->entityManager->persist($supplier);
 
