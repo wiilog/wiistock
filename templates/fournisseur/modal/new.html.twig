@@ -1,21 +1,19 @@
-<div
-      class="modal fade"
-      id="modalEditFournisseur"
-      role="dialog"
-      aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered"
-         role="document">
+<div class="modal fade" id="modalNewFournisseur" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Modifier un fournisseur"
+                title: "Nouveau fournisseur"
             } %}
 
             <div class="modal-body modal-input container-fluid">
+                {% include "fournisseur/modal/form.html.twig" with {
+                    supplier
+                }%}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'id', id: 'submitEditFournisseur'}
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewFournisseur'}
                 ],
             } %}
 

@@ -34,7 +34,9 @@ class FournisseurController extends AbstractController {
     #[Route("/", name: "supplier_index", methods: ["GET"])]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_FOUR])]
     public function index(): Response {
-        return $this->render('fournisseur/index.html.twig');
+        return $this->render('fournisseur/index.html.twig', [
+            'supplier' => new Fournisseur(),
+        ]);
     }
 
     #[Route("/creer", name: "supplier_new", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
