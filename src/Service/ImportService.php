@@ -128,11 +128,11 @@ class ImportService
             'nom',
             'codeReference',
             'possibleCustoms',
-            'urgent',
-            'address',
-            'phoneNumber',
-            'email',
-            'receiver',
+            FixedFieldEnum::urgent->name,
+            FixedFieldEnum::address->name,
+            FixedFieldEnum::phoneNumber->name,
+            FixedFieldEnum::email->name,
+            FixedFieldEnum::receiver->name,
         ],
         Import::ENTITY_RECEPTION => [
             "orderNumber",
@@ -794,7 +794,8 @@ class ImportService
             $supplier->setReceiver($receiver);
         }
 
-        $supplier->setNom($data['nom'])
+        $supplier
+            ->setNom($data['nom'])
             ->setEmail($data['email'] ?? null)
             ->setPhoneNumber($data['phoneNumber'] ?? null)
             ->setAddress($data['address'] ?? null);
