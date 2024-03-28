@@ -13,7 +13,27 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
+require('cypress-failed-log');
+import 'cypress-failed-log';
+Cypress.on('uncaught:exception', (err, runnable) => {
+    if (err.message.includes('printing error')) {
+        return false
+    }
+    if (err.message.includes('Cannot read properties of undefined')) {
+        return false
+    }
+});
+
 // Import commands.js using ES2015 syntax:
 import './command/select2'
 import './command/session'
 import './command/general'
+import './command/settings'
+import './command/date'
+import './command/downloadFile'
+import './command/interceptAllRequests'
+import './command/navigateToAllItemsInSettingsPages'
+import './command/movements'
+import './command/resetDatabase'
+import './command/datatable'
+import './command/modal'

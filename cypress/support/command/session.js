@@ -8,11 +8,13 @@ Cypress.Commands.add('register', (username, email, password  ) => {
     cy.url().should('contain', '/login')
 })
 
-Cypress.Commands.add('login', (email, password) => {
-    cy.session([email, password], () => {
+Cypress.Commands.add('login', (user) => {
+    cy.session([user.email, user.password], () => {
+
         cy.visit('/login');
-        cy.get('[name=_username]').type(email);
-        cy.get('[name=_password]').type(password);
+
+        cy.get('[name=_username]').type(user.email);
+        cy.get('[name=_password]').type(user.password);
         cy.get('button[type=submit]').click();
         cy.url().should('not.contain', '/login');
     },{

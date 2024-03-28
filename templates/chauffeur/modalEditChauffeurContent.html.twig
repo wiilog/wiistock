@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="form-group needed">
     <label class="wii-field-name" for="nom">Nom*</label>
     <input type="text" id="nom" class="form-control data needed input" name="nom" value="{{chauffeur.nom}}"
@@ -16,12 +18,12 @@
 </div>
 
 <div class="form-group">
-    <label class="wii-field-name" for="transporteur">Transporteur</label>
-    <div class="w-100">
-        <select class="form-control ajax-autocomplete-transporteur-edit data" name="transporteur">
-            {% if transporteur is not empty %}
-                <option value="{{ transporteur.id}}" >{{ transporteur.label}}</option>
-            {% endif %}
-        </select>
-    </div>
+    {{ form.select('transporteur', 'Transporteur', false, {
+        type: 'carrier',
+        items: transporteur ? [{
+            value: transporteur.id,
+            label: transporteur.label,
+            selected: true
+        }] : []
+    } ) }}
 </div>
