@@ -230,11 +230,12 @@ class EnCoursService
                 $emplacementInfo[] = [
                     'LU' => $oldestDrop['code'],
                     'delay' => $this->renderMillisecondsToDelay($timeInformation['ageTimespan']),
+                    'delayTimeStamp' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
                     'emp' => $oldestDrop['label'],
-                    'libelle' => $oldestDrop['reference_label'],
-                    'reference' => $oldestDrop['reference_reference'],
+                    'libelle' => $oldestDrop['reference_label'] ?? null,
+                    'reference' => $oldestDrop['reference_reference'] ?? null,
                     'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
                         'arrivalId' => $oldestDrop['arrivalId'],
                     ]),

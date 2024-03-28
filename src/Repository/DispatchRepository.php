@@ -710,7 +710,7 @@ class DispatchRepository extends EntityRepository
         ];
     }
 
-    public function countByFilters(array $filters = []){
+    public function countByFilters(array $filters = []): int {
         $qb = $this->createQueryBuilder('dispatch')
             ->select('COUNT(dispatch)')
             ->innerJoin('dispatch.statut', 'status', JOIN::WITH, 'status.id IN (:statuses)')
@@ -735,6 +735,8 @@ class DispatchRepository extends EntityRepository
                 ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
         }
 
-        return $qb->getQuery()->getSingleScalarResult();
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
