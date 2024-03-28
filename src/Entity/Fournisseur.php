@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
+use App\Service\FormatService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -49,18 +51,17 @@ class Fournisseur {
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'provider')]
     private Collection $emergencies;
 
-    #[ORM\Column(type:Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $address = null;
 
-    #[ORM\Column(type:Types::STRING, length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\Column(type:'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $phoneNumber = null;
 
-    #[ORM\ManyToOne(inversedBy: 'receivers')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $receiver = null;
-
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -369,12 +370,16 @@ class Fournisseur {
         return $this;
     }
 
-    public function serialize(): array {
+    public function serialize(FormatService $formatService): array {
         return [
-            'name' => $this->getNom(),
+            FixedFieldEnum::name->value => $this->getNom(),
             'code' => $this->getCodeReference(),
-            'possibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
-            'urgent' => FormatHelper::bool($this->isUrgent()),
+            'possibleCustoms' => $formatService->bool($this->isPossibleCustoms()),
+            FixedFieldEnum::urgent->value => $formatService->bool($this->isUrgent()),
+            FixedFieldEnum::address->value => $this->getAddress(),
+            FixedFieldEnum::receiver->value=> $formatService->user($this->getReceiver()),
+            FixedFieldEnum::phoneNumber->value => $formatService->phone($this->getPhoneNumber()),
+            FixedFieldEnum::email->value => $this->getEmail(),
         ];
     }
 }

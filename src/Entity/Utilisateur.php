@@ -123,7 +123,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: Types::BOOLEAN)]
     private ?bool $status = null;
 
-    #[ORM\ManyToOne(targetEntity: 'Role', inversedBy: 'users')]
+    #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: 'users')]
     private ?Role $role = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]

@@ -26,6 +26,8 @@ class Collecte implements PairedEntity {
     const DESTRUCT_STATE = 0;
     const STOCKPILLING_STATE = 1;
 
+    const NUMBER_PREFIX = 'C';
+
     use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;

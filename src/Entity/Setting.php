@@ -20,6 +20,7 @@ class Setting {
     const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
     const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.dotx';
+    const DEFAULT_PURCHASE_ORDER_TEMPLATE_VALUE = 'modele/purchase_order/purchase_order_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
@@ -290,6 +291,11 @@ class Setting {
     const CUSTOM_DELIVERY_SLIP_TEMPLATE = "CUSTOM_DELIVERY_SLIP_TEMPLATE";
     const CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME";
 
+    const DEFAULT_PURCHASE_ORDER_TEMPLATE = "DEFAULT_PURCHASE_ORDER_TEMPLATE";
+    const CUSTOM_PURCHASE_ORDER_TEMPLATE = "CUSTOM_PURCHASE_ORDER_TEMPLATE";
+    const CUSTOM_PURCHASE_ORDER_TEMPLATE_FILE_NAME = "CUSTOM_PURCHASE_ORDER_TEMPLATE_FILE_NAME";
+
+
     // mailer
     const MAILER_URL = 'MAILER_URL';
     const MAILER_PORT = 'MAILER_PORT';
@@ -357,6 +363,7 @@ class Setting {
     const TRANSPORT_ROUND_END_POINT = 'TRANSPORT_ROUND_END_POINT';
     const TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE = 'TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE';
 
+    const MULTIPLE_VARIABLES_SEPARATOR = ";";
     const WAYBILL_VARIABLES = [
         "delivery" => [
             "Champs fixes livraison" => [
@@ -520,6 +527,33 @@ class Setting {
                 "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
                 "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",
                 "numtracking" => "numéro de tracking communiqué par le transporteur pour la demande d'expédition",
+            ],
+        ],
+    ];
+
+    const PURCHASE_ORDER_VARIABLES = [
+        "purchase" => [
+            "Champs fixes demandes d’achats" => [
+                "nomfournisseur" => "nom du fournisseur de la demande d'achat",
+                "datecommande" => "date de commande de la demande d'achat",
+                "fraislivraison" => "frais de livraison de la demande d'achat",
+                "acheteur;destinataire" => "acheteur/destinataire de la demande d'achat",
+            ],
+            "Champs référentiel fournisseur" => [
+                "responsablefournisseur" => "utilisateur responsable du fournisseur",
+                "denominationsocialefournisseur" => "nom du fournisseur",
+                "telephonefournisseur" => "numéro de téléphone du fournisseur",
+                "emailfournisseur" => "adresse email du fournisseur",
+            ],
+            "Champs liste des références" => [
+                "reference" => "référence de la référence",
+                "libellereference" => "libellé de la référence",
+                "libellefournisseurreference" => "libellé du fournisseur de la référence",
+                "referencefournisseurreference" => "référence du fournisseur de la référence",
+                "prixunitairereference" => "prix unitaire de la référence",
+                "quantitecommandereference" => "quantité commandée de la référence",
+                "numerocommandereference" => "numéro de commande de la référence",
+                "dateattendue" => "date attendue de la référence",
             ],
         ],
     ];

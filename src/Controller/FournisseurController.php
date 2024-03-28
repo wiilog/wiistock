@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Service\CSVExportService;
+use App\Service\FormatService;
 use App\Service\FournisseurDataService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -205,22 +207,28 @@ class FournisseurController extends AbstractController {
 
     #[Route("/export", name: "get_suppliers_csv", options: ["expose" => true], methods: ["GET"])]
     #[HasPermission([Menu::REFERENTIEL, Action::EXPORT])]
-    public function export(EntityManagerInterface $manager,
-                           CSVExportService $csvService): Response {
+    public function export(EntityManagerInterface   $manager,
+                           CSVExportService         $csvService,
+                           FormatService            $formatService): Response {
+
         $now = (new DateTime())->format("d-m-Y-H-i-s");
 
         $headers = [
-            'Nom',
+            FixedFieldEnum::name->name,
             'Code',
             'Possible douane',
-            'Urgent'
+            FixedFieldEnum::urgent->name,
+            FixedFieldEnum::address->name,
+            FixedFieldEnum::receiver->name,
+            FixedFieldEnum::phoneNumber->name,
+            FixedFieldEnum::email->name,
         ];
 
-        return $csvService->streamResponse(function ($output) use ($manager, $csvService) {
+        return $csvService->streamResponse(function ($output) use ($formatService, $manager, $csvService) {
             $suppliers = $manager->getRepository(Fournisseur::class)->getForExport();
 
             foreach ($suppliers as $supplier) {
-                $csvService->putLine($output, $supplier->serialize());
+                $csvService->putLine($output, $supplier->serialize($formatService));
             }
         }, "fournisseurs_$now.csv", $headers);
     }

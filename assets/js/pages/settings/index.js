@@ -110,10 +110,11 @@ const initializers = {
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     stock_demandes_planification_achats: initializePurchaseRequestPlanner,
     track_tournees: initializeTransportRound,
-    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
-    modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
+    modeles_livraison_lettre_de_voiture: initializeTemplate,
+    modeles_acheminement_lettre_de_voiture: initializeTemplate,
+    modeles_acheminement_compte_rendu: initializeTemplate,
+    modeles_expedition_bordereau_de_livraison: initializeTemplate,
+    modeles_achats_bon_de_commande: initializeTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
     trace_arrivages_camion_reserves: initializeTruckArrivalReserves,
@@ -1193,7 +1194,7 @@ function verifyAlreadyDefineTypes(select2) {
     }
 }
 
-function initializeDeliveryWaybillTemplate() {
+function initializeTemplate() {
     $(`.load-custom-template`).on(`click`, function () {
         $(this).parent().find(`.custom-template-file`).click();
     });
