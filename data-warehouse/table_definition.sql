@@ -402,7 +402,7 @@ CREATE TABLE dw_demande_livraison
     delais_traitement   float,
     code_UL             varchar(255),
     projet_article      varchar(255),
-    commentaire_article varchar(255)
+    commentaire_article text
 );
 
 CREATE TABLE dw_ordre_transfert
