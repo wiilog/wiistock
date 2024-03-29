@@ -21,10 +21,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-#[Route('/fournisseur')]
+#[Route('/fournisseur', name: 'supplier_')]
 class FournisseurController extends AbstractController {
 
-    #[Route("/api", name: "supplier_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_FOUR], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         FournisseurDataService $fournisseurDataService): Response {
@@ -34,7 +34,7 @@ class FournisseurController extends AbstractController {
     }
 
 
-    #[Route("/", name: "supplier_index", methods: [self::GET])]
+    #[Route("/", name: "index", methods: [self::GET])]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_FOUR])]
     public function index(): Response {
         return $this->render('fournisseur/index.html.twig', [
@@ -42,7 +42,7 @@ class FournisseurController extends AbstractController {
         ]);
     }
 
-    #[Route("/creer", name: "supplier_new", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/creer", name: "new", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request                 $request,
                         FournisseurDataService  $fournisseurDataService,
@@ -50,8 +50,6 @@ class FournisseurController extends AbstractController {
         $supplier = $fournisseurDataService->editSupplier((new Fournisseur()), $request->request, $entityManager);
         $entityManager->persist($supplier);
         $entityManager->flush();
-
-        // TODO GERER LE ON FLYSUBMIT
 
         return $this->json([
             'success' => true,
@@ -61,7 +59,7 @@ class FournisseurController extends AbstractController {
         ]);
 }
 
-    #[Route("/api-modifier/{supplier}", name: "supplier_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier/{supplier}", name: "api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEdit(Fournisseur $supplier): JsonResponse {
         return new JsonResponse([
@@ -72,7 +70,7 @@ class FournisseurController extends AbstractController {
         ]);
     }
 
-    #[Route("/modifier", name: "supplier_edit",  options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "edit",  options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          FournisseurDataService $fournisseurDataService,
@@ -93,7 +91,7 @@ class FournisseurController extends AbstractController {
         ]);
     }
 
-    #[Route("/supprimer/{supplier}", name: "supplier_delete",  options: ["expose" => true], methods: [self::DELETE], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer/{supplier}", name: "delete",  options: ["expose" => true], methods: [self::DELETE], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Fournisseur              $supplier,
                            FournisseurDataService   $fournisseurDataService,
@@ -112,18 +110,18 @@ class FournisseurController extends AbstractController {
         ]);
     }
 
-    #[Route("/get-label-fournisseur", name: "demande_label_by_fournisseur", options: ["expose" => true])]
-    public function getLabelsFournisseurs(Request $request, EntityManagerInterface $entityManager): Response {
+    #[Route("/get-label-fournisseur", name: "find_by_name", options: ["expose" => true], methods: [self::GET])]
+    public function getLabelsSupplier(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
-        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
-        $fournisseurs = $fournisseurRepository->getIdAndLabelseBySearch($search);
+        $supplier = $supplierRepository->getIdAndLabelseBySearch($search);
         return $this->json([
-            'results' => $fournisseurs
+            'results' => $supplier
         ]);
     }
 
-    #[Route("/export", name: "get_suppliers_csv", options: ["expose" => true], methods: [self::GET])]
+    #[Route("/export", name: "csv", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::REFERENTIEL, Action::EXPORT])]
     public function export(EntityManagerInterface   $manager,
                            CSVExportService         $csvService,

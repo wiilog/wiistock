@@ -63,7 +63,6 @@ class FournisseurRepository extends EntityRepository
             ->addSelect('supplier.codeReference AS code')
             ->addSelect('supplier.nom AS text')
             ->where('supplier.nom LIKE :search')
-            ->setParameter('search', '%' . $search . '%')
             ->setParameter('search', '%' . $search . '%');
 
         return $qb->getQuery()->getResult();

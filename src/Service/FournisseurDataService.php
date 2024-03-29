@@ -2,9 +2,11 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fournisseur;
 
+use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -30,6 +32,9 @@ class FournisseurDataService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UserService $userService;
+
     public function getFournisseurDataByParams(?InputBag $params = null): array
     {
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
@@ -47,9 +52,6 @@ class FournisseurDataService
 
     public function dataRowFournisseur(Fournisseur $supplier): array
     {
-        $supplierId = $supplier->getId();
-        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $supplierId]);
-
         return [
             FixedFieldEnum::name->name => $supplier->getNom(),
             FixedFieldEnum::code->name => $supplier->getCodeReference(),
@@ -59,9 +61,28 @@ class FournisseurDataService
             FixedFieldEnum::email->name => $supplier->getEmail(),
             FixedFieldEnum::phoneNumber->name => $this->formatService->phone($supplier->getPhoneNumber()),
             FixedFieldEnum::receiver->name => $this->formatService->user($supplier->getReceiver()),
-            'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
-                'url' => $url,
-                'supplierId' => $supplierId
+            'Actions' => $this->templating->render("utils/action-buttons/dropdown.html.twig", [
+                "actions" => [
+                    [
+                        "title" => "Modifier",
+                        "hasRight" => $this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT),
+                        "actionOnClick" => true,
+                        "icon" => "fas fa-pencil-alt",
+                        "attributes" => [
+                            "data-id" => $supplier->getId(),
+                            "data-target" => "#modalEditFournisseur",
+                            "data-toggle" => "modal",
+                        ],
+                    ],
+                    [
+                        "title" => "Supprimer",
+                        "icon" => "wii-icon wii-icon-trash-black",
+                        "class" => "delete-supplier",
+                        "attributes" => [
+                            "data-id" => $supplier->getId(),
+                        ],
+                    ],
+                ],
             ]),
         ];
     }

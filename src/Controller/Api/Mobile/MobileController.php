@@ -798,8 +798,7 @@ class MobileController extends AbstractApiController
                                 LivraisonsManagerService   $livraisonsManager,
                                 TrackingMovementService    $trackingMovementService,
                                 PreparationsManagerService $preparationsManager,
-                                EntityManagerInterface     $entityManager)
-    {
+                                EntityManagerInterface     $entityManager) {
         $insertedPrepasIds = [];
         $statusCode = Response::HTTP_OK;
 
@@ -846,6 +845,7 @@ class MobileController extends AbstractApiController
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                 /** @var Article $article */
+                                dump($mouvementNomade);
                                 $article = $articleRepository->findOneByReference($mouvementNomade['reference']);
                                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                 if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
@@ -979,6 +979,9 @@ class MobileController extends AbstractApiController
                         'id_prepa' => $preparation->getId(),
                     ];
                 } catch (Throwable $throwable) {
+
+                    throw $throwable;
+
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         /** @var EntityManagerInterface $entityManager */
