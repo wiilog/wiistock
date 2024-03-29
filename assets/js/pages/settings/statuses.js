@@ -100,6 +100,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                         ));
                     });
             }
+            ensureMaxCheckboxSelection("passStatusAtPurchaseOrderGeneration");
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
@@ -138,6 +139,39 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 
     return table;
 }
+
+
+
+/**
+ * Ensures only a specified number of checkboxes are checked for a given checkbox group
+ * @param {string} groupName - Name of the checkbox group
+ * @param {number} maxChecked - Maximum number of checkboxes allowed to be checked
+ * @returns {void}
+ * @example ensureMaxCheckboxSelection('my-checkbox-group', 2);
+ */
+function ensureMaxCheckboxSelection(groupName, maxChecked = 1) {
+    const checkboxes = document.getElementsByName(groupName);
+
+    function updateCheckboxes() {
+        let checkedCount = 0;
+        // Count the number of checked checkboxes
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                checkedCount++;
+            }
+        });
+
+        // Disable checkboxes if the maximum number of checkboxes are checked
+        checkboxes.forEach(cb => {
+            cb.disabled = checkedCount >= maxChecked && !cb.checked;
+        });
+    }
+
+    checkboxes.forEach(checkbox => checkbox.addEventListener('change', updateCheckboxes));
+    // Call the function once to set initial state
+    updateCheckboxes();
+}
+
 
 function getStatusesColumn(mode, hasRightGroupedSignature) {
     const singleRequester = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE, MODE_PRODUCTION].includes(mode) ? ['', ''] : ['x', 's'];
@@ -192,6 +226,11 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
         {
             data: `preventStatusChangeWithoutDeliveryFees`,
             title: `<div class='small-column' style="max-width: 160px !important;">Blocage du changement de statut si frais de livraison non rempli</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
+        },
+        {
+            data: `passStatusAtPurchaseOrderGeneration`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Passage au statut à la génération du bon de commande</div>`,
             modes: [MODE_PURCHASE_REQUEST]
         },
         {
@@ -277,6 +316,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         color: getInputColor('color'),
         preventStatusChangeWithoutDeliveryFees: `<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data'/></div>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
+        passStatusAtPurchaseOrderGeneration: `<div class='checkbox-container'><input type='checkbox' name='passStatusAtPurchaseOrderGeneration' class='form-control data'/></div>`,
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
@@ -327,10 +367,14 @@ function initializeStatusesByTypes($container, canEdit, mode) {
 }
 
 function onStatusStateChange($select) {
+    const excludedStateForPassStatusAtPurchaseOrderGeneration = ["0", "1"];
+
     const $form = $select.closest('tr');
     const $needMobileSync = $form.find('[name=needsMobileSync]');
+    const $passStatusAtPurchaseOrderGeneration = $form.find('[name=passStatusAtPurchaseOrderGeneration]');
     const $color = $form.find('[name=color]');
     const $automaticReceptionCreation = $form.find('[name=automaticReceptionCreation]');
+
     const disabledNeedMobileSync = $select
         .find(`option[value=${$select.val()}]`)
         .data('need-mobile-sync-disabled');
@@ -340,8 +384,13 @@ function onStatusStateChange($select) {
 
     $needMobileSync.prop('disabled', Boolean(disabledNeedMobileSync));
     $color.prop('disabled', Boolean(disabledNeedMobileSync));
+
     if (disabledNeedMobileSync) {
         $needMobileSync.prop('checked', false);
+    }
+
+    if(excludedStateForPassStatusAtPurchaseOrderGeneration.includes($select.val())) {
+        $passStatusAtPurchaseOrderGeneration.prop('disabled', Boolean(true));
     }
 
     $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
