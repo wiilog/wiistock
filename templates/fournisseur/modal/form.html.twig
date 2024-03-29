@@ -1,27 +1,50 @@
 {% import 'form.html.twig' as form %}
 
-<div class="form-group">
-    <label class="wii-field-name">Nom*</label>
-    <input type="text" class="form-control data needed" name="name">
-</div>
+{% if supplier.id %}
+    {{ form.hidden('id', supplier.id) }}
+{% endif %}
 
 {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::name') %}
 {{ form.input(field.name, field.value, true, supplier.nom, {}) }}
 
-<div class="form-group">
-    <label class="wii-field-name">Code fournisseur*</label>
-    <input type="text" class="form-control data needed" name="code">
+{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::code') %}
+{{ form.input(field.name, field.value, true, supplier.codeReference, {}) }}
+
+<div class="row py-3">
+    <div class="col-6 d-flex align-items-center">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::possibleCustoms') %}
+        {{ form.checkbox(field.name, field.value, false, supplier.possibleCustoms) }}
+    </div>
+
+    <div class="col-6 d-flex align-items-center">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::urgent') %}
+        {{ form.checkbox(field.name, field.value, false, supplier.urgent) }}
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-6 d-flex align-items-center">
-        <input class="checkbox data" type="checkbox" name="possibleCustoms">
-        <span class="font-size-mini pointer ml-2 wii-field-text"
-              onclick="$(this).closest('div').find('.checkbox').click();">Possible douane</span>
-    </div>
-    <div class="col-6 d-flex align-items-center">
-        <input class="checkbox data" type="checkbox" name="urgent">
-        <span class="font-size-mini pointer ml-2 wii-field-text"
-              onclick="$(this).closest('div').find('.checkbox').click();">Urgent</span>
-    </div>
-</div>
+{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::address') %}
+{{ form.input(field.name, field.value, false, supplier.address, {}) }}
+
+{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::receiver') %}
+{{ form.select(field.name, field.value, false, {
+    type: 'user',
+    inputClass: 'no-clear',
+    items: supplier.receiver
+        ? [{
+            value: supplier.receiver.id,
+            label: supplier.receiver.username,
+            selected: true,
+        }]
+        : []
+}) }}
+
+{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::phoneNumber') %}
+{{ form.input(field.name, field.value, false, supplier.phoneNumber, {}) }}
+
+{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::email') %}
+{{ form.input(field.name, field.value, false, supplier.email, {
+    type: 'email',
+}) }}
+
+
+

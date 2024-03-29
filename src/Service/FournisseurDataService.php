@@ -2,8 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fournisseur;
 
+use App\Entity\Reception;
+use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
@@ -32,7 +36,7 @@ class FournisseurDataService
         $fournisseursData = $fournisseurRepository->getByParams($params);
 
         $fournisseursData['data'] = array_map(
-            function($fournisseur) {
+            function ($fournisseur) {
                 return $this->dataRowFournisseur($fournisseur);
             },
             $fournisseursData['data']
@@ -47,20 +51,76 @@ class FournisseurDataService
         $url['edit'] = $this->router->generate('supplier_edit', ['id' => $supplierId]);
 
         return [
-            "name" => $supplier->getNom(),
-            "code" => $supplier->getCodeReference(),
-            "possibleCustoms" => $this->formatService->bool($supplier->isPossibleCustoms()),
-            "urgent" => $this->formatService->bool($supplier->isUrgent()),
-            "address" => $supplier->getAddress(),
-            "email" => $supplier->getEmail(),
-            "phoneNumber" => $this->formatService->phone($supplier->getPhoneNumber()),
-            "receiver" => $this->formatService->user($supplier->getReceiver()),
+            FixedFieldEnum::name->name => $supplier->getNom(),
+            FixedFieldEnum::code->name => $supplier->getCodeReference(),
+            FixedFieldEnum::possibleCustoms->name => $this->formatService->bool($supplier->isPossibleCustoms()),
+            FixedFieldEnum::urgent->name => $this->formatService->bool($supplier->isUrgent()),
+            FixedFieldEnum::address->name => $supplier->getAddress(),
+            FixedFieldEnum::email->name => $supplier->getEmail(),
+            FixedFieldEnum::phoneNumber->name => $this->formatService->phone($supplier->getPhoneNumber()),
+            FixedFieldEnum::receiver->name => $this->formatService->user($supplier->getReceiver()),
             'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
                 'url' => $url,
                 'supplierId' => $supplierId
             ]),
         ];
     }
+
+    public function isSupplierUsed(Fournisseur $supplier, EntityManagerInterface $entityManager): array
+    {
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+
+        $usedBy = [];
+
+        if (!$supplier->getArticlesFournisseur()->isEmpty()) {
+            $usedBy[] = 'articles fournisseur';
+        }
+
+        if ($receptionRepository->count(['fournisseur' => $supplier]) > 0) {
+            $usedBy[] = 'réceptions';
+        }
+
+        if (!$supplier->getReceptionReferenceArticles()->isEmpty()) {
+            $usedBy[] = 'lignes de réception';
+        }
+
+        if (!$supplier->getArrivages()->isEmpty()) {
+            $usedBy[] = 'arrivages';
+        }
+
+        if (!$supplier->getEmergencies()->isEmpty()) {
+            $usedBy[] = 'urgences';
+        }
+
+        return $usedBy;
+    }
+
+    public function editSupplier(Fournisseur $supplier, InputBag $data, EntityManagerInterface $entityManager): Fournisseur
+    {
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $codeAlreadyUsed = $supplier->getCodeReference() !== $data->get(FixedFieldEnum::code->name) && $fournisseurRepository->count(["codeReference" => $data->get(FixedFieldEnum::code->name)]) > 0;
+        if ($codeAlreadyUsed) {
+            throw new FormException("Ce " . lcfirst(FixedFieldEnum::code->value) . " est déjà utilisé.");
+        }
+
+        $receiverId = $data->getInt(FixedFieldEnum::receiver->name);
+        $receiver = $receiverId ? $userRepository->find($data->getInt(FixedFieldEnum::receiver->name)) : null;
+
+        $supplier
+            ->setNom($data->get(FixedFieldEnum::name->name))
+            ->setCodeReference($data->get(FixedFieldEnum::code->name))
+            ->setPossibleCustoms($data->getBoolean(FixedFieldEnum::possibleCustoms->name))
+            ->setUrgent($data->getBoolean(FixedFieldEnum::urgent->name))
+            ->setReceiver($receiver)
+            ->setPhoneNumber($data->get(FixedFieldEnum::phoneNumber->name))
+            ->setEmail($data->get(FixedFieldEnum::email->name));
+
+        return $supplier;
+    }
+
 }
 
 

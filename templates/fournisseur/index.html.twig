@@ -49,17 +49,13 @@
 
         <div class="row">
             <div class="col-12">
-                <table id="supplierTable_id"
+                <table id="supplier-table"
                        class="table w-100">
                 </table>
             </div>
         </div>
 
     </div>
-
-
-    {# TODO enlever modalDeleteFournisseur #}
-    {% include "fournisseur/modalDeleteFournisseur.html.twig" %}
 
     {% include 'utils/modal/empty-modal.html.twig' with {
         id: 'modalEditFournisseur',
@@ -73,6 +69,8 @@
             ],
         }
     } %}
+
+
 
     {% include "fournisseur/modal/new.html.twig" %}
 
