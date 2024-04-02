@@ -846,7 +846,7 @@ class MobileController extends AbstractApiController
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                 /** @var Article $article */
-                                $article = $articleRepository->findOneByReference($mouvementNomade['reference']);
+                                $article = $articleRepository->findOneByReferenceTot($mouvementNomade['reference']);
                                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                 if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
                                     $totalQuantitiesWithRef[$refArticle->getReference()] = 0;

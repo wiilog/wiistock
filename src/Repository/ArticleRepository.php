@@ -833,6 +833,21 @@ class ArticleRepository extends EntityRepository {
             ->getOneOrNullResult();
 	}
 
+    // TODO TEMPORAIRE TOTG 2/04/24
+    public function findOneByReferenceTot($reference)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT article
+			FROM App\Entity\Article article
+			WHERE article.reference = :reference"
+        )->setParameter('reference', $reference);
+
+        return $query->getOneOrNullResult();
+    }
+
+
     public function countByLocation(Emplacement $location): int {
         return $this->createQueryBuilder('article')
             ->select('COUNT(article.id)')
