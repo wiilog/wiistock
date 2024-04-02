@@ -417,7 +417,7 @@ class PreparationsManagerService
         } else {
             $article = $article instanceof Article
                 ? $article
-                : $articleRepository->findOneByReference($article);
+                : $articleRepository->findOneByReferenceTot($article);
             if ($article) {
                 $article->setInactiveSince($now);
 
@@ -470,7 +470,7 @@ class PreparationsManagerService
             /**
              * @var Article article
              */
-            $article = $articleRepository->findOneByReference($mouvement['reference']);
+            $article = $articleRepository->findOneByReferenceTot($mouvement['reference']);
             if ($article) {
                 // cas ref par article
                 if (isset($mouvement['selected_by_article']) && $mouvement['selected_by_article']) {
