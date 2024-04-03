@@ -140,8 +140,6 @@ class ProductionRequestService
             $filters = $preFilledFilters;
         }
 
-        dump($filters);
-
         $queryResult = $productionRepository->findByParamsAndFilters(
             $request->request,
             $filters,
