@@ -637,6 +637,17 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_TEMPLATE_PURCHASE => [
+                    "label" => "Achats",
+                    "right" => Action::SETTINGS_DISPLAY_PURCHASE_TEMPLATE,
+                    "menus" => [
+                        self::MENU_TEMPLATE_PURCHASE_ORDER => [
+                            "label" => "Bon de commande",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ]
             ],
         ],
     ];
@@ -731,10 +742,12 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_DISPATCH = "acheminement";
     public const MENU_TEMPLATE_DELIVERY = "livraison";
     public const MENU_TEMPLATE_SHIPPING = "expedition";
+    public const MENU_TEMPLATE_PURCHASE = "achats";
     public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_DELIVERY_SLIP = "bordereau_de_livraison";
+    public const MENU_TEMPLATE_PURCHASE_ORDER = "bon_de_commande";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
