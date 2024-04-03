@@ -57,8 +57,8 @@ class Fournisseur {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $phoneNumber = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private ?Utilisateur $receiver = null;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $receiver = null;
 
     public function __construct() {
         $this->articlesFournisseur = new ArrayCollection();
@@ -264,12 +264,12 @@ class Fournisseur {
         return $this;
     }
 
-    public function getReceiver(): ?Utilisateur
+    public function getReceiver(): ?string
     {
         return $this->receiver;
     }
 
-    public function setReceiver(?Utilisateur $receiver): self
+    public function setReceiver(?string $receiver): self
     {
         $this->receiver = $receiver;
         return $this;

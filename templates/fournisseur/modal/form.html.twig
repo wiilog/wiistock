@@ -26,17 +26,7 @@
 {{ form.input(field.name, field.value, false, supplier.address, {}) }}
 
 {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::receiver') %}
-{{ form.select(field.name, field.value, false, {
-    type: 'user',
-    inputClass: 'no-clear',
-    items: supplier.receiver
-        ? [{
-            value: supplier.receiver.id,
-            label: supplier.receiver.username,
-            selected: true,
-        }]
-        : []
-}) }}
+{{ form.input(field.name, field.value, false, supplier.receiver, {}) }}
 
 {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::phoneNumber') %}
 {{ form.input(field.name, field.value, false, supplier.phoneNumber, {}) }}

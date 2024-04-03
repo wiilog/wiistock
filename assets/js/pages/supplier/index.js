@@ -1,5 +1,6 @@
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import Form from "@app/form";
+import Modal from "@app/modal";
 import {POST, DELETE} from "@app/ajax";
 
 $(function () {
@@ -49,7 +50,7 @@ $(function () {
             }
         )
 
-    $(Document).on('click', '.delete-supplier', function (event) {
+    $(document).on('click', '.delete-supplier', function (event) {
 
         const supplier = $(event.target).data('id') || $(event.target).parent('.delete-supplier').data('id');
         Modal.confirm({
