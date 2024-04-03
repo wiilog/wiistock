@@ -113,8 +113,34 @@ class ProductionRequestService
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
 
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->security->getUser());
+        $fromDashboard = $request->query->getBoolean('fromDashboard');
+
+        if (!$fromDashboard) {
+            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->userService->getUser());
+        } else {
+            $preFilledStatuses = $request->query->has('filterStatus')
+                ? implode(",", $request->query->all('filterStatus'))
+                : [];
+            $preFilledTypes = $request->query->has('preFilledTypes')
+                ? implode(",", $request->query->all('preFilledTypes'))
+                : [];
+
+            $preFilledFilters = [
+                [
+                    'field' => 'statuses-filter',
+                    'value' => $preFilledStatuses,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
+                    'value' => $preFilledTypes,
+                ],
+            ];
+
+            $filters = $preFilledFilters;
+        }
+
+        dump($filters);
 
         $queryResult = $productionRepository->findByParamsAndFilters(
             $request->request,
