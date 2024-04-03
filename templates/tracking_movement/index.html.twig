@@ -79,7 +79,6 @@
     </div>
 
     {{ form.hidden('trackingMovementFilters', initial_filters) }}
-    {{ form.hidden('redirectAfterTrackingMovementCreation', redirectAfterTrackingMovementCreation) }}
 
     {% if filterArticle %}
         {{ form.hidden('filterArticle', filterArticle.id) }}
@@ -119,6 +118,10 @@
         'table': 'tableMvts',
         'route': 'save_column_visible_for_tracking_movement'
     } %}
+
+
+    {% set setting = constant('App\\Entity\\Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT') %}
+    {{ form.hidden(setting , setting_value(setting)) }}
 {% endblock %}
 
 {% block javascripts %}
