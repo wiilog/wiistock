@@ -266,7 +266,8 @@ class DemandeCollecteService
                 ->setEmplacement($collecte->getPointCollecte())
                 ->setArticleFournisseur($articleFournisseur)
                 ->setType($referenceArticle->getType())
-                ->setBarCode($this->articleDataService->generateBarcode());
+                ->setBarCode($this->articleDataService->generateBarcode())
+                ->setStockEntryDate($date);
             $this->entityManager->persist($article);
         }
 
