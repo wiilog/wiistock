@@ -47,7 +47,7 @@ SELECT
        IF(article.id IS NOT NULL, emplacement_stock_article.label, NULL))
         AS emplacement_stock,
 
-    mouvement_stock.unitPrice AS prix_unitaire
+    mouvement_stock.unit_price AS prix_unitaire
 
 FROM mouvement_stock
          LEFT JOIN emplacement AS emplacement_prise ON mouvement_stock.emplacement_from_id = emplacement_prise.id

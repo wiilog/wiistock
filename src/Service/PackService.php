@@ -458,7 +458,7 @@ class PackService {
                     'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),
-                $arrival->getDestinataire()
+                $arrival->getReceivers()
             );
         }
     }
