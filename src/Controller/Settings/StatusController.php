@@ -168,7 +168,7 @@ class StatusController extends AbstractController
                     ]),
                     "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
                     "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
-                    "passStatusAtPurchaseOrderGeneration" => "<div class='checkbox-container'><input type='checkbox' name='passStatusAtPurchaseOrderGeneration' class='form-control data $passStatusAtPurchaseOrderGeneration' $passStatusAtPurchaseOrderGeneration/></div>",
+                    "passStatusAtPurchaseOrderGeneration" => $formService->macro("checkbox", "passStatusAtPurchaseOrderGeneration", null, false, $passStatusAtPurchaseOrderGeneration),
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {

@@ -158,7 +158,7 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $preventStatusChangeWithoutDeliveryFees = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => false])]
     private ?bool $passStatusAtPurchaseOrderGeneration = null;
 
     public function __construct() {

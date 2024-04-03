@@ -140,37 +140,40 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     return table;
 }
 
-
-
 /**
  * Ensures only a specified number of checkboxes are checked for a given checkbox group
  * @param {string} groupName - Name of the checkbox group
  * @param {number} maxChecked - Maximum number of checkboxes allowed to be checked
- * @returns {void}
  * @example ensureMaxCheckboxSelection('my-checkbox-group', 2);
+ * @returns {void}
  */
 function ensureMaxCheckboxSelection(groupName, maxChecked = 1) {
-    const checkboxes = document.getElementsByName(groupName);
+    const $checkboxes = $(`input[name="${groupName}"]`);
 
-    function updateCheckboxes() {
-        let checkedCount = 0;
-        // Count the number of checked checkboxes
-        checkboxes.forEach(cb => {
-            if (cb.checked) {
-                checkedCount++;
-            }
-        });
+    $checkboxes.on('change', function() {
+        updateCheckboxes(groupName, maxChecked, $checkboxes);
+    })
 
-        // Disable checkboxes if the maximum number of checkboxes are checked
-        checkboxes.forEach(cb => {
-            cb.disabled = checkedCount >= maxChecked && !cb.checked;
-        });
-    }
-
-    checkboxes.forEach(checkbox => checkbox.addEventListener('change', updateCheckboxes));
     // Call the function once to set initial state
-    updateCheckboxes();
+    updateCheckboxes(groupName, maxChecked, $checkboxes);
 }
+
+/**
+ * Update checkboxes based on the number of checkboxes checked
+ * @param groupName - Name of the checkbox group
+ * @param maxChecked - Maximum number of checkboxes allowed to be checked
+ * @param $checkboxes - jQuery object containing the checkboxes to update
+ * @example updateCheckboxes('my-checkbox-group', 2, $('input[name="my-checkbox-group"]'));
+ * @returns {void}
+ */
+function updateCheckboxes(groupName, maxChecked = 1, $checkboxes) {
+    const checkedCount = $('input[name="' + groupName + '"]:checked').length;
+
+    // Disable checkboxes if the maximum number of checkboxes are checked without the current one
+    $checkboxes = $checkboxes.filter(':not(:checked)');
+    $checkboxes.prop('disabled', checkedCount >= maxChecked);
+}
+
 
 
 function getStatusesColumn(mode, hasRightGroupedSignature) {
@@ -390,7 +393,7 @@ function onStatusStateChange($select) {
     }
 
     if(excludedStateForPassStatusAtPurchaseOrderGeneration.includes($select.val())) {
-        $passStatusAtPurchaseOrderGeneration.prop('disabled', Boolean(true));
+        $passStatusAtPurchaseOrderGeneration.prop('disabled', true);
     }
 
     $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
