@@ -47,10 +47,9 @@
                    name="{{ constant('App\\Entity\\Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE') }}"
                    accept=".dotx"
                    hidden>
-            <input type="hidden"
-                   class="custom-template-file-name data"
-                   value="{{ setting_value('CUSTOM_PURCHASE_ORDER_TEMPLATE_FILE_NAME') }}"
-                   name="{{ constant('App\\Entity\\Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE_FILE_NAME') }}">
+            {{ form.hidden(constant('App\\Entity\\Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE_FILE_NAME'), setting_value('CUSTOM_PURCHASE_ORDER_TEMPLATE_FILE_NAME'), {
+                inputClass: "custom-template-file-name",
+            }) }}
         </div>
     </div>
 </div>
