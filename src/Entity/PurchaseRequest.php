@@ -66,7 +66,7 @@ class PurchaseRequest {
     private ?Fournisseur $supplier = null;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
-    private ?bool $statusChangeByPurchaseOrder = false;
+    private bool $statusChangeByPurchaseOrder = false;
 
     public function __construct() {
         $this->purchaseRequestLines = new ArrayCollection();
@@ -278,12 +278,12 @@ class PurchaseRequest {
         return $this;
     }
 
-    public function isStatusChangeByPurchaseOrder(): ?bool
+    public function isStatusChangeByPurchaseOrder(): bool
     {
         return $this->statusChangeByPurchaseOrder;
     }
 
-    public function setStatusChangeByPurchaseOrder(?bool $isAlreadyChangedStatusByPurchaseOrder): self
+    public function setStatusChangeByPurchaseOrder(bool $isAlreadyChangedStatusByPurchaseOrder): self
     {
         $this->statusChangeByPurchaseOrder = $isAlreadyChangedStatusByPurchaseOrder;
         return $this;
