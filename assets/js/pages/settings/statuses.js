@@ -370,31 +370,58 @@ function initializeStatusesByTypes($container, canEdit, mode) {
 }
 
 function onStatusStateChange($select) {
-    const excludedStateForPassStatusAtPurchaseOrderGeneration = ["0", "1"];
-
     const $form = $select.closest('tr');
-    const $needMobileSync = $form.find('[name=needsMobileSync]');
-    const $passStatusAtPurchaseOrderGeneration = $form.find('[name=passStatusAtPurchaseOrderGeneration]');
-    const $color = $form.find('[name=color]');
-    const $automaticReceptionCreation = $form.find('[name=automaticReceptionCreation]');
+    const optionSelector = `option[value=${$select.val()}]`;
 
-    const disabledNeedMobileSync = $select
-        .find(`option[value=${$select.val()}]`)
-        .data('need-mobile-sync-disabled');
-    const disabledAutomaticReceptionCreation = $select
-        .find(`option[value=${$select.val()}]`)
-        .data('automatic-reception-creation-disabled');
+    const disabledFields = [
+        {
+            name: 'needsMobileSync',
+            disabled: 'need-mobile-sync-disabled',
+            options:
+                [
+                    {
+                        checked: 'false',
+                    }
+                ],
+        },
+        {
+            name: 'color',
+            disabled: 'need-mobile-sync-disabled'
+        },
+        {
+            name: 'passStatusAtPurchaseOrderGeneration',
+            disabled: 'pass-status-at-purchase-order-generation-disabled'
+        },
+        {
+            name: 'automaticReceptionCreation',
+            disabled: 'automatic-reception-creation-disabled',
+            options :
+                [
+                    {
+                        toggleClass: 'd-none',
+                    }
+                ],
+        },
+    ]
 
-    $needMobileSync.prop('disabled', Boolean(disabledNeedMobileSync));
-    $color.prop('disabled', Boolean(disabledNeedMobileSync));
+    const fields = disabledFields.map(({name, disabled, options}) => ({
+        $field: $form.find(`[name=${name}]`),
+        disabled: $select.find(optionSelector).data(disabled),
+        options: options,
+    }));
 
-    if (disabledNeedMobileSync) {
-        $needMobileSync.prop('checked', false);
-    }
+    fields.forEach(({ $field, disabled, options }) => {
+        $field.prop('disabled', Boolean(disabled));
 
-    if(excludedStateForPassStatusAtPurchaseOrderGeneration.includes($select.val())) {
-        $passStatusAtPurchaseOrderGeneration.prop('disabled', true);
-    }
-
-    $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
+        if (options) {
+            options.forEach((option) => {
+                if(option.toggleClass){
+                    $field.toggleClass(option.toggleClass, Boolean(disabled));
+                }
+                if(option.checked){
+                    $field.prop('checked', false);
+                }
+            });
+        }
+    })
 }
