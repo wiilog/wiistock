@@ -27,11 +27,13 @@ final class Version20240319140545 extends AbstractMigration
         $this->addSql("UPDATE dispatch SET last_partial_status_date = (
             SELECT status_history.date
             FROM status_history
-            LEFT JOIN statut ON status_history.status_id = statut.id
-            WHERE statut.state = {$partialStatusState} AND status_history.dispatch_id = dispatch.id
+            INNER JOIN statut ON status_history.status_id = statut.id AND statut.state = :partialStatusState
+            WHERE status_history.dispatch_id = dispatch.id
             ORDER BY status_history.date DESC
             LIMIT 1
-        )");
+        ) WHERE last_partial_status_date IS NULL", [
+            "partialStatusState" => $partialStatusState,
+        ]);
 
     }
 
