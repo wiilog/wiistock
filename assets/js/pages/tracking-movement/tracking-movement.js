@@ -176,7 +176,7 @@ function initPageModals(tableMvt) {
     Form
         .create($modalNewMvtTraca)
         .onOpen(function () {
-            fillDatePickers($modal.find('[name="datetime"]') , 'YYYY-MM-DD', true);
+            fillDatePickers($modalNewMvtTraca.find('[name="datetime"]') , 'YYYY-MM-DD', true);
         })
         .onSubmit(function (data, form) {
             const pack = $modalNewMvtTraca.find(`[name="pack"]`).val();
@@ -226,10 +226,12 @@ function submitNewTrackingMovementForm(data, form) {
                         displayConfirmationModal(group);
                     } else {
                         displayOnSuccessCreation(success, trackingMovementsCounter);
-                        newTrackingMovementForm.clear();
-
                         fillDatePickers('.free-field-date');
                         fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+                    }
+                    form.clear();
+                    if (!Boolean(Number($('[name="CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT"]').val()))) {
+                        form.element.modal('hide');
                     }
                 }
             })
