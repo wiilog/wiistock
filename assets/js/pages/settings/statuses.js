@@ -167,7 +167,7 @@ function ensureMaxCheckboxSelection(groupName, maxChecked = 1) {
  * @returns {void}
  */
 function updateCheckboxes(groupName, maxChecked = 1, $checkboxes) {
-    const checkedCount = $('input[name="' + groupName + '"]:checked').length;
+    const checkedCount = $checkboxes.filter(':checked').length;
 
     // Disable checkboxes if the maximum number of checkboxes are checked without the current one
     $checkboxes = $checkboxes.filter(':not(:checked)');
