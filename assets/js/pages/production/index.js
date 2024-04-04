@@ -66,9 +66,12 @@ function initProductionRequestsTable() {
 
     updateSelectedStatusesCount(status.length);
 
+    const fromDashboard = $('[name="fromDashboard"]').val() === '1';
+
     let pathProduction = Routing.generate('production_request_api', {
         filterStatus: status,
-        preFilledTypes: $typeFilter.val()
+        preFilledTypes: $typeFilter.val(),
+        fromDashboard,
     }, true);
 
     if (!initialVisible) {
