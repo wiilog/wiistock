@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fournisseur;
 use App\Helper\QueryBuilderHelper;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -17,8 +18,8 @@ class FournisseurRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
-        'name' => 'nom',
-        'code' => 'codeReference'
+        FixedFieldEnum::name->name => 'nom',
+        FixedFieldEnum::code->name => 'codeReference'
     ];
 
     public function findOneByCodeReference($code)
@@ -30,17 +31,6 @@ class FournisseurRepository extends EntityRepository
             ->setParameter('code', $code);
 
         return $qb->getQuery()->getOneOrNullResult();
-    }
-
-    public function countByCode($code)
-    {
-        $qb = $this->createQueryBuilder('supplier');
-
-        $qb->select('COUNT(supplier)')
-            ->where('supplier.codeReference = :code')
-            ->setParameter('code', $code);
-
-        return $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getIdAndCodeBySearch(?string $search, ?int $reference = null): array
@@ -73,14 +63,12 @@ class FournisseurRepository extends EntityRepository
             ->addSelect('supplier.codeReference AS code')
             ->addSelect('supplier.nom AS text')
             ->where('supplier.nom LIKE :search')
-            ->setParameter('search', '%' . $search . '%')
             ->setParameter('search', '%' . $search . '%');
 
         return $qb->getQuery()->getResult();
     }
 
-    public function getByParams(InputBag $params = null)
-    {
+    public function getByParams(InputBag $params = null): array {
         $qb = $this->createQueryBuilder('supplier');
         $expr = $qb->expr();
 
@@ -99,15 +87,13 @@ class FournisseurRepository extends EntityRepository
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
-                    $qb->leftJoin('supplier.receiver', 'search_receiver');
                     $searchOr = $expr->orX(
                         'supplier.nom LIKE :value',
                         'supplier.codeReference LIKE :value',
                         'supplier.email LIKE :value',
                         'supplier.phoneNumber LIKE :value',
                         'supplier.address LIKE :value',
-                        'search_receiver.email LIKE :value',
-                        'search_receiver.username LIKE :value'
+                        'supplier.receiver LIKE :value',
                     );
 
                     $searchLowercase = strtolower($search);

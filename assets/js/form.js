@@ -55,18 +55,18 @@ export default class Form {
 
                     event.preventDefault();
                 })
-                .on('shown.bs.modal', function () {
+                .on('shown.bs.modal', function (event) {
                     if (clearOnOpen) {
                         form.clear();
                     }
 
                     form.openListeners.forEach((openListener) => {
-                        openListener();
+                        openListener(event);
                     });
                 })
-                .on('hidden.bs.modal', function () {
+                .on('hidden.bs.modal', function (event) {
                     form.closeListeners.forEach((closeListener) => {
-                        closeListener();
+                        closeListener(event);
                     });
                 });
         }

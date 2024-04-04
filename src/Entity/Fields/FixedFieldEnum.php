@@ -42,6 +42,8 @@ enum FixedFieldEnum: string
     case phoneNumber = "Téléphone";
     case receiver = "Destinataire";
     case urgent = "Urgent";
+    case code = "Code";
+    case possibleCustoms = "Douanes possible";
 
     public static function fromCase(string $case): string|null {
         try {
