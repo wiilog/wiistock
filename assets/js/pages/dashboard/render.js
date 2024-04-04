@@ -614,7 +614,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     ))  : '-')}</div>`,
                 });
             })(),
-            delay
+            count && count > 0 && delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title`,
                     html: withStyle(
@@ -626,7 +626,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     ),
                 })
                 : undefined,
-            delay
+            count && count > 0 && delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay`,
                     html: withStyle(
