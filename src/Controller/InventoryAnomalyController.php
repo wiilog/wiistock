@@ -14,15 +14,14 @@ use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 
-/**
- * @Route("/inventaire/anomalie")
- */
+#[Route("/inventaire/anomalie")]
 class InventoryAnomalyController extends AbstractController {
 
     #[Route("/", name: "show_anomalies")]
@@ -35,7 +34,7 @@ class InventoryAnomalyController extends AbstractController {
     #[HasPermission([Menu::STOCK, Action::INVENTORY_MANAGER], mode: HasPermission::IN_JSON)]
     public function apiAnomalies(Request                $request,
                                  EntityManagerInterface $entityManager,
-                                 InventoryEntryService  $inventoryEntryService): Response {
+                                 InventoryEntryService  $inventoryEntryService): JsonResponse {
         $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
         $anomaliesData = $inventoryEntryRepository->findByParamsAndFilters($request->request, [], true);
 
@@ -71,7 +70,7 @@ class InventoryAnomalyController extends AbstractController {
     #[HasPermission([Menu::STOCK, Action::INVENTORY_MANAGER], mode: HasPermission::IN_JSON)]
     public function treatAnomaly(Request            $request,
                                  InventoryService   $inventoryService,
-                                 TranslationService $translation): Response {
+                                 TranslationService $translation): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             try {
                 $res = $inventoryService->doTreatAnomaly(
