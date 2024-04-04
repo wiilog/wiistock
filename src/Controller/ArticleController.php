@@ -47,9 +47,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/article")
- */
+#[Route("/article")]
 class ArticleController extends AbstractController
 {
 
@@ -81,11 +79,11 @@ class ArticleController extends AbstractController
         $this->userService = $userService;
     }
 
-    /**
-     * @Route("/", name="article_index", methods={"GET", "POST"})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
-     */
-    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService, TagTemplateService $tagTemplateService): Response {
+    #[Route("/", name: "article_index", methods: ["GET", "POST"])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
+    public function index(EntityManagerInterface    $entityManager,
+                          ArticleDataService        $articleDataService,
+                          TagTemplateService        $tagTemplateService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
@@ -100,9 +98,7 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/show-actif-inactif", name="article_actif_inactif", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/show-actif-inactif", name: "article_actif_inactif", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
     public function displayActifOrInactif(EntityManagerInterface $entityManager,
                                           ArticleDataService $articleDataService,
                                           Request $request) : Response
@@ -141,10 +137,8 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/voir/{id}", name="article_show_page", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
-     */
+    #[Route("/voir/{id}", name: "article_show_page", options: ["expose" => true], methods: [self::POST])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
         $type = $article->getType();
@@ -160,12 +154,10 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request,
-                        ArticleDataService $articleDataService): Response
+    #[Route("/api", name: "article_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
+    public function api(Request             $request,
+                        ArticleDataService  $articleDataService): JsonResponse
     {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -175,12 +167,10 @@ class ArticleController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-columns", name: "article_api_columns", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
     public function apiColumns(ArticleDataService $articleDataService,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager): JsonResponse
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -190,12 +180,10 @@ class ArticleController extends AbstractController
         );
     }
 
-    /**
-     * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
     public function show(Request $request,
                             ArticleDataService $articleDataService,
-                            EntityManagerInterface $entityManager): Response
+                            EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -233,15 +221,13 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/nouveau", name="article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager,
-                        MouvementStockService $mouvementStockService,
-                        ArticleDataService $articleDataService,
-                        TrackingMovementService $trackingMovementService): Response {
+    #[Route("/nouveau", name: "article_new", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(Request                 $request,
+                        EntityManagerInterface  $entityManager,
+                        MouvementStockService   $mouvementStockService,
+                        ArticleDataService      $articleDataService,
+                        TrackingMovementService $trackingMovementService): JsonResponse {
         $data = $request->request->all();
 
         $barcode = $data['barcode'];
@@ -323,13 +309,11 @@ class ArticleController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier", name: "article_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         TranslationService     $translation): Response {
+                         TranslationService     $translation): JsonResponse {
         $data = $request->request;
         if ($data->all()) {
             $article = $entityManager->getRepository(Article::class)->find($data->get('id'));
@@ -368,13 +352,11 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request,
-                           MouvementStockService $mouvementStockService,
-                           EntityManagerInterface $entityManager): Response
+    #[Route("/supprimer", name: "article_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request                  $request,
+                           MouvementStockService    $mouvementStockService,
+                           EntityManagerInterface   $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -464,12 +446,10 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="article_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     */
-    public function checkArticleCanBeDeleted(Request $request,
-                                             EntityManagerInterface $entityManager): Response
+    #[Route("/verification", name: "article_check_delete", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
+    public function checkArticleCanBeDeleted(Request                $request,
+                                             EntityManagerInterface $entityManager): JsonResponse
     {
         if ($articleId = json_decode($request->getContent(), true)) {
             $isFromReception = $request->query->getBoolean('fromReception');
@@ -545,10 +525,8 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager)
+    #[Route("/autocompleteArticleFournisseur", name: "get_articleRef_fournisseur", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    public function getRefArticles(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $search = $request->query->get('term');
 
@@ -558,10 +536,8 @@ class ArticleController extends AbstractController
         return new JsonResponse(['results' => $articleFournisseur]);
     }
 
-    /**
-     * @Route("/autocomplete-art", name="get_articles", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function getArticles(EntityManagerInterface $entityManager, Request $request)
+    #[Route("/autocomplete-art", name: "get_articles", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    public function getArticles(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
         $search = $request->query->get('term');
         $referenceArticleReference = $request->query->get('referenceArticleReference');
@@ -578,10 +554,10 @@ class ArticleController extends AbstractController
         return new JsonResponse(['results' => $articles]);
     }
 
-    /**
-     * @Route("/get-article-collecte/{collect}", name="get_collecte_article_by_refArticle", options={"expose"=true})
-     */
-    public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager, Collecte $collect): Response
+    #[Route("/get-article-collecte/{collect}", name: "get_collecte_article_by_refArticle", options: ["expose" => true], methods: [self::POST])]
+    public function getCollecteArticleByRefArticle(Request                  $request,
+                                                   EntityManagerInterface   $entityManager,
+                                                   Collecte                 $collect): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -601,10 +577,8 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/get-article-demande", name="demande_article_by_refArticle", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/get-article-demande", name: "demande_article_by_refArticle", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(Demande::class);
@@ -626,13 +600,11 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response
+    #[Route("/colonne-visible", name: "save_column_visible_for_article", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
+    public function saveColumnVisible(Request                   $request,
+                                      EntityManagerInterface    $entityManager,
+                                      VisibleColumnService      $visibleColumnService): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
@@ -649,10 +621,8 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/get-article-fournisseur", name: "demande_reference_by_fournisseur", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($fournisseur = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -673,11 +643,9 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/ajax_article_new_content", name="ajax_article_new_content", options={"expose"=true})
-     */
-    public function ajaxArticleNewContent(Request $request,
-                                          EntityManagerInterface $entityManager): Response
+    #[Route("/ajax_article_new_content", name: "ajax_article_new_content", options: ["expose" => true], methods: [self::POST])]
+    public function ajaxArticleNewContent(Request                   $request,
+                                          EntityManagerInterface    $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -715,10 +683,8 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/ajax-fournisseur-by-refarticle", name="ajax_fournisseur_by_refarticle", options={"expose"=true})
-     */
-    public function ajaxFournisseurByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/ajax-fournisseur-by-refarticle", name: "ajax_fournisseur_by_refarticle", options: ["expose" => true], methods: [self::POST])]
+    public function ajaxFournisseurByRefArticle(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -741,13 +707,12 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
-     */
-    public function printArticlesBarCodes(Request $request,
-                                          EntityManagerInterface $entityManager,
-                                          PDFGeneratorService $PDFGeneratorService,
-                                          ArticleDataService $articleDataService): Response {
+    #[Route("/etiquettes", name: "article_print_bar_codes", options: ["expose" => true], methods: [self::GET])]
+    public function printArticlesBarCodes(Request                   $request,
+                                          EntityManagerInterface    $entityManager,
+                                          PDFGeneratorService       $PDFGeneratorService,
+                                          ArticleDataService        $articleDataService): PdfResponse
+    {
         $articleRepository = $entityManager->getRepository(Article::class);
         $forceTagEmpty = $request->query->get('forceTagEmpty', false);
         $tag = $forceTagEmpty
@@ -774,12 +739,10 @@ class ArticleController extends AbstractController
         );
     }
 
-    /**
-     * @Route("/{article}/etiquette", name="article_single_bar_code_print", options={"expose"=true})
-     */
-    public function getSingleArticleBarCode(Article $article,
-                                            ArticleDataService $articleDataService,
-                                            PDFGeneratorService $PDFGeneratorService): Response {
+    #[Route("/{article}/etiquette", name: "article_single_bar_code_print", options: ["expose" => true], methods: [self::GET])]
+    public function getSingleArticleBarCode(Article             $article,
+                                            ArticleDataService  $articleDataService,
+                                            PDFGeneratorService $PDFGeneratorService): PdfResponse {
         $tag = $article->getType()->getTags()->first() ?: null;
         $barcodeConfigs = [$articleDataService->getBarcodeConfig($article)];
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article', $tag ? $tag->getPrefix() : 'ETQ');
@@ -790,7 +753,7 @@ class ArticleController extends AbstractController
     }
 
     #[Route("/get-article-tracking-movements", name: "get_article_tracking_movements", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
+    public function getTrackingMovements(EntityManagerInterface $manager, Request $request): JsonResponse {
         $article = $request->query->get('article');
 
         $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly'=>true]);
@@ -802,10 +765,9 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier-page/{article}", name="article_edit_page", options={"expose"=true})
-     */
-    public function editTemplate(EntityManagerInterface $manager, Article $article) {
+    #[Route("/modifier-page/{article}", name: "article_edit_page", options: ["expose" => true], methods: [self::POST, self::GET])]
+    public function editTemplate(EntityManagerInterface $manager, Article $article): Response {
+
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
@@ -830,7 +792,7 @@ class ArticleController extends AbstractController
     }
 
     #[Route("/get-free-fields-by-type", name: "get_free_fields_by_type", options: ["expose" => true], methods: "GET")]
-    public function getFreefieldsByType(Request $request, EntityManagerInterface $manager): Response {
+    public function getFreefieldsByType(Request $request, EntityManagerInterface $manager): JsonResponse {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
 
