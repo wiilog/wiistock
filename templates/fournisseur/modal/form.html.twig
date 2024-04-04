@@ -1,40 +1,51 @@
 {% import 'form.html.twig' as form %}
 
-{% if supplier.id %}
-    {{ form.hidden('id', supplier.id) }}
-{% endif %}
+<div class="row">
+    {% if supplier.id %}
+        {{ form.hidden('id', supplier.id) }}
+    {% endif %}
 
-{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::name') %}
-{{ form.input(field.name, field.value, true, supplier.nom, {}) }}
+    <div class="col-12 form-group">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::name') %}
+        {{ form.input(field.name, field.value, true, supplier.nom, {}) }}
+    </div>
 
-{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::code') %}
-{{ form.input(field.name, field.value, true, supplier.codeReference, {}) }}
+    <div class="col-12 form-group">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::code') %}
+        {{ form.input(field.name, field.value, true, supplier.codeReference, {}) }}
+    </div>
 
-<div class="row py-3">
-    <div class="col-6 d-flex align-items-center">
+    <div class="col-6 d-flex align-items-center form-group">
         {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::possibleCustoms') %}
         {{ form.checkbox(field.name, field.value, false, supplier.possibleCustoms) }}
     </div>
 
-    <div class="col-6 d-flex align-items-center">
+    <div class="col-6 d-flex align-items-center form-group">
         {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::urgent') %}
         {{ form.checkbox(field.name, field.value, false, supplier.urgent) }}
     </div>
+
+    <div class="col-12 form-group">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::address') %}
+        {{ form.input(field.name, field.value, false, supplier.address, {}) }}
+    </div>
+
+    <div class="col-12 form-group">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::receiver') %}
+        {{ form.input(field.name, field.value, false, supplier.receiver, {}) }}
+    </div>
+
+    <div class="col-12 form-group">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::phoneNumber') %}
+        {{ form.input(field.name, field.value, false, supplier.phoneNumber, {}) }}
+    </div>
+
+    <div class="col-12 form-group">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::email') %}
+        {{ form.input(field.name, field.value, false, supplier.email, {
+            type: 'email',
+        }) }}
+    </div>
 </div>
-
-{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::address') %}
-{{ form.input(field.name, field.value, false, supplier.address, {}) }}
-
-{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::receiver') %}
-{{ form.input(field.name, field.value, false, supplier.receiver, {}) }}
-
-{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::phoneNumber') %}
-{{ form.input(field.name, field.value, false, supplier.phoneNumber, {}) }}
-
-{% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::email') %}
-{{ form.input(field.name, field.value, false, supplier.email, {
-    type: 'email',
-}) }}
-
 
 

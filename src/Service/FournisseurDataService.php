@@ -87,9 +87,7 @@ class FournisseurDataService
         ];
     }
 
-    public function isSupplierUsed(Fournisseur $supplier, EntityManagerInterface $entityManager): array
-    {
-        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
+    public function isSupplierUsed(Fournisseur $supplier, EntityManagerInterface $entityManager): array {
         $receptionRepository = $entityManager->getRepository(Reception::class);
 
         $usedBy = [];
@@ -129,6 +127,7 @@ class FournisseurDataService
             ->setCodeReference($data->get(FixedFieldEnum::code->name))
             ->setPossibleCustoms($data->getBoolean(FixedFieldEnum::possibleCustoms->name))
             ->setUrgent($data->getBoolean(FixedFieldEnum::urgent->name))
+            ->setAddress($data->get(FixedFieldEnum::address->name))
             ->setReceiver($data->get(FixedFieldEnum::receiver->name))
             ->setPhoneNumber($data->get(FixedFieldEnum::phoneNumber->name))
             ->setEmail($data->get(FixedFieldEnum::email->name));
