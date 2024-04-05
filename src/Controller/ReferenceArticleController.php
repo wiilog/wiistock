@@ -604,8 +604,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getRefArticles(Request $request,
-                                   EntityManagerInterface $entityManager)
-    {
+                                   EntityManagerInterface $entityManager): JsonResponse {
         $search = $request->query->get('term');
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -720,21 +719,13 @@ class ReferenceArticleController extends AbstractController
 
     }
 
-    /**
-     * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
-     */
+    #[Route("voir/{id}", name: "reference_article_show_page", options: ["expose" => true])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE])]
     public function showPage(Request                $request,
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
                              EntityManagerInterface $entityManager): Response {
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $apiURL = $settingRepository->getOneParamByLabel(Setting::STOCK_FORECAST_URL);
-        $apiSecretKey = $settingRepository->getOnePAramByLabel(Setting::STOCK_FORECAST_SECRET_KEY);
-
-        $hasIaParams = $apiURL && $apiSecretKey;
-
+        $hasIaParams = $_SERVER['STOCK_FORECAST_URL'] ?? false;
 
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
@@ -765,8 +756,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
-	{
+    public function getQuantityType(Request $request, EntityManagerInterface $entityManager): JsonResponse {
 		if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -919,7 +909,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,
-                                   RefArticleDataService $refArticleDataService) {
+                                   RefArticleDataService $refArticleDataService): JsonResponse {
 
         $refArticleDataService->updateRefArticleQuantities($entityManager, [$referenceArticle], true);
         $entityManager->flush();
@@ -935,7 +925,7 @@ class ReferenceArticleController extends AbstractController
     public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
-                                SettingsService        $settingsService) {
+                                SettingsService        $settingsService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -998,7 +988,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function editTemplate(EntityManagerInterface $entityManager,
                                  RefArticleDataService  $refArticleDataService,
-                                 ReferenceArticle       $reference) {
+                                 ReferenceArticle       $reference): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -1237,10 +1227,9 @@ class ReferenceArticleController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
 
 
-        $apiURL = $settingRepository->getOneParamByLabel(Setting::STOCK_FORECAST_URL);
-        $apiSecretKey = $settingRepository->getOnePAramByLabel(Setting::STOCK_FORECAST_SECRET_KEY);
+        $apiURL = $_SERVER['STOCK_FORECAST_URL'];
 
-        if(!$apiURL || !$apiSecretKey) {
+        if(!$apiURL) {
             throw new FormException("La configuration de l'instance permettant la prévision de stock est invalide");
         }
 
@@ -1253,7 +1242,6 @@ class ReferenceArticleController extends AbstractController
             $apiRequest = $client->request('POST', $apiURL, [
                 "headers" => $headers,
                 "body" => json_encode([
-                    "secretKey" => $apiSecretKey,
                     "reference" => $referenceArticle,
                 ]),
             ]);

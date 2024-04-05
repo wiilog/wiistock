@@ -29,16 +29,3 @@
         </div>
     </div>
 </div>
-<div class="wii-section-title">Prévision de Stock Intelligente</div>
-<div class="wii-section">
-    <div class="row">
-        <div class="col-6">
-            {{ form.input(setting('STOCK_FORECAST_URL'), 'Url de l\'api', false, setting_value('STOCK_FORECAST_URL')) }}
-        </div>
-        <div class="col-6">
-            {{ form.input(setting('STOCK_FORECAST_SECRET_KEY'), 'Mot de passe de l\'api', false, setting_value('STOCK_FORECAST_SECRET_KEY'), {
-                type: 'password'
-            }) }}
-        </div>
-    </div>
-</div>
