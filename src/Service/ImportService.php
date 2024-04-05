@@ -12,6 +12,7 @@ use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -23,7 +24,6 @@ use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\ProductionRequest;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
@@ -35,6 +35,7 @@ use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -234,6 +235,27 @@ class ImportService
             FixedFieldEnum::emergency->name,
             FixedFieldEnum::projectNumber->name,
             FixedFieldEnum::comment->name,
+        ],
+        Import::ENTITY_DISPATCH => [
+            FixedFieldEnum::type->name,
+            FixedFieldEnum::status->name,
+            FixedFieldEnum::dropLocation->name,
+            FixedFieldEnum::pickLocation->name,
+            FixedFieldEnum::orderNumber->name,
+            FixedFieldEnum::carrierTrackingNumber->name,
+            FixedFieldEnum::destination->name,
+            FixedFieldEnum::carrier->name,
+            FixedFieldEnum::requester->name,
+            FixedFieldEnum::receivers->name,
+            FixedFieldEnum::emergency->name,
+            FixedFieldEnum::businessUnit->name,
+            FixedFieldEnum::projectNumber->name,
+            FixedFieldEnum::comment->name,
+            FixedFieldEnum::emails->name,
+            FixedFieldEnum::customerName->name,
+            FixedFieldEnum::customerPhone->name,
+            FixedFieldEnum::customerRecipient->name,
+            FixedFieldEnum::customerAddress->name,
         ],
     ];
 
@@ -626,6 +648,9 @@ class ImportService
                             $this->currentImport->getUser(),
                             $isCreation
                         );
+                        break;
+                    case Import::ENTITY_DISPATCH:
+                        $this->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation);
                         break;
                 }
 
@@ -1294,7 +1319,7 @@ class ImportService
             ->setDescription($description);
 
         // champs libres
-        $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
+        $this->manageFreeFields($colChampsLibres, $refArt, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
     }
@@ -1428,7 +1453,7 @@ class ImportService
         }
         $this->entityManager->persist($article);
         // champs libres
-        $this->checkAndSetChampsLibres($colChampsLibres, $article, $isNewEntity, $row);
+        $this->manageFreeFields($colChampsLibres, $article, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
 
@@ -1873,7 +1898,7 @@ class ImportService
             }
         }
 
-        $this->checkAndSetChampsLibres($colChampsLibres, $request, $newEntity, $row);
+        $this->manageFreeFields($colChampsLibres, $request, $newEntity, $row);
 
         $isCreation = $newEntity;
 
@@ -2117,66 +2142,222 @@ class ImportService
         $isCreation = !$refLocationAlreadyExists;
     }
 
-    private function checkAndSetChampsLibres(array $colChampsLibres,
-                                                   $freeFieldEntity,
-                                             bool  $isNewEntity,
-                                             array $row)
-    {
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-        $missingCL = [];
+    public function importDispatch(EntityManagerInterface $entityManager,
+                                   array                  $data,
+                                   Utilisateur            $importUser,
+                                   array                  $freeFieldColumns,
+                                   array                  $row,
+                                   ?bool                  &$isCreation): void {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $categoryCL = $freeFieldEntity instanceof ReferenceArticle
-            ? CategorieCL::REFERENCE_ARTICLE
-            : ($freeFieldEntity instanceof Article
-                ? CategorieCL::ARTICLE
-                : CategorieCL::DEMANDE_LIVRAISON);
-        if ($freeFieldEntity->getType() && $freeFieldEntity->getType()->getId()) {
-            $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($freeFieldEntity->getType(), $categoryCL, $isNewEntity);
-        } else {
-            $mandatoryCLs = [];
+        $now = new DateTime();
+        $dispatch = new Dispatch();
+
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new ImportException("Le format de numéro d'acheminement n'est pas valide.");
         }
-        $champsLibresId = array_keys($colChampsLibres);
-        foreach ($mandatoryCLs as $cl) {
-            if (!in_array($cl->getId(), $champsLibresId)) {
-                $missingCL[] = $cl->getLabel();
+        $number = $this->uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat, $now);
+
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_DISPATCH, $data[FixedFieldEnum::type->name]);
+        if (!$type) {
+            throw new ImportException("Le type n'existe pas.");
+        }
+
+        $status = $statusRepository->findOneBy([
+            "nom" => $data[FixedFieldEnum::status->name],
+            "type" => $type,
+        ]);
+        if (!$status) {
+            throw new ImportException("Le statut n'existe pas ou n'est pas lié au type.");
+        } else if (!$status->isDraft()) {
+            throw new ImportException("Le statut doit être en état brouillon.");
+        }
+
+        $dispatch
+            ->setNumber($number)
+            ->setCreationDate($now)
+            ->setCreatedBy($importUser)
+            ->setType($type);
+
+        if (isset($data[FixedFieldEnum::pickLocation->name])) {
+            $location = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::pickLocation->name]]);
+
+            if (!$location) {
+                throw new ImportException("L'emplacement de prise n'existe pas.");
+            } else if (!$location->getIsActive()) {
+                throw new ImportException("L'emplacement de prise n'est pas actif.");
+            }
+
+            $dispatch->setLocationFrom($location);
+        }
+
+        if (isset($data[FixedFieldEnum::dropLocation->name])) {
+            $location = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
+
+            if (!$location) {
+                throw new ImportException("L'emplacement de dépose n'existe pas.");
+            } else if (!$location->getIsActive()) {
+                throw new ImportException("L'emplacement de dépose n'est pas actif.");
+            }
+
+            $dispatch->setLocationTo($location);
+        }
+
+        if (isset($data[FixedFieldEnum::carrier->name])) {
+            $carrier = $carrierRepository->findOneBy(["label" => $data[FixedFieldEnum::carrier->name]]);
+
+            if (!$carrier) {
+                throw new ImportException("Le transporteur n'existe pas.");
+            }
+
+            $dispatch->setCarrier($carrier);
+        }
+
+        if (isset($data[FixedFieldEnum::requester->name])) {
+            $requester = $userRepository->findOneBy(["username" => $data[FixedFieldEnum::requester->name]]);
+
+            if (!$requester) {
+                throw new ImportException("Le demandeur n'existe pas.");
+            }
+
+            $dispatch->setRequester($requester);
+        }
+
+        if (isset($data[FixedFieldEnum::receivers->name])) {
+            Stream::explode(",", $data[FixedFieldEnum::receivers->name])
+                ->filter()
+                ->each(static function(string $username) use ($userRepository, $dispatch) {
+                    $receiver = $userRepository->findOneBy(["username" => trim($username)]);
+
+                    if(!$receiver) {
+                        throw new ImportException("Le destinataire $username n'existe pas.");
+                    } else {
+                        $dispatch->addReceiver($receiver);
+                    }
+                });
+        }
+
+        if (isset($data[FixedFieldEnum::emails->name])) {
+            $emails = Stream::explode("," , $data[FixedFieldEnum::emails->name])
+                ->filter()
+                ->map(static fn(string $email) => trim($email))
+                ->toArray();
+
+            $dispatch->setEmails($emails);
+        }
+
+        if (isset($data[FixedFieldEnum::carrierTrackingNumber->name])) {
+            $dispatch->setCarrierTrackingNumber($data[FixedFieldEnum::carrierTrackingNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::projectNumber->name])) {
+            $dispatch->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::emergency->name])) {
+            $dispatch->setEmergency($data[FixedFieldEnum::emergency->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::comment->name])) {
+            $dispatch->setCommentaire($data[FixedFieldEnum::comment->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::businessUnit->name])) {
+            $dispatch->setBusinessUnit($data[FixedFieldEnum::businessUnit->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::destination->name])) {
+            $dispatch->setDestination($data[FixedFieldEnum::destination->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::orderNumber->name])) {
+            $dispatch->setCommandNumber($data[FixedFieldEnum::orderNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerName->name])) {
+            $dispatch->setCustomerName($data[FixedFieldEnum::customerName->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerRecipient->name])) {
+            $dispatch->setCustomerRecipient($data[FixedFieldEnum::customerRecipient->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerAddress->name])) {
+            $dispatch->setCustomerAddress($data[FixedFieldEnum::customerAddress->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerPhone->name])) {
+            $dispatch->setCustomerPhone($data[FixedFieldEnum::customerPhone->name]);
+        }
+
+        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
+            "initiatedBy" => $importUser,
+        ]);
+
+        $this->manageFreeFields($freeFieldColumns, $dispatch, true, $row);
+
+        $entityManager->persist($dispatch);
+
+        $isCreation = true;
+    }
+
+    private function manageFreeFields(array $freeFieldColumns,
+                                      mixed $freeFieldEntity,
+                                      bool  $isNewEntity,
+                                      array $row): void {
+        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
+        $missingFreeFields = [];
+
+        $freeFieldCategory = match (true) {
+            $freeFieldEntity instanceof ReferenceArticle => CategorieCL::REFERENCE_ARTICLE,
+            $freeFieldEntity instanceof Article => CategorieCL::ARTICLE,
+            $freeFieldEntity instanceof Demande => CategorieCL::DEMANDE_LIVRAISON,
+            $freeFieldEntity instanceof Dispatch => CategorieCL::DEMANDE_DISPATCH,
+            default => throw new Exception("Unhandled free field category")
+        };
+
+        if ($freeFieldEntity->getType()?->getId()) {
+            $freeFields = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($freeFieldEntity->getType(), $freeFieldCategory, $isNewEntity);
+        } else {
+            $freeFields = [];
+        }
+
+        $freeFieldIds = array_keys($freeFieldColumns);
+        foreach ($freeFields as $freeField) {
+            if (!in_array($freeField->getId(), $freeFieldIds)) {
+                $missingFreeFields[] = $freeField->getLabel();
             }
         }
 
-        if (!empty($missingCL)) {
-            $message = count($missingCL) > 1
-                ? 'Les champs ' . join(', ', $missingCL) . ' sont obligatoires'
-                : 'Le champ ' . $missingCL[0] . ' est obligatoire';
+        if (!empty($missingFreeFields)) {
+            $message = count($missingFreeFields) > 1
+                ? 'Les champs ' . join(', ', $missingFreeFields) . ' sont obligatoires'
+                : 'Le champ ' . $missingFreeFields[0] . ' est obligatoire';
             $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
             throw new ImportException($message);
         }
 
         $freeFieldsToInsert = $freeFieldEntity->getFreeFields();
 
-        foreach ($colChampsLibres as $clId => $col) {
-            /** @var FreeField $champLibre */
-            $champLibre = $champLibreRepository->find($clId);
+        foreach ($freeFieldColumns as $freeFieldId => $column) {
+            $freeField = $champLibreRepository->find($freeFieldId);
 
-            switch ($champLibre->getTypage()) {
-                case FreeField::TYPE_BOOL:
-                    $value = in_array($row[$col], ['Oui', 'oui', 1, '1']);
-                    break;
-                case FreeField::TYPE_DATE:
-                    $value = $this->checkDate($row[$col], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $champLibre);
-                    break;
-                case FreeField::TYPE_DATETIME:
-                    $value = $this->checkDate($row[$col], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $champLibre);
-                    break;
-                case FreeField::TYPE_LIST:
-                    $value = $this->checkList($row[$col], $champLibre, false);
-                    break;
-                case FreeField::TYPE_LIST_MULTIPLE:
-                    $value = $this->checkList($row[$col], $champLibre, true);
-                    break;
-                default:
-                    $value = $row[$col];
-                    break;
-            }
-            $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
+            $value = match ($freeField->getTypage()) {
+                FreeField::TYPE_BOOL => in_array($row[$column], ['Oui', 'oui', 1, '1']),
+                FreeField::TYPE_DATE => $this->checkDate($row[$column], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $freeField),
+                FreeField::TYPE_DATETIME => $this->checkDate($row[$column], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $freeField),
+                FreeField::TYPE_LIST => $this->checkList($row[$column], $freeField, false),
+                FreeField::TYPE_LIST_MULTIPLE => $this->checkList($row[$column], $freeField, true),
+                default => $row[$column],
+            };
+
+            $freeFieldsToInsert[$freeField->getId()] = strval(is_bool($value) ? intval($value) : $value);
         }
 
         $freeFieldEntity->setFreeFields($freeFieldsToInsert);
@@ -2427,6 +2608,7 @@ class ImportService
         $categoryCLByEntity = [
             Import::ENTITY_ART => CategorieCL::ARTICLE,
             Import::ENTITY_REF => CategorieCL::REFERENCE_ARTICLE,
+            Import::ENTITY_DISPATCH => CategorieCL::DEMANDE_DISPATCH,
         ];
 
         $categoryCL = $categoryCLByEntity[$entityCode] ?? null;
