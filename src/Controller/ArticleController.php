@@ -137,7 +137,7 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/voir/{id}", name: "article_show_page", options: ["expose" => true], methods: [self::POST])]
+    #[Route("/voir/{id}", name: "article_show_page", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
