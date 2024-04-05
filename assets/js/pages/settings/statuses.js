@@ -174,8 +174,6 @@ function updateCheckboxes(groupName, maxChecked = 1, $checkboxes) {
     $checkboxes.prop('disabled', checkedCount >= maxChecked);
 }
 
-
-
 function getStatusesColumn(mode, hasRightGroupedSignature) {
     const singleRequester = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE, MODE_PRODUCTION].includes(mode) ? ['', ''] : ['x', 's'];
     const singleBuyer = [MODE_PURCHASE_REQUEST].includes(mode) ? [`à`, `l'acheteur`] : [`aux`, `acheteurs`];
@@ -377,12 +375,6 @@ function onStatusStateChange($select) {
         {
             name: 'needsMobileSync',
             disabled: 'need-mobile-sync-disabled',
-            options:
-                [
-                    {
-                        checked: 'false',
-                    }
-                ],
         },
         {
             name: 'color',
@@ -395,33 +387,16 @@ function onStatusStateChange($select) {
         {
             name: 'automaticReceptionCreation',
             disabled: 'automatic-reception-creation-disabled',
-            options :
-                [
-                    {
-                        toggleClass: 'd-none',
-                    }
-                ],
         },
     ]
+    // Disable fields based on the selected status
+    disabledFields.map(({name, disabled}) => {
+        const isDisabled = $select.find(optionSelector).data(disabled);
+        const $field = $form.find(`[name=${name}]`);
 
-    const fields = disabledFields.map(({name, disabled, options}) => ({
-        $field: $form.find(`[name=${name}]`),
-        disabled: $select.find(optionSelector).data(disabled),
-        options: options,
-    }));
-
-    fields.forEach(({ $field, disabled, options }) => {
-        $field.prop('disabled', Boolean(disabled));
-
-        if (options) {
-            options.forEach((option) => {
-                if(option.toggleClass){
-                    $field.toggleClass(option.toggleClass, Boolean(disabled));
-                }
-                if(option.checked){
-                    $field.prop('checked', false);
-                }
-            });
-        }
-    })
+        // Trigger change event to update the checkboxes (ensureMaxCheckboxSelection)
+        $field.trigger('change');
+        $field.prop('disabled', Boolean(isDisabled));
+        $field.prop('checked', false);
+    });
 }
