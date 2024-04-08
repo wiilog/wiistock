@@ -27,7 +27,7 @@
         </select>
     </div>
 
-    {% include 'mouvement_traca/trackingMovementQuantity.html.twig' %}
+    {% include 'tracking_movement/form/fieldQuantity.html.twig' %}
 
-    <input type="hidden" value="1" name="is-mass" class="data"/>
+    {{ form.hidden('is-mass', 1)}}
 </div>

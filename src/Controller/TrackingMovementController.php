@@ -578,14 +578,14 @@ class TrackingMovementController extends AbstractController
             $fileToRender = match($appropriateType?->getCode()) {
                 TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassPickAndDrop.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroup.html.twig",
-                TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLMvtTraca.html.twig",
+                TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLU.html.twig",
                 TrackingMovement::TYPE_PRISE => "$templateDirectory/newMass.html.twig",
                 TrackingMovement::TYPE_DEPOSE => "$templateDirectory/newMass.html.twig",
                 default => "$templateDirectory/newSingle.html.twig"
             };
 
             return $this->json([
-                "modalBody" => $fileToRender === 'tracking_movement/' ? false : $this->renderView($fileToRender),
+                "modalBody" => $fileToRender === "tracking_movement/" ? false : $this->renderView($fileToRender),
             ]);
         }
 
