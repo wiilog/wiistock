@@ -584,7 +584,9 @@ class TrackingMovementController extends AbstractController
             };
 
             return $this->json([
-                "modalBody" => $fileToRender === "tracking_movement/" ? false : $this->renderView($fileToRender),
+                "modalBody" => $fileToRender === "tracking_movement/" ? false : $this->renderView($fileToRender, [
+                    'isPickMovement' => $appropriateType?->getCode() === TrackingMovement::TYPE_PRISE,
+                ]),
             ]);
         }
 
