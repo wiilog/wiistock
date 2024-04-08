@@ -579,8 +579,7 @@ class TrackingMovementController extends AbstractController
                 TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassPickAndDrop.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroup.html.twig",
                 TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLU.html.twig",
-                TrackingMovement::TYPE_PRISE => "$templateDirectory/newMass.html.twig",
-                TrackingMovement::TYPE_DEPOSE => "$templateDirectory/newMass.html.twig",
+                TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE => "$templateDirectory/newMass.html.twig",
                 default => "$templateDirectory/newSingle.html.twig"
             };
 

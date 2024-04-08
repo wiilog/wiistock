@@ -13,9 +13,9 @@
         </div>
     </div>
     <div class="form-group col-12">
-        <label class="my-auto mr-2 wii-field-name">{{ trans('Traçabilité', 'Général', 'Emplacement', false) }}*</label>
-        <select name="emplacement" class="form-control ajax-autocomplete-location data needed w-100">
-        </select>
+        {{ form.select('emplacement', trans('Traçabilité', 'Général', 'Emplacement', false), true, {
+            type: 'location',
+        }) }}
     </div>
 
     {% include 'tracking_movement/form/fieldQuantity.html.twig' %}
