@@ -101,6 +101,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                     });
             }
             ensureMaxCheckboxSelection("passStatusAtPurchaseOrderGeneration");
+            onStatusStateChange($container.find('[name=state]'));
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
@@ -150,7 +151,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 function ensureMaxCheckboxSelection(groupName, maxChecked = 1) {
     const $checkboxes = $(`input[name="${groupName}"]`);
 
-    $checkboxes.on('change', function() {
+    $checkboxes.off("change.checkboxesChange").on('change.checkboxesChange', function() {
         updateCheckboxes(groupName, maxChecked, $checkboxes);
     })
 
@@ -367,7 +368,25 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         });
 }
 
+/**
+ * Handles the change event of the status state select element
+ * @param $select - jQuery object representing the select element
+ */
 function onStatusStateChange($select) {
+    if ($select.length > 1) {
+        // if $select is an array of select elements (first call of the function)
+        $select.each((index, select) => handleSingleSelect($(select)));
+    } else {
+        // if $select is a single select element (change event)
+        handleSingleSelect($select);
+    }
+}
+
+/**
+ * Handles the change event of a single select element
+ * @param $select - jQuery object representing the select element
+ */
+function handleSingleSelect($select) {
     const $form = $select.closest('tr');
     const optionSelector = `option[value=${$select.val()}]`;
 
@@ -388,14 +407,13 @@ function onStatusStateChange($select) {
             name: 'automaticReceptionCreation',
             disabled: 'automatic-reception-creation-disabled',
         },
-    ]
+    ];
     // Disable fields based on the selected status
-    disabledFields.map(({name, disabled}) => {
+    disabledFields.forEach(({ name, disabled }) => {
         const isDisabled = $select.find(optionSelector).data(disabled);
         const $field = $form.find(`[name=${name}]`);
 
-        // Trigger change event to update the checkboxes (ensureMaxCheckboxSelection)
-        $field.trigger('change');
+
         $field.prop('disabled', Boolean(isDisabled));
         $field.prop('checked', false);
     });
