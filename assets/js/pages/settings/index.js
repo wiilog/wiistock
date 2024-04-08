@@ -42,7 +42,6 @@ import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
 import {onSelectAll} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
-global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
@@ -1142,32 +1141,6 @@ function triggerReminderEmails($button) {
 
 function changePageTitle($title, add) {
     $title.text(add ? 'Ajouter des groupes de visibilité' : 'Groupe de visibilité');
-}
-
-function saveTranslations($button) {
-    $button.pushLoader(`white`);
-    let $inputs = $('#translation').find('.translate');
-    let data = [];
-    $inputs.each(function () {
-        let name = $(this).attr('name');
-        let val = $(this).val();
-        data.push({id: name, val: val});
-    });
-
-    let path = Routing.generate('save_translations');
-    const $spinner = $('#spinnerSaveTranslations');
-    showBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
-    loadSpinner($spinner);
-    $.post(path, JSON.stringify(data), (resp) => {
-        $button.popLoader();
-        $('html,body').animate({scrollTop: 0});
-        if (resp) {
-            location.reload();
-        } else {
-            hideSpinner($spinner);
-            showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
-        }
-    });
 }
 
 function initializeType() {

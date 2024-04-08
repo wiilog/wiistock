@@ -1876,10 +1876,7 @@ class MobileController extends AbstractApiController
         $data['data']['status'] = ($numberOfRowsInserted === 0)
             ? "Aucune saisie d'inventaire à synchroniser."
             : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
-        $data['data']['anomalies'] = array_merge(
-            $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomaliesIds),
-            $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomaliesIds)
-        );
+        $data['data']['anomalies'] = $inventoryEntryRepository->getAnomalies(true, $newAnomaliesIds);
 
         return $this->json($data);
     }
@@ -2258,8 +2255,7 @@ class MobileController extends AbstractApiController
             ])->toArray();
 
         if ($rights['inventoryManager']) {
-            $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
-            $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
+            $anomalies = $inventoryEntryRepository->getAnomalies(true);
         }
 
         // livraisons
@@ -2354,7 +2350,10 @@ class MobileController extends AbstractApiController
 
         if($rights['inventory']){
             // inventory
-            $inventoryItems = $inventoryMissionRepository->getInventoriableArticlesAndReferences();
+            $inventoryItems = array_merge(
+                $inventoryMissionRepository->getInventoriableArticles(),
+                $inventoryMissionRepository->getInventoriableReferences()
+            );
 
             $inventoryMissions = $inventoryMissionRepository->getInventoryMissions();
             $inventoryLocationsZone = $inventoryLocationMissionRepository->getInventoryLocationZones();
@@ -2519,7 +2518,7 @@ class MobileController extends AbstractApiController
             'inventoryItems' => $inventoryItems ?? [],
             'inventoryMission' => $inventoryMissions ?? [],
             'inventoryLocationZone' => $inventoryLocationsZone ?? [],
-            'anomalies' => array_merge($refAnomalies ?? [], $artAnomalies ?? []),
+            'anomalies' => $anomalies ?? [],
             'trackingTaking' => $trackingTaking ?? [],
             'stockTaking' => $stockTaking ?? [],
             'demandeLivraisonTypes' => $demandeLivraisonTypes ?? [],
@@ -2617,7 +2616,7 @@ class MobileController extends AbstractApiController
             try {
                 $res = $inventoryService->doTreatAnomaly(
                     $anomaly['id'],
-                    $anomaly['reference'],
+                    $anomaly['barcode'],
                     $anomaly['is_ref'],
                     $anomaly['quantity'],
                     $anomaly['comment'] ?? null,
@@ -2627,7 +2626,7 @@ class MobileController extends AbstractApiController
                 $success = array_merge($success, $res['treatedEntries']);
 
                 $numberOfRowsInserted++;
-            } catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
+            } catch (ArticleNotAvailableException|RequestNeedToBeProcessedException) {
                 $errors[] = $anomaly['id'];
             } catch (Throwable $throwable) {
                 $exceptionLoggerService->sendLog($throwable, $request);
@@ -2756,13 +2755,13 @@ class MobileController extends AbstractApiController
             }
         }
 
+        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
+        ArticleQuantityNotifier::$disableArticleUpdate = true;
+        ArticleQuantityNotifier::$referenceArticlesUpdating = true;
+
         $entityManager->flush();
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
-
-
-        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
-        ArticleQuantityNotifier::$disableArticleUpdate = true;
 
         $this->mobileApiService->treatInventoryArticles($entityManager, $articlesOnLocations, $tags, $validator, $now);
 
@@ -2775,6 +2774,7 @@ class MobileController extends AbstractApiController
 
         RefArticleQuantityNotifier::$disableReferenceUpdate = false;
         ArticleQuantityNotifier::$disableArticleUpdate = false;
+        ArticleQuantityNotifier::$referenceArticlesUpdating = false;
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
@@ -3780,11 +3780,11 @@ class MobileController extends AbstractApiController
                         $refArticle,
                         MouvementStock::TYPE_ENTREE
                     );
-                    $mouvementStockService->finishStockMovement(
-                        $mvtStock,
-                        $date,
-                        $refArticle->getEmplacement()
-                    );
+
+                    $refArticle
+                        ->setEditedBy($this->getUser())
+                        ->setEditedAt($date);
+                    $mvtStock->setEmplacementTo($refArticle->getEmplacement());
                     $entityManager->persist($mvtStock);
                 }
             } else if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {

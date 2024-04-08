@@ -824,18 +824,13 @@ class ArticleRepository extends EntityRepository {
 		);
 	}
 
-    public function findOneByReference($reference)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT article
-			FROM App\Entity\Article article
-			WHERE article.reference = :reference"
-		)->setParameter('reference', $reference);
-
-		return $query->getOneOrNullResult();
-	}
+    public function findOneByReference(?string $reference): ?Article {
+        return $this->createQueryBuilder('article')
+            ->andWhere('article.reference = :reference')
+            ->setParameter('reference', $reference)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
     public function countByLocation(Emplacement $location): int {
         return $this->createQueryBuilder('article')

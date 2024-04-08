@@ -37,7 +37,8 @@ SELECT reception.id                                                             
 
        IF(reception.manual_urgent = 1, 'oui', 'non')                                  AS urgence_reception,
        purchase_request.number                                                        AS numero_demande_achat,
-       reception.arrival_id                                                           AS arrivage_id
+       reception.arrival_id                                                           AS arrivage_id,
+       reception_reference_article.unit_price                                         AS prix_unitaire
 
 FROM reception
          LEFT JOIN statut ON reception.statut_id = statut.id

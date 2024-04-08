@@ -23,6 +23,9 @@ class FournisseurDataService
     #[Required]
     public EntityManagerInterface $entityManager;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function getFournisseurDataByParams(?InputBag $params = null): array
     {
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
@@ -46,8 +49,12 @@ class FournisseurDataService
         return [
             "name" => $supplier->getNom(),
             "code" => $supplier->getCodeReference(),
-            "possibleCustoms" => FormatHelper::bool($supplier->isPossibleCustoms()),
-            "urgent" => FormatHelper::bool($supplier->isUrgent()),
+            "possibleCustoms" => $this->formatService->bool($supplier->isPossibleCustoms()),
+            "urgent" => $this->formatService->bool($supplier->isUrgent()),
+            "address" => $supplier->getAddress(),
+            "email" => $supplier->getEmail(),
+            "phoneNumber" => $this->formatService->phone($supplier->getPhoneNumber()),
+            "receiver" => $this->formatService->user($supplier->getReceiver()),
             'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
                 'url' => $url,
                 'supplierId' => $supplierId

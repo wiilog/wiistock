@@ -29,11 +29,13 @@
                         {{ productionRequest.status|format_helper("status") }}
                     </span>
                 </div>
+                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
                 <div class="mt-1">
-                    <span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>
+                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>
                 </div>
+                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').value %}
                 <div class="mt-1">
-                    <span class="font-weight-bold">{{ productionRequest.manufacturingOrderNumber ?? "-" }}</span>
+                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.manufacturingOrderNumber ?? "-" }}</span>
                 </div>
                 {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
                 <div class="mt-1">

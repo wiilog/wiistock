@@ -2,12 +2,9 @@
 
 namespace App\Controller\Settings;
 
-use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
-use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Menu;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use App\Entity\Statut;
@@ -15,16 +12,18 @@ use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Exceptions\FTPException;
 use App\Service\AttachmentService;
+use App\Service\CSVExportService;
 use App\Service\FTPService;
 use App\Service\ImportService;
 use App\Service\ScheduleRuleService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
+use WiiCommon\Helper\StringHelper;
 
 #[Route("/import")]
 class ImportController extends AbstractController
@@ -268,6 +267,22 @@ class ImportController extends AbstractController
         } else {
             throw new FormException("L'import ne peut pas être supprimé.");
         }
+    }
+
+    #[Route("/template/{entity}", name: "import_template", options: ["expose" => true])]
+    public function importTemplate(string                 $entity,
+                                   EntityManagerInterface $entityManager,
+                                   CSVExportService       $CSVExportService,
+                                   ImportService          $importService): Response {
+        $entityLabel = Import::ENTITY_LABEL[$entity] ?? null;
+        if (!$entityLabel) {
+            throw new NotFoundHttpException("Not found template");
+        }
+
+        $headers = $importService->getFieldsToAssociate($entityManager, $entity);
+        $cleanedEntityName = StringHelper::slugify(str_replace(" ","-", $entityLabel));
+
+        return $CSVExportService->streamResponse(function () {}, "modele-$cleanedEntityName.csv", $headers);
     }
 }
 

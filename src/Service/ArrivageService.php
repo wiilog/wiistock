@@ -777,7 +777,7 @@ class ArrivageService {
                     FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?: '',
                     FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: '',
                     FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()?->getLabel() ?: '',
-                    default                                          => throw new \Exception("Invalid column name $column")
+                    default                                                 => null
                 };
             }
         }

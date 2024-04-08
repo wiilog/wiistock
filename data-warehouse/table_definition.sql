@@ -120,7 +120,8 @@ CREATE TABLE dw_mouvement_stock
     code_barre_reference varchar(255),
     date                 timestamp(0),
     emplacement_stock    varchar(255),
-    code_barre_article   varchar(255)
+    code_barre_article   varchar(255),
+    prix_unitaire        float
 );
 
 CREATE TABLE dw_reception
@@ -147,7 +148,8 @@ CREATE TABLE dw_reception
     urgence_reference        varchar(3),
     urgence_reception        varchar(3),
     numero_demande_achat     varchar(255),
-    arrivage_id              integer
+    arrivage_id              integer,
+    prix_unitaire            float
 );
 
 CREATE TABLE dw_reference_article
@@ -385,6 +387,7 @@ CREATE TABLE dw_demande_livraison
     date_attendue       date,
     projet              varchar(255),
     demandeur           varchar(255),
+    destinataire        varchar(255),
     type                varchar(255),
     statut              varchar(255),
     codes_preparations  text,
@@ -397,7 +400,9 @@ CREATE TABLE dw_demande_livraison
     quantite_disponible integer,
     quantite_a_prelever integer,
     delais_traitement   float,
-    code_UL             varchar(255)
+    code_UL             varchar(255),
+    projet_article      varchar(255),
+    commentaire_article text
 );
 
 CREATE TABLE dw_ordre_transfert
@@ -477,7 +482,8 @@ CREATE TABLE dw_demande_achat
     numero_reception     varchar(255),
     fournisseur          varchar(255),
     date_commande        timestamp(0),
-    date_attendue        timestamp(0)
+    date_attendue        timestamp(0),
+    prix_unitaire        float
 );
 
 CREATE TABLE dw_litige

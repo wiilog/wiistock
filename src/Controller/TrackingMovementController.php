@@ -81,19 +81,17 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT);
         $mvtStatuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
         $statuses = Stream::from($mvtStatuses)
             ->filter(static fn(Statut $statut) => $statut->getCode() !== TrackingMovement::TYPE_PRISE_DEPOSE)
             ->toArray();
 
         $request->request->add(['length' => 10]);
-        return $this->render('mouvement_traca/index.html.twig', [
+        return $this->render('tracking_movement/index.html.twig', [
             'statuts' => $statuses,
             'form_statuses' => Stream::from($mvtStatuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
                 ->toArray(),
-            'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
             'filterArticle' => $article,
@@ -358,46 +356,24 @@ class TrackingMovementController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/est-dans-ul/{barcode}", name: "tracking_movement_is_in_lu", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
-    public function isInLU(EntityManagerInterface $manager, string $barcode): Response
-    {
-        $article = $manager->getRepository(Article::class)->isInLogisticUnit($barcode);
-
-        return $this->json([
-            "success" => true,
-            "in_logistic_unit" => !empty($article),
-            "logistic_unit" => $article?->getCurrentLogisticUnit()?->getCode(),
-        ]);
-    }
-
-    #[Route("/api-modifier", name: "tracking_movement_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier/{trackingMovement}", name: "tracking_movement_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(EntityManagerInterface $entityManager,
-                            UserService $userService,
-                            Request $request): Response {
+                            UserService            $userService,
+                            TrackingMovement       $trackingMovement): Response {
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $html = $this->renderView('tracking_movement/form/edit.html.twig', [
+            'mvt' => $trackingMovement,
+            'attachments' => $trackingMovement->getAttachments(),
+            'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
+            'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
+        ]);
 
-            $trackingMovement = $trackingMovementRepository->find($data['id']);
-            $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
-
-            $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
-                'mvt' => $trackingMovement,
-                'statuts' => Stream::from($statuses)
-                    ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
-                    ->toArray(),
-                'attachments' => $trackingMovement->getAttachments(),
-                'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
-                'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
-            ]);
-
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse([
+            "success" => true,
+            "html" => $html,
+        ]);
     }
 
     #[Route("/modifier", name: "mvt_traca_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
@@ -408,7 +384,6 @@ class TrackingMovementController extends AbstractController
                          TrackingMovementService $trackingMovementService,
                          UserService $userService,
                          Request $request): Response {
-
         $post = $request->request;
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -505,27 +480,18 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    #[Route("/supprimer", name: "mvt_traca_delete", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer/{trackingMovement}", name: "tracking-movement_delete", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request,
+    public function delete(TrackingMovement $trackingMovement,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            /** @var TrackingMovement $trackingMovement */
-            $trackingMovement = $trackingMovementRepository->find($data['mvt']);
+        $entityManager->remove($trackingMovement);
+        $entityManager->flush();
 
-            if($trackingMovement) {
-                $entityManager->remove($trackingMovement);
-                $entityManager->flush();
-            }
+        return $this->json([
+            "success" => true,
+        ]);
 
-            return $this->json([
-                "success" => true,
-            ]);
-        }
-
-        throw new BadRequestHttpException();
     }
 
     #[Route("/csv", name: "get_mouvements_traca_csv", options: ["expose" => true], methods: ["GET"])]
@@ -591,7 +557,7 @@ class TrackingMovementController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $trackingMovement = $entityManager->find(TrackingMovement::class, $data);
 
-            return $this->json($this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
+            return $this->json($this->renderView('tracking_movement/show.html.twig', [
                 "mvt" => $trackingMovement,
             ]));
         }
@@ -606,20 +572,20 @@ class TrackingMovementController extends AbstractController
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $templateDirectory = "mouvement_traca";
+            $templateDirectory = "tracking_movement/form";
             $appropriateType = $statutRepository->find($typeId);
 
             $fileToRender = match($appropriateType?->getCode()) {
-                TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassPickAndDropMvtTraca.html.twig",
-                TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
-                TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLUMvtTraca.html.twig",
-                TrackingMovement::TYPE_PRISE => "$templateDirectory/newMassMvtTraca.html.twig",
-                TrackingMovement::TYPE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
-                default => "$templateDirectory/newSingleMvtTraca.html.twig"
+                TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassPickAndDrop.html.twig",
+                TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroup.html.twig",
+                TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLMvtTraca.html.twig",
+                TrackingMovement::TYPE_PRISE => "$templateDirectory/newMass.html.twig",
+                TrackingMovement::TYPE_DEPOSE => "$templateDirectory/newMass.html.twig",
+                default => "$templateDirectory/newSingle.html.twig"
             };
 
             return $this->json([
-                "modalBody" => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender),
+                "modalBody" => $fileToRender === 'tracking_movement/' ? false : $this->renderView($fileToRender),
             ]);
         }
 

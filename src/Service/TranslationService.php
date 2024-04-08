@@ -232,11 +232,11 @@ class TranslationService {
 
     public function generateCache(?string $slug = null, ?bool $force = false) {
         if($force) {
-            $this->cacheService->delete(CacheService::TRANSLATIONS);
+            $this->cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
         }
 
         if($slug) {
-            $this->translations[$slug] = $this->cacheService->get(CacheService::TRANSLATIONS, $slug, function() use($slug) {
+            $this->translations[$slug] = $this->cacheService->get(CacheService::COLLECTION_TRANSLATIONS, $slug, function() use($slug) {
                 $this->loadTranslations($slug);
                 return $this->translations[$slug];
             });

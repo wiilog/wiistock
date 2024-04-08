@@ -41,7 +41,9 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
-    getUserFiltersByPage(PAGE_PRODUCTION);
+    const fromDashboard = $('[name="fromDashboard"]').val() === '1';
+
+    getUserFiltersByPage(PAGE_PRODUCTION, {preventPrefillFilters: fromDashboard});
 
     $(`.export-button`).on(`click`, function () {
         exportFile(`production_request_export`, {}, {
@@ -64,9 +66,12 @@ function initProductionRequestsTable() {
 
     updateSelectedStatusesCount(status.length);
 
+    const fromDashboard = $('[name="fromDashboard"]').val() === '1';
+
     let pathProduction = Routing.generate('production_request_api', {
         filterStatus: status,
-        preFilledTypes: $typeFilter.val()
+        preFilledTypes: $typeFilter.val(),
+        fromDashboard,
     }, true);
 
     if (!initialVisible) {

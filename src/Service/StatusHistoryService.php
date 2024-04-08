@@ -44,6 +44,11 @@ class StatusHistoryService {
         $record->setDate($date);
         if ($setStatus) {
             $historyContainer->setStatus($status);
+            $currentLastPartialStatusDate = null;
+            if ($status->isPartial()
+                && (!$currentLastPartialStatusDate || $historyContainer->getLastPartialStatusDate() < $date)) {
+                $historyContainer->setLastPartialStatusDate($date);
+            }
         }
 
         if ($historyContainer instanceof Dispatch) {
@@ -85,6 +90,16 @@ class StatusHistoryService {
         }
 
         return $record;
+    }
+
+    public function clearStatusHistory(EntityManagerInterface $entityManager,
+                                       StatusHistoryContainer $container): void {
+        $statusHistory = $container->getStatusHistory();
+        foreach ($statusHistory as $historyRecord) {
+            $entityManager->remove($historyRecord);
+        }
+
+        $container->clearStatusHistory();
     }
 
 }

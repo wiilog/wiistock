@@ -24,9 +24,12 @@ class PurchaseRequestLineRepository extends EntityRepository {
             ->addSelect('join_referenceArticle.barCode AS barcode')
             ->addSelect('join_referenceArticle.libelle AS label')
             ->addSelect('join_supplier.nom AS supplierName')
+            ->addSelect('purchaseRequestLine.unitPrice  AS purchaseRequestLineUnitPrice')
+
             ->join('purchaseRequestLine.reference', 'join_referenceArticle')
             ->join('purchaseRequestLine.purchaseRequest', 'join_purchaseRequest')
             ->leftjoin('purchaseRequestLine.supplier', 'join_supplier')
+
             ->where("join_purchaseRequest.creationDate BETWEEN :dateMin AND :dateMax")
             ->orderBy('join_purchaseRequest.creationDate', 'DESC')
             ->addOrderBy('join_purchaseRequest.id', 'DESC')

@@ -2,10 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Helper\FormatHelper;
 use App\Repository\FournisseurRepository;
+use App\Service\FormatService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FournisseurRepository::class)]
@@ -47,6 +50,18 @@ class Fournisseur {
 
     #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'provider')]
     private Collection $emergencies;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $phoneNumber = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $receiver = null;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -311,13 +326,60 @@ class Fournisseur {
         return $this;
     }
 
-    public function serialize(): array {
-        return [
-            'name' => $this->getNom(),
-            'code' => $this->getCodeReference(),
-            'possibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
-            'urgent' => FormatHelper::bool($this->isUrgent()),
-        ];
+    public function getAddress(): ?string
+    {
+        return $this->address;
     }
 
+    public function setAddress(?string $address): self
+    {
+        $this->address = $address;
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): self
+    {
+        $this->phoneNumber = $phoneNumber;
+        return $this;
+    }
+
+    public function getReceiver(): ?Utilisateur
+    {
+        return $this->receiver;
+    }
+
+    public function setReceiver(?Utilisateur $receiver): self
+    {
+        $this->receiver = $receiver;
+        return $this;
+    }
+
+    public function serialize(FormatService $formatService): array {
+        return [
+            FixedFieldEnum::name->value => $this->getNom(),
+            'code' => $this->getCodeReference(),
+            'possibleCustoms' => $formatService->bool($this->isPossibleCustoms()),
+            FixedFieldEnum::urgent->value => $formatService->bool($this->isUrgent()),
+            FixedFieldEnum::address->value => $this->getAddress(),
+            FixedFieldEnum::receiver->value=> $formatService->user($this->getReceiver()),
+            FixedFieldEnum::phoneNumber->value => $formatService->phone($this->getPhoneNumber()),
+            FixedFieldEnum::email->value => $this->getEmail(),
+        ];
+    }
 }

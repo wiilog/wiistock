@@ -1,0 +1,133 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité')}} | {{ trans('Traçabilité', 'Mouvements', 'Mouvements') }}{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersTrackingMovements.html.twig' with {
+        page : 'PAGE_MVT_TRACA',
+        tableSelector : '#tableMvts',
+        callback: 'clearURL',
+        needsDateFormatting: true,
+        disabled: filterArticle,
+        filterArticle: filterArticle,
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+    {% set editAttachments = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+    {% set hasRightToCreateMovement = hasRightCreate
+        and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_TRACKING_MOVEMENT')) %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRightToCreateMovement,
+                            title: trans('Traçabilité', 'Mouvements', 'Nouveau mouvement'),
+                            icon: "wii-icon wii-icon-plus",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalNewMvtTraca",
+                                "data-backdrop": "static",
+                                "data-keyboard": "false",
+                                "onclick": "clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca')), switchMvtCreationType($('#modalNewMvtTraca [name=type]'))"
+                            },
+                        },
+                        {
+                            hasRight: hasRightExport,
+                            title: trans('Général', '', 'Zone liste', 'Exporter au format CSV'),
+                            icon: "fa fa-file-csv",
+                            attributes: {
+                                "onclick" : "saveExportFile('get_mouvements_traca_csv', true, {}, false, Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'), true)"
+                            },
+                        },
+                        {
+                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                            icon: "fa fa-cog",
+                            attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalColumnVisible",
+                            },
+                        }
+                    ]
+                } %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableMvts"
+                       class="table w-100"
+                       data-initial-data="{{ initial_tracking_movements }}"
+                       data-initial-visible="{{ initial_visible_columns }}">
+                </table>
+            </div>
+            <div class="d-none justify-content-center" id="spinner">
+                <div class="spinner-border sizeLoader" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="col-12 ">
+
+            </div>
+        </div>
+    </div>
+
+    {{ form.hidden('trackingMovementFilters', initial_filters) }}
+
+    {% if filterArticle %}
+        {{ form.hidden('filterArticle', filterArticle.id) }}
+    {% endif %}
+
+    {% include "tracking_movement/form/new.html.twig" %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditMvtTraca',
+        size: 'modal-lg',
+        header: {
+            title: trans('Traçabilité', 'Mouvements', 'Modifier un mouvement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+            ],
+        }
+    } %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalShowMvtTraca',
+        header: {
+            title: trans('Traçabilité', 'Mouvements', 'Détail de mouvement', false)
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')}
+            ],
+            hideErrorContainer: true,
+        }
+    } %}
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableMvts',
+        'route': 'save_column_visible_for_tracking_movement'
+    } %}
+
+
+    {% set setting = constant('App\\Entity\\Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT') %}
+    {{ form.hidden(setting , setting_value(setting)) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('tracking-movement') }}
+    {% if setting_value('DISPLAY_WARNING_WRONG_LOCATION') %}
+        {{ encore_entry_script_tags('tracking-movement-wrong-location-warning') }}
+    {% endif %}
+{% endblock %}
