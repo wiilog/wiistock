@@ -1106,7 +1106,7 @@ class DashboardService {
                     );
                     $count = $result[0]['count'] ?? $result;
 
-                    if (isset($result[0]['sub'])) {
+                    if (isset($result[0]['sub']) && $count > 0) {
                         $meter
                             ->setSubCounts([
                                 $config['displayDeliveryOrderContent'] === 'displayLogisticUnitsCount'
