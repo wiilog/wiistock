@@ -227,69 +227,84 @@ class TrackingMovementController extends AbstractController
                 $codeToPack = [];
                 $packArrayFiltered = Stream::explode(',', $packCode)
                     ->filterMap(fn(string $code) => $code ? trim($code) : $code);
-                $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
-                $dropLocation = $emplacementRepository->find($post->get('emplacement-depose'));
+                $type = $trackingMovementService->getTrackingType($entityManager, $post->getInt('type'));
+                $pickingLocationId = in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])
+                    ? $post->get('emplacement-prise')
+                    : $post->get('emplacement');
+                $pickingLocation = $emplacementRepository->find($pickingLocationId);
+
+                if ($type->getCode() !== TrackingMovement::TYPE_PRISE){
+                    $dropLocationId = $type->getCode() === TrackingMovement::TYPE_PRISE_DEPOSE
+                        ? $post->get('emplacement-depose')
+                        : $post->get('emplacement');
+                    $dropLocation = $emplacementRepository->find($dropLocationId);
+                }
+
                 foreach ($packArrayFiltered as $pack) {
-                    $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
-                        $entityManager,
-                        $codeToPack[$pack] ?? $pack,
-                        $pickingLocation,
-                        $operator,
-                        $date,
-                        true,
-                        TrackingMovement::TYPE_PRISE,
-                        $forced,
-                        [
-                            'commentaire' => $commentaire,
-                            'quantity' => $quantity,
-                        ]
-                    );
+                    if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
+                        $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                            $entityManager,
+                            $codeToPack[$pack] ?? $pack,
+                            $pickingLocation,
+                            $operator,
+                            $date,
+                            true,
+                            TrackingMovement::TYPE_PRISE,
+                            $forced,
+                            [
+                                'commentaire' => $commentaire,
+                                'quantity' => $quantity,
+                            ]
+                        );
 
-                    if ($pickingRes['success']) {
-                        array_push($createdMouvements, ...$pickingRes['movements']);
+                        if ($pickingRes['success']) {
+                            array_push($createdMouvements, ...$pickingRes['movements']);
 
-                        $codeToPack = Stream::from($pickingRes['movements'])
-                            ->keymap(static function(TrackingMovement $movement) {
-                                $pack = $movement->getPack();
+                            $codeToPack = Stream::from($pickingRes['movements'])
+                                ->keymap(static function(TrackingMovement $movement) {
+                                    $pack = $movement->getPack();
 
-                                return [$pack->getCode(), $pack];
-                            })
-                            ->concat($codeToPack, true)
-                            ->toArray();
+                                    return [$pack->getCode(), $pack];
+                                })
+                                ->concat($codeToPack, true)
+                                ->toArray();
+                        }
+                        else {
+                            return $this->json($this->treatPersistTrackingError($pickingRes));
+                        }
                     }
-                    else {
-                        return $this->json($this->treatPersistTrackingError($pickingRes));
-                    }
 
-                    $dropRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
-                        $entityManager,
-                        $codeToPack[$pack] ?? $pack,
-                        $dropLocation,
-                        $operator,
-                        $date,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        $forced,
-                        [
-                            'commentaire' => $commentaire,
-                            'quantity' => $quantity,
-                        ]
-                    );
+                    if(in_array($type->getCode(), [TrackingMovement::TYPE_DEPOSE, TrackingMovement::TYPE_PRISE_DEPOSE])){
+                        $dropRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                            $entityManager,
+                            $codeToPack[$pack] ?? $pack,
+                            $dropLocation,
+                            $operator,
+                            $date,
+                            true,
+                            TrackingMovement::TYPE_DEPOSE,
+                            $forced,
+                            [
+                                'commentaire' => $commentaire,
+                                'quantity' => $quantity,
+                            ]
+                        );
 
-                    if ($dropRes['success']) {
-                        array_push($createdMouvements, ...$dropRes['movements']);
+                        if ($dropRes['success']) {
+                            array_push($createdMouvements, ...$dropRes['movements']);
 
-                        $codeToPack = Stream::from($dropRes['movements'])
-                            ->keymap(static function(TrackingMovement $movement) {
-                                $pack = $movement->getPack();
+                            $codeToPack = Stream::from($dropRes['movements'])
+                                ->keymap(static function(TrackingMovement $movement) {
+                                    $pack = $movement->getPack();
 
-                                return [$pack->getCode(), $pack];
-                            })
-                            ->concat($codeToPack, true)
-                            ->toArray();
-                    }
-                    else {
-                        return $this->json($this->treatPersistTrackingError($dropRes));
+                                    return [$pack->getCode(), $pack];
+                                })
+                                ->concat($codeToPack, true)
+                                ->toArray();
+                        }
+                        else {
+                            return $this->json($this->treatPersistTrackingError($dropRes));
+                        }
                     }
                 }
             }
@@ -557,7 +572,7 @@ class TrackingMovementController extends AbstractController
 
     #[Route("/obtenir-corps-modal-nouveau", name: "mouvement_traca_get_appropriate_html", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
-    public function getAppropriateHtml(Request $request, EntityManagerInterface $entityManager, SpecificService $specificService): Response
+    public function getAppropriateHtml(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -566,14 +581,17 @@ class TrackingMovementController extends AbstractController
             $appropriateType = $statutRepository->find($typeId);
 
             $fileToRender = match($appropriateType?->getCode()) {
-                TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMass.html.twig",
+                TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassPickAndDrop.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroup.html.twig",
                 TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLU.html.twig",
+                TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE => "$templateDirectory/newMass.html.twig",
                 default => "$templateDirectory/newSingle.html.twig"
             };
 
             return $this->json([
-                "modalBody" => $fileToRender === 'tracking_movement/' ? false : $this->renderView($fileToRender),
+                "modalBody" => $fileToRender === "tracking_movement/" ? false : $this->renderView($fileToRender, [
+                    'isPickMovement' => $appropriateType?->getCode() === TrackingMovement::TYPE_PRISE,
+                ]),
             ]);
         }
 
