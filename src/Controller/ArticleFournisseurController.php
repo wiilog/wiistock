@@ -17,24 +17,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/article-fournisseur")
- */
+
+#[Route("/article-fournisseur")]
 class ArticleFournisseurController extends AbstractController {
 
-    /**
-     * @Route("/", name="article_fournisseur_index")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI_FOUR})
-     */
-    public function index() {
+    #[Route("/", name: "article_fournisseur_index")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI_FOUR])]
+    public function index():Response {
         return $this->render('article_fournisseur/index.html.twig');
     }
 
-    /**
-     * @Route("/api", name="article_fournisseur_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI_FOUR}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request, EntityManagerInterface $entityManager): Response {
+    #[Route("/api", name: "article_fournisseur_api", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI_FOUR], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
         /** @var Utilisateur $user */
@@ -53,13 +48,11 @@ class ArticleFournisseurController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="article_fournisseur_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager,
-                        ArticleFournisseurService $articleFournisseurService): Response {
+    #[Route("/creer", name: "article_fournisseur_new", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(Request                     $request,
+                        EntityManagerInterface      $entityManager,
+                        ArticleFournisseurService   $articleFournisseurService): JsonResponse {
         $dataResponse = [];
         if ($data = json_decode($request->getContent(), true)) {
             try {
@@ -81,10 +74,8 @@ class ArticleFournisseurController extends AbstractController {
         return new JsonResponse($dataResponse);
     }
 
-    /**
-     * @Route("/api-modifier", name="article_fournisseur_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier", name: "article_fournisseur_api_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function displayEdit(Request $request,
                                 EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
@@ -99,12 +90,10 @@ class ArticleFournisseurController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="article_fournisseur_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function edit(Request $request,
-                         EntityManagerInterface $entityManager): Response {
+    #[Route("/modifier", name: "article_fournisseur_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -129,12 +118,10 @@ class ArticleFournisseurController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="article_fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response {
+    #[Route("/supprimer", name: "article_fournisseur_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['article-fournisseur']));
@@ -156,12 +143,10 @@ class ArticleFournisseurController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer_verif", name="article_fournisseur_can_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function deleteVerif(Request $request,
-                                EntityManagerInterface $entityManager): Response {
+    #[Route("/supprimer_verif", name: "article_fournisseur_can_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function deleteVerif(Request                 $request,
+                                EntityManagerInterface  $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['articleFournisseur']));
@@ -193,11 +178,9 @@ class ArticleFournisseurController extends AbstractController {
         return $row;
     }
 
-    /**
-     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getArticleFournisseur(Request $request,
-                                          EntityManagerInterface $entityManager) {
+    #[Route("/autocomplete", name: "get_article_fournisseur_autocomplete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    public function getArticleFournisseur(Request                   $request,
+                                          EntityManagerInterface    $entityManager): JsonResponse {
         $search = $request->query->get('term');
         $referenceArticle = $request->query->get('referenceArticle');
 

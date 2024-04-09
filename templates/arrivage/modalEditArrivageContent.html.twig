@@ -69,7 +69,7 @@
         <div class="form-group col-4">
             <label class="wii-field-name"
                    for="noTracking">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
-            <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="noTracking" maxlength="64"
+            <input type="text" id="noTracking" class="form-control {{  not useTruckArrival ? "data" }} {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="noTracking" maxlength="64"
                    value="{{ useTruckArrival
                    ? arrivage.truckArrivalLines|map((item) => item.number)|join(',')
                    : arrivage.noTracking }}"

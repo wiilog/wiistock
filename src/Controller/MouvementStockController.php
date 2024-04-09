@@ -31,16 +31,12 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
-/**
- * @Route("/mouvement-stock")
- */
+#[Route("/mouvement-stock")]
 class MouvementStockController extends AbstractController
 {
 
-    /**
-     * @Route("/", name="mouvement_stock_index")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_MOUV_STOC})
-     */
+    #[Route("/", name: "mouvement_stock_index")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOC])]
     public function index(EntityManagerInterface $entityManager)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -55,10 +51,8 @@ class MouvementStockController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="mouvement_stock_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_MOUV_STOC}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "mouvement_stock_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOC], mode: HasPermission::IN_JSON)]
     public function api(Request $request, MouvementStockService $mouvementStockService): Response
     {
         /** @var Utilisateur $user */
@@ -68,10 +62,8 @@ class MouvementStockController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/supprimer", name="mvt_stock_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "mvt_stock_delete", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -94,9 +86,7 @@ class MouvementStockController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/nouveau", name: "mvt_stock_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function new(Request                 $request,
                         MouvementStockService   $mouvementStockService,
                         TrackingMovementService $trackingMovementService,
@@ -253,7 +243,6 @@ class MouvementStockController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="get_stock_movements_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
      * @param EntityManagerInterface $entityManager
@@ -261,6 +250,7 @@ class MouvementStockController extends AbstractController
      * @return StreamedResponse
      * @throws Exception
      */
+    #[Route("/csv", name: "get_stock_movements_csv", options: ["expose" => true], methods: ["GET"])]
     public function getStockMovementsCSV(Request $request,
                                          MouvementStockService $mouvementStockService,
                                          EntityManagerInterface $entityManager,

@@ -63,7 +63,9 @@ class ArticleController extends AbstractController
 
     #[Route("/", name: "article_index", methods: [self::GET])]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
-    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService, TagTemplateService $tagTemplateService): Response {
+    public function index(EntityManagerInterface $entityManager,
+                          ArticleDataService     $articleDataService,
+                          TagTemplateService     $tagTemplateService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
@@ -149,7 +151,7 @@ class ArticleController extends AbstractController
     #[Route("/api-columns", name: "article_api_columns", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
     public function apiColumns(ArticleDataService $articleDataService,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager): JsonResponse
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -162,7 +164,7 @@ class ArticleController extends AbstractController
     #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     public function show(Request $request,
                             ArticleDataService $articleDataService,
-                            EntityManagerInterface $entityManager): Response
+                            EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
