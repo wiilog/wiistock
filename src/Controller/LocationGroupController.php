@@ -10,30 +10,25 @@ use App\Entity\Menu;
 use App\Service\LocationGroupService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/emplacements/groupes")
- */
+#[Route("/emplacements/groupes")]
 class LocationGroupController extends AbstractController {
 
-    /**
-     * @Route("/api", name="location_group_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_LOCATION}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request, LocationGroupService $groupService): Response {
+    #[Route("/api", name: "location_group_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, LocationGroupService $groupService): JsonResponse {
         return $this->json($groupService->getDataForDatatable($request->request));
     }
 
-    /**
-     * @Route("/creer", name="location_group_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/creer", name: "location_group_new", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(Request $request, EntityManagerInterface $manager): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         $locationRepository = $manager->getRepository(Emplacement::class);
@@ -70,11 +65,9 @@ class LocationGroupController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="location_group_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/api-modifier", name: "location_group_edit_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editApi(Request $request, EntityManagerInterface $manager): JsonResponse {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $locationGroupRepository = $manager->getRepository(LocationGroup::class);
             $group = $locationGroupRepository->find($data['id']);
@@ -87,11 +80,9 @@ class LocationGroupController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="location_group_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function edit(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/modifier", name: "location_group_edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function edit(Request $request, EntityManagerInterface $manager): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         $locationRepository = $manager->getRepository(Emplacement::class);
@@ -117,11 +108,9 @@ class LocationGroupController extends AbstractController {
         throw new NotFoundHttpException();
     }
 
-    /**
-     * @Route("/api-supprimer", name="location_group_delete_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function deleteApi(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/api-supprimer", name: "location_group_delete_api", options: ["expose" => true], methods: [self::POST, self::GET])]
+    #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function deleteApi(Request $request, EntityManagerInterface $manager): JsonResponse {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(LocationGroup::class);
             $group = $packRepository->find($data["id"]);
@@ -134,11 +123,9 @@ class LocationGroupController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="location_group_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/supprimer", name: "location_group_delete", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request $request, EntityManagerInterface $manager): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
