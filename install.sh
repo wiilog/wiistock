@@ -20,13 +20,16 @@ prepare_project() {
         --classmap-authoritative \
         --no-ansi
 
-    wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/build.zip || true
+    if [ -z "$APP_CONTEXT" ]; then
+        APP_CONTEXT="prod"
+    fi
+
+    wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/build-"$APP_CONTEXT".zip || true
     if [ -f build.zip ]; then
-        unzip -q build.zip
-        rm build.zip
+        unzip -q build-"$APP_CONTEXT".zip
+        rm build-"$APP_CONTEXT".zip
         if [ -d build ]; then
             find build -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
-
             mv build public/
         fi
     fi
