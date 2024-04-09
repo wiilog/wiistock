@@ -388,7 +388,7 @@ function onStatusStateChange($select) {
  */
 function handleSingleSelect($select) {
     const $form = $select.closest('tr');
-    const optionSelector = `option[value=${$select.val()}]`;
+    console.log($select.val())
 
     const disabledFields = [
         {
@@ -410,11 +410,15 @@ function handleSingleSelect($select) {
     ];
     // Disable fields based on the selected status
     disabledFields.forEach(({ name, disabled }) => {
-        const isDisabled = $select.find(optionSelector).data(disabled);
+        const disabledStr = $select
+            .find(`option[value=${$select.val()}]`)
+            .data(disabled);
+        const isDisabled = Boolean(disabledStr);
         const $field = $form.find(`[name=${name}]`);
 
-
-        $field.prop('disabled', Boolean(isDisabled));
-        $field.prop('checked', false);
+        $field.prop('disabled', isDisabled);
+        if (isDisabled) {
+            $field.prop('checked', false);
+        }
     });
 }
