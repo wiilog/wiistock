@@ -372,6 +372,7 @@ class ArrivageService {
 					    . "Les avez-vous reçus dans cet arrivage ?
                     ";
                 }
+                $numeroCommande = join(',',$arrivage->getNumeroCommandeList());
             }
         }
         else {
