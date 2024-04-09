@@ -36,7 +36,10 @@ SELECT reception.id                                                             
        IF(reception.urgent_articles = 1, 'oui', 'non')                                AS urgence_reference,
 
        IF(reception.manual_urgent = 1, 'oui', 'non')                                  AS urgence_reception,
-       purchase_request.number                                                        AS numero_demande_achat,
+       (SELECT number
+        FROM purchase_request
+        INNER JOIN purchase_request_line ON reception.id = purchase_request_line.reception_id
+        LIMIT 1)                                                                      AS numero_demande_achat,
        reception.arrival_id                                                           AS arrivage_id,
        reception_reference_article.unit_price                                         AS prix_unitaire
 
@@ -44,8 +47,6 @@ FROM reception
          LEFT JOIN statut ON reception.statut_id = statut.id
          LEFT JOIN fournisseur ON reception.fournisseur_id = fournisseur.id
          LEFT JOIN emplacement ON reception.location_id = emplacement.id
-         LEFT JOIN purchase_request_line ON reception.id = purchase_request_line.reception_id
-         LEFT JOIN purchase_request ON purchase_request_line.purchase_request_id = purchase_request.id
          LEFT JOIN reception_line ON reception.id = reception_line.reception_id
          LEFT JOIN reception_reference_article ON reception_line.id = reception_reference_article.reception_line_id
          LEFT JOIN reference_article ON reception_reference_article.reference_article_id = reference_article.id
