@@ -1,4 +1,5 @@
-import Select2 from "../../select2";
+import Select2 from "@app/select2";
+import AJAX, {GET} from "@app/ajax";
 
 $(function () {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
@@ -19,7 +20,7 @@ $(function () {
                 async ($option) => {
                     if ($option.data('location') === undefined) {
                         await AJAX.route(
-                            AJAX.GET,
+                            GET,
                             'pack_get_location',
                             {pack: $option.val()},
                         ).json().then(function (response) {

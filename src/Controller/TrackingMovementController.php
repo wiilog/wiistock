@@ -228,12 +228,17 @@ class TrackingMovementController extends AbstractController
                 $packArrayFiltered = Stream::explode(',', $packCode)
                     ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $type = $trackingMovementService->getTrackingType($entityManager, $post->getInt('type'));
-                $pickingLocation = $type->getCode() === TrackingMovement::TYPE_PRISE_DEPOSE
-                    ? $emplacementRepository->find($post->get('emplacement-prise'))
-                    : $emplacementRepository->find($post->get('emplacement'));
-                $dropLocation = $type->getCode() === TrackingMovement::TYPE_PRISE_DEPOSE
-                    ? $emplacementRepository->find($post->get('emplacement-depose'))
-                    : $emplacementRepository->find($post->get('emplacement'));
+                $pickingLocationId = in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])
+                    ? $post->get('emplacement-prise')
+                    : $post->get('emplacement');
+                $pickingLocation = $emplacementRepository->find($pickingLocationId);
+
+                if ($type->getCode() !== TrackingMovement::TYPE_PRISE){
+                    $dropLocationId = $type->getCode() === TrackingMovement::TYPE_PRISE_DEPOSE
+                        ? $post->get('emplacement-depose')
+                        : $post->get('emplacement');
+                    $dropLocation = $emplacementRepository->find($dropLocationId);
+                }
 
                 foreach ($packArrayFiltered as $pack) {
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
