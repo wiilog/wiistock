@@ -26,9 +26,12 @@ prepare_project() {
 
     wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/build-"$APP_CONTEXT".zip || true
     if [ -f build-"$APP_CONTEXT".zip ]; then
+        echo "Extracting build-$APP_CONTEXT.zip"
         unzip -q build-"$APP_CONTEXT".zip
         rm build-"$APP_CONTEXT".zip
+        echo "Extracted build-$APP_CONTEXT.zip"
         if [ -d build ]; then
+            echo "Replacing <<DOMAIN_NAME>> with $APP_DOMAIN_NAME"
             find build -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
             mv build public/
         fi
@@ -36,6 +39,7 @@ prepare_project() {
 
     # si /public/build existe pas on le crée
     if [ ! -d public/build ]; then
+        echo "Creating public/build"
         wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/node_modules.zip || true
         if [ -f node_modules.zip ]; then
             unzip -q node_modules.zip
