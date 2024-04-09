@@ -69,6 +69,11 @@ jobs:
                     asset_name: node_modules.zip
                     tag: ${{ github.ref }}
 
+            -   name: Add generated.yaml
+                run: |
+                    touch config/generated.yaml &&
+                    echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
+
             -   name: Generate routes
                 run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
