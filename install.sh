@@ -25,7 +25,7 @@ prepare_project() {
     fi
 
     wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/build-"$APP_CONTEXT".zip || true
-    if [ -f build.zip ]; then
+    if [ -f build-"$APP_CONTEXT".zip ]; then
         unzip -q build-"$APP_CONTEXT".zip
         rm build-"$APP_CONTEXT".zip
         if [ -d build ]; then
