@@ -100,6 +100,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                         ));
                     });
             }
+            ensureMaxCheckboxSelection("passStatusAtPurchaseOrderGeneration");
+            onStatusStateChange($container.find('[name=state]'));
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
@@ -137,6 +139,40 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     });
 
     return table;
+}
+
+/**
+ * Ensures only a specified number of checkboxes are checked for a given checkbox group
+ * @param {string} groupName - Name of the checkbox group
+ * @param {number} maxChecked - Maximum number of checkboxes allowed to be checked
+ * @example ensureMaxCheckboxSelection('my-checkbox-group', 2);
+ * @returns {void}
+ */
+function ensureMaxCheckboxSelection(groupName, maxChecked = 1) {
+    const $checkboxes = $(`input[name="${groupName}"]`);
+
+    $checkboxes.off("change.checkboxesChange").on('change.checkboxesChange', function() {
+        updateCheckboxes(groupName, maxChecked, $checkboxes);
+    })
+
+    // Call the function once to set initial state
+    updateCheckboxes(groupName, maxChecked, $checkboxes);
+}
+
+/**
+ * Update checkboxes based on the number of checkboxes checked
+ * @param groupName - Name of the checkbox group
+ * @param maxChecked - Maximum number of checkboxes allowed to be checked
+ * @param $checkboxes - jQuery object containing the checkboxes to update
+ * @example updateCheckboxes('my-checkbox-group', 2, $('input[name="my-checkbox-group"]'));
+ * @returns {void}
+ */
+function updateCheckboxes(groupName, maxChecked = 1, $checkboxes) {
+    const checkedCount = $checkboxes.filter(':checked').length;
+
+    // Disable checkboxes if the maximum number of checkboxes are checked without the current one
+    $checkboxes = $checkboxes.filter(':not(:checked)');
+    $checkboxes.prop('disabled', checkedCount >= maxChecked);
 }
 
 function getStatusesColumn(mode, hasRightGroupedSignature) {
@@ -192,6 +228,11 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
         {
             data: `preventStatusChangeWithoutDeliveryFees`,
             title: `<div class='small-column' style="max-width: 160px !important;">Blocage du changement de statut si frais de livraison non rempli</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
+        },
+        {
+            data: `passStatusAtPurchaseOrderGeneration`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Passage au statut à la génération du bon de commande</div>`,
             modes: [MODE_PURCHASE_REQUEST]
         },
         {
@@ -277,6 +318,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         color: getInputColor('color'),
         preventStatusChangeWithoutDeliveryFees: `<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data'/></div>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
+        passStatusAtPurchaseOrderGeneration: `<div class='checkbox-container'><input type='checkbox' name='passStatusAtPurchaseOrderGeneration' class='form-control data'/></div>`,
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
@@ -326,23 +368,56 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         });
 }
 
+/**
+ * Handles the change event of the status state select element
+ * @param $select - jQuery object representing the select element
+ */
 function onStatusStateChange($select) {
-    const $form = $select.closest('tr');
-    const $needMobileSync = $form.find('[name=needsMobileSync]');
-    const $color = $form.find('[name=color]');
-    const $automaticReceptionCreation = $form.find('[name=automaticReceptionCreation]');
-    const disabledNeedMobileSync = $select
-        .find(`option[value=${$select.val()}]`)
-        .data('need-mobile-sync-disabled');
-    const disabledAutomaticReceptionCreation = $select
-        .find(`option[value=${$select.val()}]`)
-        .data('automatic-reception-creation-disabled');
-
-    $needMobileSync.prop('disabled', Boolean(disabledNeedMobileSync));
-    $color.prop('disabled', Boolean(disabledNeedMobileSync));
-    if (disabledNeedMobileSync) {
-        $needMobileSync.prop('checked', false);
+    if ($select.length > 1) {
+        // if $select is an array of select elements (first call of the function)
+        $select.each((index, select) => handleSingleSelect($(select)));
+    } else {
+        // if $select is a single select element (change event)
+        handleSingleSelect($select);
     }
+}
 
-    $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
+/**
+ * Handles the change event of a single select element
+ * @param $select - jQuery object representing the select element
+ */
+function handleSingleSelect($select) {
+    const $form = $select.closest('tr');
+
+    const disabledFields = [
+        {
+            name: 'needsMobileSync',
+            disabled: 'need-mobile-sync-disabled',
+        },
+        {
+            name: 'color',
+            disabled: 'need-mobile-sync-disabled'
+        },
+        {
+            name: 'passStatusAtPurchaseOrderGeneration',
+            disabled: 'pass-status-at-purchase-order-generation-disabled'
+        },
+        {
+            name: 'automaticReceptionCreation',
+            disabled: 'automatic-reception-creation-disabled',
+        },
+    ];
+    // Disable fields based on the selected status
+    disabledFields.forEach(({ name, disabled }) => {
+        const disabledStr = $select
+            .find(`option[value=${$select.val()}]`)
+            .data(disabled);
+        const isDisabled = Boolean(disabledStr);
+        const $field = $form.find(`[name=${name}]`);
+
+        $field.prop('disabled', isDisabled);
+        if (isDisabled) {
+            $field.prop('checked', false);
+        }
+    });
 }
