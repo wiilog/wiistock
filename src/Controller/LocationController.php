@@ -117,9 +117,8 @@ class LocationController extends AbstractController {
         $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
         $zonesCount = $zoneRepository->count([]);
 
-        if (!$location->getId()
-            && $zonesCount === 1) {
-            $location->setZone($zoneRepository->findOneBy([]));
+        if (!$location->getId() && $zonesCount === 1) {
+            $location->setProperty("zone", $zoneRepository->findOneBy([]));
         }
 
         return $this->json([
