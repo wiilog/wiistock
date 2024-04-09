@@ -80,11 +80,10 @@ jobs:
             -   name: Generate fixedField Enum
                 run: php bin/console app:update:fixed-fields
 
-            -   name: change context
-                run: export APP_CONTEXT=prod
-
             -   name: Build js
                 run: yarn build:only:production
+                env:
+                    APP_CONTEXT: prod
 
             -   name: Zip build
                 run: mv public/build build && zip -r -y -qq build-prod.zip build && rm -rf build
@@ -103,11 +102,10 @@ jobs:
                     asset_name: build-prod.zip
                     tag: ${{ github.ref }}
 
-            -   name: change context
-                run: export APP_CONTEXT=rec
-
             -   name: Build js
                 run: yarn build:only:production
+                env:
+                    APP_CONTEXT: rec
 
             -   name: Zip build
                 run: mv public/build build && zip -r -y -qq build-rec.zip build
