@@ -798,8 +798,7 @@ class MobileController extends AbstractApiController
                                 LivraisonsManagerService   $livraisonsManager,
                                 TrackingMovementService    $trackingMovementService,
                                 PreparationsManagerService $preparationsManager,
-                                EntityManagerInterface     $entityManager)
-    {
+                                EntityManagerInterface     $entityManager) {
         $insertedPrepasIds = [];
         $statusCode = Response::HTTP_OK;
 

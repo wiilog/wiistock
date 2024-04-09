@@ -879,4 +879,6 @@ class Article implements PairedEntity {
 
         return $this;
     }
+
+
 }

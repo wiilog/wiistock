@@ -195,12 +195,10 @@ class Import {
             'role' => 'Rôle',
             'deliverer' => 'Livreur',
             'username' => 'Nom d\'utilisateur',
-            'email' => 'Email',
             'secondaryEmail' => 'Email 2',
             'lastEmail' => 'Email 3',
             'phone' => 'Numéro de téléphone',
             'mobileLoginKey' => 'Clé de connexion nomade',
-            'address' => 'Adresse',
             'deliveryTypes' => 'Types de livraison',
             'dispatchTypes' => 'Types d\'acheminement',
             'handlingTypes' => 'Types de services',
@@ -228,7 +226,6 @@ class Import {
             'signatories' => 'Signataires',
 
             'possibleCustoms' => 'Possible douane',
-            'urgent' => 'Urgent',
 
             'fax' => 'Fax',
 
@@ -252,6 +249,11 @@ class Import {
             FixedFieldEnum::emergency->name => FixedFieldEnum::emergency->value,
             FixedFieldEnum::projectNumber->name => FixedFieldEnum::projectNumber->value,
             FixedFieldEnum::comment->name => FixedFieldEnum::comment->value,
+            FixedFieldEnum::receiver->name => FixedFieldEnum::receiver->value,
+            FixedFieldEnum::address->name => FixedFieldEnum::address->value,
+            FixedFieldEnum::phoneNumber->name => FixedFieldEnum::phoneNumber->value,
+            FixedFieldEnum::urgent->name => FixedFieldEnum::urgent->value,
+            FixedFieldEnum::email->name => FixedFieldEnum::email->value,
         ],
 
         self::ENTITY_CUSTOMER => [

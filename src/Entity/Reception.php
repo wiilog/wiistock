@@ -32,7 +32,7 @@ class Reception {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'receptions')]
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class,)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Fournisseur $fournisseur = null;
 
