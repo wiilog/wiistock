@@ -388,7 +388,6 @@ function onStatusStateChange($select) {
  */
 function handleSingleSelect($select) {
     const $form = $select.closest('tr');
-    console.log($select.val())
 
     const disabledFields = [
         {
