@@ -19,6 +19,7 @@ class SpecificService
     const CLIENT_INEO_LAV = 'ineos-lav';
     const CLIENT_BOITE_ROSE_TAVERNY = 'boite-rose-taverny';
     const CLIENT_CLB = 'clb';
+    const CLIENT_CLB_REC = 'clb-rec';
     const CLIENT_RATIER_FIGEAC = 'ratier-figeac';
     const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_AIA_CUERS = 'aia-cuers';
@@ -38,7 +39,7 @@ class SpecificService
         self::CLIENT_WIILOG => 'Wiilog',
         self::CLIENT_INEO_LAV => 'Ineos Lavera',
         self::CLIENT_BOITE_ROSE_TAVERNY => 'Boîte rose Taverny',
-        self::CLIENT_CLB => 'CLB',
+        self::CLIENT_CLB_REC => 'CLB',
         self::CLIENT_SAFRAN_MC => 'Safran MC',
         self::CLIENT_RATIER_FIGEAC => 'Ratier Figeac',
         self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',

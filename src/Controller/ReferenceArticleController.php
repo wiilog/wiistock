@@ -59,7 +59,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -603,8 +605,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getRefArticles(Request $request,
-                                   EntityManagerInterface $entityManager)
-    {
+                                   EntityManagerInterface $entityManager): JsonResponse {
         $search = $request->query->get('term');
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -719,14 +720,14 @@ class ReferenceArticleController extends AbstractController
 
     }
 
-    /**
-     * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
-     */
+    #[Route("voir/{id}", name: "reference_article_show_page", options: ["expose" => true])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE])]
     public function showPage(Request                $request,
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
                              EntityManagerInterface $entityManager): Response {
+        $hasIaParams = $_SERVER['STOCK_FORECAST_URL'] ?? false;
+
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -748,15 +749,15 @@ class ReferenceArticleController extends AbstractController
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager)
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'hasIaParams' => $hasIaParams,
         ]);
     }
 
     /**
      * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
-	{
+    public function getQuantityType(Request $request, EntityManagerInterface $entityManager): JsonResponse {
 		if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -909,7 +910,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,
-                                   RefArticleDataService $refArticleDataService) {
+                                   RefArticleDataService $refArticleDataService): JsonResponse {
 
         $refArticleDataService->updateRefArticleQuantities($entityManager, [$referenceArticle], true);
         $entityManager->flush();
@@ -925,7 +926,7 @@ class ReferenceArticleController extends AbstractController
     public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
-                                SettingsService        $settingsService) {
+                                SettingsService        $settingsService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -988,7 +989,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function editTemplate(EntityManagerInterface $entityManager,
                                  RefArticleDataService  $refArticleDataService,
-                                 ReferenceArticle       $reference) {
+                                 ReferenceArticle       $reference): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -1218,5 +1219,43 @@ class ReferenceArticleController extends AbstractController
                 "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
             ]
         );
+    }
+
+    #[Route("/get-stock-forecast/{referenceArticle}", name: "reference_article_get_stock_forecast", options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
+    public function getStockForecast(Request $request, HttpClientInterface $client, string $referenceArticle, EntityManagerInterface $entityManager): JsonResponse {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+
+        $apiURL = $_SERVER['STOCK_FORECAST_URL'];
+
+        if(!$apiURL) {
+            throw new FormException("La configuration de l'instance permettant la prévision de stock est invalide");
+        }
+
+        $formData = new FormDataPart([
+            'Content-Type'=> 'application/json',
+        ]);
+
+        $headers = $formData->getPreparedHeaders()->toArray();
+        try {
+            $apiRequest = $client->request('POST', $apiURL, [
+                "headers" => $headers,
+                "body" => json_encode([
+                    "reference" => $referenceArticle,
+                ]),
+            ]);
+
+            $apiOutput = $apiRequest->getContent();
+        } catch (\Throwable $e) {
+            throw new FormException( $e->getMessage() ?: "Une erreur s'est produite lors de la prévision de stock");
+        }
+
+        $apiOutput = json_decode($apiOutput, true);
+
+        return new JsonResponse([
+            "success" => true,
+            "html" => $apiOutput["html"] ?? "",
+        ]);
     }
 }

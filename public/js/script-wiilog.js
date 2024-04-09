@@ -217,6 +217,7 @@ function showRow(button, path, modal) {
 
 function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
+    clearModal(modal)
 
     let params;
     if (button) {
@@ -459,6 +460,7 @@ function clearModal(modal) {
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
     clearCheckboxes($modal);
+
     // on vide les éditeurs de texte
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
@@ -466,6 +468,7 @@ function clearModal(modal) {
     $modal.find('.remove-on-clear').remove();
     $modal.find('.attachement').remove();
     $modal.find('.isRight').removeClass('isRight');
+    resetDroppedFiles();
 }
 
 function clearCheckboxes($modal) {

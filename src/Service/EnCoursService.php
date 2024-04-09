@@ -229,7 +229,7 @@ class EnCoursService
             if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
                 $emplacementInfo[] = [
                     'LU' => $oldestDrop['code'],
-                    'delay' => $this->renderMillisecondsToDelay($timeInformation['ageTimespan']),
+                    'delay' => $timeInformation['ageTimespan'],
                     'delayTimeStamp' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,

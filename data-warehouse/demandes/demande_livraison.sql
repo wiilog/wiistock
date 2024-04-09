@@ -67,7 +67,6 @@ FROM (SELECT demande.id                                                         
                LEFT JOIN emplacement AS destination ON demande.destination_id = destination.id
                LEFT JOIN type ON demande.type_id = type.id
                INNER JOIN delivery_request_article_line ON demande.id = delivery_request_article_line.request_id
-               INNER JOIN pack AS request_line_pack ON delivery_request_article_line.pack_id = request_line_pack.id
                LEFT JOIN project AS request_article_line_project ON delivery_request_article_line.project_id = request_article_line_project.id
                INNER JOIN article ON delivery_request_article_line.article_id = article.id
                LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
