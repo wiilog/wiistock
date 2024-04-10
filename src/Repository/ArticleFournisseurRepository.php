@@ -6,9 +6,12 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Helper\QueryBuilderHelper;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Select;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -124,7 +127,7 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function findByParams(InputBag $params, Utilisateur $user)
+    public function findByParams(InputBag $params, Utilisateur $user): array
     {
         $queryBuilder = $this->createQueryBuilder('supplier_article');
         $visibilityGroup = $user->getVisibilityGroups();
@@ -144,11 +147,9 @@ class ArticleFournisseurRepository extends EntityRepository
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->all('order')))
-            {
+            if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
-                if (!empty($order))
-                {
+                if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'fournisseur') {
                         $queryBuilder
@@ -169,30 +170,74 @@ class ArticleFournisseurRepository extends EntityRepository
             }
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
+
+                $searchParts = Stream::explode(" ", $search)
+                    ->filter()
+                    ->map(static fn($part) => strtolower($part))
+                    ->toArray();
+                $expr = $queryBuilder->expr();
                 if (!empty($search)) {
+
                     $queryBuilder
                         ->leftJoin('supplier_article.fournisseur', 'f2')
-                        ->leftJoin('supplier_article.referenceArticle', 'ra2')
-                        ->andWhere('f2.nom LIKE :value OR supplier_article.reference LIKE :value OR ra2.libelle LIKE :value OR supplier_article.label LIKE :value OR ra2.reference LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->leftJoin('supplier_article.referenceArticle', 'ra2');
+
+                    foreach ($searchParts as $index => $part) {
+                        $queryBuilder
+                            ->addSelect("
+                                (
+                                    IF(LOWER(f2.nom) LIKE :value_$index, 1, 0)) +
+                                    (IF(LOWER(supplier_article.reference) LIKE :value_$index, 1, 0)) +
+                                    (IF(LOWER(ra2.libelle) LIKE :value_$index, 1, 0)) +
+                                    (IF(LOWER(supplier_article.label) LIKE :value_$index, 1, 0)) +
+                                    (IF(LOWER(ra2.reference) LIKE :value_$index, 1, 0)
+                                ) AS HIDDEN relevance_$index
+                            ")
+                            ->orWhere($expr->orX(
+                                "LOWER(f2.nom) LIKE :value_$index",
+                                "LOWER(supplier_article.reference) LIKE :value_$index",
+                                "LOWER(ra2.libelle) LIKE :value_$index",
+                                "LOWER(supplier_article.label) LIKE :value_$index",
+                                "LOWER(ra2.reference) LIKE :value_$index",
+                            ))
+                            ->setParameter("value_$index", "%$part%");
+                    }
+
+                    $relevances = Stream::from($queryBuilder->getDQLParts()["select"])
+                        ->flatMap(static fn(Select $selectPart) => [$selectPart->getParts()[0]])
+                        ->map(static fn(string $selectString) => trim(explode('AS HIDDEN', $selectString)[1] ?? null))
+                        ->filter(static fn(string $selectAlias) => $selectAlias && str_contains($selectAlias, "relevance"));
+
+                    if(!$relevances->isEmpty()) {
+                        $queryBuilder
+                            ->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC)
+                            ->groupBy("supplier_article.id");
+
+                        foreach ($relevances as $relevance) {
+                            $queryBuilder->addGroupBy($relevance);
+                        }
+                    }
                 }
             }
-            $queryBuilder->select('count(supplier_article)');
-            $countQuery = (int) $queryBuilder->getQuery()->getSingleScalarResult();
+
+            $countQuery = QueryBuilderHelper::count($queryBuilder, "supplier_article");
         } else {
             $countQuery = $countTotal;
         }
         $queryBuilder
-            ->select('supplier_article')
             ->andWhere('supplier_article.visible = 1');
 
-        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $queryBuilder->setFirstResult($params->getInt('start'));
+        }
 
-        $query = $queryBuilder->getQuery();
+        if ($params->getInt('length')) {
+            $queryBuilder->setMaxResults($params->getInt('length'));
+        }
+
         return [
-            'data' => $query ? $query->getResult() : null,
-            'count' => $countQuery,
+            'data' => $queryBuilder->getQuery()->getResult(),
+            'count' => $countQuery ?? 0,
             'total' => $countTotal
         ];
     }
