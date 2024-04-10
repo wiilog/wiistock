@@ -59,8 +59,8 @@ $(function () {
                 route: 'supplier_delete',
                 params: { supplier },
             },
-            message: 'Voulez-vous réellement supprimer ce client ?',
-            title: 'Supprimer le client',
+            message: 'Voulez-vous réellement supprimer ce fournisseur ?',
+            title: 'Supprimer le fournisseur',
             validateButton: {
                 color: 'danger',
                 label: 'Supprimer'
