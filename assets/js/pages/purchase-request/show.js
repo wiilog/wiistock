@@ -11,8 +11,6 @@ global.callbackEditLineLoading = callbackEditLineLoading;
 global.clearLineAddModal = clearLineAddModal;
 global.onReferenceChange = onReferenceChange;
 global.onStatusChange = onStatusChange;
-global.generatePurchaseOrder = generatePurchaseOrder;
-
 
 $(function() {
     const purchaseRequestBuyerId = $('#purchase-request-buyer-id').val();
@@ -109,6 +107,13 @@ $(function() {
     });
 
     Select2Old.init($modalEditPurchaseRequest.find('select[name=status]'));
+
+    // listenners
+    const $button = $("[name='btn-generate-purchase-request-order']");
+    $button.on('click',function(){
+        generatePurchaseOrder($(this));
+    });
+
 });
 
 function onReferenceChange($select) {
@@ -215,8 +220,9 @@ function deleteRowLine(button, $submit) {
     $submit.attr('value', id);
 }
 
-function generatePurchaseOrder(button){
-    const purchaseRequestId = button.data('id');
+function generatePurchaseOrder($button){
+    console.log($button);
+    const purchaseRequestId = $button.data('id');
 
     AJAX.route(AJAX.GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
         .json()
@@ -228,9 +234,6 @@ function generatePurchaseOrder(button){
                 .file({
                     success: "Votre bon de commande a bien été imprimé.",
                     error: "Erreur lors de l'impression de votre bon de commande."
-                })
-                .then(() => {
-                    window.location.reload();
                 })
         });
 
