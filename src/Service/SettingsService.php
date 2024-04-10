@@ -1030,7 +1030,7 @@ class SettingsService {
 
                 foreach ($statusesData as $statusData) {
                     // check if "passStatusAtPurchaseOrderGeneration" attributes have valid status (only DRAFT and NOT_TREATED)
-                    if($statusData['passStatusAtPurchaseOrderGeneration'] == "1"){
+                    if($statusData['passStatusAtPurchaseOrderGeneration'] ?? false == "1"){
                         if(in_array($statusData['state'], [Statut::NOT_TREATED, Statut::DRAFT])){
                             throw new FormException("Le paramétrage 'Passage au statut à la génération du bon de commande' ne peut être activé que pour les statuts 'Brouillon' ou 'Non traité'");
                         }
