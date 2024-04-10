@@ -1,5 +1,5 @@
 import Routing from '@app/fos-routing';
-import {GET, POST} from '@app/ajax';
+import AJAX, {GET, POST} from '@app/ajax';
 import moment from 'moment';
 import FixedFieldEnum from '@generated/fixed-field-enum';
 import Form from '@app/form';
@@ -218,10 +218,20 @@ function deleteRowLine(button, $submit) {
 function generatePurchaseOrder(button){
     const purchaseRequestId = button.data('id');
 
-    AJAX.route(`GET`, `generatePurchaseOrder`, {purchaseRequest: purchaseRequestId})
-        .file({
-            success: "Votre bon de commande a bien été imprimé.",
-            error: "Erreur lors de l'impression du bon de commande."
-        })
-        .then(() => window.location.reload())
+    AJAX.route(AJAX.GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
+        .json()
+        .then(({attachmentId}) => {
+            AJAX.route(AJAX.GET, 'print_purchase_order', {
+                purchaseRequest: purchaseRequestId,
+                attachment: attachmentId,
+            })
+                .file({
+                    success: "Votre bon de commande a bien été imprimé.",
+                    error: "Erreur lors de l'impression de votre bon de commande."
+                })
+                .then(() => {
+                    window.location.reload();
+                })
+        });
+
 }

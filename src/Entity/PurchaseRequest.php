@@ -283,6 +283,6 @@ class PurchaseRequest {
             ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
             ->values();
 
-        return $this->getPurchaseRequestLines()->count() > 0 && !empty($unfilledLines);
+        return $this->getPurchaseRequestLines()->count() > 0 && empty($unfilledLines);
     }
 }

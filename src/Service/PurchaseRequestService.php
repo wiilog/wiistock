@@ -4,6 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\FiltreSup;
 use App\Entity\PurchaseRequest;
@@ -313,37 +314,56 @@ class PurchaseRequestService
             ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE)
         );
 
-        $customPurchaseRequestOrderTitle = "Bon commande";
+        $nowDate = new DateTime("now");
+        $customPurchaseRequestOrderTitle = "Bon de commande - {$purchaseRequest->getNumber()} - {$nowDate->format('dmYHis')}";
+
+        $totalPrice = Stream::from($purchaseRequest->getPurchaseRequestLines())
+            ->map(static fn(PurchaseRequestLine $line) => $line->getUnitPrice() * $line->getOrderedQuantity())
+            ->sum();
 
         $variables = [
-            "nomfournisseur" => $purchaseRequest->getSupplier()->getNom(),
-            "datecommande" => $purchaseRequest->getCreationDate()->format('d/m/Y'),
+            "nomfournisseur" => $purchaseRequest->getSupplier()?->getNom() ?: "",
+            "dategenerationdocument" => $this->formatService->datetime(new DateTime("now")),
             "fraislivraison" => $purchaseRequest->getDeliveryFee(),
-            "acheteur" => $purchaseRequest->getBuyer()->getUsername(),
-            "destinataire" => $purchaseRequest->getRequester()->getUsername(),
+            "acheteur" => $this->formatService->user($purchaseRequest->getBuyer()),
+            "destinataire" => $this->formatService->user($purchaseRequest->getRequester()),
+            "adressefournisseur" => $purchaseRequest->getSupplier()?->getAddress() ?: "",
 
             // todo: changer la description + nom de la variable dans les var du modèle
-            "responsablefournisseur" => $purchaseRequest->getSupplier()->getReceiver(),
-            "denominationsocialefournisseur" => $purchaseRequest->getSupplier()->getNom(),
-            "telephonefournisseur" => $purchaseRequest->getSupplier()->getPhoneNumber(),
-            "emailfournisseur" => $purchaseRequest->getSupplier()->getEmail(),
+            // todo : verif date commande (date a la génération du bon) + changer les var et desc dans model doc
+            // todo : ajotuer dans la page de setting destinatairefournisseur + prixligne + adresse fournisseur
+            // todo : enlever denomSocialeFOurnisseur
+            "destinatairefournisseur" => $purchaseRequest->getSupplier()?->getReceiver() ?: "",
+            "telephonefournisseur" => $purchaseRequest->getSupplier()?->getPhoneNumber() ?: "",
+            "emailfournisseur" => $purchaseRequest->getSupplier()?->getEmail() ?: "",
+            "prixtotal" => $totalPrice,
         ];
 
-        /*$variables['reference'] = $purchaseRequest->getPurchaseRequestLines()
+        $variables['referencearticlefournisseur'] = $purchaseRequest->getPurchaseRequestLines()
             ->map(function (PurchaseRequestLine $line) {
+                $reference = $line->getReference();
+                $supplier = $line->getSupplier();
+                $supplierArticle = $reference->getArticlesFournisseur()
+                    ->filter(fn(ArticleFournisseur $supplierArticle) => $supplier && $supplierArticle->getFournisseur() && $supplierArticle->getFournisseur()->getId() === $supplier->getId() )
+                    ->first() ?: null;
+
                 return [
-                    "reference" => $line->getReference()->getReference(),
-                    "libellereference" => $line->getReference()->getLibelle(),
-                    // todo check
-                    "libellefournisseurreference" => $line->getSupplier()->getNom(),
-                    "referencefournisseurreference" => $line->getSupplier()->getNom(),
-                    "prixunitairereference" => $line->getUnitPrice(),
-                    "quantitecommandereference" => $line->getRequestedQuantity(),
-                    "numerocommandereference" => $line->getOrderNumber(),
-                    "dateattendu" => $line->getExpectedDate(),
+                    "reference" => $reference->getReference() ?: "",
+                    "libellereference" => $reference->getLibelle() ?: "",
+                    "libellearticlefournisseur" => $supplierArticle?->getLabel() ?: "",
+                    "referencearticlefournisseur" => $supplierArticle?->getReference() ?: "",
+                    "prixunitaire" => $line->getUnitPrice() ?: 0,
+                    "quantitecommandee" => $line->getOrderedQuantity() ?: 0,
+                    "numerocommande" => $line->getOrderNumber() ?: "",
+                    "prixligne" => ($line->getUnitPrice() * $line->getOrderedQuantity()) ?: 0,
+                    "datecommande" => $this->formatService->datetime($line->getOrderDate()),
+                    "dateattendue" => $this->formatService->date($line->getExpectedDate()),
                 ];
             })
-            ->toArray();*/
+            ->filter(fn($row) => !empty($row["referencearticlefournisseur"]))
+            ->getValues();
+
+        dump($variables);
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "{$projectDir}/public/$reportTemplatePath",
@@ -355,20 +375,19 @@ class PurchaseRequestService
 
         $reportOutdir = "{$projectDir}/public/uploads/attachments";
         $docxPath = "{$reportOutdir}/{$nakedFileName}.docx";
+
         rename($tmpDocxPath, $docxPath);
         $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
         unlink($docxPath);
 
         $purchaseRequestOrderAttachment = new Attachment();
-        $purchaseRequest->setAttachments($purchaseRequestOrderAttachment);
         $purchaseRequestOrderAttachment
-            //->setDispatch($dispatch)
             ->setFileName($nakedFileName . '.pdf')
             ->setFullPath('/uploads/attachments/' . $nakedFileName . '.pdf')
             ->setOriginalName($customPurchaseRequestOrderTitle . '.pdf');
+        $purchaseRequest->addAttachment($purchaseRequestOrderAttachment);
 
         $entityManager->persist($purchaseRequestOrderAttachment);
-        $entityManager->flush();
 
         return $purchaseRequestOrderAttachment;
     }

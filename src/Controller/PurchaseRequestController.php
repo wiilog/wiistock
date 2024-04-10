@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
@@ -33,7 +34,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -748,15 +751,14 @@ class PurchaseRequestController extends AbstractController
         return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
     }
 
-    #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generatePurchaseOrder', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generate_purchase_order', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
     public function generatePurchaseOrder(PurchaseRequest           $purchaseRequest,
                                           EntityManagerInterface    $entityManager,
-                                          PurchaseRequestService    $purchaseRequestService,
-                                          AttachmentService         $attachmentService): BinaryFileResponse
+                                          PurchaseRequestService    $purchaseRequestService): JsonResponse
     {
 
         $statusRepository = $entityManager->getRepository(Statut::class);
-        dump($purchaseRequest);
+        $now = new DateTime();
 
         // génère seulement si en cours et tableau remplis
         if(!$purchaseRequest->isPurchaseRequestLinesFilled()){
@@ -770,23 +772,42 @@ class PurchaseRequestController extends AbstractController
 
             if($nextStatus){
                 $purchaseRequest->setStatus($nextStatus);
+
+                switch($purchaseRequest->getStatus()->getState()) {
+                    case Statut::IN_PROGRESS:
+                        if(!$purchaseRequest->getConsiderationDate()){
+                            $purchaseRequest->setConsiderationDate($now);
+                        }
+                        break;
+                    case Statut::TREATED:
+                        if(!$purchaseRequest->getProcessingDate()){
+                            $purchaseRequest->setProcessingDate($now);
+                        }
+                        break;
+                }
             }
         }
 
-        // todo : génération bon de commande
-        $data = $purchaseRequestService->getPurchaseRequestOrderData($purchaseRequest);
-
-        $overPurchaseRequestOrder= $purchaseRequest->getAttachments()->last();
-
-        $filePath = $attachmentService->createFile($overPurchaseRequestOrder->getFileName(), $data['file']);
-
-        $response = new BinaryFileResponse($filePath);
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $overPurchaseRequestOrder->getOriginalName());
-
+        $purchaseRequestOrderAttachment = $purchaseRequestService->getPurchaseRequestOrderData($entityManager, $purchaseRequest);
         $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bon de commande va commencer...',
+            'attachmentId' => $purchaseRequestOrderAttachment->getId(),
+        ]);
+    }
+
+    #[Route("/{purchaseRequest}/purchaseOrder/{attachment}", name:"print_purchase_order", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
+    public function printDeliverySlip(Attachment      $attachment,
+                                      KernelInterface $kernel): Response {
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
 
         return $response;
     }
+
 
 }
 

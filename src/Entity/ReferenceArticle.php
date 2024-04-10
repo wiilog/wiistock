@@ -345,7 +345,7 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|ArticleFournisseur[]
+     * @return Collection<int, ArticleFournisseur>
      */
     public function getArticlesFournisseur(): Collection {
         return $this->articlesFournisseur;
