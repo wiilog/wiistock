@@ -329,10 +329,6 @@ class PurchaseRequestService
             "destinataire" => $this->formatService->user($purchaseRequest->getRequester()),
             "adressefournisseur" => $purchaseRequest->getSupplier()?->getAddress() ?: "",
 
-            // todo: changer la description + nom de la variable dans les var du modèle
-            // todo : verif date commande (date a la génération du bon) + changer les var et desc dans model doc
-            // todo : ajotuer dans la page de setting destinatairefournisseur + prixligne + adresse fournisseur
-            // todo : enlever denomSocialeFOurnisseur
             "destinatairefournisseur" => $purchaseRequest->getSupplier()?->getReceiver() ?: "",
             "telephonefournisseur" => $purchaseRequest->getSupplier()?->getPhoneNumber() ?: "",
             "emailfournisseur" => $purchaseRequest->getSupplier()?->getEmail() ?: "",

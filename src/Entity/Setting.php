@@ -553,7 +553,8 @@ class Setting {
                 "quantitecommandee" => "quantité commandée de la référence",
                 "numerocommande" => "numéro de commande de la référence",
                 "dateattendue" => "date attendue de la référence",
-                "datecommande" => "date de la commande de référence"
+                "datecommande" => "date de la commande de référence",
+                "prixligne" => "prix de la référence",
             ],
         ],
     ];
