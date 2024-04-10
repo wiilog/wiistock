@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Livraison;
+use App\Entity\PurchaseRequest;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
 use WiiCommon\Helper\Stream;
@@ -193,6 +194,22 @@ class PDFGeneratorService {
             "encoding" => "UTF-8",
             "header-html" => $header,
             "footer-html" => $footer
+        ]);
+    }
+
+    public function generatePurchaseRequestOrder(PurchaseRequest $purchaseRequest, Array $fields = [] ):string{
+
+        // todo: fill template
+        $content = $this->templating->render("prints/purchaseOrderTemplate.html.twig", [
+            "dispatch" => $purchaseRequest,
+            "fields" => $fields,
+        ]);
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "orientation" => "portrait",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
         ]);
     }
 

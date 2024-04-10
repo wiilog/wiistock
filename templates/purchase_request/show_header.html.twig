@@ -10,6 +10,8 @@
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
 {% set displayReceptionLink = request.status.treated and request.associatedReceptions is not empty %}
 
+{% set hasRightToGeneratePurchaseOrder = (request.status.inProgress or request.status.treated) %}
+
 {# droit de suppression pour les demandes d'achats brouillons #}
 {% if request.status.draft %}
     {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_PURCHASE_REQUEST')) %}
@@ -85,6 +87,16 @@
                     "data-toggle": 'modal',
                     "onclick": "deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))",
                 },
+            },
+            {
+                hasRight: hasRightToGeneratePurchaseOrder,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Générer un bon de commande",
+                dropdownOnly: true,
+                attributes: {
+                "data-id": request ? request.id,
+                "onclick": "generatePurchaseOrder($(this))",
+                }
             },
         ]
     } %}

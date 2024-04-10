@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\Boolean;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: PurchaseRequestRepository::class)]
@@ -64,9 +65,6 @@ class PurchaseRequest {
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
     private ?Fournisseur $supplier = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
-    private bool $statusChangeByPurchaseOrder = false;
 
     public function __construct() {
         $this->purchaseRequestLines = new ArrayCollection();
@@ -278,15 +276,13 @@ class PurchaseRequest {
         return $this;
     }
 
-    public function isStatusChangeByPurchaseOrder(): bool
+    public function isPurchaseRequestLinesFilled(): bool
     {
-        return $this->statusChangeByPurchaseOrder;
-    }
+        $unfilledLines = Stream::from($this->getPurchaseRequestLines()->toArray())
+            ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
+            ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
+            ->values();
 
-    public function setStatusChangeByPurchaseOrder(bool $isAlreadyChangedStatusByPurchaseOrder): self
-    {
-        $this->statusChangeByPurchaseOrder = $isAlreadyChangedStatusByPurchaseOrder;
-        return $this;
+        return $this->getPurchaseRequestLines()->count() > 0 && !empty($unfilledLines);
     }
-
 }

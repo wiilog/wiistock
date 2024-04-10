@@ -4,23 +4,23 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\FiltreSup;
-use App\Entity\Fournisseur;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\Translation;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
+use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class PurchaseRequestService
 {
@@ -32,7 +32,13 @@ class PurchaseRequestService
     public RouterInterface $router;
 
     #[Required]
+    public SpecificService $specificService;
+
+    #[Required]
     public EntityManagerInterface $em;
+
+    #[Required]
+    public TemplateDocumentService $wordTemplateDocument;
 
     #[Required]
     public UniqueNumberService $uniqueNumberService;
@@ -45,6 +51,15 @@ class PurchaseRequestService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public KernelInterface $kernel;
 
     public function getDataForDatatable($params = null)
     {
@@ -287,5 +302,74 @@ class PurchaseRequestService
             'libelle' => $line->getReference()->getLibelle(),
             'quantity' => $line->getRequestedQuantity(),
         ];
+    }
+
+    public function getPurchaseRequestOrderData(EntityManagerInterface  $entityManager,
+                                                PurchaseRequest         $purchaseRequest): Attachment {
+        $projectDir = $this->kernel->getProjectDir();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $reportTemplatePath = (
+        $settingRepository->getOneParamByLabel(Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE)
+            ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE)
+        );
+
+        $customPurchaseRequestOrderTitle = "Bon commande";
+
+        $variables = [
+            "nomfournisseur" => $purchaseRequest->getSupplier()->getNom(),
+            "datecommande" => $purchaseRequest->getCreationDate()->format('d/m/Y'),
+            "fraislivraison" => $purchaseRequest->getDeliveryFee(),
+            "acheteur" => $purchaseRequest->getBuyer()->getUsername(),
+            "destinataire" => $purchaseRequest->getRequester()->getUsername(),
+
+            // todo: changer la description + nom de la variable dans les var du modèle
+            "responsablefournisseur" => $purchaseRequest->getSupplier()->getReceiver(),
+            "denominationsocialefournisseur" => $purchaseRequest->getSupplier()->getNom(),
+            "telephonefournisseur" => $purchaseRequest->getSupplier()->getPhoneNumber(),
+            "emailfournisseur" => $purchaseRequest->getSupplier()->getEmail(),
+        ];
+
+        /*$variables['reference'] = $purchaseRequest->getPurchaseRequestLines()
+            ->map(function (PurchaseRequestLine $line) {
+                return [
+                    "reference" => $line->getReference()->getReference(),
+                    "libellereference" => $line->getReference()->getLibelle(),
+                    // todo check
+                    "libellefournisseurreference" => $line->getSupplier()->getNom(),
+                    "referencefournisseurreference" => $line->getSupplier()->getNom(),
+                    "prixunitairereference" => $line->getUnitPrice(),
+                    "quantitecommandereference" => $line->getRequestedQuantity(),
+                    "numerocommandereference" => $line->getOrderNumber(),
+                    "dateattendu" => $line->getExpectedDate(),
+                ];
+            })
+            ->toArray();*/
+
+        $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
+            "{$projectDir}/public/$reportTemplatePath",
+            $variables,
+            ["barcodes" => ["qrcodenumach"],]
+        );
+
+        $nakedFileName = uniqid();
+
+        $reportOutdir = "{$projectDir}/public/uploads/attachments";
+        $docxPath = "{$reportOutdir}/{$nakedFileName}.docx";
+        rename($tmpDocxPath, $docxPath);
+        $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
+        unlink($docxPath);
+
+        $purchaseRequestOrderAttachment = new Attachment();
+        $purchaseRequest->setAttachments($purchaseRequestOrderAttachment);
+        $purchaseRequestOrderAttachment
+            //->setDispatch($dispatch)
+            ->setFileName($nakedFileName . '.pdf')
+            ->setFullPath('/uploads/attachments/' . $nakedFileName . '.pdf')
+            ->setOriginalName($customPurchaseRequestOrderTitle . '.pdf');
+
+        $entityManager->persist($purchaseRequestOrderAttachment);
+        $entityManager->flush();
+
+        return $purchaseRequestOrderAttachment;
     }
 }

@@ -11,6 +11,7 @@ global.callbackEditLineLoading = callbackEditLineLoading;
 global.clearLineAddModal = clearLineAddModal;
 global.onReferenceChange = onReferenceChange;
 global.onStatusChange = onStatusChange;
+global.generatePurchaseOrder = generatePurchaseOrder;
 
 
 $(function() {
@@ -212,4 +213,15 @@ function openEvolutionModal($modal) {
 function deleteRowLine(button, $submit) {
     let id = button.data('id');
     $submit.attr('value', id);
+}
+
+function generatePurchaseOrder(button){
+    const purchaseRequestId = button.data('id');
+
+    AJAX.route(`GET`, `generatePurchaseOrder`, {purchaseRequest: purchaseRequestId})
+        .file({
+            success: "Votre bon de commande a bien été imprimé.",
+            error: "Erreur lors de l'impression du bon de commande."
+        })
+        .then(() => window.location.reload())
 }

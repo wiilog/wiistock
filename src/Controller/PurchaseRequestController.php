@@ -29,6 +29,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Iterator;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -615,21 +616,11 @@ class PurchaseRequestController extends AbstractController
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
+        if (!$purchaseRequest->isPurchaseRequestLinesFilled()) {
+            throw new FormException('Des informations sont manquantes sur une ou plusieurs lignes d\'achat. <br> Impossible de terminer la demande d\'achat.');
+        }
+
         if($treatedStatus->getAutomaticReceptionCreation()) {
-            $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
-                ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
-                ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
-                ->values();
-
-            if (!empty($unfilledLines)) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => count($unfilledLines) > 1
-                        ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . join(', ', $unfilledLines) . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                        : 'Des informations sont manquantes sur la ligne d\'achat  <strong>' . $unfilledLines[0] . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                ]);
-            }
-
             $receptionsWithCommand = [];
 
             $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
@@ -755,6 +746,46 @@ class PurchaseRequestController extends AbstractController
                                   PurchaseRequestService $service): Response {
 
         return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
+    }
+
+    #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generatePurchaseOrder', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    public function generatePurchaseOrder(PurchaseRequest           $purchaseRequest,
+                                          EntityManagerInterface    $entityManager,
+                                          PurchaseRequestService    $purchaseRequestService,
+                                          AttachmentService         $attachmentService): BinaryFileResponse
+    {
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        dump($purchaseRequest);
+
+        // génère seulement si en cours et tableau remplis
+        if(!$purchaseRequest->isPurchaseRequestLinesFilled()){
+            throw new FormException("La demande d'achat ne peut pas être traitée");
+        }
+
+        if(!$purchaseRequest->getStatus()->isTreated()){
+            $nextStatus = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST))
+                ->filter(static fn(Statut $status) => $status->isPassStatusAtPurchaseOrderGeneration())
+                ->first();
+
+            if($nextStatus){
+                $purchaseRequest->setStatus($nextStatus);
+            }
+        }
+
+        // todo : génération bon de commande
+        $data = $purchaseRequestService->getPurchaseRequestOrderData($purchaseRequest);
+
+        $overPurchaseRequestOrder= $purchaseRequest->getAttachments()->last();
+
+        $filePath = $attachmentService->createFile($overPurchaseRequestOrder->getFileName(), $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $overPurchaseRequestOrder->getOriginalName());
+
+        $entityManager->flush();
+
+        return $response;
     }
 
 }
