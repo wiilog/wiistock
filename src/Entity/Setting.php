@@ -535,25 +535,25 @@ class Setting {
         "purchase" => [
             "Champs fixes demandes d’achats" => [
                 "nomfournisseur" => "nom du fournisseur de la demande d'achat",
-                "datecommande" => "date de commande de la demande d'achat",
+                "dategenerationdocument" => "date de la génération de document",
                 "fraislivraison" => "frais de livraison de la demande d'achat",
                 "acheteur;destinataire" => "acheteur/destinataire de la demande d'achat",
             ],
             "Champs référentiel fournisseur" => [
-                "responsablefournisseur" => "utilisateur responsable du fournisseur",
-                "denominationsocialefournisseur" => "nom du fournisseur",
+                "destinatairefournisseur" => "utilisateur responsable du fournisseur",
                 "telephonefournisseur" => "numéro de téléphone du fournisseur",
                 "emailfournisseur" => "adresse email du fournisseur",
             ],
             "Champs liste des références" => [
                 "reference" => "référence de la référence",
                 "libellereference" => "libellé de la référence",
-                "libellefournisseurreference" => "libellé du fournisseur de la référence",
-                "referencefournisseurreference" => "référence du fournisseur de la référence",
-                "prixunitairereference" => "prix unitaire de la référence",
-                "quantitecommandereference" => "quantité commandée de la référence",
-                "numerocommandereference" => "numéro de commande de la référence",
+                "libellearticlefournisseur" => "libellé de l'article fournisseur",
+                "referencearticlefournisseur" => "référence de l'article fournisseur",
+                "prixunitaire" => "prix unitaire de la référence",
+                "quantitecommandee" => "quantité commandée de la référence",
+                "numerocommande" => "numéro de commande de la référence",
                 "dateattendue" => "date attendue de la référence",
+                "datecommande" => "date de la commande de référence"
             ],
         ],
     ];
