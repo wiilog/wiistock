@@ -130,14 +130,14 @@ class FournisseurController extends AbstractController {
         $now = (new DateTime())->format("d-m-Y-H-i-s");
 
         $headers = [
-            FixedFieldEnum::name->name,
+            FixedFieldEnum::name->value,
             'Code',
             'Possible douane',
-            FixedFieldEnum::urgent->name,
-            FixedFieldEnum::address->name,
-            FixedFieldEnum::receiver->name,
-            FixedFieldEnum::phoneNumber->name,
-            FixedFieldEnum::email->name,
+            FixedFieldEnum::urgent->value,
+            FixedFieldEnum::address->value,
+            FixedFieldEnum::receiver->value,
+            FixedFieldEnum::phoneNumber->value,
+            FixedFieldEnum::email->value,
         ];
 
         return $csvService->streamResponse(function ($output) use ($formatService, $manager, $csvService) {
