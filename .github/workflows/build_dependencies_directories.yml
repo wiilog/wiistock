@@ -21,7 +21,7 @@ jobs:
 
         steps:
             -   name: Go to project
-                run: mkdir /project && cd /project
+                run: cd /project
 
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
