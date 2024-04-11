@@ -10,7 +10,7 @@ jobs:
     build_php_directories:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-initializer:v2
+            image: wiilog/wiistock-builder:latest
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
