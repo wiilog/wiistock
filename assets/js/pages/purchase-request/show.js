@@ -233,6 +233,7 @@ function generatePurchaseOrder($button){
                     success: "Votre bon de commande a bien été imprimé.",
                     error: "Erreur lors de l'impression de votre bon de commande."
                 })
+                .then(() => window.location.reload())
         });
 
 }
