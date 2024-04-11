@@ -109,8 +109,7 @@ $(function() {
     Select2Old.init($modalEditPurchaseRequest.find('select[name=status]'));
 
     // listenners
-    const $button = $(`[name="btn-generate-purchase-request-order"]`);
-    $button.on('click',function(){
+    $(document).on('click', `[name="btn-generate-purchase-request-order"]`, function (e) {
         generatePurchaseOrder($(this));
     });
 
