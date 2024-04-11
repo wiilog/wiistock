@@ -741,6 +741,7 @@ class PurchaseRequestController extends AbstractController
             }
         }
 
+        $purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest);
         $purchaseRequestOrderAttachment = $purchaseRequestService->getPurchaseRequestOrderData($entityManager, $purchaseRequest);
         $entityManager->flush();
 
