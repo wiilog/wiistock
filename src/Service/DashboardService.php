@@ -1093,10 +1093,8 @@ class DashboardService {
                     $result = QueryBuilderHelper::countByStatuses($entityManager, $entityToClass[$config['entity']], $entityStatuses);
                     $count = $result[0]['count'] ?? $result;
                     break;
-                case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION:
-                case Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER:
                     $result = $repository->countByTypesAndStatuses(
                         $entityTypes,
                         $entityStatuses,
@@ -1104,6 +1102,7 @@ class DashboardService {
                         $config['displayDeliveryOrderContent'] ?? null,
                         $config['displayDeliveryOrderWithExpectedDate'] ?? null,
                     );
+
                     $count = $result[0]['count'] ?? $result;
 
                     if (isset($result[0]['sub']) && $count > 0) {
@@ -1114,7 +1113,22 @@ class DashboardService {
                                     : '<span>Nombre d\'articles</span>',
                                 '<span class="dashboard-stats dashboard-stats-counter">' . $result[0]['sub'] . '</span>'
                             ]);
+                    } else {
+                        $meter
+                            ->setSubCounts([]);
                     }
+                    break;
+                case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
+                case Dashboard\ComponentType::ORDERS_TO_TREAT_TRANSFER:
+                    $result = $repository->countByTypesAndStatuses(
+                        $entityTypes,
+                        $entityStatuses,
+                        $config['displayDeliveryOrderContentCheckbox'] ?? null,
+                        $config['displayDeliveryOrderContent'] ?? null,
+                        $config['displayDeliveryOrderWithExpectedDate'] ?? null,
+                    );
+                    $count = $result[0]['count'] ?? $result;
+
                     break;
                 default:
                     break;
