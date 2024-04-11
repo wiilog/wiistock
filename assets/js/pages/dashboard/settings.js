@@ -1,4 +1,6 @@
 import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
+import {saveAs} from "file-saver";
+
 const MODE_EDIT = 0;
 const MODE_DISPLAY = 1;
 const MODE_EXTERNAL = 2;
