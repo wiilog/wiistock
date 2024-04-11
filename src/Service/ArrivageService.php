@@ -355,6 +355,7 @@ class ArrivageService {
                 $msgSedUrgent = "L'arrivage est-il urgent sur la commande $numeroCommande ?";
             }
             else {
+                $numeroCommande = join(',',$arrivage->getNumeroCommandeList());
                 if ($nbPosts == 1) {
                     $msgSedUrgent = "
                         Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>"
