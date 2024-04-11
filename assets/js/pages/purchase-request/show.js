@@ -222,8 +222,6 @@ function deleteRowLine(button, $submit) {
 function generatePurchaseOrder($button){
     const purchaseRequestId = $button.data('id');
 
-    console.log("toto")
-
     AJAX.route(GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
         .json()
         .then(({attachmentId}) => {
