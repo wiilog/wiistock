@@ -109,7 +109,7 @@ $(function() {
     Select2Old.init($modalEditPurchaseRequest.find('select[name=status]'));
 
     // listenners
-    const $button = $("[name='btn-generate-purchase-request-order']");
+    const $button = $(`[name="btn-generate-purchase-request-order"]`);
     $button.on('click',function(){
         generatePurchaseOrder($(this));
     });
@@ -221,13 +221,12 @@ function deleteRowLine(button, $submit) {
 }
 
 function generatePurchaseOrder($button){
-    console.log($button);
     const purchaseRequestId = $button.data('id');
 
-    AJAX.route(AJAX.GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
+    AJAX.route(GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
         .json()
         .then(({attachmentId}) => {
-            AJAX.route(AJAX.GET, 'print_purchase_order', {
+            AJAX.route(GET, 'print_purchase_order', {
                 purchaseRequest: purchaseRequestId,
                 attachment: attachmentId,
             })

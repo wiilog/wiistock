@@ -197,22 +197,6 @@ class PDFGeneratorService {
         ]);
     }
 
-    public function generatePurchaseRequestOrder(PurchaseRequest $purchaseRequest, Array $fields = [] ):string{
-
-        // todo: fill template
-        $content = $this->templating->render("prints/purchaseOrderTemplate.html.twig", [
-            "dispatch" => $purchaseRequest,
-            "fields" => $fields,
-        ]);
-
-        return $this->PDFGenerator->getOutputFromHtml($content, [
-            "page-size" => "A4",
-            "orientation" => "portrait",
-            "enable-local-file-access" => true,
-            "encoding" => "UTF-8",
-        ]);
-    }
-
     public function generatePDFDispatchNote(Dispatch $dispatch): string {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);

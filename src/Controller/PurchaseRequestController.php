@@ -752,6 +752,7 @@ class PurchaseRequestController extends AbstractController
     }
 
     #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generate_purchase_order', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function generatePurchaseOrder(PurchaseRequest           $purchaseRequest,
                                           EntityManagerInterface    $entityManager,
                                           PurchaseRequestService    $purchaseRequestService): JsonResponse
@@ -798,7 +799,8 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/{purchaseRequest}/purchaseOrder/{attachment}", name:"print_purchase_order", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{purchaseRequest}/purchaseOrder/{attachment}", name:"print_purchase_order", options:["expose"=>true], methods:[self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function printDeliverySlip(Attachment      $attachment,
                                       KernelInterface $kernel): Response {
 

@@ -359,8 +359,6 @@ class PurchaseRequestService
             ->filter(fn($row) => !empty($row["referencearticlefournisseur"]))
             ->getValues();
 
-        dump($variables);
-
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
             "{$projectDir}/public/$reportTemplatePath",
             $variables,
