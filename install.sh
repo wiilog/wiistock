@@ -8,7 +8,6 @@ execute_query() {
 
 prepare_project() {
     # Extract vendor and node_modules from cache if it exists
-
     wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/vendor.zip || true
     if [ -f vendor.zip ]; then
         unzip -q vendor.zip
@@ -21,12 +20,30 @@ prepare_project() {
         --classmap-authoritative \
         --no-ansi
 
-    wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/node_modules.zip || true
-    if [ -f node_modules.zip ]; then
-        unzip -q node_modules.zip
-        rm node_modules.zip
-    else
-        yarn install
+    if [ -z "$APP_CONTEXT" ]; then
+        APP_CONTEXT="prod"
+    fi
+
+    wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/build-"$APP_CONTEXT".zip || true
+    if [ -f build-"$APP_CONTEXT".zip ]; then
+        unzip -q build-"$APP_CONTEXT".zip
+        rm build-"$APP_CONTEXT".zip
+        if [ -d build ]; then
+            find build -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
+            mv build public/
+        fi
+    fi
+
+    # si /public/build existe pas on le crée
+    if [ ! -d public/build ]; then
+        wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/node_modules.zip || true
+        if [ -f node_modules.zip ]; then
+            unzip -q node_modules.zip
+            rm node_modules.zip
+        else
+            yarn install
+            install_yarn
+        fi
     fi
 
     php bin/console app:initialize
@@ -95,6 +112,5 @@ echo '{"parameters":{"session_lifetime": 1440}}' > config/generated.yaml
 
 prepare_project
 install_symfony
-install_yarn
 
 echo "Current date: $(date)"
