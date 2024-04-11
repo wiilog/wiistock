@@ -282,7 +282,7 @@ class Fournisseur {
             'possibleCustoms' => $formatService->bool($this->isPossibleCustoms()),
             FixedFieldEnum::urgent->value => $formatService->bool($this->isUrgent()),
             FixedFieldEnum::address->value => $this->getAddress(),
-            FixedFieldEnum::receiver->value=> $formatService->user($this->getReceiver()),
+            FixedFieldEnum::receiver->value => $this->getReceiver(),
             FixedFieldEnum::phoneNumber->value => $formatService->phone($this->getPhoneNumber()),
             FixedFieldEnum::email->value => $this->getEmail(),
         ];
