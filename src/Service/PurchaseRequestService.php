@@ -6,13 +6,17 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Repository\EmplacementRepository;
+use App\Repository\SettingRepository;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,9 +38,6 @@ class PurchaseRequestService
 
     #[Required]
     public SpecificService $specificService;
-
-    #[Required]
-    public EntityManagerInterface $em;
 
     #[Required]
     public TemplateDocumentService $wordTemplateDocument;
@@ -62,12 +63,21 @@ class PurchaseRequestService
     #[Required]
     public KernelInterface $kernel;
 
+    #[Required]
+    public ReceptionService $receptionService;
+
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
+    #[Required]
+    public UserService $userService;
+
     public function getDataForDatatable($params = null)
     {
-        $filters = $this->em->getRepository(FiltreSup::class)
+        $filters = $this->entityManager->getRepository(FiltreSup::class)
             ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PURCHASE_REQUEST, $this->tokenStorage->getToken()->getUser());
 
-        $queryResult = $this->em->getRepository(PurchaseRequest::class)
+        $queryResult = $this->entityManager->getRepository(PurchaseRequest::class)
             ->findByParamsAndFilters($params, $filters);
 
         $requests = $queryResult['data'];
@@ -171,7 +181,7 @@ class PurchaseRequestService
         $supplier = $options["supplier"] ?? null;
         $now = new DateTime("now");
         $purchase = new PurchaseRequest();
-        $purchaseRequestNumber = $this->uniqueNumberService->create($this->em, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $purchaseRequestNumber = $this->uniqueNumberService->create($this->entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $purchase
             ->setCreationDate($now)
             ->setStatus($status)
@@ -282,7 +292,7 @@ class PurchaseRequestService
 
     public function getDataForReferencesDatatable($params = null)
     {
-        $demande = $this->em->find(PurchaseRequest::class, $params);
+        $demande = $this->entityManager->find(PurchaseRequest::class, $params);
         $referenceLines = $demande->getPurchaseRequestLines();
 
         $rows = [];
@@ -385,4 +395,68 @@ class PurchaseRequestService
 
         return $purchaseRequestOrderAttachment;
     }
+
+    /** Create reception if status allow it ($treatedStatus->getAutomaticReceptionCreation())
+     * @param PurchaseRequest $purchaseRequest
+     * @return void
+     */
+    public function automaticCreationReception(PurchaseRequest $purchaseRequest) :void {
+            $settingRepository = $this->entityManager->getRepository(Setting::class);
+            $locationRepository = $this->entityManager->getRepository(Emplacement::class);
+
+            $receptionsWithCommand = [];
+
+            $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+
+            // To disable error in persistReception we check if default location setting is valid
+            $defaultLocationReception = $defaultLocationReceptionSetting
+                ? $locationRepository->find($defaultLocationReceptionSetting)
+                : null;
+
+            foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
+                $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
+                $expectedDate = $this->formatService->date($purchaseRequestLine->getExpectedDate());
+
+                $uniqueReceptionConstraint = [
+                    'orderNumber' => $orderNumber,
+                    'expectedDate' => $expectedDate,
+                ];
+
+                $orderDate = $this->formatService->date($purchaseRequestLine->getOrderDate());
+                $reception = $this->receptionService->getAlreadySavedReception($this->entityManager, $receptionsWithCommand, $uniqueReceptionConstraint);
+                $receptionData = [
+                    "fournisseur"  => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
+                    "orderNumber"  => $orderNumber,
+                    "commentaire"  => $purchaseRequest->getComment() ?? '',
+                    "dateAttendue" => $expectedDate,
+                    "dateCommande" => $orderDate,
+                    "location"     => $defaultLocationReception?->getId()
+                ];
+                if (!$reception) {
+                    $reception = $this->receptionService->persistReception($this->entityManager, $this->userService->getUser(), $receptionData);
+                    $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
+                } else if($reception->getFournisseur() !== $purchaseRequestLine->getSupplier()) {
+                    $reception =  $this->receptionService->persistReception($this->entityManager, $this->userService->getUser(), $receptionData);
+                }
+
+                $receptionLine = $reception->getLine(null)
+                    ?? $this->receptionLineService->persistReceptionLine($this->entityManager, $reception, null);
+
+                $receptionReferenceArticle = new ReceptionReferenceArticle();
+                $receptionReferenceArticle
+                    ->setReceptionLine($receptionLine)
+                    ->setReferenceArticle($purchaseRequestLine->getReference())
+                    ->setQuantiteAR($purchaseRequestLine->getOrderedQuantity())
+                    ->setCommande($orderNumber)
+                    ->setQuantite(0)
+                    ->setUnitPrice($purchaseRequestLine->getUnitPrice());
+
+                $this->entityManager->persist($receptionReferenceArticle);
+                $purchaseRequestLine->setReception($reception);
+
+                $this->entityManager->flush();
+        }
+    }
+
+
 }

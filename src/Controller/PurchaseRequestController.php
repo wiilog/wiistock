@@ -602,14 +602,10 @@ class PurchaseRequestController extends AbstractController
     public function treat(Request                    $request,
                           EntityManagerInterface     $entityManager,
                           PurchaseRequest            $purchaseRequest,
-                          PurchaseRequestService     $purchaseRequestService,
-                          ReceptionLineService       $receptionLineService,
-                          ReceptionService           $receptionService): Response {
+                          PurchaseRequestService     $purchaseRequestService): Response {
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         /** @var Statut $status */
         $status = $data['status'];
@@ -624,58 +620,7 @@ class PurchaseRequestController extends AbstractController
         }
 
         if($treatedStatus->getAutomaticReceptionCreation()) {
-            $receptionsWithCommand = [];
-
-            $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
-
-            // To disable error in persistReception we check if default location setting is valid
-            $defaultLocationReception = $defaultLocationReceptionSetting
-                ? $locationRepository->find($defaultLocationReceptionSetting)
-                : null;
-
-            foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
-                $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
-                $expectedDate = $this->formatService->date($purchaseRequestLine->getExpectedDate());
-
-                $uniqueReceptionConstraint = [
-                    'orderNumber' => $orderNumber,
-                    'expectedDate' => $expectedDate,
-                ];
-
-                $orderDate = $this->formatService->date($purchaseRequestLine->getOrderDate());
-                $reception = $receptionService->getAlreadySavedReception($entityManager, $receptionsWithCommand, $uniqueReceptionConstraint);
-                $receptionData = [
-                    "fournisseur"  => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
-                    "orderNumber"  => $orderNumber,
-                    "commentaire"  => $purchaseRequest->getComment() ?? '',
-                    "dateAttendue" => $expectedDate,
-                    "dateCommande" => $orderDate,
-                    "location"     => $defaultLocationReception?->getId()
-                ];
-                if (!$reception) {
-                    $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
-                    $receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
-                } else if($reception->getFournisseur() !== $purchaseRequestLine->getSupplier()) {
-                    $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
-                }
-
-                $receptionLine = $reception->getLine(null)
-                    ?? $receptionLineService->persistReceptionLine($entityManager, $reception, null);
-
-                $receptionReferenceArticle = new ReceptionReferenceArticle();
-                $receptionReferenceArticle
-                    ->setReceptionLine($receptionLine)
-                    ->setReferenceArticle($purchaseRequestLine->getReference())
-                    ->setQuantiteAR($purchaseRequestLine->getOrderedQuantity())
-                    ->setCommande($orderNumber)
-                    ->setQuantite(0)
-                    ->setUnitPrice($purchaseRequestLine->getUnitPrice());
-
-                $entityManager->persist($receptionReferenceArticle);
-                $purchaseRequestLine->setReception($reception);
-
-                $entityManager->flush();
-            }
+            $purchaseRequestService->automaticCreationReception($purchaseRequest);
         }
 
         $purchaseRequest
@@ -787,6 +732,11 @@ class PurchaseRequestController extends AbstractController
                         break;
                 }
             }
+        }
+
+        // create automatic reception if parameter is enabled
+        if($purchaseRequest->getStatus()->getAutomaticReceptionCreation()){
+            $purchaseRequestService->automaticCreationReception($purchaseRequest);
         }
 
         $purchaseRequestOrderAttachment = $purchaseRequestService->getPurchaseRequestOrderData($entityManager, $purchaseRequest);
