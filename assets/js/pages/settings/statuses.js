@@ -18,6 +18,20 @@ const DISABLED_LABELS_TRANSLATION_PAGES = [
 const $managementButtons = $(`.save-settings, .discard-settings`);
 let canTranslate = true;
 
+const fieldsToDisabledAttr = {
+    needsMobileSync: 'need-mobile-sync-disabled',
+    color: 'need-mobile-sync-disabled',
+    passStatusAtPurchaseOrderGeneration: 'pass-status-at-purchase-order-generation-disabled',
+    automaticReceptionCreation: 'automatic-reception-creation-disabled',
+};
+
+const fieldsMaxChecked = {
+    needsMobileSync: undefined,
+    color: undefined,
+    passStatusAtPurchaseOrderGeneration: 1,
+    automaticReceptionCreation: undefined,
+};
+
 export function initializeArrivalDisputeStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_ARRIVAL_DISPUTE);
 }
@@ -100,8 +114,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                         ));
                     });
             }
-            ensureMaxCheckboxSelection("passStatusAtPurchaseOrderGeneration");
-            onStatusStateChange($container.find('[name=state]'));
+            onStatusStateChange($container, $container.find('[name=state]'));
+            ensureMaxCheckboxSelection($container, "passStatusAtPurchaseOrderGeneration", fieldsMaxChecked.passStatusAtPurchaseOrderGeneration);
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
@@ -135,44 +149,10 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         });
 
     $container.on('change', '[name=state]', function () {
-        onStatusStateChange($(this));
+        onStatusStateChange($container, $(this));
     });
 
     return table;
-}
-
-/**
- * Ensures only a specified number of checkboxes are checked for a given checkbox group
- * @param {string} groupName - Name of the checkbox group
- * @param {number} maxChecked - Maximum number of checkboxes allowed to be checked
- * @example ensureMaxCheckboxSelection('my-checkbox-group', 2);
- * @returns {void}
- */
-function ensureMaxCheckboxSelection(groupName, maxChecked = 1) {
-    const $checkboxes = $(`input[name="${groupName}"]`);
-
-    $checkboxes.off("change.checkboxesChange").on('change.checkboxesChange', function() {
-        updateCheckboxes(groupName, maxChecked, $checkboxes);
-    })
-
-    // Call the function once to set initial state
-    updateCheckboxes(groupName, maxChecked, $checkboxes);
-}
-
-/**
- * Update checkboxes based on the number of checkboxes checked
- * @param groupName - Name of the checkbox group
- * @param maxChecked - Maximum number of checkboxes allowed to be checked
- * @param $checkboxes - jQuery object containing the checkboxes to update
- * @example updateCheckboxes('my-checkbox-group', 2, $('input[name="my-checkbox-group"]'));
- * @returns {void}
- */
-function updateCheckboxes(groupName, maxChecked = 1, $checkboxes) {
-    const checkedCount = $checkboxes.filter(':checked').length;
-
-    // Disable checkboxes if the maximum number of checkboxes are checked without the current one
-    $checkboxes = $checkboxes.filter(':not(:checked)');
-    $checkboxes.prop('disabled', checkedCount >= maxChecked);
 }
 
 function getStatusesColumn(mode, hasRightGroupedSignature) {
@@ -372,13 +352,13 @@ function initializeStatusesByTypes($container, canEdit, mode) {
  * Handles the change event of the status state select element
  * @param $select - jQuery object representing the select element
  */
-function onStatusStateChange($select) {
+function onStatusStateChange($container, $select) {
     if ($select.length > 1) {
         // if $select is an array of select elements (first call of the function)
-        $select.each((index, select) => handleSingleSelect($(select)));
+        $select.each((index, select) => handleSingleSelect($container, $(select)));
     } else {
         // if $select is a single select element (change event)
-        handleSingleSelect($select);
+        handleSingleSelect($container, $select);
     }
 }
 
@@ -386,38 +366,77 @@ function onStatusStateChange($select) {
  * Handles the change event of a single select element
  * @param $select - jQuery object representing the select element
  */
-function handleSingleSelect($select) {
+function handleSingleSelect($container, $select) {
     const $form = $select.closest('tr');
 
-    const disabledFields = [
-        {
-            name: 'needsMobileSync',
-            disabled: 'need-mobile-sync-disabled',
-        },
-        {
-            name: 'color',
-            disabled: 'need-mobile-sync-disabled'
-        },
-        {
-            name: 'passStatusAtPurchaseOrderGeneration',
-            disabled: 'pass-status-at-purchase-order-generation-disabled'
-        },
-        {
-            name: 'automaticReceptionCreation',
-            disabled: 'automatic-reception-creation-disabled',
-        },
-    ];
     // Disable fields based on the selected status
-    disabledFields.forEach(({ name, disabled }) => {
-        const disabledStr = $select
-            .find(`option[value=${$select.val()}]`)
-            .data(disabled);
-        const isDisabled = Boolean(disabledStr);
-        const $field = $form.find(`[name=${name}]`);
+    Object.keys(fieldsToDisabledAttr).forEach((name) => {
+        const $fields = $container.find(`[name=${name}]`);
 
-        $field.prop('disabled', isDisabled);
-        if (isDisabled) {
-            $field.prop('checked', false);
+        const $field = $form.find(`[name="${name}"]`);
+        if (isFieldDisabled($field)) {
+            $field
+                .prop('disabled', true)
+                .prop('checked', false);
         }
+        updateCheckboxes(name, fieldsMaxChecked[name], $fields);
     });
+}
+
+function isFieldDisabled($field) {
+    const $form = $field.closest('tr');
+    const $state = $form.find('[name="state"]');
+    const disabledAttr = fieldsToDisabledAttr[$field.attr('name')];
+    const $selectedState = $state.find(`option:selected`);
+    if($selectedState.exists()) {
+        return Boolean($selectedState.data(disabledAttr));
+    }
+    return true;
+}
+
+/**
+ * Ensures only a specified number of checkboxes are checked for a given checkbox group
+ * @param {string} groupName - Name of the checkbox group
+ * @param {number} maxChecked - Maximum number of checkboxes allowed to be checked
+ * @example ensureMaxCheckboxSelection('my-checkbox-group', 2);
+ * @returns {void}
+ */
+function ensureMaxCheckboxSelection($container, groupName, maxChecked = 1) {
+    if (maxChecked > 0) {
+        const $checkboxes = $container.find(`[name="${groupName}"]`);
+
+        $checkboxes
+            .off(`change.checkboxesChange`)
+            .on(`change.checkboxesChange`, function () {
+                updateCheckboxes(groupName, maxChecked, $checkboxes);
+            });
+
+        // Call the function once to set initial state
+        updateCheckboxes(groupName, maxChecked, $checkboxes);
+    }
+}
+
+/**
+ * Update checkboxes based on the number of checkboxes checked
+ * @param groupName - Name of the checkbox group
+ * @param maxChecked - Maximum number of checkboxes allowed to be checked
+ * @param $checkboxes - jQuery object containing the checkboxes to update
+ * @example updateCheckboxes('my-checkbox-group', 2, $('input[name="my-checkbox-group"]'));
+ * @returns {void}
+ */
+function updateCheckboxes(groupName, maxChecked = 1, $checkboxes) {
+    const checkedCount = $checkboxes.filter(':checked').length;
+
+    // Disable checkboxes if the maximum number of checkboxes are checked without the current one
+
+    $checkboxes = $checkboxes.filter(':not(:checked)');
+    $checkboxes.each(function() {
+        const $checkbox = $(this);
+        const isDisabled = isFieldDisabled($checkbox) || (maxChecked && checkedCount >= maxChecked);
+
+        $checkbox.prop('disabled', isDisabled);
+        if (isDisabled) {
+            $checkbox.prop('checked', false);
+        }
+    })
 }

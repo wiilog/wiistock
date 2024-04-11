@@ -124,7 +124,6 @@ class StatusController extends AbstractController
                 $needsMobileSync = (!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
-                $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
                 $displayOnSchedule = $status->isDisplayedOnSchedule() ? "checked" : "";
                 $requiredAttachment = $status->isRequiredAttachment() ? "checked" : "";
                 $preventStatusChangeWithoutDeliveryFees = $status->isPreventStatusChangeWithoutDeliveryFees() ? "checked" : "";
@@ -157,9 +156,9 @@ class StatusController extends AbstractController
                             "disabled" => $disabledMobileSyncAndColor
                         ]),
                     "color" => $formService->macro("color", "color", null, false, $color),
-                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSyncAndColor} {$needsMobileSync}/></div>",
+                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
-                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
+                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data' {$automaticReceptionCreation}/></div>",
                     "displayedOnSchedule" => "<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data $displayOnSchedule' $displayOnSchedule/></div>",
                     "notifiedUsers" => $formService->macro("select", "notifiedUsers", null, false, [
                         "type" => "user",
