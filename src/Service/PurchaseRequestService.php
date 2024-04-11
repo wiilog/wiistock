@@ -402,7 +402,7 @@ class PurchaseRequestService
      * @param EntityManager $entityManager
      * @return void
      */
-    public function createAutomaticReceptionWithStatus(EntityManagerInterface $entityManager, PurchaseRequest $purchaseRequest) :void {
+    public function persistAutomaticReceptionWithStatus(EntityManagerInterface $entityManager, PurchaseRequest $purchaseRequest) :void {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -455,8 +455,6 @@ class PurchaseRequestService
 
                 $this->entityManager->persist($receptionReferenceArticle);
                 $purchaseRequestLine->setReception($reception);
-
-                $this->entityManager->flush();
         }
     }
 

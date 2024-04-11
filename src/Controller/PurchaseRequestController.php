@@ -620,7 +620,7 @@ class PurchaseRequestController extends AbstractController
         }
 
         if($treatedStatus->getAutomaticReceptionCreation()) {
-            $purchaseRequestService->createAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
+            $purchaseRequestService->persistAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
         }
 
         $purchaseRequest
@@ -717,12 +717,12 @@ class PurchaseRequestController extends AbstractController
                 ->first();
 
             // if next status is not the same as current status then change status
-            if($nextStatus && $nextStatus !== $purchaseRequest->getStatus()){
+            if($nextStatus && $nextStatus->getId() !== $purchaseRequest->getStatus()?->getId()){
                 $purchaseRequest->setStatus($nextStatus);
 
                 // create automatic reception if parameter is enabled
                 if($nextStatus->getAutomaticReceptionCreation()){
-                    $purchaseRequestService->createAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
+                    $purchaseRequestService->persistAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
                 }
 
                 // set date according to status
