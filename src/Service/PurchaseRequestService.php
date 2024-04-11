@@ -19,6 +19,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\SettingRepository;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -398,11 +399,12 @@ class PurchaseRequestService
 
     /** Create reception if status allow it ($treatedStatus->getAutomaticReceptionCreation())
      * @param PurchaseRequest $purchaseRequest
+     * @param EntityManager $entityManager
      * @return void
      */
-    public function automaticCreationReception(PurchaseRequest $purchaseRequest) :void {
-            $settingRepository = $this->entityManager->getRepository(Setting::class);
-            $locationRepository = $this->entityManager->getRepository(Emplacement::class);
+    public function createAutomaticReceptionWithStatus(EntityManagerInterface $entityManager, PurchaseRequest $purchaseRequest) :void {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
 
             $receptionsWithCommand = [];
 

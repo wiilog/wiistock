@@ -620,7 +620,7 @@ class PurchaseRequestController extends AbstractController
         }
 
         if($treatedStatus->getAutomaticReceptionCreation()) {
-            $purchaseRequestService->automaticCreationReception($purchaseRequest);
+            $purchaseRequestService->createAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
         }
 
         $purchaseRequest
@@ -716,9 +716,16 @@ class PurchaseRequestController extends AbstractController
                 ->filter(static fn(Statut $status) => $status->isPassStatusAtPurchaseOrderGeneration())
                 ->first();
 
-            if($nextStatus){
+            // if next status is not the same as current status then change status
+            if($nextStatus && $nextStatus !== $purchaseRequest->getStatus()){
                 $purchaseRequest->setStatus($nextStatus);
 
+                // create automatic reception if parameter is enabled
+                if($nextStatus->getAutomaticReceptionCreation()){
+                    $purchaseRequestService->createAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
+                }
+
+                // set date according to status
                 switch($purchaseRequest->getStatus()->getState()) {
                     case Statut::IN_PROGRESS:
                         if(!$purchaseRequest->getConsiderationDate()){
@@ -732,11 +739,6 @@ class PurchaseRequestController extends AbstractController
                         break;
                 }
             }
-        }
-
-        // create automatic reception if parameter is enabled
-        if($purchaseRequest->getStatus()->getAutomaticReceptionCreation()){
-            $purchaseRequestService->automaticCreationReception($purchaseRequest);
         }
 
         $purchaseRequestOrderAttachment = $purchaseRequestService->getPurchaseRequestOrderData($entityManager, $purchaseRequest);
