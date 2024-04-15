@@ -72,6 +72,8 @@ class IOTService
     const DEMO_TEMPERATURE = 'demo-temperature';
     const DEMO_ACTION = 'demo-action';
 
+    const YOKOGAWA_XS550_XS110A = 'yokogawa-xs550-xs110A';
+
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 2,
         self::INEO_SENS_ACS_HYGRO => 2,
@@ -85,6 +87,7 @@ class IOTService
         self::INEO_INS_EXTENDER => 0,
         self::INEO_TRK_TRACER => 3,
         self::INEO_TRK_ZON => 0,
+        self::YOKOGAWA_XS550_XS110A => 2,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -102,6 +105,7 @@ class IOTService
         self::INEO_INS_EXTENDER => Sensor::EXTENDER,
         self::INEO_TRK_TRACER => Sensor::TRACER,
         self::INEO_TRK_ZON => Sensor::ZONE,
+        self::YOKOGAWA_XS550_XS110A => Sensor::TEMPERATURE,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -117,6 +121,7 @@ class IOTService
         self::INEO_INS_EXTENDER => 'au message reçu',
         self::INEO_TRK_ZON => 'à l\'action',
         self::INEO_TRK_TRACER => 'à l\'action',
+        self::YOKOGAWA_XS550_XS110A => 'x minutes',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -140,6 +145,7 @@ class IOTService
         self::DATA_TYPE_ZONE_ENTER => 'Entrée zone',
         self::DATA_TYPE_ZONE_EXIT => 'Sortie zone',
         self::DATA_TYPE_LIVENESS_PROOF => 'Présence',
+        self::DATA_TYPE_ERROR => 'Erreur'
     ];
 
     const DATA_TYPE_TO_UNIT = [
@@ -637,6 +643,7 @@ class IOTService
         }
         $entityManager->flush();
 
+
         $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
         if ( $device->getType()->getLabel() === Sensor::EXTENDER
             && array_key_exists(self::DATA_TYPE_PAYLOAD, $mainDatas)
@@ -798,20 +805,20 @@ class IOTService
         switch ($profile) {
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
-                $temperature = $this->convertHexToSignedInt($hexTemperature);
+                $temperature = $this->convertHexToSignedNumber($hexTemperature);
                 $hexHygrometry = substr($config['value']['payload'], 66, 2);
-                $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
+                $hygrometry = $this->convertHexToSignedNumber($hexHygrometry);
                 return [
                     self::DATA_TYPE_TEMPERATURE => $temperature,
                     self::DATA_TYPE_HYGROMETRY => $hygrometry,
                 ];
             case IOTService::INEO_SENS_ACS_TEMP:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
-                $temperature = $this->convertHexToSignedInt($hexTemperature);
+                $temperature = $this->convertHexToSignedNumber($hexTemperature);
                 return [self::DATA_TYPE_TEMPERATURE => $temperature,];
             case IOTService::INEO_SENS_ACS_HYGRO:
                 $hexHygrometry = substr($config['value']['payload'], 66, 2);
-                $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
+                $hygrometry = $this->convertHexToSignedNumber($hexHygrometry);
                 return [self::DATA_TYPE_HYGROMETRY => $hygrometry,];
             case IOTService::KOOVEA_TAG:
                 return [self::DATA_TYPE_TEMPERATURE => $config['value']];
@@ -887,6 +894,18 @@ class IOTService
                 return [
                     self::DATA_TYPE_LIVENESS_PROOF => true,
                 ];
+            case IOTService::YOKOGAWA_XS550_XS110A:
+                $payload = $config['value']['payload'];//TODO : verif si pas chez orange
+                if(str_starts_with($payload,"20") || str_starts_with($payload,"21")) {
+                    if(substr($payload, 2, 2) == "15"){
+                        return [self::DATA_TYPE_ERROR => 0] ;
+                    }else{
+                        $temperature = substr($payload, 6, 8);
+                        return [self::DATA_TYPE_TEMPERATURE => $this->convertHexToSignedNumber($temperature, false)];
+                    }
+                }else{
+                    return [];
+                }
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -900,6 +919,7 @@ class IOTService
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
             case IOTService::INEO_SENS_ACS_HYGRO:
+            case IOTService::YOKOGAWA_XS550_XS110A:
             case IOTService::INEO_TRK_ZON:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
@@ -1006,6 +1026,15 @@ class IOTService
                     }
                 }
                 return $batteryLevel ?? -1;
+            case IOTService::YOKOGAWA_XS550_XS110A:
+                $payload = $config['value']['payload'];//TODO : verif si pas chez orange
+                if(str_starts_with($payload,"40")){
+                    $battery = substr($payload, 8, 2);
+                    return hexdec($battery)/2;
+                }else{
+                    return -1;
+                }
+
         }
         return -1;
     }
@@ -1309,16 +1338,24 @@ class IOTService
             IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
+            IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
 
             default => true,
         };
     }
 
-    private function convertHexToSignedInt(string $hexStr): string {
-        $dec = hexdec($hexStr);
-        $isNegative = $dec & pow(16, strlen($hexStr)) / 2;
-        return $isNegative
-            ? $dec - pow(16, strlen($hexStr))
-            : $dec;
+    private function convertHexToSignedNumber(string $hexStr, bool $isInt = true): string {
+        if($isInt) {
+            $dec = hexdec($hexStr);
+            $isNegative = $dec & pow(16, strlen($hexStr)) / 2;
+            return $isNegative
+                ? $dec - pow(16, strlen($hexStr))
+                : $dec;
+        }else{
+            $hex = sscanf($hexStr, "%02x%02x%02x%02x%02x%02x%02x%02x");
+            $bin = implode('', array_map('chr', $hex));
+            $array = unpack("Gnum", $bin);
+            return round(floatval($array['num']),2);
+        }
     }
 }

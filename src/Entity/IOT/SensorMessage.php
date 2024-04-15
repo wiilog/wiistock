@@ -94,7 +94,7 @@ class SensorMessage {
         return $this->content;
     }
 
-    public function setContent(string $content): self {
+    public function setContent(string|null $content): self {
         $this->content = $content;
 
         return $this;
@@ -139,7 +139,6 @@ class SensorMessage {
 
     public function setContentType(?int $contentType): self {
         $this->contentType = $contentType;
-
         return $this;
     }
 
