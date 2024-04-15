@@ -39,7 +39,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_DISPATCH_VISIBLE_COLUMNS = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
     const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "pack", "reference", "label", "quantity", "location", "type", "operateur", "group"];
     const DEFAULT_DISPUTE_VISIBLE_COLUMNS = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
-    const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation", "deliveryFee"];
+    const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation", "deliveryFee", "user"];
     const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "createdAt", "validatedAt", "requester", "number", "status", "type"];
     const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
