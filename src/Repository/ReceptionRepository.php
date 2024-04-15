@@ -189,7 +189,7 @@ class ReceptionRepository extends EntityRepository
                         $qb->andWhere($ors);
                     }
                     break;
-                case 'utilisateurs':
+                case 'receivers':
                     $values = array_map(function ($value) {
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
@@ -212,7 +212,7 @@ class ReceptionRepository extends EntityRepository
                         ->andWhere("f.id in (:fournisseur)")
                         ->setParameter('fournisseur', $value);
                     break;
-                case 'user':
+                case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('reception.utilisateur', 'filter_user')

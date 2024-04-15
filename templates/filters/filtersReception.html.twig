@@ -4,7 +4,8 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: 'Demandeurs',
+        placeholder: 'Destinataire(s)',
+        name: 'receivers',
     } %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
@@ -17,8 +18,5 @@
     {% include 'filters/filter_item/filterCommandList.html.twig' with {
         title: "N° de commande",
     } %}
-    {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: 'Utilisateurs',
-        name: 'user',
-    }%}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

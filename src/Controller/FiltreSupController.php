@@ -98,7 +98,6 @@ class FiltreSupController extends AbstractController
 
             $filterLabelsSelect2 = [
                 'utilisateurs' => FiltreSup::FIELD_USERS,
-                'user' => FiltreSup::FIELD_RECEPTION_USERS,
                 'commandList' => FiltreSup::FIELD_COMMAND_LIST,
                 'multipleTypes' => FiltreSup::FIELD_MULTIPLE_TYPES,
                 'declarants' => FiltreSup::FIELD_DECLARANTS,
