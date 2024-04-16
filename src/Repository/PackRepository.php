@@ -382,6 +382,7 @@ class PackRepository extends EntityRepository
             ->leftJoin('pack.arrivage', 'pack_arrival')
             ->leftJoin('pack.article', 'article')
             ->innerJoin('pack.lastDrop', 'lastDrop')
+            ->innerJoin('pack.lastTracking', 'lastTracking')
             ->innerJoin('lastDrop.emplacement', 'emplacement')
             ->andWhere('pack.groupIteration IS NULL');
 

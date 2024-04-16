@@ -40,6 +40,9 @@ class EnCoursService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TrackingMovementService  $trackingMovementService;
+
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
     private const AFTERNOON_FIRST_MINUTE_INDEX = 5;
@@ -182,6 +185,7 @@ class EnCoursService
         $dropsCounter = 0;
         $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
         $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
+        $trackingMovementRepository =  $this->entityManager->getRepository(TrackingMovement::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $emplacementInfo = [];
@@ -192,6 +196,7 @@ class EnCoursService
             "emplacement.dateMaxTime AS dateMaxTime",
             "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
+            "lastTracking.id AS lastTrackingId",
             ...$useTruckArrivals
                 ? [
                     "pack.truckArrivalDelay AS truckArrivalDelay",
@@ -225,6 +230,8 @@ class EnCoursService
             $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
+            $lastTracking = $oldestDrop['lastTrackingId'] ? $trackingMovementRepository->find($oldestDrop['lastTrackingId']) : null;
+            $fromColumnData = $this->trackingMovementService->getFromColumnData($lastTracking);
 
             if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
                 $emplacementInfo[] = [
@@ -236,9 +243,7 @@ class EnCoursService
                     'emp' => $oldestDrop['label'],
                     'libelle' => $oldestDrop['reference_label'] ?? null,
                     'reference' => $oldestDrop['reference_reference'] ?? null,
-                    'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
-                        'arrivalId' => $oldestDrop['arrivalId'],
-                    ]),
+                    'linkedArrival' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
                 ];
             }
         }
