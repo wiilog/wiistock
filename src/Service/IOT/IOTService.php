@@ -71,7 +71,6 @@ class IOTService
     const KOOVEA_HUB = 'Hub GPS Koovea';
     const DEMO_TEMPERATURE = 'demo-temperature';
     const DEMO_ACTION = 'demo-action';
-
     const YOKOGAWA_XS550_XS110A = 'yokogawa-xs550-xs110A';
 
     const PROFILE_TO_MAX_TRIGGERS = [
@@ -1351,7 +1350,7 @@ class IOTService
             return $isNegative
                 ? $dec - pow(16, strlen($hexStr))
                 : $dec;
-        }else{
+        } else {
             $hex = sscanf($hexStr, "%02x%02x%02x%02x%02x%02x%02x%02x");
             $bin = implode('', array_map('chr', $hex));
             $array = unpack("Gnum", $bin);
