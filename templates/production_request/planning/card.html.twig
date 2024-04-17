@@ -47,26 +47,28 @@
                     {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.quantity ?? "-" }}</span>
                 </div>
             </div>
-            <div class="col-4">
-                <div class="text-center d-flex flex-column align-items-center">
-                {% if emergency %}
-                    <img src="{{ asset('svg/urgence.svg') }}"
-                         class="has-tooltip mb-1"
-                         width="30"
-                         alt="Icône urgence"
-                         title="Une urgence est en cours sur cette demande : {{ emergency }}"
-                    >
-                {% endif %}
-                {% if comment %}
-                    <img src="{{ asset('svg/comment-dots-regular.svg') }}"
-                         class="has-tooltip"
-                         width="30"
-                         alt="Icône commentaire"
-                         title="Un commentaire est présent sur cette demande : {{ comment }}"
-                    >
-                {% endif %}
+            {% if emergency or comment %}
+                <div class="col-4">
+                    <div class="text-center d-flex flex-column align-items-center">
+                        {% if emergency %}
+                            <img src="{{ asset('svg/urgence.svg') }}"
+                                 class="has-tooltip mb-1"
+                                 width="30"
+                                 alt="Icône urgence"
+                                 title="Une urgence est en cours sur cette demande : {{ emergency }}"
+                            >
+                        {% endif %}
+                        {% if comment %}
+                            <img src="{{ asset('svg/comment-dots-regular.svg') }}"
+                                 class="has-tooltip"
+                                 width="30"
+                                 alt="Icône commentaire"
+                                 title="Un commentaire est présent sur cette demande : {{ comment }}"
+                            >
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+            {% endif %}
             {% if fields is not empty %}
                 {% set id = "cardCollapse-" ~ random() %}
                 <div class="col-12 collapse" id="{{ id }}">
