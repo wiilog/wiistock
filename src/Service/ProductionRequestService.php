@@ -509,6 +509,16 @@ class ProductionRequestService
             $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$productionRequest->getLineCount()}<br>";
         }
 
+        Stream::from($productionRequest->getFreeFields())
+            ->each(function($freeFieldValue, $freeFieldId) use ($oldValues, $productionRequest, &$message) {
+                if((!isset($oldValues[$freeFieldId]) && !empty($freeFieldValue)) || (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue)){
+                    $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
+                    $freeField = $freeFieldRepository->find($freeFieldId);
+                    $value = $freeField->getTypage() === FreeField::TYPE_BOOL ? $this->formatService->bool(boolval($freeFieldValue)) : $freeFieldValue;
+                    $message .= "<strong>{$freeField->getLabel()}</strong> : {$value} <br>";
+                }
+            });
+
         return $message;
     }
 
