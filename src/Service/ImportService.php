@@ -327,6 +327,12 @@ class ImportService
     #[Required]
     public ProductionRequestService $productionRequestService;
 
+    #[Required]
+    public DispatchService $dispatchService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
+
     private EmplacementDataService $emplacementDataService;
 
     private Import $currentImport;
@@ -649,7 +655,7 @@ class ImportService
                         );
                         break;
                     case Import::ENTITY_DISPATCH:
-                        $this->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation);
+                        $this->dispatchService->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation);
                         break;
                 }
 
@@ -696,7 +702,6 @@ class ImportService
                     $message = 'Une autre entité est en cours de création, veuillez réessayer.';
                 }
             } else {
-                throw $throwable;
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
                 $line = $throwable->getLine();
@@ -1319,7 +1324,7 @@ class ImportService
             ->setDescription($description);
 
         // champs libres
-        $this->manageFreeFields($colChampsLibres, $refArt, $isNewEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager,$colChampsLibres, $refArt, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
     }
@@ -1453,7 +1458,7 @@ class ImportService
         }
         $this->entityManager->persist($article);
         // champs libres
-        $this->manageFreeFields($colChampsLibres, $article, $isNewEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager,$colChampsLibres, $article, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
 
@@ -1898,7 +1903,7 @@ class ImportService
             }
         }
 
-        $this->manageFreeFields($colChampsLibres, $request, $newEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager,$colChampsLibres, $request, $newEntity, $row);
 
         $isCreation = $newEntity;
 
@@ -2140,261 +2145,6 @@ class ImportService
         $this->entityManager->persist($refLocation);
 
         $isCreation = !$refLocationAlreadyExists;
-    }
-
-    public function importDispatch(EntityManagerInterface $entityManager,
-                                   array                  $data,
-                                   Utilisateur            $importUser,
-                                   array                  $freeFieldColumns,
-                                   array                  $row,
-                                   ?bool                  &$isCreation): void {
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-
-        $now = new DateTime();
-        $dispatch = new Dispatch();
-
-        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
-        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
-            throw new ImportException("Le format de numéro d'acheminement n'est pas valide.");
-        }
-        $number = $this->uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat, $now);
-
-        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_DISPATCH, $data[FixedFieldEnum::type->name]);
-        if (!$type) {
-            throw new ImportException("Le type n'existe pas.");
-        }
-
-        $draftStatuses = $statusRepository->findBy([
-            "state" => Statut::DRAFT,
-            "type" => $type,
-        ]);
-        $draftStatus = $draftStatuses[0] ?? null;
-        if (!$draftStatus) {
-            throw new ImportException("Le type {$type->getLabel()} n'a pas de statut en état brouillon.");
-        }
-
-        $dispatch
-            ->setNumber($number)
-            ->setCreationDate($now)
-            ->setCreatedBy($importUser)
-            ->setType($type);
-
-        if (isset($data[FixedFieldEnum::pickLocation->name])) {
-            $location = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::pickLocation->name]]);
-
-            if (!$location) {
-                throw new ImportException("L'emplacement de prise n'existe pas.");
-            } else if (!$location->getIsActive()) {
-                throw new ImportException("L'emplacement de prise n'est pas actif.");
-            }
-
-            $dispatch->setLocationFrom($location);
-        }
-
-        if (isset($data[FixedFieldEnum::dropLocation->name])) {
-            $location = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
-
-            if (!$location) {
-                throw new ImportException("L'emplacement de dépose n'existe pas.");
-            } else if (!$location->getIsActive()) {
-                throw new ImportException("L'emplacement de dépose n'est pas actif.");
-            }
-
-            $dispatch->setLocationTo($location);
-        }
-
-        if (isset($data[FixedFieldEnum::carrier->name])) {
-            $carrier = $carrierRepository->findOneBy(["label" => $data[FixedFieldEnum::carrier->name]]);
-
-            if (!$carrier) {
-                throw new ImportException("Le transporteur n'existe pas.");
-            }
-
-            $dispatch->setCarrier($carrier);
-        }
-
-        if (isset($data[FixedFieldEnum::requester->name])) {
-            $requester = $userRepository->findOneBy(["username" => $data[FixedFieldEnum::requester->name]]);
-
-            if (!$requester) {
-                throw new ImportException("Le demandeur n'existe pas.");
-            }
-
-            $dispatch->setRequester($requester);
-        }
-
-        if (isset($data[FixedFieldEnum::receivers->name])) {
-            Stream::explode(",", $data[FixedFieldEnum::receivers->name])
-                ->filter()
-                ->each(static function(string $username) use ($userRepository, $dispatch) {
-                    $receiver = $userRepository->findOneBy(["username" => trim($username)]);
-
-                    if(!$receiver) {
-                        throw new ImportException("Le destinataire $username n'existe pas.");
-                    } else {
-                        $dispatch->addReceiver($receiver);
-                    }
-                });
-        }
-
-        if (isset($data[FixedFieldEnum::emails->name])) {
-            $emails = Stream::explode("," , $data[FixedFieldEnum::emails->name])
-                ->filter()
-                ->map(static fn(string $email) => trim($email))
-                ->toArray();
-
-            $dispatch->setEmails($emails);
-        }
-
-        if (isset($data[FixedFieldEnum::carrierTrackingNumber->name])) {
-            $dispatch->setCarrierTrackingNumber($data[FixedFieldEnum::carrierTrackingNumber->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::projectNumber->name])) {
-            $dispatch->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::emergency->name])) {
-            $dispatch->setEmergency($data[FixedFieldEnum::emergency->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::comment->name])) {
-            $dispatch->setCommentaire($data[FixedFieldEnum::comment->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::businessUnit->name])) {
-            $dispatch->setBusinessUnit($data[FixedFieldEnum::businessUnit->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::destination->name])) {
-            $dispatch->setDestination($data[FixedFieldEnum::destination->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::orderNumber->name])) {
-            $dispatch->setCommandNumber($data[FixedFieldEnum::orderNumber->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::customerName->name])) {
-            $dispatch->setCustomerName($data[FixedFieldEnum::customerName->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::customerRecipient->name])) {
-            $dispatch->setCustomerRecipient($data[FixedFieldEnum::customerRecipient->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::customerAddress->name])) {
-            $dispatch->setCustomerAddress($data[FixedFieldEnum::customerAddress->name]);
-        }
-
-        if (isset($data[FixedFieldEnum::customerPhone->name])) {
-            $dispatch->setCustomerPhone($data[FixedFieldEnum::customerPhone->name]);
-        }
-
-        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
-            "initiatedBy" => $importUser,
-        ]);
-
-        $this->manageFreeFields($freeFieldColumns, $dispatch, true, $row);
-
-        $entityManager->persist($dispatch);
-
-        $isCreation = true;
-    }
-
-    private function manageFreeFields(array $freeFieldColumns,
-                                      mixed $freeFieldEntity,
-                                      bool  $isNewEntity,
-                                      array $row): void {
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-        $missingFreeFields = [];
-
-        $freeFieldCategory = match (true) {
-            $freeFieldEntity instanceof ReferenceArticle => CategorieCL::REFERENCE_ARTICLE,
-            $freeFieldEntity instanceof Article => CategorieCL::ARTICLE,
-            $freeFieldEntity instanceof Demande => CategorieCL::DEMANDE_LIVRAISON,
-            $freeFieldEntity instanceof Dispatch => CategorieCL::DEMANDE_DISPATCH,
-            default => throw new Exception("Unhandled free field category")
-        };
-
-        if ($freeFieldEntity->getType()?->getId()) {
-            $freeFields = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($freeFieldEntity->getType(), $freeFieldCategory, $isNewEntity);
-        } else {
-            $freeFields = [];
-        }
-
-        $freeFieldIds = array_keys($freeFieldColumns);
-        foreach ($freeFields as $freeField) {
-            if (!in_array($freeField->getId(), $freeFieldIds)) {
-                $missingFreeFields[] = $freeField->getLabel();
-            }
-        }
-
-        if (!empty($missingFreeFields)) {
-            $message = count($missingFreeFields) > 1
-                ? 'Les champs ' . join(', ', $missingFreeFields) . ' sont obligatoires'
-                : 'Le champ ' . $missingFreeFields[0] . ' est obligatoire';
-            $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
-            throw new ImportException($message);
-        }
-
-        $freeFieldsToInsert = $freeFieldEntity->getFreeFields();
-
-        foreach ($freeFieldColumns as $freeFieldId => $column) {
-            $freeField = $champLibreRepository->find($freeFieldId);
-
-            $value = match ($freeField->getTypage()) {
-                FreeField::TYPE_BOOL => in_array($row[$column], ['Oui', 'oui', 1, '1']),
-                FreeField::TYPE_DATE => $this->checkDate($row[$column], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $freeField),
-                FreeField::TYPE_DATETIME => $this->checkDate($row[$column], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $freeField),
-                FreeField::TYPE_LIST => $this->checkList($row[$column], $freeField, false),
-                FreeField::TYPE_LIST_MULTIPLE => $this->checkList($row[$column], $freeField, true),
-                default => $row[$column],
-            };
-
-            $freeFieldsToInsert[$freeField->getId()] = strval(is_bool($value) ? intval($value) : $value);
-        }
-
-        $freeFieldEntity->setFreeFields($freeFieldsToInsert);
-    }
-
-    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, FreeField $champLibre): ?string
-    {
-        $response = null;
-        if ($dateString !== "") {
-            try {
-                $date = DateTime::createFromFormat($format, $dateString);
-                if (!$date) {
-                    throw new Exception('Invalid format');
-                }
-                $response = $date->format($outputFormat);
-            } catch (Exception $ignored) {
-                $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
-                throw new ImportException($message);
-            }
-        }
-        return $response;
-    }
-
-    private function checkList(string $element, FreeField $champLibre, bool $isMultiple): ?string
-    {
-        $response = null;
-        if ($element !== "") {
-            $elements = $isMultiple ? explode(";", $element) : [$element];
-            foreach ($elements as $listElement) {
-                if (!in_array($listElement, $champLibre->getElements())) {
-                    throw new ImportException('La ou les valeurs fournies pour le champ "' . $champLibre->getLabel() . '"'
-                        . 'doivent faire partie des valeurs du champ libre ('
-                        . implode(",", $champLibre->getElements()) . ').');
-                }
-            }
-            $response = $element;
-        }
-        return $response;
     }
 
     private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)

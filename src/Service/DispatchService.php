@@ -13,6 +13,7 @@ use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
@@ -25,9 +26,11 @@ use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\ImportException;
 use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
@@ -111,6 +114,9 @@ class DispatchService {
 
     #[Required]
     public RefArticleDataService $refArticleDataService;
+
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
 
     #[Required]
     public PackService $packService;
@@ -2231,5 +2237,180 @@ class DispatchService {
                 ])
         )
             ->toArray();
+    }
+
+    public function importDispatch(EntityManagerInterface $entityManager,
+                                   array                  $data,
+                                   Utilisateur            $importUser,
+                                   array                  $freeFieldColumns,
+                                   array                  $row,
+                                   ?bool                  &$isCreation): void {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+
+        $now = new DateTime();
+        $dispatch = new Dispatch();
+
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new ImportException("Le format de numéro d'acheminement n'est pas valide.");
+        }
+        $number = $this->uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat, $now);
+
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_DISPATCH, $data[FixedFieldEnum::type->name]);
+        if (!$type) {
+            throw new ImportException("Le type n'existe pas.");
+        }
+
+        $draftStatuses = $statusRepository->findBy([
+            "state" => Statut::DRAFT,
+            "type" => $type,
+        ]);
+        $draftStatus = $draftStatuses[0] ?? null;
+        if (!$draftStatus) {
+            throw new ImportException("Le type {$type->getLabel()} n'a pas de statut en état brouillon.");
+        }
+
+        $dispatch
+            ->setNumber($number)
+            ->setCreationDate($now)
+            ->setCreatedBy($importUser)
+            ->setType($type);
+
+        if (isset($data[FixedFieldEnum::pickLocation->name])) {
+            $location = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::pickLocation->name]]);
+
+            if (!$location) {
+                throw new ImportException("L'emplacement de prise n'existe pas.");
+            } else if (!$location->getIsActive()) {
+                throw new ImportException("L'emplacement de prise n'est pas actif.");
+            }
+
+            $dispatch->setLocationFrom($location);
+        }
+
+        if (isset($data[FixedFieldEnum::dropLocation->name])) {
+            $location = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
+
+            if (!$location) {
+                throw new ImportException("L'emplacement de dépose n'existe pas.");
+            } else if (!$location->getIsActive()) {
+                throw new ImportException("L'emplacement de dépose n'est pas actif.");
+            }
+
+            $dispatch->setLocationTo($location);
+        }
+
+        if (isset($data[FixedFieldEnum::carrier->name])) {
+            $carrier = $carrierRepository->findOneBy(["label" => $data[FixedFieldEnum::carrier->name]]);
+
+            if (!$carrier) {
+                throw new ImportException("Le transporteur n'existe pas.");
+            }
+
+            $dispatch->setCarrier($carrier);
+        }
+
+        if (isset($data[FixedFieldEnum::requester->name])) {
+            $requester = $userRepository->findOneBy(["username" => $data[FixedFieldEnum::requester->name]]);
+
+            if (!$requester) {
+                throw new ImportException("Le demandeur n'existe pas.");
+            }
+
+            $dispatch->setRequester($requester);
+        }
+
+        if (isset($data[FixedFieldEnum::receivers->name])) {
+            Stream::explode(",", $data[FixedFieldEnum::receivers->name])
+                ->filter()
+                ->each(static function(string $username) use ($userRepository, $dispatch) {
+                    $receiver = $userRepository->findOneBy(["username" => trim($username)]);
+
+                    if(!$receiver) {
+                        throw new ImportException("Le destinataire $username n'existe pas.");
+                    } else {
+                        $dispatch->addReceiver($receiver);
+                    }
+                });
+        }
+
+        if (isset($data[FixedFieldEnum::emails->name])) {
+            $emails = Stream::explode("," , $data[FixedFieldEnum::emails->name])
+                ->filter()
+                ->map(static fn(string $email) => trim($email))
+                ->toArray();
+
+            $dispatch->setEmails($emails);
+        }
+
+        if (isset($data[FixedFieldEnum::carrierTrackingNumber->name])) {
+            $dispatch->setCarrierTrackingNumber($data[FixedFieldEnum::carrierTrackingNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::projectNumber->name])) {
+            $dispatch->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
+        }
+
+        $dispatchEmergency = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+        if (isset($data[FixedFieldEnum::emergency->name])) {
+            if(in_array($data[FixedFieldEnum::emergency->name],$dispatchEmergency)){
+                $dispatch->setEmergency($data[FixedFieldEnum::emergency->name]);
+            } else {
+                throw new ImportException('Le type d\'urgence renseigné doit être dans la liste des types d\'urgences acceptées.' );
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::comment->name])) {
+            $dispatch->setCommentaire($data[FixedFieldEnum::comment->name]);
+        }
+
+        $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        if (isset($data[FixedFieldEnum::businessUnit->name])  ) {
+            if(in_array($data[FixedFieldEnum::businessUnit->name],$dispatchBusinessUnits)){
+                $dispatch->setBusinessUnit($data[FixedFieldEnum::businessUnit->name]);
+            } else {
+                throw new ImportException('Le business unit renseigné doit être dans la liste des business unit acceptés.' );
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::destination->name])) {
+            $dispatch->setDestination($data[FixedFieldEnum::destination->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::orderNumber->name])) {
+            $dispatch->setCommandNumber($data[FixedFieldEnum::orderNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerName->name])) {
+            $dispatch->setCustomerName($data[FixedFieldEnum::customerName->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerRecipient->name])) {
+            $dispatch->setCustomerRecipient($data[FixedFieldEnum::customerRecipient->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerAddress->name])) {
+            $dispatch->setCustomerAddress($data[FixedFieldEnum::customerAddress->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::customerPhone->name])) {
+            $dispatch->setCustomerPhone($data[FixedFieldEnum::customerPhone->name]);
+        }
+
+        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
+            "initiatedBy" => $importUser,
+        ]);
+
+        $this->freeFieldService->manageImportFreeFields($entityManager,$freeFieldColumns, $dispatch, true, $row);
+
+        $entityManager->persist($dispatch);
+
+        $isCreation = true;
     }
 }
