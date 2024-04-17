@@ -238,7 +238,6 @@ class ImportService
         ],
         Import::ENTITY_DISPATCH => [
             FixedFieldEnum::type->name,
-            FixedFieldEnum::status->name,
             FixedFieldEnum::dropLocation->name,
             FixedFieldEnum::pickLocation->name,
             FixedFieldEnum::orderNumber->name,
@@ -697,6 +696,7 @@ class ImportService
                     $message = 'Une autre entité est en cours de création, veuillez réessayer.';
                 }
             } else {
+                throw $throwable;
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
                 $line = $throwable->getLine();
@@ -2169,14 +2169,13 @@ class ImportService
             throw new ImportException("Le type n'existe pas.");
         }
 
-        $status = $statusRepository->findOneBy([
-            "nom" => $data[FixedFieldEnum::status->name],
+        $draftStatuses = $statusRepository->findBy([
+            "state" => Statut::DRAFT,
             "type" => $type,
         ]);
-        if (!$status) {
-            throw new ImportException("Le statut n'existe pas ou n'est pas lié au type.");
-        } else if (!$status->isDraft()) {
-            throw new ImportException("Le statut doit être en état brouillon.");
+        $draftStatus = $draftStatuses[0] ?? null;
+        if (!$draftStatus) {
+            throw new ImportException("Le type {$type->getLabel()} n'a pas de statut en état brouillon.");
         }
 
         $dispatch
@@ -2296,7 +2295,7 @@ class ImportService
             $dispatch->setCustomerPhone($data[FixedFieldEnum::customerPhone->name]);
         }
 
-        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
+        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
             "initiatedBy" => $importUser,
         ]);
 

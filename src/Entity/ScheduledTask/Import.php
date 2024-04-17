@@ -121,7 +121,6 @@ class Import {
         ],
         self::ENTITY_DISPATCH => [
             FixedFieldEnum::type->name,
-            FixedFieldEnum::status->name,
             FixedFieldEnum::dropLocation->name,
             FixedFieldEnum::pickLocation->name,
             FixedFieldEnum::requester->name,
