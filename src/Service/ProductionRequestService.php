@@ -514,8 +514,7 @@ class ProductionRequestService
                 if((!isset($oldValues[$freeFieldId]) && !empty($freeFieldValue)) || (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue)){
                     $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
                     $freeField = $freeFieldRepository->find($freeFieldId);
-                    $value = $freeField->getTypage() === FreeField::TYPE_BOOL ? $this->formatService->bool(boolval($freeFieldValue)) : $freeFieldValue;
-                    $message .= "<strong>{$freeField->getLabel()}</strong> : {$value} <br>";
+                    $message .= "<strong>{$freeField->getLabel()}</strong> : {$this->formatService->freeField($freeFieldValue, $freeField)} <br>";
                 }
             });
 
