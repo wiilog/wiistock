@@ -2244,14 +2244,15 @@ class DispatchService {
                                    Utilisateur            $importUser,
                                    array                  $freeFieldColumns,
                                    array                  $row,
-                                   ?bool                  &$isCreation): void {
+                                   ?bool                  &$isCreation,
+                                   array                  $dispatchEmergency,
+                                   array                  $dispatchBusinessUnits): void{
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
         $now = new DateTime();
         $dispatch = new Dispatch();
@@ -2357,7 +2358,6 @@ class DispatchService {
             $dispatch->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
         }
 
-        $dispatchEmergency = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
         if (isset($data[FixedFieldEnum::emergency->name])) {
             if(in_array($data[FixedFieldEnum::emergency->name],$dispatchEmergency)){
                 $dispatch->setEmergency($data[FixedFieldEnum::emergency->name]);
@@ -2370,7 +2370,6 @@ class DispatchService {
             $dispatch->setCommentaire($data[FixedFieldEnum::comment->name]);
         }
 
-        $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
         if (isset($data[FixedFieldEnum::businessUnit->name])  ) {
             if(in_array($data[FixedFieldEnum::businessUnit->name],$dispatchBusinessUnits)){
                 $dispatch->setBusinessUnit($data[FixedFieldEnum::businessUnit->name]);

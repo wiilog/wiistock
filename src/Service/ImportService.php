@@ -14,6 +14,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -455,6 +456,7 @@ class ImportService
         $statusRepository = $this->entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $this->scalarCache['countReferenceArticleSyncNomade'] = $referenceArticleRepository->count(['needsMobileSync' => true]);
+        $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
 
         // we check mode validity
         if (!in_array($mode, [self::IMPORT_MODE_RUN, self::IMPORT_MODE_FORCE_PLAN, self::IMPORT_MODE_PLAN])) {
@@ -534,6 +536,9 @@ class ImportService
 
                     $this->eraseGlobalDataBefore();
 
+                    $dispatchEmergency = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                    $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+
                     foreach ($firstRows as $row) {
                         $logRow = $this->treatImportRow(
                             $row,
@@ -543,6 +548,8 @@ class ImportService
                             $refToUpdate,
                             false,
                             $index,
+                            $dispatchEmergency,
+                            $dispatchBusinessUnits,
                         );
                         $index++;
                         $this->attachmentService->putCSVLines($logFile, [$logRow], $this->scalarCache["logFileMapper"]);
@@ -559,6 +566,8 @@ class ImportService
                                 $refToUpdate,
                                 ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
                                 $index,
+                                $dispatchEmergency,
+                                $dispatchBusinessUnits,
                             );
                             $index++;
                             $this->attachmentService->putCSVLines($logFile, [$logRow], $this->scalarCache["logFileMapper"]);
@@ -601,6 +610,8 @@ class ImportService
                                     array &$refToUpdate,
                                     bool  $needsUnitClear,
                                     int   $rowIndex,
+                                    array $dispatchEmergency,
+                                    array $dispatchBusinessUnits,
                                     int   $retry = 0): array
     {
         try {
@@ -655,7 +666,7 @@ class ImportService
                         );
                         break;
                     case Import::ENTITY_DISPATCH:
-                        $this->dispatchService->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation);
+                        $this->dispatchService->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation, $dispatchEmergency, $dispatchBusinessUnits);
                         break;
                 }
 
@@ -696,6 +707,8 @@ class ImportService
                         $refToUpdate,
                         $needsUnitClear,
                         $rowIndex,
+                        $dispatchEmergency,
+                        $dispatchBusinessUnits,
                         $retry
                     );
                 } else {
