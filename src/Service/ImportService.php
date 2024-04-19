@@ -656,7 +656,7 @@ class ImportService
                         );
                         break;
                     case Import::ENTITY_DISPATCH:
-                        $this->dispatchService->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreatio);
+                        $this->dispatchService->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation);
                         break;
                 }
 
@@ -1325,7 +1325,7 @@ class ImportService
             ->setDescription($description);
 
         // champs libres
-        $this->freeFieldService->manageImportFreeFields($this->entityManager,$colChampsLibres, $refArt, $isNewEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager, $colChampsLibres, $refArt, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
     }
@@ -1904,7 +1904,7 @@ class ImportService
             }
         }
 
-        $this->freeFieldService->manageImportFreeFields($this->entityManager,$colChampsLibres, $request, $newEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager, $colChampsLibres, $request, $newEntity, $row);
 
         $isCreation = $newEntity;
 

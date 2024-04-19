@@ -34,9 +34,7 @@ use App\Exceptions\ImportException;
 use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -303,7 +301,6 @@ class DispatchService {
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
 
-        $type = $dispatch->getType();
         $carrier = $dispatch->getCarrier();
         $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
         $commandNumber = $dispatch->getCommandNumber();
@@ -318,6 +315,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
+        $dispatchEmails = $dispatch->getEmails();
         $updatedAt = $dispatch->getUpdatedAt() ?: null;
 
         $receiverDetails = [
@@ -356,6 +354,11 @@ class DispatchService {
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
             ],
             $receiverDetails ?? [],
+            [
+                'label' => 'Email(s)',
+                'value' => Stream::from($dispatchEmails)->join(', ') ?: '-',
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_EMAILS]
+            ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° projet', false),
                 'value' => $projectNumber ?: '-',
@@ -2255,10 +2258,10 @@ class DispatchService {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
-        if ($this->dispatchEmergency == null) {
+        if (!isset($this->dispatchEmergency)) {
             $this->dispatchEmergency = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
         }
-        if ($this->dispatchBusinessUnits == null) {
+        if (!isset($this->dispatchBusinessUnits)) {
             $this->dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
         }
 
