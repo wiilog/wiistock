@@ -95,7 +95,7 @@ class PackRepository extends EntityRepository
             : $query->getSingleScalarResult();
     }
 
-    private function getTrackingEntities(QueryBuilder $queryBuilder): QueryBuilder
+    private function addTrackingEntities(QueryBuilder $queryBuilder): QueryBuilder
     {
         $queryBuilder->addSelect("IF(join_reception.id IS NOT NULL, :reception,
                                     IF(join_dispatch.id IS NOT NULL, :dispatch,
@@ -127,14 +127,12 @@ class PackRepository extends EntityRepository
                                     join_dispatch.number,
                                     join_arrival.numeroArrivage,
                                     join_transfer_order.number,
-                                     join_delivery_request.numero,
+                                    join_delivery_request.numero,
                                     join_shipping_request.number,
                                     join_delivery_order.numero,
                                     join_preparation.numero
                                 ) AS entityNumber")
             ->leftJoin('pack.lastTracking', 'join_tracking_movement')
-            ->leftJoin('join_tracking_movement.emplacement','join_location')
-            ->leftJoin('pack.nature','join_nature')
             ->leftJoin('pack.arrivage', 'join_arrival')
             ->leftJoin('join_tracking_movement.reception','join_reception')
             ->leftJoin('join_tracking_movement.preparation','join_preparation')
@@ -164,14 +162,16 @@ class PackRepository extends EntityRepository
             ->addSelect('join_nature.label AS nature')
             ->addSelect('join_tracking_movement.datetime AS lastMvtDate')
             ->addSelect('join_tracking_movement.id AS fromTo')
-            ->addSelect('join_location.label AS location');
-            return $this->getTrackingEntities($queryBuilder)
+            ->addSelect('join_location.label AS location')
             ->andWhere('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
             ->andWhere('pack.groupIteration IS NULL')
+            ->leftJoin('join_tracking_movement.emplacement','join_location')
+            ->leftJoin('pack.nature','join_nature')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax,
-            ])
+            ]);
+        return $this->addTrackingEntities($queryBuilder)
             ->getQuery()
             ->toIterable();
     }
@@ -382,7 +382,6 @@ class PackRepository extends EntityRepository
         $order = $options['order'] ?? 'desc';
         $onlyLate = $options['onlyLate'] ?? false;
         $fromOnGoing = $options['fromOnGoing'] ?? false;
-        $lastTracking = $options['lastTracking'] ?? false;
 
         $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
@@ -392,7 +391,6 @@ class PackRepository extends EntityRepository
             ->leftJoin('pack.arrivage', 'pack_arrival')
             ->leftJoin('pack.article', 'article')
             ->innerJoin('pack.lastDrop', 'lastDrop')
-            ->innerJoin('pack.lastTracking', 'lastTracking')
             ->innerJoin('lastDrop.emplacement', 'emplacement')
             ->andWhere('pack.groupIteration IS NULL');
 
@@ -404,10 +402,7 @@ class PackRepository extends EntityRepository
                 ->leftJoin('pack.article', 'join_article')
                 ->leftJoin("join_article.articleFournisseur", "join_article_supplierArticle")
                 ->leftJoin("join_article_supplierArticle.referenceArticle", "join_article_referenceArticle");
-        }
-
-        if($lastTracking){
-            $queryBuilder = $this->getTrackingEntities($queryBuilder);
+            $queryBuilder = $this->addTrackingEntities($queryBuilder);
         }
 
         if (!empty($locations)) {

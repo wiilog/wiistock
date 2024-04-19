@@ -196,7 +196,6 @@ class EnCoursService
             "emplacement.dateMaxTime AS dateMaxTime",
             "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
-            "lastTracking.id AS lastTrackingId",
             ...$useTruckArrivals
                 ? [
                     "pack.truckArrivalDelay AS truckArrivalDelay",
@@ -213,7 +212,6 @@ class EnCoursService
                 'field' => Stream::from($fields)->join(","),
                 "onlyLate" => $onlyLate,
                 'fromOnGoing' => $fromOnGoing,
-                'lastTracking' => true,
                 ...($onlyLate
                     ? [
                         'limit' => $maxQueryResultLength,
@@ -231,10 +229,12 @@ class EnCoursService
             $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
-            $lastTracking = ["entity" => $oldestDrop['entity'],
-                             "entityId" => $oldestDrop['entityId'],
-                             "entityNumber" => $oldestDrop['entityNumber']] ?? null;
-            $fromColumnData = $this->trackingMovementService->getFromColumnData($lastTracking);
+            dump($oldestDrop);
+            $fromColumnData = $this->trackingMovementService->getFromColumnData([
+                "entity" => $oldestDrop['entity'],
+                "entityId" => $oldestDrop['entityId'],
+                "entityNumber" => $oldestDrop['entityNumber'],
+            ]);
 
             if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
                 $emplacementInfo[] = [

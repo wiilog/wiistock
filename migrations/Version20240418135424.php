@@ -16,16 +16,17 @@ final class Version20240418135424 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+
         $users = $this->connection
             ->executeQuery("
-                SELECT user.id, user.visible_columns
-                FROM utilisateur user
-                WHERE user.visible_columns
-                LIKE '%linkedArrival%' OR user.visible_columns NOT LIKE '%onGoing%' ")
-            ->fetchAllAssociative();
+            SELECT user.id, user.visible_columns
+            FROM utilisateur user
+            WHERE user.visible_columns LIKE '%linkedArrival%' OR user.visible_columns NOT LIKE '%onGoing%'
+        ")
+        ->fetchAllAssociative();
         foreach ($users as $user) {
-            $oldVisibleColumns = json_decode($user["visible_columns"], true);
-            if(!in_array("onGoing",$oldVisibleColumns)){
+            $oldVisibleColumns = json_decode($user["visible_columns"] ?: '{}', true);
+            if(!array_key_exists("onGoing",$oldVisibleColumns)){
                 $oldVisibleColumns["onGoing"] = Utilisateur::DEFAULT_ON_GOING_VISIBLE_COLUMNS;
             } else {
                 $oldVisibleColumns["onGoing"] = str_replace("linkedArrival", "origin", $oldVisibleColumns["onGoing"]);
