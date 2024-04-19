@@ -7,11 +7,12 @@ execute_query() {
 }
 
 prepare_project() {
+    mkdir -p /tmp/wiistock-tmp
+
     # Extract vendor and node_modules from cache if it exists
-    wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/vendor.zip" -P /tmp || true
-    if [ -f /tmp/vendor.zip ]; then
-        unzip -q /tmp/vendor.zip -d /project
-        rm /tmp/vendor.zip
+    wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/vendor.zip" -P /tmp/wiistock-tmp || true
+    if [ -f /tmp/wiistock-tmp/vendor.zip ]; then
+        unzip -q /tmp/wiistock-tmp/vendor.zip -d /project
     fi
 
     composer install \
@@ -25,10 +26,9 @@ prepare_project() {
     fi
 
     BUILD_ZIP_NAME="build-$APP_CONTEXT.zip"
-    wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/$BUILD_ZIP_NAME" -P /tmp || true
-    if [ -f "/tmp/$BUILD_ZIP_NAME" ]; then
-        unzip -q "/tmp/$BUILD_ZIP_NAME" -d /project/public
-        rm "/tmp/$BUILD_ZIP_NAME"
+    wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/$BUILD_ZIP_NAME" -P /tmp/wiistock-tmp || true
+    if [ -f "/tmp/wiistock-tmp/$BUILD_ZIP_NAME" ]; then
+        unzip -q "/tmp/wiistock-tmp/$BUILD_ZIP_NAME" -d /project/public
 
         if [ -d public/build ]; then
             find "public/$BUILD_ZIP_NAME" -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
@@ -37,16 +37,16 @@ prepare_project() {
 
     # si /public/build existe pas on le crée
     if [ ! -d public/build ]; then
-        wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/node_modules.zip" -P /tmp || true
-        if [ -f /tmp/node_modules.zip ]; then
-            unzip -q /tmp/node_modules.zip -d /project
-            rm /tmp/node_modules.zip
+        wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/node_modules.zip" -P /tmp/wiistock-tmp || true
+        if [ -f /tmp/wiistock-tmp/node_modules.zip ]; then
+            unzip -q /tmp/wiistock-tmp/node_modules.zip -d /project
         else
             yarn install
         fi
         build_yarn
     fi
 
+    rm -rf /tmp/wiistock-tmp
     php bin/console app:initialize
 }
 
