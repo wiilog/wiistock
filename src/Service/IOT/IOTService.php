@@ -589,6 +589,7 @@ class IOTService
 
         $deviceCode = match ($loRaWANServer) {
             LoRaWANServer::ChirpStack => $message['deviceName'] ?? null,
+            LoRaWANServer::NodeRed => str_replace('-', '', $message['data']['deveui']),
             default => $message['metadata']["network"]["lora"]["devEUI"] ?? null,
         };
 
@@ -616,6 +617,7 @@ class IOTService
 
         $payload = match ($loRaWANServer) {
             LoRaWANServer::ChirpStack => json_decode($message['objectJSON'] ?? "{}", true)['payload'] ?? null,
+            LoRaWANServer::NodeRed => Stream::from($message["data"]["payload"])->map(static fn (int $num) => dechex($num))->map(static fn (string $ex) => strlen($ex) === 1 ? ("0".$ex): $ex)->join(''),
             default => $message['value']['payload'] ?? null,
         };
 
@@ -624,7 +626,7 @@ class IOTService
             return [];
         }
 
-        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile );
+        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile, $payload );
         $wrapper = $device->getAvailableSensorWrapper();
 
         if ($newBattery > -1) {
@@ -642,8 +644,7 @@ class IOTService
         }
         $entityManager->flush();
 
-
-        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
+        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName(), $payload);
         if ( $device->getType()->getLabel() === Sensor::EXTENDER
             && array_key_exists(self::DATA_TYPE_PAYLOAD, $mainDatas)
             && array_key_exists(self::DATA_TYPE_SENSOR_CLOVER_MAC, $mainDatas)) {
@@ -688,7 +689,7 @@ class IOTService
     }
 
     public function linkWithSubEntities(EntityManagerInterface $entityManager,
-                                        SensorMessage $sensorMessage) {
+                                        SensorMessage $sensorMessage): void {
         $packRepository = $entityManager->getRepository(Pack::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -784,7 +785,7 @@ class IOTService
         $request->addSensorMessage($sensorMessage);
     }
 
-    private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
+    private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage): void {
         $preparation->addSensorMessage($sensorMessage);
         $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
         foreach ($preparation->getArticleLines() as $article) {
@@ -792,7 +793,7 @@ class IOTService
         }
     }
 
-    private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage) {
+    private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage): void {
         $ordreCollecte->addSensorMessage($sensorMessage);
         $this->treatAddMessageCollectRequest($ordreCollecte->getDemandeCollecte(), $sensorMessage);
         foreach ($ordreCollecte->getArticles() as $article) {
@@ -800,7 +801,7 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config, string $profile): array {
+    public function extractMainDataFromConfig(array $config, string $profile, string $payload): array {
         switch ($profile) {
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
@@ -894,7 +895,6 @@ class IOTService
                     self::DATA_TYPE_LIVENESS_PROOF => true,
                 ];
             case IOTService::YOKOGAWA_XS550_XS110A:
-                $payload = $config['value']['payload'];//TODO : verif si pas chez orange
                 if(str_starts_with($payload,"20") || str_starts_with($payload,"21")) {
                     if(substr($payload, 2, 2) == "15"){
                         return [self::DATA_TYPE_ERROR => 0] ;
@@ -966,7 +966,7 @@ class IOTService
         return 'Évenement non trouvé';
     }
 
-    public function extractBatteryLevelFromMessage(array $config, string $profile) {
+    public function extractBatteryLevelFromMessage(array $config, string $profile, string $payload) {
         switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
@@ -1026,7 +1026,6 @@ class IOTService
                 }
                 return $batteryLevel ?? -1;
             case IOTService::YOKOGAWA_XS550_XS110A:
-                $payload = $config['value']['payload'];//TODO : verif si pas chez orange
                 if(str_starts_with($payload,"40")){
                     $battery = substr($payload, 8, 2);
                     return hexdec($battery)/2;
