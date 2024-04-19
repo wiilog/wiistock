@@ -28,8 +28,6 @@ prepare_project() {
     else
         yarn install
     fi
-
-    php bin/console app:initialize
 }
 
 install_symfony() {
@@ -78,6 +76,8 @@ install_symfony() {
     fi;
 
     php bin/console app:update:translations
+
+    php bin/console app:initialize
 
     php bin/console cache:clear
     php bin/console cache:warmup
