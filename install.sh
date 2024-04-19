@@ -8,11 +8,10 @@ execute_query() {
 
 prepare_project() {
     # Extract vendor and node_modules from cache if it exists
-
-    wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/vendor.zip || true
-    if [ -f vendor.zip ]; then
-        unzip -q vendor.zip
-        rm vendor.zip
+    wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/vendor.zip" -P /tmp || true
+    if [ -f /tmp/vendor.zip ]; then
+        unzip -q /tmp/vendor.zip -d /project
+        rm /tmp/vendor.zip
     fi
 
     composer install \
@@ -21,12 +20,31 @@ prepare_project() {
         --classmap-authoritative \
         --no-ansi
 
-    wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/node_modules.zip || true
-    if [ -f node_modules.zip ]; then
-        unzip -q node_modules.zip
-        rm node_modules.zip
-    else
-        yarn install
+    if [ -z "$APP_CONTEXT" ]; then
+        APP_CONTEXT="prod"
+    fi
+
+    BUILD_ZIP_NAME="build-$APP_CONTEXT.zip"
+    wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/$BUILD_ZIP_NAME" -P /tmp || true
+    if [ -f "/tmp/$BUILD_ZIP_NAME" ]; then
+        unzip -q "/tmp/$BUILD_ZIP_NAME" -d /project/public
+        rm "/tmp/$BUILD_ZIP_NAME"
+
+        if [ -d public/build ]; then
+            find "public/$BUILD_ZIP_NAME" -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
+        fi
+    fi
+
+    # si /public/build existe pas on le crée
+    if [ ! -d public/build ]; then
+        wget "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/node_modules.zip" -P /tmp || true
+        if [ -f /tmp/node_modules.zip ]; then
+            unzip -q /tmp/node_modules.zip -d /project
+            rm /tmp/node_modules.zip
+        else
+            yarn install
+        fi
+        build_yarn
     fi
 
     php bin/console app:initialize
@@ -83,7 +101,7 @@ install_symfony() {
     php bin/console cache:warmup
 }
 
-install_yarn() {
+build_yarn() {
     php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
     php bin/console app:update:fixed-fields
 
@@ -95,6 +113,5 @@ echo '{"parameters":{"session_lifetime": 1440}}' > config/generated.yaml
 
 prepare_project
 install_symfony
-install_yarn
 
 echo "Current date: $(date)"
