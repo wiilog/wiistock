@@ -44,7 +44,7 @@ prepare_project() {
 
         if [ -d public/build ]; then
             echo ">>>>>> replace <<DOMAIN_NAME>>"
-            find "public/$BUILD_ZIP_NAME" -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
+            find public/build -type f -exec sed -i "s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g" {} \;
         fi
     fi
 
