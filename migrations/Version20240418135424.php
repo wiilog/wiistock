@@ -26,7 +26,7 @@ final class Version20240418135424 extends AbstractMigration
         ->fetchAllAssociative();
         foreach ($users as $user) {
             $oldVisibleColumns = json_decode($user["visible_columns"] ?: '{}', true);
-            if(!array_key_exists("onGoing",$oldVisibleColumns)){
+            if (isset($oldVisibleColumns["onGoing"])){
                 $oldVisibleColumns["onGoing"] = Utilisateur::DEFAULT_ON_GOING_VISIBLE_COLUMNS;
             } else {
                 $oldVisibleColumns["onGoing"] = str_replace("linkedArrival", "origin", $oldVisibleColumns["onGoing"]);
