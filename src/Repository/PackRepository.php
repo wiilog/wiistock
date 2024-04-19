@@ -16,6 +16,7 @@ use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -94,15 +95,9 @@ class PackRepository extends EntityRepository
             : $query->getSingleScalarResult();
     }
 
-    public function getPacksByDates(DateTime $dateMin, DateTime $dateMax): iterable
+    private function addTrackingEntities(QueryBuilder $queryBuilder): QueryBuilder
     {
-        return $this->createQueryBuilder('pack')
-            ->select('pack.code AS code')
-            ->addSelect('join_nature.label AS nature')
-            ->addSelect('join_tracking_movement.datetime AS lastMvtDate')
-            ->addSelect('join_tracking_movement.id AS fromTo')
-            ->addSelect('join_location.label AS location')
-            ->addSelect("IF(join_reception.id IS NOT NULL, :reception,
+        $queryBuilder->addSelect("IF(join_reception.id IS NOT NULL, :reception,
                                     IF(join_dispatch.id IS NOT NULL, :dispatch,
                                         IF(join_arrival.id IS NOT NULL, :arrival,
                                             IF(join_transfer_order.id IS NOT NULL, :transferOrder,
@@ -132,14 +127,12 @@ class PackRepository extends EntityRepository
                                     join_dispatch.number,
                                     join_arrival.numeroArrivage,
                                     join_transfer_order.number,
-                                     join_delivery_request.numero,
+                                    join_delivery_request.numero,
                                     join_shipping_request.number,
                                     join_delivery_order.numero,
                                     join_preparation.numero
                                 ) AS entityNumber")
             ->leftJoin('pack.lastTracking', 'join_tracking_movement')
-            ->leftJoin('join_tracking_movement.emplacement','join_location')
-            ->leftJoin('pack.nature','join_nature')
             ->leftJoin('pack.arrivage', 'join_arrival')
             ->leftJoin('join_tracking_movement.reception','join_reception')
             ->leftJoin('join_tracking_movement.preparation','join_preparation')
@@ -149,11 +142,7 @@ class PackRepository extends EntityRepository
             ->leftJoin('join_stock_movement.transferOrder', 'join_transfer_order')
             ->leftJoin('join_tracking_movement.deliveryRequest', 'join_delivery_request')
             ->leftJoin('join_tracking_movement.shippingRequest', 'join_shipping_request')
-            ->andWhere('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
-            ->andWhere('pack.groupIteration IS NULL')
             ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax,
                 TrackingMovement::RECEPTION_ENTITY => TrackingMovement::RECEPTION_ENTITY,
                 TrackingMovement::DISPATCH_ENTITY => TrackingMovement::DISPATCH_ENTITY,
                 TrackingMovement::ARRIVAL_ENTITY => TrackingMovement::ARRIVAL_ENTITY,
@@ -162,7 +151,27 @@ class PackRepository extends EntityRepository
                 TrackingMovement::SHIPPING_REQUEST_ENTITY => TrackingMovement::SHIPPING_REQUEST_ENTITY,
                 TrackingMovement::DELIVERY_ORDER_ENTITY => TrackingMovement::DELIVERY_ORDER_ENTITY,
                 TrackingMovement::PREPARATION_ENTITY => TrackingMovement::PREPARATION_ENTITY,
-            ])
+            ]);
+        return $queryBuilder;
+    }
+
+    public function getPacksByDates(DateTime $dateMin, DateTime $dateMax): iterable
+    {
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->select('pack.code AS code')
+            ->addSelect('join_nature.label AS nature')
+            ->addSelect('join_tracking_movement.datetime AS lastMvtDate')
+            ->addSelect('join_tracking_movement.id AS fromTo')
+            ->addSelect('join_location.label AS location')
+            ->andWhere('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
+            ->andWhere('pack.groupIteration IS NULL')
+            ->leftJoin('join_tracking_movement.emplacement','join_location')
+            ->leftJoin('pack.nature','join_nature')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax,
+            ]);
+        return $this->addTrackingEntities($queryBuilder)
             ->getQuery()
             ->toIterable();
     }
@@ -393,6 +402,7 @@ class PackRepository extends EntityRepository
                 ->leftJoin('pack.article', 'join_article')
                 ->leftJoin("join_article.articleFournisseur", "join_article_supplierArticle")
                 ->leftJoin("join_article_supplierArticle.referenceArticle", "join_article_referenceArticle");
+            $queryBuilder = $this->addTrackingEntities($queryBuilder);
         }
 
         if (!empty($locations)) {

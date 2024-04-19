@@ -45,7 +45,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
-    const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["linkedArrival", "LU", "date", "delay", "reference", "libelle"];
+    const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["origin", "LU", "date", "delay", "reference", "libelle"];
     const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
         FixedFieldEnum::number->name,
         FixedFieldEnum::createdAt->name,
