@@ -136,16 +136,17 @@ class FreeFieldService {
         foreach ($freeFieldColumns as $freeFieldId => $column) {
             $freeField = $champLibreRepository->find($freeFieldId);
 
-            $value = match ($freeField->getTypage()) {
-                FreeField::TYPE_BOOL => in_array($row[$column], ['Oui', 'oui', 1, '1']),
-                FreeField::TYPE_DATE => $this->checkImportDate($row[$column], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $freeField),
-                FreeField::TYPE_DATETIME => $this->checkImportDate($row[$column], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $freeField),
-                FreeField::TYPE_LIST => $this->checkImportList($row[$column], $freeField, false),
-                FreeField::TYPE_LIST_MULTIPLE => $this->checkImportList($row[$column], $freeField, true),
-                default => $row[$column],
-            };
-
-            $freeFieldsToInsert[$freeField->getId()] = strval(is_bool($value) ? intval($value) : $value);
+            if($freeField->getType()?->getId() === $freeFieldEntity->getType()?->getId()) {
+                $value = match ($freeField->getTypage()) {
+                    FreeField::TYPE_BOOL => in_array($row[$column], ['Oui', 'oui', 1, '1']),
+                    FreeField::TYPE_DATE => $this->checkImportDate($row[$column], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $freeField),
+                    FreeField::TYPE_DATETIME => $this->checkImportDate($row[$column], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $freeField),
+                    FreeField::TYPE_LIST => $this->checkImportList($row[$column], $freeField, false),
+                    FreeField::TYPE_LIST_MULTIPLE => $this->checkImportList($row[$column], $freeField, true),
+                    default => $row[$column],
+                };
+                $freeFieldsToInsert[$freeField->getId()] = strval(is_bool($value) ? intval($value) : $value);
+            }
         }
 
         $freeFieldEntity->setFreeFields($freeFieldsToInsert);
