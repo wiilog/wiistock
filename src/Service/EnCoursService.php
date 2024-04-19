@@ -213,6 +213,7 @@ class EnCoursService
                 'field' => Stream::from($fields)->join(","),
                 "onlyLate" => $onlyLate,
                 'fromOnGoing' => $fromOnGoing,
+                'lastTracking' => true,
                 ...($onlyLate
                     ? [
                         'limit' => $maxQueryResultLength,
@@ -230,7 +231,9 @@ class EnCoursService
             $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
-            $lastTracking = $oldestDrop['lastTrackingId'] ? $trackingMovementRepository->find($oldestDrop['lastTrackingId']) : null;
+            $lastTracking = ["entity" => $oldestDrop['entity'],
+                             "entityId" => $oldestDrop['entityId'],
+                             "entityNumber" => $oldestDrop['entityNumber']] ?? null;
             $fromColumnData = $this->trackingMovementService->getFromColumnData($lastTracking);
 
             if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
@@ -243,7 +246,7 @@ class EnCoursService
                     'emp' => $oldestDrop['label'],
                     'libelle' => $oldestDrop['reference_label'] ?? null,
                     'reference' => $oldestDrop['reference_reference'] ?? null,
-                    'linkedArrival' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+                    'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
                 ];
             }
         }
@@ -297,7 +300,7 @@ class EnCoursService
         $columnsVisible = $currentUser->getVisibleColumns()['onGoing'];
 
         $columns = [
-            ['title' => 'Issu de', 'name' => 'linkedArrival'],
+            ['title' => 'Issu de', 'name' => 'origin'],
             ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU', 'searchable' => true],
             ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date', 'searchable' => true],
             ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay', 'searchable' => true],
