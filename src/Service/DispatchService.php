@@ -130,6 +130,8 @@ class DispatchService {
     private ?int $prefixPackCodeWithDispatchNumber = null;
     private ?array $natures = null;
     private ?Nature $defaultNature = null;
+    private ?array $dispatchEmergency = null;
+    private ?array $dispatchBusinessUnits = null;
 
     public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -2244,15 +2246,21 @@ class DispatchService {
                                    Utilisateur            $importUser,
                                    array                  $freeFieldColumns,
                                    array                  $row,
-                                   ?bool                  &$isCreation,
-                                   array                  $dispatchEmergency,
-                                   array                  $dispatchBusinessUnits): void{
+                                   ?bool                  &$isCreation): void{
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+
+        if ($this->dispatchEmergency == null) {
+            $this->dispatchEmergency = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+        }
+        if ($this->dispatchBusinessUnits == null) {
+            $this->dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        }
 
         $now = new DateTime();
         $dispatch = new Dispatch();
@@ -2359,7 +2367,7 @@ class DispatchService {
         }
 
         if (isset($data[FixedFieldEnum::emergency->name])) {
-            if(in_array($data[FixedFieldEnum::emergency->name],$dispatchEmergency)){
+            if(in_array($data[FixedFieldEnum::emergency->name],$this->dispatchEmergency)){
                 $dispatch->setEmergency($data[FixedFieldEnum::emergency->name]);
             } else {
                 throw new ImportException('Le type d\'urgence renseigné doit être dans la liste des types d\'urgences acceptées.' );
@@ -2371,7 +2379,7 @@ class DispatchService {
         }
 
         if (isset($data[FixedFieldEnum::businessUnit->name])  ) {
-            if(in_array($data[FixedFieldEnum::businessUnit->name],$dispatchBusinessUnits)){
+            if(in_array($data[FixedFieldEnum::businessUnit->name],$this->dispatchBusinessUnits)){
                 $dispatch->setBusinessUnit($data[FixedFieldEnum::businessUnit->name]);
             } else {
                 throw new ImportException('Le business unit renseigné doit être dans la liste des business unit acceptés.' );
