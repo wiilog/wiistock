@@ -72,6 +72,7 @@ class IOTService
     const DEMO_TEMPERATURE = 'demo-temperature';
     const DEMO_ACTION = 'demo-action';
     const YOKOGAWA_XS550_XS110A = 'yokogawa-xs550-xs110A';
+    const MULTITECH_GATEWAY = 'gateway_multitech';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 2,
@@ -87,6 +88,7 @@ class IOTService
         self::INEO_TRK_TRACER => 3,
         self::INEO_TRK_ZON => 0,
         self::YOKOGAWA_XS550_XS110A => 2,
+        self::MULTITECH_GATEWAY => 0,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -105,6 +107,7 @@ class IOTService
         self::INEO_TRK_TRACER => Sensor::TRACER,
         self::INEO_TRK_ZON => Sensor::ZONE,
         self::YOKOGAWA_XS550_XS110A => Sensor::TEMPERATURE,
+        self::MULTITECH_GATEWAY => Sensor::GATEWAY,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -121,6 +124,7 @@ class IOTService
         self::INEO_TRK_ZON => 'à l\'action',
         self::INEO_TRK_TRACER => 'à l\'action',
         self::YOKOGAWA_XS550_XS110A => 'x minutes',
+        self::MULTITECH_GATEWAY =>'x minutes',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -589,7 +593,7 @@ class IOTService
 
         $deviceCode = match ($loRaWANServer) {
             LoRaWANServer::ChirpStack => $message['deviceName'] ?? null,
-            LoRaWANServer::NodeRed => str_replace('-', '', $message['data']['deveui']),
+            LoRaWANServer::NodeRed => str_replace('-', '', $message['data']['eui']),
             default => $message['metadata']["network"]["lora"]["devEUI"] ?? null,
         };
 
@@ -628,6 +632,8 @@ class IOTService
 
         $newBattery = $this->extractBatteryLevelFromMessage($message, $profile, $payload );
         $wrapper = $device->getAvailableSensorWrapper();
+        $wrapper->setInactivityAlertSent(false);
+        $entityManager->flush($wrapper);
 
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
@@ -891,6 +897,7 @@ class IOTService
                 }
                 break;
             case IOTService::INEO_TRK_ZON:
+            case IOTService::MULTITECH_GATEWAY:
                 return [
                     self::DATA_TYPE_LIVENESS_PROOF => true,
                 ];
@@ -919,6 +926,7 @@ class IOTService
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
             case IOTService::INEO_SENS_ACS_HYGRO:
             case IOTService::YOKOGAWA_XS550_XS110A:
+            case IOTService::MULTITECH_GATEWAY:
             case IOTService::INEO_TRK_ZON:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:

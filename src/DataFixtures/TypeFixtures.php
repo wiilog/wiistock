@@ -45,6 +45,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 Sensor::EXTENDER,
                 Sensor::TRACER,
                 Sensor::ZONE,
+                Sensor::GATEWAY
             ],
             CategoryType::REQUEST_TEMPLATE => [
                 Type::LABEL_HANDLING,

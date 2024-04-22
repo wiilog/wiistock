@@ -125,6 +125,11 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'schedule' => '0 0 * * *',
             'description' => '',
         ],
+        [
+            'command' => InventoryStatusUpdateCommand::COMMAND_NAME,
+            'schedule' => '*/1 * * * *',
+            'description' => '',
+        ]
     ];
 
     public function load(ObjectManager $manager): void {
