@@ -64,8 +64,6 @@ prepare_project() {
     fi
 
     rm -rf /tmp/wiistock-deploy || true
-
-    php bin/console app:initialize
 }
 
 install_symfony() {
@@ -109,6 +107,8 @@ install_symfony() {
     echo ">>>>>> php bin/console app:update:translations"
     php bin/console app:update:translations
 
+    echo ">>>>>> php bin/console app:initialize"
+    php bin/console app:initialize
 
     echo ">>>>>> php bin/console cache:clear"
     php bin/console cache:clear
