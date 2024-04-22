@@ -8,7 +8,9 @@ use App\Repository\IOT\SensorWrapperRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SensorWrapperRepository::class)]
 class SensorWrapper {
@@ -17,26 +19,33 @@ class SensorWrapper {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Sensor::class, inversedBy: 'sensorWrappers')]
     private ?Sensor $sensor = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $deleted = false;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'sensorWrappers')]
     private ?Utilisateur $manager = null;
 
-    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'sensorWrapper')]
+    #[ORM\OneToMany(mappedBy: 'sensorWrapper', targetEntity: Pairing::class)]
     private Collection $pairings;
 
-    #[ORM\OneToMany(targetEntity: TriggerAction::class, mappedBy: 'sensorWrapper')]
+    #[ORM\OneToMany(mappedBy: 'sensorWrapper', targetEntity: TriggerAction::class)]
     private Collection $triggerActions;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Assert\Positive]
+    private ?int $inactivityAlertThreshold = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private bool $inactivityAlertSent = false;
 
     public function __construct() {
         $this->pairings = new ArrayCollection();
@@ -186,5 +195,30 @@ class SensorWrapper {
                     ->setMaxResults(1)
             )
             ->first() ?: null;
+    }
+
+    public function getInactivityAlertThreshold(): ?int {
+        return $this->inactivityAlertThreshold;
+    }
+
+    public function setInactivityAlertThreshold(?int $inactivityAlertThreshold): self {
+        if ($inactivityAlertThreshold < 1 ) {
+            $inactivityAlertThreshold = null;
+        }
+        $this->inactivityAlertThreshold = $inactivityAlertThreshold;
+
+        return $this;
+    }
+
+    public function isInactivityAlertSent(): bool
+    {
+        return $this->inactivityAlertSent;
+    }
+
+    public function setInactivityAlertSent(bool $inactivityAlertSent): self
+    {
+        $this->inactivityAlertSent = $inactivityAlertSent;
+
+        return $this;
     }
 }
