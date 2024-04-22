@@ -226,15 +226,14 @@ function importTemplateChanged($dataTypeImport) {
         .filter(Boolean);
 
     const templateConfig = importTemplates.find(({value}) => value === valTypeImport);
-
-    if (templateConfig) {
+    if (valTypeImport && templateConfig) {
         const {text: label} = templateConfig;
 
         const url = Routing.generate(`import_template`, {entity: valTypeImport});
         $linkToTemplate
             .append(`
                 <div class="col-12 wii-small-text">
-                    Un <a class="underlined" href="${url}">fichier de modèle d'import</a> est disponible pour les ${label}.
+                    Un <a class="underlined" href="${url}">fichier de modèle d'import</a> est disponible pour les ${label.toLowerCase()}.
                 </div>
             `);
         if(valTypeImport === `USER`) {
