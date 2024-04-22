@@ -510,7 +510,7 @@ describe('Add and edit logistic units arrivals', () => {
         // refill the select2
         cy.select2('numeroCommandeList', [LUArrivalsChanged.firstNumeroCommandeList, LUArrivalsChanged.secondNumeroCommandeList]);
         cy.select2('acheteurs', [LUArrivalsChanged.firstAcheteurs, LUArrivalsChanged.secondAcheteurs]);
-        cy.select2('receivers', [LUArrivalsChanged.destinataire], 300);
+        cy.select2('receivers', [LUArrivalsChanged.destinataire,LUArrivalsChanged.firstAcheteurs], 300);
 
         cy.get(`${selectorModalEditArrivage} select[name=statut]`)
             .select(LUArrivalsChanged.statut, {force: true});
