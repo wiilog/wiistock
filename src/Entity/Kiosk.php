@@ -4,17 +4,18 @@ namespace App\Entity;
 
 use App\Repository\KioskTokenRepository;
 use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: KioskTokenRepository::class)]
-class KioskToken
+class Kiosk
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: Types::STRING)]
     private ?string $token = null;
 
     #[ORM\Column]
@@ -23,6 +24,12 @@ class KioskToken
     #[ORM\OneToOne(inversedBy: 'kioskToken', targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', onDelete: 'SET NULL')]
     private ?Utilisateur $user = null;
+
+    #[ORM\Column(type:Types::STRING, nullable:false, unique: true)]
+    private string $name;
+
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'kiosk')]
+    private string $pickingType;
 
     public function getId(): ?int
     {

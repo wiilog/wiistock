@@ -2,18 +2,18 @@
 
 namespace App\Repository;
 
-use App\Entity\KioskToken;
+use App\Entity\Kiosk;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * @method KioskToken|null find($id, $lockMode = null, $lockVersion = null)
- * @method KioskToken|null findOneBy(array $criteria, array $orderBy = null)
- * @method KioskToken[]    findAll()
- * @method KioskToken[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Kiosk|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Kiosk|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Kiosk[]    findAll()
+ * @method Kiosk[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class KioskTokenRepository extends EntityRepository
 {
-    public function save(KioskToken $entity, bool $flush = false): void
+    public function save(Kiosk $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -22,7 +22,7 @@ class KioskTokenRepository extends EntityRepository
         }
     }
 
-    public function remove(KioskToken $entity, bool $flush = false): void
+    public function remove(Kiosk $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 

@@ -24,7 +24,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
-use App\Entity\KioskToken;
+use App\Entity\Kiosk;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
@@ -1308,7 +1308,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_TOUCH_TERMINAL => [
                     self::MENU_COLLECT_REQUEST_AND_CREATE_REF => fn() => [
-                        'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                        'alreadyUnlinked' => empty($entityManager->getRepository(Kiosk::class)->findAll()),
                     ],
                     self::MENU_FAST_DELIVERY_REQUEST => fn() => [
                         'filterFields' => Stream::from($entityManager->getRepository(FreeField::class)->findByCategory(CategorieCL::REFERENCE_ARTICLE))

@@ -5,7 +5,7 @@ namespace App\Controller\Kiosk;
 use App\Annotation\HasValidToken;
 use App\Controller\AbstractController;
 use App\Entity\FreeField;
-use App\Entity\KioskToken;
+use App\Entity\Kiosk;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Exceptions\FormException;
@@ -31,13 +31,13 @@ class KioskController extends AbstractController
         $token = bin2hex(random_bytes(30));
         $date = (new DateTime())->add(new DateInterval('P3D'));
 
-        $existingTokens = $manager->getRepository(KioskToken::class)->findAll();
+        $existingTokens = $manager->getRepository(Kiosk::class)->findAll();
         foreach ($existingTokens as $existingToken) {
             $manager->remove($existingToken);
         }
         $manager->flush();
 
-        $kioskToken = (new KioskToken())
+        $kioskToken = (new Kiosk())
             ->setUser($this->getUser())
             ->setToken($token)
             ->setExpireAt($date);
@@ -134,7 +134,7 @@ class KioskController extends AbstractController
 
     #[Route("/kiosk-unlink", name: "kiosk_unlink", options: ["expose" => true], methods: "POST")]
     public function unlink(EntityManagerInterface $manager): Response {
-        $tokens = $manager->getRepository(KioskToken::class)->findAll();
+        $tokens = $manager->getRepository(Kiosk::class)->findAll();
         foreach ($tokens as $token) {
             $manager->remove($token);
         }
