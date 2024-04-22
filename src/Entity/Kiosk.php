@@ -15,21 +15,39 @@ class Kiosk
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING)]
-    private ?string $token = null;
+    #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
+    private ?string $token = null ;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $expireAt = null;
 
     #[ORM\OneToOne(inversedBy: 'kioskToken', targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', onDelete: 'SET NULL')]
     private ?Utilisateur $user = null;
 
-    #[ORM\Column(type:Types::STRING, nullable:false, unique: true)]
-    private string $name;
+    #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
+    private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'kiosk')]
-    private string $pickingType;
+    #[ORM\JoinColumn(nullable: false)]
+    private ?string $pickingType = null;
+
+    #[ORM\Column(type:Types::STRING, nullable:false)]
+    private ?string $subject = null;
+
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'kiosk')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?string $pickingLocation = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'kiosk')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?string $requester = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => 1])]
+    private ?int $quantityToPick = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: false)]
+    private ?int $destination = null;
 
     public function getId(): ?int
     {
@@ -75,6 +93,83 @@ class Kiosk
             $this->user->setKioskToken($this);
         }
 
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getPickingType(): ?string
+    {
+        return $this->pickingType;
+    }
+
+    public function setPickingType(?string $pickingType):self
+    {
+        $this->pickingType = $pickingType;
+        return $this;
+    }
+
+    public function getSubject(): ?string
+    {
+        return $this->subject;
+    }
+
+    public function setSubject(?string $subject):self
+    {
+        $this->subject = $subject;
+        return $this;
+    }
+
+    public function getPickingLocation(): ?string
+    {
+        return $this->pickingLocation;
+    }
+
+    public function setPickingLocation(?string $pickingLocation): self
+    {
+        $this->pickingLocation = $pickingLocation;
+        return $this;
+    }
+
+    public function getRequester(): ?string
+    {
+        return $this->requester;
+    }
+
+    public function setRequester(?string $requester): self
+    {
+        $this->requester = $requester;
+        return $this;
+    }
+
+    public function getQuantityToPick(): ?int
+    {
+        return $this->quantityToPick;
+    }
+
+    public function setQuantityToPick(?int $quantityToPick):self
+    {
+        $this->quantityToPick = $quantityToPick;
+        return $this;
+    }
+
+    public function getDestination(): ?int
+    {
+        return $this->destination;
+    }
+
+    public function setDestination(?int $destination):self
+    {
+        $this->destination = $destination;
         return $this;
     }
 }
