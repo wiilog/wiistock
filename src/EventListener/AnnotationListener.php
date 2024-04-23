@@ -7,7 +7,7 @@ use App\Annotation\HasValidToken;
 use App\Annotation\RestAuthenticated;
 use App\Annotation\RestVersionChecked;
 use App\Controller\AbstractController;
-use App\Entity\KioskToken;
+use App\Entity\Kiosk;
 use App\Entity\Utilisateur;
 use App\Service\MobileApiService;
 use App\Service\UserService;
@@ -161,7 +161,7 @@ class AnnotationListener {
 
     private function handleHasValidToken(ControllerArgumentsEvent $event): void {
         $token = $event->getRequest()->get('token');
-        $kioskToken = $this->entityManager->getRepository(KioskToken::class)->findOneBy(['token' => $token]);
+        $kioskToken = $this->entityManager->getRepository(Kiosk::class)->findOneBy(['token' => $token]);
         $date = new DateTime();
 
         if (!$kioskToken || $date->diff($kioskToken->getExpireAt())->format("%a") == 0) {
