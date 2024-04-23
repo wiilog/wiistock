@@ -83,14 +83,14 @@ class Kiosk
     }
 
     public function setUser(?Utilisateur $user): self {
-        if($this->user && $this->user->getKioskToken() !== $this) {
+        if($this->user && $this->user->getKiosk() !== $this) {
             $oldUser = $this->user;
             $this->user = null;
-            $oldUser->setKioskToken(null);
+            $oldUser->setKiosk(null);
         }
         $this->user = $user;
-        if($this->user && $this->user->getKioskToken() !== $this) {
-            $this->user->setKioskToken($this);
+        if($this->user && $this->user->getKiosk() !== $this) {
+            $this->user->setKiosk($this);
         }
 
         return $this;
