@@ -291,6 +291,11 @@ class ProductionRequestController extends AbstractController
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
 
         $oldStatus = $productionRequest->getStatus();
+
+        if ($oldStatus->getState() == Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
 
         $entityManager->flush();
@@ -409,6 +414,11 @@ class ProductionRequestController extends AbstractController
         ]);
 
         $oldStatus = $productionRequest->getStatus();
+
+        if ($oldStatus->getState() == Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
 
         $entityManager->flush();
