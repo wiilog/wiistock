@@ -409,7 +409,7 @@ class ProductionRequestController extends AbstractController
         ]);
 
         $oldStatus = $productionRequest->getStatus();
-        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
 
         $entityManager->flush();
 
