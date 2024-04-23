@@ -28,26 +28,26 @@ class Kiosk
     #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'kiosk')]
+    #[ORM\ManyToOne(targetEntity: Type::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?string $pickingType = null;
+    private ?Type $pickingType = null;
 
     #[ORM\Column(type:Types::STRING, nullable:false)]
     private ?string $subject = null;
 
-    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'kiosk')]
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?string $pickingLocation = null;
+    private ?Emplacement $pickingLocation = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'kiosk')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?string $requester = null;
+    private ?Utilisateur $requester = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => 1])]
     private ?int $quantityToPick = null;
 
     #[ORM\Column(type: Types::STRING, nullable: false)]
-    private ?int $destination = null;
+    private ?String $destination = null;
 
     public function getId(): ?int
     {
@@ -101,18 +101,18 @@ class Kiosk
         return $this->name;
     }
 
-    public function setName(?string $name): self
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    public function getPickingType(): ?string
+    public function getPickingType(): Type
     {
         return $this->pickingType;
     }
 
-    public function setPickingType(?string $pickingType):self
+    public function setPickingType(Type $pickingType):self
     {
         $this->pickingType = $pickingType;
         return $this;
@@ -123,7 +123,7 @@ class Kiosk
         return $this->subject;
     }
 
-    public function setSubject(?string $subject):self
+    public function setSubject(string $subject):self
     {
         $this->subject = $subject;
         return $this;
@@ -134,7 +134,7 @@ class Kiosk
         return $this->pickingLocation;
     }
 
-    public function setPickingLocation(?string $pickingLocation): self
+    public function setPickingLocation(Emplacement $pickingLocation): self
     {
         $this->pickingLocation = $pickingLocation;
         return $this;
@@ -145,7 +145,7 @@ class Kiosk
         return $this->requester;
     }
 
-    public function setRequester(?string $requester): self
+    public function setRequester(Utilisateur $requester): self
     {
         $this->requester = $requester;
         return $this;
@@ -156,7 +156,7 @@ class Kiosk
         return $this->quantityToPick;
     }
 
-    public function setQuantityToPick(?int $quantityToPick):self
+    public function setQuantityToPick(int $quantityToPick):self
     {
         $this->quantityToPick = $quantityToPick;
         return $this;
@@ -167,7 +167,7 @@ class Kiosk
         return $this->destination;
     }
 
-    public function setDestination(?int $destination):self
+    public function setDestination(string $destination):self
     {
         $this->destination = $destination;
         return $this;

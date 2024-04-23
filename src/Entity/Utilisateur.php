@@ -1911,19 +1911,19 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this->kioskToken;
     }
 
-    public function setKioskToken(?Kiosk $kioskToken): self
+    public function setKioskToken(?Kiosk $kiosk): self
     {
         // unset the owning side of the relation if necessary
-        if ($kioskToken === null && $this->kioskToken !== null) {
+        if ($kiosk === null && $this->kioskToken !== null) {
             $this->kioskToken->setUser(null);
         }
 
         // set the owning side of the relation if necessary
-        if ($kioskToken !== null && $kioskToken->getUser() !== $this) {
-            $kioskToken->setUser($this);
+        if ($kiosk !== null && $kiosk->getUser() !== $this) {
+            $kiosk->setUser($this);
         }
 
-        $this->kioskToken = $kioskToken;
+        $this->kioskToken = $kiosk;
 
         return $this;
     }
