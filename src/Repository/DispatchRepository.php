@@ -372,9 +372,10 @@ class DispatchRepository extends EntityRepository
             ->addSelect('status.nom AS statusLabel')
             ->addSelect('status.groupedSignatureColor AS groupedSignatureStatusColor')
             ->addSelect('IF(status.state = :draftStatusState, 1, 0) AS draft')
-            ->addSelect("reference_article.reference as packReferences")
-            ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
-            ->addSelect("pack.code as packs")
+            ->addSelect("reference_article.reference AS packReferences")
+            ->addSelect("dispatch_reference_articles.quantity AS lineQuantity")
+            ->addSelect("pack.code AS packs")
+            ->addSelect("GROUP_CONCAT(status_history_status.id SEPARATOR ',') AS historyStatusesId")
             ->join('dispatch.requester', 'dispatch_requester')
             ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
@@ -383,6 +384,8 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch_reference_articles.referenceArticle', 'reference_article')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')
             ->leftJoin('dispatch.locationTo', 'locationTo')
+            ->leftJoin('dispatch.statusHistory', 'dispatch_status_history')
+            ->leftJoin('dispatch_status_history.status', 'status_history_status')
             ->join('dispatch.type', 'type')
             ->join('dispatch.statut', 'status')
             ->setParameter('draftStatusState', Statut::DRAFT);
@@ -415,6 +418,7 @@ class DispatchRepository extends EntityRepository
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
 
+        $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ['historyStatusesId']);
         return $queryBuilder->getQuery()->getResult();
     }
 
