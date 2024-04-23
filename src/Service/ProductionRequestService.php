@@ -511,9 +511,11 @@ class ProductionRequestService
 
         Stream::from($productionRequest->getFreeFields())
             ->each(function($freeFieldValue, $freeFieldId) use ($oldValues, $productionRequest, &$message) {
-                if((!isset($oldValues[$freeFieldId]) && !empty($freeFieldValue)) || (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue)){
-                    $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
-                    $freeField = $freeFieldRepository->find($freeFieldId);
+                $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
+                $freeField = $freeFieldRepository->find($freeFieldId);
+                if((!isset($oldValues[$freeFieldId])
+                        && (!empty($freeFieldValue) || $freeField->getTypage() === FreeField::TYPE_BOOL))
+                    || (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue)){
                     $message .= "<strong>{$freeField->getLabel()}</strong> : {$this->formatService->freeField($freeFieldValue, $freeField)} <br>";
                 }
             });
