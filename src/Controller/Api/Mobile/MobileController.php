@@ -2251,6 +2251,7 @@ class MobileController extends AbstractApiController
                 'category' => $type->getCategory()->getLabel(),
                 'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
                 'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
+                'reusableStatuses' => $type->hasReusableStatuses(),
             ])->toArray();
 
         if ($rights['inventoryManager']) {
