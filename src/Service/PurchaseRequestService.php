@@ -328,9 +328,12 @@ class PurchaseRequestService
         $nowDate = new DateTime("now");
         $customPurchaseRequestOrderTitle = "Bon de commande - {$purchaseRequest->getNumber()} - {$nowDate->format('dmYHis')}";
 
+        // sum all lines prices
         $totalPrice = Stream::from($purchaseRequest->getPurchaseRequestLines())
             ->map(static fn(PurchaseRequestLine $line) => $line->getUnitPrice() * $line->getOrderedQuantity())
             ->sum();
+        // add delivery fee to total price
+        $totalPrice += $purchaseRequest->getDeliveryFee();
 
         $variables = [
             "nomfournisseur" => $purchaseRequest->getSupplier()?->getNom() ?: "",

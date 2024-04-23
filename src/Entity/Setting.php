@@ -538,11 +538,11 @@ class Setting {
                 "dategenerationdocument" => "date de la génération de document",
                 "fraislivraison" => "frais de livraison de la demande d'achat",
                 "acheteur;destinataire" => "acheteur/destinataire de la demande d'achat",
-            ],
-            "Champs référentiel fournisseur" => [
+                "adressefournisseur" => "adresse du fournisseur de la demande d'achat",
                 "destinatairefournisseur" => "utilisateur responsable du fournisseur",
                 "telephonefournisseur" => "numéro de téléphone du fournisseur",
                 "emailfournisseur" => "adresse email du fournisseur",
+                "prixtotal" => "prix total de la demande d'achat incluant les frais de livraison",
             ],
             "Champs liste des références" => [
                 "reference" => "référence de la référence",

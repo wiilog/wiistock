@@ -189,7 +189,7 @@ class ReceptionRepository extends EntityRepository
                         $qb->andWhere($ors);
                     }
                     break;
-                case 'utilisateurs':
+                case 'receivers':
                     $values = array_map(function ($value) {
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
@@ -211,6 +211,13 @@ class ReceptionRepository extends EntityRepository
                         ->join('reception.fournisseur', 'f')
                         ->andWhere("f.id in (:fournisseur)")
                         ->setParameter('fournisseur', $value);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('reception.utilisateur', 'filter_user')
+                        ->andWhere("filter_user.id in (:reception_user)")
+                        ->setParameter('reception_user', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('reception.date >= :dateMin')
@@ -252,6 +259,7 @@ class ReceptionRepository extends EntityRepository
                         "storageLocation" => "search_storage_location.label LIKE :search_value",
                         "Commentaire" => "reception.commentaire LIKE :search_value",
                         "deliveries" => null,
+                        "user" => "search_user.username LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
@@ -261,6 +269,7 @@ class ReceptionRepository extends EntityRepository
 						->leftJoin('reception.fournisseur', 'search_provider')
                         ->leftJoin('reception.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
+                        ->leftJoin('reception.utilisateur', 'search_user')
                         ->leftJoin('reception.storageLocation', 'search_storage_location');
                 }
             }
@@ -290,6 +299,10 @@ class ReceptionRepository extends EntityRepository
                                 ->leftJoin('reception.purchaseRequestLines', 'purchaseRequestLines')
                                 ->leftJoin('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
                                 ->addOrderBy('purchaseRequestLines_purchaseRequest.deliveryFee', $order);
+                        } else if ($column === 'user') {
+                            $qb
+                                ->leftJoin('reception.utilisateur', 'join_utilisateur')
+                                ->addOrderBy('join_utilisateur.username', $order);
                         } else if (property_exists(Reception::class, $column)) {
                             $qb
                                 ->addOrderBy('reception.' . $column, $order);

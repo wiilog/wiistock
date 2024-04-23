@@ -214,7 +214,8 @@ class ProductionRequestService
                                             ProductionRequest      $productionRequest,
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
-                                            FileBag                $fileBag): ProductionRequest {
+                                            FileBag                $fileBag,
+                                            bool $fromUpdateStatus = false): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -309,7 +310,9 @@ class ProductionRequestService
             $productionRequest->setComment($data->get(FixedFieldEnum::comment->name));
         }
 
-        $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+        if(!$fromUpdateStatus){
+            $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+        }
 
         $this->persistHistoryRecords(
             $entityManager,

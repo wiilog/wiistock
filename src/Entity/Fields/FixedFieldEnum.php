@@ -15,6 +15,7 @@ enum FixedFieldEnum: string
     case type = "Type";
     case status = "Statut";
     case dropLocation = "Emplacement de dépose";
+    case pickLocation = "Emplacement de prise";
     case lineCount = "Nombre de lignes";
     case manufacturingOrderNumber = "Numéro d'OF";
     case productArticleCode = "Code produit/article";
@@ -29,21 +30,33 @@ enum FixedFieldEnum: string
     case zone = "Zone";
     case allowedNatures = "Natures autorisées";
     case allowedTemperatures = "Températures autorisées";
-    case allowedDeliveryTypes = "Types de commandes autorisés";
+    case allowedDeliveryTypes = "Types de livraisons autorisés";
     case allowedCollectTypes= "Types de collectes autorisés";
     case isDeliveryPoint = "Point de livraison";
     case isOngoingVisibleOnMobile = "Encours visible sur nomade";
-    case signatories = "Signataires";
+    case signatories = "Signataire(s)";
     case email = "Email";
     case sendEmailToManagers = "Envoi d'email à chaque dépose aux responsables de l'emplacement";
-    case managers = "Responsables";
+    case managers = "Responsable(s)";
     case unitPrice = "Prix unitaire";
     case address = "Adresse";
     case phoneNumber = "Téléphone";
     case receiver = "Destinataire";
+    case receivers = "Destinataire(s)";
     case urgent = "Urgent";
     case code = "Code";
     case possibleCustoms = "Douanes possible";
+    case orderNumber = "N° commande";
+    case destination = "Destination";
+    case customerName = "Client";
+    case customerPhone = "Téléphone client";
+    case customerRecipient = "A l'attention de";
+    case customerAddress = "Adresse de livraison";
+    case carrier = "Transporteur";
+    case businessUnit = "Business unit";
+    case requester = "Demandeur";
+    case carrierTrackingNumber = "N° tracking transporteur";
+    case emails = "Email(s)";
 
     public static function fromCase(string $case): string|null {
         try {

@@ -11,6 +11,7 @@
 ) %}
 
 {% set emergency = productionRequest.emergency ?? null %}
+{% set comment = (productionRequest.comment ?? "")|striptags %}
 <a class="planning-card preparation-card {{ not external ? 'pointer' }} {{ canDrag ? "can-drag" }} has-tooltip"
    {% if not external %}
        href="{{ path('production_request_show', {id: productionRequest.id}) }}"
@@ -22,7 +23,7 @@
     <div class="planning-card-wrapper"
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
-            <div class="{{ emergency ? 'col-8' : 'col-12' }}">
+            <div class="{{ emergency or comment ? 'col-8' : 'col-12' }}">
                 <div class="rounded px-2 py-1 d-inline-block {{ canUpdateStatus ? "prevent-default" }} {{ canUpdateStatus  ? "open-modal-update-production-request-status"}}"
                         style="background-color: {{ productionRequest.status.color ?? 'white' }}">
                     <span class="text-color-auto">
@@ -46,19 +47,28 @@
                     {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.quantity ?? "-" }}</span>
                 </div>
             </div>
-            {% if emergency %}
+            {% if emergency or comment %}
                 <div class="col-4">
-                    <div class="text-center">
-                        <img src="{{ asset('svg/urgence.svg') }}"
-                             class="has-tooltip"
-                             width="50"
-                             alt="Icône urgence"
-                             title="Une urgence est en cours sur cette demande : {{ emergency }}"
-                        >
+                    <div class="text-center d-flex flex-column align-items-center">
+                        {% if emergency %}
+                            <img src="{{ asset('svg/urgence.svg') }}"
+                                 class="has-tooltip mb-1"
+                                 width="30"
+                                 alt="Icône urgence"
+                                 title="Une urgence est en cours sur cette demande : {{ emergency }}"
+                            >
+                        {% endif %}
+                        {% if comment %}
+                            <img src="{{ asset('svg/comment-dots-regular.svg') }}"
+                                 class="has-tooltip"
+                                 width="30"
+                                 alt="Icône commentaire"
+                                 title="Un commentaire est présent sur cette demande : {{ comment }}"
+                            >
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}
-
             {% if fields is not empty %}
                 {% set id = "cardCollapse-" ~ random() %}
                 <div class="col-12 collapse" id="{{ id }}">
@@ -68,12 +78,13 @@
                         </div>
                     {% endfor %}
                 </div>
-
                 <div class="col-12 d-flex justify-content-center">
                     <div class="expand-card-button prevent-default" type="button" data-toggle="collapse"
                          data-target="#{{ id }}" aria-expanded="false" aria-controls="cardCollapse"></div>
                 </div>
+
             {% endif %}
+
         </div>
     </div>
 </a>

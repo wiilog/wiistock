@@ -80,21 +80,21 @@ jobs:
             -   name: Generate fixedField Enum
                 run: php bin/console app:update:fixed-fields
 
-            -   name: Build js
+            -   name: Build js - production
                 run: yarn build:only:production
                 env:
                     APP_CONTEXT: prod
 
-            -   name: Zip build
+            -   name: Zip build - production
                 run: mv public/build build && zip -r -y -qq build-prod.zip build && rm -rf build
 
-            -   name: Upload build
+            -   name: Upload build  - production
                 uses: actions/upload-artifact@v4
                 with:
                     name: build-prod.zip
                     path: build-prod.zip
 
-            -   name: Upload zip on the release
+            -   name: Upload zip on the release - production
                 uses: svenstaro/upload-release-action@v2
                 with:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
@@ -102,21 +102,21 @@ jobs:
                     asset_name: build-prod.zip
                     tag: ${{ github.ref }}
 
-            -   name: Build js
+            -   name: Build js - rec
                 run: yarn build:only:production
                 env:
                     APP_CONTEXT: rec
 
-            -   name: Zip build
+            -   name: Zip build - rec
                 run: mv public/build build && zip -r -y -qq build-rec.zip build
 
-            -   name: Upload build
+            -   name: Upload build - rec
                 uses: actions/upload-artifact@v4
                 with:
                     name: build-rec.zip
                     path: build-rec.zip
 
-            -   name: Upload zip on the release
+            -   name: Upload zip on the release - rec
                 uses: svenstaro/upload-release-action@v2
                 with:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}

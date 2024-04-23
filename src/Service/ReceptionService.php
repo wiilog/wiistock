@@ -297,6 +297,7 @@ class ReceptionService
             "DateFin" => $this->formatService->datetime($reception->getDateFinReception()),
             "Fournisseur" => $this->formatService->supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
+            "user" => $this->formatService->user($reception->getUtilisateur()),
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
                     ->map(function (Demande $request) {
@@ -340,6 +341,7 @@ class ReceptionService
             ["title" => "Type(s) de " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
             ["title" => "Frais de livraison", "name" => "deliveryFee", 'searchable' => false, 'orderable' => true],
             ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
+            ["title" => "Utilisateur", "name" => "user", "searchable" => true]
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
@@ -371,7 +373,7 @@ class ReceptionService
                     })
                     ->toArray())
         );
-
+        $user = $this->formatService->user($reception->getUtilisateur());
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $reception,
@@ -429,6 +431,11 @@ class ReceptionService
                 'label' => 'Emplacement de stockage',
                 'value' => $storageLocation ?: '',
                 'show' => [ 'fieldName' => 'storageLocation' ]
+            ],
+            [
+                'label' => 'Utilisateur',
+                'value' => $user ?: '',
+                'show' => [ 'fieldName' => 'utilisateur' ]
             ],
         ];
 
