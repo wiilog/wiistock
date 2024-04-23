@@ -61,9 +61,6 @@ class ProductionRequestService
     public UniqueNumberService $uniqueNumberService;
 
     #[Required]
-    public FixedFieldService $fixedFieldService;
-
-    #[Required]
     public UserService $userService;
 
     #[Required]
@@ -512,6 +509,17 @@ class ProductionRequestService
             $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$productionRequest->getLineCount()}<br>";
         }
 
+        Stream::from($productionRequest->getFreeFields())
+            ->each(function($freeFieldValue, $freeFieldId) use ($oldValues, $productionRequest, &$message) {
+                $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
+                $freeField = $freeFieldRepository->find($freeFieldId);
+                $freeFieldAdded = (!isset($oldValues[$freeFieldId]) && (!empty($freeFieldValue) || $freeField->getTypage() === FreeField::TYPE_BOOL));
+                $freeFieldEdited = (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue);
+                if ($freeFieldAdded || $freeFieldEdited){
+                    $message .= "<strong>{$freeField->getLabel()}</strong> : {$this->formatService->freeField($freeFieldValue, $freeField)} <br>";
+                }
+            });
+
         return $message;
     }
 
@@ -669,8 +677,6 @@ class ProductionRequestService
                                             array                  $data,
                                             Utilisateur            $importUser,
                                             ?bool                  &$isCreation): void {
-
-        $updateStats = $updateStats ?? fn() => null;
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
