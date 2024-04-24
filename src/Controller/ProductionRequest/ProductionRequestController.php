@@ -285,12 +285,20 @@ class ProductionRequestController extends AbstractController
                          ProductionRequest        $productionRequest,
                          FixedFieldService        $fieldsParamService): JsonResponse {
 
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
         $productionRequestService->checkRoleForEdition($productionRequest);
 
         $currentUser = $this->getUser();
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
 
         $oldStatus = $productionRequest->getStatus();
+        $newStatus = $statusRepository->find($data->get(FixedFieldEnum::status->name));
+
+        if ($oldStatus->getState() === Statut::TREATED && $newStatus->getState() !== $oldStatus->getState()) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
 
         $entityManager->flush();
@@ -409,6 +417,11 @@ class ProductionRequestController extends AbstractController
         ]);
 
         $oldStatus = $productionRequest->getStatus();
+
+        if ($oldStatus->getState() === Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
 
         $entityManager->flush();
