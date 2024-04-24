@@ -203,9 +203,7 @@ class ReceptionController extends AbstractController {
                 $reception->setCommentaire($data->get('commentaire'));
             }
 
-            if ($data->has('files')) {
-                $reception->removeIfNotIn($data->get('files') ?: []);
-            }
+            $reception->removeIfNotIn($data->get('files') ?: []);
 
             $entityManager->flush();
 
