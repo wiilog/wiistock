@@ -31,12 +31,13 @@ class SpecificService
     const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_AIA_CUERS = 'aia-cuers';
 
-
-    public const EVERY_MINUTE_REFRESH_RATE_CLIENTS = [
-        self::CLIENT_SAFRAN_MC,
-        self::CLIENT_COLLINS_VERNON,
-        self::CLIENT_SAFRAN_CS
+    public const SPECIFIC_DASHBOARD_REFRESH_RATE = [
+        self::CLIENT_SAFRAN_MC => 1,
+        self::CLIENT_COLLINS_VERNON=> 1,
+        self::CLIENT_SAFRAN_CS=> 1,
     ];
+
+    public const DEFAULT_DASHBOARD_REFRESH_RATE = 5;
 
 	public function isCurrentClientNameFunction(string|array $clientName): bool
 	{

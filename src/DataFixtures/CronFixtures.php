@@ -49,10 +49,10 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => DashboardFeedCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_COLLINS_VERNON => '* * * * *',
-                SpecificService::CLIENT_SAFRAN_CS => '* * * * *',
-                SpecificService::CLIENT_SAFRAN_MC => '* * * * *',
-                'default' => '*/5 * * * *',
+                SpecificService::CLIENT_COLLINS_VERNON => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_COLLINS_VERNON] .' * * * *',
+                SpecificService::CLIENT_SAFRAN_CS => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_SAFRAN_CS] . ' * * * *',
+                SpecificService::CLIENT_SAFRAN_MC => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_SAFRAN_MC] . ' * * * *',
+                'default' => '*/' . SpecificService::DEFAULT_CLIENT_LABEL . ' * * * *',
             ],
             'description' => '',
         ],
