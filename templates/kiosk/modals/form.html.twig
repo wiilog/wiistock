@@ -1,0 +1,87 @@
+{% import "form.html.twig" as form %}
+
+{% set kiosk = kiosk is defined ? kiosk : null %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="form-group col-6 col-lg-4">
+            {% set settingCollectRequestType = setting_value('COLLECT_REQUEST_TYPE', 'App\\Entity\\Type') %}
+            {{ form.select(setting('COLLECT_REQUEST_TYPE'), 'Type', true, {
+                type: 'collectType',
+                placeholder: 'Sélectionnez un type',
+                search: true,
+                value: kiosk ? kiosk.pickingType.id : null,
+                items: kiosk ? {
+                    0: {
+                        'value': kiosk.pickingType.id,
+                        'label':  kiosk.pickingType.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+        <div class="form-group col-6 col-lg-4">
+            {{ form.input(setting('COLLECT_REQUEST_OBJECT'), 'Objet', true, kiosk.subject ?? setting_value('COLLECT_REQUEST_OBJECT')) }}
+        </div>
+        <div class="form-group col-6 col-lg-4">
+            {% set settingCollectRequestCollectPoint = setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement') %}
+            {{ form.select(setting('COLLECT_REQUEST_POINT_COLLECT'), 'Point de collecte', true, {
+                type: 'location',
+                search: true,
+                value: kiosk ? kiosk.pickingLocation.id : null,
+                items: kiosk ? {
+                    0: {
+                        'value': kiosk.pickingLocation.id,
+                        'label':  kiosk.pickingLocation.label,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-6 col-lg-4">
+            {{ form.input(setting('COLLECT_KIOSK_NAME'), 'Nom Borne', false, kiosk.name ?? null) }}
+        </div>
+        <div class="form-group col-6 col-lg-4">
+            {{ form.input(setting('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), "Quantité d'article à collecter", false, kiosk.quantityToPick ?? setting_value('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), {
+                type: 'number',
+                min: 1,
+            }  ) }}
+        </div>
+        <div class="form-group col-6 col-lg-4">
+            {% set settingCollectRequestRequester = setting_value('COLLECT_REQUEST_REQUESTER', 'App\\Entity\\Utilisateur') %}
+            {{ form.select(setting('COLLECT_REQUEST_REQUESTER'), 'Demandeur', true, {
+                type: 'collectRequester',
+                placeholder: 'Sélectionnez un utilisateur',
+                search: true,
+                type: 'user',
+                value: kiosk ? kiosk.requester.id : null,
+                items: kiosk ? {
+                    0: {
+                        'value': kiosk.requester.id,
+                        'label':  kiosk.requester.username,
+                        'selected': true
+                    }
+                } : null,
+            }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-6 col-lg-4">
+            {{ form.switch(setting('COLLECT_REQUEST_DESTINATION'), 'Destination', true, [
+                {
+                    label: 'Mise en stock',
+                    value: 'stock',
+                    checked: kiosk ? (kiosk.destination == 'stock') : (setting_value('COLLECT_REQUEST_DESTINATION') == 'stock')
+                },
+                {
+                    label: 'Destruction',
+                    value: 'destruction',
+                    checked: kiosk ? (kiosk.destination == 'destruction') : (setting_value('COLLECT_REQUEST_DESTINATION') == 'destruction')
+                },
+            ]) }}
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,20 @@
+<div class="modal fade" id="editKioskModal" role="dialog" aria-labelledby="dataModalCenterTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Modifier une borne"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'kiosk/modals/form.html.twig' %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data submit-button', type: 'submit', name:'id', id: 'editKioskSubmit', text: 'Modifier'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>
