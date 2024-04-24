@@ -39,6 +39,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MAX_SESSION_TIME => [
                 'default' => 30,
             ],
+            Setting::APP_CLIENT_LABEL => [
+                'default' => SpecificService::DEFAULT_CLIENT_LABEL,
+            ],
             Setting::CREATE_DL_AFTER_RECEPTION => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS_SOA => true,

@@ -2,8 +2,20 @@
 
 namespace App\Service;
 
+use App\Entity\Setting;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
+
 class SpecificService
 {
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public CacheService $cacheService;
+
+    const DEFAULT_CLIENT_LABEL= 'WiiStock';
+
 	const CLIENT_COLLINS_VERNON = 'collins-vernon';
 	const CLIENT_COLLINS_SOA = 'collins-soa';
 	const CLIENT_CEA_LETI = 'cea-leti';
@@ -11,41 +23,14 @@ class SpecificService
     const CLIENT_SAFRAN_ED = 'safran-ed';
     const CLIENT_SAFRAN_NS = 'safran-ns';
     const CLIENT_SAFRAN_MC = 'safran-mc';
-	const CLIENT_TEREGA = 'terega';
 	const CLIENT_EMERSON = 'emerson';
 	const CLIENT_ARCELOR = 'arcelor';
 	const CLIENT_ARKEMA_SERQUIGNY = 'arkema-serquigny';
-    const CLIENT_WIILOG = 'wiilog';
     const CLIENT_INEO_LAV = 'ineos-lav';
-    const CLIENT_BOITE_ROSE_TAVERNY = 'boite-rose-taverny';
     const CLIENT_CLB = 'clb';
-    const CLIENT_CLB_REC = 'clb-rec';
-    const CLIENT_RATIER_FIGEAC = 'ratier-figeac';
     const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_AIA_CUERS = 'aia-cuers';
-    const CLIENT_AIA_AMBERIEU = 'aia-amberieu';
 
-
-	const CLIENTS = [
-        self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
-        self::CLIENT_COLLINS_SOA => 'Collins SOA',
-        self::CLIENT_CEA_LETI => 'CEA Leti',
-        self::CLIENT_SAFRAN_CS => 'Safran CS',
-        self::CLIENT_SAFRAN_ED => 'Safran ED',
-        self::CLIENT_TEREGA => 'Terega',
-        self::CLIENT_EMERSON => 'Emerson',
-        self::CLIENT_ARCELOR => 'Arcelor',
-        self::CLIENT_ARKEMA_SERQUIGNY => 'Arkema Serquigny',
-        self::CLIENT_WIILOG => 'Wiilog',
-        self::CLIENT_INEO_LAV => 'Ineos Lavera',
-        self::CLIENT_BOITE_ROSE_TAVERNY => 'Boîte rose Taverny',
-        self::CLIENT_CLB_REC => 'CLB',
-        self::CLIENT_SAFRAN_MC => 'Safran MC',
-        self::CLIENT_RATIER_FIGEAC => 'Ratier Figeac',
-        self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',
-        self::CLIENT_AIA_AMBERIEU => 'AIA Amberieu',
-        self::CLIENT_AIA_CUERS => 'AIA Cuers',
-    ];
 
     public const EVERY_MINUTE_REFRESH_RATE_CLIENTS = [
         self::CLIENT_SAFRAN_MC,
@@ -67,7 +52,11 @@ class SpecificService
 	}
 
     public function getAppClientLabel(): string {
-        return self::CLIENTS[$this->getAppClient()] ?? $this->getAppClient();
+        return $this->cacheService->get(
+            CacheService::COLLECTION_SETTINGS,
+            Setting::APP_CLIENT_LABEL,
+            fn() => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::APP_CLIENT_LABEL) ?? self::DEFAULT_CLIENT_LABEL
+        );
     }
 
 }

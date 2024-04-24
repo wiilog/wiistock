@@ -50,9 +50,12 @@
                 value: setting_value('FONT_FAMILY')
             }) }}
         </div>
-    </div>
 
-    <div class="row">
+        {% set setting = constant('App\\Entity\\Setting::APP_CLIENT_LABEL') %}
+        <div class="form-group w-fit-content col-6">
+            {{ form.input(setting, 'Nom du client', true, setting_value(setting)) }}
+        </div>
+
         <div class="form-group w-fit-content col-6">
             {{ form.input(setting('MAX_SESSION_TIME'),
                 '<span class="wii-field-name">Temps de session en minutes&nbsp;</span><span class="wii-small-text">(maximum 24h)</span>',
