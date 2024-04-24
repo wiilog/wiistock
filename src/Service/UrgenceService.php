@@ -146,7 +146,7 @@ class UrgenceService
     /**
      * @return Urgence[]
      */
-    public function matchingEmergencies(Arrivage $arrival, ?string $orderNumber, ?string $post, bool $excludeTriggered = false) {
+    public function matchingEmergencies(Arrivage $arrival, ?string $orderNumber, ?string $post, bool $excludeTriggered = false): array {
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
         if(!isset($this->__arrival_emergency_fields)) {

@@ -40,7 +40,9 @@ class UrgenceRepository extends EntityRepository {
                                          $excludeTriggered = false): array {
         $queryBuilder = $this->createQueryBuilder('u')
             ->where(':date BETWEEN u.dateStart AND u.dateEnd')
-            ->setParameter('date', $arrival->getDate());
+            ->andWhere('u.trackingNb = :trackingNb')
+            ->setParameter('date', $arrival->getDate())
+            ->setParameter('trackingNb', $numeroCommande);
 
         $values = [
             'provider' => $arrival->getFournisseur(),
