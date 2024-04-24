@@ -20,7 +20,6 @@ let canTranslate = true;
 
 const fieldsToDisabledAttr = {
     needsMobileSync: 'need-mobile-sync-disabled',
-    color: 'need-mobile-sync-disabled',
     passStatusAtPurchaseOrderGeneration: 'pass-status-at-purchase-order-generation-disabled',
     automaticReceptionCreation: 'automatic-reception-creation-disabled',
 };
