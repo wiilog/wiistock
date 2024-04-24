@@ -293,9 +293,9 @@ class ProductionRequestController extends AbstractController
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
 
         $oldStatus = $productionRequest->getStatus();
-        $newStatus = $statusRepository->find($data->get(FixedFieldEnum::status->name));
+        $newStatus = $data->getInt(FixedFieldEnum::status->name);
 
-        if ($oldStatus->getState() === Statut::TREATED && $newStatus->getState() !== $oldStatus->getState()) {
+        if ($newStatus !== $oldStatus->getId() && $oldStatus->getState() === Statut::TREATED) {
             throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
         }
 
