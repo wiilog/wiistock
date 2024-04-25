@@ -17,6 +17,7 @@ use App\Service\Kiosk\KioskService;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
@@ -28,10 +29,9 @@ use Symfony\Component\Routing\Annotation\Route;
 class KioskController extends AbstractController
 {
 
-    #[Route("/delete/{kiosk}", name: "kiosk_delete", options: ["expose" => true], methods: self::DELETE, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/delete/{kiosk}", name: "kiosk_delete", options: ["expose" => true], methods: [self::DELETE], condition: 'request.isXmlHttpRequest()')]
     public function deleteKiosk(EntityManagerInterface $manager,
-                                Kiosk                $kiosk): JsonResponse
-    {
+                                Kiosk                $kiosk): JsonResponse {
 
         $manager->remove($kiosk);
         $manager->flush();
@@ -42,10 +42,9 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route('/edit-api', name: 'kiosk_edit_api', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
+    #[Route('/edit-api', name: 'kiosk_edit_api', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
     public function editApi(EntityManagerInterface $manager,
-                            Request                $request): JsonResponse
-    {
+                            Request                $request): JsonResponse {
         $kioskId= $request->query->get('id');
         $kioskRepository = $manager->getRepository(Kiosk::class);
         $kiosk = $kioskRepository->find($kioskId);
@@ -63,7 +62,7 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/edit", name: "kiosk_edit", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/edit", name: "kiosk_edit", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
     public function editKiosk(Request                   $request,
                               EntityManagerInterface    $entityManager): JsonResponse {
         $inputBag = $request->request;
@@ -103,7 +102,7 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/create", name: "kiosk_create", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/create", name: "kiosk_create", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
     public function createKiosk(EntityManagerInterface  $manager,
                                 Request                 $request): JsonResponse{
         $inputBag = $request->request;
@@ -137,16 +136,15 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route('/api', name: 'kiosk_api', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api', name: 'kiosk_api', options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
     public function api(Request $request, KioskService $kioskService): JsonResponse {
         $data = $kioskService->getDataForDatatable($request->request);
 
         return $this->json($data);
     }
 
-    #[Route("/generate-kiosk-token", name: "kiosk_token_generate", options: ["expose" => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
-    public function generateToken(EntityManagerInterface    $manager, Request $request): JsonResponse
-    {
+    #[Route("/generate-kiosk-token", name: "kiosk_token_generate", options: ["expose" => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    public function generateToken(EntityManagerInterface    $manager, Request $request): JsonResponse {
         $kiosk = $manager->getRepository(Kiosk::class)->find($request->query->get('kiosk'));
         $newToken = bin2hex(random_bytes(30));
         $date = (new DateTime())->add(new DateInterval('P3D'));
@@ -169,8 +167,7 @@ class KioskController extends AbstractController
 
     #[Route("/", name: "kiosk_index", options: ["expose" => true])]
     #[HasValidToken]
-    public function index(EntityManagerInterface $manager, Request $request): Response
-    {
+    public function index(EntityManagerInterface $manager): Response {
         $articleRepository = $manager->getRepository(Article::class);
         $latestsPrint = $articleRepository->getLatestsKioskPrint();
         $kioskRepository = $manager->getRepository(Kiosk::class);
@@ -185,9 +182,7 @@ class KioskController extends AbstractController
 
     #[Route("/formulaire", name: "kiosk_form", options: ["expose" => true])]
     #[HasValidToken]
-    public function form(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        // repositories
+    public function form(Request $request, EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -232,8 +227,7 @@ class KioskController extends AbstractController
 
     #[Route("/check-is-valid", name: "check_article_is_valid", options: ["expose" => true], methods: [self::POST])]
     #[HasValidToken]
-    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -261,7 +255,7 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/unlink-kiosk-token/{kiosk}", name: "kiosk_unlink_token", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[Route("/unlink-kiosk-token/{kiosk}", name: "kiosk_unlink_token", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function unlinkKioskToken(EntityManagerInterface $manager,
                                      Kiosk                  $kiosk): JsonResponse {
 
@@ -275,7 +269,9 @@ class KioskController extends AbstractController
     }
 
     #[Route("/kiosk-print", name: "kiosk_print", options: ["expose" => true])]
-    public function printLabel(EntityManagerInterface $entityManager, Request $request, KioskService $kioskService){
+    public function printLabel(EntityManagerInterface $entityManager,
+                               Request                $request,
+                               KioskService           $kioskService): PdfResponse {
         $articleRepository = $entityManager->getRepository(Article::class);
         $data = json_decode($request->query->get('barcodesToPrint'), true) ?? [];
 
