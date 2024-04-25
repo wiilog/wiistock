@@ -139,6 +139,7 @@ class Setting {
     const FOURNISSEUR_REFERENCE_CREATE = 'FOURNISSEUR_REFERENCE_CREATE';
 
     // borne tactile - demande de collect
+    // todo : à supprimer WIIS-11259 Robin Borne multiple
     const COLLECT_REQUEST_TYPE = 'COLLECT_REQUEST_TYPE';
     const COLLECT_REQUEST_REQUESTER = 'COLLECT_REQUEST_REQUESTER';
     const COLLECT_REQUEST_OBJECT = 'COLLECT_REQUEST_OBJECT';

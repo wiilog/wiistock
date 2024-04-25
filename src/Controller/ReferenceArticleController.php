@@ -1042,15 +1042,16 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
-    public function validateEntryStock(Request $request,
-                                  EntityManagerInterface $entityManager,
-                                  ArticleFournisseurService $articleFournisseurService,
-                                  ArticleDataService $articleDataService,
-                                  RefArticleDataService $refArticleDataService,
-                                  UniqueNumberService   $uniqueNumberService,
-                                  KioskService $kioskService,
-                                  FreeFieldService $freeFieldService,
-                                  NotificationService $notificationService): Response {
+    public function validateEntryStock(Request                   $request,
+                                       EntityManagerInterface    $entityManager,
+                                       ArticleFournisseurService $articleFournisseurService,
+                                       ArticleDataService        $articleDataService,
+                                       RefArticleDataService     $refArticleDataService,
+                                       UniqueNumberService       $uniqueNumberService,
+                                       KioskService              $kioskService,
+                                       FreeFieldService          $freeFieldService,
+                                       NotificationService       $notificationService): JsonResponse {
+
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1127,6 +1128,7 @@ class ReferenceArticleController extends AbstractController
         try {
             $number = $uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
             $collecte = new Collecte();
+            // todo : à modifier WIIS-11259 Robin Borne multiple
             $collecte
                 ->setNumero($number)
                 ->setDemandeur($userRepository->getKioskUser())
@@ -1138,6 +1140,7 @@ class ReferenceArticleController extends AbstractController
                 ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
                 ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
 
+            // todo : à modifier WIIS-11259 Robin Borne multiple
             $newQuantity = $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?: 1;
 
             $collecteReference = new CollecteReference();
@@ -1163,6 +1166,7 @@ class ReferenceArticleController extends AbstractController
                 $article = $articleDataService->newArticle($entityManager, [
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
+                    // todo : à modifier WIIS-11259 Robin Borne multiple
                     'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),

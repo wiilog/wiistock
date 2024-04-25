@@ -319,9 +319,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private ?bool $kioskUser = false;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Kiosk::class)]
-    private ?Kiosk $kiosk = null;
-
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
 

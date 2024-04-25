@@ -2,12 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\KioskTokenRepository;
+use App\Repository\KioskRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: KioskTokenRepository::class)]
+#[ORM\Entity(repositoryClass: KioskRepository::class)]
 class Kiosk
 {
     #[ORM\Id]
@@ -15,15 +15,11 @@ class Kiosk
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
-    private ?string $token = null ;
+    #[ORM\Column(type: Types::STRING, unique: true, nullable: true)]
+    private ?string $token = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $expireAt = null;
-
-    #[ORM\OneToOne(inversedBy: 'kioskToken', targetEntity: Utilisateur::class)]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', onDelete: 'SET NULL')]
-    private ?Utilisateur $user = null;
 
     #[ORM\Column(type: Types::STRING, unique: true, nullable: false)]
     private ?string $name = null;
@@ -59,7 +55,7 @@ class Kiosk
         return $this->token;
     }
 
-    public function setToken(string $token): self
+    public function setToken(?string $token): self
     {
         $this->token = $token;
 
@@ -74,24 +70,6 @@ class Kiosk
     public function setExpireAt(DateTime $expireAt): self
     {
         $this->expireAt = $expireAt;
-
-        return $this;
-    }
-
-    public function getUser(): ?Utilisateur {
-        return $this->user;
-    }
-
-    public function setUser(?Utilisateur $user): self {
-        if($this->user && $this->user->getKiosk() !== $this) {
-            $oldUser = $this->user;
-            $this->user = null;
-            $oldUser->setKiosk(null);
-        }
-        $this->user = $user;
-        if($this->user && $this->user->getKiosk() !== $this) {
-            $this->user->setKiosk($this);
-        }
 
         return $this;
     }
@@ -129,7 +107,7 @@ class Kiosk
         return $this;
     }
 
-    public function getPickingLocation(): ?string
+    public function getPickingLocation(): ?Emplacement
     {
         return $this->pickingLocation;
     }
@@ -140,7 +118,7 @@ class Kiosk
         return $this;
     }
 
-    public function getRequester(): ?string
+    public function getRequester(): ?Utilisateur
     {
         return $this->requester;
     }
@@ -162,7 +140,7 @@ class Kiosk
         return $this;
     }
 
-    public function getDestination(): ?int
+    public function getDestination(): ?string
     {
         return $this->destination;
     }
