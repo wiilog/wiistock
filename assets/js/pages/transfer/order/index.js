@@ -23,9 +23,6 @@ $(() => {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         columns: [
             {data: 'actions', title: '', className: 'noVis', orderable: false},
             {data: 'number', title: 'Numéro'},

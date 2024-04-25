@@ -303,30 +303,6 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible_for_reception", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var $user Utilisateur */
-        $user = $this->getUser();
-        $fields[] = "actions";
-
-        $visibleColumnService->setVisibleColumns('reception', $fields, $user);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées',
-        ]);
-    }
-
-    /**
      * @Route("/api-columns", name="reception_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */

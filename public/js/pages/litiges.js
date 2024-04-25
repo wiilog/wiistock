@@ -45,7 +45,6 @@ function initDatatableLitiges() {
             "type": "POST",
         },
         drawConfig: {
-            needsSearchOverride: true,
             needsColumnShow: true
         },
         columns: [

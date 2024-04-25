@@ -6,6 +6,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
@@ -146,84 +147,74 @@ class ArticleFournisseurRepository extends EntityRepository
             ->select('supplier_article');
 
         // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->all('order'))) {
-                $order = $params->all('order')[0]['dir'];
-                if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-                    if ($column === 'fournisseur') {
-                        $queryBuilder
-                            ->leftJoin('supplier_article.fournisseur', 'f')
-                            ->orderBy('f.nom', $order);
-                    } else if ($column === 'art_ref') {
-                        $queryBuilder
-                            ->leftJoin('supplier_article.referenceArticle', 'ra')
-                            ->orderBy('ra.libelle', $order);
-                    } else if ($column === 'label') {
-                        $queryBuilder
-                            ->orderBy('supplier_article.label', $order);
-                    } else {
-                        $queryBuilder
-                            ->orderBy('supplier_article.' . $column, $order);
-                    }
-                }
-            }
-            if (!empty($params->all('search'))) {
-                $search = $params->all('search')['value'];
-
-                $searchParts = Stream::explode(" ", $search)
-                    ->filter()
-                    ->map(static fn($part) => strtolower($part))
-                    ->toArray();
-                $expr = $queryBuilder->expr();
-                if (!empty($search)) {
-
+        if (!empty($params->all('order'))) {
+            $order = $params->all('order')[0]['dir'];
+            if (!empty($order)) {
+                $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
+                if ($column === 'fournisseur') {
                     $queryBuilder
-                        ->leftJoin('supplier_article.fournisseur', 'f2')
-                        ->leftJoin('supplier_article.referenceArticle', 'ra2');
-
-                    foreach ($searchParts as $index => $part) {
-                        $queryBuilder
-                            ->addSelect("
-                                (
-                                    IF(LOWER(f2.nom) LIKE :value_$index, 1, 0)) +
-                                    (IF(LOWER(supplier_article.reference) LIKE :value_$index, 1, 0)) +
-                                    (IF(LOWER(ra2.libelle) LIKE :value_$index, 1, 0)) +
-                                    (IF(LOWER(supplier_article.label) LIKE :value_$index, 1, 0)) +
-                                    (IF(LOWER(ra2.reference) LIKE :value_$index, 1, 0)
-                                ) AS HIDDEN relevance_$index
-                            ")
-                            ->orWhere($expr->orX(
-                                "LOWER(f2.nom) LIKE :value_$index",
-                                "LOWER(supplier_article.reference) LIKE :value_$index",
-                                "LOWER(ra2.libelle) LIKE :value_$index",
-                                "LOWER(supplier_article.label) LIKE :value_$index",
-                                "LOWER(ra2.reference) LIKE :value_$index",
-                            ))
-                            ->setParameter("value_$index", "%$part%");
-                    }
-
-                    $relevances = Stream::from($queryBuilder->getDQLParts()["select"])
-                        ->flatMap(static fn(Select $selectPart) => [$selectPart->getParts()[0]])
-                        ->map(static fn(string $selectString) => trim(explode('AS HIDDEN', $selectString)[1] ?? null))
-                        ->filter(static fn(string $selectAlias) => $selectAlias && str_contains($selectAlias, "relevance"));
-
-                    if(!$relevances->isEmpty()) {
-                        $queryBuilder
-                            ->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC)
-                            ->groupBy("supplier_article.id");
-
-                        foreach ($relevances as $relevance) {
-                            $queryBuilder->addGroupBy($relevance);
-                        }
-                    }
+                        ->leftJoin('supplier_article.fournisseur', 'f')
+                        ->orderBy('f.nom', $order);
+                } else if ($column === 'art_ref') {
+                    $queryBuilder
+                        ->leftJoin('supplier_article.referenceArticle', 'ra')
+                        ->orderBy('ra.libelle', $order);
+                } else if ($column === 'label') {
+                    $queryBuilder
+                        ->orderBy('supplier_article.label', $order);
+                } else {
+                    $queryBuilder
+                        ->orderBy('supplier_article.' . $column, $order);
                 }
             }
-
-            $countQuery = QueryBuilderHelper::count($queryBuilder, "supplier_article");
-        } else {
-            $countQuery = $countTotal;
         }
+
+        $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
+            ->filter()
+            ->values();
+
+        if (!empty($searchParts)) {
+            $expr = $queryBuilder->expr();
+
+            $queryBuilder
+                ->leftJoin('supplier_article.fournisseur', 'f2')
+                ->leftJoin('supplier_article.referenceArticle', 'ra2');
+
+            $conditions = [
+                "f2.codeReference LIKE :search_value",
+                "supplier_article.reference LIKE :search_value",
+                "supplier_article.label LIKE :search_value",
+                "ra2.reference LIKE :search_value",
+            ];
+
+            $orX = $expr->orX();
+            foreach ($searchParts as $index => $part) {
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index)->toArray());
+
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, true)
+                    ->join(" + ");
+
+                $queryBuilder
+                    ->addSelect("$selectExpression AS HIDDEN search_relevance_$index")
+                    ->setParameter("search_value_$index", "%$part%");
+            }
+
+            if($orX->count() > 0) {
+                $relevances = AdvancedSearchHelper::getRelevances($queryBuilder);
+
+                $queryBuilder
+                    ->andWhere($orX)
+                    ->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC)
+                    ->groupBy("supplier_article.id");
+
+                foreach ($relevances as $relevance) {
+                    $queryBuilder->addGroupBy($relevance);
+                }
+            }
+        }
+
+        $countQuery = QueryBuilderHelper::count($queryBuilder, "supplier_article");
+
         $queryBuilder
             ->andWhere('supplier_article.visible = 1');
 
@@ -238,7 +229,8 @@ class ArticleFournisseurRepository extends EntityRepository
         return [
             'data' => $queryBuilder->getQuery()->getResult(),
             'count' => $countQuery ?? 0,
-            'total' => $countTotal
+            'total' => $countTotal,
+            "searchParts" => $searchParts,
         ];
     }
 

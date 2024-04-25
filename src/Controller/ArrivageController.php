@@ -1484,29 +1484,6 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService, TranslationService $translation): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('arrival', $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
-    }
-
-    /**
      * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */

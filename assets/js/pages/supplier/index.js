@@ -30,9 +30,6 @@ $(function () {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     };
     let supplierTable = initDataTable('supplier-table', supplierTableConfig);
 

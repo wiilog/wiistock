@@ -278,30 +278,6 @@ class DisputeController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService,
-                                      TranslationService $translation): Response
-    {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        /** @var $user Utilisateur */
-        $user = $this->getUser();
-        $fields[] = "actions";
-
-        $visibleColumnService->setVisibleColumns('dispute', $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
-    }
-
-    /**
      * @Route("/article/{dispute}", name="article_dispute_api", options={"expose"=true}, methods="POST|GET", condition="request.isXmlHttpRequest()")
      */
     public function articlesByLitige(Dispute $dispute): Response

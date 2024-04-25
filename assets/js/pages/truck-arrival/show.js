@@ -106,9 +106,6 @@ function initTruckArrivalLinesTable() {
             color: 'danger',
             dataToCheck: 'late'
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }
 
@@ -137,9 +134,6 @@ function initTruckArrivalLineQualityReservesTable() {
                 //openModalQualityReserveContent($modalReserveQuality, data.id);
             }
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }
 

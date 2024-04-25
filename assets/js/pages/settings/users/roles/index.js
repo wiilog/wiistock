@@ -13,9 +13,6 @@ export function initializeRolesPage() {
             { data: 'quantityType', title : 'Ajout quantité' },
             { data: 'isMailSendAccountCreation', title : 'Réception email création nouveau compte' },
         ],
-        rowConfig: {
-            needsRowClickAction: true
-        },
         drawConfig: {
             needsSearchHide: true,
             needsPagingHide: true,

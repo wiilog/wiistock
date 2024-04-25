@@ -82,13 +82,6 @@ function loadLogisticUnitList(requestId) {
                             domConfig: {
                                 removeInfo: true,
                             },
-                            drawConfig: {
-                                needsColumnHide: true,
-                            },
-                            hideColumnConfig: {
-                                columns,
-                                tableFilter: 'logistic-units-container'
-                            },
                         });
 
                         tables.push(table);
@@ -347,13 +340,6 @@ function initEditableTableArticles($table) {
         },
         domConfig: {
             removeInfo: true,
-        },
-        drawConfig: {
-            needsColumnHide: true,
-        },
-        hideColumnConfig: {
-            columns,
-            tableFilter: 'editableTableArticles'
         },
         ordering: false,
         paging: false,

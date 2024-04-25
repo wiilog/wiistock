@@ -47,9 +47,6 @@ export function initializeImports() {
         rowConfig: {
             needsRowClickAction: true
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         order: [[`id`, `desc`]],
         page: `import`,
     };

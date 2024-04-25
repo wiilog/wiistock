@@ -583,26 +583,6 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/colonne-visible", name: "save_column_visible_for_article", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        /** @var $user Utilisateur */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('article', $fields, $user);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
-        ]);
-    }
-
     #[Route("/get-article-fournisseur", name: "demande_reference_by_fournisseur", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response {
         if ($fournisseur = json_decode($request->getContent(), true)) {

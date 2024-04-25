@@ -27,7 +27,6 @@ export function initUserPage($container) {
         drawConfig: {
             needsSearchHide: true,
             needsPagingHide: true,
-            needsSearchOverride: true,
         },
         order: [['username', 'asc']]
     });

@@ -222,9 +222,6 @@ function initEditatable(datatable, onDatatableInit = null) {
         domConfig: {
             removeInfo: true,
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         // replace undefined by false
         ordering: config.ordering && datatable.state === STATE_VIEWING || false,
         paging: config.paging && datatable.state === STATE_VIEWING || false,

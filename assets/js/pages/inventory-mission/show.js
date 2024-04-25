@@ -104,9 +104,6 @@ function initInventoryEntryDatatables(missionId) {
                     return json.data;
                 }
             },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             domConfig: {
                 removeInfo: true,
             },

@@ -1,4 +1,3 @@
-import AJAX from "@app/ajax";
 import Routing from '@app/fos-routing';
 
 let $printTag;
@@ -82,7 +81,7 @@ function initTableRefArticle() {
                     'type': 'POST',
                     'dataSrc': function (json) {
                         return json.data;
-                    }
+                    },
                 },
                 search: {
                     search
@@ -93,18 +92,17 @@ function initTableRefArticle() {
                 drawConfig: {
                     needsResize: true
                 },
+                drawCallback: () => {
+                    togglePrintButton($(`#tableRefArticle_filter input[type=search]`), $(`.printButton`))
+                },
                 rowConfig: {
                     classField: 'colorClass',
                     needsRowClickAction: true
                 },
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'tableRefArticle_id_filter'
-                },
                 page: 'reference'
             };
 
-            pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);
+            pageTables = initDataTable('tableRefArticle', tableRefArticleConfig);
             pageTables.on('responsive-resize', function () {
                 resizeTable();
             });
@@ -153,7 +151,7 @@ function removeFilter($button, filterId) {
 
                 if ($('#filters').find('.filter').length <= 0) {
                     $('#noFilters').removeClass('d-none');
-                    if ($('#tableRefArticle_id_filter input').val() === '') {
+                    if ($('#tableRefArticle_filter input').val() === '') {
                         if ($printTag.is('button')) {
                             $printTag
                                 .addClass('btn-disabled')
@@ -241,7 +239,7 @@ function printReferenceArticleBarCode($button, event) {
                 {
                     length: pageTables.page.info().length,
                     start: pageTables.page.info().start,
-                    search: $('#tableRefArticle_id_filter input').val()
+                    search: $('#tableRefArticle_filter input').val()
                 },
                 true
             );
@@ -345,4 +343,37 @@ function updateFilters() {
                 });
             }
         });
+}
+
+function togglePrintButton($input, $printButton) {
+    if ($input.val() === `` && $(`#filters`).find(`.filter`).length <= 0) {
+        if ($printButton.is(`button`)) {
+            $printButton
+                .addClass(`btn-disabled`)
+                .removeClass(`btn-primary`);
+            managePrintButtonTooltip(true, $printButton.parent());
+        } else {
+            $printButton
+                .removeClass(`pointer`)
+                .addClass(`disabled`)
+                .addClass(`has-tooltip`);
+            managePrintButtonTooltip(true, $printButton);
+        }
+
+        managePrintButtonTooltip(true, $printButton);
+    } else {
+
+        if ($printButton.is(`button`)) {
+            $printButton
+                .addClass(`btn-primary`)
+                .removeClass(`btn-disabled`);
+            managePrintButtonTooltip(false, $printButton.parent());
+        } else {
+            $printButton
+                .removeClass(`disabled`)
+                .addClass(`pointer`)
+                .removeClass(`has-tooltip`);
+            managePrintButtonTooltip(false, $printButton);
+        }
+    }
 }

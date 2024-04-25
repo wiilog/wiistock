@@ -75,10 +75,6 @@ $(function () {
                 needsRowClickAction: true
             },
             columns: columns,
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tablePacks'
-            },
             order: [['code', 'asc']]
         };
         tablePacks = initDataTable('tablePacks', tablePacksConfig);

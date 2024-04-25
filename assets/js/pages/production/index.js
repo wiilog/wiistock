@@ -103,13 +103,6 @@ function initProductionRequestsTable() {
                 dataToCheck: 'emergency',
             },
             columns: columns,
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableProductions',
-            },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             page: 'productionRequest',
         };
 

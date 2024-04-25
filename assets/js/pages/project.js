@@ -45,8 +45,5 @@ function initProjectTable() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }

@@ -136,9 +136,6 @@ function initDatatable() {
         serverSide: true,
         processing: true,
         order: [[1, `desc`]],
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         rowConfig: {
             needsRowClickAction: true
         },

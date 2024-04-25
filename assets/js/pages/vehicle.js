@@ -38,8 +38,5 @@ function initVehicleTable() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }

@@ -68,19 +68,9 @@ function initTruckArrivalTable() {
                     color: 'danger',
                     dataToCheck: 'late'
                 },
-                drawConfig: {
-                    needsSearchOverride: true,
-                },
                 ajax: {
                     "url": pathTruckArrivalList,
                     "type": GET,
-                },
-                hideColumnConfig: {
-                    columns: [
-                        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-                        ...columns,
-                    ],
-                    tableFilter: 'truckArrivalsTable',
                 },
                 columns: [
                     {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},

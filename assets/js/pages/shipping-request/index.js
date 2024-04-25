@@ -67,13 +67,6 @@ function initTableShippings() {
                 needsRowClickAction: true,
             },
             columns: columns,
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableShippings'
-            },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             page: 'shippingRequest',
         };
 

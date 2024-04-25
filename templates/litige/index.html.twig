@@ -52,9 +52,9 @@
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig'%}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableLitiges',
-        'route': 'save_column_visible_for_litige'
+        fields,
+        table: 'tableLitiges',
+        page: "dispute"
     } %}
 {% endblock %}
 
