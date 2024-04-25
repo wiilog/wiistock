@@ -4,6 +4,10 @@
 
 {% block title %} Borne {% endblock %}
 
+{% block kioskName %}
+    {{ kioskName }}
+{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('kiosk') }}

@@ -169,13 +169,17 @@ class KioskController extends AbstractController
 
     #[Route("/", name: "kiosk_index", options: ["expose" => true])]
     #[HasValidToken]
-    public function index(EntityManagerInterface $manager): Response
+    public function index(EntityManagerInterface $manager, Request $request): Response
     {
         $articleRepository = $manager->getRepository(Article::class);
         $latestsPrint = $articleRepository->getLatestsKioskPrint();
+        $kioskRepository = $manager->getRepository(Kiosk::class);
+
+        $kiosk = $kioskRepository->findOneBy(['token' => $request->query->get('token')]);
 
         return $this->render('kiosk/home.html.twig', [
-            'latestsPrint' => $latestsPrint
+            'latestsPrint' => $latestsPrint,
+            'kioskName' => $kiosk->getName(),
         ]);
     }
 
@@ -183,13 +187,19 @@ class KioskController extends AbstractController
     #[HasValidToken]
     public function form(Request $request, EntityManagerInterface $entityManager): Response
     {
+        // repositories
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $kioskRepository = $entityManager->getRepository(Kiosk::class);
+
+        // get data
         $scannedReference = $request->query->get('scannedReference');
         $notExistRefresh = $request->query->getBoolean('notExistRefresh');
+        $kiosk = $kioskRepository->findOneBy(['token' => $request->query->get('token')]);
 
+        // find article and reference
         if (str_starts_with($scannedReference, 'ART')) {
             $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
             $reference = $article->getArticleFournisseur()->getReferenceArticle();
@@ -208,7 +218,9 @@ class KioskController extends AbstractController
         }
 
         $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
+
         return $this->render('kiosk/form.html.twig', [
+            'kiosk' => $kiosk,
             'reference' => $reference,
             'scannedReference' => $scannedReference,
             'freeField' => $reference?->getType() && $freeField instanceof FreeField ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
