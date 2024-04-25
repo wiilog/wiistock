@@ -2,11 +2,14 @@
 
 {% set kiosk = kiosk is defined ? kiosk : null %}
 
+{% if kiosk %}
+    {{ form.hidden('id', kiosk.id) }}
+{% endif %}
+
 <div class="wii-section">
     <div class="row">
         <div class="form-group col-6 col-lg-4">
-            {% set settingCollectRequestType = setting_value('COLLECT_REQUEST_TYPE', 'App\\Entity\\Type') %}
-            {{ form.select(setting('COLLECT_REQUEST_TYPE'), 'Type', true, {
+            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::type').name, constant('App\\Entity\\Fields\\FixedFieldEnum::type').value, true, {
                 type: 'collectType',
                 placeholder: 'Sélectionnez un type',
                 search: true,
@@ -21,11 +24,10 @@
             }) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {{ form.input(setting('COLLECT_REQUEST_OBJECT'), 'Objet', true, kiosk.subject ?? setting_value('COLLECT_REQUEST_OBJECT')) }}
+            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::object').name, constant('App\\Entity\\Fields\\FixedFieldEnum::object').value, true, kiosk.subject ?? null) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {% set settingCollectRequestCollectPoint = setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement') %}
-            {{ form.select(setting('COLLECT_REQUEST_POINT_COLLECT'), 'Point de collecte', true, {
+            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::pickingLocation').name, constant('App\\Entity\\Fields\\FixedFieldEnum::pickingLocation').value, true, {
                 type: 'location',
                 search: true,
                 value: kiosk ? kiosk.pickingLocation.id : null,
@@ -41,17 +43,16 @@
     </div>
     <div class="row">
         <div class="form-group col-6 col-lg-4">
-            {{ form.input(setting('COLLECT_KIOSK_NAME'), 'Nom Borne', false, kiosk.name ?? null) }}
+            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::name').name, constant('App\\Entity\\Fields\\FixedFieldEnum::name').value, false, kiosk.name ?? null) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {{ form.input(setting('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), "Quantité d'article à collecter", false, kiosk.quantityToPick ?? setting_value('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), {
+            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::quantityToPick').name, constant('App\\Entity\\Fields\\FixedFieldEnum::quantityToPick').value, false, kiosk.quantityToPick ?? 1, {
                 type: 'number',
                 min: 1,
             }  ) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {% set settingCollectRequestRequester = setting_value('COLLECT_REQUEST_REQUESTER', 'App\\Entity\\Utilisateur') %}
-            {{ form.select(setting('COLLECT_REQUEST_REQUESTER'), 'Demandeur', true, {
+            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::requester').name, constant('App\\Entity\\Fields\\FixedFieldEnum::requester').value, true, {
                 type: 'collectRequester',
                 placeholder: 'Sélectionnez un utilisateur',
                 search: true,
@@ -69,16 +70,16 @@
     </div>
     <div class="row">
         <div class="form-group col-6 col-lg-4">
-            {{ form.switch(setting('COLLECT_REQUEST_DESTINATION'), 'Destination', true, [
+            {{ form.switch(constant('App\\Entity\\Fields\\FixedFieldEnum::destination').name, constant('App\\Entity\\Fields\\FixedFieldEnum::destination').value, true, [
                 {
                     label: 'Mise en stock',
                     value: 'stock',
-                    checked: kiosk ? (kiosk.destination == 'stock') : (setting_value('COLLECT_REQUEST_DESTINATION') == 'stock')
+                    checked: kiosk ? (kiosk.destination == 'stock') : null
                 },
                 {
                     label: 'Destruction',
                     value: 'destruction',
-                    checked: kiosk ? (kiosk.destination == 'destruction') : (setting_value('COLLECT_REQUEST_DESTINATION') == 'destruction')
+                    checked: kiosk ? (kiosk.destination == 'destruction') : null
                 },
             ]) }}
         </div>

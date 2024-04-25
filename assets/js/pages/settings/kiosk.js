@@ -4,19 +4,44 @@ import Routing from '@app/fos-routing';
 import Form from '@app/form';
 import Modal from "@app/modal";
 
-global.redirectToKiosk = redirectToKiosk;
-global.deleteKiosk = deleteKiosk;
-global.unlinkKiosk = unlinkKiosk;
-
 let kioskTable;
 
 $(function () {
     // Initialize the table
     kioskTable = initKiosksTable();
+    const $editKioskModal = $('#editKioskModal');
 
-    // Initialize the modal
-    Form.create($('#newKioskModal'), {clearOnOpen : true} ).submitTo(POST, 'create_kiosk', {tables: [kioskTable]})
-    Form.create($('#editKioskModal')).submitTo(POST, 'edit_kiosk', {tables: [kioskTable]})
+    // listenners
+    $(document).on('click', '.redirect-to-kiosk', function(){
+        redirectToKiosk($(this).data('id'));
+    });
+
+    $(document).on('click','.delete-kiosk', function(){
+        deleteKiosk($(this).data('id'));
+    });
+
+    $(document).on('click','.unlink-kiosk', function(){
+        unlinkKiosk($(this).data('id'), $(this));
+    });
+
+    // Initialize modals
+    Form
+        .create($('#newKioskModal'),{clearOnOpen : true})
+        .submitTo(POST,
+            'kiosk_create',
+            {tables: [kioskTable]})
+
+    Form
+        .create($editKioskModal)
+        .onOpen(function (event) {
+            const kioskId = $(event.relatedTarget).data('id');
+            Modal.load('kiosk_edit_api', {id: kioskId}, $editKioskModal)
+        })
+        .submitTo(POST,
+            'kiosk_edit',
+            {
+                tables: [kioskTable],
+            })
 });
 
 export function initializeCollectRequestAndCreateRef($container){
@@ -59,7 +84,7 @@ function initKiosksTable() {
         order: [[`name`, `desc`]],
         ajax: {
             url: Routing.generate(`kiosk_api`, true),
-            type: `POST`
+            type: POST
         },
         columns: [
             {data: `actions`, title: ``, className: `noVis`, orderable: false},
@@ -80,16 +105,16 @@ function initKiosksTable() {
 
 function unlinkKiosk(id, $this){
     if(!id) {
-        Flash.add(ERROR, 'Cette borne est déjà déliée.');
+        Flash.add(ERROR, 'Cette borne est déjà déconnectée.');
         return;
     }
-    return AJAX.route(POST, `remove_token`, {kiosk: id}).json().then(() => {
+    return AJAX.route(POST, `kiosk_unlink_token`, {kiosk: id}).json().then(() => {
         $this.closest('.dropdown-item').remove();
     })
 }
 
 function redirectToKiosk(id){
-    return AJAX.route(GET, `generate_kiosk_token`, {kiosk:id})
+    return AJAX.route(GET, `kiosk_token_generate`, {kiosk:id})
         .json()
         .then(({token}) => window.location.href = Routing.generate(`kiosk_index`, {token}, true));
 }
@@ -98,7 +123,7 @@ function deleteKiosk(id){
     Modal.confirm({
         ajax: {
             method: DELETE,
-            route: 'delete_kiosk',
+            route: 'kiosk_delete',
             params: { 'kiosk' : id },
         },
         message: 'Voulez-vous réellement supprimer cette borne',

@@ -4,8 +4,6 @@ namespace App\Service\Kiosk;
 
 use App\Entity\Article;
 use App\Entity\Kiosk;
-use App\Entity\Project;
-use App\Entity\TagTemplate;
 use App\Service\ArticleDataService;
 use App\Service\FormatService;
 use App\Service\PDFGeneratorService;
@@ -95,30 +93,27 @@ class KioskService
     }
 
     public function getActionsConfig(Kiosk $kiosk): array{
-        return [
-            [
-                "title" => "Modifier",
-                "icon" => "fas fa-pencil-alt",
-                "attributes" => [
-                    "data-id" => $kiosk->getId(),
-                    "data-target" => "#editKioskModal",
-                    "data-toggle" => "modal",
-                    "onclick" => "editRow($(this), Routing.generate('edit_kiosk_api', true), $(`#editKioskModal`), $('#editKioskSubmit'))"
-                ],
-            ],
-            [
-                "title" => "Supprimer",
-                "icon" => "wii-icon wii-icon-trash-black",
-                "attributes" => [
-                    "data-id" => $kiosk->getId(),
-                    "onclick" => "deleteKiosk(".$kiosk->getId().")",
-                ],
-            ],
-        ];
-    }
-
-    public function dataRowProject(Kiosk $kiosk): array {
         $kioskHaveToken = $kiosk->getToken() !== null;
+        $config =
+            [
+                [
+                    "title" => "Modifier",
+                    "icon" => "fas fa-pencil-alt",
+                    "attributes" => [
+                        "data-id" => $kiosk->getId(),
+                        "data-target" => "#editKioskModal",
+                        "data-toggle" => "modal",
+                    ],
+                ],
+                [
+                    "title" => "Supprimer",
+                    "icon" => "wii-icon wii-icon-trash-black",
+                    "class" => "delete-kiosk",
+                    "attributes" => [
+                        "data-id" => $kiosk->getId(),
+                    ],
+                ],
+            ];
         $unlinkConfig =
             [
                 "title" => "Déconnecter",
@@ -126,14 +121,18 @@ class KioskService
                 "class" => "unlink-kiosk",
                 "attributes" => [
                     "data-id" => $kiosk->getId(),
-                    "onclick" => "unlinkKiosk(".$kiosk->getId().", $(this))",
                 ],
             ];
-        $actionsConfig = $this->getActionsConfig($kiosk);
 
+        // If kiosk have token, add unlink action
         if($kioskHaveToken) {
-            array_unshift($actionsConfig, $unlinkConfig);
+            array_unshift($config, $unlinkConfig);
         }
+        return $config;
+    }
+
+    public function dataRowProject(Kiosk $kiosk): array {
+        $actionsConfig = $this->getActionsConfig($kiosk);
 
         return [
             'pickingType' => $this->formatService->type($kiosk->getPickingType()),

@@ -1,6 +1,4 @@
 {% import 'form.html.twig' as form %}
-{% include 'kiosk/modals/newKioskModal.html.twig' %}
-{% include 'kiosk/modals/editKioskModal.html.twig' %}
 
 <div class="wii-section-title">Général</div>
 <div class="wii-section touch-terminal">
@@ -190,3 +188,19 @@
         </div>
     </div>
 </div>
+
+{% include 'kiosk/modals/newKioskModal.html.twig' %}
+
+{% include 'utils/modal/empty-modal.html.twig' with {
+    id: 'editKioskModal',
+    size: 'modal-xl',
+    header: {
+        title: 'Modifier une borne'
+    },
+    footer: {
+        elements: [
+            {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+            {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+        ],
+    }
+} %}

@@ -5,6 +5,7 @@ namespace App\Controller\Kiosk;
 use App\Annotation\HasValidToken;
 use App\Controller\AbstractController;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FreeField;
 use App\Entity\Kiosk;
 use App\Entity\ReferenceArticle;
@@ -27,7 +28,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class KioskController extends AbstractController
 {
 
-    #[Route("/delete/{kiosk}", name: "delete_kiosk", options: ["expose" => true], methods: self::DELETE, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/delete/{kiosk}", name: "kiosk_delete", options: ["expose" => true], methods: self::DELETE, condition: 'request.isXmlHttpRequest()')]
     public function deleteKiosk(EntityManagerInterface $manager,
                                 Kiosk                $kiosk): JsonResponse
     {
@@ -41,23 +42,31 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route('/edit-api', name: 'edit_kiosk_api', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[Route('/edit-api', name: 'kiosk_edit_api', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     public function editApi(EntityManagerInterface $manager,
                             Request                $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $kiosk = $manager->find(Kiosk::class, $data['id']);
+        $kioskId= $request->query->get('id');
+        $kioskRepository = $manager->getRepository(Kiosk::class);
+        $kiosk = $kioskRepository->find($kioskId);
+
+        if(!$kiosk){
+            throw new FormException("La borne n'existe pas.");
+        }
 
         $content = $this->renderView('kiosk/modals/form.html.twig', [
             'kiosk' => $kiosk,
         ]);
-        return $this->json($content);
+        return $this->json([
+            'success' => true,
+            'html' => $content,
+        ]);
     }
 
-    #[Route("/edit", name: "edit_kiosk", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/edit", name: "kiosk_edit", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function editKiosk(Request                   $request,
-                              EntityManagerInterface    $entityManager): JsonResponse{
-        $data = $request->request->all();
+                              EntityManagerInterface    $entityManager): JsonResponse {
+        $inputBag = $request->request;
 
         // repositories
         $kioskRepository = $entityManager->getRepository(Kiosk::class);
@@ -66,22 +75,22 @@ class KioskController extends AbstractController
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         // find kiosk
-        $kiosk = $kioskRepository->find($data['id']);
+        $kiosk = $kioskRepository->find($inputBag->get(FixedFieldEnum::id->name));
 
         if(!$kiosk){
             throw new FormException("La borne n'existe pas.");
         }
 
         // find entities
-        $pickingType = $typeRepository->find($data[Setting::COLLECT_REQUEST_TYPE]);
-        $requester = $requesterRepository->find($data[Setting::COLLECT_REQUEST_REQUESTER]);
-        $pickingLocation = $locationRepository->find($data[Setting::COLLECT_REQUEST_POINT_COLLECT]);
+        $pickingType = $typeRepository->find($inputBag->get(FixedFieldEnum::type->name));
+        $requester = $requesterRepository->find($inputBag->get(FixedFieldEnum::requester->name));
+        $pickingLocation = $locationRepository->find($inputBag->get(FixedFieldEnum::pickingLocation->name));
 
         $kiosk
-            ->setSubject($data[Setting::COLLECT_REQUEST_OBJECT])
-            ->setQuantityToPick($data[Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT])
-            ->setDestination($data[Setting::COLLECT_REQUEST_DESTINATION])
-            ->setName($data[Setting::COLLECT_KIOSK_NAME] ?? null)
+            ->setSubject($inputBag->get(FixedFieldEnum::object->name))
+            ->setQuantityToPick($inputBag->get(FixedFieldEnum::quantityToPick->name))
+            ->setDestination($inputBag->get(FixedFieldEnum::destination->name))
+            ->setName($inputBag->get(FixedFieldEnum::name->name) ?? null)
             ->setPickingType($pickingType)
             ->setRequester($requester)
             ->setPickingLocation($pickingLocation);
@@ -94,10 +103,10 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/create", name: "create_kiosk", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/create", name: "kiosk_create", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function createKiosk(EntityManagerInterface  $manager,
                                 Request                 $request): JsonResponse{
-        $data = $request->request->all();
+        $inputBag = $request->request;
 
         // repositories
         $typeRepository = $manager->getRepository(Type::class);
@@ -105,19 +114,19 @@ class KioskController extends AbstractController
         $userRepository = $manager->getRepository(Utilisateur::class);
 
         // find entities
-        $pickingType = $typeRepository->find($data[Setting::COLLECT_REQUEST_TYPE]);
-        $pickingLocation = $locationRepository->find($data[Setting::COLLECT_REQUEST_POINT_COLLECT]);
-        $requester = $userRepository->find($data[Setting::COLLECT_REQUEST_REQUESTER]);
+        $pickingType = $typeRepository->find($inputBag->get(FixedFieldEnum::type->name));
+        $requester = $userRepository->find($inputBag->get(FixedFieldEnum::requester->name));
+        $pickingLocation = $locationRepository->find($inputBag->get(FixedFieldEnum::pickingLocation->name));
 
         // create kiosk without token and expiration date (will be set later when user click on "lien externe")
         $kiosk = (new Kiosk())
+            ->setSubject($inputBag->get(FixedFieldEnum::object->name))
+            ->setQuantityToPick($inputBag->get(FixedFieldEnum::quantityToPick->name))
+            ->setDestination($inputBag->get(FixedFieldEnum::destination->name))
+            ->setName($inputBag->get(FixedFieldEnum::name->name) ?? null)
             ->setPickingType($pickingType)
-            ->setSubject($data[Setting::COLLECT_REQUEST_OBJECT])
-            ->setPickingLocation($pickingLocation)
-            ->setName($data[Setting::COLLECT_KIOSK_NAME] ?? null)
-            ->setQuantityToPick($data[Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT])
             ->setRequester($requester)
-            ->setDestination($data[Setting::COLLECT_REQUEST_DESTINATION]);
+            ->setPickingLocation($pickingLocation);
 
         $manager->persist($kiosk);
         $manager->flush();
@@ -128,14 +137,14 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route('/api', name: 'kiosk_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api', name: 'kiosk_api', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function api(Request $request, KioskService $kioskService): JsonResponse {
         $data = $kioskService->getDataForDatatable($request->request);
 
         return $this->json($data);
     }
 
-    #[Route("/generate-kiosk-token", name: "generate_kiosk_token", options: ["expose" => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
+    #[Route("/generate-kiosk-token", name: "kiosk_token_generate", options: ["expose" => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     public function generateToken(EntityManagerInterface    $manager, Request $request): JsonResponse
     {
         $kiosk = $manager->getRepository(Kiosk::class)->find($request->query->get('kiosk'));
@@ -209,7 +218,7 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/check-is-valid", name: "check_article_is_valid", options: ["expose" => true], methods: [self::GET, self::POST])]
+    #[Route("/check-is-valid", name: "check_article_is_valid", options: ["expose" => true], methods: [self::POST])]
     #[HasValidToken]
     public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -240,8 +249,8 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/remove-token/{kiosk}", name: "remove_token", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
-    public function removeKioskToken(EntityManagerInterface $manager,
+    #[Route("/unlink-kiosk-token/{kiosk}", name: "kiosk_unlink_token", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    public function unlinkKioskToken(EntityManagerInterface $manager,
                                      Kiosk                  $kiosk): JsonResponse {
 
         $kiosk->setToken(null);
