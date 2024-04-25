@@ -34,7 +34,7 @@ class InactiveSensorsCommand extends Command {
         $wrappers = $wrapperRepository->findInactives();
 
         foreach ($wrappers as $wrapper) {
-            if (!$wrapper->isInactivityAlertSent() && $wrapper->getManager()) {
+            if (!$wrapper->isInactivityAlertSent() && $wrapper->getManager() && $wrapper->getInactivityAlertThreshold()) {
                 $sensor = $wrapper->getSensor();
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Aucune donnée capteur détectée',
