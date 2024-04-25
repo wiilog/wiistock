@@ -1223,10 +1223,7 @@ class ReferenceArticleController extends AbstractController
 
     #[Route("/get-stock-forecast/{referenceArticle}", name: "reference_article_get_stock_forecast", options: ["expose" => true], methods: ["GET"])]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
-    public function getStockForecast(Request $request, HttpClientInterface $client, string $referenceArticle, EntityManagerInterface $entityManager): JsonResponse {
-        $settingRepository = $entityManager->getRepository(Setting::class);
-
-
+    public function getStockForecast(HttpClientInterface $client, string $referenceArticle): JsonResponse {
         $apiURL = $_SERVER['STOCK_FORECAST_URL'];
 
         if(!$apiURL) {

@@ -70,13 +70,5 @@
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('DISPLAY_SCANNED_DELIVERY_NOTE'), 'Affichage automatique du BL scanné lors de la création d\'un arrivage UL', false, setting_value('DISPLAY_SCANNED_DELIVERY_NOTE')) }}
         </div>
-        <div class="col-md-6 col-12 my-1 mt-1">
-            {{ form.input(setting('DN_READER_URL'), 'Url de l\'api', false, setting_value('DN_READER_URL')) }}
-        </div>
-        <div class="col-md-6 col-12 my-1 mt-1">
-            {{ form.input(setting('DN_READER_SECRET_KEY'), 'Mot de passe de l\'api', false, setting_value('DN_READER_SECRET_KEY'), {
-                type: 'password'
-            }) }}
-        </div>
     </div>
 </div>
