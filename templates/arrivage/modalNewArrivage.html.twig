@@ -523,7 +523,7 @@
                     {% set commentFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(commentFieldCode, 'displayedCreate') %}
                         {% set commentRequired = fieldsParam|isFieldRequired(commentFieldCode, 'requiredCreate') %}
-                        <div class="form-group col-8 h-fit-content">
+                        <div class="form-group col-7 h-fit-content">
                             <label class="wii-subtitle" for="commentaire">
                                 {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentRequired ? '*' }}
                             </label>
@@ -538,12 +538,13 @@
 
                     {% set attachmentFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(attachmentFieldCode, 'displayedCreate') %}
-                        <div class="form-group col-4">
+                        <div class="form-group col-5">
                             {% include 'attachment/attachment.html.twig' with {
                                 'isNew': true,
                                 'required': fieldsParam|isFieldRequired(attachmentFieldCode, 'requiredCreate'),
                                 fieldNameClass : 'wii-subtitle',
                                 override: true,
+                                addPhotoButton: true,
                             } %}
                         </div>
                     {% else %}

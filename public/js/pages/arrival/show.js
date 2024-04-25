@@ -147,11 +147,27 @@ $(function () {
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new', {reloadArrivage: $('#arrivageId').val()}, true);
     InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableArrivageLitiges]});
+    Form
+        .create(modalNewLitige,{clearOnOpen: true})
+        .onOpen(() => {
+            Camera.init(
+                modalNewLitige.find(`.take-picture-modal-button`),
+                modalNewLitige.find(`[name="files[]"]`)
+            )
+        });
 
     let modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_arrivage', {reloadArrivage: $('#arrivageId').val()}, true);
     InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableArrivageLitiges]});
+    Form
+        .create(modalEditLitige,{clearOnOpen: false})
+        .onOpen(() => {
+            Camera.init(
+                modalEditLitige.find(`.take-picture-modal-button`),
+                modalEditLitige.find(`[name="files[]"]`)
+            )
+        });
 
     let ModalDeleteLitige = $("#modalDeleteLitige");
     let SubmitDeleteLitige = $("#submitDeleteLitige");
@@ -206,7 +222,6 @@ function editRowArrivage($button) {
     let submit = $('#submitEditArrivage');
     let id = $button.data('id');
     let params = {id: id};
-
     wrapLoadingOnActionButton(
         $button,
         () => {
@@ -233,6 +248,15 @@ function editRowArrivage($button) {
             }, 'json');
         }
     );
+
+    Form
+        .create(modal,{clearOnOpen: false})
+        .onOpen(() => {
+            Camera.init(
+                modal.find(`.take-picture-modal-button`),
+                modal.find(`[name="files[]"]`)
+            )
+        });
 
     modal.find(submit).attr('value', id);
 }

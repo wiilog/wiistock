@@ -94,6 +94,14 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
     let params = {
         disputeId
     };
+    Form
+        .create($modal,{clearOnOpen: false})
+        .onOpen(() => {
+            Camera.init(
+                $modal.find(`.take-picture-modal-button`),
+                $modal.find(`[name="files[]"]`)
+            )
+        });
 
     if (isArrivage) {
         params.arrivageId = arrivageOrReceptionId;

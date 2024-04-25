@@ -218,7 +218,8 @@
                 {% include 'attachment/attachment.html.twig' with {
                     'isNew': false,
                     'required': fieldsParam|isFieldRequired(fieldCode, 'requiredEdit'),
-                    'attachments': reception.attachments
+                    'attachments': reception.attachments,
+                    'addPhotoButton': true,
                 } %}
             </div>
         </div>

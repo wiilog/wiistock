@@ -163,6 +163,15 @@ function initPageModals() {
     InitModal($modalCancel, $submitCancel, urlCancelReception);
 
     let $modalModifyReception = $('#modalEditReception');
+    Form
+        .create($modalModifyReception,{clearOnOpen: false})
+        .onOpen(() => {
+            Camera.init(
+                $modalModifyReception.find(`.take-picture-modal-button`),
+                $modalModifyReception.find(`[name="files[]"]`)
+            )
+        });
+
     let $submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
     InitModal($modalModifyReception, $submitModifyReception, urlModifyReception);

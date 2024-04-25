@@ -241,6 +241,15 @@ function createArrival(form = null) {
         $modal = $(`#modalNewArrivage`);
     }
 
+    Form
+        .create($modal,{clearOnOpen: true})
+        .onOpen(() => {
+            Camera.init(
+                $modal.find(`.take-picture-modal-button`),
+                $modal.find(`[name="files[]"]`)
+            )
+        });
+
     const $element = $modal.find("select[name='noTracking']");
     if ($element.is(`.select2-hidden-accessible`)) {
         $element.val(null).html(``);

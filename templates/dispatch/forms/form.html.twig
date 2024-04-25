@@ -434,7 +434,7 @@
     {% if displayOnform %}
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
-            class="form-group col {{ typeCanChange ? "d-none" : "" }}">
+            class="form-group col-7 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.wysiwyg(fieldCode, trans('Général', null, 'Modale', 'Commentaire'), requiredOnform, dispatch.commentaire) }}
         </div>
@@ -445,12 +445,13 @@
     {% if displayOnform %}
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
-            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            class="form-group col-5 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {% include 'attachment/attachment.html.twig' with {
                 isNew: dispatch.id is null,
                 required: requiredOnform,
                 override: true,
+                addPhotoButton: true,
             } %}
         </div>
     {% else %}

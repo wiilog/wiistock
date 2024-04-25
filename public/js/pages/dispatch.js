@@ -35,6 +35,14 @@ $(function() {
     $modalNewDispatch.on('show.bs.modal', function () {
         initNewDispatchEditor('#modalNewDispatch');
     });
+    Form
+        .create($modalNewDispatch,{clearOnOpen: true})
+        .onOpen(() => {
+            Camera.init(
+                $modalNewDispatch.find(`.take-picture-modal-button`),
+                $modalNewDispatch.find(`[name="files[]"]`)
+            )
+        });
 
     const $dispatchsTable = $(`#tableDispatches`);
     const $dispatchModeContainer = $(`.dispatch-button-container`);

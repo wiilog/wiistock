@@ -196,7 +196,7 @@
 
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('commentaire', 'displayedCreate') %}
-                        <div class="form-group col-8">
+                        <div class="form-group col-7">
                             <label class="wii-field-name">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? '*' : '' }}</label>
                             <input id='commentaire'
                                    class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? 'needed' : '' }}"
@@ -206,11 +206,12 @@
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
-                        <div class="form-group col-4">
+                        <div class="form-group col-5">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
                                     'isNew': true,
-                                    'required': fieldsParam|isFieldRequired(fieldCode, 'requiredCreate')
+                                    'required': fieldsParam|isFieldRequired(fieldCode, 'requiredCreate'),
+                                    'addPhotoButton': true,
                                 } %}
                             </div>
                         </div>
