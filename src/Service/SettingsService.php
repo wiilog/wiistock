@@ -1020,7 +1020,22 @@ class SettingsService {
                     throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
                 }
 
+                // check if "passStatusAtPurchaseOrderGeneration" attributes is true only one time
+                $countPassStatusAtPurchaseOrderGeneration = Stream::from($statusesData)
+                    ->filter(fn(array $statusData) => ($statusData['passStatusAtPurchaseOrderGeneration'] ?? null) === "1")
+                    ->count();
+                if ($countPassStatusAtPurchaseOrderGeneration > 1) {
+                    throw new FormException('Un seul statut peut être sélectionné pour le passage du statut à la génération de la commande');
+                }
+
                 foreach ($statusesData as $statusData) {
+                    // check if "passStatusAtPurchaseOrderGeneration" attributes have valid status (only DRAFT and NOT_TREATED)
+                    if($statusData['passStatusAtPurchaseOrderGeneration'] ?? false == "1"){
+                        if(in_array($statusData['state'], [Statut::NOT_TREATED, Statut::DRAFT])){
+                            throw new FormException("Le paramétrage 'Passage au statut à la génération du bon de commande' ne peut être activé que pour les statuts 'Brouillon' ou 'Non traité'");
+                        }
+                    }
+
                     if (!in_array($statusData['state'], [
                         Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE,
                         Statut::PARTIAL,
@@ -1071,7 +1086,8 @@ class SettingsService {
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
                         ->setColor($statusData['color'] ?? null)
-                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false);
+                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false)
+                        ->setPassStatusAtPurchaseOrderGeneration($statusData['passStatusAtPurchaseOrderGeneration'] ?? false);
 
                     if($hasRightGroupedSignature){
                         $status

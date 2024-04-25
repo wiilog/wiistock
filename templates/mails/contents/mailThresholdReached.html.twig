@@ -13,40 +13,84 @@
         <li>Seuil de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
             <li>Machine PDT : <strong>{{ machinePDTValue }}</strong></li>
-            <li>Fournisseur(s) :</li>
-            <table class="table"
-                   style="border: 1px solid black;border-collapse: collapse;"
-                   role="presentation"
-                   cellspacing="0"
-                   border="0">
-                <thead>
+        {% endif %}
+        <li>Fournisseur(s) :</li>
+        <table class="table"
+               style="border: 1px solid black;border-collapse: collapse;"
+               role="presentation"
+               cellspacing="0"
+               border="0">
+            <thead>
+            <tr>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Ref article fournisseur
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Libellé article fournisseur
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Nom fournisseur
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for providerArticle in reference.articlesFournisseur %}
+                {% set provider = providerArticle.fournisseur %}
                 <tr>
-                    <th class="th"
-                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                        Ref article fournisseur
-                    </th>
-                    <th class="th"
-                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                        Nom fournisseur
-                    </th>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ providerArticle.reference }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ providerArticle.label }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ provider.nom }}
+                    </td>
                 </tr>
-                </thead>
-                <tbody>
-                {% for providerArticle in reference.articlesFournisseur %}
-                    {% set provider = providerArticle.fournisseur %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </ul>
+{% endblock %}
+
+
+{% block postScriptum %}
+    {% if (reference.articlesFournisseur | length) == 1 %}
+        {% set supplierArticle = reference.articlesFournisseur | first %}
+        <div style="text-align: center; width: 100%">
+            <div class="redirect-to">
+                <table>
                     <tr>
-                        <td class="td"
-                            style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ providerArticle.reference }}
-                        </td>
-                        <td class="td"
-                            style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ provider.nom }}
+                        <td class="gt-button">
+                            {% set mailto =
+                                "mailto:" ~ supplierArticle.fournisseur.email ~ "?" ~
+                                "subject=" ~ "Demande de devis" ~ "&" ~
+                                "body=" ~
+                                    "Bonjour,
+
+                                    Pourriez-vous nous joindre un devis pour la référence suivante, et nous indiquer une date de livraison s’il vous plaît ?
+                                    Référence article fournisseur : " ~ supplierArticle.reference ~ "
+                                    Libellé article fournisseur : " ~ supplierArticle.label ~ "
+                                    Commentaire: " ~ reference.commentaire|striptags ~ "
+                                    Quantité du devis :
+
+
+                                    Bonne journée." | url_encode
+                                %}
+
+                            <a href="{{ mailto }}">
+                                Cliquer ici pour adresser un devis au founisseur
+                            </a>
                         </td>
                     </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-    </ul>
+                </table>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

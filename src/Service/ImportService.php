@@ -12,7 +12,9 @@ use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -23,7 +25,6 @@ use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\ProductionRequest;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
@@ -35,6 +36,7 @@ use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -123,12 +125,20 @@ class ImportService
             "dangerousGoods",
             "onuCode",
             "productClass",
+            "supplierName",
+            "supplierCode",
+            "supplierArticleReference",
+            "supplierArticleLabel",
         ],
         Import::ENTITY_FOU => [
             'nom',
             'codeReference',
             'possibleCustoms',
-            'urgent',
+            FixedFieldEnum::urgent->name,
+            FixedFieldEnum::address->name,
+            FixedFieldEnum::phoneNumber->name,
+            FixedFieldEnum::email->name,
+            FixedFieldEnum::receiver->name,
         ],
         Import::ENTITY_RECEPTION => [
             "orderNumber",
@@ -227,6 +237,26 @@ class ImportService
             FixedFieldEnum::projectNumber->name,
             FixedFieldEnum::comment->name,
         ],
+        Import::ENTITY_DISPATCH => [
+            FixedFieldEnum::type->name,
+            FixedFieldEnum::dropLocation->name,
+            FixedFieldEnum::pickLocation->name,
+            FixedFieldEnum::orderNumber->name,
+            FixedFieldEnum::carrierTrackingNumber->name,
+            FixedFieldEnum::destination->name,
+            FixedFieldEnum::carrier->name,
+            FixedFieldEnum::requester->name,
+            FixedFieldEnum::receivers->name,
+            FixedFieldEnum::emergency->name,
+            FixedFieldEnum::businessUnit->name,
+            FixedFieldEnum::projectNumber->name,
+            FixedFieldEnum::comment->name,
+            FixedFieldEnum::emails->name,
+            FixedFieldEnum::customerName->name,
+            FixedFieldEnum::customerPhone->name,
+            FixedFieldEnum::customerRecipient->name,
+            FixedFieldEnum::customerAddress->name,
+        ],
     ];
 
     #[Required]
@@ -297,6 +327,12 @@ class ImportService
 
     #[Required]
     public ProductionRequestService $productionRequestService;
+
+    #[Required]
+    public DispatchService $dispatchService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
 
     private EmplacementDataService $emplacementDataService;
 
@@ -619,6 +655,9 @@ class ImportService
                             $isCreation
                         );
                         break;
+                    case Import::ENTITY_DISPATCH:
+                        $this->dispatchService->importDispatch($this->entityManager, $data, $this->currentImport->getUser(), $colChampsLibres, $row, $isCreation);
+                        break;
                 }
 
                 $this->entityManager->flush();
@@ -757,6 +796,7 @@ class ImportService
         }
 
         $supplierRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
         $existingSupplier = $supplierRepository->findOneBy(['codeReference' => $data['codeReference']]);
 
         $supplier = $existingSupplier ?? new Fournisseur();
@@ -780,7 +820,20 @@ class ImportService
             $supplier->setUrgent($urgent === 'oui');
         }
 
-        $supplier->setNom($data['nom']);
+        if(isset($data["receiver"])) {
+            // check if the user exists to create the relation
+            $receiver = $userRepository->findOneBy(["username" => $data["receiver"]]);
+            if(!$receiver) {
+                throw new ImportException("L'utilisateur renseigné en tant que destinataire n'existe pas.");
+            }
+            $supplier->setReceiver($receiver);
+        }
+
+        $supplier
+            ->setNom($data['nom'])
+            ->setEmail($data['email'] ?? null)
+            ->setPhoneNumber($data['phoneNumber'] ?? null)
+            ->setAddress($data['address'] ?? null);
 
         $this->entityManager->persist($supplier);
 
@@ -995,6 +1048,7 @@ class ImportService
                 $refArt->setLibelle($data['libelle']);
             }
         }
+
         if (isset($data['needsMobileSync'])) {
             $value = strtolower($data['needsMobileSync']);
             if ($value !== 'oui' && $value !== 'non') {
@@ -1227,6 +1281,39 @@ class ImportService
             throw new ImportException("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
         }
 
+        $supplierStream = Stream::from(["supplierName", "supplierCode", "supplierArticleReference", "supplierArticleLabel"]);
+        if ($supplierStream->some(static fn($field) => isset($data[$field]))) {
+
+            $missingFields = $supplierStream->filter(static fn(string $field) => !isset($data[$field]));
+            if(!$missingFields->isEmpty()) {
+                $joinedFields = $missingFields
+                    ->map(static fn(string $field) => Import::FIELDS_ENTITY["default"][$field])
+                    ->join(", ");
+
+                $start = $missingFields->count() > 1
+                    ? "Les champs $joinedFields sont"
+                    : "Le champ $joinedFields est";
+
+                throw new ImportException("$start requis pour pouvoir ajouter un article fournisseur sur la référence.");
+            }
+
+            $supplierArticleReference = $data["supplierArticleReference"];
+            try {
+                $this->articleFournisseurService->createArticleFournisseur([
+                    "fournisseur" => $data["supplierCode"],
+                    "article-reference" => $refArt,
+                    "label" => $data["supplierArticleLabel"],
+                    "reference" => $supplierArticleReference,
+                ], false, $this->entityManager);
+            } catch (Throwable $throwable) {
+                if ($throwable->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                    throw new ImportException("La référence $supplierArticleReference existe déjà pour un article fournisseur.");
+                } else {
+                    throw $throwable;
+                }
+            }
+        }
+
         $description = [
             "outFormatEquipment" => $outFormatEquipment,
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
@@ -1238,7 +1325,7 @@ class ImportService
             ->setDescription($description);
 
         // champs libres
-        $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager, $colChampsLibres, $refArt, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
     }
@@ -1372,7 +1459,7 @@ class ImportService
         }
         $this->entityManager->persist($article);
         // champs libres
-        $this->checkAndSetChampsLibres($colChampsLibres, $article, $isNewEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager,$colChampsLibres, $article, $isNewEntity, $row);
 
         $isCreation = $isNewEntity;
 
@@ -1817,7 +1904,7 @@ class ImportService
             }
         }
 
-        $this->checkAndSetChampsLibres($colChampsLibres, $request, $newEntity, $row);
+        $this->freeFieldService->manageImportFreeFields($this->entityManager, $colChampsLibres, $request, $newEntity, $row);
 
         $isCreation = $newEntity;
 
@@ -2061,106 +2148,6 @@ class ImportService
         $isCreation = !$refLocationAlreadyExists;
     }
 
-    private function checkAndSetChampsLibres(array $colChampsLibres,
-                                                   $freeFieldEntity,
-                                             bool  $isNewEntity,
-                                             array $row)
-    {
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-        $missingCL = [];
-
-        $categoryCL = $freeFieldEntity instanceof ReferenceArticle
-            ? CategorieCL::REFERENCE_ARTICLE
-            : ($freeFieldEntity instanceof Article
-                ? CategorieCL::ARTICLE
-                : CategorieCL::DEMANDE_LIVRAISON);
-        if ($freeFieldEntity->getType() && $freeFieldEntity->getType()->getId()) {
-            $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($freeFieldEntity->getType(), $categoryCL, $isNewEntity);
-        } else {
-            $mandatoryCLs = [];
-        }
-        $champsLibresId = array_keys($colChampsLibres);
-        foreach ($mandatoryCLs as $cl) {
-            if (!in_array($cl->getId(), $champsLibresId)) {
-                $missingCL[] = $cl->getLabel();
-            }
-        }
-
-        if (!empty($missingCL)) {
-            $message = count($missingCL) > 1
-                ? 'Les champs ' . join(', ', $missingCL) . ' sont obligatoires'
-                : 'Le champ ' . $missingCL[0] . ' est obligatoire';
-            $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
-            throw new ImportException($message);
-        }
-
-        $freeFieldsToInsert = $freeFieldEntity->getFreeFields();
-
-        foreach ($colChampsLibres as $clId => $col) {
-            /** @var FreeField $champLibre */
-            $champLibre = $champLibreRepository->find($clId);
-
-            switch ($champLibre->getTypage()) {
-                case FreeField::TYPE_BOOL:
-                    $value = in_array($row[$col], ['Oui', 'oui', 1, '1']);
-                    break;
-                case FreeField::TYPE_DATE:
-                    $value = $this->checkDate($row[$col], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $champLibre);
-                    break;
-                case FreeField::TYPE_DATETIME:
-                    $value = $this->checkDate($row[$col], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $champLibre);
-                    break;
-                case FreeField::TYPE_LIST:
-                    $value = $this->checkList($row[$col], $champLibre, false);
-                    break;
-                case FreeField::TYPE_LIST_MULTIPLE:
-                    $value = $this->checkList($row[$col], $champLibre, true);
-                    break;
-                default:
-                    $value = $row[$col];
-                    break;
-            }
-            $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
-        }
-
-        $freeFieldEntity->setFreeFields($freeFieldsToInsert);
-    }
-
-    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, FreeField $champLibre): ?string
-    {
-        $response = null;
-        if ($dateString !== "") {
-            try {
-                $date = DateTime::createFromFormat($format, $dateString);
-                if (!$date) {
-                    throw new Exception('Invalid format');
-                }
-                $response = $date->format($outputFormat);
-            } catch (Exception $ignored) {
-                $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
-                throw new ImportException($message);
-            }
-        }
-        return $response;
-    }
-
-    private function checkList(string $element, FreeField $champLibre, bool $isMultiple): ?string
-    {
-        $response = null;
-        if ($element !== "") {
-            $elements = $isMultiple ? explode(";", $element) : [$element];
-            foreach ($elements as $listElement) {
-                if (!in_array($listElement, $champLibre->getElements())) {
-                    throw new ImportException('La ou les valeurs fournies pour le champ "' . $champLibre->getLabel() . '"'
-                        . 'doivent faire partie des valeurs du champ libre ('
-                        . implode(",", $champLibre->getElements()) . ').');
-                }
-            }
-            $response = $element;
-        }
-        return $response;
-    }
-
     private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
     {
         $diffQuantity = $isNewEntity ? $newQuantity : ($newQuantity - $formerQuantity);
@@ -2371,6 +2358,7 @@ class ImportService
         $categoryCLByEntity = [
             Import::ENTITY_ART => CategorieCL::ARTICLE,
             Import::ENTITY_REF => CategorieCL::REFERENCE_ARTICLE,
+            Import::ENTITY_DISPATCH => CategorieCL::DEMANDE_DISPATCH,
         ];
 
         $categoryCL = $categoryCLByEntity[$entityCode] ?? null;

@@ -275,4 +275,13 @@ class PurchaseRequest {
         return $this;
     }
 
+    public function isPurchaseRequestLinesFilled(): bool
+    {
+        $unfilledLines = Stream::from($this->getPurchaseRequestLines()->toArray())
+            ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
+            ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
+            ->values();
+
+        return $this->getPurchaseRequestLines()->count() > 0 && empty($unfilledLines);
+    }
 }

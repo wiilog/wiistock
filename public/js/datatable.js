@@ -526,19 +526,11 @@ function initSearchDate(table, columnName = "date") {
 
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
-            if (
+            return (
                 (dateMin === "" && dateMax === "")
-                ||
-                (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
+                || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+                || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
+                || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax)))
         }
     );
 }

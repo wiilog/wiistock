@@ -158,6 +158,9 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $preventStatusChangeWithoutDeliveryFees = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private bool $passStatusAtPurchaseOrderGeneration = false;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -944,6 +947,17 @@ class Statut {
     public function setPreventStatusChangeWithoutDeliveryFees(?bool $preventStatusChangeWithoutDeliveryFees): self {
         $this->preventStatusChangeWithoutDeliveryFees = $preventStatusChangeWithoutDeliveryFees;
 
+        return $this;
+    }
+
+    public function isPassStatusAtPurchaseOrderGeneration(): bool
+    {
+        return $this->passStatusAtPurchaseOrderGeneration;
+    }
+
+    public function setPassStatusAtPurchaseOrderGeneration(bool $passStatusAtPurchaseOrderGeneration): self
+    {
+        $this->passStatusAtPurchaseOrderGeneration = $passStatusAtPurchaseOrderGeneration;
         return $this;
     }
 }

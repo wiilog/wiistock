@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
@@ -29,10 +30,13 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Iterator;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -598,14 +602,10 @@ class PurchaseRequestController extends AbstractController
     public function treat(Request                    $request,
                           EntityManagerInterface     $entityManager,
                           PurchaseRequest            $purchaseRequest,
-                          PurchaseRequestService     $purchaseRequestService,
-                          ReceptionLineService       $receptionLineService,
-                          ReceptionService           $receptionService): Response {
+                          PurchaseRequestService     $purchaseRequestService): Response {
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         /** @var Statut $status */
         $status = $data['status'];
@@ -615,73 +615,12 @@ class PurchaseRequestController extends AbstractController
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
+        if (!$purchaseRequest->isPurchaseRequestLinesFilled()) {
+            throw new FormException('Des informations sont manquantes sur une ou plusieurs lignes d\'achat. <br> Impossible de terminer la demande d\'achat.');
+        }
+
         if($treatedStatus->getAutomaticReceptionCreation()) {
-            $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
-                ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
-                ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
-                ->values();
-
-            if (!empty($unfilledLines)) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => count($unfilledLines) > 1
-                        ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . join(', ', $unfilledLines) . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                        : 'Des informations sont manquantes sur la ligne d\'achat  <strong>' . $unfilledLines[0] . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                ]);
-            }
-
-            $receptionsWithCommand = [];
-
-            $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
-
-            // To disable error in persistReception we check if default location setting is valid
-            $defaultLocationReception = $defaultLocationReceptionSetting
-                ? $locationRepository->find($defaultLocationReceptionSetting)
-                : null;
-
-            foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
-                $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
-                $expectedDate = $this->formatService->date($purchaseRequestLine->getExpectedDate());
-
-                $uniqueReceptionConstraint = [
-                    'orderNumber' => $orderNumber,
-                    'expectedDate' => $expectedDate,
-                ];
-
-                $orderDate = $this->formatService->date($purchaseRequestLine->getOrderDate());
-                $reception = $receptionService->getAlreadySavedReception($entityManager, $receptionsWithCommand, $uniqueReceptionConstraint);
-                $receptionData = [
-                    "fournisseur"  => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
-                    "orderNumber"  => $orderNumber,
-                    "commentaire"  => $purchaseRequest->getComment() ?? '',
-                    "dateAttendue" => $expectedDate,
-                    "dateCommande" => $orderDate,
-                    "location"     => $defaultLocationReception?->getId()
-                ];
-                if (!$reception) {
-                    $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
-                    $receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
-                } else if($reception->getFournisseur() !== $purchaseRequestLine->getSupplier()) {
-                    $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
-                }
-
-                $receptionLine = $reception->getLine(null)
-                    ?? $receptionLineService->persistReceptionLine($entityManager, $reception, null);
-
-                $receptionReferenceArticle = new ReceptionReferenceArticle();
-                $receptionReferenceArticle
-                    ->setReceptionLine($receptionLine)
-                    ->setReferenceArticle($purchaseRequestLine->getReference())
-                    ->setQuantiteAR($purchaseRequestLine->getOrderedQuantity())
-                    ->setCommande($orderNumber)
-                    ->setQuantite(0)
-                    ->setUnitPrice($purchaseRequestLine->getUnitPrice());
-
-                $entityManager->persist($receptionReferenceArticle);
-                $purchaseRequestLine->setReception($reception);
-
-                $entityManager->flush();
-            }
+            $purchaseRequestService->persistAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
         }
 
         $purchaseRequest
@@ -756,6 +695,74 @@ class PurchaseRequestController extends AbstractController
 
         return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
     }
+
+    #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generate_purchase_order', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
+    public function generatePurchaseOrder(PurchaseRequest           $purchaseRequest,
+                                          EntityManagerInterface    $entityManager,
+                                          PurchaseRequestService    $purchaseRequestService): JsonResponse
+    {
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $now = new DateTime();
+
+        // génère seulement si en cours et tableau remplis
+        if(!$purchaseRequest->isPurchaseRequestLinesFilled()){
+            throw new FormException("La demande d'achat ne peut pas être traitée");
+        }
+
+        if(!$purchaseRequest->getStatus()->isTreated()){
+            $nextStatus = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST))
+                ->filter(static fn(Statut $status) => $status->isPassStatusAtPurchaseOrderGeneration())
+                ->first();
+
+            // if next status is not the same as current status then change status
+            if($nextStatus && $nextStatus->getId() !== $purchaseRequest->getStatus()?->getId()){
+                $purchaseRequest->setStatus($nextStatus);
+
+                // create automatic reception if parameter is enabled
+                if($nextStatus->getAutomaticReceptionCreation()){
+                    $purchaseRequestService->persistAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
+                }
+
+                // set date according to status
+                switch($purchaseRequest->getStatus()->getState()) {
+                    case Statut::IN_PROGRESS:
+                        if(!$purchaseRequest->getConsiderationDate()){
+                            $purchaseRequest->setConsiderationDate($now);
+                        }
+                        break;
+                    case Statut::TREATED:
+                        if(!$purchaseRequest->getProcessingDate()){
+                            $purchaseRequest->setProcessingDate($now);
+                        }
+                        break;
+                }
+            }
+        }
+
+        $purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest);
+        $purchaseRequestOrderAttachment = $purchaseRequestService->getPurchaseRequestOrderData($entityManager, $purchaseRequest);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bon de commande va commencer...',
+            'attachmentId' => $purchaseRequestOrderAttachment->getId(),
+        ]);
+    }
+
+    #[Route("/{purchaseRequest}/purchaseOrder/{attachment}", name:"print_purchase_order", options:["expose"=>true], methods:[self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
+    public function printDeliverySlip(Attachment      $attachment,
+                                      KernelInterface $kernel): Response {
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
+
+        return $response;
+    }
+
 
 }
 

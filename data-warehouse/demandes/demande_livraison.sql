@@ -21,43 +21,43 @@ SELECT id,
        code_UL,
        projet_article,
        commentaire_article
-FROM (SELECT demande.id                                         AS id,
-             demande.numero                                     AS numero,
-             demande.created_at                                 AS date_creation,
-             demande.validated_at                               AS date_validation,
+FROM (SELECT demande.id                                                                                            AS id,
+             demande.numero                                                                                        AS numero,
+             demande.created_at                                                                                    AS date_creation,
+             demande.validated_at                                                                                  AS date_validation,
              (SELECT MAX(livraison.date_fin)
               FROM demande AS sub_demande
                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-              WHERE sub_demande.id = demande.id)                AS date_traitement,
-             demande.expected_at                                AS date_attendue,
-             COALESCE(projet_demande.code, projet_article.code) AS projet,
-             demandeur.username                                 AS demandeur,
-             type.label                                         AS type,
-             statut.nom                                         AS statut,
+              WHERE sub_demande.id = demande.id)                                                                   AS date_traitement,
+             demande.expected_at                                                                                   AS date_attendue,
+             COALESCE(projet_demande.code, projet_article.code)                                                    AS projet,
+             demandeur.username                                                                                    AS demandeur,
+             type.label                                                                                            AS type,
+             statut.nom                                                                                            AS statut,
 
              (SELECT GROUP_CONCAT(preparation.numero SEPARATOR ' / ')
               FROM demande AS sub_demande
                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-              WHERE sub_demande.id = demande.id)                AS codes_preparations,
+              WHERE sub_demande.id = demande.id)                                                                   AS codes_preparations,
 
              (SELECT GROUP_CONCAT(livraison.numero SEPARATOR ' / ')
               FROM demande AS sub_demande
                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                        LEFT JOIN livraison on preparation.id = livraison.preparation_id
-              WHERE sub_demande.id = demande.id)                AS codes_livraisons,
+              WHERE sub_demande.id = demande.id)                                                                   AS codes_livraisons,
 
-             destination.label                                  AS destination,
-             demande.receiver_id                                AS destinataire,
-             demande.cleaned_comment                            AS commentaire,
-             reference_article.reference                        AS reference_article,
-             article.label                                      AS libelle,
-             article.bar_code                                   AS code_barre,
-             article.quantite                                   AS quantite_disponible,
-             delivery_request_article_line.quantity_to_pick     AS quantite_a_prelever,
-             pack.code                                          AS code_UL,
-             request_article_line_project.code                  AS projet_article,
-             delivery_request_article_line.notes                AS commentaire_article
+             destination.label                                                                                     AS destination,
+             demande.receiver_id                                                                                   AS destinataire,
+             demande.cleaned_comment                                                                               AS commentaire,
+             reference_article.reference                                                                           AS reference_article,
+             article.label                                                                                         AS libelle,
+             article.bar_code                                                                                      AS code_barre,
+             article.quantite                                                                                      AS quantite_disponible,
+             delivery_request_article_line.quantity_to_pick                                                        AS quantite_a_prelever,
+             pack.code                                                                                             AS code_UL,
+             request_article_line_project.code                                                                     AS projet_article,
+             CONVERT(CAST(delivery_request_article_line.notes AS BINARY) USING utf8mb4) COLLATE utf8mb4_unicode_ci AS commentaire_article
 
       FROM demande
 
@@ -67,7 +67,6 @@ FROM (SELECT demande.id                                         AS id,
                LEFT JOIN emplacement AS destination ON demande.destination_id = destination.id
                LEFT JOIN type ON demande.type_id = type.id
                INNER JOIN delivery_request_article_line ON demande.id = delivery_request_article_line.request_id
-               INNER JOIN pack AS request_line_pack ON delivery_request_article_line.pack_id = request_line_pack.id
                LEFT JOIN project AS request_article_line_project ON delivery_request_article_line.project_id = request_article_line_project.id
                INNER JOIN article ON delivery_request_article_line.article_id = article.id
                LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
@@ -76,43 +75,43 @@ FROM (SELECT demande.id                                         AS id,
                LEFT JOIN project AS projet_article ON pack.project_id = projet_article.id
 
       UNION
-      SELECT demande.id                                       AS id,
-             demande.numero                                   AS numero,
-             demande.created_at                               AS date_creation,
-             demande.validated_at                             AS date_validation,
+      SELECT demande.id                                                                                              AS id,
+             demande.numero                                                                                          AS numero,
+             demande.created_at                                                                                      AS date_creation,
+             demande.validated_at                                                                                    AS date_validation,
              (SELECT MAX(livraison.date_fin)
               FROM demande AS sub_demande
                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-              WHERE sub_demande.id = demande.id)              AS date_traitement,
-             demande.expected_at                              AS date_attendue,
-             project.code                                     AS projet,
-             demandeur.username                               AS demandeur,
-             type.label                                       AS type,
-             statut.nom                                       AS statut,
+              WHERE sub_demande.id = demande.id)                                                                     AS date_traitement,
+             demande.expected_at                                                                                     AS date_attendue,
+             project.code                                                                                            AS projet,
+             demandeur.username                                                                                      AS demandeur,
+             type.label                                                                                              AS type,
+             statut.nom                                                                                              AS statut,
 
              (SELECT GROUP_CONCAT(preparation.numero SEPARATOR ' / ')
               FROM demande AS sub_demande
                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-              WHERE sub_demande.id IN (demande.id))           AS codes_preparations,
+              WHERE sub_demande.id IN (demande.id))                                                                  AS codes_preparations,
 
              (SELECT GROUP_CONCAT(livraison.numero SEPARATOR ' / ')
               FROM demande AS sub_demande
                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                        LEFT JOIN livraison on preparation.id = livraison.preparation_id
-              WHERE sub_demande.id IN (demande.id))           AS codes_livraisons,
+              WHERE sub_demande.id IN (demande.id))                                                                  AS codes_livraisons,
 
-             destination.label                                AS destination,
-             demande.receiver_id                              AS destinataire,
-             demande.cleaned_comment                          AS commentaire,
-             reference_article.reference                      AS reference_article,
-             reference_article.libelle                        AS libelle,
-             reference_article.bar_code                       AS code_barre,
-             reference_article.quantite_disponible            AS quantite_disponible,
-             delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever,
-             NULL                                             AS code_UL,
-             request_reference_line_project.code              AS projet_article,
-             delivery_request_reference_line.notes            AS commentaire_article
+             destination.label                                                                                       AS destination,
+             demande.receiver_id                                                                                     AS destinataire,
+             demande.cleaned_comment                                                                                 AS commentaire,
+             reference_article.reference                                                                             AS reference_article,
+             reference_article.libelle                                                                               AS libelle,
+             reference_article.bar_code                                                                              AS code_barre,
+             reference_article.quantite_disponible                                                                   AS quantite_disponible,
+             delivery_request_reference_line.quantity_to_pick                                                        AS quantite_a_prelever,
+             NULL                                                                                                    AS code_UL,
+             request_reference_line_project.code                                                                     AS projet_article,
+             CONVERT(CAST(delivery_request_reference_line.notes AS BINARY ) USING utf8mb4) COLLATE utf8mb4_unicode_ci AS commentaire_article
 
       FROM demande
 

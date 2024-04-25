@@ -274,7 +274,7 @@ class CartService {
             );
             $type = $manager->find(Type::class, $data['collectType']);
             $collectLocation = $manager->find(Emplacement::class, $data['location']);
-            $number = 'C-' . (new DateTime('now'))->format('YmdHis');
+            $number = $this->uniqueNumberService->create($manager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);
             $collectRequest = new Collecte();
 
             $collectRequest

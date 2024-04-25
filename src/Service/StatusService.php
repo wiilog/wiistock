@@ -118,7 +118,8 @@ class StatusService {
         'code' => 'string',
         'modes' => 'string[]',
         'needMobileSyncDisabled' => 'boolean',
-        'automaticReceptionCreationDisabled' => 'boolean'
+        'automaticReceptionCreationDisabled' => 'boolean',
+        'passStatusAtPurchaseOrderGenerationDisabled' => 'boolean'
     ])]
     public function getStatusStatesValues(?string $mode = null): array {
         return Stream::from([
@@ -128,20 +129,22 @@ class StatusService {
                 'code' => 'draft',
                 'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_DISPATCH],
                 'needMobileSyncDisabled' => true,
-                'automaticReceptionCreationDisabled' => true
+                'automaticReceptionCreationDisabled' => true,
+                'passStatusAtPurchaseOrderGenerationDisabled' => true,
             ],
             [
                 'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED,
                 'code' => 'notTreated',
-                'automaticReceptionCreationDisabled' => true
+                'automaticReceptionCreationDisabled' => true,
+                'passStatusAtPurchaseOrderGenerationDisabled' => true,
             ],
             [
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
                 'code' => 'inProgress',
                 'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING, StatusController::MODE_PRODUCTION],
-                'automaticReceptionCreationDisabled' => true
+                'automaticReceptionCreationDisabled' => true,
             ],
             [
                 'label' => 'Traité',
@@ -204,7 +207,10 @@ class StatusService {
                 $automaticReceptionCreationDisabled = !empty($state['automaticReceptionCreationDisabled'])
                     ? 'data-automatic-reception-creation-disabled=true'
                     : '';
-                return "<option value='{$state['id']}' {$selected} {$needMobileSyncDisabled} {$automaticReceptionCreationDisabled}>{$state['label']}</option>";
+                $passStatusAtPurchaseOrderGenerationDisabled = !empty($state['passStatusAtPurchaseOrderGenerationDisabled'])
+                    ? 'data-pass-status-at-purchase-order-generation-disabled=true'
+                    : '';
+                return "<option value='{$state['id']}' {$selected} {$needMobileSyncDisabled} {$automaticReceptionCreationDisabled} {$passStatusAtPurchaseOrderGenerationDisabled}>{$state['label']}</option>";
             });
 
         if($prependEmpty) {

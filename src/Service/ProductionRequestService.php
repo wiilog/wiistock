@@ -61,9 +61,6 @@ class ProductionRequestService
     public UniqueNumberService $uniqueNumberService;
 
     #[Required]
-    public FixedFieldService $fixedFieldService;
-
-    #[Required]
     public UserService $userService;
 
     #[Required]
@@ -113,8 +110,32 @@ class ProductionRequestService
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
 
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->security->getUser());
+        $fromDashboard = $request->query->getBoolean('fromDashboard');
+
+        if (!$fromDashboard) {
+            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->userService->getUser());
+        } else {
+            $preFilledStatuses = $request->query->has('filterStatus')
+                ? implode(",", $request->query->all('filterStatus'))
+                : [];
+            $preFilledTypes = $request->query->has('preFilledTypes')
+                ? implode(",", $request->query->all('preFilledTypes'))
+                : [];
+
+            $preFilledFilters = [
+                [
+                    'field' => 'statuses-filter',
+                    'value' => $preFilledStatuses,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
+                    'value' => $preFilledTypes,
+                ],
+            ];
+
+            $filters = $preFilledFilters;
+        }
 
         $queryResult = $productionRepository->findByParamsAndFilters(
             $request->request,
@@ -190,7 +211,8 @@ class ProductionRequestService
                                             ProductionRequest      $productionRequest,
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
-                                            FileBag                $fileBag): ProductionRequest {
+                                            FileBag                $fileBag,
+                                            bool $fromUpdateStatus = false): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -285,7 +307,9 @@ class ProductionRequestService
             $productionRequest->setComment($data->get(FixedFieldEnum::comment->name));
         }
 
-        $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+        if(!$fromUpdateStatus){
+            $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+        }
 
         $this->persistHistoryRecords(
             $entityManager,
@@ -485,6 +509,17 @@ class ProductionRequestService
             $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$productionRequest->getLineCount()}<br>";
         }
 
+        Stream::from($productionRequest->getFreeFields())
+            ->each(function($freeFieldValue, $freeFieldId) use ($oldValues, $productionRequest, &$message) {
+                $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
+                $freeField = $freeFieldRepository->find($freeFieldId);
+                $freeFieldAdded = (!isset($oldValues[$freeFieldId]) && (!empty($freeFieldValue) || $freeField->getTypage() === FreeField::TYPE_BOOL));
+                $freeFieldEdited = (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue);
+                if ($freeFieldAdded || $freeFieldEdited){
+                    $message .= "<strong>{$freeField->getLabel()}</strong> : {$this->formatService->freeField($freeFieldValue, $freeField)} <br>";
+                }
+            });
+
         return $message;
     }
 
@@ -642,8 +677,6 @@ class ProductionRequestService
                                             array                  $data,
                                             Utilisateur            $importUser,
                                             ?bool                  &$isCreation): void {
-
-        $updateStats = $updateStats ?? fn() => null;
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);

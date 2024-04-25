@@ -39,7 +39,7 @@ function addArticleFournisseurReferenceArticle($plusButton) {
         }).then((response) => {
             $(response).insertBefore($plusButton.parent());
             Select2Old.provider($('.ajax-autocomplete-fournisseur'));
-            Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
+            Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'supplier_find_by_name');
         });
     }
 }

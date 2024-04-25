@@ -798,8 +798,7 @@ class MobileController extends AbstractApiController
                                 LivraisonsManagerService   $livraisonsManager,
                                 TrackingMovementService    $trackingMovementService,
                                 PreparationsManagerService $preparationsManager,
-                                EntityManagerInterface     $entityManager)
-    {
+                                EntityManagerInterface     $entityManager) {
         $insertedPrepasIds = [];
         $statusCode = Response::HTTP_OK;
 
@@ -2252,6 +2251,7 @@ class MobileController extends AbstractApiController
                 'category' => $type->getCategory()->getLabel(),
                 'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
                 'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
+                'reusableStatuses' => $type->hasReusableStatuses(),
             ])->toArray();
 
         if ($rights['inventoryManager']) {

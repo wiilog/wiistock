@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité')}} | {{ trans('Traçabilité', 'Mouvements', 'Mouvements') }}{% endblock %}
 
@@ -77,21 +78,50 @@
         </div>
     </div>
 
-    <input id="trackingMovementFilters" value="{{ initial_filters }}" type="hidden">
-    <input type="hidden" id="redirectAfterTrackingMovementCreation" value="{{ redirectAfterTrackingMovementCreation }}">
+    {{ form.hidden('trackingMovementFilters', initial_filters) }}
+
     {% if filterArticle %}
-        <input id="filterArticle" value="{{ filterArticle.id }}" type="hidden">
+        {{ form.hidden('filterArticle', filterArticle.id) }}
     {% endif %}
 
-    {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
-    {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
-    {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
-    {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
+    {% include "tracking_movement/form/new.html.twig" %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditMvtTraca',
+        size: 'modal-lg',
+        header: {
+            title: trans('Traçabilité', 'Mouvements', 'Modifier un mouvement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+            ],
+        }
+    } %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalShowMvtTraca',
+        header: {
+            title: trans('Traçabilité', 'Mouvements', 'Détail de mouvement', false)
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')}
+            ],
+            hideErrorContainer: true,
+        }
+    } %}
+
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'tableMvts',
         'route': 'save_column_visible_for_tracking_movement'
     } %}
+
+
+    {% set setting = constant('App\\Entity\\Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT') %}
+    {{ form.hidden(setting , setting_value(setting)) }}
 {% endblock %}
 
 {% block javascripts %}

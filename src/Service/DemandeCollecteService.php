@@ -56,6 +56,9 @@ class DemandeCollecteService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 StringService $stringService,
@@ -263,7 +266,8 @@ class DemandeCollecteService
                 ->setEmplacement($collecte->getPointCollecte())
                 ->setArticleFournisseur($articleFournisseur)
                 ->setType($referenceArticle->getType())
-                ->setBarCode($this->articleDataService->generateBarcode());
+                ->setBarCode($this->articleDataService->generateBarcode())
+                ->setStockEntryDate($date);
             $this->entityManager->persist($article);
         }
 
@@ -436,7 +440,7 @@ class DemandeCollecteService
         ];
     }
 
-    public function createDemandeCollecte(EntityManagerInterface $entityManager, array $data): Collecte{
+    public function createDemandeCollecte(EntityManagerInterface $entityManager, array $data): Collecte {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -444,7 +448,7 @@ class DemandeCollecteService
         $date = new DateTime('now');
 
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
-        $numero = 'C-' . $date->format('YmdHis');
+        $numero = $this->uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);
         $collecte = new Collecte();
         $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
         $type = $typeRepository->find($data['type']);

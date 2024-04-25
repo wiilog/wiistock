@@ -145,14 +145,14 @@
             </div>
         </div>
     </div>
-    <div class="row my-2 toToggle livraison">
+    <div class="row my-2 toToggle livraison preparation">
         <div class="col-12">
             <div class="wii-checkbox pl-0 pointer">
                 <label class="pointer d-flex align-items-center">
                     <input name="displayDeliveryOrderContentCheckbox"
                            class="data"
                            type="checkbox" {{ displayDeliveryOrderContentCheckbox ? 'checked' : '' }}>
-                    Afficher le contenu des {{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}
+                    Afficher le contenu des ordres
                 </label>
             </div>
             <div class="col-12 mt-2 {{ not displayDeliveryOrderContentCheckbox ? 'd-none' }}">
@@ -165,7 +165,7 @@
                 <div>
                     <label class="pointer">
                         <input type="radio" class="data" name="displayDeliveryOrderContent" value="displayArticlesCount" {{ displayDeliveryOrderContent == "displayArticlesCount" ? 'checked' }}>
-                        Afficher le nombre d'articles à livrer (valable pour les {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}s de références gérées en article)</label>
+                        Afficher le nombre d'articles à livrer (valable pour les références gérées en article)</label>
                 </div>
             </div>
         </div>
