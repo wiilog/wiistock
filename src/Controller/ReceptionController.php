@@ -149,6 +149,7 @@ class ReceptionController extends AbstractController {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
+            /** @var Reception $reception */
             $reception = $receptionRepository->find($data->getInt('receptionId'));
 
             $statut = $statutRepository->find($data->getInt('statut'));
@@ -203,14 +204,22 @@ class ReceptionController extends AbstractController {
                 $reception->setCommentaire($data->get('commentaire'));
             }
 
-            $reception->removeIfNotIn($data->get('files') ?: []);
+            $listAttachmentIdToKeep = $request->request->all('files') ?: [];
+            $attachments = $reception->getAttachments()->toArray();
 
-            $entityManager->flush();
+            foreach ($attachments as $attachment) {
+                /** @var Attachment $attachment */
+                if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+                    $attachmentService->removeAndDeleteAttachment($attachment, $reception);
+                }
+            }
+
+            $attachmentService->persistAttachments($reception, $request, $entityManager);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
-            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
+
             $json = [
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,

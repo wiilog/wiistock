@@ -277,7 +277,7 @@ class ArrivageController extends AbstractController {
                 $arrivage->addAcheteur($userRepository->find($acheteurId));
             }
         }
-        $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachmentsForEntity($arrivage, $request, $entityManager);
 
         $natures = Stream::from(isset($data['packs']) ? json_decode($data['packs'], true) : [])
             ->filter()
@@ -504,7 +504,8 @@ class ArrivageController extends AbstractController {
                          SpecificService        $specificService,
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         AttachmentService      $attachmentService,): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -637,7 +638,7 @@ class ArrivageController extends AbstractController {
             }
         }
 
-        $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachmentsForEntity($arrivage, $request, $entityManager);
 
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
@@ -863,7 +864,8 @@ class ArrivageController extends AbstractController {
                                DisputeService         $disputeService,
                                EntityManagerInterface $entityManager,
                                UniqueNumberService    $uniqueNumberService,
-                               TranslationService    $translation): Response
+                               TranslationService     $translation,
+                               AttachmentService      $attachmentService,): Response
     {
         $post = $request->request;
 
@@ -927,7 +929,7 @@ class ArrivageController extends AbstractController {
 
         $entityManager->persist($historyRecord);
 
-        $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachmentsForEntity($dispute, $request, $entityManager);
         try {
             $entityManager->flush();
         }
@@ -1119,7 +1121,8 @@ class ArrivageController extends AbstractController {
                                ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
-                               Twig_Environment       $templating): Response
+                               Twig_Environment       $templating,
+                               AttachmentService      $attachmentService,): Response
     {
         $post = $request->request;
 
@@ -1197,7 +1200,7 @@ class ArrivageController extends AbstractController {
             }
         }
 
-        $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachmentsForEntity($dispute, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBefore !== $statutAfter);
         if ($isStatutChange) {
@@ -1469,16 +1472,6 @@ class ArrivageController extends AbstractController {
         }
 
         return $response;
-    }
-
-    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
     }
 
     /**

@@ -52,7 +52,7 @@ class ReserveController extends AbstractController
                 throw new FormException('Le type de réserve est obligatoire');
             }
 
-            $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
+            $attachmentService->persistAttachmentsForEntity($reserve, $request, $entityManager);
         } else {
             if (!empty($data['hasGeneralReserve']) || !empty($data['hasQuantityReserve'])) {
                 $type = $data['type'] ?? null;
@@ -159,13 +159,4 @@ class ReserveController extends AbstractController
         ]);
     }
 
-    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-    }
 }

@@ -598,7 +598,8 @@ class DispatchController extends AbstractController {
                          DispatchService        $dispatchService,
                          TranslationService     $translationService,
                          FreeFieldService       $freeFieldService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         AttachmentService      $attachmentService,): Response
     {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -629,7 +630,7 @@ class DispatchController extends AbstractController {
             }
         }
 
-        $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachments($dispatch, $request, $entityManager);
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
@@ -871,18 +872,6 @@ class DispatchController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function persistAttachments(Dispatch $entity,
-                                        AttachmentService $attachmentService,
-                                        Request $request,
-                                        EntityManagerInterface $entityManager): void {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-        $entityManager->flush();
-    }
 
     #[Route("/dispatch-editable-logistic-unit-columns-api", name: "dispatch_editable_logistic_unit_columns_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]

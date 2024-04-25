@@ -3,10 +3,13 @@
 namespace App\Service;
 
 use App\Entity\Attachment;
+use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\TrackingMovement;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
@@ -160,5 +163,34 @@ class AttachmentService {
         file_put_contents($filePath, $data);
 
         return $filePath;
+    }
+
+    public function persistAttachments(AttachmentContainer $attachmentContainer,
+                                        Request $request,
+                                        EntityManagerInterface $entityManager,
+                                        array $options = []): void {
+        $isAddToDispatch = $options['addToDispatch'] ?? false;
+        $attachments = $this->createAttachments($request->files);
+        foreach($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $attachmentContainer->addAttachment($attachment);
+            if ($attachmentContainer instanceof TrackingMovement && $isAddToDispatch && $attachmentContainer->getDispatch()) {
+                $attachmentContainer->getDispatch()->addAttachment($attachment);
+            }
+        }
+        $entityManager->persist($attachmentContainer);
+        $entityManager->flush();
+    }
+
+    public function persistAttachmentsForEntity(AttachmentContainer $attachmentContainer,
+                                                 Request $request,
+                                                 EntityManagerInterface $entityManager)
+    {
+        $attachments = $this->createAttachments($request->files);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $attachmentContainer->addAttachment($attachment);
+        }
+        $entityManager->persist($attachmentContainer);
     }
 }

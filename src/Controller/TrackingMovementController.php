@@ -303,22 +303,11 @@ class TrackingMovementController extends AbstractController
             }
         }
 
-        if (isset($fileBag)) {
-            $fileNames = [];
-            foreach ($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            foreach ($createdMouvements as $mouvement) {
-                $this->persistAttachments($mouvement, $attachmentService, $fileNames, $entityManager);
-            }
-        }
-
         foreach ($createdMouvements as $mouvement) {
             $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
+            $attachmentService->persistAttachments($mouvement, $request, $entityManager);
         }
+
         $countCreatedMouvements = count($createdMouvements);
         $entityManager->flush();
 
@@ -454,7 +443,7 @@ class TrackingMovementController extends AbstractController
                 $attachmentService->removeAndDeleteAttachment($attachment, $mvt);
             }
         }
-        $this->persistAttachments($mvt, $attachmentService, $request->files, $entityManager, ['addToDispatch' => true]);
+        $attachmentService->persistAttachments($mvt, $request, $entityManager, ['addToDispatch' => true]);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
         $entityManager->flush();
 
@@ -627,19 +616,6 @@ class TrackingMovementController extends AbstractController
             "error" => false,
             "quantity" => $quantity > 0 ? $quantity : null, //regle de gestion : l'UL doit contenir au moins un article pour qu'on grise le champ
         ]);
-    }
-
-    private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager ,  array $options = [])
-    {
-        $isAddToDispatch = $options['addToDispatch'] ?? false;
-        $attachments = $attachmentService->createAttachments($files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $trackingMovement->addAttachment($attachment);
-            if ($isAddToDispatch && $trackingMovement->getDispatch()) {
-                $trackingMovement->getDispatch()->addAttachment($attachment);
-            }
-        }
     }
 
     private function treatPersistTrackingError(array $res): array {

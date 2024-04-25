@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\HandlingRepository;
 use DateTime;
@@ -13,9 +15,10 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HandlingRepository::class)]
-class Handling extends StatusHistoryContainer{
+class Handling extends StatusHistoryContainer implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
+    use AttachmentTrait;
 
     const CATEGORIE = 'service';
     const NUMBER_PREFIX = 'S';

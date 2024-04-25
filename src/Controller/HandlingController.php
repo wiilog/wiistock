@@ -357,9 +357,7 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
-
-        $entityManager->flush();
+        $attachmentService->persistAttachments($handling, $request, $entityManager);
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([
@@ -369,16 +367,6 @@ class HandlingController extends AbstractController {
 
     }
 
-    private function persistAttachments(Handling $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-        $entityManager->flush();
-    }
 
     #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
