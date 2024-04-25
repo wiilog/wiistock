@@ -56,8 +56,7 @@ class KioskService
         return str_replace('_', '_5F', $labelText);
     }
 
-    public function testPrintWiispool(array $options, ?Article $article = null): ?Response
-    {
+    public function testPrintWiispool(array $options, ?Article $article = null): PdfResponse {
         $barcodeConfig = $article ? [$this->articleDataService->getBarcodeConfig($article, null, true)] : [[
             'code' => $options[0]['barcode'],
             'labels' => [$options[0]['text']],
