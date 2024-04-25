@@ -45,7 +45,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CREATE_DL_AFTER_RECEPTION => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                SpecificService::CLIENT_001 => true
             ],
             Setting::CREATE_PREPA_AFTER_DL => [
                 'default' => true,
@@ -77,7 +77,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::INCLUDE_BL_IN_LABEL => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                SpecificService::CLIENT_001 => true
             ],
             Setting::REDIRECT_AFTER_NEW_ARRIVAL => [
                 'default' => true,

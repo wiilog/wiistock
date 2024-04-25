@@ -16,7 +16,7 @@ class SpecificService
 
     const DEFAULT_CLIENT_LABEL= 'WiiStock';
 
-	const CLIENT_COLLINS_VERNON = 'collins-vernon';
+	const CLIENT_001 = '001';
 	const CLIENT_COLLINS_SOA = 'collins-soa';
 	const CLIENT_CEA_LETI = 'cea-leti';
 	const CLIENT_SAFRAN_CS = 'safran-cs';
@@ -33,7 +33,7 @@ class SpecificService
 
     public const SPECIFIC_DASHBOARD_REFRESH_RATE = [
         self::CLIENT_SAFRAN_MC => 1,
-        self::CLIENT_COLLINS_VERNON=> 1,
+        self::CLIENT_001=> 1,
         self::CLIENT_SAFRAN_CS=> 1,
     ];
 

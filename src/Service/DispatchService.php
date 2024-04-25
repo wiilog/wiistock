@@ -1170,7 +1170,7 @@ class DispatchService {
         $overConsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
-        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_001)) {
             $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
             $freeFieldValues = $dispatch->getFreeFields();
 
