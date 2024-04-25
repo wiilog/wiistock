@@ -30,6 +30,7 @@ function initPageDataTable() {
             {data: 'lastLift', name: 'lastLift', title: 'Dernière remontée'},
             {data: 'battery', name: 'battery', title: 'Niveau de batterie'},
             {data: 'manager', name: 'manager', title: 'Gestionnaire'},
+            {data: 'inactivityAlertThreshold', name: 'inactivityAlertThreshold', title: 'Seuil d\'alerte d\'inactivité (minutes)'}
         ]
     };
 

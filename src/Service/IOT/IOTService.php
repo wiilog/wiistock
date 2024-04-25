@@ -71,6 +71,8 @@ class IOTService
     const KOOVEA_HUB = 'Hub GPS Koovea';
     const DEMO_TEMPERATURE = 'demo-temperature';
     const DEMO_ACTION = 'demo-action';
+    const YOKOGAWA_XS550_XS110A = 'yokogawa-xs550-xs110A';
+    const MULTITECH_GATEWAY = 'gateway_multitech';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 2,
@@ -85,6 +87,8 @@ class IOTService
         self::INEO_INS_EXTENDER => 0,
         self::INEO_TRK_TRACER => 3,
         self::INEO_TRK_ZON => 0,
+        self::YOKOGAWA_XS550_XS110A => 2,
+        self::MULTITECH_GATEWAY => 0,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -102,6 +106,8 @@ class IOTService
         self::INEO_INS_EXTENDER => Sensor::EXTENDER,
         self::INEO_TRK_TRACER => Sensor::TRACER,
         self::INEO_TRK_ZON => Sensor::ZONE,
+        self::YOKOGAWA_XS550_XS110A => Sensor::TEMPERATURE,
+        self::MULTITECH_GATEWAY => Sensor::GATEWAY,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -117,6 +123,8 @@ class IOTService
         self::INEO_INS_EXTENDER => 'au message reçu',
         self::INEO_TRK_ZON => 'à l\'action',
         self::INEO_TRK_TRACER => 'à l\'action',
+        self::YOKOGAWA_XS550_XS110A => 'x minutes',
+        self::MULTITECH_GATEWAY =>'x minutes',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -140,6 +148,7 @@ class IOTService
         self::DATA_TYPE_ZONE_ENTER => 'Entrée zone',
         self::DATA_TYPE_ZONE_EXIT => 'Sortie zone',
         self::DATA_TYPE_LIVENESS_PROOF => 'Présence',
+        self::DATA_TYPE_ERROR => 'Erreur'
     ];
 
     const DATA_TYPE_TO_UNIT = [
@@ -584,6 +593,7 @@ class IOTService
 
         $deviceCode = match ($loRaWANServer) {
             LoRaWANServer::ChirpStack => $message['deviceName'] ?? null,
+            LoRaWANServer::NodeRed => str_replace('-', '', $message['data']['eui']),
             default => $message['metadata']["network"]["lora"]["devEUI"] ?? null,
         };
 
@@ -607,20 +617,23 @@ class IOTService
             return [];
         }
 
-        $profile =  $device->getProfile()->getName();
+        $profile = $device->getProfile()->getName();
 
         $payload = match ($loRaWANServer) {
             LoRaWANServer::ChirpStack => json_decode($message['objectJSON'] ?? "{}", true)['payload'] ?? null,
+            LoRaWANServer::NodeRed => Stream::from($message["data"]["payload"])->map(static fn(int $num) => dechex($num))->map(static fn(string $ex) => strlen($ex) === 1 ? ("0" . $ex) : $ex)->join(''),
             default => $message['value']['payload'] ?? null,
         };
 
         $frameIsValid = $this->validateFrame($profile, $payload);
-        if(!$frameIsValid){
+        if (!$frameIsValid) {
             return [];
         }
 
-        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile );
+        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile, $payload);
         $wrapper = $device->getAvailableSensorWrapper();
+        $wrapper->setInactivityAlertSent(false);
+        $entityManager->flush($wrapper);
 
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
@@ -637,7 +650,7 @@ class IOTService
         }
         $entityManager->flush();
 
-        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
+        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName(), $payload);
         if ( $device->getType()->getLabel() === Sensor::EXTENDER
             && array_key_exists(self::DATA_TYPE_PAYLOAD, $mainDatas)
             && array_key_exists(self::DATA_TYPE_SENSOR_CLOVER_MAC, $mainDatas)) {
@@ -682,7 +695,7 @@ class IOTService
     }
 
     public function linkWithSubEntities(EntityManagerInterface $entityManager,
-                                        SensorMessage $sensorMessage) {
+                                        SensorMessage $sensorMessage): void {
         $packRepository = $entityManager->getRepository(Pack::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -778,7 +791,7 @@ class IOTService
         $request->addSensorMessage($sensorMessage);
     }
 
-    private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
+    private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage): void {
         $preparation->addSensorMessage($sensorMessage);
         $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
         foreach ($preparation->getArticleLines() as $article) {
@@ -786,7 +799,7 @@ class IOTService
         }
     }
 
-    private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage) {
+    private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage): void {
         $ordreCollecte->addSensorMessage($sensorMessage);
         $this->treatAddMessageCollectRequest($ordreCollecte->getDemandeCollecte(), $sensorMessage);
         foreach ($ordreCollecte->getArticles() as $article) {
@@ -794,24 +807,24 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config, string $profile): array {
+    public function extractMainDataFromConfig(array $config, string $profile, string $payload): array {
         switch ($profile) {
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
-                $temperature = $this->convertHexToSignedInt($hexTemperature);
+                $temperature = $this->convertHexToSignedNumber($hexTemperature);
                 $hexHygrometry = substr($config['value']['payload'], 66, 2);
-                $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
+                $hygrometry = $this->convertHexToSignedNumber($hexHygrometry);
                 return [
                     self::DATA_TYPE_TEMPERATURE => $temperature,
                     self::DATA_TYPE_HYGROMETRY => $hygrometry,
                 ];
             case IOTService::INEO_SENS_ACS_TEMP:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
-                $temperature = $this->convertHexToSignedInt($hexTemperature);
+                $temperature = $this->convertHexToSignedNumber($hexTemperature);
                 return [self::DATA_TYPE_TEMPERATURE => $temperature,];
             case IOTService::INEO_SENS_ACS_HYGRO:
                 $hexHygrometry = substr($config['value']['payload'], 66, 2);
-                $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
+                $hygrometry = $this->convertHexToSignedNumber($hexHygrometry);
                 return [self::DATA_TYPE_HYGROMETRY => $hygrometry,];
             case IOTService::KOOVEA_TAG:
                 return [self::DATA_TYPE_TEMPERATURE => $config['value']];
@@ -825,7 +838,7 @@ class IOTService
                 if (isset($config['value']['payload'])) {
                     // TODO WIIS-10287 check $config['payload_cleartext']
                     $value = hexdec(substr($config['value']['payload'], 0, 2));
-                    $event =  $value & ~($value >> 3 << 3);
+                    $event = $value & ~($value >> 3 << 3);
                     return [self::DATA_TYPE_ACTION => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
                 }
                 break;
@@ -856,7 +869,7 @@ class IOTService
                 } else if (str_starts_with($frame, '12')) {
                     $payloadSizeHexa = substr($frame, 12, 2);
                     // Convert hexa to decimal and multiply by 2 to get the number of bytes plus 2 for the header
-                    $payloadSize = hexdec($payloadSizeHexa)*2+2;
+                    $payloadSize = hexdec($payloadSizeHexa) * 2 + 2;
                     return [
                         self::DATA_TYPE_SENSOR_CLOVER_MAC => substr($frame, 2, 8),
                         self::DATA_TYPE_PAYLOAD => substr($frame, 14, $payloadSize),
@@ -872,7 +885,7 @@ class IOTService
 
                 if ($zone) {
                     $eventType = match ($event['eventType'] ?? null) {
-                        5 => self::DATA_TYPE_ZONE_ENTER ,
+                        5 => self::DATA_TYPE_ZONE_ENTER,
                         6 => self::DATA_TYPE_ZONE_EXIT,
                         default => null,
                     };
@@ -884,9 +897,25 @@ class IOTService
                 }
                 break;
             case IOTService::INEO_TRK_ZON:
+            case IOTService::MULTITECH_GATEWAY:
                 return [
                     self::DATA_TYPE_LIVENESS_PROOF => true,
                 ];
+            case IOTService::YOKOGAWA_XS550_XS110A:
+                if (str_starts_with($payload, "20") || str_starts_with($payload, "21")) {
+                    if (substr($payload, 2, 2) == "15") {
+                        return [self::DATA_TYPE_ERROR => 0];
+                    } else {
+                        $temperature = substr($payload, 6, 8);
+                        return [self::DATA_TYPE_TEMPERATURE => $this->convertHexToSignedNumber($temperature, false)];
+                    }
+                } else if (str_starts_with($payload,"40")) {
+                    return [
+                        self::DATA_TYPE_LIVENESS_PROOF => true,
+                    ];
+                } else {
+                    return [];
+                }
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -900,6 +929,8 @@ class IOTService
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
             case IOTService::INEO_SENS_ACS_HYGRO:
+            case IOTService::YOKOGAWA_XS550_XS110A:
+            case IOTService::MULTITECH_GATEWAY:
             case IOTService::INEO_TRK_ZON:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
@@ -947,7 +978,7 @@ class IOTService
         return 'Évenement non trouvé';
     }
 
-    public function extractBatteryLevelFromMessage(array $config, string $profile) {
+    public function extractBatteryLevelFromMessage(array $config, string $profile, string $payload) {
         switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
@@ -997,7 +1028,7 @@ class IOTService
             case IOTService::INEO_TRK_ZON:
                 $jsonData = json_decode($config['objectJSON'], true);
                 $events = $jsonData['events'] ?? [];
-                $batteryEvent = Stream::from($events)->find(static fn(array $event) => (int)$event['eventType'] == 4 ) ?? [];
+                $batteryEvent = Stream::from($events)->find(static fn(array $event) => (int)$event['eventType'] == 4) ?? [];
                 $batteryLevel = $batteryEvent['numValue'] ?? null;
                 if (!$batteryLevel) {
                     $payload = $jsonData['payload'] ?? null;
@@ -1006,6 +1037,14 @@ class IOTService
                     }
                 }
                 return $batteryLevel ?? -1;
+            case IOTService::YOKOGAWA_XS550_XS110A:
+                if (str_starts_with($payload, "40")) {
+                    $battery = substr($payload, 8, 2);
+                    return hexdec($battery) / 2;
+                } else {
+                    return -1;
+                }
+
         }
         return -1;
     }
@@ -1309,16 +1348,24 @@ class IOTService
             IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
+            IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
 
             default => true,
         };
     }
 
-    private function convertHexToSignedInt(string $hexStr): string {
-        $dec = hexdec($hexStr);
-        $isNegative = $dec & pow(16, strlen($hexStr)) / 2;
-        return $isNegative
-            ? $dec - pow(16, strlen($hexStr))
-            : $dec;
+    private function convertHexToSignedNumber(string $hexStr, bool $isInt = true): string {
+        if($isInt) {
+            $dec = hexdec($hexStr);
+            $isNegative = $dec & pow(16, strlen($hexStr)) / 2;
+            return $isNegative
+                ? $dec - pow(16, strlen($hexStr))
+                : $dec;
+        } else {
+            $hex = sscanf($hexStr, "%02x%02x%02x%02x%02x%02x%02x%02x");
+            $bin = implode('', array_map('chr', $hex));
+            $array = unpack("Gnum", $bin);
+            return round(floatval($array['num']),2);
+        }
     }
 }

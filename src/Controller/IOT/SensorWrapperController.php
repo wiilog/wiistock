@@ -56,10 +56,8 @@ class SensorWrapperController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="sensor_wrapper_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route("/api", name: "sensor_wrapper_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function api(Request $request,
                         SensorWrapperService $sensorWrapperService): Response {
         $data = $sensorWrapperService->getDataForDatatable($request->request);
@@ -136,7 +134,8 @@ class SensorWrapperController extends AbstractController
         $sensorWrapper
             ->setName($name)
             ->setManager($manager)
-            ->setSensor($sensor);
+            ->setSensor($sensor)
+            ->setInactivityAlertThreshold((int)($post['inactivityAlertThreshold'] ?? null));
 
         $freeFieldService->manageFreeFields($sensorWrapper, $post, $entityManager);
 
@@ -151,10 +150,8 @@ class SensorWrapperController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="sensor_wrapper_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::EDIT})
-     */
+    #[Route("/api-modifier", name: "sensor_wrapper_edit_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::EDIT])]
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -169,10 +166,8 @@ class SensorWrapperController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="sensor_wrapper_edit", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::IOT, Action::EDIT})
-     */
+    #[Route("/modifier", name: "sensor_wrapper_edit", options: ["expose" => true], methods: [self::POST])]
+    #[HasPermission([Menu::IOT, Action::EDIT])]
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
                          FreeFieldService $freeFieldService): Response {
@@ -201,7 +196,8 @@ class SensorWrapperController extends AbstractController
 
         $sensorWrapper
             ->setName($name)
-            ->setManager($manager);
+            ->setManager($manager)
+            ->setInactivityAlertThreshold((int)($post['inactivityAlertThreshold'] ?? null));
 
         $freeFieldService->manageFreeFields($sensorWrapper, $post, $entityManager);
 

@@ -139,7 +139,6 @@ class SensorMessage {
 
     public function setContentType(?int $contentType): self {
         $this->contentType = $contentType;
-
         return $this;
     }
 
