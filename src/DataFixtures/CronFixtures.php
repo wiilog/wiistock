@@ -16,6 +16,7 @@ use App\Command\Cron\MailsLitigesComand;
 use App\Command\Cron\RemindPackDeliveriesCommand;
 use App\Command\Cron\ScheduledExportCommand;
 use App\Command\Cron\ScheduleInventoryMissionCommand;
+use App\Command\InactiveSensorsCommand;
 use App\Command\ScheduledPurchaseRequestCommand;
 use App\Service\SpecificService;
 use Cron\CronBundle\Entity\CronJob;
@@ -126,7 +127,7 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'description' => '',
         ],
         [
-            'command' => InventoryStatusUpdateCommand::COMMAND_NAME,
+            'command' => InactiveSensorsCommand::COMMAND_NAME,
             'schedule' => '*/1 * * * *',
             'description' => '',
         ]
