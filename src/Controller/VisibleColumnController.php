@@ -38,7 +38,7 @@ class VisibleColumnController extends AbstractController {
                          EntityManagerInterface $manager,
                          VisibleColumnService   $visibleColumnService): Response {
         if (!in_array($page, self::PAGES)) {
-            throw new FormException("Unkown visible columns page.");
+            throw new FormException("Unknown visible columns page.");
         }
 
         $displayedColumns = $request->request->keys();
