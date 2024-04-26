@@ -429,10 +429,8 @@ class ArrivageController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
-     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     */
+    #[Route("/{arrival}/urgent", name: "patch_arrivage_urgent", options: ["expose" => true], methods: [self::PATCH], condition: "request.isXmlHttpRequest()")]
+    #[Entity("arrival", expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
                                        ArrivageService $arrivageDataService,
