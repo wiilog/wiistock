@@ -22,7 +22,7 @@ How to use :
         <a class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="{{ icon is defined ? icon : 'wii-icon wii-icon-dots wii-icon-20px bg-black' }}"></i>
         </a>
-        <div class="dropdown-menu dropdown-follow-gt pointer {{ dropdownDirection }}">
+        <div class="dropdown-menu dropdown-follow-wiilog pointer {{ dropdownDirection }}">
             {% for action in actionsFiltered %}
                 {{ common.dropdownItem(action) }}
             {% endfor %}

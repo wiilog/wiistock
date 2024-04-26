@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
+        <div class="dropdown-menu dropdown-follow-wiilog pointer">
             {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="dropdown-item"
                      data-toggle="modal"
