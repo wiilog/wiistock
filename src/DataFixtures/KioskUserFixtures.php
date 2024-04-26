@@ -43,7 +43,7 @@ class KioskUserFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)){
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)){
             $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($this->entityManager);
             $roleRepository = $this->entityManager->getRepository(Role::class);
             $userRepository = $this->entityManager->getRepository(Utilisateur::class);

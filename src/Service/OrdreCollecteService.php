@@ -300,7 +300,7 @@ class OrdreCollecteService
                 ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
                 : $demandeCollecte->getDemandeur();
 
-            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
                 $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
                     ->map(fn(Utilisateur $manager) => $manager->getEmail())
                     ->toArray();

@@ -49,9 +49,9 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => DashboardFeedCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_001 => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_001] .' * * * *',
-                SpecificService::CLIENT_SAFRAN_CS => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_SAFRAN_CS] . ' * * * *',
-                SpecificService::CLIENT_SAFRAN_MC => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_SAFRAN_MC] . ' * * * *',
+                SpecificService::CLIENT_BARBECUE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_BARBECUE] .' * * * *',
+                SpecificService::CLIENT_POTEE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_POTEE] . ' * * * *',
+                SpecificService::CLIENT_QUICHE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_QUICHE] . ' * * * *',
                 'default' => '*/' . SpecificService::DEFAULT_CLIENT_LABEL . ' * * * *',
             ],
             'description' => '',
@@ -74,8 +74,8 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => MailsLitigesComand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_SAFRAN_CS => '0 8 * * *',
-                SpecificService::CLIENT_SAFRAN_MC => '0 8 * * *',
+                SpecificService::CLIENT_POTEE => '0 8 * * *',
+                SpecificService::CLIENT_QUICHE => '0 8 * * *',
             ],
             'description' => '',
         ],
@@ -107,14 +107,14 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => KooveaHubsCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_CLB => '*/1 * * * *'
+                SpecificService::CLIENT_TARTIFLETTE => '*/1 * * * *'
             ],
             'description' => '',
         ],
         [
             'command' => KooveaTagsCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_CLB => '*/5 * * * *'
+                SpecificService::CLIENT_TARTIFLETTE => '*/5 * * * *'
             ],
             'description' => '',
         ],
