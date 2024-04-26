@@ -118,7 +118,7 @@ class Action {
     const DISPLAY_ARTI = 'afficher articles';
     const DISPLAY_REFE = 'afficher références';
     const DISPLAY_ARTI_FOUR = 'afficher articles fournisseurs';
-    const DISPLAY_MOUV_STOC = 'afficher mouvements de stock';
+    const DISPLAY_MOUV_STOCK = 'afficher mouvements de stock';
     const DISPLAY_INVE = 'afficher inventaires';
     const DISPLAY_ALER = 'afficher alertes';
     const INVENTORY_MANAGER = 'gestionnaire d\'inventaire';

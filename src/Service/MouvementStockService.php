@@ -4,9 +4,12 @@ namespace App\Service;
 
 use App\Controller\Settings\SettingsController;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
@@ -38,6 +41,9 @@ class MouvementStockService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
+
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -45,7 +51,7 @@ class MouvementStockService
 
 		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $user);
 
-		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters, $user);
+		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters, $this->visibleColumnService, $user);
 
 		$mouvements = $queryResult['data'];
 
@@ -101,7 +107,8 @@ class MouvementStockService
 			'unitPrice' => $mouvement->getUnitPrice(),
 			'actions' => $this->templating->render('mouvement_stock/datatableMvtStockRow.html.twig', [
 				'mvt' => $mouvement,
-			])
+			]),
+            'comment' => $mouvement->getComment() ?: '',
 		];
     }
 
@@ -120,12 +127,15 @@ class MouvementStockService
         };
 
         $operator = match($type) {
-            MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_INVENTAIRE_ENTREE => "+&nbsp;",
-            MouvementStock::TYPE_SORTIE, MouvementStock::TYPE_INVENTAIRE_SORTIE => "-&nbsp;",
+            MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_INVENTAIRE_ENTREE => "+",
+            MouvementStock::TYPE_SORTIE, MouvementStock::TYPE_INVENTAIRE_SORTIE => "-",
             default => ''
         };
 
-        return "<span style='font-weight: bold; color: {$color};'>{$operator}{$quantity}</span>";
+        return "<div class='d-flex w-100'>
+                    <span style='font-weight: bold; color: {$color}; width:10px; height: auto;'>{$operator}</span>
+                    <span style='font-weight: bold; color: {$color};'>{$quantity}</span>
+                </div>";
 
     }
 
@@ -305,6 +315,7 @@ class MouvementStockService
             $mouvement['type'] ?? '',
             $mouvement['operator'] ?? '',
             $mouvement['unitPrice'] ?? "",
+            strip_tags($mouvement['comment']) ?? "",
         ];
         $CSVExportService->putLine($handle, $data);
     }
@@ -320,5 +331,24 @@ class MouvementStockService
         } else if ($type === MouvementStock::TYPE_ENTREE) {
             $reference->setLastStockEntry($date);
         }
+    }
+
+    public function getColumnVisibleConfig(Utilisateur $user): array{
+        $columnsVisible = $user->getVisibleColumns()['stockMovement'];
+        $fieldConfig = [
+            ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+            ["title" => "Date", "name" => "date", 'searchable' => true],
+            ["title" => "Issu de", "name" => "from", "orderable" => false, 'searchable' => true],
+            ["title" => "Code barre", "name" => "barCode", 'searchable' => true],
+            ["title" => "Référence article", "name" => "refArticle", 'searchable' => true],
+            ["title" => "Quantité", "name" => "quantite", 'searchable' => true],
+            ["title" => "Origine", "name" => "origine", 'searchable' => true],
+            ["title" => "Destination", "name" => "destination", 'searchable' => true],
+            ["title" => "Type", "name" => "type", 'searchable' => true],
+            ["title" => "Opérateur", "name" => "operateur", 'searchable' => true],
+            ["title" => "Prix Unitaire", "name" => "unitPrice", 'searchable' => true],
+            ["title" => "Commentaire", "name" => "comment", "orderable" => false, 'searchable' => true],
+        ];
+        return $this->visibleColumnService->getArrayConfig($fieldConfig, [], $columnsVisible);
     }
 }

@@ -1,39 +1,39 @@
 let $modalNewMvtStock = $('#modalNewMvtStock');
+let tableMvt = null;
 
 $(function() {
     $('.select2').select2();
 
-    let pathMvt = Routing.generate('mouvement_stock_api', true);
-    let tableMvtStockConfig = {
-        responsive: true,
-        serverSide: true,
-        processing: true,
-        order: [['date', "desc"]],
-        ajax: {
-            "url": pathMvt,
-            "type": "POST"
-        },
-        columns: [
-            {data: 'actions', title: '', orderable: false},
-            {data: 'date', title: 'Date'},
-            {data: 'from', title: 'Issu de', className: 'noVis', orderable: false},
-            {data: "barCode", title: 'Code barre'},
-            {data: "refArticle", title: 'Référence article'},
-            {data: "quantite", title: 'Quantité'},
-            {data: 'origine', title: 'Origine'},
-            {data: 'destination', title: 'Destination'},
-            {data: 'type', title: 'Type'},
-            {data: 'operateur', title: 'Opérateur'},
-            {data: 'unitPrice', title: 'Prix unitaire'},
-        ],
-    };
+    AJAX.route(
+        AJAX.GET,
+        "mouvement_stock_api_columns",
+        {}
+    )
+        .json()
+        .then((columns) => {
+            let pathMvt = Routing.generate('mouvement_stock_api', true);
+            let tableMvtStockConfig = {
+                responsive: true,
+                serverSide: true,
+                processing: true,
+                order: [['date', "desc"]],
+                ajax: {
+                    "url": pathMvt,
+                    "type": "POST"
+                },
+                drawConfig: {
+                    needsSearchOverride: true,
+                    needsColumnHide: true,
+                },
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableMvts'
+                },
+                columns: columns,
+            };
+            tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
+        })
 
-    let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
-
-    let modalDeleteArrivage = $('#modalDeleteMvtStock');
-    let submitDeleteArrivage = $('#submitDeleteMvtStock');
-    let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
-    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, {tables: [tableMvt], clearOnClose: true});
 
     let submitNewMvtStock = $('#submitNewMvtStock');
     let urlNewMvtStock = Routing.generate('mvt_stock_new', true);
@@ -176,4 +176,21 @@ function newMvtStockTypeChanged($select) {
         $locationMvt.removeClass('needed');
         $locationMvt.parents('.form-group').addClass('d-none');
     }
+}
+
+function deleteMvtStock(id) {
+    Modal.confirm({
+        ajax: {
+            method: "DELETE",
+            route: `mvt_stock_delete`,
+            params: {mvtStock: id},
+        },
+        message: `Voulez-vous réellement supprimer ce mouvement ?`,
+        title: `Supprimer le mouvement`,
+        validateButton: {
+            color: `danger`,
+            label: `Supprimer`,
+        },
+        table: tableMvt,
+    })
 }

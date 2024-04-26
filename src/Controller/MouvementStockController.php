@@ -20,6 +20,7 @@ use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
 
 use App\Service\TranslationService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,10 +37,14 @@ class MouvementStockController extends AbstractController
 {
 
     #[Route("/", name: "mouvement_stock_index")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOC])]
-    public function index(EntityManagerInterface $entityManager)
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK])]
+    public function index(EntityManagerInterface $entityManager,
+                          MouvementStockService  $mouvementStockService)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
 
         return $this->render('mouvement_stock/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
@@ -47,12 +52,13 @@ class MouvementStockController extends AbstractController
                 MouvementStock::TYPE_ENTREE,
                 MouvementStock::TYPE_SORTIE,
                 MouvementStock::TYPE_TRANSFER,
-            ]
+            ],
+            "fields" => $mouvementStockService->getColumnVisibleConfig($user)
         ]);
     }
 
     #[Route("/api", name: "mouvement_stock_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOC], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK], mode: HasPermission::IN_JSON)]
     public function api(Request $request, MouvementStockService $mouvementStockService): Response
     {
         /** @var Utilisateur $user */
@@ -62,28 +68,34 @@ class MouvementStockController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/supprimer", name: "mvt_stock_delete", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-columns", name: "mouvement_stock_api_columns", options: ["expose" => true], methods: [self::GET,self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK])]
+    public function apiColumns(MouvementStockService $mouvementStockService, EntityManagerInterface $entityManager): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $columns = $mouvementStockService->getColumnVisibleConfig($currentUser);
+        return new JsonResponse($columns);
+    }
+
+    #[Route("/delete/{mvtStock}", name: "mvt_stock_delete", options: ["expose" => true], methods: ["GET", "POST", "DELETE"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager, MouvementStock $mvtStock): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            $movement = $mouvementStockRepository->find($data['mvt']);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-            if (!empty($trackingMovementRepository->findBy(['mouvementStock' => $movement]))) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Ce mouvement de stock est lié à des mouvements de traçabilité.'
-                ]);
-            }
-
-            $entityManager->remove($movement);
-            $entityManager->flush();
-            return new JsonResponse();
+        if (!empty($trackingMovementRepository->findBy(['mouvementStock' => $mvtStock]))) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Ce mouvement de stock est lié à des mouvements de traçabilité.'
+            ]);
         }
 
-        throw new BadRequestHttpException();
+        $entityManager->remove($mvtStock);
+        $entityManager->flush();
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Mouvement de stock bien supprimé.'
+        ]);
     }
 
     #[Route("/nouveau", name: "mvt_stock_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
@@ -110,6 +122,7 @@ class MouvementStockController extends AbstractController
             $chosenMvtQuantity = $data["chosen-mvt-quantity"];
             $chosenMvtLocation = $data["chosen-mvt-location"];
             $movementBarcode = $data["movement-barcode"];
+            $movementComment = $data["comment"];
             $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
             /** @var Article|ReferenceArticle|null $chosenArticleToMove */
@@ -226,7 +239,7 @@ class MouvementStockController extends AbstractController
                 }
 
                 if ($response['success']) {
-                    $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
+                    $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType,["comment" => $movementComment]);
                     $mouvementStockService->finishStockMovement($newMvtStock, $now, $emplacementTo);
                     if ($associatedDropTracaMvt && $associatedPickTracaMvt) {
                         $associatedPickTracaMvt->setMouvementStock($newMvtStock);
@@ -275,6 +288,7 @@ class MouvementStockController extends AbstractController
                 'type',
                 'opérateur',
                 "prix unitaire",
+                "commentaire",
             ];
 
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
@@ -292,5 +306,25 @@ class MouvementStockController extends AbstractController
         else {
             throw new NotFoundHttpException('404');
         }
+    }
+
+    #[Route("/colonne-visible", name: "save_column_visible_for_stock_movements", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK], mode: HasPermission::IN_JSON)]
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        /** @var $user Utilisateur */
+        $user = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('stockMovement', $fields, $user);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
     }
 }

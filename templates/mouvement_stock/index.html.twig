@@ -38,6 +38,12 @@
                                 <span class="fa fa-file-csv mr-2"></span>
                                 Exporter au format CSV
                             </button>
+                            <a class="dropdown-item pointer"
+                               data-toggle="modal"
+                               data-target="#modalColumnVisible">
+                                <span class="fas fa-cog mr-2"></span>
+                                Gestion des colonnes
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -50,8 +56,12 @@
             </div>
         </div>
     </div>
-    {% include "mouvement_stock/modalDeleteMvtStock.html.twig" %}
     {% include "mouvement_stock/modalNewMvtStock.html.twig" %}
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableMvts',
+        'route': 'save_column_visible_for_stock_movements',
+    } %}
 {% endblock %}
 
 {% block javascripts %}
