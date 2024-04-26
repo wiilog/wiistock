@@ -10,16 +10,21 @@ class AdvancedSearchHelper {
 
     private const HIGHLIGHT_COLOR = "#FFFF00";
 
+    private const EXCLUDED_FIELDS = [
+        "Actions",
+        "actions",
+    ];
+
     public static function bindSearch(array $conditions, int $index, bool $forSelect = false): Stream {
         return Stream::from($conditions)
-            ->map(static function(string $condition) use ($forSelect, $index): string {
+            ->map(static function (string $condition) use ($forSelect, $index): string {
                 $bindedCondition = match (true) {
                     str_contains($condition, "BETWEEN") => $condition,
                     str_contains($condition, ":search_value") => str_replace(":search_value", ":search_value_$index", $condition),
                     default => $condition,
                 };
 
-                if($forSelect) {
+                if ($forSelect) {
                     return "IF($bindedCondition, 1, 0)";
                 } else {
                     return $bindedCondition;
@@ -37,16 +42,19 @@ class AdvancedSearchHelper {
 
     public static function highlight(array $row, array $searchParts, array $searchableFields = []): array {
         return Stream::from($row)
-            ->keymap(static function(?string $value, string $field) use ($searchParts, $searchableFields): array {
-                if (empty($searchableFields) || in_array($field, $searchableFields)) {
-                    $value = Stream::from($searchParts)
-                        ->map(static function(string $part) use ($value, $field): ?string {
-                            $startPosition = strpos($value, $part);
+            ->keymap(static function (?string $value, string $field) use ($searchParts, $searchableFields): array {
+                if (!in_array($field, self::EXCLUDED_FIELDS)
+                    && (empty($searchableFields) || in_array($field, $searchableFields))) {
+                    $replacedValue = Stream::from($searchParts)
+                        ->map(static function (string $part) use (&$value, $field): ?string {
+                            $startPosition = strpos(strtolower($value), strtolower($part));
 
                             if ($startPosition !== false) {
                                 $endPosition = $startPosition + strlen($part);
+                                $highlightedPart = substr($value, $startPosition, strlen($part));
 
-                                return substr_replace($value, sprintf("<span style='background-color: %s'>$part</span>", self::HIGHLIGHT_COLOR), $startPosition, $endPosition);
+                                $value = substr_replace($value, sprintf("<span style='background-color: %s'>$highlightedPart</span>", self::HIGHLIGHT_COLOR), $startPosition, $endPosition - $startPosition);
+                                return $value;
                             } else {
                                 return null;
                             }
@@ -55,7 +63,7 @@ class AdvancedSearchHelper {
                         ->last() ?: $value;
                 }
 
-                return [$field, $value];
+                return [$field, $replacedValue ?? $value];
             })
             ->toArray();
     }
