@@ -1064,21 +1064,21 @@ class ReferenceArticleController extends AbstractController
         $kioskRepository = $entityManager->getRepository(Kiosk::class);
 
         // get data from request
-        $inputBag = $request->query;
+        $data = $request->query;
 
-        $token = $inputBag->get('token');
+        $token = $data->get('token');
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
         $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
         $kiosk = $kioskRepository->findOneBy(['token' => $token]);
 
-        $applicant = $userRepository->find($inputBag->get('applicant'));
-        $follower = $userRepository->find($inputBag->get('follower'));
-        $reference = $refArticleRepository->findOneBy(['reference' => $inputBag->get('reference')]);
-        $referenceExist = $inputBag->has('article') && $reference;
+        $applicant = $userRepository->find($data->get('applicant'));
+        $follower = $userRepository->find($data->get('follower'));
+        $reference = $refArticleRepository->findOneBy(['reference' => $data->get('reference')]);
+        $referenceExist = $data->has('article') && $reference;
 
-        if(!$kiosk){
+        if (!$kiosk) {
             throw new FormException("La borne n'a pas été trouvée. Veuillez réessayer.");
         }
 
@@ -1086,8 +1086,8 @@ class ReferenceArticleController extends AbstractController
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
 
             $reference = (new ReferenceArticle())
-                ->setReference($inputBag->get('reference'))
-                ->setLibelle($inputBag->get('label'))
+                ->setReference($data->get('reference'))
+                ->setLibelle($data->get('label'))
                 ->setCreatedBy($userRepository->getKioskUser())
                 ->setCreatedAt(new DateTime())
                 ->setBarCode($refArticleDataService->generateBarCode())
@@ -1096,7 +1096,7 @@ class ReferenceArticleController extends AbstractController
                 ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
         }
 
-        $reference->setCommentaire($inputBag->get('comment'));
+        $reference->setCommentaire($data->get('comment'));
 
         if($applicant){
             $reference->addManager($applicant);
@@ -1129,9 +1129,9 @@ class ReferenceArticleController extends AbstractController
             $reference->addArticleFournisseur($supplierArticle);
         }
 
-        if(!empty($inputBag->get('freeField'))) {
+        if(!empty($data->all('freeField'))) {
             $freeFieldService->manageFreeFields($reference, [
-                $inputBag->get('freeField')[0] => $inputBag->get('freeField')[1]
+                $data->all('freeField')[0] => $data->all('freeField')[1]
             ], $entityManager);
         }
         $barcodesToPrint = [];
@@ -1169,7 +1169,7 @@ class ReferenceArticleController extends AbstractController
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER))
                 ->setDemandeCollecte($collecte);
 
-            if(!$referenceExist){
+            if (!$referenceExist) {
                 $entityManager->flush();
                 $article = $articleDataService->newArticle($entityManager, [
                     'statut' => Article::STATUT_INACTIF,
@@ -1185,7 +1185,7 @@ class ReferenceArticleController extends AbstractController
                     ->setCreatedOnKioskAt($date);
                 $entityManager->persist($article);
             } else {
-                $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' =>$inputBag->get('article')]);
+                $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' =>$data->get('article')]);
                 $article
                     ->setQuantite($newQuantity)
                     ->setCreatedOnKioskAt($date);
@@ -1215,11 +1215,11 @@ class ReferenceArticleController extends AbstractController
             ->toArray();
 
         if($referenceExist) {
-            $articleSuccessMessage = str_replace('@reference', $inputBag->get('reference'), str_replace('@codearticle', '<span style="color: #3353D7;">'.$inputBag->get('article').'</span>', $articleSuccessMessage));
-            $message = strip_tags(str_replace('@reference', $inputBag->get('reference'), str_replace('@codearticle', $inputBag->get('article'), $articleSuccessMessage)));
+            $articleSuccessMessage = str_replace('@reference', $data->get('reference'), str_replace('@codearticle', '<span style="color: #3353D7;">'.$data->get('article').'</span>', $articleSuccessMessage));
+            $message = strip_tags(str_replace('@reference', $data->get('reference'), str_replace('@codearticle', $data->get('article'), $articleSuccessMessage)));
         } else {
-            $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$inputBag->get('reference').'</span>', $referenceSuccessMessage);
-            $message = strip_tags(str_replace('@reference', $inputBag->get('reference'), $referenceSuccessMessage));
+            $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data->get('reference').'</span>', $referenceSuccessMessage);
+            $message = strip_tags(str_replace('@reference', $data->get('reference'), $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
         return new JsonResponse([
