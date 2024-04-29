@@ -1725,6 +1725,7 @@ class ReceptionController extends AbstractController {
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
+                                   TranslationService         $translationService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
@@ -2083,7 +2084,7 @@ class ReceptionController extends AbstractController {
             if(!empty($destinataires)) {
                 // on envoie un mail aux demandeurs
                 $mailerService->sendMail(
-                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Article urgent réceptionné', $mailContent,
                     $destinataires
                 );
             }
@@ -2118,7 +2119,7 @@ class ReceptionController extends AbstractController {
 
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
-                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'fournisseur' => $reception->getFournisseur(),

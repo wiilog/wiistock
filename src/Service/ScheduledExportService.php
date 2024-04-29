@@ -70,6 +70,9 @@ class ScheduledExportService
     #[Required]
     public LanguageService $languageService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
         $this->cacheService->set(CacheService::COLLECTION_EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
     }
@@ -223,7 +226,7 @@ class ScheduledExportService
                 $exportToRun->setError("L'export est trop volumineux pour être envoyé par mail (maximum 20MO)");
             } else {
                 $this->mailerService->sendMail(
-                    "FOLLOW GT // Export des $entity",
+                    $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Export des $entity",
                     $this->templating->render("mails/contents/mailExportDone.twig", [
                         "entity" => $entity,
                         "export" => $exportToRun,

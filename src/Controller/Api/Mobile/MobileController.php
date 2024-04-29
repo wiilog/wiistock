@@ -2682,6 +2682,7 @@ class MobileController extends AbstractApiController
                                   EntityManagerInterface $entityManager,
                                   InventoryService       $inventoryService,
                                   MailerService          $mailerService,
+                                  TranslationService     $translationService,
                                   FormatService          $formatService,
                                   Twig_Environment       $templating): Response
     {
@@ -2778,7 +2779,7 @@ class MobileController extends AbstractApiController
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
-                "Follow GT // Validation d’une mission d’inventaire",
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Validation d’une mission d’inventaire",
                 $templating->render('mails/contents/mailInventoryMissionValidation.html.twig', [
                     'mission' => $mission,
                 ]),

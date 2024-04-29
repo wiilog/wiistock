@@ -556,7 +556,7 @@ class DeliveryRequestService
 
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
-                'FOLLOW GT // Validation d\'une demande vous concernant',
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '

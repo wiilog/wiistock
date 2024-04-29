@@ -13,6 +13,9 @@ class PasswordService
     #[Required]
     public RouterInterface $router;
 
+    #[Required]
+    public TranslationService $translationService;
+
     private EntityManagerInterface $entityManager;
 
     private MailerService $mailerService;
@@ -37,9 +40,9 @@ class PasswordService
         	$user->setToken($token);
         	$this->entityManager->flush();
 			$this->mailerService->sendMail(
-				'FOLLOW GT // Mot de passe oublié',
+                $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Mot de passe oublié',
 				$this->templating->render('mails/template.html.twig', [
-					'title' => 'Renouvellement de votre mot de passe Follow GT.',
+					'title' => 'Renouvellement de votre mot de passe' . $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . ".",
 					'urlSuffix' => $this->router->generate('change_password', ['token' => $token]),
 					'buttonText' => 'Cliquez ici pour modifier votre mot de passe',
 				]),

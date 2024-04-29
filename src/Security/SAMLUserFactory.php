@@ -6,6 +6,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Service\LanguageService;
 use App\Service\MailerService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Nbgrp\OneloginSamlBundle\Security\User\SamlUserFactoryInterface;
@@ -29,6 +30,9 @@ class SAMLUserFactory implements SamlUserFactoryInterface
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translation;
 
     public function createUser(string $identifier, array $attributes): UserInterface
     {
@@ -58,7 +62,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
             $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
             if(!empty($userMailByRole)) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                    $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Notification de création d\'un compte utilisateur',
                     $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
                         'user' => $user->getUsername(),
                         'mail' => $user->getEmail(),
