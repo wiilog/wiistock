@@ -1250,6 +1250,7 @@ class RefArticleDataService
                 "name" => "manufacturerCode",
                 "type" => "text",
                 "persisted" => true,
+                "required" => $isFromDispatch,
             ],
             "Poids (kg)" => [
                 "name" => "weight",
