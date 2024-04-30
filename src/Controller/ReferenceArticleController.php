@@ -1052,6 +1052,15 @@ class ReferenceArticleController extends AbstractController
                                        KioskService              $kioskService,
                                        FreeFieldService          $freeFieldService,
                                        NotificationService       $notificationService): JsonResponse {
+        // get data from request
+        $data = $request->query;
+
+        $kioskRepository = $entityManager->getRepository(Kiosk::class);
+        $token = $data->get('token');
+        $kiosk = $kioskRepository->findOneBy(['token' => $token]);
+        if (!$kiosk) {
+            throw new FormException("La borne n'a pas été trouvée. Veuillez réessayer.");
+        }
 
         // repositories
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1061,26 +1070,15 @@ class ReferenceArticleController extends AbstractController
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $kioskRepository = $entityManager->getRepository(Kiosk::class);
-
-        // get data from request
-        $data = $request->query;
-
-        $token = $data->get('token');
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
         $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
-        $kiosk = $kioskRepository->findOneBy(['token' => $token]);
 
         $applicant = $userRepository->find($data->get('applicant'));
         $follower = $userRepository->find($data->get('follower'));
         $reference = $refArticleRepository->findOneBy(['reference' => $data->get('reference')]);
         $referenceExist = $data->has('article') && $reference;
-
-        if (!$kiosk) {
-            throw new FormException("La borne n'a pas été trouvée. Veuillez réessayer.");
-        }
 
         if (!$reference) {
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
@@ -1147,7 +1145,7 @@ class ReferenceArticleController extends AbstractController
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER))
                 ->setPointCollecte($kiosk->getPickingLocation())
                 ->setObjet($kiosk->getSubject())
-                ->setstockOrDestruct(boolval($kiosk->getDestination()));
+                ->setstockOrDestruct($kiosk->getDestination() === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE);
 
             $newQuantity = $kiosk->getQuantityToPick();
 
@@ -1182,12 +1180,14 @@ class ReferenceArticleController extends AbstractController
                 $article
                     ->setReference($reference->getReference())
                     ->setInactiveSince($date)
-                    ->setCreatedOnKioskAt($date);
+                    ->setCreatedOnKioskAt($date)
+                    ->setKiosk($kiosk);
                 $entityManager->persist($article);
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' =>$data->get('article')]);
                 $article
                     ->setQuantite($newQuantity)
+                    ->setKiosk($kiosk)
                     ->setCreatedOnKioskAt($date);
             }
 

@@ -19,9 +19,9 @@ final class Version20240425074505 extends AbstractMigration
                     ALTER TABLE delivery_request_article_line CHANGE notes notes LONGTEXT DEFAULT NULL COLLATE `utf8mb4_unicode_ci`;
                     ALTER TABLE delivery_request_reference_line CHANGE notes notes LONGTEXT DEFAULT NULL COLLATE `utf8mb4_unicode_ci`;');
 
-        $requestType = $this->connection->fetchAssociative('SELECT id FROM type WHERE label = :label', ['label' => 'COLLECT_REQUEST_TYPE']);
-        $requester = $this->connection->fetchAssociative('SELECT id FROM utilisateur WHERE username = :username', ['username' => 'COLLECT_REQUEST_REQUESTER']);
-        $pointCollect = $this->connection->fetchAssociative('SELECT id FROM emplacement WHERE label = :label', ['label' => 'COLLECT_REQUEST_POINT_COLLECT']);
+        $requestType = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_TYPE']);
+        $requester = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_REQUESTER']);
+        $pointCollect = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_POINT_COLLECT']);
 
         $object = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_OBJECT']);
         $destination = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_DESTINATION']);
@@ -31,12 +31,12 @@ final class Version20240425074505 extends AbstractMigration
         $this->addSql('INSERT INTO kiosk (name, subject, quantity_to_pick, destination, requester_id, picking_location_id, picking_type_id)
                                 VALUES (:name, :subject, :quantity_to_pick, :destination, :requester_id, :picking_location_id, :picking_type_id)', [
             'name' => 'Kiosk',
-            'subject' => $object,
-            'quantity_to_pick' => $quantityToCollect,
-            'destination' => $destination,
-            'requester_id' => $requester != '',
-            'picking_location_id' => $pointCollect != '',
-            'picking_type_id' => $requestType != '',
+            'subject' => $object['value'],
+            'quantity_to_pick' => $quantityToCollect['value'],
+            'destination' => $destination['value'],
+            'requester_id' => $requester['value'],
+            'picking_location_id' => $pointCollect['value'],
+            'picking_type_id' => $requestType['value'],
         ]);
 
         // delete old datatable kioskToken

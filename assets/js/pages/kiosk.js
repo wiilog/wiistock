@@ -13,6 +13,7 @@ const $modalArticleIsNotValid = $("#modalArticleIsNotValid");
 const $modalPrintHistory = $("#modal-print-history");
 const $modalInformation = $("#modal-information");
 const $modalWaiting = $("#modal-waiting");
+const {token} = GetRequestQuery();
 
 $(function () {
     //In order to always have a valid session cookie, we make a call to the server to extend session lifetime.
@@ -41,7 +42,6 @@ $(function () {
         if ($('.page-content').hasClass('home')) {
             if (event.originalEvent.key === 'Enter') {
                 $modalWaiting.modal('show');
-                const {token} = GetRequestQuery();
                 AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference})
                     .json()
                     .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
@@ -128,7 +128,6 @@ $(function () {
         if ($current.find('.invalid').length === 0) {
             if ($($current.next()[0]).hasClass('summary-container')) {
                 const $articleDataInput = $('input[name=reference-article-input]');
-                const {token} = GetRequestQuery();
                 wrapLoadingOnActionButton($(this), () => (
                     AJAX.route(POST, 'check_article_is_valid', {token, barcode: $articleDataInput.val() || null, referenceLabel : $referenceRefInput.val() })
                         .json()
@@ -233,7 +232,6 @@ $(function () {
                 || $freeFieldLabel.find('textarea').val()
                 || $freeFieldLabel.find('select').find('option:selected').data('label');
             const freeFieldId = $('input[name=free-field-id]').val();
-            const {token} = GetRequestQuery();
 
             wrapLoadingOnActionButton($(this), () => (
                 AJAX.route(GET, 'entry_stock_validate', {
@@ -248,15 +246,14 @@ $(function () {
                 })
                     .json()
                     .then(({success, msg, barcodesToPrint, referenceExist, successMessage}) => {
-                        printLabelWithOptions(barcodesToPrint, false);
-
                         $modalWaiting.modal('hide');
                         if (success) {
+                            printLabelWithOptions(token, barcodesToPrint, false);
+
                             const $successPage = $('.success-page-container');
                             $('.main-page-container').addClass('d-none');
 
                             $('.go-home-button').on('click', function () {
-                                const {token} = GetRequestQuery();
                                 window.location.href = Routing.generate('kiosk_index', {token}, true);
                             });
 
@@ -274,12 +271,11 @@ $(function () {
                             $successPage.find('.bookmark-icon').removeClass('d-none');
 
                             setTimeout(() => {
-                                const {token} = GetRequestQuery();
                                 window.location.href = Routing.generate('kiosk_index', {token}, true);
                             }, 10000);
                         }
                         else {
-                            console.log(msg);
+                            console.error(msg);
                         }
                     })));
         }
@@ -291,16 +287,15 @@ $(function () {
     });
 
     $('#submitGiveUpStockEntry').on('click', function () {
-        const {token} = GetRequestQuery();
         window.location.href = Routing.generate('kiosk_index', {token}, true);
     });
 
     $('.print-article').on('click', function () {
-        wrapLoadingOnActionButton($(this), () => printLabelWithOptions(null, true, $(this).data('article')));
+        wrapLoadingOnActionButton($(this), () => printLabelWithOptions(token, null, true, $(this).data('article')));
     });
 
     $('.print-again-button').on('click', function () {
-        wrapLoadingOnActionButton($(this), () => printLabelWithOptions(null, true))
+        wrapLoadingOnActionButton($(this), () => printLabelWithOptions(token, null, true))
     });
 
     if( $('input[name=reference-article-input]').val()){
@@ -308,9 +303,10 @@ $(function () {
     }
 });
 
-function printLabelWithOptions(barcodesToPrint, reprint = false, article = null){
+function printLabelWithOptions(token, barcodesToPrint, reprint = false, article = null){
     return AJAX.route(POST, 'kiosk_print', {
         barcodesToPrint,
+        token,
         reprint,
         article,
     }).file({
