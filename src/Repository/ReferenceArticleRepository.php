@@ -69,9 +69,6 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
-    private const ORDER_ACTION = "order";
-    private const SEARCH_ACTION = "search";
-
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
@@ -844,9 +841,9 @@ class ReferenceArticleRepository extends EntityRepository {
                 $relevances = AdvancedSearchHelper::getRelevances($queryBuilder);
 
                 $previousAction = $params->get("previousAction");
-                if ($previousAction === self::ORDER_ACTION) {
+                if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
                     $queryBuilder->addOrderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
-                } elseif ($previousAction === self::SEARCH_ACTION) {
+                } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
                     $queryBuilder->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
                 }
 

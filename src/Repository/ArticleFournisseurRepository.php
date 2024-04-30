@@ -12,7 +12,6 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr\Select;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -204,11 +203,17 @@ class ArticleFournisseurRepository extends EntityRepository
 
                 $queryBuilder
                     ->andWhere($orX)
-                    ->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC)
                     ->groupBy("supplier_article.id");
 
                 foreach ($relevances as $relevance) {
                     $queryBuilder->addGroupBy($relevance);
+                }
+
+                $previousAction = $params->get("previousAction");
+                if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
+                    $queryBuilder->addOrderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
+                    $queryBuilder->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
                 }
             }
         }

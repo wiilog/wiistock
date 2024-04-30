@@ -16,7 +16,6 @@ export function initializeRolesPage() {
         drawConfig: {
             needsSearchHide: true,
             needsPagingHide: true,
-            needsSearchOverride: true,
         },
     });
 

@@ -295,10 +295,6 @@ class ReceptionController extends AbstractController {
 
         $data = $receptionService->getDataForDatatable($user, $request->request, $purchaseRequestFilter);
 
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
-        $data['columnsToHide'] = $fieldsParam;
-
         return new JsonResponse($data);
     }
 

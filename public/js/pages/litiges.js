@@ -2,10 +2,10 @@ $('.select2').select2();
 let tableLitiges;
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
-let urlEditLitige = Routing.generate('litige_edit', true);
+let urlEditLitige = Routing.generate('dispute_edit', true);
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
-let urlDeleteLitige = Routing.generate('litige_delete', true);
+let urlDeleteLitige = Routing.generate('dispute_delete', true);
 
 let tableHistoLitige;
 let tableArticleLitige;
@@ -35,7 +35,7 @@ $(function () {
 });
 
 function initDatatableLitiges() {
-    let pathLitiges = Routing.generate('litige_api', true);
+    let pathLitiges = Routing.generate('dispute_api', true);
     let tableLitigesConfig = {
         serverSide: true,
         processing: true,
@@ -136,7 +136,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 
 function openTableHisto() {
 
-    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
@@ -159,7 +159,7 @@ function openTableHisto() {
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 

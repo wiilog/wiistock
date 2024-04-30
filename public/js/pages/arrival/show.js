@@ -178,7 +178,7 @@ $(function () {
 });
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
@@ -270,7 +270,7 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 

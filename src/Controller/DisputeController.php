@@ -11,7 +11,6 @@ use App\Entity\Dispute;
 use App\Entity\Menu;
 use App\Entity\DisputeHistoryRecord;
 
-use App\Entity\Attachment;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -21,9 +20,6 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
-use App\Service\LanguageService;
-use App\Service\TranslationService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -33,20 +29,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/litige")
- */
+#[Route("/litige", name: "dispute_")]
 class DisputeController extends AbstractController
 {
 
-    /**
-     * @Route("/liste", name="dispute_index", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI})
-     */
+    #[Route("/liste", name: "index", options: ["expose" => true], methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_LITI])]
     public function index(DisputeService         $disputeService,
-                          EntityManagerInterface $entityManager,
-                          LanguageService $languageService)
-    {
+                          EntityManagerInterface $entityManager) {
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -64,24 +54,15 @@ class DisputeController extends AbstractController
 		]);
     }
 
-    /**
-     * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::QUALI, Action::DISPLAY_LITI], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         DisputeService $disputeService) {
-
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
         $data = $disputeService->getDataForDatatable($request->request);
-        $visibleColumns = $user->getVisibleColumns()['dispute'];
-        $data['visible'] = $visibleColumns;
         return new JsonResponse($data);
 	}
 
-    /**
-     * @Route("/csv", name="export_csv_dispute", options={"expose"=true}, methods={"GET","POST"})
-     */
+    #[Route("/csv", name: "export_csv", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function exportCSVDispute(Request                $request,
                                      DisputeService         $disputeService,
                                      EntityManagerInterface $entityManager,
@@ -145,34 +126,7 @@ class DisputeController extends AbstractController
         }, "Export-Litiges_$today.csv", $headers);
     }
 
-    /**
-     * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-	public function deleteAttachementLitige(Request $request,
-                                            EntityManagerInterface $entityManager)
-	{
-		if ($data = json_decode($request->getContent(), true)) {
-			$disputeId = (int)$data['disputeId'];
-			$attachmentRepository = $entityManager->getRepository(Attachment::class);
-
-			$attachements = $attachmentRepository->findOneByFileNameAndDisputeId($data['pjName'], $disputeId);
-			if (!empty($attachements)) {
-			    foreach ($attachements as $attachement) {
-                    $entityManager->remove($attachement);
-                }
-				$entityManager->flush();
-				$response = true;
-			} else {
-				$response = false;
-			}
-
-			return new JsonResponse($response);
-		} else {
-			throw new BadRequestHttpException();
-		}
-	}
-
-    #[Route("/histo/{dispute}", name: "histo_dispute_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/histo/{dispute}", name: "histo_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function apiHistoricLitige(EntityManagerInterface $entityManager,
                                       Request                $request,
                                       Dispute                $dispute): Response {
@@ -215,11 +169,10 @@ class DisputeController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/add_Comment/{dispute}", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/add_Comment/{dispute}", name: "add_comment", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function addComment(Request $request,
-                               DisputeService $disputeService, EntityManagerInterface $em,
+                               DisputeService $disputeService,
+                               EntityManagerInterface $em,
                                Dispute $dispute): Response
     {
         if ($data = (json_decode($request->getContent(), true) ?? [])) {
@@ -240,10 +193,8 @@ class DisputeController extends AbstractController
         return new JsonResponse(false);
     }
 
-    /**
-     * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::EDIT})
-     */
+    #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
 	public function editLitige(Request $request): Response
 	{
         $post = $request->request;
@@ -256,10 +207,8 @@ class DisputeController extends AbstractController
         ]);
 	}
 
-    /**
-     * @Route("/supprimer", name="litige_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "delete", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::QUALI, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function deleteLitige(Request $request,
                                  EntityManagerInterface $entityManager): Response
     {
@@ -277,9 +226,7 @@ class DisputeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/article/{dispute}", name="article_dispute_api", options={"expose"=true}, methods="POST|GET", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/article/{dispute}", name: "article_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function articlesByLitige(Dispute $dispute): Response
     {
         $rows = [];
@@ -298,9 +245,7 @@ class DisputeController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/autocomplete", name="get_dispute_number", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/autocomplete", name: "get_number", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function getDisputeNumberAutoComplete(Request $request,
                                                  EntityManagerInterface $entityManager): Response
     {

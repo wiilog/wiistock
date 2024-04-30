@@ -1,4 +1,5 @@
 import {POST} from "@app/ajax";
+import Form from "@app/form";
 
 $(function () {
     const $modal = $(`#modalColumnVisible`);

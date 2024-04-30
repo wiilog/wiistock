@@ -221,6 +221,7 @@ function initDataTable($table, options) {
     const rowConfig = options.rowConfig;
     const drawConfig = options.drawConfig;
     const initCompleteCallback = options.initCompleteCallback;
+
     let config = Object.assign({}, options);
     delete config.domConfig;
     delete config.rowConfig;
