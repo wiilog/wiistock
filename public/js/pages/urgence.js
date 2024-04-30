@@ -60,7 +60,7 @@ function initPage() {
 
     let $modalNewUrgence = $('#modalNewEmergency');
     Form
-        .create($modalNewUrgence)
+        .create($modalNewUrgence, {clearOnOpen: true})
         .submitTo(AJAX.POST, 'emergency_new', {
             success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
             tables: tableEmergencies
