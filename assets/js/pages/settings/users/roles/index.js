@@ -18,6 +18,9 @@ export function initializeRolesPage() {
             needsSearchHide: true,
             needsPagingHide: true,
         },
+        rowConfig: {
+            needsRowClickAction: true
+        },
     });
 
     let $modalDeleteRole = $("#modalDeleteRole");
