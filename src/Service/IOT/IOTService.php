@@ -632,8 +632,10 @@ class IOTService
 
         $newBattery = $this->extractBatteryLevelFromMessage($message, $profile, $payload);
         $wrapper = $device->getAvailableSensorWrapper();
-        $wrapper->setInactivityAlertSent(false);
-        $entityManager->flush($wrapper);
+        if ($wrapper) {
+            $wrapper->setInactivityAlertSent(false);
+            $entityManager->flush($wrapper);
+        }
 
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
