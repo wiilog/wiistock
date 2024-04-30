@@ -4,6 +4,7 @@ import Form from "@app/form";
 import Routing from '@app/fos-routing';
 import {displayAttachmentRequired} from './form'
 import {getUserFiltersByPage} from '@app/utils';
+import {initDataTable} from "@app/datatable";
 
 let tableProduction;
 

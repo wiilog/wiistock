@@ -1,5 +1,6 @@
 import AJAX, {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 let tables = [];
 let editableTableArticles = null;

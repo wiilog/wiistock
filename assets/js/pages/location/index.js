@@ -2,6 +2,7 @@ import AJAX, {POST, DELETE} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 global.printLocationsBarCodes = printLocationsBarCodes;
 global.editZone = editZone;

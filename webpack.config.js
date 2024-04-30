@@ -69,9 +69,6 @@ Encore
     .addEntry('purchase-request-index', './assets/js/pages/purchase-request/index.js')
     .addEntry('purchase-request-show', './assets/js/pages/purchase-request/show.js')
     .addEntry('supplier-index', './assets/js/pages/supplier/index.js')
-    .addEntry('datatable', './assets/js/datatable.js')
-    .addEntry('visible-column', './assets/js/visible-column.js')
-
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

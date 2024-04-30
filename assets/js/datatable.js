@@ -1,12 +1,8 @@
 const ORDER_ACTION = `order`;
 const SEARCH_ACTION = `search`;
 
-global.initDataTable = initDataTable;
-global.extendsDateSort = extendsDateSort;
-global.moveSearchInputToHeader = moveSearchInputToHeader;
-global.initSearchDate = initSearchDate;
 
-$(function () {
+export function initDatatablePlugin() {
     $.fn.dataTable.ext.errMode = () => {
         showBSAlert(`La requête n'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.`, `danger`);
     };
@@ -20,9 +16,9 @@ $(function () {
     });
 
     onToggleInputRadioOnRow();
-});
+}
 
-function extendsDateSort(name, format = ``) {
+export function extendsDateSort(name, format = ``) {
     $.extend($.fn.dataTableExt.oSort, {
         [name + `-pre`]: function (date) {
             if (format) {
@@ -196,7 +192,7 @@ function datatableDrawCallback({response, callback, table, $table, needsPagingHi
     renderDtInfo($(table.table().container()));
 }
 
-function moveSearchInputToHeader($searchInputContainer) {
+export function moveSearchInputToHeader($searchInputContainer) {
     const $datatableCard = $searchInputContainer.parents(`.wii-page-card, .wii-box`);
     const $searchInputContainerCol = $searchInputContainer.parent();
 
@@ -216,7 +212,7 @@ function moveSearchInputToHeader($searchInputContainer) {
     }
 }
 
-function initDataTable($table, options) {
+export function initDataTable($table, options) {
     const domConfig = options.domConfig;
     const rowConfig = options.rowConfig;
     const drawConfig = options.drawConfig;
@@ -425,7 +421,7 @@ function renderDtInfo($table) {
         .addClass(`pt-0`);
 }
 
-function initSearchDate(table, columnName = `date`) {
+export function initSearchDate(table, columnName = `date`) {
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
             let dateMin = $(`#dateMin`).val();

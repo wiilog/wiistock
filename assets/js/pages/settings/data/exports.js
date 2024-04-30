@@ -7,6 +7,7 @@ import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
 import moment from "moment";
 import {getUserFiltersByPage} from '@app/utils';
+import {initDataTable} from "@app/datatable";
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;

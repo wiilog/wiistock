@@ -1,5 +1,5 @@
-import WysiwygManager from "./wysiwyg-manager";
-import {forEach} from "core-js/stable/dom-collections";
+import WysiwygManager from "@app/wysiwyg-manager";
+import {initDataTable, moveSearchInputToHeader} from "@app/datatable";
 
 export const MODE_NO_EDIT = 1;
 export const MODE_CLICK_EDIT = 2;

@@ -1,7 +1,7 @@
 import {POST} from "@app/ajax";
 import Form from "@app/form";
 
-$(function () {
+export function initVisibleColumn() {
     const $modal = $(`#modalColumnVisible`);
 
     if (!$modal.exists()) {
@@ -64,4 +64,4 @@ $(function () {
                 },
             });
     });
-});
+}

@@ -3,6 +3,7 @@ import {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {getUserFiltersByPage} from '@app/utils';
 import {onStatusChange} from '@app/pages/purchase-request/common';
+import {initDataTable} from "@app/datatable";
 
 global.onStatusChange = onStatusChange;
 

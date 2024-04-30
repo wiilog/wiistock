@@ -1,5 +1,6 @@
 import {formatIconSelector} from "@app/form";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 global.editRowUser = editRowUser;
 

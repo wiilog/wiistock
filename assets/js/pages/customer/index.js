@@ -2,6 +2,7 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import {DELETE, POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 global.deleteCustomer = deleteCustomer;
 

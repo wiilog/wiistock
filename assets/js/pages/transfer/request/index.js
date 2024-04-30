@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import {initDataTable, initSearchDate} from "@app/datatable";
 
 $(() => {
     const $statusSelector = $('.filterService select[name="statut"]');

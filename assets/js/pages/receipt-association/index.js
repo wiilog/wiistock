@@ -1,6 +1,7 @@
 import AJAX from "@app/ajax";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 $(function () {
     $(`.select2`).select2();

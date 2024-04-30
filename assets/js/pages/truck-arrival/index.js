@@ -1,6 +1,7 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
+import {initDataTable} from "@app/datatable";
 
 global.newTruckArrival = newTruckArrival;
 

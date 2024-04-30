@@ -2,6 +2,7 @@ import FixedFieldEnum from "@generated/fixed-field-enum";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import {POST, DELETE} from "@app/ajax";
+import {initDataTable} from "@app/datatable";
 
 $(function () {
     $('.select2').select2();

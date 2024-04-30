@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import {initDataTable, extendsDateSort} from "@app/datatable";
 
 let $printTag;
 let pageTables;
