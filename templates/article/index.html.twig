@@ -1,5 +1,7 @@
 {% extends 'layout.html.twig' %}
 
+{% import "form.html.twig" as form %}
+
 {% block title %}Stock | Articles{% endblock %}
 
 {% block page_content %}
@@ -82,9 +84,15 @@
         </div>
     </div>
 
-    {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-    <input type="hidden" class='statutVisible' name="statutVisible" value="{{ statutVisible }}">
-    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
+    {{ form.hidden("statutVisible", hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')), {
+        inputClass: "statutVisible",
+    }) }}
+    {{ form.hidden("referenceFilter", referenceFilter) }}
+    {{ form.hidden(null, tag_templates|json_encode, {
+        attributes: {
+            id: "tagTemplates",
+        }
+    }) }}
 
     {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}

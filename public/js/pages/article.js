@@ -1,4 +1,3 @@
-let pathArticle = Routing.generate('article_api', true);
 let tableArticle;
 let $printTag ;
 $(function () {
@@ -8,6 +7,10 @@ $(function () {
 });
 
 function initTableArticle() {
+    const referenceFilter = $(`[name=referenceFilter]`)
+        .val()
+        .trim();
+
     $.post(Routing.generate('article_api_columns'), function (columns) {
         let tableArticleConfig = {
             serverSide: true,
@@ -15,7 +18,7 @@ function initTableArticle() {
             paging: true,
             order: [[1, 'desc']],
             ajax: {
-                url: pathArticle,
+                url: Routing.generate('article_api', true),
                 type: 'POST',
                 dataSrc: function (json) {
                     if (!$(".statutVisible").val()) {
@@ -25,6 +28,13 @@ function initTableArticle() {
                     return json.data;
                 }
             },
+            ...referenceFilter
+                ? {
+                    search: {
+                        search: referenceFilter,
+                    },
+                }
+                : {},
             columns,
             drawConfig: {
                 needsResize: true

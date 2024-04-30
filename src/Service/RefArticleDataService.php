@@ -635,6 +635,7 @@ class RefArticleDataService
                 "reference_id" => $refArticle->getId(),
                 "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
+                "hasArticles" => !empty($refArticle->getAssociatedArticles()),
             ]),
             "colorClass" => (
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :

@@ -63,10 +63,16 @@ class ArticleController extends AbstractController
 
     #[Route("/", name: "article_index", methods: [self::GET])]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
-    public function index(EntityManagerInterface $entityManager,
+    public function index(Request                $request,
+                          EntityManagerInterface $entityManager,
                           ArticleDataService     $articleDataService,
                           TagTemplateService     $tagTemplateService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        $referenceFilter = $request->query->getInt("referenceFilter");
+        $reference = $referenceFilter
+            ? $entityManager->find(ReferenceArticle::class, $referenceFilter)
+            : null;
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -76,7 +82,8 @@ class ArticleController extends AbstractController
             "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
             "searches" => $currentUser->getRechercheForArticle(),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
-            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
+            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue()),
+            "referenceFilter" => $reference?->getReference(),
         ]);
     }
 
