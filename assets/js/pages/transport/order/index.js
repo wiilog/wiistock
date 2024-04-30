@@ -1,6 +1,7 @@
 import '@styles/pages/transport/common.scss';
 import {initializeFilters} from "@app/pages/transport/common";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 $(function() {
     initializeFilters(PAGE_TRANSPORT_ORDERS)

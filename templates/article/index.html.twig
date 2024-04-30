@@ -92,16 +92,16 @@
     {% include "article/modalDeleteArticle.html.twig" %}
 
     {% include "utils/rapid_search.html.twig" with {
-        'fields': fields,
-        'searches': searches,
-        'table': 'tableArticle',
-        'route': 'update_user_searches_for_article',
+        fields,
+        searches: searches,
+        table: 'tableArticle',
+        page: 'article',
     } %}
 
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableArticle',
-        'route': 'save_column_visible_for_article',
+        fields,
+        table: 'tableArticle',
+        page: "article",
     } %}
 {% endblock %}
 

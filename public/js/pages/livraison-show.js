@@ -46,13 +46,6 @@ function loadLogisticUnitPack(deliveryId) {
                             rowConfig: {
                                 needsRowClickAction: true,
                             },
-                            drawConfig: {
-                                needsColumnHide: true,
-                            },
-                            hideColumnConfig: {
-                                columns,
-                                tableFilter: 'articles-container'
-                            },
                         })
                     });
             })

@@ -4,6 +4,7 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
 import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
+import {initDataTable} from "@app/datatable";
 
 global.newTrackingNumber = newTrackingNumber;
 global.editTruckArrival = editTruckArrival;
@@ -106,9 +107,6 @@ function initTruckArrivalLinesTable() {
             color: 'danger',
             dataToCheck: 'late'
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }
 
@@ -137,9 +135,6 @@ function initTruckArrivalLineQualityReservesTable() {
                 //openModalQualityReserveContent($modalReserveQuality, data.id);
             }
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }
 

@@ -44,9 +44,6 @@ function initPage() {
             {"data": 'internalArticleCode', 'name': 'internalArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article interne', false)},
             {"data": 'supplierArticleCode', 'name': 'supplierArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article fournisseur', false)},
         ],
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         rowConfig: {
             needsRowClickAction: true,
         },

@@ -170,29 +170,6 @@ class DispatchController extends AbstractController {
             return $this->json(array_values($columns));
     }
 
-    #[Route("/colonne-visible", name: "save_column_visible_for_dispatch", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      TranslationService     $translationService,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('dispatch', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
-        ]);
-    }
-
     #[Route("/autocomplete", name: "get_dispatch_numbers", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
     public function getDispatchAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response {

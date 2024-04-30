@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import {initDataTable, initSearchDate} from "@app/datatable";
 
 $(() => {
     const $statusSelector = $('.filterService select[name="statut"]');
@@ -42,9 +43,6 @@ $(() => {
         },
         rowConfig: {
             needsRowClickAction: true,
-        },
-        drawConfig: {
-            needsSearchOverride: true,
         },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},

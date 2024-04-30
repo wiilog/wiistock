@@ -667,29 +667,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $manager,
-                                      VisibleColumnService $visibleColumnService): Response
-    {
-            $data = json_decode($request->getContent(), true);
-            $fields = array_keys($data);
-            /** @var $user Utilisateur */
-            $user  = $this->getUser();
-
-            $visibleColumnService->setVisibleColumns('reference', $fields, $user);
-
-            $manager->flush();
-
-            return $this->json([
-                'success' => true,
-                'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
-            ]);
-    }
-
-    /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON))
      */

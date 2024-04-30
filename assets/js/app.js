@@ -35,6 +35,8 @@ import '../scss/app.scss';
 import './tooltips';
 import './select2';
 import Form from "./form";
+import {extendsDateSort, initDataTable, initSearchDate, initDatatablePlugin} from "@app/datatable";
+import {initVisibleColumn} from "@app/visible-column";
 
 export const $document = $(document);
 
@@ -54,6 +56,8 @@ importChart();
 importLeaflet();
 importIntlTelInput();
 importFirebase();
+importDatatable();
+importVisibleColumn();
 
 ///////////////// Functions
 
@@ -69,7 +73,20 @@ function importWiistock() {
 }
 
 function importForm() {
+    // TODO remove when all js will be in asset
     global.Form = Form;
+}
+
+function importVisibleColumn() {
+    initVisibleColumn();
+}
+
+function importDatatable() {
+    initDatatablePlugin();
+    // TODO remove when all js will be in asset
+    global.initDataTable = initDataTable;
+    global.extendsDateSort = extendsDateSort;
+    global.initSearchDate = initSearchDate;
 }
 
 function importJquery() {
