@@ -72,7 +72,14 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
         $table.DataTable().ajax.reload();
     }
     else {
-        let routeForApi = Routing.generate('en_cours_api', {fromDashboard});
+        const columns = $table.data('initial-visible').map((column) => {
+            if(column.name === `delay`){
+                column.render = (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type);
+            }
+
+            return column;
+        });
+        let routeForApi = Routing.generate('ongoing_pack_api', {fromDashboard});
         let tableConfig = {
             processing: true,
             responsive: true,
@@ -82,10 +89,7 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                 data,
             },
             columns: [
-                {data: 'linkedArrival', name: 'linkedArrival', className: 'noVis', orderable : false},
-                {data: 'LU', name: 'LU', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
-                {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Encours', 'Date de dépose') },
-                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai'), render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
+                ...columns,
                 {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {
@@ -101,9 +105,10 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
             columnDefs: [
                 {
                     type: "customDate",
-                    targets: 2
+                    targets: `date`,
                 }
             ],
+            page: 'encours',
         };
         initDataTable(tableId, tableConfig);
     }

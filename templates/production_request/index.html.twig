@@ -12,6 +12,8 @@
         statusFilter: statusFilter,
         statuses : statuses,
         typesFilter: typesFilter,
+        dateChoices,
+        disabled: fromDashboard ? 'disabled' : '',
     } %}
 {% endblock %}
 
@@ -49,11 +51,12 @@
         </div>
     </div>
 
+    <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
+
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableProductions',
-        'route': 'production_request_set_visible_columns',
-        'reload': true
+        fields,
+        table: 'tableProductions',
+        page: 'productionRequest',
     } %}
 
     {% include 'production_request/modal/new.html.twig' with {

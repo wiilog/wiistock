@@ -31,9 +31,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-/**
- * @Route("/transfert/ordres")
- */
+#[Route('/transfert/ordres')]
 class TransferOrderController extends AbstractController {
 
     private $userService;
@@ -48,10 +46,8 @@ class TransferOrderController extends AbstractController {
         $this->service = $service;
     }
 
-    /**
-     * @Route("/liste/{reception}", name="transfer_order_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS})
-     */
+    #[Route("/liste/{reception}", name: "transfer_order_index", options: ["expose" => true], methods: [self::POST, self::GET])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS])]
     public function index(EntityManagerInterface $em,
                           $reception = null): Response {
         $statusRepository = $em->getRepository(Statut::class);
@@ -62,24 +58,20 @@ class TransferOrderController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api", name="transfer_orders_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request): Response {
+    #[Route("/api", name: "transfer_orders_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS], mode: HasPermission::IN_JSON)]
+    public function api(Request $request): JSONResponse {
         $filterReception = $request->request->get('filterReception');
         $data = $this->service->getDataForDatatable($request->request, $filterReception);
 
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer/{transferRequest}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(TransferOrderService $transferOrderService,
-                        EntityManagerInterface $entityManager,
-                        TransferRequest $transferRequest): Response {
+    #[Route("/creer/{transferRequest}", name: "transfer_order_new", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(TransferOrderService    $transferOrderService,
+                        EntityManagerInterface  $entityManager,
+                        TransferRequest         $transferRequest): JsonResponse {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
@@ -159,10 +151,8 @@ class TransferOrderController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/voir/{id}", name="transfer_order_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS})
-     */
+    #[Route("/voir/{id}", name: "transfer_order_show", options: ["expose" => true], methods: [self::POST, self::GET])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS])]
     public function show(TransferOrder $transfer): Response {
         return $this->render('transfer/order/show.html.twig', [
             'order' => $transfer,
@@ -171,11 +161,9 @@ class TransferOrderController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/article/api/{transfer}", name="transfer_order_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS}, mode=HasPermission::IN_JSON)
-     */
-    public function articleApi(TransferOrder $transfer): Response {
+    #[Route("/article/api/{transfer}", name: "transfer_order_article_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS], mode: HasPermission::IN_JSON)]
+    public function articleApi(TransferOrder $transfer): JsonResponse {
 
         $articles = $transfer->getRequest()->getArticles();
         $references = $transfer->getRequest()->getReferences();
@@ -208,13 +196,11 @@ class TransferOrderController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/valider/{id}", name="transfer_order_validate", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function finish(EntityManagerInterface $entityManager,
-                           TransferOrderService $transferOrderService,
-                           TransferOrder $transferOrder): Response {
+    #[Route("/valider/{id}", name: "transfer_order_validate", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function finish(EntityManagerInterface   $entityManager,
+                           TransferOrderService     $transferOrderService,
+                           TransferOrder            $transferOrder): JsonResponse {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -229,14 +215,12 @@ class TransferOrderController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer/{id}", name="transfer_order_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
-                           TransferOrderService $transferOrderService,
-                           TransferOrder $transferOrder): Response
+    #[Route("/supprimer/{id}", name: "transfer_order_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager,
+                           TransferOrderService     $transferOrderService,
+                           TransferOrder            $transferOrder): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
 
@@ -290,16 +274,16 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/csv", name="transfer_order_export",options={"expose"=true}, methods="GET|POST" )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
      * @throws Exception
      */
-    public function export(Request $request,
-                           EntityManagerInterface $entityManager,
-                           CSVExportService $CSVExportService): Response {
+    #[Route("/csv", name: "transfer_order_export", options: ["expose" => true], methods: [self::POST, self::GET])]
+    public function export(Request                  $request,
+                           EntityManagerInterface   $entityManager,
+                           CSVExportService         $CSVExportService): Response {
         $dateMin = $request->query->get("dateMin");
         $dateMax = $request->query->get("dateMax");
 

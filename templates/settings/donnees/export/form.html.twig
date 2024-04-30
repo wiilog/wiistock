@@ -86,11 +86,18 @@
             </div>
             <div class="column-to-export d-none">
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
-                    items: arrivalFields,
+                    type: null,
+                    items: [],
                     multiple: true,
-                    value: export.columnToExport,
+                    attributes: {
+                        "data-keep-selected-order": 1,
+                        "data-keep-open": 1,
+                    },
+                    tooltip: "L'ordre des colonnes sélectionnées impactera l'ordre des en-têtes dans le fichier exporté."
                 }) }}
             </div>
+            {{ form.hidden("exportableColumns", exportableColumns|json_encode) }}
+            {{ form.hidden("choosenColumnsToExport", export.columnToExport|json_encode) }}
         </div>
 
         <div class="article-fields d-none row">
@@ -237,11 +244,18 @@
         </div>
         <div class="column-to-export d-none">
             {{ form.select('columnToExport', 'Colonnes à exporter', false, {
-                items: arrivalFields,
+                type: null,
+                items: [],
                 multiple: true,
-                value: export.columnToExport
+                attributes: {
+                    "data-keep-selected-order": 1,
+                    "data-keep-open": 1,
+                },
+                tooltip: "L'ordre des colonnes sélectionnées impactera l'ordre des en-têtes dans le fichier exporté."
             }) }}
         </div>
+        {{ form.hidden("exportableColumns", exportableColumns|json_encode) }}
+        {{ form.hidden("choosenColumnsToExport", export.columnToExport|json_encode) }}
         <div>
             <div>
                 {% include 'planner/planner.html.twig' with {

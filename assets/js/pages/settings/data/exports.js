@@ -7,6 +7,7 @@ import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
 import moment from "moment";
 import {getUserFiltersByPage} from '@app/utils';
+import {initDataTable} from "@app/datatable";
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;
@@ -99,7 +100,6 @@ function displayExportModal(exportId) {
 
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
-        $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
         $modal.find('select[name=referenceTypes]').select2({closeOnSelect: false});
         $modal.find('select[name=statuses]').select2({closeOnSelect: false});
         $modal.find('select[name=suppliers]').select2({closeOnSelect: false});
@@ -213,15 +213,20 @@ function createForm() {
                     } else if (content.entityToExport === ENTITY_DISPATCH) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
+                        const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'acheminements`);
+                            return Promise.resolve();
+                        } else if(columnToExport.length === 0){
+                            Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
                             return Promise.resolve();
                         }
 
                         window.open(Routing.generate(`settings_export_dispatches`, {
                             dateMin,
                             dateMax,
+                            columnToExport,
                         }));
                     } else if (content.entityToExport === ENTITY_PRODUCTION) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
@@ -242,7 +247,7 @@ function createForm() {
                         const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'arrivages`);
                             return Promise.resolve();
                         } else if(columnToExport.length === 0){
                             Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
@@ -291,7 +296,7 @@ function createForm() {
 }
 
 function onFormEntityChange() {
-    let $modal = $("#modalExport");
+    const $modal = $("#modalExport");
     const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
     const $articlesSentence = $modal.find('.articles-sentence');
     const $referencesSentence = $modal.find('.references-sentence');
@@ -301,6 +306,11 @@ function onFormEntityChange() {
     const $periodInterval = $modal.find('.period-interval');
     const $dateLimit = $modal.find('.date-limit');
     const $scheduledArticleDates = $modal.find('.scheduled-article-dates');
+    const $exportableColumns = $modal.find(`[name=exportableColumns]`)
+    const $choosenColumnsToExport = $modal.find(`[name=choosenColumnsToExport]`);
+
+    const exportableColumns = JSON.parse($exportableColumns.val());
+    const choosenColumnsToExport = JSON.parse($choosenColumnsToExport.val());
 
     $articlesSentence.addClass('d-none');
     $referencesSentence.addClass('d-none');
@@ -320,8 +330,15 @@ function onFormEntityChange() {
             $articleFields.removeClass('d-none');
             $scheduledArticleDates.removeClass('d-none');
             break;
-        case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_DISPATCH:
+            $columnToExportContainer.removeClass('d-none');
+            $columnToExport.addClass('needed');
+            $dateLimit.removeClass('d-none');
+            $periodInterval.removeClass('d-none');
+
+            renderExportableColumns($columnToExport, exportableColumns.dispatch, choosenColumnsToExport);
+            break;
+        case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
@@ -331,10 +348,27 @@ function onFormEntityChange() {
             $columnToExportContainer.removeClass('d-none');
             $columnToExport.addClass('needed');
             $periodInterval.removeClass('d-none');
+
+            renderExportableColumns($columnToExport, exportableColumns.arrivage, choosenColumnsToExport);
             break;
         default:
             break;
     }
+}
+
+function renderExportableColumns($columnToExport, entityExportableColumns, choosenColumnsToExport) {
+    $columnToExport.empty();
+
+    const columns = Object.entries(entityExportableColumns)
+        // alphanumeric sort
+        .sort(([_1, label1], [_2, label2]) => (label1 > label2) - (label1 < label2))
+        .map(([value, label]) => {
+            const selected = choosenColumnsToExport.includes(value) ? `selected` : ``;
+            return `<option value="${value}" ${selected}>${label}</option>`;
+        })
+        .join(``);
+
+    $columnToExport.append(columns);
 }
 
 function onFormTypeChange(resetFrequency = true) {

@@ -55,18 +55,18 @@ export default class Form {
 
                     event.preventDefault();
                 })
-                .on('shown.bs.modal', function () {
+                .on('shown.bs.modal', function (event) {
                     if (clearOnOpen) {
                         form.clear();
                     }
 
                     form.openListeners.forEach((openListener) => {
-                        openListener();
+                        openListener(event);
                     });
                 })
-                .on('hidden.bs.modal', function () {
+                .on('hidden.bs.modal', function (event) {
                     form.closeListeners.forEach((closeListener) => {
-                        closeListener();
+                        closeListener(event);
                     });
                 });
         }
@@ -104,10 +104,10 @@ export default class Form {
      * @param {"GET"|"POST"|"PUT"|"PATCH"|"DELETE"} method HTTP method
      * @param {string} route Symfony route name
      * @param {{
-     *    keepModal: boolean|undefined,
-     *    success: function|undefined,
-     *    routeParams: {[string]: string}|undefined,
-     *    tables: Datatable|Datatable[],
+     *    keepModal?: boolean,
+     *    success?: function,
+     *    routeParams?: {[string]: string},
+     *    tables?: Datatable|Datatable[],
      * }} options
      * @returns {Form}
      */

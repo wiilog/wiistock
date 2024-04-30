@@ -4,29 +4,39 @@
 {% block filters %}
 
     {% if dateChoices is defined %}
-        {% include 'filters/filter_item/filterDateWithChoice.html.twig' %}
+        {% include 'filters/filter_item/filterDateWithChoice.html.twig' with {
+            dateChoices,
+            disabled,
+        } %}
     {% else %}
-        {% include 'filters/filter_item/filterDate.html.twig' %}
+        {% include 'filters/filter_item/filterDate.html.twig' with {
+            disabled,
+        } %}
     {% endif %}
 
     {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
         types: types,
         filterTypes: typesFilter,
         onchange : 'onFilterTypeChange($(this))',
+        disabled,
     } %}
 
     {% include 'filters/filter_item/filterMultipleStatuses.html.twig' with {
         filterStatus: statusFilter,
+        disabled,
     } %}
 
     {% include 'filters/filter_item/filterUser.html.twig' with {
         name: 'requesters',
         placeholder: trans('Demande', 'Général', 'Demandeurs', false),
+        disabled,
     } %}
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency').name %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
-        {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
+        {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' with {
+            disabled,
+        } %}
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').name %}
@@ -34,6 +44,7 @@
         {% include 'filters/filter_item/filterBasicString.html.twig' with {
             name: 'productArticleCode',
             placeholder: 'Code produit/article',
+            disabled,
         } %}
     {% endif %}
 
@@ -42,7 +53,8 @@
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'dropLocation',
             multiple: true,
-            placeholder : "Emplacement de dépose"
+            placeholder : "Emplacement de dépose",
+            disabled,
         } %}
     {% endif %}
 
@@ -51,6 +63,7 @@
         {% include 'filters/filter_item/filterBasicString.html.twig' with {
             name: 'manufacturingOrderNumber',
             placeholder: 'Numéro OF',
+            disabled,
         } %}
     {% endif %}
 
@@ -60,6 +73,7 @@
             label: 'Pièces jointes',
             name: 'attachmentAssigned',
             checked: attachmentAssigned,
+            disabled,
         } %}
     {% endif %}
 

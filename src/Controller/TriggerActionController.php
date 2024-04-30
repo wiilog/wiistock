@@ -70,6 +70,7 @@ class TriggerActionController extends AbstractController
                     IOTService::INEO_SENS_ACS_TEMP_HYGRO,
                     IOTService::INEO_SENS_ACS_TEMP,
                     IOTService::KOOVEA_TAG,
+                    IOTService::YOKOGAWA_XS550_XS110A,
                 ])) {
                     // temp and temp && hygro
                     $triggerActionConfigs = [
@@ -349,6 +350,7 @@ class TriggerActionController extends AbstractController
 
         $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+        $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
 
         $query = $request->query;
 

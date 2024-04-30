@@ -12,6 +12,7 @@ import {
     transportPDF,
 } from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
+import {initDataTable} from "@app/datatable";
 
 $(function() {
     initializeFilters(PAGE_TRANSPORT_REQUESTS)
@@ -48,7 +49,7 @@ $(function() {
         table.ajax.reload();
     });
 
-    const $modalTransportRequest = $(`[data-modal-type=new]`);
+    const $modalTransportRequest = $(`.new-transport-request[data-modal-type="new"]`);
     const form = initializeForm($modalTransportRequest);
     form
         .onSubmit((data) => {

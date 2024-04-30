@@ -69,6 +69,7 @@ class ProductionRequestController extends AbstractController
         $query = $request->query;
         $typesFilter = $query->has('types') ? $query->all('types', '') : [];
         $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
         // case type filter selected
         if (!empty($typesFilter)) {
@@ -87,28 +88,7 @@ class ProductionRequestController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
         $attachmentAssigned = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("attachmentsAssigned", 'production', $currentUser);
 
-        $dateChoices =
-            [
-                [
-                    'name' => 'createdAd',
-                    'label' => 'Date de création',
-                ],
-                [
-                    'name' => 'expectedAt',
-                    'label' => 'Date attendue',
-                ],
-            ];
-
-        foreach ($dateChoices as &$choice) {
-            $choice['default'] = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'production', $currentUser);
-        }
-
-        $dateChoicesHasDefault = Stream::from($dateChoices)
-            ->some(static fn($choice) => ($choice['default'] ?? false));
-
-        if ($dateChoicesHasDefault) {
-            $dateChoices[0]['default'] = true;
-        }
+        $dateChoices = FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class];
 
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
@@ -130,6 +110,7 @@ class ProductionRequestController extends AbstractController
                 }, []),
             "typesFilter" => $typesFilter,
             "statusFilter" => $statusesFilter,
+            "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
             "typeFreeFields" => Stream::from($types)
@@ -275,28 +256,6 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/colonne-visible", name: "set_visible_columns", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService,
-                                      TranslationService     $translationService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns('productionRequest', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
-        ]);
-    }
-
     #[Route('/{productionRequest}/edit', name: 'edit', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function edit(EntityManagerInterface   $entityManager,
                          Request                  $request,
@@ -304,12 +263,20 @@ class ProductionRequestController extends AbstractController
                          ProductionRequest        $productionRequest,
                          FixedFieldService        $fieldsParamService): JsonResponse {
 
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
         $productionRequestService->checkRoleForEdition($productionRequest);
 
         $currentUser = $this->getUser();
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
 
         $oldStatus = $productionRequest->getStatus();
+        $newStatus = $data->getInt(FixedFieldEnum::status->name);
+
+        if ($newStatus !== $oldStatus->getId() && $oldStatus->getState() === Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
 
         $entityManager->flush();
@@ -379,8 +346,10 @@ class ProductionRequestController extends AbstractController
                 $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::PRODUCTION_REQUEST]);
                 $freeFieldsById = Stream::from($productionRequests)
                     ->keymap(static fn($productionRequest) => [
-                        $productionRequest['id'], $productionRequest['freeFields']
-                    ])->toArray();
+                        $productionRequest['id'],
+                        $productionRequest['freeFields']
+                    ])
+                    ->toArray();
 
                 foreach ($productionRequests as $productionRequest) {
                     $productionRequestService->productionRequestPutLine($output, $productionRequest, $freeFieldsConfig, $freeFieldsById);
@@ -420,10 +389,18 @@ class ProductionRequestController extends AbstractController
         $inputBag = new InputBag([
             FixedFieldEnum::status->name => $request->request->get(FixedFieldEnum::status->name),
             FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
+            'files' => $request->request->has('savedFiles')
+                ? $request->request->all('savedFiles')
+                : [],
         ]);
 
         $oldStatus = $productionRequest->getStatus();
-        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
+
+        if ($oldStatus->getState() === Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
 
         $entityManager->flush();
 

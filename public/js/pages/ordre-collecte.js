@@ -12,9 +12,6 @@ let tableCollecteConfig = {
         },
         "type": "POST"
     },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
     rowConfig: {
         needsRowClickAction: true
     },

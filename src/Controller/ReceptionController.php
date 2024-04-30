@@ -283,10 +283,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "reception_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         ReceptionService $receptionService,
                         EntityManagerInterface $entityManager): Response {
@@ -297,35 +295,7 @@ class ReceptionController extends AbstractController {
 
         $data = $receptionService->getDataForDatatable($user, $request->request, $purchaseRequestFilter);
 
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
-        $data['columnsToHide'] = $fieldsParam;
-
         return new JsonResponse($data);
-    }
-
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_reception", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var $user Utilisateur */
-        $user = $this->getUser();
-        $fields[] = "actions";
-
-        $visibleColumnService->setVisibleColumns('reception', $fields, $user);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées',
-        ]);
     }
 
     /**
@@ -395,7 +365,7 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION),
+            'receptionLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_RECEPTION),
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
@@ -816,6 +786,7 @@ class ReceptionController extends AbstractController {
                                 . $referenceArticle->getQuantiteDisponible(),
                         ]);
                     } else {
+                        $referenceArticle->setPrixUnitaire($receptionReferenceArticle->getUnitPrice());
                         $mouvementStock = $mouvementStockService->createMouvementStock(
                             $currentUser,
                             null,
@@ -886,10 +857,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
-     */
+    #[Route("/voir/{id}", name: "reception_show", methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE])]
     public function show(EntityManagerInterface     $entityManager,
                          SettingsService            $settingsService,
                          ReceptionService           $receptionService,
@@ -1471,12 +1440,16 @@ class ReceptionController extends AbstractController {
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
                                 ->filter(static function(Article $article) use ($entityManager, $forceTagEmpty, $tag) {
-                                    $articleTypeHasTag = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
-                                    $articleTypeHasTag = Stream::from($articleTypeHasTag)
+                                    $articleTagTemplates = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
+                                    $articleTypeHasTag = Stream::from($articleTagTemplates)
                                         ->some(static function (TagTemplate $tag) use ($article) {
                                             return $tag->getTypes()->contains($article->getType());
                                         });
-                                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                                    return (
+                                        ($forceTagEmpty && !$articleTypeHasTag)
+                                        || ($tag && in_array($article->getType(), $tag->getTypes()->toArray()))
+                                        || $articleTypeHasTag
+                                    );
                                 })
                                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
@@ -1586,9 +1559,7 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "get_receptions_csv", options: ["expose" => true], methods: "GET")]
     public function getReceptionCSV(EntityManagerInterface $entityManager,
                                     TranslationService $translation,
                                     CSVExportService $CSVExportService,
@@ -1623,6 +1594,7 @@ class ReceptionController extends AbstractController {
                 'emplacement de stockage',
                 'réception urgente',
                 'référence urgente',
+                'Frais de livraison',
                 'destinataire',
                 'référence',
                 'libellé',
@@ -1707,6 +1679,7 @@ class ReceptionController extends AbstractController {
             $reception['storageLocation'] ?: '',
             $this->formatService->bool($reception['receptionEmergency']),
             $this->formatService->bool($reception['referenceEmergency']),
+            $reception['deliveryFee'] ?: '',
         ];
     }
 
@@ -1811,7 +1784,7 @@ class ReceptionController extends AbstractController {
                     $entityManager->persist($demande);
 
                     if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, true, ['sendNotification' => false]);
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
                         if ($validateResponse['success']) {
                             $preparation = $demande->getPreparations()->first();
 
@@ -1827,37 +1800,37 @@ class ReceptionController extends AbstractController {
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
                             $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
 
-                                $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                                $mouvements = $mouvementRepository->findByPreparation($preparation);
+                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                            $mouvements = $mouvementRepository->findByPreparation($preparation);
 
-                                try {
-                                    $entityManager->flush();
-                                    if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                        $this->notificationService->toTreat($delivery);
-                                    }
-                                } /** @noinspection PhpRedundantCatchClauseInspection */
-                                catch (UniqueConstraintViolationException $e) {
-                                    return new JsonResponse([
-                                        'success' => false,
-                                        'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
-                                    ]);
+                            try {
+                                $entityManager->flush();
+                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                    $this->notificationService->toTreat($delivery);
                                 }
-                                foreach ($mouvements as $mouvement) {
-                                    $preparationsManagerService->createMovementLivraison(
-                                        $entityManager,
-                                        $mouvement->getQuantity(),
-                                        $currentUser,
-                                        $delivery,
-                                        !empty($mouvement->getRefArticle()),
-                                        $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                                        $preparation,
-                                        false,
-                                        $locationEndPreparation
-                                    );
-                                }
+                            } /** @noinspection PhpRedundantCatchClauseInspection */
+                            catch (UniqueConstraintViolationException $e) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
+                                ]);
+                            }
+                            foreach ($mouvements as $mouvement) {
+                                $preparationsManagerService->createMovementLivraison(
+                                    $entityManager,
+                                    $mouvement->getQuantity(),
+                                    $currentUser,
+                                    $delivery,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $locationEndPreparation
+                                );
                             }
                         }
                     }
+                }
 
                 if (!isset($demande)
                     || !($demande instanceof Demande)) {
@@ -1915,6 +1888,7 @@ class ReceptionController extends AbstractController {
         $createdArticles = [];
         foreach($articles as &$articleArray) {
             $createdLoopArticles = [];
+            $createdLoopEntryStockMovements = [];
 
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
@@ -1976,26 +1950,28 @@ class ReceptionController extends AbstractController {
                     $emergencies[$article->getId()] = [$article, $articleArray['quantityReceived']];
                 }
 
-                $mouvementStock = $mouvementStockService->createMouvementStock(
+                $stockMovement = $mouvementStockService->createMouvementStock(
                     $currentUser,
                     null,
                     $article->getQuantite(),
                     $article,
                     MouvementStock::TYPE_ENTREE
                 );
-                $mouvementStock->setReceptionOrder($reception);
+                $stockMovement->setReceptionOrder($reception);
 
-                $mouvementStockService->finishStockMovement($mouvementStock, $now, $receptionLocation);
+                $mouvementStockService->finishStockMovement($stockMovement, $now, $receptionLocation);
 
-                $entityManager->persist($mouvementStock);
+                $entityManager->persist($stockMovement);
 
                 $entityManager->flush();
                 $createdArticles[] = $article;
                 $createdLoopArticles[] = $article;
+                $createdLoopEntryStockMovements[] = $stockMovement;
             }
 
+            // if logistic unit selected on packing
             if ($pack && $pack->getLastDrop()?->getEmplacement()) {
-                $luMovements = $trackingMovementService->persistLogisticUnitMovements(
+                $trackingMovementService->persistLogisticUnitMovements(
                     $entityManager,
                     $pack,
                     $pack->getLastDrop()?->getEmplacement(),
@@ -2006,12 +1982,6 @@ class ReceptionController extends AbstractController {
                         'trackingDate' => $now
                     ]
                 );
-                if (isset($createdMvt) && $luMovements['success'] && isset($luMovements['movements'])) {
-                    $mainMovement = stream::from($luMovements['movements'])
-                        ->filter(fn(TrackingMovement $mvt) => $mvt->getMainMovement() === null)
-                        ->first();
-                    $createdMvt->setMainMovement($mainMovement);
-                }
                 if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
                     foreach ($createdLoopArticles as $article) {
                         $preparationsManagerService->createMovementLivraison(
@@ -2028,23 +1998,27 @@ class ReceptionController extends AbstractController {
                     }
                 }
             } else if ($receptionLocation) {
-                $createdMvt = $trackingMovementService->createTrackingMovement(
-                    $article->getTrackingPack() ?? $article->getBarCode(),
-                    $receptionLocation,
-                    $currentUser,
-                    $now,
-                    false,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $mouvementStock,
-                        'quantity' => $mouvementStock->getQuantity(),
-                        'from' => $reception,
-                        "refOrArticle" => $article
-                    ]
-                );
-                $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                $entityManager->persist($createdMvt);
+                /** @var MouvementStock $stockMovement */
+                foreach($createdLoopEntryStockMovements as $stockMovement) {
+                    $article = $stockMovement->getArticle();
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
+                        $article->getTrackingPack() ?? $article->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $stockMovement,
+                            'quantity' => $stockMovement->getQuantity(),
+                            'from' => $reception,
+                            "refOrArticle" => $article
+                        ]
+                    );
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
+                }
             }
             $entityManager->flush();
         }

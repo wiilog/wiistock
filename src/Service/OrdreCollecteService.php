@@ -118,8 +118,6 @@ class OrdreCollecteService
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
-		$settingRepository = $em->getRepository(Setting::class);
-        $userRepository = $em->getRepository(Utilisateur::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
         $referenceArticleRepository = $em->getRepository(ReferenceArticle::class);
@@ -295,12 +293,8 @@ class OrdreCollecteService
 		$partialCollect = !empty($rowsToRemove);
 
         if($demandeCollecte->getDemandeur()){
-            $kioskUser = $demandeCollecte->getDemandeur()?->isKioskUser();
-            $to = $kioskUser
-                ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
-                : $demandeCollecte->getDemandeur();
-
-            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $to = $demandeCollecte->getKiosk()?->getRequester() ?: $demandeCollecte->getDemandeur();
+            if( $demandeCollecte->getKiosk() && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
                 $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
                     ->map(fn(Utilisateur $manager) => $manager->getEmail())
                     ->toArray();

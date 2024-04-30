@@ -212,6 +212,7 @@ class Action {
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
     const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
+    const SETTINGS_DISPLAY_PURCHASE_TEMPLATE = "afficher achats";
 
     const SETTINGS_DISPLAY_PRODUCTION = 'afficher production';
 

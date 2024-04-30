@@ -1,14 +1,17 @@
 import Routing from '@app/fos-routing';
-import {GET} from '@app/ajax';
+import AJAX, {GET, POST} from '@app/ajax';
 import moment from 'moment';
 import FixedFieldEnum from '@generated/fixed-field-enum';
+import Form from '@app/form';
+import {onStatusChange} from '@app/pages/purchase-request/common';
+import {initDataTable} from "@app/datatable";
 
 global.deleteRowLine = deleteRowLine;
 global.openEvolutionModal = openEvolutionModal;
 global.callbackEditLineLoading = callbackEditLineLoading;
 global.clearLineAddModal = clearLineAddModal;
 global.onReferenceChange = onReferenceChange;
-
+global.onStatusChange = onStatusChange;
 
 $(function() {
     const purchaseRequestBuyerId = $('#purchase-request-buyer-id').val();
@@ -73,9 +76,17 @@ $(function() {
     InitModal($modalDeleteLine, $submitDeleteLine, urlDeleteLine, {tables: [tablePurchaseRequestLines]});
 
     let $modalEditPurchaseRequest = $('#modalEditPurchaseRequest');
-    let $submitEditPurchaseRequest = $('#submitEditPurchaseRequest');
-    let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
-    InitModal($modalEditPurchaseRequest, $submitEditPurchaseRequest, urlEditPurchaseRequest);
+
+    Form
+        .create($modalEditPurchaseRequest)
+        .onOpen(() => {
+            $modalEditPurchaseRequest.find('[name="status"]').trigger('change');
+        })
+        .submitTo(POST, 'purchase_request_edit', {
+            success: ({entete}) => {
+                $('.zone-entete').html(entete);
+            }
+        });
 
     const $modalConsiderPurchaseRequest = $('#modalConsiderPurchaseRequest');
     const $submitConsiderPurchaseRequest = $modalConsiderPurchaseRequest.find('.submit-button');
@@ -97,6 +108,12 @@ $(function() {
     });
 
     Select2Old.init($modalEditPurchaseRequest.find('select[name=status]'));
+
+    // listenners
+    $(document).on('click', `[name="btn-generate-purchase-request-order"]`, function (e) {
+        generatePurchaseOrder($(this));
+    });
+
 });
 
 function onReferenceChange($select) {
@@ -201,4 +218,23 @@ function openEvolutionModal($modal) {
 function deleteRowLine(button, $submit) {
     let id = button.data('id');
     $submit.attr('value', id);
+}
+
+function generatePurchaseOrder($button){
+    const purchaseRequestId = $button.data('id');
+
+    AJAX.route(GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
+        .json()
+        .then(({attachmentId}) => {
+            AJAX.route(GET, 'print_purchase_order', {
+                purchaseRequest: purchaseRequestId,
+                attachment: attachmentId,
+            })
+                .file({
+                    success: "Votre bon de commande a bien été imprimé.",
+                    error: "Erreur lors de l'impression de votre bon de commande."
+                })
+                .then(() => window.location.reload())
+        });
+
 }

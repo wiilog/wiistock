@@ -17,9 +17,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 
-/**
- * @Route("/chauffeur")
- */
+#[Route("/chauffeur")]
 class ChauffeurController extends AbstractController
 {
 
@@ -32,11 +30,9 @@ class ChauffeurController extends AbstractController
         $this->userService = $userService;
     }
 
-    /**
-     * @Route("/api", name="chauffeur_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_CHAU}, mode=HasPermission::IN_JSON)
-     */
-    public function api(EntityManagerInterface $entityManager): Response
+    #[Route("/api", name: "chauffeur_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_CHAU], mode: HasPermission::IN_JSON)]
+    public function api(EntityManagerInterface $entityManager): JsonResponse
     {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
 
@@ -60,10 +56,8 @@ class ChauffeurController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/", name="chauffeur_index", methods={"GET"})
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_CHAU})
-     */
+    #[Route("/", name: "chauffeur_index", methods: [self::GET])]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_CHAU])]
     public function index(EntityManagerInterface $entityManager): Response
     {
 		$chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -75,12 +69,10 @@ class ChauffeurController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/creer", name="chauffeur_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager): Response
+    #[Route("/creer", name: "chauffeur_new", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(Request                 $request,
+                        EntityManagerInterface  $entityManager): JsonResponse
     {
         if ($data = $request->request->all()) {
             $chauffeur = new Chauffeur();
@@ -96,9 +88,6 @@ class ChauffeurController extends AbstractController
             $entityManager->persist($chauffeur);
             $entityManager->flush();
 
-            $data['id'] = $chauffeur->getId();
-            $data['text'] = $data['nom'];
-
             return new JsonResponse([
                 'success' => true,
                 'msg' => 'Le chauffeur ' . $data['nom'] . ' ' . $data['prenom'] . ' a bien été créé.',
@@ -109,11 +98,9 @@ class ChauffeurController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-modifier", name="chauffeur_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/api-modifier", name: "chauffeur_edit_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editApi(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -133,11 +120,9 @@ class ChauffeurController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="chauffeur_edit", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/modifier", name: "chauffeur_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function edit(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -163,11 +148,9 @@ class ChauffeurController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="chauffeur_check_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function checkChauffeurCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/verification", name: "chauffeur_check_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function checkChauffeurCanBeDeleted(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($chauffeurId = json_decode($request->getContent(), true)) {
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -196,11 +179,10 @@ class ChauffeurController extends AbstractController
 		return $manager->getRepository(Arrivage::class)->countByChauffeur($chauffeur) > 0;
 	}
 
-    /**
-     * @Route("/supprimer", name="chauffeur_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-	public function delete(Request $request, EntityManagerInterface $entityManager): Response
+
+    #[Route("/supprimer", name: "chauffeur_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
+	public function delete(Request $request, EntityManagerInterface $entityManager): JsonResponse
 	{
 		if ($data = json_decode($request->getContent(), true)) {
 			if ($chauffeurId = (int)$data['chauffeur']) {
@@ -229,11 +211,9 @@ class ChauffeurController extends AbstractController
 		throw new BadRequestHttpException();
 	}
 
-    /**
-     * @Route("/autocomplete", name="get_transporteurs", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getTransporteurs(Request $request,
-                                     EntityManagerInterface $entityManager)
+    #[Route("/autocomplete", name: "get_transporteurs", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    public function getTransporteurs(Request                $request,
+                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $search = $request->query->get('term');
 
@@ -243,10 +223,8 @@ class ChauffeurController extends AbstractController
         return new JsonResponse(['results' => $transporteur]);
     }
 
-    /**
-     * @Route("/autocomplete-chauffeur", name="get_chauffeur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getChauffeur(Request $request, EntityManagerInterface $entityManager)
+    #[Route("/autocomplete-chauffeur", name: "get_chauffeur", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    public function getChauffeur(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $search = $request->query->get('term');
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);

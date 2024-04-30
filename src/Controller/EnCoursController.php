@@ -10,9 +10,12 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\LanguageService;
+use App\Service\TranslationService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +30,7 @@ class EnCoursController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO])]
     public function index(Request                $request,
                           EntityManagerInterface $entityManager,
+                          EnCoursService         $enCoursService,
                           LanguageService        $languageService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -39,6 +43,8 @@ class EnCoursController extends AbstractController
         $naturesFilterStr = $query->get('natures', '');
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
         $useTruckArrivals = $query->getBoolean('useTruckArrivalsFromDashboard');
+
+        $fields = $enCoursService->getVisibleColumnsConfig($this->getUser());
 
         if (!empty($locationsFilterStr)) {
             $locationsFilterId = explode(',', $locationsFilterStr);
@@ -66,14 +72,15 @@ class EnCoursController extends AbstractController
             'multiple' => true,
             'fromDashboard' => $fromDashboard,
             'useTruckArrivalsFromDashboard' => $useTruckArrivals,
+            'fields' => $fields,
+            'initial_visible_columns' => $this->apiColumns($entityManager, $enCoursService)->getContent(),
         ]);
     }
 
-    #[Route("/api", name: "en_cours_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function apiForEmplacement(Request                $request,
-                                      EnCoursService         $enCoursService,
-                                      EntityManagerInterface $entityManager): Response
-    {
+    #[Route("/api", name: "ongoing_pack_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function ongoingPackApi(Request                $request,
+                                   EnCoursService         $enCoursService,
+                                   EntityManagerInterface $entityManager): Response {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $emplacement = $emplacementRepository->find($request->request->get('id'));
@@ -98,10 +105,22 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : $natures
         );
-        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, 100, $this->getUser(), $useTruckArrivals);
+        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, true, $this->getUser(), $useTruckArrivals);
         return new JsonResponse([
             'data' => $response
         ]);
+    }
+
+    #[Route("/api-columns", name: "encours_api_columns", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO], mode: HasPermission::IN_JSON)]
+    public function apiColumns(EntityManagerInterface $entityManager,
+                               EnCoursService         $enCoursService): Response
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $enCoursService->getVisibleColumnsConfig($currentUser);
+        return new JsonResponse($columns);
     }
 
     #[Route("/check-time-worked-is-defined", name: "check_time_worked_is_defined", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
@@ -126,6 +145,8 @@ class EnCoursController extends AbstractController
             'Date de dépose',
             'Delai',
             'Retard',
+            'Référence',
+            'Libellé'
         ];
 
         return $CSVExportService->streamResponse(
@@ -134,7 +155,7 @@ class EnCoursController extends AbstractController
                                     $encoursService,
                                     $headers)
             {
-                $data = $encoursService->getEnCours([$emplacement->getId()], [], false, 100, $this->getUser());
+                $data = $encoursService->getEnCours([$emplacement->getId()], [], false, true, $this->getUser());
                 foreach ($data as $line) {
                     $encoursService->putOngoingPackLine($output, $CSVExportService, $line);
                 }

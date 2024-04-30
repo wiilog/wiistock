@@ -1,5 +1,6 @@
 import AJAX, {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 let tables = [];
 let editableTableArticles = null;
@@ -81,13 +82,6 @@ function loadLogisticUnitList(requestId) {
                             },
                             domConfig: {
                                 removeInfo: true,
-                            },
-                            drawConfig: {
-                                needsColumnHide: true,
-                            },
-                            hideColumnConfig: {
-                                columns,
-                                tableFilter: 'logistic-units-container'
                             },
                         });
 
@@ -347,13 +341,6 @@ function initEditableTableArticles($table) {
         },
         domConfig: {
             removeInfo: true,
-        },
-        drawConfig: {
-            needsColumnHide: true,
-        },
-        hideColumnConfig: {
-            columns,
-            tableFilter: 'editableTableArticles'
         },
         ordering: false,
         paging: false,

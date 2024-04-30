@@ -66,9 +66,6 @@ class SettingsService {
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9_\-\/ ]{1,24}$';
 
     #[Required]
-    public EntityManagerInterface $manager;
-
-    #[Required]
     public KernelInterface $kernel;
 
     #[Required]
@@ -89,6 +86,9 @@ class SettingsService {
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public CacheService $cacheService;
+
     private array $settingsConstants;
 
     public function __construct() {
@@ -98,10 +98,10 @@ class SettingsService {
             ->toArray();
     }
 
-    public function getSetting(array $settings, string $key): ?Setting {
+    public function getSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
-            $settingRepository = $this->manager->getRepository(Setting::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
             $setting = $settingRepository->findOneBy(['label' => $key]);
             if (!$setting) {
                 $setting = new Setting();
@@ -109,7 +109,7 @@ class SettingsService {
             }
             $settings[$key] = $setting;
 
-            $this->manager->persist($setting);
+            $entityManager->persist($setting);
         }
 
         return $settings[$key] ?? null;
@@ -123,8 +123,9 @@ class SettingsService {
         return $timestamp1 < $timestamp2;
     }
 
-    public function save(Request $request): array {
-        $settingRepository = $this->manager->getRepository(Setting::class);
+    public function save(EntityManagerInterface $entityManager,
+                         Request                $request): array {
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $beforeStart = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START");
         $beforeEnd = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END");
@@ -165,6 +166,7 @@ class SettingsService {
         $settings = $settingRepository->findByLabel(array_merge($settingNames, $allFormSettingNames));
         if ($request->request->has("datatables")) {
             $this->saveDatatables(
+                $entityManager,
                 json_decode($request->request->get("datatables"), true),
                 $request->request->all(),
                 $request->files->all(),
@@ -173,18 +175,18 @@ class SettingsService {
         }
         $updated = [];
 
-        $this->saveCustom($request, $settings, $updated, $result);
-        $this->saveStandard($request, $settings, $updated, $allFormSettingNames);
-        $this->manager->flush();
-        $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
+        $this->saveCustom($entityManager, $request, $settings, $updated, $result);
+        $this->saveStandard($entityManager, $request, $settings, $updated, $allFormSettingNames);
+        $entityManager->flush();
+        $this->saveFiles($entityManager, $request, $settings, $allFormSettingNames, $updated);
 
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
         $this->clearSettings($settingToClear);
 
-        $this->manager->flush();
+        $entityManager->flush();
 
-        $this->postSaveTreatment($updated);
+        $this->postSaveTreatment($entityManager, $updated);
 
         $result = $result ?? [];
         if (isset($result['type'])) {
@@ -215,9 +217,13 @@ class SettingsService {
      *
      * @param Setting[] $settings Existing settings
      */
-    private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
+    private function saveCustom(EntityManagerInterface $entityManager,
+                                Request                $request,
+                                array                  $settings,
+                                array                  &$updated,
+                                array                  &$result): void {
         $data = $request->request;
-        $settingRepository = $this->manager->getRepository(Setting::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
@@ -232,7 +238,7 @@ class SettingsService {
                 Reception::STATUT_ANOMALIE => $data->get("anomalie"),
             ];
 
-            $statuses = $this->manager->getRepository(Statut::class)->findBy(["code" => array_keys($codes)]);
+            $statuses = $entityManager->getRepository(Statut::class)->findBy(["code" => array_keys($codes)]);
             foreach ($statuses as $status) {
                 $status->setNom($codes[$status->getCode()]);
             }
@@ -253,15 +259,15 @@ class SettingsService {
         }
 
         if ($request->request->getBoolean("alertTemplate")) {
-            $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
+            $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
             if (!$request->request->get("entity")) {
                 $template = new AlertTemplate();
                 $template->setType($request->request->get('type'));
-                $this->manager->persist($template);
+                $entityManager->persist($template);
 
                 $result['template'] = $template;
             } else {
-                $template = $this->manager->find(AlertTemplate::class, $request->request->get("entity"));
+                $template = $entityManager->find(AlertTemplate::class, $request->request->get("entity"));
             }
 
             $sameName = $alertTemplateRepository->findOneBy(["name" => $request->request->get("name")]);
@@ -269,11 +275,11 @@ class SettingsService {
                 throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
             }
 
-            $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
+            $this->alertTemplateService->updateAlertTemplate($request, $entityManager, $template);
         }
 
         if ($request->request->has("temperatureRanges")) {
-            $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
+            $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
             $existingRanges = Stream::from($temperatureRepository->findAll())
                 ->keymap(fn(TemperatureRange $range) => [$range->getValue(), $range])
                 ->toArray();
@@ -288,7 +294,7 @@ class SettingsService {
                     $range = new TemperatureRange();
                     $range->setValue($temperatureRange);
 
-                    $this->manager->persist($range);
+                    $entityManager->persist($range);
                 } else {
                     unset($removedRanges[$temperatureRange]);
                 }
@@ -303,7 +309,7 @@ class SettingsService {
                 }else if(!$entity->getTransportDeliveryRequestNatures()->isEmpty()){
                     throw new RuntimeException("La plage de température {$entity->getValue()} ne peut pas être supprimée car elle est utilisée par des demandes de transport");
                 } else{
-                    $this->manager->remove($entity);
+                    $entityManager->remove($entity);
                 }
             }
 
@@ -314,7 +320,7 @@ class SettingsService {
             $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
             $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
             $check = $request->request->get('createMvt');
-            $settingRepository = $this->manager->getRepository(Setting::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
 
             if (!$check) {
                 if ($defaultLocationUL !== null) {
@@ -339,12 +345,13 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveStandard(Request   $request,
+    private function saveStandard(EntityManagerInterface $entityManager,
+                                  Request   $request,
                                   array     $settings,
                                   array     &$updated,
                                   array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
-            $setting = $this->getSetting($settings, $key);
+            $setting = $this->getSetting($entityManager, $settings, $key);
             if (isset($setting)
                 && !in_array($key, $updated)
                 && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
@@ -364,9 +371,9 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveFiles(Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
+    private function saveFiles(EntityManagerInterface $entityManager, Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
         foreach ($request->files->all() as $key => $value) {
-            $setting = $this->getSetting($settings, $key);
+            $setting = $this->getSetting($entityManager, $settings, $key);
             if (isset($setting)) {
                 $fileName = $this->attachmentService->saveFile($value, $key);
                 $setting->setValue("uploads/attachments/" . $fileName[array_key_first($fileName)]);
@@ -392,7 +399,7 @@ class SettingsService {
 
         foreach ($defaultLogosToSave as [$defaultLogoLabel, $default]) {
             if (in_array($defaultLogoLabel, $allFormSettingNames)) {
-                $setting = $this->getSetting($settings, $defaultLogoLabel);
+                $setting = $this->getSetting($entityManager, $settings, $defaultLogoLabel);
                 if (!$request->request->getBoolean('keep-' . $defaultLogoLabel)
                     && !isset($files[$defaultLogoLabel])) {
                     $setting->setValue($default);
@@ -405,8 +412,8 @@ class SettingsService {
             if (str_ends_with($key, '_DELETED')) {
                 $defaultLogoLabel = str_replace('_DELETED', '', $key);
                 $linkedLabel = $defaultLogoLabel . '_FILE_NAME';
-                $setting = $this->getSetting($settings, $defaultLogoLabel);
-                $linkedSetting = $this->getSetting($settings, $linkedLabel);
+                $setting = $this->getSetting($entityManager, $settings, $defaultLogoLabel);
+                $linkedSetting = $this->getSetting($entityManager, $settings, $linkedLabel);
                 if ($value === "1") {
                     $setting->setValue(null);
                     $linkedSetting->setValue(null);
@@ -417,14 +424,18 @@ class SettingsService {
     }
 
     //    TODO WIIS-6693 mettre dans des services different ?
-    private function saveDatatables(array $tables, array $data, array $files, array &$result): void {
+    private function saveDatatables(EntityManagerInterface $entityManager,
+                                    array                  $tables,
+                                    array                  $data,
+                                    array                  $files,
+                                    array                  &$result): void {
         if (isset($tables["workingHours"])) {
             $ids = Stream::from($tables["workingHours"])
                 ->filter(fn(array $day) => !empty($day))
                 ->map(fn($day) => $day["id"])
                 ->toArray();
 
-            $daysWorkedRepository = $this->manager->getRepository(DaysWorked::class);
+            $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
             $days = empty($ids)
                 ? []
                 : Stream::from($daysWorkedRepository->findBy(["id" => $ids]))
@@ -479,7 +490,7 @@ class SettingsService {
                     ->setEnd($hours[1]);
             };
 
-            $hourShiftsRepository = $this->manager->getRepository(CollectTimeSlot::class);
+            $hourShiftsRepository = $entityManager->getRepository(CollectTimeSlot::class);
 
             $newShifts = Stream::from($tables["hourShifts"])
                 ->filter(fn(array $shift) => !isset($shift['id']))
@@ -496,19 +507,19 @@ class SettingsService {
                 if (!empty($existingShifts[$existingShift->getId()])) {
                     $editShift($existingShift, $existingShifts[$existingShift->getId()]);
                 } else {
-                    $this->deleteTimeSlot($existingShift);
+                    $this->deleteTimeSlot($entityManager, $existingShift);
                 }
             }
 
             foreach ($newShifts as $hourShifts) {
                 $shift = new CollectTimeSlot();
-                $this->manager->persist($shift);
+                $entityManager->persist($shift);
                 $editShift($shift, $hourShifts);
             }
         }
 
         if (isset($tables["offDays"])) {
-            $workFreeDayRepository = $this->manager->getRepository(WorkFreeDay::class);
+            $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
             foreach (array_filter($tables["offDays"]) as $offDay) {
                 $date = DateTime::createFromFormat("Y-m-d", $offDay["day"]);
                 if ($workFreeDayRepository->findBy(["day" => $date])) {
@@ -518,12 +529,12 @@ class SettingsService {
                 $day = new WorkFreeDay();
                 $day->setDay($date);
 
-                $this->manager->persist($day);
+                $entityManager->persist($day);
             }
         }
 
         if (isset($tables["startingHours"])) {
-            $userRepository = $this->manager->getRepository(Utilisateur::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
             $editShift = function(TransportRoundStartingHour $shift, array $edition) use ($userRepository) {
                 $hour = $edition["hour"] ?? null;
                 if(!$edition['deliverers']) {
@@ -549,7 +560,7 @@ class SettingsService {
                 }
             };
 
-            $hourShiftsRepository = $this->manager->getRepository(TransportRoundStartingHour::class);
+            $hourShiftsRepository = $entityManager->getRepository(TransportRoundStartingHour::class);
 
             $newShifts = Stream::from($tables["startingHours"])
                 ->filter(fn(array $shift) => !empty($shift) && !isset($shift['id']))
@@ -564,20 +575,20 @@ class SettingsService {
                 if (!empty($existingShifts[$existingShift->getId()])) {
                     $editShift($existingShift, $existingShifts[$existingShift->getId()]);
                 } else {
-                    $this->deleteStartingHour($existingShift);
+                    $this->deleteStartingHour($entityManager, $existingShift);
                 }
             }
 
             foreach ($newShifts as $hourShifts) {
                 $shift = new TransportRoundStartingHour();
-                $this->manager->persist($shift);
+                $entityManager->persist($shift);
                 $editShift($shift, $hourShifts);
             }
         }
 
         if (isset($tables["frequencesTable"])) {
             foreach (array_filter($tables["frequencesTable"]) as $frequenceData) {
-                $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
+                $frequenceRepository = $entityManager->getRepository(InventoryFrequency::class);
                 $frequence = "";
                 if (isset($frequenceData['frequenceId'])) {
                     $frequence = $frequenceRepository->find($frequenceData['frequenceId']);
@@ -587,13 +598,13 @@ class SettingsService {
                 $frequence->setLabel($frequenceData['label']);
                 $frequence->setNbMonths($frequenceData['nbMonths']);
 
-                $this->manager->persist($frequence);
+                $entityManager->persist($frequence);
             }
         }
 
         if (isset($tables["categoriesTable"])) {
-            $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
-            $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
+            $frequenceRepository = $entityManager->getRepository(InventoryFrequency::class);
+            $categoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             foreach (array_filter($tables["categoriesTable"]) as $categoryData) {
                 $frequence = $frequenceRepository->find($categoryData['frequency']);
@@ -603,14 +614,14 @@ class SettingsService {
                 $category->setLabel($categoryData['label']);
                 $category->setFrequency($frequence);
 
-                $this->manager->persist($category);
+                $entityManager->persist($category);
             }
         }
 
         if(isset($tables["tagTemplateTable"])) {
-            $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
-            $typeRepository = $this->manager->getRepository(Type::class);
-            $natureRepository = $this->manager->getRepository(Nature::class);
+            $tagTemplateRepository = $entityManager->getRepository(TagTemplate::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
 
             foreach (array_filter($tables["tagTemplateTable"]) as $tagTemplateData) {
                 $tagTemplateExist = $tagTemplateRepository->findOneBy(['prefix' => $tagTemplateData['prefix']]);
@@ -621,6 +632,10 @@ class SettingsService {
                 $tagTemplate = isset($tagTemplateData['tagTemplateId'])
                     ? $tagTemplateRepository->find($tagTemplateData['tagTemplateId'])
                     : new TagTemplate();
+
+                if (str_contains($tagTemplateData['prefix'], '/') || str_contains($tagTemplateData['prefix'], '\\')) {
+                    throw new FormException("Le préfixe ne doit pas contenir les caractères / ou \\.");
+                }
 
                 $tagTemplate->setPrefix($tagTemplateData['prefix']);
                 $tagTemplate->setBarcodeOrQr($tagTemplateData['barcodeType']);
@@ -646,13 +661,13 @@ class SettingsService {
                 $tagTemplate->setNatures(new ArrayCollection($natures));
                 $tagTemplate->setTypes(new ArrayCollection($types));
 
-                $this->manager->persist($tagTemplate);
+                $entityManager->persist($tagTemplate);
             }
         }
 
         if (isset($tables["freeFields"])) {
-            $typeRepository = $this->manager->getRepository(Type::class);
-            $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
@@ -671,11 +686,11 @@ class SettingsService {
 
                     $type = new Type();
                     $type->setCategory($category);
-                    $this->manager->persist($type);
+                    $entityManager->persist($type);
 
                     $result['type'] = $type;
                 } else {
-                    $type = $this->manager->find(Type::class, $data["entity"]);
+                    $type = $entityManager->find(Type::class, $data["entity"]);
                 }
 
                 if (!isset($type)) {
@@ -689,7 +704,7 @@ class SettingsService {
                 $suggestedDropLocations = null;
                 if (isset($data["suggestedDropLocations"])) {
                     $dropLocation = isset($data["dropLocation"])
-                        ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getId()
+                        ? $entityManager->find(Emplacement::class, $data["dropLocation"])->getId()
                         : $type->getDropLocation()?->getId();
 
                     $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
@@ -702,7 +717,7 @@ class SettingsService {
                 $suggestedPickLocations = null;
                 if (isset($data["suggestedPickLocations"])) {
                     $pickLocation = isset($data["pickLocation"])
-                        ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getId()
+                        ? $entityManager->find(Emplacement::class, $data["pickLocation"])->getId()
                         : $type->getPickLocation()?->getId();
 
                     $suggestedPickLocations = !empty($data["suggestedPickLocations"]) ? explode(',', $data["suggestedPickLocations"]) : [];;
@@ -711,25 +726,27 @@ class SettingsService {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
                     }
                 }
+
                 $newLabel = $data["label"] ?? $type->getLabel();
                 $type
                     ->setLabel($newLabel)
                     ->setDescription($data["description"] ?? null)
-                    ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
-                    ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
+                    ->setPickLocation(isset($data["pickLocation"]) ? $entityManager->find(Emplacement::class, $data["pickLocation"]) : null)
+                    ->setDropLocation(isset($data["dropLocation"]) ? $entityManager->find(Emplacement::class, $data["dropLocation"]) : null)
                     ->setSuggestedPickLocations($suggestedPickLocations)
                     ->setSuggestedDropLocations($suggestedDropLocations)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
+                    ->setReusableStatuses($data["reusableStatuses"] ?? false)
                     ->setColor($data["color"] ?? null);
 
                 $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
                 if ($defaultTranslation) {
                     $defaultTranslation->setTranslation($newLabel);
                 } else {
-                    $this->translationService->setDefaultTranslation($this->manager, $type, $newLabel);
+                    $this->translationService->setDefaultTranslation($entityManager, $type, $newLabel);
                 }
 
                 if(isset($data["isDefault"])) {
@@ -758,7 +775,7 @@ class SettingsService {
                 ]);
             }
 
-            $requestTemplateLineRepository = $this->manager->getRepository(FreeField::class);
+            $requestTemplateLineRepository = $entityManager->getRepository(FreeField::class);
             $freeFields = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
@@ -801,7 +818,7 @@ class SettingsService {
                     ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"])
-                        ? $this->manager->find(CategorieCL::class, $item["category"])
+                        ? $entityManager->find(CategorieCL::class, $item["category"])
                         : ($type?->getCategory()->getCategorieCLs()->first() ?: null)
                     )
                     ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
@@ -817,44 +834,44 @@ class SettingsService {
                 if ($defaultTranslation) {
                     $defaultTranslation->setTranslation($freeField->getLabel());
                 } else {
-                    $this->translationService->setDefaultTranslation($this->manager, $freeField, $freeField->getLabel());
+                    $this->translationService->setDefaultTranslation($entityManager, $freeField, $freeField->getLabel());
                 }
 
                 $defaultValue = $freeField->getDefaultValue();
                 $defaultValueTranslation = $freeField->getDefaultValueTranslation();
                 if($defaultValue && !$defaultValueTranslation) {
-                    $this->translationService->setDefaultTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
+                    $this->translationService->setDefaultTranslation($entityManager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
                 } else if($defaultValue && $defaultValueTranslation) {
                     $translation = $defaultValueTranslation->getTranslationIn(Language::FRENCH_SLUG)
                         ?: (new Translation())
-                            ->setLanguage($this->manager->getRepository(Language::class)->findOneBy((['slug'=> Language::FRENCH_SLUG])))
+                            ->setLanguage($entityManager->getRepository(Language::class)->findOneBy((['slug'=> Language::FRENCH_SLUG])))
                             ->setSource($defaultValueTranslation);
-                    $this->manager->persist($translation);
+                    $entityManager->persist($translation);
                     $translation->setTranslation($defaultValue);
                 }
 
                 foreach($freeField->getElementsTranslations() as $source) {
                     if(!in_array($source->getTranslationIn(Language::FRENCH_SLUG)->getTranslation(), $freeField->getElements())) {
                         $freeField->removeElementTranslation($source);
-                        $this->manager->remove($source);
+                        $entityManager->remove($source);
                     }
                 }
 
                 foreach($freeField->getElements() as $element) {
                     $source = $freeField->getElementTranslation($element);
                     if(!$source) {
-                        $this->translationService->setDefaultTranslation($this->manager, $freeField, $element, "addElementTranslation");
+                        $this->translationService->setDefaultTranslation($entityManager, $freeField, $element, "addElementTranslation");
                     }
                 }
 
-                $this->manager->persist($freeField);
+                $entityManager->persist($freeField);
             }
         }
 
         if (isset($tables["fixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["fixedFields"]);
 
-            $fieldsParamRepository = $this->manager->getRepository(FixedFieldStandard::class);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
             $fieldsParams = Stream::from($fieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
@@ -878,8 +895,8 @@ class SettingsService {
         }
 
         if (isset($tables["fixedFieldsByType"]) && isset($data["type"])) {
-            $typeRepository = $typeRepository ?? $this->manager->getRepository(Type::class);
-            $fixedFieldByTypeRepository = $this->manager->getRepository(FixedFieldByType::class);
+            $typeRepository = $typeRepository ?? $entityManager->getRepository(Type::class);
+            $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
             $type = $typeRepository->find($data["type"]);
             $paramById =  Stream::from($tables["fixedFieldsByType"])
                 ->keymap(fn($fieldParam) => [$fieldParam["id"], $fieldParam]);
@@ -899,7 +916,7 @@ class SettingsService {
         if (isset($tables["subFixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
 
-            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFixedField::class);
+            $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
             $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
@@ -934,7 +951,7 @@ class SettingsService {
 
         if (isset($tables["visibilityGroup"])) {
             foreach (array_filter($tables["visibilityGroup"]) as $visibilityGroupData) {
-                $visibilityGroupRepository = $this->manager->getRepository(VisibilityGroup::class);
+                $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
                 if (isset($visibilityGroupData['visibilityGroupId'])) {
                     $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupData['visibilityGroupId']);
                 } else {
@@ -944,14 +961,14 @@ class SettingsService {
                 $visibilityGroup->setDescription($visibilityGroupData['description']);
                 $visibilityGroup->setActive($visibilityGroupData['actif']);
 
-                $this->manager->persist($visibilityGroup);
+                $entityManager->persist($visibilityGroup);
             }
         }
 
         if (isset($tables["typesLitigeTable"])) {
             foreach (array_filter($tables["typesLitigeTable"]) as $typeLitigeData) {
-                $typeLitigeRepository = $this->manager->getRepository(Type::class);
-                $categoryLitige = $this->manager->getRepository(CategoryType::class)
+                $typeLitigeRepository = $entityManager->getRepository(Type::class);
+                $categoryLitige = $entityManager->getRepository(CategoryType::class)
                     ->findOneBy(['label' => CategoryType::DISPUTE]);
 
                 if (isset($typeLitigeData['typeLitigeId'])) {
@@ -964,7 +981,7 @@ class SettingsService {
                 $typeLitige->setLabel($typeLitigeData['label']);
                 $typeLitige->setDescription($typeLitigeData['description'] ?? "");
 
-                $this->manager->persist($typeLitige);
+                $entityManager->persist($typeLitige);
             }
         }
 
@@ -972,11 +989,11 @@ class SettingsService {
             $statusesData = array_filter($tables["genericStatuses"]);
 
             if (!empty($statusesData)) {
-                $statusRepository = $this->manager->getRepository(Statut::class);
-                $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
-                $typeRepository = $this->manager->getRepository(Type::class);
-                $languageRepository = $this->manager->getRepository(Language::class);
-                $userRepository = $this->manager->getRepository(Utilisateur::class);
+                $statusRepository = $entityManager->getRepository(Statut::class);
+                $categoryRepository = $entityManager->getRepository(CategorieStatut::class);
+                $typeRepository = $entityManager->getRepository(Type::class);
+                $languageRepository = $entityManager->getRepository(Language::class);
+                $userRepository = $entityManager->getRepository(Utilisateur::class);
 
                 $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
 
@@ -1003,7 +1020,22 @@ class SettingsService {
                     throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
                 }
 
+                // check if "passStatusAtPurchaseOrderGeneration" attributes is true only one time
+                $countPassStatusAtPurchaseOrderGeneration = Stream::from($statusesData)
+                    ->filter(fn(array $statusData) => ($statusData['passStatusAtPurchaseOrderGeneration'] ?? null) === "1")
+                    ->count();
+                if ($countPassStatusAtPurchaseOrderGeneration > 1) {
+                    throw new FormException('Un seul statut peut être sélectionné pour le passage du statut à la génération de la commande');
+                }
+
                 foreach ($statusesData as $statusData) {
+                    // check if "passStatusAtPurchaseOrderGeneration" attributes have valid status (only DRAFT and NOT_TREATED)
+                    if($statusData['passStatusAtPurchaseOrderGeneration'] ?? false == "1"){
+                        if(in_array($statusData['state'], [Statut::NOT_TREATED, Statut::DRAFT])){
+                            throw new FormException("Le paramétrage 'Passage au statut à la génération du bon de commande' ne peut être activé que pour les statuts 'Brouillon' ou 'Non traité'");
+                        }
+                    }
+
                     if (!in_array($statusData['state'], [
                         Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE,
                         Statut::PARTIAL,
@@ -1053,7 +1085,9 @@ class SettingsService {
                         ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
-                        ->setColor($statusData['color'] ?? null);
+                        ->setColor($statusData['color'] ?? null)
+                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false)
+                        ->setPassStatusAtPurchaseOrderGeneration($statusData['passStatusAtPurchaseOrderGeneration'] ?? false);
 
                     if($hasRightGroupedSignature){
                         $status
@@ -1067,7 +1101,7 @@ class SettingsService {
                     $labelTranslation = $status->getLabelTranslation();
                     if(!$labelTranslation) {
                         $labelTranslation = new TranslationSource();
-                        $this->manager->persist($labelTranslation);
+                        $entityManager->persist($labelTranslation);
 
                         $status->setLabelTranslation($labelTranslation);
                     }
@@ -1080,11 +1114,11 @@ class SettingsService {
                         $translation
                             ->setSource($labelTranslation)
                             ->setLanguage($language);
-                        $this->manager->persist($translation);
+                        $entityManager->persist($translation);
                     }
 
                     $translation->setTranslation($statusData['label']);
-                    $this->manager->persist($status);
+                    $entityManager->persist($status);
                 }
                 $validation = $this->statusService->validateStatusesData($persistedStatuses);
 
@@ -1096,8 +1130,8 @@ class SettingsService {
 
         if (isset($tables["requestTemplates"])) {
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
-            $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
-            $typeRepository = $this->manager->getRepository(Type::class);
+            $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
             if (!is_numeric($data["entity"])) {
                 $template = $data["entity"] === Type::LABEL_DELIVERY
                     ? new DeliveryRequestTemplate()
@@ -1107,11 +1141,11 @@ class SettingsService {
                     );
                 $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
 
-                $this->manager->persist($template);
+                $entityManager->persist($template);
 
                 $result['template'] = $template;
             } else {
-                $template = $this->manager->find(RequestTemplate::class, $data["entity"]);
+                $template = $entityManager->find(RequestTemplate::class, $data["entity"]);
             }
 
             $sameName = $requestTemplateRepository->findOneBy(["name" => $data["name"]]);
@@ -1121,7 +1155,7 @@ class SettingsService {
 
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
-            $requestTemplateLineRepository = $this->manager->getRepository(RequestTemplateLine::class);
+            $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
             $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($line) => [$line->getId(), $line])
                 ->toArray();
@@ -1134,13 +1168,13 @@ class SettingsService {
 
                 $this->requestTemplateService->updateRequestTemplateLine($line, $item);
 
-                $this->manager->persist($line);
+                $entityManager->persist($line);
             }
         }
 
         if (isset($tables["nativeCountriesTable"])) {
             $nativeCountriesData = array_filter($tables["nativeCountriesTable"]);
-            $nativeCountryRepository = $this->manager->getRepository(NativeCountry::class);
+            $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
 
             if (!empty($nativeCountriesData)) {
                 foreach ($nativeCountriesData as $nativeCountryData) {
@@ -1164,15 +1198,15 @@ class SettingsService {
                         ->setLabel($nativeCountryData['label'])
                         ->setActive($nativeCountryData['active']);
 
-                    $this->manager->persist($nativeCountry);
+                    $entityManager->persist($nativeCountry);
                 }
             }
         }
 
         if (isset($tables["TruckArrivalReserves"])) {
             $reserveTypesData = array_filter($tables["TruckArrivalReserves"]);
-            $reserveTypeRepository = $this->manager->getRepository(ReserveType::class);
-            $userRepository = $this->manager->getRepository(Utilisateur::class);
+            $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
+            $userRepository = $entityManager->getRepository(Utilisateur::class);
 
             if (!empty($reserveTypesData)) {
                 $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
@@ -1222,7 +1256,7 @@ class SettingsService {
                         ->setActive($reserveTypeData['active'])
                         ->setDisableTrackingNumber($reserveTypeData['disableTrackingNumber']);
 
-                    $this->manager->persist($reserveType);
+                    $entityManager->persist($reserveType);
                 }
             }
         }
@@ -1231,16 +1265,15 @@ class SettingsService {
     /**
      * Runs utilities when needed after settings have been saved
      * such as cache clearing translation updates or webpack build
-     *
-     * @param string[] $updated
      */
-    private function postSaveTreatment(array $updated): void {
+    private function postSaveTreatment(EntityManagerInterface $entityManager,
+                                       array                  $updated): void {
+        $this->getTimestamp(true);
         if (array_intersect($updated, [Setting::FONT_FAMILY])) {
-            $this->generateFontSCSS();
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "font-family");
         }
-
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
-            $this->generateSessionConfig();
+            $this->generateSessionConfig($entityManager);
             $this->cacheClear();
         }
     }
@@ -1269,17 +1302,8 @@ class SettingsService {
         }
     }
 
-    public function generateFontSCSS() {
-        $path = "{$this->kernel->getProjectDir()}/public/generated/font.css";
-
-        $font = $this->manager->getRepository(Setting::class)
-                ->getOneParamByLabel(Setting::FONT_FAMILY) ?? Setting::DEFAULT_FONT_FAMILY;
-
-        file_put_contents($path, "* { font-family: \"$font\" !important; }");
-    }
-
-    public function generateSessionConfig() {
-        $sessionLifetime = $this->manager->getRepository(Setting::class)
+    public function generateSessionConfig(EntityManagerInterface $entityManager) {
+        $sessionLifetime = $entityManager->getRepository(Setting::class)
             ->getOneParamByLabel(Setting::MAX_SESSION_TIME);
 
         $generated = "{$this->kernel->getProjectDir()}/config/generated.yaml";
@@ -1292,14 +1316,12 @@ class SettingsService {
         file_put_contents($generated, Yaml::dump($config));
     }
 
-    public function yarnBuild() {
-        $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
-        $process = Process::fromShellCommandline("yarn build:only:$env")
-            ->setWorkingDirectory($this->kernel->getProjectDir());
-
-        if($process->run() != 0) {
-            throw new RuntimeException($process->getOutput());
+    public function getTimestamp(bool $reset = false): string {
+        if ($reset) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "timestamp");
         }
+
+        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, "timestamp", fn() => time());
     }
 
     public function cacheClear(): void {
@@ -1326,8 +1348,8 @@ class SettingsService {
     }
 
     #[ArrayShape(["logo" => "mixed", "height" => "mixed", "width" => "mixed", "isCode128" => "mixed"])]
-    public function getDimensionAndTypeBarcodeArray(): array {
-        $settingRepository = $this->manager->getRepository(Setting::class);
+    public function getDimensionAndTypeBarcodeArray(EntityManagerInterface $entityManager): array {
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         return [
             "logo" => $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO),
@@ -1337,9 +1359,9 @@ class SettingsService {
         ];
     }
 
-    public function getParamLocation(string $label) {
-        $settingRepository = $this->manager->getRepository(Setting::class);
-        $emplacementRepository = $this->manager->getRepository(Emplacement::class);
+    public function getParamLocation(EntityManagerInterface $entityManager, string $label) {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $locationId = $settingRepository->getOneParamByLabel($label);
 
@@ -1470,20 +1492,20 @@ class SettingsService {
         return $isWorked;
     }
 
-    public function deleteTimeSlot(CollectTimeSlot $timeSlot) {
+    public function deleteTimeSlot(EntityManagerInterface $entityManager, CollectTimeSlot $timeSlot) {
         $canDelete = $timeSlot->getTransportCollectRequests()->isEmpty();
         if ($canDelete) {
-            $this->manager->remove($timeSlot);
+            $entityManager->remove($timeSlot);
         } else {
             throw new RuntimeException("Le créneau " . $timeSlot->getName() . " est utilisé. Impossible de le supprimer.");
         }
     }
 
-    public function deleteStartingHour(TransportRoundStartingHour $startingHour) {
+    public function deleteStartingHour(EntityManagerInterface $entityManager, TransportRoundStartingHour $startingHour) {
         foreach ($startingHour->getDeliverers() as $deliverer) {
             $deliverer->setTransportRoundStartingHour(null);
         }
-        $this->manager->remove($startingHour);
+        $entityManager->remove($startingHour);
     }
 
     public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting): array {

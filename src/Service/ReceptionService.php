@@ -12,6 +12,8 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
@@ -72,9 +74,7 @@ class ReceptionService
     #[Required]
     public ReceptionLineService $receptionLineService;
 
-    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
-    {
-
+    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
@@ -189,7 +189,7 @@ class ReceptionService
         }
 
         if (!$update && $fromImport && empty($data['location'])) {
-            $defaultLocation = $this->settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION);
+            $defaultLocation = $this->settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_RECEPTION);
             if (isset($defaultLocation)) {
                 $location = $emplacementRepository->find(intval($defaultLocation['id']));
                 $reception
@@ -283,8 +283,12 @@ class ReceptionService
         }
     }
 
-    public function dataRowReception(Reception $reception)
+    public function dataRowReception(Reception $reception): array
     {
+        $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
+            ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
+            ->filter(static fn(PurchaseRequest $request) => $request)
+            ->first();
         return [
             "id" => ($reception->getId()),
             "Statut" => $this->formatService->status($reception->getStatut()),
@@ -293,6 +297,7 @@ class ReceptionService
             "DateFin" => $this->formatService->datetime($reception->getDateFinReception()),
             "Fournisseur" => $this->formatService->supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
+            "user" => $this->formatService->user($reception->getUtilisateur()),
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
                     ->map(function (Demande $request) {
@@ -310,6 +315,7 @@ class ReceptionService
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
             ]),
+            "deliveryFee" => $purchaseRequest?->getDeliveryFee(),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',
                 ['reception' => $reception]
@@ -333,7 +339,9 @@ class ReceptionService
             ["title" => "Emplacement de stockage", "name" => "storageLocation", 'searchable' => true],
             ["title" => "Commentaire", "name" => "Commentaire", 'searchable' => true],
             ["title" => "Type(s) de " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
+            ["title" => "Frais de livraison", "name" => "deliveryFee", 'searchable' => false, 'orderable' => true],
             ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
+            ["title" => "Utilisateur", "name" => "user", "searchable" => true]
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
@@ -365,7 +373,7 @@ class ReceptionService
                     })
                     ->toArray())
         );
-
+        $user = $this->formatService->user($reception->getUtilisateur());
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $reception,
@@ -423,6 +431,11 @@ class ReceptionService
                 'label' => 'Emplacement de stockage',
                 'value' => $storageLocation ?: '',
                 'show' => [ 'fieldName' => 'storageLocation' ]
+            ],
+            [
+                'label' => 'Utilisateur',
+                'value' => $user ?: '',
+                'show' => [ 'fieldName' => 'utilisateur' ]
             ],
         ];
 

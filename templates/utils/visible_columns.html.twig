@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalColumnVisible" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -47,49 +49,18 @@
                     {% endfor %}
                     </tbody>
                 </table>
+
+                {{ form.hidden("tables", table, {data: false}) }}
+                {{ form.hidden("reload", reload is defined and reload == "1", {data: false}) }}
+                {{ form.hidden("page", page, {data: false}) }}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')},
-                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer') , id: 'submitColumnVisible' }
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: "submit"}
                 ],
                 hideErrorContainer: true,
             } %}
-
         </div>
     </div>
 </div>
-
-<script>
-    window.addEventListener("load", function() {
-        const $modal = $('#modalColumnVisible');
-        const $submitButton = $('#submitColumnVisible');
-        let initialized = false;
-
-        $('[data-target="#modalColumnVisible"]').on('click', function() {
-            if(initialized || {{ table }} === undefined) {
-                return;
-            }
-
-            let config = {};
-            {% if reload is defined and reload == "1" %}
-                config.success = () => {
-                    window.location.reload();
-                };
-            {% else %}
-                config.success = () => {
-                    $modal.find('input[type="checkbox"]').each((_, check) => {
-                        const $check = $(check);
-                        let columnName = $check.data('name');
-                        let column = {{ table }}.column(columnName + ':name');
-                        column.visible($check.hasClass('data'));
-                    });
-
-                    {{ table }}.ajax.reload();
-                };
-            {% endif %}
-            InitModal($modal, $submitButton, '{{ path(route) }}', config);
-            initialized = true;
-        });
-    });
-</script>

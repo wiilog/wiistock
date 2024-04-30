@@ -1,8 +1,10 @@
 import Routing from '@app/fos-routing';
-import AJAX, {GET} from '@app/ajax';
+import AJAX, {GET, POST} from '@app/ajax';
 import Flash from '@app/ajax';
 import Modal from '@app/modal';
 import moment from 'moment';
+import Form from '@app/form';
+import {initDataTable, initSearchDate} from "@app/datatable";
 
 let tableMvt;
 
@@ -24,18 +26,14 @@ $(function () {
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    if(!$(`#filterArticle`).exists()) {
-        const filters = JSON.parse($(`#trackingMovementFilters`).val())
+    if (!$(`#filterArticle`).exists()) {
+        const filters = JSON.parse($(`[name="trackingMovementFilters"]`).val())
         displayFiltersSup(filters, true);
     }
-
-    Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
-
     initNewModal($modalNewMvtTraca);
 
-    $(document).on(`keypress`, `[data-fill-location]`, function(event) {
-        if(event.code === `Enter`) {
+    $(document).on(`keypress`, `[data-fill-location]`, function (event) {
+        if (event.code === `Enter`) {
             loadLULocation($(this));
         }
     });
@@ -44,8 +42,8 @@ $(function () {
         loadLULocation($(this));
     });
 
-    $(document).on(`keypress`, `[data-fill-quantity]`, function(event) {
-        if(event.code === `Enter`) {
+    $(document).on(`keypress`, `[data-fill-quantity]`, function (event) {
+        if (event.code === `Enter`) {
             loadLUQuantity($(this));
         }
     });
@@ -53,6 +51,9 @@ $(function () {
     $(document).on(`focusout`, `[data-fill-quantity]`, function () {
         loadLUQuantity($(this));
     });
+
+
+    initSearchDate(tableMvt)
 });
 
 function loadLUQuantity($selector) {
@@ -83,7 +84,7 @@ function loadLULocation($input) {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
     const code = $input.val();
 
-    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_location`, {code})
+    AJAX.route(GET, `tracking_movement_logistic_unit_location`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -115,110 +116,120 @@ function initTrackingMovementTable(columns) {
                 article: $(`#filterArticle`).val(),
             }
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         rowConfig: {
             needsRowClickAction: true
         },
         columns,
-        hideColumnConfig: {
-            columns,
-            tableFilter: 'tableMvts'
-        }
     };
 
     tableMvt = initDataTable('tableMvts', trackingMovementTableConfig);
-    initPageModal(tableMvt);
+    initPageModals(tableMvt);
 }
 
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableMvt.column('date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        return ((dateMin === "" && dateMax === "")
-            || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-            || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax)));
-    }
-);
-
-
-function initPageModal(tableMvt) {
+function initPageModals(tableMvt) {
     let $modalEditMvtTraca = $("#modalEditMvtTraca");
-    let $submitEditMvtTraca = $("#submitEditMvtTraca");
-    let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);
-    InitModal($modalEditMvtTraca, $submitEditMvtTraca, urlEditMvtTraca, {tables: [tableMvt]});
-
-    let $modalDeleteMvtTraca = $('#modalDeleteMvtTraca');
-    let $submitDeleteMvtTraca = $('#submitDeleteMvtTraca');
-    let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
-    InitModal($modalDeleteMvtTraca, $submitDeleteMvtTraca, urlDeleteArrivage, {tables: [tableMvt]});
-
-    let modalNewMvtTraca = $("#modalNewMvtTraca");
-    let submitNewMvtTraca = $("#submitNewMvtTraca");
-    let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-
-    modalNewMvtTraca.on(`shown.bs.modal`, function() {
-        fillDatePickers('[name="datetime"]', 'YYYY-MM-DD', true);
-    })
-
-    InitModal(
-        modalNewMvtTraca,
-        submitNewMvtTraca,
-        urlNewMvtTraca,
-        {
-            tables: [tableMvt],
-            keepModal: Number($('#redirectAfterTrackingMovementCreation').val()),
-            keepForm: true,
-            confirmMessage: $modal => {
-                return new Promise((resolve, reject) => {
-                    const pack = $modal.find(`[name="pack"]`).val();
-                    const type = $modal.find(`[name="type"] option:selected`).text().trim();
-
-                    if(type !== `prise` || !pack) {
-                        return resolve(true);
-                    }
-
-                    AJAX.route(GET, `tracking_movement_is_in_lu`, {barcode: pack})
-                        .json()
-                        .then(result => {
-                            if(result.in_logistic_unit) {
-                                Modal.confirm({
-                                    title: `Article dans unité logistique`,
-                                    message: `L'article ${pack} sera enlevé de l'unité logistique ${result.logistic_unit}`,
-                                    validateButton: {
-                                        color: 'success',
-                                        label: 'Continuer',
-                                        click: () => resolve(true)
-                                    },
-                                    cancelled: () => resolve(false),
-                                });
-                            } else {
-                                resolve(true)
-                            }
-                        })
-                })
-            },
-            success: ({success, trackingMovementsCounter, group}) => {
-                if (group) {
-                    displayConfirmationModal(group);
-                } else {
-                    displayOnSuccessCreation(success, trackingMovementsCounter);
-                    clearModal($('#modalNewMvtTraca'));
-
-                    fillDatePickers('.free-field-date');
-                    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
-                }
+    Form
+        .create($modalEditMvtTraca)
+        .onOpen(function (event) {
+            const trackingMovement = $(event.relatedTarget).data('id');
+            Modal.load('tracking_movement_api_edit', {trackingMovement}, $modalEditMvtTraca)
+            initDatePickers();
+        })
+        .submitTo(
+            POST,
+            'mvt_traca_edit',
+            {
+                tables: [tableMvt]
             }
+        );
+
+    $(document).on('click', '.delete-tracability-movement', function (event) {
+        const trackingMovement = $(event.currentTarget).data('id');
+        Modal.confirm({
+            ajax: {
+                method: POST,
+                route: 'tracking-movement_delete',
+                params: {
+                    trackingMovement
+                },
+            },
+            message: Translation.of('Traçabilité', 'Mouvements', 'Voulez-vous réellement supprimer ce mouvement ?', false),
+            title: Translation.of('Traçabilité', 'Mouvements', 'Supprimer le mouvement', false),
+            validateButton: {
+                color: 'danger',
+                label: Translation.of('Général', null, 'Modale', 'Supprimer', false),
+            },
+            cancelButton: {
+                label: Translation.of('Général', null, 'Modale', 'Annuler', false),
+            },
+            table: tableMvt,
         });
+    });
+
+    const $modalNewMvtTraca = $("#modalNewMvtTraca");
+    Form
+        .create($modalNewMvtTraca)
+        .onOpen(function () {
+            fillDatePickers($modalNewMvtTraca.find('[name="datetime"]') , 'YYYY-MM-DD', true);
+        })
+        .onSubmit(function (data, form) {
+            const pack = $modalNewMvtTraca.find(`[name="pack"]`).val();
+            const type = $modalNewMvtTraca.find(`[name="type"] option:selected`).text().trim();
+
+            if (type !== `prise` || !pack) {
+                submitNewTrackingMovementForm(data, form);
+            } else {
+                AJAX.route(GET, `article_is_in_lu`, {barcode: pack})
+                    .json()
+                    .then(result => {
+                        if (result.in_logistic_unit) {
+                            Modal.confirm({
+                                title: `Article dans unité logistique`,
+                                message: `L'article ${pack} sera enlevé de l'unité logistique ${result.logistic_unit}`,
+                                validateButton: {
+                                    color: 'success',
+                                    label: 'Continuer',
+                                    click: () => {
+                                        submitNewTrackingMovementForm(data, form)
+                                    },
+                                },
+                            });
+                        } else {
+                            submitNewTrackingMovementForm(data, form)
+                        }
+                    })
+            }
+        })
+}
+
+function submitNewTrackingMovementForm(data, form) {
+    form.loading(
+        () => AJAX
+            .route(POST, 'mvt_traca_new', {})
+            .json(data)
+            .then(({success, group, trackingMovementsCounter}) => {
+                if (success) {
+                    [tableMvt].forEach((table) => {
+                        if (table instanceof Function) {
+                            table().ajax.reload();
+                        } else {
+                            table.ajax.reload();
+                        }
+                    })
+                    if (group) {
+                        displayConfirmationModal(group);
+                    } else {
+                        displayOnSuccessCreation(success, trackingMovementsCounter);
+                        fillDatePickers('.free-field-date');
+                        fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+                    }
+                    form.clear();
+                    if (!Boolean(Number($('[name="CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT"]').val()))) {
+                        form.element.modal('hide');
+                    }
+                }
+            })
+    );
 }
 
 function initNewModal($modal) {
@@ -230,16 +241,6 @@ function resetNewModal($modal) {
     // date
     const date = moment().format();
     $modal.find('.datetime').val(date.slice(0, 16));
-
-    // operator
-    const $operatorSelect = $modal.find('.ajax-autocomplete-user');
-    const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
-    let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
-    $operatorSelect
-        .val(null)
-        .trigger('change')
-        .append(option)
-        .trigger('change');
 
     $modal.find('.more-body-new-mvt-traca').empty();
 
@@ -253,13 +254,12 @@ function resetNewModal($modal) {
 
     fillDatePickers('.free-field-date');
     fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
-
 }
 
 function switchMvtCreationType($input) {
     let paramsToGetAppropriateHtml = $input.val();
 
-    if(paramsToGetAppropriateHtml){
+    if (paramsToGetAppropriateHtml) {
         $(`#submitNewMvtTraca`).prop(`disabled`, false);
         AJAX.route(AJAX.POST, "mouvement_traca_get_appropriate_html")
             .json(paramsToGetAppropriateHtml)
@@ -271,16 +271,16 @@ function switchMvtCreationType($input) {
                     $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
                     Select2Old.location($modal.find('.ajax-autocomplete-location'));
 
-                    const $emptyRound = $modal.find('input[name=empty-round]');
+                    const $emptyRound = $modal.find('input[name="empty-round"]');
                     if ($input.find(':selected').text().trim() === $emptyRound.val()) {
-                        const $packInput = $modal.find('select[name=pack]');
-                        $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
+                        const $packInput = $modal.find('select[name="pack"]');
+                        $modal.find('input[name="quantity"]').closest('div.form-group').addClass('d-none');
                         $packInput.val('passageavide');
                         $packInput.prop('disabled', true);
                     }
 
                     const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');
-                    if($moreMassMvtContainer.length > 0) {
+                    if ($moreMassMvtContainer.length > 0) {
                         const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
                         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
                         const $pack = $moreMassMvtContainer.find('select[name="pack"]');
@@ -363,7 +363,7 @@ function toggleDateInput($checkbox) {
     $checkbox
         .siblings(`label`)
         .closest(`.form-group`)
-        .find(`[name=datetime]`)
+        .find(`[name="datetime"]`)
         .toggleClass(`d-none`, isChecked)
         .toggleClass(`needed`, !isChecked);
 }

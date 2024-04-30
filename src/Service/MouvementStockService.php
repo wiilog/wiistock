@@ -93,7 +93,7 @@ class MouvementStockService
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
 			'refArticle' => $refArticleCheck,
             'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
-            'quantite' => $mouvement->getQuantity(),
+            'quantite' => $this->formatHTMLQuantity($mouvement),
 			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
 			'type' => $mouvement->getType(),
@@ -103,6 +103,30 @@ class MouvementStockService
 				'mvt' => $mouvement,
 			])
 		];
+    }
+
+    /**
+     * Allow to get the configuration of one line of the datatable for the quantity of a stock movement
+     */
+    public function formatHTMLQuantity(MouvementStock $stockMovement): string
+    {
+        $type = $stockMovement->getType();
+        $quantity = $stockMovement->getQuantity();
+
+        $color = match ($type) {
+            MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_INVENTAIRE_ENTREE =>  "green",
+            MouvementStock::TYPE_SORTIE, MouvementStock::TYPE_INVENTAIRE_SORTIE => "red",
+            default => "black"
+        };
+
+        $operator = match($type) {
+            MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_INVENTAIRE_ENTREE => "+&nbsp;",
+            MouvementStock::TYPE_SORTIE, MouvementStock::TYPE_INVENTAIRE_SORTIE => "-&nbsp;",
+            default => ''
+        };
+
+        return "<span style='font-weight: bold; color: {$color};'>{$operator}{$quantity}</span>";
+
     }
 
     public function getFromColumnConfig(MouvementStock $mouvement): array {

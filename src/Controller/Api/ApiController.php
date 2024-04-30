@@ -4,12 +4,12 @@ namespace App\Controller\Api;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\Routing\Annotation\Route;
 
-#[Rest\Route("/api", name: "api_")]
+#[Route("/api", name: "api_")]
 class ApiController extends AbstractApiController {
 
-    #[Rest\Get("/ping", name: 'ping', options: ["expose" => true])]
-    #[Rest\View]
+    #[Route("/ping", name: 'ping', options: ["expose" => true], methods: ['GET'])]
     public function ping(): JsonResponse {
         $response = new JsonResponse(['success' => true]);
         $response->headers->set('Content-Type', 'application/json');
@@ -17,5 +17,4 @@ class ApiController extends AbstractApiController {
         $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
         return $response;
     }
-
 }

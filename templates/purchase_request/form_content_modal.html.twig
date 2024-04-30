@@ -27,8 +27,10 @@
                 label: status.nom,
                 value: status.id,
                 order: status.displayOrder,
+                preventStatusChangeWithoutDeliveryFees: status.preventStatusChangeWithoutDeliveryFees,
                 selected: status.id == selectedStatusId,
             })),
+            onChange: 'onStatusChange($(this))',
         }) }}
     </div>
     <div class="form-group col-12 col-md-6">
@@ -36,6 +38,13 @@
             type: 'provider',
             multiple: false,
             items: {(purchaseRequest.supplier.id ?? '' ): (purchaseRequest.supplier.nom ?? '')}
+        }) }}
+    </div>
+    <div class="form-group col-12 col-md-6">
+        {{ form.input('deliveryFee', trans('Demande', 'Acheminements', 'Général', 'Frais de livraison'), false, purchaseRequest.deliveryFee ?? null, {
+            type: 'number',
+            step: 0.01,
+            min: 0,
         }) }}
     </div>
 </div>
@@ -50,3 +59,4 @@
         } %}
     </div>
 </div>
+{{ form.hidden('id', purchaseRequest.id) }}

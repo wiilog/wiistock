@@ -75,20 +75,20 @@ class HandlingController extends AbstractController {
         $user = $this->getUser();
         $dateChoice = [
             [
-                'name' => 'creationDate',
+                'value' => 'creationDate',
                 'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
             ],
             [
-                'name' => 'expectedDate',
+                'value' => 'expectedDate',
                 'label' => $translationService->translate('Demande', 'Services', 'Date attendue'),
             ],
             [
-                'name' => 'treatmentDate',
+                'value' => 'treatmentDate',
                 'label' => $translationService->translate('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Date de réalisation'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
-            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['name'], 'handling', $user);
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['value'], 'handling', $user);
         }
         if (Stream::from($dateChoice)->every(function ($choice) { return !$choice['default']; })) {
             $dateChoice[0]['default'] = true;
@@ -497,28 +497,6 @@ class HandlingController extends AbstractController {
         else {
             throw new BadRequestHttpException();
         }
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_handling", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService,
-                                      TranslationService $translationService): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns("handling", $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            "success" => true,
-            "msg" => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
     }
 
     #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]

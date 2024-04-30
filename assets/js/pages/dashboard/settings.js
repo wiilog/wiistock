@@ -1,4 +1,6 @@
 import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
+import {saveAs} from "file-saver";
+
 const MODE_EDIT = 0;
 const MODE_DISPLAY = 1;
 const MODE_EXTERNAL = 2;
@@ -11,6 +13,7 @@ global.openModalComponentTypeNextStep = openModalComponentTypeNextStep;
 global.loadDashboards = loadDashboards;
 global.onEntityChange = onEntityChange;
 global.toggleTreatmentDelay = toggleTreatmentDelay;
+global.onConfirmPageDeleted = onConfirmPageDeleted;
 global.drawChartWithHisto = drawChartWithHisto;
 global.renderComponent = renderComponent;
 global.hideOrShowStackButton = hideOrShowStackButton;
@@ -1453,7 +1456,10 @@ function onEntityChange($select, onInit = false) {
     const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
     const $toHide = $modal.find(`.toToggle:not(.${categoryStatus})`);
     const $toShow = $modal.find(`.toToggle.${categoryStatus}`);
-    const $redirectDispatch = $modal.find(`.redirect-dispatch`)
+    const $dispatchContainer = $modal.find(`.dispatch-container`);
+    const $redirectCheckbox = $modal.find(`.redirect`);
+    const $redirectDispatchLabel = $modal.find(`label.redirect-dispatch`);
+    const $redirectProductionLabel = $modal.find(`.redirect-production`);
 
     const disabledTypeSelect = (!categoryType || $correspondingTypes.length === 0);
     const disabledStatusSelect = (!categoryStatus || $correspondingStatuses.length === 0);
@@ -1484,10 +1490,22 @@ function onEntityChange($select, onInit = false) {
         }
     }
 
-    if ($selectedOption.val() === 'requests_to_treat_dispatch') {
-        $redirectDispatch.removeClass('d-none');
-    } else if (!$redirectDispatch.hasClass('d-none')) {
-        $redirectDispatch.addClass('d-none');
+    if (['requests_to_treat_dispatch', 'requests_to_treat_production'].includes($selectedOption.val())) {
+        $redirectCheckbox.removeClass('d-none');
+        $redirectDispatchLabel.addClass('d-none');
+        $redirectProductionLabel.addClass('d-none');
+        $dispatchContainer.addClass('d-none');
+        if ($selectedOption.val() === 'requests_to_treat_dispatch') {
+            $redirectDispatchLabel.removeClass('d-none');
+            $dispatchContainer.removeClass('d-none');
+        } else if ($selectedOption.val() === 'requests_to_treat_production') {
+            $redirectProductionLabel.removeClass('d-none');
+        }
+    } else {
+        $dispatchContainer.addClass('d-none');
+        $redirectDispatchLabel.addClass('d-none');
+        $redirectProductionLabel.addClass('d-none');
+        $redirectCheckbox.addClass('d-none');
     }
 
     $selectType.trigger('change');

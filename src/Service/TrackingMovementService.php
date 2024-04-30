@@ -222,8 +222,6 @@ class TrackingMovementService extends AbstractController
     public function dataRowMouvement(TrackingMovement $movement): array {
         $fromColumnData = $this->getFromColumnData($movement);
 
-        $trackingPack = $movement->getPack();
-
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
                 $this->entityManager,
@@ -248,7 +246,7 @@ class TrackingMovementService extends AbstractController
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
             'packCode' => $packCode,
-            'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
@@ -257,17 +255,17 @@ class TrackingMovementService extends AbstractController
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getReference()),
+                    : null),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getLabel()
-                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
+                    : null),
             "quantity" => $movement->getQuantity(),
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
-            "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
+            "actions" => $this->templating->render('tracking_movement/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
                 'attachmentsLength' => $movement->getAttachments()->count(),
             ]),

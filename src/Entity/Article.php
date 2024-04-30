@@ -12,6 +12,7 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArticleRepository;
 use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -167,6 +168,10 @@ class Article implements PairedEntity {
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $productionDate = null;
+
+    #[ORM\ManyToOne(targetEntity: Kiosk::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Kiosk $kiosk = null;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -765,11 +770,11 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getCreatedOnKioskAt(): ?\DateTimeInterface {
+    public function getCreatedOnKioskAt(): ?DateTimeInterface {
         return $this->createdOnKioskAt;
     }
 
-    public function setCreatedOnKioskAt(?\DateTimeInterface $createdOnKioskAt): self {
+    public function setCreatedOnKioskAt(?DateTimeInterface $createdOnKioskAt): self {
         $this->createdOnKioskAt = $createdOnKioskAt;
 
         return $this;
@@ -879,4 +884,18 @@ class Article implements PairedEntity {
 
         return $this;
     }
+
+    public function getKiosk(): ?Kiosk
+    {
+        return $this->kiosk;
+    }
+
+    public function setKiosk(?Kiosk $kiosk): self
+    {
+        $this->kiosk = $kiosk;
+
+        return $this;
+    }
+
+
 }

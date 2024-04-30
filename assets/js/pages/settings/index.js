@@ -42,7 +42,6 @@ import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
 import {onSelectAll} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
-global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
@@ -111,10 +110,11 @@ const initializers = {
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     stock_demandes_planification_achats: initializePurchaseRequestPlanner,
     track_tournees: initializeTransportRound,
-    modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
-    modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
-    modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
+    modeles_livraison_lettre_de_voiture: initializeTemplate,
+    modeles_acheminement_lettre_de_voiture: initializeTemplate,
+    modeles_acheminement_compte_rendu: initializeTemplate,
+    modeles_expedition_bordereau_de_livraison: initializeTemplate,
+    modeles_achats_bon_de_commande: initializeTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
     trace_arrivages_camion_reserves: initializeTruckArrivalReserves,
@@ -1144,32 +1144,6 @@ function changePageTitle($title, add) {
     $title.text(add ? 'Ajouter des groupes de visibilité' : 'Groupe de visibilité');
 }
 
-function saveTranslations($button) {
-    $button.pushLoader(`white`);
-    let $inputs = $('#translation').find('.translate');
-    let data = [];
-    $inputs.each(function () {
-        let name = $(this).attr('name');
-        let val = $(this).val();
-        data.push({id: name, val: val});
-    });
-
-    let path = Routing.generate('save_translations');
-    const $spinner = $('#spinnerSaveTranslations');
-    showBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
-    loadSpinner($spinner);
-    $.post(path, JSON.stringify(data), (resp) => {
-        $button.popLoader();
-        $('html,body').animate({scrollTop: 0});
-        if (resp) {
-            location.reload();
-        } else {
-            hideSpinner($spinner);
-            showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
-        }
-    });
-}
-
 function initializeType() {
     applyEventForType($('.handling-type'));
 }
@@ -1220,7 +1194,7 @@ function verifyAlreadyDefineTypes(select2) {
     }
 }
 
-function initializeDeliveryWaybillTemplate() {
+function initializeTemplate() {
     $(`.load-custom-template`).on(`click`, function () {
         $(this).parent().find(`.custom-template-file`).click();
     });

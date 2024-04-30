@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Livraison;
+use App\Entity\PurchaseRequest;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
 use WiiCommon\Helper\Stream;
@@ -67,7 +68,7 @@ class PDFGeneratorService {
      * @throws SyntaxError
      */
     public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
-        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray($this->entityManager);
         $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
         $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
         $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];
@@ -220,17 +221,18 @@ class PDFGeneratorService {
      */
     public function getBarcodeFileName(array $barcodeConfigs, string $name, string $prefix = PDFGeneratorService::PREFIX_BARCODE_FILENAME): string {
         $barcodeCounter = count($barcodeConfigs);
-        // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
-            ? str_replace(['/', '\\'], '', $barcodeConfigs[0]['code'] ?: '')
+            ? $barcodeConfigs[0]['code'] ?: ''
             : '';
 
-        return (
-            $prefix . '_' .
+        $fileName = ($prefix . '_' .
             $name .
             (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'
         );
+
+        // remove / and \ in filename
+        return str_replace(['/', '\\'], '', $fileName);
     }
 
     public function generatePDFTransport(TransportRequest $transportRequest): string {
@@ -292,13 +294,15 @@ class PDFGeneratorService {
         ]);
     }
 
-    public function generateFromDocx(string $docx, string $outdir) {
+    public function generateFromDocx(string $docx, string $outdir): void {
         $command = !empty($_SERVER["LIBREOFFICE_EXEC"]) ? $_SERVER["LIBREOFFICE_EXEC"] : 'libreoffice';
         exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 
-    public function generateDispatchLabel(Dispatch $dispatch, string $title) {
-        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
+    public function generateDispatchLabel(Dispatch                  $dispatch,
+                                          string                    $title,
+                                          EntityManagerInterface    $entityManager): string {
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray($entityManager);
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
         $isCode128 = $barcodeConfig['isCode128'];

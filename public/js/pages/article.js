@@ -32,10 +32,6 @@ function initTableArticle() {
             rowConfig: {
                 needsRowClickAction: true
             },
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableArticle_id_filter'
-            }
         };
         tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
         init();

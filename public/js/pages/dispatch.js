@@ -202,14 +202,7 @@ function initTableDispatch(groupedSignatureMode = false) {
                 color: 'danger',
                 dataToCheck: 'emergency'
             },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             columns,
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableDispatches'
-            },
             page: 'dispatch',
             disabledRealtimeReorder: groupedSignatureMode,
             createdRow: (row) => {

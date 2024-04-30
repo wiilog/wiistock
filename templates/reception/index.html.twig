@@ -142,9 +142,9 @@
         arrivageToReception: arrivageToReception
     } %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'receptionsTable',
-        'route': 'save_column_visible_for_reception'
+        fields,
+        table: 'receptionsTable',
+        page: 'reception'
     } %}
 {% endblock %}
 

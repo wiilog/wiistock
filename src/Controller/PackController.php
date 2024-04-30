@@ -33,6 +33,7 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
@@ -40,17 +41,13 @@ use App\Service\TranslationService;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/unite-logistique")
- */
+#[Route("/unite-logistique")]
 class PackController extends AbstractController
 {
 
-    /**
-     * @Route("/liste/{code}", name="pack_index", options={"expose"=true}, defaults={"code"=null}, methods={"GET"})
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK})
-     */
-    public function index(EntityManagerInterface $entityManager, LanguageService $languageService, $code)
+    #[Route("/liste/{code}", name: "pack_index", options: ["expose" => true], defaults: ["code" => null], methods: [ self::GET])]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
+    public function index(EntityManagerInterface $entityManager, LanguageService $languageService, $code):Response
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -66,22 +63,18 @@ class PackController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="pack_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request, PackService $packService): Response
+    #[Route("/api", name: "pack_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, PackService $packService): JsonResponse
     {
         $data = $packService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/{pack}/contenu", name="logistic_unit_content", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK}, mode=HasPermission::IN_JSON)
-     */
-    public function logisticUnitContent(EntityManagerInterface $manager, LanguageService $languageService, Pack $pack): Response
+    #[Route("/{pack}/contenu", name: "logistic_unit_content", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
+    public function logisticUnitContent(EntityManagerInterface $manager, LanguageService $languageService, Pack $pack): JsonResponse
     {
         $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
 
@@ -98,15 +91,13 @@ class PackController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/csv", name="export_packs", options={"expose"=true}, methods="GET")
-     * @HasPermission({Menu::TRACA, Action::EXPORT})
-     */
-    public function printCSVPacks(Request $request,
-                                  CSVExportService $CSVExportService,
-                                  TrackingMovementService $trackingMovementService,
-                                  TranslationService $translation,
-                                  EntityManagerInterface $entityManager): Response
+    #[Route("/csv", name: "export_packs", options: ["expose" => true], methods: [ self::GET])]
+    #[HasPermission([Menu::TRACA, Action::EXPORT])]
+    public function printCSVPacks(Request                   $request,
+                                  CSVExportService          $CSVExportService,
+                                  TrackingMovementService   $trackingMovementService,
+                                  TranslationService        $translation,
+                                  EntityManagerInterface    $entityManager): StreamedResponse
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -155,8 +146,9 @@ class PackController extends AbstractController
     /**
      * @Route("/pack-intel/{packCode}", name="get_pack_intel", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
+    #[Route("/pack-intel/{packcode}", name: "get_pack_intel", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
     public function getPackIntel(EntityManagerInterface $entityManager,
-                                 string $packCode): JsonResponse
+                                 string                 $packCode): JsonResponse
     {
         $packRepository = $entityManager->getRepository(Pack::class);
         $naturesRepository = $entityManager->getRepository(Nature::class);
@@ -189,12 +181,10 @@ class PackController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="pack_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request,
-                            EntityManagerInterface $entityManager): Response
+    #[Route("/api-modifier", name: "pack_edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editApi(Request                 $request,
+                            EntityManagerInterface  $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
@@ -230,14 +220,12 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="pack_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function edit(Request $request,
+    #[Route("/modifier", name: "pack_edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         PackService $packService,
-                         TranslationService $translation): Response
+                         PackService            $packService,
+                         TranslationService     $translation): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $response = [];
@@ -262,13 +250,11 @@ class PackController extends AbstractController
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/supprimer", name="pack_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
-                           TranslationService $translation): Response
+    #[Route("/supprimer", name: "pack_delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager,
+                           TranslationService       $translation): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
@@ -331,7 +317,7 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    private function putPackLine($handle, CSVExportService $csvService, array $pack)
+    private function putPackLine($handle, CSVExportService $csvService, array $pack):void
     {
         $line = [
             $pack['code'],
@@ -344,10 +330,8 @@ class PackController extends AbstractController
         $csvService->putLine($handle, $line);
     }
 
-    /**
-     * @Route("/group_history/{pack}", name="group_history_api", options={"expose"=true}, methods="GET|POST")
-     */
-    public function groupHistory(Request $request, PackService $packService, $pack): Response {
+    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [ self::GET, self::POST])]
+    public function groupHistory(Request $request, PackService $packService, $pack): JsonResponse {
         if ($request->isXmlHttpRequest()) {
             $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
             return $this->json($data);
@@ -359,31 +343,9 @@ class PackController extends AbstractController
     public function projectHistory(Request                     $request,
                                    EntityManagerInterface      $entityManager,
                                    ProjectHistoryRecordService $projectHistoryRecordService,
-                                   Pack                        $pack): Response {
+                                   Pack                        $pack): JsonResponse {
         $data = $projectHistoryRecordService->getProjectHistoryForDatatable($entityManager, $pack, $request->request);
         return $this->json($data);
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_pack", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService,
-                                      TranslationService $translation): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('arrivalPack', $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
     }
 
     #[Route("/print-single-logistic-unit/{pack}", name: "print_single_logistic_unit", options: ["expose" => true])]

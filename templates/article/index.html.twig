@@ -71,11 +71,6 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <div class="d-flex justify-content-center" id="spinner">
-                    <div class="spinner-border sizeLoader" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
                 <table id="tableArticle_id" class="table w-100">
                 </table>
             </div>
@@ -92,16 +87,16 @@
     {% include "article/modalDeleteArticle.html.twig" %}
 
     {% include "utils/rapid_search.html.twig" with {
-        'fields': fields,
-        'searches': searches,
-        'table': 'tableArticle',
-        'route': 'update_user_searches_for_article',
+        fields,
+        searches: searches,
+        table: 'tableArticle',
+        route: 'update_user_searches_for_article',
     } %}
 
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableArticle',
-        'route': 'save_column_visible_for_article',
+        fields,
+        table: 'tableArticle',
+        page: "article",
     } %}
 {% endblock %}
 

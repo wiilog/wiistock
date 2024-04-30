@@ -10,9 +10,6 @@ const packsTableConfig = {
             codeUl: $('#lu-code').val(),
         },
     },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
     rowConfig: {
         needsRowClickAction: true
     },
@@ -59,9 +56,6 @@ const groupsTableConfig = {
     ajax: {
         url: Routing.generate('group_api', true),
         type: "POST",
-    },
-    drawConfig: {
-        needsSearchOverride: true,
     },
     rowConfig: {
         needsRowClickAction: true

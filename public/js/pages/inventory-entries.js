@@ -28,9 +28,6 @@ let tableEntriesConfig = {
         "url": pathEntry,
         "type": "POST"
     },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
     columns:[
         { "data": 'Ref', 'title' : 'Référence article', 'name': 'reference' },
         { "data": 'Label', 'title' : 'Libellé' },

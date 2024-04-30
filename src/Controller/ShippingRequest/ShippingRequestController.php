@@ -75,32 +75,32 @@ class ShippingRequestController extends AbstractController {
 
         $dateChoice = [
             [
-                'name' => 'createdAt',
+                'value' => 'createdAt',
                 'label' => $translationService->translate('Général', null, 'Zone liste', 'Date de création'),
             ],
             [
-                'name' => 'requestCaredAt',
+                'value' => 'requestCaredAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date de prise en charge souhaitée'),
             ],
             [
-                'name' => 'validatedAt',
+                'value' => 'validatedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date de validation'),
             ],
             [
-                'name' => 'plannedAt',
+                'value' => 'plannedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date de planification'),
             ],
             [
-                'name' => 'expectedPickedAt',
+                'value' => 'expectedPickedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'enlèvement prévu'),
             ],
             [
-                'name' => 'treatedAt',
+                'value' => 'treatedAt',
                 'label' => $translationService->translate('Demande', 'Expédition', 'Date d\'expédition'),
             ],
         ];
         foreach ($dateChoice as &$choice) {
-            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['name'], 'expedition', $currentUser);
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_'.$choice['value'], 'expedition', $currentUser);
         }
         if (Stream::from($dateChoice)->every(function ($choice) { return !$choice['default']; })) {
             $dateChoice[0]['default'] = true;
@@ -142,28 +142,6 @@ class ShippingRequestController extends AbstractController {
             'shipping'=> $shippingRequest,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest),
             'editableExpectedLineForm' => $expectedLineService->editatableLineForm($shippingRequest),
-        ]);
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_shipping_request", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService,
-                                      TranslationService     $translationService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns('shippingRequest', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
 

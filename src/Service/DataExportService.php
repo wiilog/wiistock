@@ -185,45 +185,15 @@ class DataExportService
         ];
     }
 
-    public function createDispatchesHeader(array $freeFieldsConfig): array {
-        return [
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
-            $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
-            $this->translation->translate('Demande', 'Général', 'Type', false),
-            $this->translation->translate('Demande', 'Général', 'Demandeur', false),
-            $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),
-            $this->translation->translate('Demande', 'Général', 'Transporteur', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Traité par', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
-            $this->translation->translate('Demande', 'Général', 'Statut', false),
-            $this->translation->translate('Demande', 'Général', 'Urgence', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
-            $this->translation->translate('Général', null, 'Modale', 'Commentaire', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)', false),
-            'Commentaire UL',
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
-            ...($freeFieldsConfig['freeFieldsHeader']),
-        ];
+    public function createDispatchesHeader(EntityManagerInterface $entityManager, array $columnToExport): array {
+        $exportableColumns = Stream::from($this->dispatchService->getDispatchExportableColumns($entityManager));
+        return Stream::from($columnToExport)
+            ->filterMap(function(string $code) use ($exportableColumns) {
+                $column = $exportableColumns
+                    ->find(fn(array $config) => $config['code'] === $code);
+                return $column['label'] ?? null;
+            })
+            ->toArray();
     }
 
     public function createProductionRequestsHeader(): array {
@@ -347,11 +317,12 @@ class DataExportService
 
     public function exportDispatch(array $dispatches,
                                    mixed $output,
+                                   array $columnToExport,
                                    array $freeFieldsConfig,
                                    array $freeFieldsById): void
     {
         foreach ($dispatches as $dispatch) {
-            $this->dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
+            $this->dispatchService->putDispatchLine($output, $dispatch, $columnToExport, $freeFieldsConfig, $freeFieldsById);
         }
     }
 
@@ -430,7 +401,7 @@ class DataExportService
             ]);
         }
 
-        if($entity === Export::ENTITY_ARRIVAL) {
+        if(in_array($entity, [Export::ENTITY_ARRIVAL, Export::ENTITY_DISPATCH])) {
             $columnToExport = Stream::explode(",", $data["columnToExport"])
                 ->filter()
                 ->toArray();

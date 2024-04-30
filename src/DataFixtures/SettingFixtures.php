@@ -26,6 +26,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
         Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
         Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
+        Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE,
     ];
 
     public function load(ObjectManager $manager) {
@@ -216,11 +217,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE => [
                 'default' => Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE
             ],
+            Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE => [
+                "default" => Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE_VALUE,
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
             Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE => [],
+            Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [
@@ -298,9 +303,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::STATUT_REFERENCE_CREATE => [
                 'default' => "actif"
-            ],
-            Setting::COLLECT_REQUEST_DESTINATION => [
-                'default' => 'stock'
             ],
             Setting::WELCOME_MESSAGE => [
                 'default' => 'Veuillez scanner l’étiquette pour faire une entrée de stock.'

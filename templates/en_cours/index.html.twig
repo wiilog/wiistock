@@ -16,6 +16,16 @@
     <div class="m-4">
         <input type="hidden" id="encours-min-location-filter" value="{{ minLocationFilter }}"/>
         <div class="row">
+            <div class="col-auto ml-auto mb-2">
+                <button type="button"
+                        class="btn btn-primary ml-auto split-button"
+                        data-toggle="modal" data-target="#modalColumnVisible">
+                    <i class="fa fa-cog mr-2"></i>
+                    {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
+                </button>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-auto ml-auto">
                 <h2 class="m-0">
                     {{ trans('Traçabilité', 'Encours', 'Actualisé le {1} à {2}', {
@@ -45,7 +55,8 @@
                             {% endif %}
                         </div>
                         <table class="table encours-table w-100"
-                               id="{{ emplacement.id }}">
+                               id="{{ emplacement.id }}"
+                               data-initial-visible="{{ initial_visible_columns }}">
                         </table>
                     </div>
                 </div>
@@ -54,6 +65,12 @@
     </div>
     <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
     <input type="hidden" name="useTruckArrivalsFromDashboard" value="{{ useTruckArrivalsFromDashboard }}">
+
+    {% include "utils/visible_columns.html.twig" with {
+        fields,
+        table: emplacements|map(emplacement => emplacement.id)|join(';'),
+        page: 'onGoing',
+    } %}
 {% endblock %}
 
 {% block javascripts %}

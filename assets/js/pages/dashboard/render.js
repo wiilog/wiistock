@@ -1,9 +1,4 @@
-///
-/// Ce fichier étant utilisé sur les dashboards et donc possiblement
-/// sur MagicInfo, les opérateurs suivants ne peuvent pas être utilisés
-///  - ?? à remplacer par ||
-///  - ... dans les objets, à remplacer par un ajout "manuel
-///
+import {initDataTable} from "@app/datatable";
 
 let currentChartsFontSize;
 let fontSizeYAxes;
@@ -614,7 +609,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     ))  : '-')}</div>`,
                 });
             })(),
-            delay
+            count && count > 0 && delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title`,
                     html: withStyle(
@@ -626,7 +621,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     ),
                 })
                 : undefined,
-            delay
+            count && count > 0 && delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay`,
                     html: withStyle(

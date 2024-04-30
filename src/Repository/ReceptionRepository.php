@@ -87,60 +87,64 @@ class ReceptionRepository extends EntityRepository
     }
 
     public function getByDates(DateTime $dateMin, DateTime $dateMax): array {
-        $queryBuilder = $this->createQueryBuilder('reception')
-            ->select('reception.id AS id')
-            ->addSelect('article.id AS articleId')
-            ->addSelect('referenceArticle.id AS referenceArticleId')
-            ->addSelect('reception.number')
-            ->addSelect('reception.orderNumber')
-            ->addSelect('provider.nom AS providerName')
-            ->addSelect('user.username AS userUsername')
-            ->addSelect('status.nom AS statusName')
-            ->addSelect('reception.date')
-            ->addSelect('reception.dateFinReception')
-            ->addSelect('reception.commentaire')
-            ->addSelect('receptionReferenceArticle.quantiteAR AS receptionRefArticleQuantiteAR')
-            ->addSelect('receptionReferenceArticle.quantite AS receptionRefArticleQuantite')
-            ->addSelect('referenceArticle.reference AS referenceArticleReference')
-            ->addSelect('referenceArticle.typeQuantite AS referenceArticleTypeQuantite')
-            ->addSelect('referenceArticle.libelle AS referenceArticleLibelle')
-            ->addSelect('pack.code AS currentLogisticUnit')
-            ->addSelect('referenceArticle.quantiteStock AS referenceArticleQuantiteStock')
-            ->addSelect('referenceArticleType.label AS referenceArticleTypeLabel')
-            ->addSelect('referenceArticle.barCode AS referenceArticleBarcode')
-            ->addSelect('articleReferenceArticle.reference AS articleReference')
-            ->addSelect('article.label AS articleLabel')
-            ->addSelect('article.quantite AS articleQuantity')
-            ->addSelect('articleType.label AS articleTypeLabel')
-            ->addSelect('articleReferenceArticle.barCode AS articleReferenceArticleBarcode')
-            ->addSelect('article.barCode as articleBarcode')
-            ->addSelect('reception.manualUrgent AS receptionEmergency')
-            ->addSelect('reception.urgentArticles AS referenceEmergency')
-            ->addSelect('join_storageLocation.label AS storageLocation')
-            ->addSelect('receptionReferenceArticle.unitPrice  AS receptionReferenceArticleUnitPrice')
+        $deliveryFeeSubquery = $this->createQueryBuilder("sub_reception")
+            ->select("join_subPurchaseRequest.deliveryFee")
+            ->innerJoin("sub_reception.purchaseRequestLines", "join_subPurchaseRequestLines")
+            ->innerJoin("join_subPurchaseRequestLines.purchaseRequest", "join_subPurchaseRequest")
+            ->andWhere("sub_reception.id = reception.id")
+            ->getQuery()
+            ->getDQL();
 
-            ->where('reception.date BETWEEN :dateMin AND :dateMax')
-
-            ->leftJoin('reception.fournisseur', 'provider')
-            ->leftJoin('reception.utilisateur', 'user')
-            ->leftJoin('reception.statut', 'status')
-            ->leftJoin('reception.storageLocation', 'join_storageLocation')
-            ->leftJoin('reception.lines', 'receptionLine')
-            ->leftJoin('receptionLine.receptionReferenceArticles', 'receptionReferenceArticle')
-            ->leftJoin('receptionReferenceArticle.referenceArticle', 'referenceArticle')
-            ->leftJoin('referenceArticle.type', 'referenceArticleType')
-            ->leftJoin('receptionReferenceArticle.articles', 'article')
-            ->leftJoin('article.currentLogisticUnit', 'pack')
-            ->leftJoin('article.type', 'articleType')
-            ->leftJoin('article.articleFournisseur', 'articleFournisseur')
-            ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
-
+        return $this->createQueryBuilder("reception")
+            ->select("reception.id AS id")
+            ->addSelect("article.id AS articleId")
+            ->addSelect("referenceArticle.id AS referenceArticleId")
+            ->addSelect("reception.number AS number")
+            ->addSelect("reception.orderNumber AS orderNumber")
+            ->addSelect("provider.nom AS providerName")
+            ->addSelect("user.username AS userUsername")
+            ->addSelect("status.nom AS statusName")
+            ->addSelect("reception.date AS date")
+            ->addSelect("reception.dateFinReception AS dateFinReception")
+            ->addSelect("reception.commentaire AS commentaire")
+            ->addSelect("receptionReferenceArticle.quantiteAR AS receptionRefArticleQuantiteAR")
+            ->addSelect("receptionReferenceArticle.quantite AS receptionRefArticleQuantite")
+            ->addSelect("referenceArticle.reference AS referenceArticleReference")
+            ->addSelect("referenceArticle.typeQuantite AS referenceArticleTypeQuantite")
+            ->addSelect("referenceArticle.libelle AS referenceArticleLibelle")
+            ->addSelect("pack.code AS currentLogisticUnit")
+            ->addSelect("referenceArticle.quantiteStock AS referenceArticleQuantiteStock")
+            ->addSelect("referenceArticleType.label AS referenceArticleTypeLabel")
+            ->addSelect("referenceArticle.barCode AS referenceArticleBarcode")
+            ->addSelect("articleReferenceArticle.reference AS articleReference")
+            ->addSelect("article.label AS articleLabel")
+            ->addSelect("article.quantite AS articleQuantity")
+            ->addSelect("articleType.label AS articleTypeLabel")
+            ->addSelect("articleReferenceArticle.barCode AS articleReferenceArticleBarcode")
+            ->addSelect("article.barCode as articleBarcode")
+            ->addSelect("reception.manualUrgent AS receptionEmergency")
+            ->addSelect("reception.urgentArticles AS referenceEmergency")
+            ->addSelect("join_storageLocation.label AS storageLocation")
+            ->addSelect("receptionReferenceArticle.unitPrice AS receptionReferenceArticleUnitPrice")
+            ->addSelect("FIRST($deliveryFeeSubquery) AS deliveryFee")
+            ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
+            ->leftJoin("reception.fournisseur", "provider")
+            ->leftJoin("reception.utilisateur", "user")
+            ->leftJoin("reception.statut", "status")
+            ->leftJoin("reception.storageLocation", "join_storageLocation")
+            ->leftJoin("reception.lines", "receptionLine")
+            ->leftJoin("receptionLine.receptionReferenceArticles", "receptionReferenceArticle")
+            ->leftJoin("receptionReferenceArticle.referenceArticle", "referenceArticle")
+            ->leftJoin("referenceArticle.type", "referenceArticleType")
+            ->leftJoin("receptionReferenceArticle.articles", "article")
+            ->leftJoin("article.currentLogisticUnit", "pack")
+            ->leftJoin("article.type", "articleType")
+            ->leftJoin("article.articleFournisseur", "articleFournisseur")
+            ->leftJoin("articleFournisseur.referenceArticle", "articleReferenceArticle")
             ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax
-            ]);
-
-        return $queryBuilder
+                "dateMin" => $dateMin,
+                "dateMax" => $dateMax,
+            ])
             ->getQuery()
             ->getResult();
     }
@@ -185,7 +189,7 @@ class ReceptionRepository extends EntityRepository
                         $qb->andWhere($ors);
                     }
                     break;
-                case 'utilisateurs':
+                case 'receivers':
                     $values = array_map(function ($value) {
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
@@ -207,6 +211,13 @@ class ReceptionRepository extends EntityRepository
                         ->join('reception.fournisseur', 'f')
                         ->andWhere("f.id in (:fournisseur)")
                         ->setParameter('fournisseur', $value);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('reception.utilisateur', 'filter_user')
+                        ->andWhere("filter_user.id in (:reception_user)")
+                        ->setParameter('reception_user', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('reception.date >= :dateMin')
@@ -248,6 +259,7 @@ class ReceptionRepository extends EntityRepository
                         "storageLocation" => "search_storage_location.label LIKE :search_value",
                         "Commentaire" => "reception.commentaire LIKE :search_value",
                         "deliveries" => null,
+                        "user" => "search_user.username LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
@@ -257,6 +269,7 @@ class ReceptionRepository extends EntityRepository
 						->leftJoin('reception.fournisseur', 'search_provider')
                         ->leftJoin('reception.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
+                        ->leftJoin('reception.utilisateur', 'search_user')
                         ->leftJoin('reception.storageLocation', 'search_storage_location');
                 }
             }
@@ -281,6 +294,15 @@ class ReceptionRepository extends EntityRepository
                             $qb
                                 ->leftJoin('reception.storageLocation', 'join_storageLocation')
                                 ->addOrderBy('join_storageLocation.label', $order);
+                        } else if($column === 'deliveryFee'){
+                            $qb
+                                ->leftJoin('reception.purchaseRequestLines', 'purchaseRequestLines')
+                                ->leftJoin('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
+                                ->addOrderBy('purchaseRequestLines_purchaseRequest.deliveryFee', $order);
+                        } else if ($column === 'user') {
+                            $qb
+                                ->leftJoin('reception.utilisateur', 'join_utilisateur')
+                                ->addOrderBy('join_utilisateur.username', $order);
                         } else if (property_exists(Reception::class, $column)) {
                             $qb
                                 ->addOrderBy('reception.' . $column, $order);

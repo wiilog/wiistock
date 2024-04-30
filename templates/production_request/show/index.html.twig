@@ -140,6 +140,7 @@
                                 or (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
                                 or (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
                             )
+                            and not productionRequest.status.treated
                         ) %}
                         {% if canUpdateStatus %}
                             <button type="button"
@@ -157,7 +158,10 @@
                     {% endif %}
 
                     <div class="col-12 pb-3">
-                        {% include 'utils/show-header-details.html.twig' with {data: detailsConfig} %}
+                        {% include 'utils/show-header-details.html.twig' with {
+                            data: detailsConfig,
+                            forceDisplayFilledFields: true,
+                        } %}
                     </div>
                 </div>
                 <div class="wii-box">

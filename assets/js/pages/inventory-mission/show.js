@@ -1,5 +1,6 @@
 import {ERROR} from "@app/flash";
 import {POST} from "@app/ajax";
+import {initDataTable, initSearchDate} from "@app/datatable";
 
 let tableLocationMission;
 
@@ -19,7 +20,7 @@ $(function () {
     initFormAddInventoryLocations($addInventoryLocationContainer);
     if (typeLocation && !locationsAlreadyAdded) {
         const $tableLocations = $addInventoryLocationContainer.find(`table`);
-        onOpenModalAddLocationAndZone($tableLocations);
+        onOpenModalAddLocationAndZone($tableLocations, missionId);
     }
 
     $(`#modalShowScannedArticles`).on(`hidden.bs.modal`, function () {
@@ -104,9 +105,6 @@ function initInventoryEntryDatatables(missionId) {
                     return json.data;
                 }
             },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             domConfig: {
                 removeInfo: true,
             },
@@ -183,14 +181,14 @@ function initLocationMissionsDataTable(missionId) {
     tableLocationMission = initDataTable(`tableLocationMissions`, tableLocationMissionsConfig);
 }
 
-function onOpenModalAddLocationAndZone(tableLocations) {
+function onOpenModalAddLocationAndZone(tableLocations, missionId) {
     const $modalAddLocationAndZoneToMission = $(`#modalAddLocationAndZoneToMission`);
 
     Form.create($modalAddLocationAndZoneToMission)
         .onSubmit(() => {
             wrapLoadingOnActionButton($modalAddLocationAndZoneToMission.find(`button[type=submit]`), () => {
                 return AJAX.route(POST, `add_locations_or_zones_to_mission`, {
-                    mission,
+                    mission: missionId,
                     locations: tableLocations.DataTable().column(0).data().toArray()
                 })
                     .json()

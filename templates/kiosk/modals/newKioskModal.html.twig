@@ -1,0 +1,21 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="newKioskModal">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter un lien externe"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'kiosk/modals/form.html.twig' %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Créer', type: 'submit'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

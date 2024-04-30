@@ -10,12 +10,13 @@ jobs:
     build_php_directories:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-initializer:v1
+            image: wiilog/wiistock-initializer:v2
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
             env:
                 APP_ENV: prod
+                APP_URL: https://<<DOMAIN_NAME>>
             options: --user root
 
         steps:
@@ -26,7 +27,7 @@ jobs:
                 uses: actions/checkout@v4
 
             -   name: Install php dependencies
-                run: composer install --no-scripts
+                run: composer install --no-dev --optimize-autoloader --classmap-authoritative --no-ansi --no-scripts
 
             -   name: Install zip
                 run: apk add zip
@@ -35,7 +36,7 @@ jobs:
                 run: zip -r -y -qq vendor.zip vendor
 
             -   name: Upload zip
-                uses: actions/upload-artifact@v2
+                uses: actions/upload-artifact@v4
                 with:
                     name: vendor.zip
                     path: vendor.zip
@@ -48,35 +49,14 @@ jobs:
                     asset_name: vendor.zip
                     tag: ${{ github.ref }}
 
-    build_js_directories:
-        runs-on: ubuntu-latest
-        container:
-            image: wiilog/wiistock-initializer:v1
-            credentials:
-                username: ${{ secrets.DOCKER_USER }}
-                password: ${{ secrets.DOCKER_PULL_TOKEN }}
-            env:
-                APP_ENV: prod
-            options: --user root
-
-        steps:
-            -   name: Go to project
-                run: mkdir /project && cd /project
-
-            -   name: Checkout wiistock
-                uses: actions/checkout@v4
-
             -   name: Install js dependencies
                 run: yarn install
-
-            -   name: Install zip
-                run: apk add zip
 
             -   name: Zip node_modules
                 run: zip -r -y -qq node_modules.zip node_modules
 
             -   name: Upload js dependencies
-                uses: actions/upload-artifact@v2
+                uses: actions/upload-artifact@v4
                 with:
                     name: node_modules.zip
                     path: node_modules.zip
@@ -87,4 +67,59 @@ jobs:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
                     file: node_modules.zip
                     asset_name: node_modules.zip
+                    tag: ${{ github.ref }}
+
+            -   name: Add generated.yaml
+                run: |
+                    touch config/generated.yaml &&
+                    echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
+
+            -   name: Generate routes
+                run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
+
+            -   name: Generate fixedField Enum
+                run: php bin/console app:update:fixed-fields
+
+            -   name: Build js - production
+                run: yarn build:only:production
+                env:
+                    APP_CONTEXT: prod
+
+            -   name: Zip build - production
+                run: mv public/build build && zip -r -y -qq build-prod.zip build && rm -rf build
+
+            -   name: Upload build  - production
+                uses: actions/upload-artifact@v4
+                with:
+                    name: build-prod.zip
+                    path: build-prod.zip
+
+            -   name: Upload zip on the release - production
+                uses: svenstaro/upload-release-action@v2
+                with:
+                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    file: build-prod.zip
+                    asset_name: build-prod.zip
+                    tag: ${{ github.ref }}
+
+            -   name: Build js - rec
+                run: yarn build:only:production
+                env:
+                    APP_CONTEXT: rec
+
+            -   name: Zip build - rec
+                run: mv public/build build && zip -r -y -qq build-rec.zip build
+
+            -   name: Upload build - rec
+                uses: actions/upload-artifact@v4
+                with:
+                    name: build-rec.zip
+                    path: build-rec.zip
+
+            -   name: Upload zip on the release - rec
+                uses: svenstaro/upload-release-action@v2
+                with:
+                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    file: build-rec.zip
+                    asset_name: build-rec.zip
                     tag: ${{ github.ref }}

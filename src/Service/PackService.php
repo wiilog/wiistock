@@ -163,7 +163,7 @@ class PackService {
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'packOrigin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
@@ -458,7 +458,7 @@ class PackService {
                     'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),
-                $arrival->getDestinataire()
+                $arrival->getReceivers()
             );
         }
     }

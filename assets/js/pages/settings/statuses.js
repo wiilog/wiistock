@@ -18,6 +18,19 @@ const DISABLED_LABELS_TRANSLATION_PAGES = [
 const $managementButtons = $(`.save-settings, .discard-settings`);
 let canTranslate = true;
 
+const fieldsToDisabledAttr = {
+    needsMobileSync: 'need-mobile-sync-disabled',
+    passStatusAtPurchaseOrderGeneration: 'pass-status-at-purchase-order-generation-disabled',
+    automaticReceptionCreation: 'automatic-reception-creation-disabled',
+};
+
+const fieldsMaxChecked = {
+    needsMobileSync: undefined,
+    color: undefined,
+    passStatusAtPurchaseOrderGeneration: 1,
+    automaticReceptionCreation: undefined,
+};
+
 export function initializeArrivalDisputeStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_ARRIVAL_DISPUTE);
 }
@@ -100,6 +113,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                         ));
                     });
             }
+            onStatusStateChange($container, $container.find('[name=state]'));
+            ensureMaxCheckboxSelection($container, "passStatusAtPurchaseOrderGeneration");
         },
         onEditStop: () => {
             $managementButtons.addClass('d-none');
@@ -133,7 +148,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         });
 
     $container.on('change', '[name=state]', function () {
-        onStatusStateChange($(this));
+        onStatusStateChange($container, $(this));
     });
 
     return table;
@@ -188,6 +203,16 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             data: `overconsumptionBillGenerationStatus`,
             title: `<div class='small-column'>Passage au statut à la génération du bon de surconsommation</div>`,
             modes: [MODE_DISPATCH]
+        },
+        {
+            data: `preventStatusChangeWithoutDeliveryFees`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Blocage du changement de statut si frais de livraison non rempli</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
+        },
+        {
+            data: `passStatusAtPurchaseOrderGeneration`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Passage au statut à la génération du bon de commande</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
         },
         {
             data: `automaticReceptionCreation`,
@@ -270,7 +295,9 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         groupedSignatureType:  hasRightGroupedSignature ? `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>` : null,
         groupedSignatureColor: hasRightGroupedSignature ? getInputColor('groupedSignatureColor') : null,
         color: getInputColor('color'),
+        preventStatusChangeWithoutDeliveryFees: `<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data'/></div>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
+        passStatusAtPurchaseOrderGeneration: `<div class='checkbox-container'><input type='checkbox' name='passStatusAtPurchaseOrderGeneration' class='form-control data'/></div>`,
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
@@ -320,23 +347,91 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         });
 }
 
-function onStatusStateChange($select) {
-    const $form = $select.closest('tr');
-    const $needMobileSync = $form.find('[name=needsMobileSync]');
-    const $color = $form.find('[name=color]');
-    const $automaticReceptionCreation = $form.find('[name=automaticReceptionCreation]');
-    const disabledNeedMobileSync = $select
-        .find(`option[value=${$select.val()}]`)
-        .data('need-mobile-sync-disabled');
-    const disabledAutomaticReceptionCreation = $select
-        .find(`option[value=${$select.val()}]`)
-        .data('automatic-reception-creation-disabled');
+/**
+ * Handles the change event of the status state select element
+ * @param {jQuery} $container - Global container of the array containing fields
+ * @param {jQuery} $selects - jQuery object representing the select element
+ */
+function onStatusStateChange($container, $selects) {
+    // if $select is an array of select elements (first call of the function)
+    $selects.each(function() {
+        const $select = $(this);
+        const $form = $select.closest('tr');
 
-    $needMobileSync.prop('disabled', Boolean(disabledNeedMobileSync));
-    $color.prop('disabled', Boolean(disabledNeedMobileSync));
-    if (disabledNeedMobileSync) {
-        $needMobileSync.prop('checked', false);
+        // Disable fields based on the selected status
+        Object.keys(fieldsToDisabledAttr).forEach((name) => {
+            const $field = $form.find(`[name="${name}"]`);
+            if (isFieldDisabled($field)) {
+                $field
+                    .prop('disabled', true)
+                    .prop('checked', false);
+            }
+        });
+    });
+
+    // Disable fields based on the selected status
+    Object.keys(fieldsToDisabledAttr).forEach((name) => {
+        const $fields = $container.find(`[name=${name}]`);
+        updateCheckboxes(name, $fields);
+    });
+}
+
+/**
+ * Return if a field should be disabled according to the selected status state
+ * @param {jQuery} $field Field to check
+ * @returns {boolean}
+ */
+function isFieldDisabled($field) {
+    const $form = $field.closest('tr');
+    const $state = $form.find('[name="state"]');
+    const disabledAttr = fieldsToDisabledAttr[$field.attr('name')];
+    const $selectedState = $state.find(`option:selected`);
+    if($selectedState.exists()) {
+        return Boolean($selectedState.data(disabledAttr));
     }
+    return true;
+}
 
-    $automaticReceptionCreation.toggleClass(`d-none`, Boolean(disabledAutomaticReceptionCreation));
+/**
+ * Ensures only a specified number of checkboxes are checked for a given checkbox group
+ * @param {jQuery} $container Global container of the array containing fields
+ * @param {string} groupName Name of the checkbox group
+ * @example ensureMaxCheckboxSelection($container, 'passStatusAtPurchaseOrderGeneration');
+ * @returns {void}
+ */
+function ensureMaxCheckboxSelection($container, groupName) {
+    const maxChecked = fieldsMaxChecked[groupName];
+    if (maxChecked !== undefined) {
+        const $checkboxes = $container.find(`[name="${groupName}"]`);
+
+        $checkboxes
+            .off(`change.checkboxesChange`)
+            .on(`change.checkboxesChange`, function () {
+                updateCheckboxes(groupName, $checkboxes);
+            });
+    }
+}
+
+/**
+ * Update checkboxes based on the number of checkboxes checked
+ * @param groupName - Name of the checkbox group
+ * @param $checkboxes - jQuery object containing the checkboxes to update
+ * @example updateCheckboxes('passStatusAtPurchaseOrderGeneration', $checboxes);
+ * @returns {void}
+ */
+function updateCheckboxes(groupName, $checkboxes) {
+    const checkedCount = $checkboxes.filter(':checked').length;
+    const maxChecked = fieldsMaxChecked[groupName];
+    // Disable checkboxes if the maximum number of checkboxes are checked without the current one
+
+    $checkboxes = $checkboxes.filter(':not(:checked)');
+    $checkboxes.each(function() {
+        const $checkbox = $(this);
+        const isDisabled = isFieldDisabled($checkbox) || (maxChecked !== undefined && checkedCount >= maxChecked);
+
+        $checkbox.prop('disabled', isDisabled);
+        if (isDisabled) {
+            $checkbox.prop('checked', false);
+        }
+    })
 }
