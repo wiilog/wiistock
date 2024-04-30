@@ -198,7 +198,7 @@ class MailerService
 
                         $subject = match(true) {
                             is_callable($subject) => $this->translationService->translateIn($slug, ...($subject($slug))),
-                            is_array($subject)    => $this->translationService->translateIn($slug, ...$subject),
+                            is_array($subject)    => $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translateIn($slug, ...$subject),
                             default               => $subject
                         };
 

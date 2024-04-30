@@ -185,10 +185,10 @@ class DisputeService {
             );
             $subject = fn(string $slug) => (
                 !$isUpdate
-                    ? ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Litige sur {1}", false, [
+                    ? ["Traçabilité", "Arrivages UL", "Email litige", "Litige sur {1}", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
-                    : ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [
+                    : ["Traçabilité", "Arrivages UL", "Email litige", "Changement de statut d'un litige sur {1}", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
             );

@@ -162,12 +162,12 @@ class HandlingService {
         if (!empty($emailReceivers)) {
             $statusTreated = $status->isTreated();
             if ($isNewHandlingAndNotTreated) {
-                $subject = ['Demande', 'Services', 'Emails', 'FOLLOW GT // Création d\'une demande de service', false];
+                $subject = ['Demande', 'Services', 'Emails', 'Création d\'une demande de service', false];
                 $title = ['Demande', 'Services', 'Emails', 'Votre demande de service a été créée', false];
             } else {
                 $subject = $statusTreated
-                    ? ['Demande', 'Services', 'Emails', 'FOLLOW GT // Demande de service effectuée', false]
-                    : ['Demande', 'Services', 'Email', 'FOLLOW GT // Changement de statut d\'une demande de service', false];
+                    ? ['Demande', 'Services', 'Emails', 'Demande de service effectuée', false]
+                    : ['Demande', 'Services', 'Email', 'Changement de statut d\'une demande de service', false];
                 $title = $statusTreated
                     ? ['Demande', 'Services', 'Emails', 'Votre demande de service a bien été effectuée', false]
                     : ['Demande', 'Services', 'Emails', 'Une demande de service vous concernant a changé de statut', false];
