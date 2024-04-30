@@ -104,19 +104,10 @@ function initTableRefArticle() {
             };
 
             pageTables = initDataTable('tableRefArticle', tableRefArticleConfig);
-            pageTables.on('responsive-resize', function () {
-                resizeTable();
-            });
 
             window.pageTables = pageTables;
             return pageTables;
         });
-}
-
-function resizeTable() {
-    pageTables
-        .columns.adjust()
-        .responsive.recalc();
 }
 
 // affiche le filtre après ajout

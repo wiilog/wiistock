@@ -216,13 +216,7 @@ function initTableDispatch(groupedSignatureMode = false) {
             extendsDateSort('customDate');
         }
 
-        const dispatchsTable = initDataTable('tableDispatches', tableDispatchConfig);
-        dispatchsTable.on('responsive-resize', function () {
-            resizeTable(dispatchsTable);
-        });
-
-
-        return dispatchsTable;
+        return initDataTable('tableDispatches', tableDispatchConfig);
     }
 }
 
