@@ -15,6 +15,7 @@ export function initVisibleColumn() {
         .filter(id => id);
     const reload = Boolean($modal.find(`[name=reload]`).val());
     const page = $modal.find(`[name=page]`).val();
+    const id = $modal.find(`[name=id]`).val();
 
     $(`[data-target="#modalColumnVisible"]`).on(`click`, function() {
         if(tables.length === 0) {
@@ -58,7 +59,7 @@ export function initVisibleColumn() {
             .clearOpenListeners()
             .clearSubmitListeners()
             .submitTo(POST, `visible_column_save`, {
-                routeParams: {page},
+                routeParams: {page, id},
                 success: () => {
                     success();
                 },

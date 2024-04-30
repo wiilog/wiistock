@@ -13,12 +13,14 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route("/visible-column", name: "visible_column_")]
 class VisibleColumnController extends AbstractController {
 
+    public const DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS = "deliveryRequestShow";
+
     private const PAGES = [
         "reference",
         "arrival",
         "article",
         "deliveryRequest",
-        "deliveryRequestShow",
+        self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS,
         "dispatch",
         "dispute",
         "onGoing",
@@ -42,6 +44,14 @@ class VisibleColumnController extends AbstractController {
         }
 
         $displayedColumns = $request->request->keys();
+
+        $id = $request->request->getInt("id");
+        if ($page === self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS && $id) {
+            $deliveryRequest = $manager->find(Demande::class, $id);
+
+            $deliveryRequest->setVisibleColumns($displayedColumns);
+        }
+
         $visibleColumnService->setVisibleColumns($page, $displayedColumns, $this->getUser());
 
         $manager->flush();

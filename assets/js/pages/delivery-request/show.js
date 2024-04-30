@@ -4,7 +4,7 @@ import {initDataTable} from "@app/datatable";
 
 let tables = [];
 let editableTableArticles = null;
-const requestId = $('[name=requestId]').val();
+const requestId = $('[name=id]').val();
 let pageInitialized = false;
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
@@ -446,7 +446,7 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(AJAX.GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
+                    .route(AJAX.GET, 'api_articles-by-reference', {'request': $('[name=id]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')
