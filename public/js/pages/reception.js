@@ -1,5 +1,4 @@
 let onFlyFormOpened = {};
-let receptionsTable;
 
 $(function () {
     // RECEPTION
@@ -96,10 +95,6 @@ function initTableReception() {
                 },
             };
 
-            receptionsTable = initDataTable('tableReception_id', tableReceptionConfig);
-            receptionsTable.on('responsive-resize', function () {
-                resizeTable(receptionsTable);
-            });
-            return receptionsTable;
+            return initDataTable('tableReception_id', tableReceptionConfig);
         });
 }
