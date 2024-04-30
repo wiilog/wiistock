@@ -27,17 +27,24 @@ final class Version20240425074505 extends AbstractMigration
         $destination = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_DESTINATION']);
         $quantityToCollect = $this->connection->fetchAssociative('SELECT value FROM setting WHERE label = :label', ['label' => 'COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT']);
 
-        // insert data into kiosk with data from settings table
-        $this->addSql('INSERT INTO kiosk (name, subject, quantity_to_pick, destination, requester_id, picking_location_id, picking_type_id)
+        if (($requestType['value'] ?? false) != ''
+            & ($requester['value'] ?? false) != ''
+            & ($pointCollect['value'] ?? false) != ''
+            & ($object['value'] ?? false) != ''
+            & ($destination['value'] ?? false) != ''
+            & ($quantityToCollect['value'] ?? false) != '' ) {
+            // insert data into kiosk with data from settings table
+            $this->addSql('INSERT INTO kiosk (name, subject, quantity_to_pick, destination, requester_id, picking_location_id, picking_type_id)
                                 VALUES (:name, :subject, :quantity_to_pick, :destination, :requester_id, :picking_location_id, :picking_type_id)', [
-            'name' => 'Kiosk',
-            'subject' => $object['value'],
-            'quantity_to_pick' => $quantityToCollect['value'],
-            'destination' => $destination['value'],
-            'requester_id' => $requester['value'],
-            'picking_location_id' => $pointCollect['value'],
-            'picking_type_id' => $requestType['value'],
-        ]);
+                'name' => 'Kiosk',
+                'subject' => $object['value'],
+                'quantity_to_pick' => $quantityToCollect['value'],
+                'destination' => $destination['value'],
+                'requester_id' => $requester['value'],
+                'picking_location_id' => $pointCollect['value'],
+                'picking_type_id' => $requestType['value'],
+            ]);
+        }
 
         // delete old datatable kioskToken
         $this->addSql('DROP TABLE kiosk_token');
