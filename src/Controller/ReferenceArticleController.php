@@ -1145,6 +1145,7 @@ class ReferenceArticleController extends AbstractController
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER))
                 ->setPointCollecte($kiosk->getPickingLocation())
                 ->setObjet($kiosk->getSubject())
+                ->setKiosk($kiosk)
                 ->setstockOrDestruct($kiosk->getDestination() === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE);
 
             $newQuantity = $kiosk->getQuantityToPick();
