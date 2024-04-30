@@ -11,6 +11,7 @@ use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
+use App\Entity\Kiosk;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -1364,11 +1365,13 @@ class ArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
-    public function getLatestsKioskPrint() {
+    public function getLatestsKioskPrint(Kiosk $kiosk) {
         return $this->createQueryBuilder('article')
             ->andWhere('article.createdOnKioskAt IS NOT null')
+            ->andWhere('article.kiosk = :kiosk')
             ->orderBy('article.createdOnKioskAt', 'DESC')
             ->setMaxResults(3)
+            ->setParameter('kiosk', $kiosk)
             ->getQuery()
             ->getResult();
     }

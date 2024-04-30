@@ -3,18 +3,6 @@
 <div class="wii-section-title">Général</div>
 <div class="wii-section touch-terminal">
     <div class="row">
-        <div class="col-4 mb-3">
-            <button class="btn btn-primary kiosk-link">
-                <i class="fas fa-external-link-alt mr-2"></i>
-                Lien vers l'application
-            </button>
-        </div>
-        <div class="col-8 mb-3">
-            <button class="btn btn-outline-primary kiosk-unlink d-flex align-items-center" {{ alreadyUnlinked ? 'disabled' }}>
-                <span class="wii-icon wii-icon-link-slash wii-icon-17px mr-2"></span>
-                Déconnecter la borne
-            </button>
-        </div>
         <div class="form-group w-fit-content col-4">
             <div class="row">
                 <div class="col-auto">
@@ -186,81 +174,33 @@
     </div>
 </div>
 
-<div class="wii-section-title">Demande de collecte</div>
-<div class="wii-section">
-    <div class="row">
-        <div class="form-group col-4">
-            {% set settingCollectRequestType = setting_value('COLLECT_REQUEST_TYPE', 'App\\Entity\\Type') %}
-            {{ form.select(setting('COLLECT_REQUEST_TYPE'), 'Type', true, {
-                type: 'collectType',
-                placeholder: 'Sélectionnez un type',
-                search: true,
-                value: settingCollectRequestType ? settingCollectRequestType.id : null,
-                items: settingCollectRequestType ? {
-                    0: {
-                        'value': settingCollectRequestType.id,
-                        'label':  settingCollectRequestType.label,
-                        'selected': true
-                    }
-                } : null,
-            }) }}
-        </div>
-        <div class="form-group col-4">
-            {{ form.input(setting('COLLECT_REQUEST_OBJECT'), 'Objet', true, setting_value('COLLECT_REQUEST_OBJECT')) }}
-        </div>
-        <div class="form-group col-4">
-            {% set settingCollectRequestCollectPoint = setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement') %}
-            {{ form.select(setting('COLLECT_REQUEST_POINT_COLLECT'), 'Point de collecte', true, {
-                type: 'location',
-                search: true,
-                value: settingCollectRequestCollectPoint ? settingCollectRequestCollectPoint.id : null,
-                items: settingCollectRequestCollectPoint ? {
-                    0: {
-                        'value': settingCollectRequestCollectPoint.id,
-                        'label':  settingCollectRequestCollectPoint.label,
-                        'selected': true
-                    }
-                } : null,
-            }) }}
-        </div>
+<div class="wii-section-title">Liens pour borne</div>
+<div class="p-3">
+    <div class="w-100 d-flex items justify-content-end">
+        <button data-target='#newKioskModal' data-toggle='modal' class="btn btn-primary new-kiosk-modal">
+            <i class="fas fa-plus mr-2"></i>
+            Ajouter un lien externe
+        </button>
     </div>
     <div class="row">
-        <div class="form-group col-4">
-            {{ form.switch(setting('COLLECT_REQUEST_DESTINATION'), 'Destination', true, [
-                {
-                    label: 'Mise en stock',
-                    value: 'stock',
-                    checked: setting_value('COLLECT_REQUEST_DESTINATION') == 'stock'
-                },
-                {
-                    label: 'Destruction',
-                    value: 'destruction',
-                    checked: setting_value('COLLECT_REQUEST_DESTINATION') == 'destruction'
-                },
-            ]) }}
-        </div>
-        <div class="form-group col-4">
-            {{ form.input(setting('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), "Quantité d'article à collecter", false, setting_value('COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT'), {
-                type: 'number',
-                min: 1
-            }  ) }}
-        </div>
-        <div class="form-group col-4">
-            {% set settingCollectRequestRequester = setting_value('COLLECT_REQUEST_REQUESTER', 'App\\Entity\\Utilisateur') %}
-            {{ form.select(setting('COLLECT_REQUEST_REQUESTER'), 'Demandeur', true, {
-                type: 'collectRequester',
-                placeholder: 'Sélectionnez un utilisateur',
-                search: true,
-                type: 'user',
-                value: settingCollectRequestRequester ? settingCollectRequestRequester.id : null,
-                items: settingCollectRequestRequester ? {
-                    0: {
-                        'value': settingCollectRequestRequester.id,
-                        'label':  settingCollectRequestRequester.username,
-                        'selected': true
-                    }
-                } : null,
-            }) }}
+        <div class="col-12">
+            <table id="tablekiosks" class="table"></table>
         </div>
     </div>
 </div>
+
+{% include 'kiosk/modals/newKioskModal.html.twig' %}
+
+{% include 'utils/modal/empty-modal.html.twig' with {
+    id: 'editKioskModal',
+    size: 'modal-xl',
+    header: {
+        title: 'Modifier une borne'
+    },
+    footer: {
+        elements: [
+            {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+            {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+        ],
+    }
+} %}
