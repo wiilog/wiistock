@@ -2,12 +2,15 @@
 
 namespace App\Controller\Kiosk;
 
+use App\Annotation\HasPermission;
 use App\Annotation\HasValidToken;
 use App\Controller\AbstractController;
+use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FreeField;
 use App\Entity\Kiosk;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Type;
@@ -29,7 +32,8 @@ use Symfony\Component\Routing\Annotation\Route;
 class KioskController extends AbstractController
 {
 
-    #[Route("/delete/{kiosk}", name: "kiosk_delete", options: ["expose" => true], methods: [self::DELETE], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/delete/{kiosk}", name: "kiosk_delete", options: ["expose" => true], methods: self::DELETE, condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function deleteKiosk(EntityManagerInterface $manager,
                                 Kiosk                $kiosk): JsonResponse {
 
@@ -42,7 +46,8 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route('/edit-api', name: 'kiosk_edit_api', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/edit-api', name: 'kiosk_edit_api', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function editApi(EntityManagerInterface $manager,
                             Request                $request): JsonResponse {
         $kioskId= $request->query->get('id');
@@ -62,7 +67,8 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/edit", name: "kiosk_edit", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/edit", name: "kiosk_edit", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function editKiosk(Request                   $request,
                               EntityManagerInterface    $entityManager): JsonResponse {
         $inputBag = $request->request;
@@ -102,7 +108,8 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/create", name: "kiosk_create", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/create", name: "kiosk_create", options: ["expose" => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function createKiosk(EntityManagerInterface  $manager,
                                 Request                 $request): JsonResponse{
         $inputBag = $request->request;
@@ -136,15 +143,18 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route('/api', name: 'kiosk_api', options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api', name: 'kiosk_api', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function api(Request $request, KioskService $kioskService): JsonResponse {
         $data = $kioskService->getDataForDatatable($request->request);
 
         return $this->json($data);
     }
 
-    #[Route("/generate-kiosk-token", name: "kiosk_token_generate", options: ["expose" => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
-    public function generateToken(EntityManagerInterface    $manager, Request $request): JsonResponse {
+    #[Route("/generate-kiosk-token", name: "kiosk_token_generate", options: ["expose" => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
+    public function generateToken(EntityManagerInterface    $manager, Request $request): JsonResponse
+    {
         $kiosk = $manager->getRepository(Kiosk::class)->find($request->query->get('kiosk'));
         $newToken = bin2hex(random_bytes(30));
         $date = (new DateTime())->add(new DateInterval('P3D'));
@@ -167,25 +177,38 @@ class KioskController extends AbstractController
 
     #[Route("/", name: "kiosk_index", options: ["expose" => true])]
     #[HasValidToken]
-    public function index(EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface $manager, Request $request): Response
+    {
+
         $articleRepository = $manager->getRepository(Article::class);
-        $latestsPrint = $articleRepository->getLatestsKioskPrint();
+        $kioskRepository = $manager->getRepository(Kiosk::class);
+
+        $kiosk = $kioskRepository->findOneBy(['token' => $request->query->get('token')]);
+        $latestsPrint = $articleRepository->getLatestsKioskPrint($kiosk);
 
         return $this->render('kiosk/home.html.twig', [
-            'latestsPrint' => $latestsPrint
+            'latestsPrint' => $latestsPrint,
+            'kioskName' => $kiosk->getName(),
         ]);
     }
 
     #[Route("/formulaire", name: "kiosk_form", options: ["expose" => true])]
     #[HasValidToken]
-    public function form(Request $request, EntityManagerInterface $entityManager): Response {
+    public function form(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // repositories
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $kioskRepository = $entityManager->getRepository(Kiosk::class);
+
+        // get data
         $scannedReference = $request->query->get('scannedReference');
         $notExistRefresh = $request->query->getBoolean('notExistRefresh');
+        $kiosk = $kioskRepository->findOneBy(['token' => $request->query->get('token')]);
 
+        // find article and reference
         if (str_starts_with($scannedReference, 'ART')) {
             $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
             $reference = $article->getArticleFournisseur()->getReferenceArticle();
@@ -204,7 +227,9 @@ class KioskController extends AbstractController
         }
 
         $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
+
         return $this->render('kiosk/form.html.twig', [
+            'kiosk' => $kiosk,
             'reference' => $reference,
             'scannedReference' => $scannedReference,
             'freeField' => $reference?->getType() && $freeField instanceof FreeField ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
@@ -216,7 +241,8 @@ class KioskController extends AbstractController
 
     #[Route("/check-is-valid", name: "check_article_is_valid", options: ["expose" => true], methods: [self::POST])]
     #[HasValidToken]
-    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response {
+    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response
+    {
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -244,7 +270,8 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/unlink-kiosk-token/{kiosk}", name: "kiosk_unlink_token", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/unlink-kiosk-token/{kiosk}", name: "kiosk_unlink_token", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function unlinkKioskToken(EntityManagerInterface $manager,
                                      Kiosk                  $kiosk): JsonResponse {
 
@@ -257,10 +284,16 @@ class KioskController extends AbstractController
         ]);
     }
 
-    #[Route("/kiosk-print", name: "kiosk_print", options: ["expose" => true])]
+    #[Route("/kiosk-print", name: "kiosk_print", options: ["expose" => true], methods: [self::POST])]
     public function printLabel(EntityManagerInterface $entityManager,
                                Request                $request,
                                KioskService           $kioskService): PdfResponse {
+        $kioskRepository = $entityManager->getRepository(Kiosk::class);
+        $kiosk = $kioskRepository->findOneBy(['token' => $request->query->get('token')]);
+        if (!$kiosk) {
+            throw new FormException('La borne invalide');
+        }
+
         $articleRepository = $entityManager->getRepository(Article::class);
         $data = json_decode($request->query->get('barcodesToPrint'), true) ?? [];
 
@@ -269,7 +302,7 @@ class KioskController extends AbstractController
         if ($articleId) {
             $article = $articleRepository->find($articleId);
         } elseif ($reprint) {
-            $article = $articleRepository->getLatestsKioskPrint()[0];
+            $article = $articleRepository->getLatestsKioskPrint($kiosk)[0];
         }
 
         return $kioskService->testPrintWiispool($data, $article ?? null);

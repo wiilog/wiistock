@@ -1,6 +1,13 @@
 {% import "form.html.twig" as form %}
 
 {% set kiosk = kiosk is defined ? kiosk : null %}
+{% set typeField = constant('App\\Entity\\Fields\\FixedFieldEnum::type') %}
+{% set objectField = constant('App\\Entity\\Fields\\FixedFieldEnum::object') %}
+{% set pickingLocationField = constant('App\\Entity\\Fields\\FixedFieldEnum::pickingLocation') %}
+{% set nameField = constant('App\\Entity\\Fields\\FixedFieldEnum::name') %}
+{% set quantityToPickField = constant('App\\Entity\\Fields\\FixedFieldEnum::quantityToPick') %}
+{% set requesterField = constant('App\\Entity\\Fields\\FixedFieldEnum::requester') %}
+{% set destinationField = constant('App\\Entity\\Fields\\FixedFieldEnum::destination') %}
 
 {% if kiosk %}
     {{ form.hidden('id', kiosk.id) }}
@@ -9,7 +16,7 @@
 <div class="wii-section">
     <div class="row">
         <div class="form-group col-6 col-lg-4">
-            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::type').name, constant('App\\Entity\\Fields\\FixedFieldEnum::type').value, true, {
+            {{ form.select(typeField.name, typeField.value, true, {
                 type: 'collectType',
                 placeholder: 'Sélectionnez un type',
                 search: true,
@@ -24,10 +31,10 @@
             }) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::object').name, constant('App\\Entity\\Fields\\FixedFieldEnum::object').value, true, kiosk.subject ?? null) }}
+            {{ form.input(objectField.name, objectField.value, true, kiosk.subject ?? null) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::pickingLocation').name, constant('App\\Entity\\Fields\\FixedFieldEnum::pickingLocation').value, true, {
+            {{ form.select(pickingLocationField.name, pickingLocationField.value, true, {
                 type: 'location',
                 search: true,
                 value: kiosk ? kiosk.pickingLocation.id : null,
@@ -43,16 +50,16 @@
     </div>
     <div class="row">
         <div class="form-group col-6 col-lg-4">
-            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::name').name, constant('App\\Entity\\Fields\\FixedFieldEnum::name').value, false, kiosk.name ?? null) }}
+            {{ form.input(nameField.name, nameField.value, false, kiosk.name ?? null) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {{ form.input(constant('App\\Entity\\Fields\\FixedFieldEnum::quantityToPick').name, constant('App\\Entity\\Fields\\FixedFieldEnum::quantityToPick').value, false, kiosk.quantityToPick ?? 1, {
+            {{ form.input(quantityToPickField.name, quantityToPickField.value, false, kiosk.quantityToPick ?? 1, {
                 type: 'number',
                 min: 1,
             }  ) }}
         </div>
         <div class="form-group col-6 col-lg-4">
-            {{ form.select(constant('App\\Entity\\Fields\\FixedFieldEnum::requester').name, constant('App\\Entity\\Fields\\FixedFieldEnum::requester').value, true, {
+            {{ form.select(requesterField.name, requesterField.value, true, {
                 type: 'collectRequester',
                 placeholder: 'Sélectionnez un utilisateur',
                 search: true,
@@ -70,7 +77,7 @@
     </div>
     <div class="row">
         <div class="form-group col-6 col-lg-4">
-            {{ form.switch(constant('App\\Entity\\Fields\\FixedFieldEnum::destination').name, constant('App\\Entity\\Fields\\FixedFieldEnum::destination').value, true, [
+            {{ form.switch(destinationField.name, destinationField.value, true, [
                 {
                     label: 'Mise en stock',
                     value: 'stock',

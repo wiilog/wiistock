@@ -3,6 +3,10 @@
 
 {% block title %} Borne | Formulaire {% endblock %}
 
+{% block kioskName %}
+    {{ kiosk.name }}
+{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('kiosk') }}
@@ -131,7 +135,7 @@
                                 <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="35px">
                                 <label class="box-item ml-3">
                                     <span class="field-name">Emplacement</span>
-                                    <span class="field-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
+                                    <span class="field-text">{{ kiosk.pickingLocation }}</span>
                                 </label>
                             </div>
                             {% if freeField %}
