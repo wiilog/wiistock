@@ -55,9 +55,9 @@
                     </div>
                     <div class="other-informations-container d-none">
                         <div class="d-flex justify-content-center">
-                            <label class="w-100 mr-3 free-field-label">
-                                {% if freeField %}
-                                    {{ freeField.label }}
+                            {% if freeField and freeField.displayedEdit%}
+                                <label class="w-100 mr-3 free-field-label">
+                                    {{ freeField.label }} {% if not freeField.requiredEdit %}<span class="wii-small-text">(Facultatif)</span>{% endif %}
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                                         freeFields: [freeField],
                                         freeFieldValues: reference.freeFields,
@@ -66,8 +66,8 @@
                                         actionType: 'edit',
                                         kiosk: true
                                     } %}
-                                {% endif %}
-                            </label>
+                                </label>
+                            {% endif %}
                             <input hidden name="free-field-id" value="{{ freeField ? freeField.id }}"/>
                             <label class="w-100 mr-3">
                                 Commentaire <span class="wii-small-text">(Facultatif)</span>
