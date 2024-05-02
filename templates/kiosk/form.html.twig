@@ -45,7 +45,7 @@
                             </label>
                             <label class="w-100 ml-3">
                                 Suiveur
-                                <select name="follower" class="w-100 data" data-s2="user">
+                                <select name="follower" class="w-100 data needed" data-s2="user">
                                     {% if reference.managers[1] is defined %}
                                         <option value="{{ reference.managers[1].id }}" selected>{{ reference.managers[1].username }}</option>
                                     {% endif %}
