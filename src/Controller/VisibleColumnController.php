@@ -20,6 +20,7 @@ class VisibleColumnController extends AbstractController {
         "arrival",
         "article",
         "deliveryRequest",
+        "stockMovement",
         self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS,
         "dispatch",
         "dispute",

@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div
       class="modal fade"
       id="modalNewMvtStock"
@@ -13,127 +15,91 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-6">
-                        <label class="wii-field-name" for="demandeur">
-                            Opérateur
-                        </label>
-                        <select
-                                class="demandeur form-control data"
-                                name="demandeur"
-                                disabled>
-                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>
-                        </select>
+                        {{ form.input('demandeur', 'Opérateur', true, app.user.username, {
+                            disabled: true,
+                            data:false,
+                        }) }}
                     </div>
                     <div class="form-group col-6">
-                        <label class="wii-field-name w-100">
-                            Référence*
-                            <select id="reference-new-mvt"
-                                    class="form-control data select2-autocomplete-ref-articles w-100 select2 needed"
-                                    onchange="newMvtStockArticleChosen($(this))"></select>
-                        </label>
+                        {{ form.select('reference-new-mvt', 'Référence', true, {
+                            type:'reference',
+                            attributes: {
+                                "other-params-active-only" : true,
+                            },
+                        }) }}
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-6 d-none is-hidden-by-ref">
-                        <label class="wii-field-name w-100">
-                            Libellé
-                            <input type="text"
-                                   disabled
-                                   id="chosen-ref-label"
-                                   class="form-control">
-                        </label>
+                        {{ form.input('chosen-ref-label', 'Libellé', false, '', {
+                            disabled: true,
+                        }) }}
                     </div>
+
                     <div class="form-group col-6 d-none is-hidden-by-ref">
-                        <label class="wii-field-name w-100">
-                            Code barre
-                        </label>
-                        <input type="text"
-                               disabled
-                               id="chosen-ref-barcode"
-                               class="form-control w-100 data"
-                               name="movement-barcode">
+                        {{ form.input('chosen-ref-barcode', 'Code barre', false, '', {
+                            disabled: true,
+                        }) }}
                     </div>
 
                     <div class="form-group col-6 d-none is-hidden-by-art">
-                        <label class="wii-field-name w-100">
-                            Code barre article*
-                        </label>
-                        <select
-                                id="chosen-art-barcode"
-                                class="form-control select2-autocomplete-articles select2-art w-100"
-                                onchange="showFieldsAndFillOnArticleChange($(this))"></select>
+                        {{ form.select('chosen-art-barcode', 'Code barre article', true, {
+                            type: 'article',
+                            includeParams: '[name=reference-new-mvt]',
+                        }) }}
                     </div>
 
                 </div>
                 <div class="row">
                     <div class="form-group col-6 d-none is-hidden-by-ref">
-                        <label class="wii-field-name w-100">
-                            Emplacement
-                        </label>
-                        <input type="text"
-                               disabled
-                               id="chosen-ref-location"
-                               class="form-control w-100">
+                        {{ form.input('chosen-ref-location', 'Origine', false, '', {
+                            disabled: true,
+                        }) }}
                     </div>
                     <div class="form-group col-6 d-none is-hidden-by-ref">
-                        <label class="wii-field-name">
-                            Type*
-                        </label>
-                        <select id="type-new-mvt"
-                                class="form-control data w-auto"
-                                name="chosen-type-mvt"
-                                onchange="newMvtStockTypeChanged($(this))">
-                            {% for typeMvt in typesMvt %}
-                                {% set needsLocationShow = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_TRANSFER')) %}
-                                {% set needsQuantityShow = (typeMvt != constant('App\\Entity\\MouvementStock::TYPE_TRANSFER')) %}
-                                {% set needsQuantityCap = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_SORTIE')) %}
-                                <option value="{{ typeMvt }}"
-                                        data-needs-location="{{ needsLocationShow }}"
-                                        data-needs-quantity-cap="{{ needsQuantityCap }}"
-                                        data-needs-quantity="{{ needsQuantityShow }}">{{ typeMvt }}</option>
-                            {% endfor %}
-                        </select>
+                        {% set typeMvt = typesMvt|map((type) => {
+                            label: type,
+                            value: type,
+                            "needs-location": type == constant('App\\Entity\\MouvementStock::TYPE_TRANSFER'),
+                            "needs-quantity": type != constant('App\\Entity\\MouvementStock::TYPE_TRANSFER'),
+                            "needs-quantity-cap": type == constant('App\\Entity\\MouvementStock::TYPE_SORTIE'),
+                        }) %}
+
+                        {{ form.select('chosen-type-mvt', 'Type', true, {
+                            type: "",
+                            items: typeMvt,
+                        }) }}
                     </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-6 d-none is-hidden-by-ref">
-                        <label class="wii-field-name w-100">
-                            Quantité disponible
-                        </label>
-                        <input type="number"
-                               disabled
-                               id="chosen-ref-quantity"
-                               class="form-control w-25">
+                        {{ form.input('chosen-ref-quantity', 'Quantité disponible', false, '', {
+                            disabled: true,
+                            type: "number",
+                        }) }}
                     </div>
                     <div class="form-group col-6 d-none is-hidden-by-type">
-                        <label class="wii-field-name w-100">
-                            Quantité entrée/sortie*
-                        </label>
-                        <input type="number"
-                               name="chosen-mvt-quantity"
-                               id="chosen-mvt-quantity"
-                               class="form-control data w-25"
-                               min="0">
+                        {{ form.input('chosen-mvt-quantity', 'Quantité entrée/sortie', true, 0, {
+                            type: "number",
+                            min: "0",
+                            labelClass: "labelQuantityMovement",
+                        }) }}
                     </div>
                     <div class="form-group col-6 d-none is-hidden-by-type">
-                        <label class="wii-field-name w-100">
-                            Emplacement*
-                        </label>
-                        <select name="chosen-mvt-location"
-                                id="chosen-mvt-location"
-                                class="form-control select2-emplacement data w-100"></select>
+                        {{ form.select('chosen-mvt-location', 'Destination', true, {
+                            type:'location',
+                            labelClass: "labelLocationMovement w-100",
+                        }) }}
                     </div>
-                    <div class="form-group col-12">
-                        <label class="wii-field-name wii-field-name-sub" for="commentaire">Commentaire</label>
-                        <input id='comment' class="commentaire form-control data" name="comment" type="hidden">
-                        <div class="editor-container" data-wysiwyg>
-                        </div>
+                    <div class="form-group col-12 is-hidden-by-ref">
+                        {{ form.wysiwyg('comment', 'Commentaire', false) }}
                     </div>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewMvtStock'}
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
                 ],
             } %}
 

@@ -1083,7 +1083,7 @@ class ArticleRepository extends EntityRepository {
         }
     }
 
-    public function getForSelect(?string $term, string $status = null) {
+    public function getForSelect(?string $term, string $status = null, int $referenceId = null) {
         $qb = $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text");
 
@@ -1091,6 +1091,15 @@ class ArticleRepository extends EntityRepository {
             $qb->join("article.statut", "status")
                 ->andWhere("status.code = :status")
                 ->setParameter("status", $status);
+        }
+
+        if($referenceId !== null) {
+            $qb->addSelect('emplacement.label AS location, article.quantite AS quantity')
+                ->join("article.articleFournisseur", "articleFournisseur")
+                ->join("articleFournisseur.referenceArticle", "referenceArticle")
+                ->leftJoin("article.emplacement", "emplacement")
+                ->where('referenceArticle.id = :idReference')
+                ->setParameter("idReference", $referenceId);
         }
 
         return $qb
