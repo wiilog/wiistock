@@ -302,10 +302,18 @@ class TrackingMovementController extends AbstractController
                 ]);
             }
         }
-
-        foreach ($createdMouvements as $mouvement) {
-            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
-            $attachmentService->persistAttachments($mouvement, $request, $entityManager);
+        if (isset($fileBag)) {
+            $fileNames = [];
+            foreach ($fileBag->all() as $file) {
+                $fileNames = array_merge(
+                    $fileNames,
+                    $attachmentService->saveFile($file)
+                );
+            }
+            foreach ($createdMouvements as $mouvement) {
+                $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
+                $attachmentService->persistAttachments($mouvement, $fileNames, $entityManager);
+            }
         }
 
         $countCreatedMouvements = count($createdMouvements);
@@ -443,7 +451,7 @@ class TrackingMovementController extends AbstractController
                 $attachmentService->removeAndDeleteAttachment($attachment, $mvt);
             }
         }
-        $attachmentService->persistAttachments($mvt, $request, $entityManager, ['addToDispatch' => true]);
+        $attachmentService->persistAttachments($mvt, $request->files, $entityManager, ['addToDispatch' => true]);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
         $entityManager->flush();
 

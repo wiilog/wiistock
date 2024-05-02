@@ -242,7 +242,7 @@ function createArrival(form = null) {
     }
 
     Form
-        .create($modal,{clearOnOpen: true})
+        .create($modal, {clearOnOpen: true})
         .onOpen(() => {
             Camera.init(
                 $modal.find(`.take-picture-modal-button`),

@@ -148,7 +148,7 @@ $(function () {
     let urlNewLitige = Routing.generate('dispute_new', {reloadArrivage: $('#arrivageId').val()}, true);
     InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableArrivageLitiges]});
     Form
-        .create(modalNewLitige,{clearOnOpen: true})
+        .create(modalNewLitige, {clearOnOpen: true})
         .onOpen(() => {
             Camera.init(
                 modalNewLitige.find(`.take-picture-modal-button`),
@@ -161,7 +161,7 @@ $(function () {
     let urlEditLitige = Routing.generate('litige_edit_arrivage', {reloadArrivage: $('#arrivageId').val()}, true);
     InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableArrivageLitiges]});
     Form
-        .create(modalEditLitige,{clearOnOpen: false})
+        .create(modalEditLitige, {clearOnOpen: false})
         .onOpen(() => {
             Camera.init(
                 modalEditLitige.find(`.take-picture-modal-button`),
@@ -222,6 +222,7 @@ function editRowArrivage($button) {
     let submit = $('#submitEditArrivage');
     let id = $button.data('id');
     let params = {id: id};
+
     wrapLoadingOnActionButton(
         $button,
         () => {
@@ -250,7 +251,7 @@ function editRowArrivage($button) {
     );
 
     Form
-        .create(modal,{clearOnOpen: false})
+        .create(modal, {clearOnOpen: false})
         .onOpen(() => {
             Camera.init(
                 modal.find(`.take-picture-modal-button`),

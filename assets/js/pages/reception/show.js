@@ -164,7 +164,7 @@ function initPageModals() {
 
     let $modalModifyReception = $('#modalEditReception');
     Form
-        .create($modalModifyReception,{clearOnOpen: false})
+        .create($modalModifyReception, {clearOnOpen: false})
         .onOpen(() => {
             Camera.init(
                 $modalModifyReception.find(`.take-picture-modal-button`),

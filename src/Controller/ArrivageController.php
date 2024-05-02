@@ -505,7 +505,7 @@ class ArrivageController extends AbstractController {
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
                          EntityManagerInterface $entityManager,
-                         AttachmentService      $attachmentService,): Response
+                         AttachmentService      $attachmentService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -865,7 +865,7 @@ class ArrivageController extends AbstractController {
                                EntityManagerInterface $entityManager,
                                UniqueNumberService    $uniqueNumberService,
                                TranslationService     $translation,
-                               AttachmentService      $attachmentService,): Response
+                               AttachmentService      $attachmentService): Response
     {
         $post = $request->request;
 
@@ -1122,7 +1122,7 @@ class ArrivageController extends AbstractController {
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
                                Twig_Environment       $templating,
-                               AttachmentService      $attachmentService,): Response
+                               AttachmentService      $attachmentService): Response
     {
         $post = $request->request;
 

@@ -95,7 +95,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
         disputeId
     };
     Form
-        .create($modal,{clearOnOpen: false})
+        .create($modal, {clearOnOpen: false})
         .onOpen(() => {
             Camera.init(
                 $modal.find(`.take-picture-modal-button`),

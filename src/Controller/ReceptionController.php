@@ -149,7 +149,6 @@ class ReceptionController extends AbstractController {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-            /** @var Reception $reception */
             $reception = $receptionRepository->find($data->getInt('receptionId'));
 
             $statut = $statutRepository->find($data->getInt('statut'));
@@ -214,7 +213,7 @@ class ReceptionController extends AbstractController {
                 }
             }
 
-            $attachmentService->persistAttachments($reception, $request, $entityManager);
+            $attachmentService->persistAttachments($reception, $request->files, $entityManager);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
 

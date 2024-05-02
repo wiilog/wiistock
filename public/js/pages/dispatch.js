@@ -36,7 +36,7 @@ $(function() {
         initNewDispatchEditor('#modalNewDispatch');
     });
     Form
-        .create($modalNewDispatch,{clearOnOpen: true})
+        .create($modalNewDispatch, {clearOnOpen: true})
         .onOpen(() => {
             Camera.init(
                 $modalNewDispatch.find(`.take-picture-modal-button`),

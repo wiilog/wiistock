@@ -357,7 +357,7 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $attachmentService->persistAttachments($handling, $request, $entityManager);
+        $attachmentService->persistAttachments($handling, $request->files, $entityManager);
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';
         return new JsonResponse([

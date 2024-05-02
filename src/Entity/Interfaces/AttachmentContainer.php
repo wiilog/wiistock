@@ -14,7 +14,7 @@ interface AttachmentContainer
 
     public function removeAttachment(Attachment $attachment): self;
 
-    public function setAttachments($attachments): self;
+    public function setAttachments(Attachment $attachments): self;
 
     public function clearAttachments(): self;
 

@@ -11,7 +11,7 @@ $(function () {
     let $modalReceptionNew = $("#modalNewReception");
 
     Form
-        .create($modalReceptionNew,{clearOnOpen: true})
+        .create($modalReceptionNew, {clearOnOpen: true})
         .onOpen(() => {
             Camera.init(
                 $modalReceptionNew.find(`.take-picture-modal-button`),

@@ -599,7 +599,7 @@ class DispatchController extends AbstractController {
                          TranslationService     $translationService,
                          FreeFieldService       $freeFieldService,
                          EntityManagerInterface $entityManager,
-                         AttachmentService      $attachmentService,): Response
+                         AttachmentService      $attachmentService): Response
     {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -630,7 +630,7 @@ class DispatchController extends AbstractController {
             }
         }
 
-        $attachmentService->persistAttachments($dispatch, $request, $entityManager);
+        $attachmentService->persistAttachments($dispatch, $request->files, $entityManager);
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);

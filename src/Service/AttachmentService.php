@@ -66,7 +66,6 @@ class AttachmentService {
         if (!file_exists($this->attachmentDirectory)) {
             mkdir($this->attachmentDirectory, 0777);
         }
-
         $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
         $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
@@ -166,11 +165,11 @@ class AttachmentService {
     }
 
     public function persistAttachments(AttachmentContainer $attachmentContainer,
-                                        Request $request,
+                                        FileBag|array $files,
                                         EntityManagerInterface $entityManager,
                                         array $options = []): void {
         $isAddToDispatch = $options['addToDispatch'] ?? false;
-        $attachments = $this->createAttachments($request->files);
+        $attachments = $this->createAttachments($files);
         foreach($attachments as $attachment) {
             $entityManager->persist($attachment);
             $attachmentContainer->addAttachment($attachment);
@@ -184,7 +183,7 @@ class AttachmentService {
 
     public function persistAttachmentsForEntity(AttachmentContainer $attachmentContainer,
                                                  Request $request,
-                                                 EntityManagerInterface $entityManager)
+                                                 EntityManagerInterface $entityManager): void
     {
         $attachments = $this->createAttachments($request->files);
         foreach ($attachments as $attachment) {
