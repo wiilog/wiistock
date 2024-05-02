@@ -24,6 +24,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OneToMany;
+use function PHPUnit\Framework\isEmpty;
 
 
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
@@ -468,6 +469,7 @@ class Emplacement implements PairedEntity {
                 && $pack->getNature()
                 && $this->getAllowedNatures()->contains($pack->getNature())
             )
+            || isEmpty($pack?->getNature())
         );
     }
 
