@@ -247,6 +247,10 @@ describe('Add and edit logistic units arrivals', () => {
             cy.preventPageLoading();
         })
 
+    it("should check all checkboxes in column management modal ", () => {
+        cy.checkAllInColumnManagement('.arrival-mode-container');
+    })
+
     it("should check the new logistic units arrivals created", () => {
         const propertiesMaps = {
             'Type': 'type',
@@ -264,13 +268,12 @@ describe('Add and edit logistic units arrivals', () => {
         cy.checkDataInDatatable(LUArrivals, 'type', 'arrivalsTable', propertiesMaps, ['project', 'comment', 'dropLocation', 'file', 'firstAcheteurs', 'secondAcheteurs', 'firstNumeroCommandeList', 'secondNumeroCommandeList'])
     })
 
-
     it("should add a new dispute", () => {
         const arrivalsTable = 'table#arrivalsTable';
         const selectorTablePacks = '#tablePacks';
         const selectorModalNewLitige = '#modalNewLitige';
 
-        cy.get(`${arrivalsTable} tbody tr`).last().click();
+        cy.get(`${arrivalsTable} tbody tr`).last().find('td').eq(2).click();
 
         cy.wait('@packs_api')
 
@@ -336,8 +339,11 @@ describe('Add and edit logistic units arrivals', () => {
         const modalEditLitige = '#modalEditLitige';
         const selectorTablePacks = '#tablePacks';
 
+        // bug if we just use .last().click() so we need to use .last().find('td').eq(2).click()
         cy.get('table#arrivalsTable tbody tr')
             .last()
+            .find('td')
+            .eq(2)
             .click();
 
         cy.wait('@packs_api')
@@ -414,10 +420,15 @@ describe('Add and edit logistic units arrivals', () => {
 
     it("should add a new logistic units", () => {
         const selectorModalAddPacks = '#modalAddPacks';
+
         // click on the last logistic units arrivals to add a new logistic units
-        cy.get('#arrivalsTable tbody tr')
+        // bug if we just use .last().click() so we need to use .last().find('td').eq(2).click()
+        cy.get('table#arrivalsTable tbody tr')
             .last()
+            .find('td')
+            .eq(2)
             .click();
+
         // wait for the packs to be loaded in datatable
         cy.wait('@packs_api');
 
@@ -456,7 +467,12 @@ describe('Add and edit logistic units arrivals', () => {
        })
 
         // click on the last logistic units arrivals to check the new logistic units
-        cy.get(`${selectorArrivalsTable} tbody tr`).last().click();
+        // bug if we just use .last().click() so we need to use .last().find('td').eq(2).click()
+        cy.get(`${selectorArrivalsTable} tbody tr`)
+            .last()
+            .find('td')
+            .eq(2)
+            .click();
 
         cy.wait('@packs_api');
 
@@ -491,7 +507,7 @@ describe('Add and edit logistic units arrivals', () => {
     it("should edit a logistic units arrivals", () => {
         const selectorModalEditArrivage = '#modalEditArrivage';
         // click on the last logistic units arrivals to edit it
-        cy.get('table#arrivalsTable tbody tr').last().click();
+        cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click();
 
         cy.get('button.split-button')
             .click()
@@ -550,9 +566,7 @@ describe('Add and edit logistic units arrivals', () => {
     })
 
     it("should check the modification made on the logistic units arrivals", () => {
-        cy.get('table#arrivalsTable tbody tr')
-            .last()
-            .click();
+        cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click();
 
         const fieldsToCheck = [
             { title: 'Statut', value: capitalizeFirstLetter(LUArrivalsChanged.statut) },

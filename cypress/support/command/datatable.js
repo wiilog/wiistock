@@ -59,3 +59,26 @@ Cypress.Commands.add('checkDataInDatatable', (object, objectId = 'label', tableI
 Cypress.Commands.add('clickOnRowInDatatable', (tableId, label) => {
     cy.get(`#${tableId} tbody td`).contains(label).click();
 })
+
+/**
+ * @description: This command allow to check all the columns in the column management modal
+ * @param {string} buttonSelector : selector of the button (button & dropdown)
+ * @param {string} dropdownSelector : selector of the dropdown
+ * @param {string} modalSelector : selector of the modal
+ * @example :
+ * cy.checkAllInColumnManagement('.columnManagementButton', '#modalColumnVisible', '#modalColumnVisible');
+ */
+Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelector = '#modalColumnVisible', modalSelector = '#modalColumnVisible') => {
+    // open the modal
+    cy.get(`${buttonSelector} .dropdown-toggle`).click();
+    cy.get(`${buttonSelector} [data-target='${dropdownSelector}']`).click();
+    cy.get(modalSelector).should('be.visible');
+
+    // check all input with checkbox types in the modal
+    cy.get(`${modalSelector} input[type='checkbox']`).check({force: true, multiple: true});
+    cy.get(`${modalSelector} input[type='checkbox']`).should('be.checked');
+
+    // submit the modal & close it
+    cy.get(`${modalSelector} button[type='submit']`).click();
+    cy.get(modalSelector).should('not.be.visible');
+})
