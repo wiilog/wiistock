@@ -19,7 +19,7 @@ function initTableArticle() {
             order: [[1, 'desc']],
             ajax: {
                 url: Routing.generate('article_api', true),
-                type: 'POST',
+                type: AJAX.POST,
                 dataSrc: function (json) {
                     if (!$(".statutVisible").val()) {
                         tableArticle.column('Statut:name').visible(false);
