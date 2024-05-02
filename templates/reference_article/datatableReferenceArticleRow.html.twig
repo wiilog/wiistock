@@ -41,6 +41,17 @@
                             "data-ref-label": reference_label,
                         },
                     },
+                    ...hasArticles
+                        ? [{
+                            hasRight: hasRight(constant("App\\Entity\\Menu::DEM"), constant("App\\Entity\\Action::DISPLAY_PURCHASE_REQUESTS")),
+                            title: "Voir les articles",
+                            icon: "fas fa-list",
+                            href: path("article_index", {referenceFilter: reference_id}),
+                            attributes: {
+                                target: "_blank",
+                            },
+                        }]
+                        : [],
                     {
                         hasRight: hasRight(constant("App\\Entity\\Menu::STOCK"), constant("App\\Entity\\Action::DELETE")) ,
                         title: "Supprimer",
