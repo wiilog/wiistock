@@ -28,7 +28,7 @@
         <strong>{{ handling.subject }}</strong>
     </div>
 
-    {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_COLLINS_SOA')) %}
+    {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_BOURGUIGNON')) %}
         <div>{{ translateIn(language, 'Demande', 'Services', 'Emails', 'Chargement', false) }} :
             <strong>{{ handling.source }}</strong>
         </div>

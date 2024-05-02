@@ -72,8 +72,8 @@
 
     </ul>
     {% if isUrgentArrival and
-        (isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
-        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))) %}
+        (isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_PETIT_SALE'))
+        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CHOU_FARCI'))) %}
         {% if arrival.customs %}
             <p style="font-weight: bold">
                 La réception de cette commande sera effectuée après dédouanement.
@@ -83,7 +83,7 @@
                 La réception de cette commande sera effectuée sous deux heures.
             </p>
         {% endif %}
-    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_PETIT_SALE')) %}
         {% if arrival.customs %}
             <p style="font-weight: bold">
                 La réception de cette commande sera effectuée après dédouanement.
@@ -93,7 +93,7 @@
                 Votre unité logistique sera livrée en dropzone en milieu d'après-midi.
             </p>
         {% endif %}
-    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
+    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CHOU_FARCI')) %}
         <p>
             Votre unité logistique est disponible auprès du magasin.
         </p>
@@ -129,7 +129,7 @@
     {% endif %}
 {% endblock %}
 {% block postScriptum %}
-    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_PETIT_SALE')) %}
         <p>
             PS&nbsp;: En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
             Ecrivez-nous aux adresses suivantes&nbsp;: r.rossard@gt-logistics.fr, s.montembault@gt-logistics.fr.
