@@ -56,6 +56,9 @@ jobs:
             -   name: Change APP_ENV= to APP_ENV=dev
                 run: sed -i 's/APP_ENV=.*/APP_ENV=dev/g' projects/wiistock/.env.local
 
+            -   name: Change APP_URL= to APP_URL=http://wiistock-nginx:80
+                run: sed -i 'sed -i 's|APP_URL=http://localhost|APP_URL=http://wiistock-nginx|' .env.local' projects/wiistock/.env.local
+
             -   name: Add generated.yaml to wiistock
                 run: |
                     touch projects/wiistock/config/generated.yaml &&
@@ -83,6 +86,9 @@ jobs:
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_php yarn
+
+            -   name: Build assets in app
+                run: docker exec wiistock-cypress_php yarn build
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
