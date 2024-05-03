@@ -157,7 +157,7 @@ class KioskController extends AbstractController
     {
         $kiosk = $manager->getRepository(Kiosk::class)->find($request->query->get('kiosk'));
         $newToken = bin2hex(random_bytes(30));
-        $date = (new DateTime())->add(new DateInterval('P3D'));
+        $date = (new DateTime())->add(new DateInterval('P5D'));
 
         if(!$kiosk){
             throw new FormException("La borne n'existe pas.");

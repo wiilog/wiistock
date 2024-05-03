@@ -18,9 +18,10 @@ const {token} = GetRequestQuery();
 $(function () {
     //In order to always have a valid session cookie, we make a call to the server to extend session lifetime.
     const sessionLifeTime = $("[name=maxSessionTime]").val()
+    const pingInterval = ((sessionLifeTime/2) - 1 )* 60 * 1000;
     setInterval(() => {
         AJAX.route(GET, `api_ping`).json().then(()=> {})
-    }, (sessionLifeTime - 1) * 60 * 1000 );
+    }, pingInterval > 60000 ? pingInterval : 60000 );
 
     if ($modalPrintHistory) {
         $('#openModalPrintHistory').on('click', function () {
