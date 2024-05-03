@@ -8,10 +8,10 @@ on:
         branches:
             - "WIIS-11016-cypress"
 
-
-concurrency:
-    group: ${{ github.head_ref }}
-    cancel-in-progress: true
+#
+#concurrency:
+#    group: ${{ github.head_ref }}
+#    cancel-in-progress: true
 
 jobs:
     cypress-run:
@@ -43,8 +43,8 @@ jobs:
                     ref: ${{ github.event.pull_request.head.sha }}
                     path: projects/wiistock
 
-            #-   name: Login to docker hub
-            #    run: docker login --username ${{ secrets.WIISTOCK_DOCKER_USER }} --password ${{ secrets.WIISTOCK_DOCKER_ACCESS_TOCKEN }}
+            -   name: Login to docker hub
+                run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}
 
             -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
