@@ -86,7 +86,7 @@ jobs:
 
             -   name: Create database
             #    run:  docker exec wiistock-cypress_php php bin/console doctrine:schema:update --force
-                run: docker exec mysql mysql -u root -proot -e "CREATE DATABASE wiistock;"
+                run: docker exec wiistock-cypress_mysql mysql -u root -proot -e "CREATE DATABASE wiistock;"
 
 
             -   name: Install yarn dependencies in app
