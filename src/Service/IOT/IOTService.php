@@ -736,7 +736,7 @@ class IOTService
     private function treatAddMessageForVehicle(Vehicle $vehicle,
                                                SensorMessage $sensorMessage,
                                                ArticleRepository $articleRepository,
-                                               PackRepository $packRepository) {
+                                               PackRepository $packRepository): void {
         $vehicle->addSensorMessage($sensorMessage);
         foreach ($vehicle->getLocations() as $location) {
             $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
@@ -746,7 +746,7 @@ class IOTService
     private function treatAddMessageLocationGroup(LocationGroup $locationGroup,
                                                   SensorMessage $sensorMessage,
                                                   ArticleRepository $articleRepository,
-                                                  PackRepository $packRepository) {
+                                                  PackRepository $packRepository): void {
         $locationGroup->addSensorMessage($sensorMessage);
         foreach ($locationGroup->getLocations() as $location) {
             $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
@@ -756,7 +756,7 @@ class IOTService
     private function treatAddMessageLocation(Emplacement $location,
                                              SensorMessage $sensorMessage,
                                              ArticleRepository $articleRepository,
-                                             PackRepository $packRepository) {
+                                             PackRepository $packRepository): void {
         $location->addSensorMessage($sensorMessage);
         $packs = $packRepository->getCurrentPackOnLocations(
             [$location->getId()],
@@ -777,19 +777,19 @@ class IOTService
         }
     }
 
-    private function treatAddMessagePack(Pack $pack, SensorMessage $sensorMessage) {
+    private function treatAddMessagePack(Pack $pack, SensorMessage $sensorMessage): void {
         $pack->addSensorMessage($sensorMessage);
     }
 
-    private function treatAddMessageArticle(Article $article, SensorMessage $sensorMessage) {
+    private function treatAddMessageArticle(Article $article, SensorMessage $sensorMessage): void {
         $article->addSensorMessage($sensorMessage);
     }
 
-    private function treatAddMessageDeliveryRequest(Demande $request, SensorMessage $sensorMessage) {
+    private function treatAddMessageDeliveryRequest(Demande $request, SensorMessage $sensorMessage): void {
         $request->addSensorMessage($sensorMessage);
     }
 
-    private function treatAddMessageCollectRequest(Collecte $request, SensorMessage $sensorMessage) {
+    private function treatAddMessageCollectRequest(Collecte $request, SensorMessage $sensorMessage): void {
         $request->addSensorMessage($sensorMessage);
     }
 
@@ -812,20 +812,20 @@ class IOTService
     public function extractMainDataFromConfig(array $config, string $profile, string $payload): array {
         switch ($profile) {
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
-                $hexTemperature = substr($config['value']['payload'], 6, 2);
+                $hexTemperature = substr($payload, 6, 2);
                 $temperature = $this->convertHexToSignedNumber($hexTemperature);
-                $hexHygrometry = substr($config['value']['payload'], 66, 2);
+                $hexHygrometry = substr($payload, 66, 2);
                 $hygrometry = $this->convertHexToSignedNumber($hexHygrometry);
                 return [
                     self::DATA_TYPE_TEMPERATURE => $temperature,
                     self::DATA_TYPE_HYGROMETRY => $hygrometry,
                 ];
             case IOTService::INEO_SENS_ACS_TEMP:
-                $hexTemperature = substr($config['value']['payload'], 6, 2);
+                $hexTemperature = substr($payload, 6, 2);
                 $temperature = $this->convertHexToSignedNumber($hexTemperature);
                 return [self::DATA_TYPE_TEMPERATURE => $temperature,];
             case IOTService::INEO_SENS_ACS_HYGRO:
-                $hexHygrometry = substr($config['value']['payload'], 66, 2);
+                $hexHygrometry = substr($payload, 66, 2);
                 $hygrometry = $this->convertHexToSignedNumber($hexHygrometry);
                 return [self::DATA_TYPE_HYGROMETRY => $hygrometry,];
             case IOTService::KOOVEA_TAG:
@@ -988,7 +988,7 @@ class IOTService
             case IOTService::INEO_SENS_ACS_HYGRO:
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
-                return 100 - hexdec(substr($config['value']['payload'], 10, 2));
+                return 100 - hexdec(substr($payload, 10, 2));
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
