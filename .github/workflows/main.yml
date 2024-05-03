@@ -64,17 +64,17 @@ jobs:
             -   name: Give all right to wiistock
                 run: chmod -R 777 projects/wiistock/
 
-            -   name: Build & run containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build -d
-
-            -   name: Check logs
-                run: docker container logs wiistock-cypress_php
-
-            -   name: Give right to www-data user
-                run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
+            -   name: Build containers
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_php:/project
+
+            -   name: Start containers
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+
+            -   name: Give right to www-data user
+                run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
 #           TODO : Run install.sh
 
