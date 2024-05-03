@@ -7,7 +7,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <div class="btn-group">
+                    <div data-cypress="newCarrier" class="btn-group">
                         <a class="btn btn-primary d-flex align-items-center" onclick="displayCarrierModal(), clearModal('#modalNewChauffeur')">
                             <span class="wii-icon wii-icon-plus mr-2"></span>Nouveau transporteur
                         </a>
