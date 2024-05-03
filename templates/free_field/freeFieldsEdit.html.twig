@@ -34,10 +34,17 @@
                                     {label: trans('Général', null, 'Modale', 'Oui', false), value: '1', checked: entityValue == 1},
                                     {label: trans('Général', null, 'Modale', 'Non', false), value: '0', checked: entityValue is not null and entityValue == 0}
                                 ], {
-                                    additionalAttributes: [{
-                                        name: 'data-title',
-                                        value: label
-                                    }],
+                                    additionalAttributes:
+                                    [
+                                        {
+                                            name: 'data-title',
+                                            value: label
+                                        },
+                                        {
+                                            name: 'data-input-type',
+                                            value: 'switch'
+                                        }
+                                    ],
                                     labelOptions: {
                                         smallText: labelSmallText
                                     }
