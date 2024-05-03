@@ -759,18 +759,22 @@ class ReferenceArticleRepository extends EntityRepository {
                 switch ($searchableField) {
                     case "supplierLabel":
                     case "supplierCode":
-                    case "referenceSupplierArticle":
                         $dbField = match ($searchableField) {
                             "supplierLabel" => "nom",
-                            "supplierCode" => "codeReference",
-                            default => "reference",
+                            default => "codeReference",
                         };
 
                         $queryBuilder
-                            ->innerJoin("referenceArticle.articlesFournisseur", "sub_supplierArticle_$key")
+                            ->innerJoin("ra.articlesFournisseur", "sub_supplierArticle_$key")
                             ->innerJoin("sub_supplierArticle_$key.fournisseur", "sub_supplier_$key");
 
                         $conditions[] = "sub_supplier_$key.$dbField LIKE :search_value";
+
+                        break;
+                    case "referenceSupplierArticle":
+                        $queryBuilder->innerJoin("ra.articlesFournisseur", "sub_supplierArticle_$key");
+
+                        $conditions[] = "sub_supplierArticle_$key.reference LIKE :search_value";
 
                         break;
                     case "managers":
@@ -780,7 +784,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
                         break;
                     case "buyer":
-                        $queryBuilder->innerJoin("referenceArticle.buyer", "search_buyer");
+                        $queryBuilder->innerJoin("ra.buyer", "search_buyer");
 
                         $conditions[] = "search_buyer.username LIKE :search_value";
 
