@@ -88,19 +88,11 @@ function initTableReception() {
                     }
                 },
                 columns,
-                drawConfig: {
-                    needsSearchOverride: true,
-                    needsColumnHide: true,
-                },
                 rowConfig: {
                     needsColor: true,
                     color: 'danger',
                     needsRowClickAction: true,
                     dataToCheck: 'emergency'
-                },
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'tableReception_id'
                 },
             };
 

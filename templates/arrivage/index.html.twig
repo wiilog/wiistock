@@ -106,9 +106,9 @@
 
     {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'arrivalsTable',
-        'route': 'save_column_visible_for_arrivage'
+        fields,
+        table: 'arrivalsTable',
+        page: 'arrival'
     } %}
 
     {% include 'utils/modal/empty-modal.html.twig' with {

@@ -438,10 +438,8 @@ class ArrivageController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
-     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     */
+    #[Route("/{arrival}/urgent", name: "patch_arrivage_urgent", options: ["expose" => true], methods: [self::PATCH], condition: "request.isXmlHttpRequest()")]
+    #[Entity("arrival", expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
                                        ArrivageService $arrivageDataService,
@@ -1490,29 +1488,6 @@ class ArrivageController extends AbstractController {
             $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
-    }
-
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService, TranslationService $translation): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('arrival', $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
     }
 
     /**

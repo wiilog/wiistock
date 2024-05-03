@@ -1,5 +1,6 @@
-{% set sensor = sensorWrapper.sensor %}
+{% import 'form.html.twig' as form %}
 
+{% set sensor = sensorWrapper.sensor %}
 <div class="form-group row">
     <label class="wii-field-name col-12">Code*</label>
     <div class="col-12">
@@ -25,9 +26,8 @@
     <div class="col-12">
         <input class="data needed form-control" name="name" title="Nom" value="{{ sensorWrapper.name }}"/>
     </div>
-</div>
-<div class="row form-group">
-    <label class="wii-field-name col-12">Gestionnaire</label>
+
+    <label class="wii-field-name col-12 mt-2">Gestionnaire</label>
     <div class="col-12">
         <select name="manager"
                 title="Gestionnaire"
@@ -36,6 +36,12 @@
                 <option value="{{ sensorWrapper.manager.id }}" selected>{{ sensorWrapper.manager.username }}</option>
             {% endif %}
         </select>
+    </div>
+    <div class="col-12 mt-2">
+        {{ form.input("inactivityAlertThreshold", "Seuil d'alerte d'inactivité (minutes)", false, sensorWrapper.inactivityAlertThreshold, {
+            min: 0,
+            type: "number"
+        }) }}
     </div>
 </div>
 {% if sensor.type.champsLibres.count > 0 %}

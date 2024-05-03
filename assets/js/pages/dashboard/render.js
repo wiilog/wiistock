@@ -1,9 +1,4 @@
-///
-/// Ce fichier étant utilisé sur les dashboards et donc possiblement
-/// sur MagicInfo, les opérateurs suivants ne peuvent pas être utilisés
-///  - ?? à remplacer par ||
-///  - ... dans les objets, à remplacer par un ajout "manuel
-///
+import {initDataTable} from "@app/datatable";
 
 let currentChartsFontSize;
 let fontSizeYAxes;

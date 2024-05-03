@@ -1,31 +1,49 @@
-import AJAX, {GET, POST} from "@app/ajax";
+import AJAX, {GET, POST, DELETE} from "@app/ajax";
 import Flash, {ERROR} from "@app/flash";
 import Routing from '@app/fos-routing';
+import Form from '@app/form';
+import Modal from "@app/modal";
+
+let kioskTable;
 
 $(function () {
-    $(`.kiosk-link`).on(`click`, function() {
-        const $settingsContent = $(this).closest('.settings-content');
-        if(Form.process($settingsContent)){
-            wrapLoadingOnActionButton($(this), () => {
-                return AJAX.route(GET, `generate_kiosk_token`)
-                    .json()
-                    .then(({token}) => window.location.href = Routing.generate(`kiosk_index`, {token}, true));
-            });
-        } else {
-            Flash.add(ERROR, 'Tous les paramètres obligatoires doivent être renseignés.')
-        }
-    });
+    // Initialize the table
+    kioskTable = initKiosksTable();
+    const $editKioskModal = $('#editKioskModal');
 
-    $(`.kiosk-unlink`).on(`click`, function () {
-        wrapLoadingOnActionButton($(this), () => {
-            return AJAX.route(POST, `kiosk_unlink`)
-                .json()
-                .then(() => $(this).prop(`disabled`, true));
+    // listenners
+    $(document)
+        .on('click', '.redirect-to-kiosk', function () {
+            redirectToKiosk($(this).data('id'));
+        })
+        .on('click', '.delete-kiosk', function () {
+            deleteKiosk($(this).data('id'));
+        })
+        .on('click', '.unlink-kiosk', function () {
+            unlinkKiosk($(this).data('id'), $(this));
         });
-    });
+
+    // Initialize modals
+    Form
+        .create($('#newKioskModal'), {clearOnOpen: true})
+        .submitTo(POST,
+            'kiosk_create',
+            {tables: [kioskTable]})
+
+    Form
+        .create($editKioskModal)
+        .onOpen(function (event) {
+            const kioskId = $(event.relatedTarget).data('id');
+            Modal.load('kiosk_edit_api', {id: kioskId}, $editKioskModal)
+        })
+        .submitTo(POST,
+            'kiosk_edit',
+            {
+                tables: [kioskTable],
+            })
 });
 
-export function initializeCollectRequestAndCreateRef($container){
+export function initializeCollectRequestAndCreateRef($container) {
     Select2Old.init($container.find('select[name=referenceType]'));
     Select2Old.init($container.find('select[name=collectType]'));
     Select2Old.init($container.find('select[name=location]'));
@@ -35,24 +53,84 @@ export function initializeCollectRequestAndCreateRef($container){
     Select2Old.init($container.find('select[name=fournisseurLabel]'));
     Select2Old.init($container.find('select[name=fournisseur]'));
 
-    if($('#settingReferenceType').val()){
+    if ($('#settingReferenceType').val()) {
         displayFreeFields($('#settingReferenceType').val());
     }
 
-    $('select[name=TYPE_REFERENCE_CREATE]').on('change', function (){
-        if($(this).val()){
+    $('select[name=TYPE_REFERENCE_CREATE]').on('change', function () {
+        if ($(this).val()) {
             displayFreeFields($(this).val());
         }
     })
 }
 
-function displayFreeFields(typeId){
+function displayFreeFields(typeId) {
     let $freeFieldSelect = $('select[name=FREE_FIELD_REFERENCE_CREATE]');
     $freeFieldSelect.empty();
     $.post(Routing.generate('free_fields_by_type', {type: typeId}), {}, function (data) {
         let freeFields = data.freeFields;
-        freeFields.forEach(function(element){
+        freeFields.forEach(function (element) {
             $freeFieldSelect.append(element);
         });
     }, 'json');
+}
+
+function initKiosksTable() {
+    return initDataTable(`tablekiosks`, {
+        processing: true,
+        serverSide: false,
+        paging: true,
+        order: [[`name`, `desc`]],
+        ajax: {
+            url: Routing.generate(`kiosk_api`, true),
+            type: POST
+        },
+        columns: [
+            {data: `actions`, title: ``, className: `noVis`, orderable: false},
+            {data: `pickingType`, title: `Type de collecte`},
+            {data: `name`, title: `Nom borne`},
+            {data: `pickingLocation`, title: `Point de collecte`},
+            {data: `requester`, title: `Demandeur`},
+            {data: `externalLink`, title: `Lien externe généré`, orderable: false},
+        ],
+        rowConfig: {
+            needsRowClickAction: false,
+        },
+        drawConfig: {
+            needsSearchOverride: true
+        }
+    });
+}
+
+function unlinkKiosk(id, $this) {
+    if (!id) {
+        Flash.add(ERROR, 'Cette borne est déjà déconnectée.');
+        return;
+    }
+    return AJAX.route(POST, `kiosk_unlink_token`, {kiosk: id}).json().then(() => {
+        $this.closest('.dropdown-item').remove();
+    })
+}
+
+function redirectToKiosk(id) {
+    return AJAX.route(GET, `kiosk_token_generate`, {kiosk: id})
+        .json()
+        .then(({token}) => window.location.href = Routing.generate(`kiosk_index`, {token}, true));
+}
+
+function deleteKiosk(id) {
+    Modal.confirm({
+        ajax: {
+            method: DELETE,
+            route: 'kiosk_delete',
+            params: {'kiosk': id},
+        },
+        message: 'Voulez-vous réellement supprimer cette borne',
+        title: 'Suppression de borne',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer'
+        },
+        table: kioskTable,
+    })
 }

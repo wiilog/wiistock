@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" role="dialog" id="modalNewSensorWrapper" data-modal-type="new">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -41,6 +43,13 @@
                         <select name="manager"
                                 class="w-100 form-control data ajax-autocomplete-user">
                         </select>
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        {{ form.input("inactivityAlertThreshold", "Seuil d'alerte d'inactivité (minutes)", false, null, {
+                            min: 0,
+                            type: "number"
+                        }) }}
                     </div>
                 </div>
                 {% if freeFieldsTypes is not empty %}

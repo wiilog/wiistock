@@ -1053,29 +1053,4 @@ class DemandeController extends AbstractController
                 ->toArray(),
         ]);
     }
-
-    #[Route("/visible-column-show", name: "save_visible_columns_for_delivery_request_show", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function saveVisibleColumnShow(Request                $request,
-                                          EntityManagerInterface $entityManager,
-                                          VisibleColumnService   $visibleColumnService): Response {
-
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-
-        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
-        $deliveryRequest = $deliveryRequestRepository->find($data['id']);
-
-        $deliveryRequest->setVisibleColumns($fields);
-
-        $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns(Demande::VISIBLE_COLUMNS_SHOW_FIELD, $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
-        ]);
-    }
 }

@@ -499,28 +499,6 @@ class HandlingController extends AbstractController {
         }
     }
 
-    #[Route("/colonne-visible", name: "save_column_visible_for_handling", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService,
-                                      TranslationService $translationService): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns("handling", $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            "success" => true,
-            "msg" => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
-    }
-
     #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
     public function show(Handling $handling, EntityManagerInterface $entityManager, UserService $userService): Response {

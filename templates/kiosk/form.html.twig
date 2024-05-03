@@ -3,6 +3,10 @@
 
 {% block title %} Borne | Formulaire {% endblock %}
 
+{% block kioskName %}
+    {{ kiosk.name }}
+{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('kiosk') }}
@@ -41,7 +45,7 @@
                             </label>
                             <label class="w-100 ml-3">
                                 Suiveur
-                                <select name="follower" class="w-100 data" data-s2="user">
+                                <select name="follower" class="w-100 data needed" data-s2="user">
                                     {% if reference.managers[1] is defined %}
                                         <option value="{{ reference.managers[1].id }}" selected>{{ reference.managers[1].username }}</option>
                                     {% endif %}
@@ -51,9 +55,9 @@
                     </div>
                     <div class="other-informations-container d-none">
                         <div class="d-flex justify-content-center">
-                            <label class="w-100 mr-3 free-field-label">
-                                {% if freeField %}
-                                    {{ freeField.label }}
+                            {% if freeField and freeField.displayedEdit%}
+                                <label class="w-100 mr-3 free-field-label">
+                                    {{ freeField.label }} {% if not freeField.requiredEdit %}<span class="wii-small-text">(Facultatif)</span>{% endif %}
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                                         freeFields: [freeField],
                                         freeFieldValues: reference.freeFields,
@@ -62,8 +66,8 @@
                                         actionType: 'edit',
                                         kiosk: true
                                     } %}
-                                {% endif %}
-                            </label>
+                                </label>
+                            {% endif %}
                             <input hidden name="free-field-id" value="{{ freeField ? freeField.id }}"/>
                             <label class="w-100 mr-3">
                                 Commentaire <span class="wii-small-text">(Facultatif)</span>
@@ -81,7 +85,7 @@
                                     <div class="field-name my-4">
                                         Référence : {{ reference.reference }}
                                     </div>
-                                    <img src="{{ setting_value('FILE_LABEL_EXAMPLE_LOGO') ? asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="100%" class="bordered-image">
+                                    <img src="{{ setting_value('FILE_LABEL_EXAMPLE_LOGO') ? asset(setting_value('FILE_LABEL_EXAMPLE_LOGO')) }}" alt="" width="60%" class="bordered-image">
                                     <div class="field-small ">
                                         Exemple d’étiquette à flasher
                                     </div>
@@ -115,7 +119,7 @@
                                 <img src="{{ asset('svg/quantity.svg') }}" alt="Icône quantité" width="35px">
                                 <label class="box-item ml-3">
                                     <span class="field-name">Quantité</span>
-                                    <span class="field-text">1</span>
+                                    <span class="field-text">{{ kiosk.quantityToPick }}</span>
                                 </label>
                             </div>
                             <div class="col-6 d-flex">
@@ -131,7 +135,7 @@
                                 <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="35px">
                                 <label class="box-item ml-3">
                                     <span class="field-name">Emplacement</span>
-                                    <span class="field-text">{{ setting_value('COLLECT_REQUEST_POINT_COLLECT', 'App\\Entity\\Emplacement').label }}</span>
+                                    <span class="field-text">{{ kiosk.pickingLocation }}</span>
                                 </label>
                             </div>
                             {% if freeField %}

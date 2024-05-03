@@ -304,9 +304,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::STATUT_REFERENCE_CREATE => [
                 'default' => "actif"
             ],
-            Setting::COLLECT_REQUEST_DESTINATION => [
-                'default' => 'stock'
-            ],
             Setting::WELCOME_MESSAGE => [
                 'default' => 'Veuillez scanner l’étiquette pour faire une entrée de stock.'
             ],

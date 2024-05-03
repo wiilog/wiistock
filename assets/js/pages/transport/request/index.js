@@ -12,6 +12,7 @@ import {
     transportPDF,
 } from "@app/pages/transport/request/common";
 import {initializeFilters} from "@app/pages/transport/common";
+import {initDataTable} from "@app/datatable";
 
 $(function() {
     initializeFilters(PAGE_TRANSPORT_REQUESTS)

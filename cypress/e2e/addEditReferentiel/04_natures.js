@@ -1,0 +1,83 @@
+import routes, {interceptRoute} from "../../support/utils/routes";
+const user = Cypress.config('user');
+
+describe('Add and edit components in Referentiel > Nature', () => {
+    beforeEach(() => {
+        interceptRoute(routes.nature_api);
+        interceptRoute(routes.nature_new);
+        interceptRoute(routes.nature_edit);
+
+        cy.login(user);
+        cy.visit('/');
+        cy.navigateInNavMenu('referentiel', 'nature_index');
+    })
+
+    it('should add a new nature', () => {
+
+        const newNature = {
+            label: 'OUTILS',
+            code: 'OUTILS',
+            quantity: '1',
+        }
+        const propertiesMap = {
+            'Libellé': 'label',
+            'Code': 'code',
+            "Quantité par défaut de l'arrivage": 'quantity',
+        }
+        const selectorModal = '#modalNewNature';
+
+        cy.openModal(selectorModal, 'label')
+
+        cy.get(`${selectorModal}`).should('be.visible', {timeout: 8000}).then(() => {
+
+            // edit valuesz
+            const languageInput = "Français"
+            cy.get(`#modalNewNature [data-cypress=${languageInput}]`).type(newNature.label);
+
+            cy.typeInModalInputs(selectorModal, newNature, ['label']);
+
+            // submit form & wait reponse
+            cy.closeAndVerifyModal(selectorModal, 'submitNewNature', 'nature_new');
+        })
+        cy.wait('@nature_api');
+
+        // check datatable after edit
+        cy.checkDataInDatatable(newNature, 'label', 'tableNatures', propertiesMap);
+    })
+
+    it('should edit a nature', () => {
+
+        const natureToEdit = ['OUTILS']
+        const newNatures = [{
+            label: 'COLIS',
+            code: 'COLIS',
+            quantity: '10',
+        }]
+        const propertiesMap = {
+            'Libellé': 'label',
+            'Code': 'code',
+            "Quantité par défaut de l'arrivage": 'quantity',
+        }
+        const selectorModal = '#modalEditNature';
+
+        cy.wait('@nature_api');
+
+        natureToEdit.forEach((natureToEditName, index) => {
+            cy.clickOnRowInDatatable('tableNatures', natureToEditName);
+
+            cy.get(selectorModal).should('be.visible');
+
+            // edit values
+            const languageInput = "Français"
+            cy.get(`#modalEditNature [data-cypress=${languageInput}]`).click().clear().type(newNatures[index].label);
+
+            cy.typeInModalInputs(selectorModal, newNatures[index], ['label']);
+
+            // submit form
+            cy.closeAndVerifyModal(selectorModal, 'submitEditNature', 'nature_edit');
+            cy.wait('@nature_api');
+
+            cy.checkDataInDatatable(newNatures[index], 'label', 'tableNatures', propertiesMap)
+        })
+    })
+})

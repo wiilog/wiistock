@@ -4,6 +4,7 @@ import Flash from '@app/ajax';
 import Modal from '@app/modal';
 import moment from 'moment';
 import Form from '@app/form';
+import {initDataTable, initSearchDate} from "@app/datatable";
 
 let tableMvt;
 
@@ -115,17 +116,10 @@ function initTrackingMovementTable(columns) {
                 article: $(`#filterArticle`).val(),
             }
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         rowConfig: {
             needsRowClickAction: true
         },
         columns,
-        hideColumnConfig: {
-            columns,
-            tableFilter: 'tableMvts'
-        }
     };
 
     tableMvt = initDataTable('tableMvts', trackingMovementTableConfig);

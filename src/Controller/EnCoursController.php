@@ -174,27 +174,4 @@ class EnCoursController extends AbstractController
             'hasDelayError' => $delayError
         ]);
     }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_encours", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      TranslationService     $translationService,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('onGoing', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
-        ]);
-    }
 }

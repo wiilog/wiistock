@@ -18,15 +18,15 @@
 
     {% if (iconPlaceholder is defined and iconPlaceholder)
         or (icon is defined and icon is not empty)  %}
-        <span class="icon-container user-select-none">
+        <span data-cy-container="{{ id }}" class="icon-container user-select-none">
             {% if icon is defined and icon is not empty %}
-                <span class="wii-icon wii-icon-{{ icon }}"></span>
+                <span data-cy-icon="{{ id }}" class="wii-icon wii-icon-{{ icon }}"></span>
             {% endif %}
         </span>
     {% endif %}
 
     {% if label is iterable %}
-        <span class="label user-select-none" title="{{ label | last }}">{{ trans(label[0] ?? null,label[1] ?? null, label[2] ?? null, label[3] ?? null) }}</span>
+        <span  class="label user-select-none" title="{{ label | last }}">{{ trans(label[0] ?? null,label[1] ?? null, label[2] ?? null, label[3] ?? null) }}</span>
     {% else %}
         <span class="label user-select-none">{{ label }}</span>
     {% endif %}

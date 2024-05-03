@@ -25,6 +25,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Home",
                         ],
                         [
+                            "fr" => "Wiilog",
+                            "en" => "Wiilog",
+                        ],
+                        [
                             "fr" => "Détails",
                             "en" => "Details",
                         ],

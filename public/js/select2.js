@@ -187,7 +187,7 @@ class Select2Old {
     }
 
     static dispute(select, placeholder = '') {
-        this.init(select, placeholder, 1, {route: 'get_dispute_number'});
+        this.init(select, placeholder, 1, {route: 'dispute_get_number'});
     }
 
     static collect(select) {
