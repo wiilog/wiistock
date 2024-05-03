@@ -67,6 +67,9 @@ jobs:
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build -d
 
+            -   name: Check logs
+                run: docker container logs wiistock-cypress_php
+
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
