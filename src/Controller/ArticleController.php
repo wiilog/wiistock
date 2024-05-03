@@ -168,7 +168,7 @@ class ArticleController extends AbstractController
         );
     }
 
-    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function show(Request $request,
                             ArticleDataService $articleDataService,
                             EntityManagerInterface $entityManager): JsonResponse
