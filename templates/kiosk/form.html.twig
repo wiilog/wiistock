@@ -15,7 +15,7 @@
 {% block page_content %}
     <div class="main-page-container">
         <div>
-            <div class="timeline-container py-2">
+            <div class="timeline-container">
                 <span class="{{ not inStock  and reference.id ? 'past' : (notExistRefresh ? 'past': 'current') }} wii-field-text">Référence</span>
                 <span class="{{ not inStock  and reference.id ? 'past' : (notExistRefresh ? 'current' : 'future') }} wii-field-text">Demandeur et suiveur</span>
                 <span class="{{ not inStock  and reference.id ? 'past' : 'future' }} wii-field-text">Autres informations</span>
