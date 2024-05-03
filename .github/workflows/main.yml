@@ -1,9 +1,13 @@
 name: run-cypress
 
 on:
-   pull_request:
+#    pull_request:
+#        branches:
+#            - "*"
+    push:
         branches:
-             - "*"
+            - "WIIS-11016-cypress"
+
 
 concurrency:
     group: ${{ github.head_ref }}
@@ -21,7 +25,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Robin Personal Access Token available until Jan 1, 2025
-                    ref: main
+                    ref: dev
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
@@ -60,19 +64,21 @@ jobs:
                 run: chmod -R 777 projects/wiistock/
 
             -   name: Build & run containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build -d
 
             -   name: Give right to www-data user
-                run: docker exec wiistock-cypress_app chown -R www-data:www-data ./
+                run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
+                run: docker cp projects/wiistock/. wiistock-cypress_php:/var/www/
+
+#           TODO : Run install.sh
 
             -   name: Install composer dependencies in app
-                run: docker exec wiistock-cypress_app composer install
+                run: docker exec wiistock-cypress_php composer install
 
             -   name: Install yarn dependencies in app
-                run: docker exec wiistock-cypress_app yarn
+                run: docker exec wiistock-cypress_php yarn
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
