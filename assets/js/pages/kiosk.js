@@ -168,10 +168,18 @@ $(function () {
                                 let freeFieldLabelValue = $freeFieldInput.val()
 
                                 // in case the free field have data-input-type = switch, show 'oui' or 'non' instead of the value of the input
-                                if($freeFieldLabel.find('div[data-input-type="switch"]').length > 0){
-                                    // in case of switch $freeFieldInput contains 2 inputs
-                                    // so if the first one is checked, the value is 'Oui' else it's 'Non'
-                                    freeFieldLabelValue = $freeFieldInput[0].checked ? 'Oui' : 'Non';
+                                if($freeFieldLabel.find('[type="radio"]').length > 0){
+                                    /* In case of switch $freeFieldInput contains 2 inputs
+                                     so if the first one is checked, the value is 'Oui' else it's 'Non'
+                                     check if at least one of the input is checked because it's not necessary a required field
+                                    */
+                                    if($freeFieldInput[0].checked || $freeFieldInput[1].checked){
+                                        freeFieldLabelValue = $freeFieldInput[0].checked ? 'Oui' : 'Non';
+                                    }
+                                    // default
+                                    else {
+                                        freeFieldLabelValue = '-';
+                                    }
                                 }
 
                                 // show value depend on the type of the input (params selected)
