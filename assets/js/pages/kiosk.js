@@ -93,7 +93,7 @@ $(function () {
             }
         });
 
-        if($current.hasClass('reference-container')){
+        if($current.hasClass('reference-container') && $current.find('.invalid').length === 0){
             const {token, scannedreference} = GetRequestQuery();
             $modalWaiting.modal('show');
             AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference: $referenceRefInput.val()})

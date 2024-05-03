@@ -341,7 +341,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user): array
     {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
