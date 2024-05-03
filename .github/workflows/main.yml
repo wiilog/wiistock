@@ -86,13 +86,18 @@ jobs:
 
             -   name: Create database
                 run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
-            #    run:  docker exec wiistock-cypress_php php bin/console doctrine:schema:update --force
+
+            -   name: Create routing
+                run: docker exec wiistock-cypress_php php bin/console fos:js-routing:dump
+
+            -   name: Convert enums
+                run: php bin/console app:update:fixed-fields
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_php yarn
 
             -   name: Build assets in app
-                run: docker exec wiistock-cypress_php yarn build
+                run: docker exec wiistock-cypress_php yarn build:only:production
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
