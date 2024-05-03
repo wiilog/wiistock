@@ -85,7 +85,9 @@ jobs:
                 run: docker exec wiistock-cypress_php composer install
 
             -   name: Create database
-                run:  docker exec wiistock-cypress_php php bin/console doctrine:schema:update --force
+            #    run:  docker exec wiistock-cypress_php php bin/console doctrine:schema:update --force
+                run: docker exec mysql mysql -u root -proot -e "CREATE DATABASE wiistock;"
+
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_php yarn
