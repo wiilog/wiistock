@@ -41,6 +41,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock
 #                    ref: ${{ github.event.pull_request.head.sha }}
+                    ref: WIIS-11016-cypress
                     path: projects/wiistock
 
             -   name: Login to docker hub
