@@ -98,17 +98,10 @@ function initPageDatatable() {
                         'filterReception': $('#receptionFilter').val()
                     },
                 },
-                drawConfig: {
-                    needsSearchOverride: true,
-                },
                 rowConfig: {
                     needsRowClickAction: true,
                 },
                 columns,
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'table_demande'
-                },
                 columnDefs: [
                     {
                         type: "customDate",

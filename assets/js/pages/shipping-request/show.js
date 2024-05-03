@@ -5,6 +5,7 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 import Flash, {ERROR} from "@app/flash";
 import {wrapLoadingOnActionButton} from "@app/loading";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;

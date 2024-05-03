@@ -9,6 +9,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Helper\AdvancedSearchHelper;
 use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,9 +37,10 @@ class ArticleFournisseurController extends AbstractController {
         $user = $this->getUser();
 
         $articlesFournisseurs = $articleFournisseurRepository->findByParams($request->request, $user);
+        $searchParts = $articlesFournisseurs["searchParts"];
         $rows = [];
         foreach ($articlesFournisseurs['data'] as $articleFournisseur) {
-            $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
+            $rows[] = $this->dataRowArticleFournisseur($articleFournisseur, $searchParts);
         }
 
         $data['data'] = $rows;
@@ -159,7 +161,7 @@ class ArticleFournisseurController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    public function dataRowArticleFournisseur(ArticleFournisseur $articleFournisseur): array {
+    public function dataRowArticleFournisseur(ArticleFournisseur $articleFournisseur, array $searchParts): array {
         $articleFournisseurId = $articleFournisseur->getId();
 
         $url['edit'] = $this->generateUrl('article_fournisseur_edit', ['id' => $articleFournisseurId]);
@@ -175,7 +177,8 @@ class ArticleFournisseurController extends AbstractController {
                 'id' => $articleFournisseurId
             ]),
         ];
-        return $row;
+
+        return AdvancedSearchHelper::highlight($row, $searchParts);
     }
 
     #[Route("/autocomplete", name: "get_article_fournisseur_autocomplete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]

@@ -363,6 +363,6 @@ class ProductionRequest extends StatusHistoryContainer
             FixedFieldEnum::productArticleCode->name => $this->getProductArticleCode(),
             FixedFieldEnum::quantity->name => $this->getQuantity(),
             FixedFieldEnum::lineCount->name => $this->getLineCount(),
-        ];
+        ] + $this->getFreeFields();
     }
 }

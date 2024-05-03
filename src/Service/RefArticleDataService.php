@@ -34,6 +34,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
+use App\Helper\AdvancedSearchHelper;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -42,6 +43,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -182,9 +184,12 @@ class RefArticleDataService
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $currentUser);
         $refs = $queryResult['data'];
+        $searchParts = $queryResult["searchParts"];
+        $searchableFields = $queryResult["searchableFields"];
+
         $rows = [];
         foreach ($refs as $refArticle) {
-            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle);
+            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields);
         }
         return [
             'data' => $rows,
@@ -560,7 +565,7 @@ class RefArticleDataService
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle): array
+    public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = []): array
     {
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
@@ -635,6 +640,7 @@ class RefArticleDataService
                 "reference_id" => $refArticle->getId(),
                 "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
+                "hasArticles" => !empty($refArticle->getAssociatedArticles()),
             ]),
             "colorClass" => (
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
@@ -648,7 +654,7 @@ class RefArticleDataService
             $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
-        return $row;
+        return AdvancedSearchHelper::highlight($row, $searchParts, $searchableFields);
     }
 
     public function addReferenceToRequest(array                  $data,

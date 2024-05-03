@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class VisibleColumnService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
@@ -29,18 +30,18 @@ class VisibleColumnService {
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
                                    array $columnsVisible = [],
-                                   bool  $forExport = false): array
-    {
+                                   bool  $forExport = false): array {
         $user = $this->userService->getUser();
         $defaultLanguage = $this->languageService->getDefaultLanguage();
         $userLanguage = $user?->getLanguage() ?: $defaultLanguage;
-        return array_merge(
-            array_map(
-                function (array $column) use ($columnsVisible, $forExport) {
-                    $alwaysVisible = $column['alwaysVisible'] ?? false;
+
+        return Stream::from(
+            Stream::from($fields)
+                ->map(static function(array $column) use ($columnsVisible, $forExport) {
+                    $alwaysVisible = $column['alwaysVisible'] ?? empty($columnsVisible);
                     $visible = isset($column['forceHidden'])
-                            ? false
-                            : ($column['visible'] ?? ($forExport || ($alwaysVisible || in_array($column['name'], $columnsVisible))));
+                        ? false
+                        : ($column['visible'] ?? ($forExport || ($alwaysVisible || in_array($column['name'], $columnsVisible))));
                     $translated = $column['translated'] ?? false;
                     $title = $column['title'] ?? '';
                     return [
@@ -58,11 +59,9 @@ class VisibleColumnService {
                         "searchable" => $column['searchable'] ?? null,
                         "required" => $column['required'] ?? false,
                     ];
-                },
-                $fields
-            ),
-            array_map(
-                function (FreeField $freeField) use ($columnsVisible, $userLanguage, $defaultLanguage, $forExport) {
+                }),
+            Stream::from($freeFields)
+                ->map(function (FreeField $freeField) use ($columnsVisible, $userLanguage, $defaultLanguage, $forExport) {
                     $freeFieldName = $this->getFreeFieldName($freeField->getId());
                     $alwaysVisible = $column['alwaysVisible'] ?? null;
                     $visible = $forExport || ($alwaysVisible || in_array($freeFieldName, $columnsVisible));
@@ -77,10 +76,8 @@ class VisibleColumnService {
                         "searchable" => true,
                         "type" => $freeField->getTypage(),
                     ];
-                },
-                $freeFields
-            )
-        );
+                })
+        )->toArray();
     }
 
     public function getFreeFieldName($id): string {

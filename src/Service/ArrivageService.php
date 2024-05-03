@@ -331,9 +331,11 @@ class ArrivageService {
                                              array $urgences = []): array
     {
         $isArrivalUrgent = count($urgences);
+        $emergencyOrderNumber = null;
+        $arrivalOrderNumbersStr = null;
 
         if ($askQuestion && $isArrivalUrgent) {
-            $numeroCommande = $urgences[0]->getCommande();
+            $emergencyOrderNumber = $urgences[0]->getCommande();
             $postNb = $urgences[0]->getPostNb();
             $internalArticleCode = $urgences[0]->getInternalArticleCode()
                 ? $this->translation->translate('Traçabilité', 'Urgences', 'Code article interne', false) . ' : ' . $urgences[0]->getInternalArticleCode() . '</br>'
@@ -342,23 +344,28 @@ class ArrivageService {
                 ? $this->translation->translate('Traçabilité', 'Urgences', 'Code article fournisseur', false) . " : " . $urgences[0]->getSupplierArticleCode() . '</br>'
                 : '';
 
-            $posts = array_map(
-                function (Urgence $urgence) {
-                    return $urgence->getPostNb();
-                },
-                $urgences
-            );
+            $posts = Stream::from($urgences)
+                ->map(static fn(Urgence $urgence) => $urgence->getPostNb())
+                ->toArray();
 
             $nbPosts = count($posts);
 
+            $arrivalOrderNumbersStr = Stream::from($arrivage->getNumeroCommandeList())
+                ->join(',');
+
             if ($nbPosts == 0) {
-                $msgSedUrgent = "L'arrivage est-il urgent sur la commande $numeroCommande ?";
+                $emergencyMessage = $emergencyOrderNumber
+                    ? "L'arrivage est-il urgent sur la commande $emergencyOrderNumber ?"
+                    : "L'arrivage est-il urgent sur la ou les commandes $arrivalOrderNumbersStr ?";
             }
             else {
-                $numeroCommande = join(',',$arrivage->getNumeroCommandeList());
+                $orderLabel = $emergencyOrderNumber
+                    ? "la commande <span class=\"bold\">$emergencyOrderNumber</span>"
+                    : "la ou les commandes <span class=\"bold\">$arrivalOrderNumbersStr</span>";
+
                 if ($nbPosts == 1) {
-                    $msgSedUrgent = "
-                        Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>"
+                    $emergencyMessage = "
+                        Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur {$orderLabel}.<br/>"
                         . $internalArticleCode
                         . $supplierArticleCode
 					    . "L'avez-vous reçu dans cet arrivage ?
@@ -366,8 +373,8 @@ class ArrivageService {
                 }
                 else {
                     $postsStr = implode(', ', $posts);
-                    $msgSedUrgent = "
-                        Les postes <span class=\"bold\">$postsStr</span> sont urgents sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>"
+                    $emergencyMessage = "
+                        Les postes <span class=\"bold\">$postsStr</span> sont urgents sur $orderLabel.<br/>"
                         . $internalArticleCode
                         . $supplierArticleCode
 					    . "Les avez-vous reçus dans cet arrivage ?
@@ -375,10 +382,7 @@ class ArrivageService {
                 }
             }
         }
-        else {
-            $numeroCommande = null;
-            $postNb = null;
-        }
+
         $settingRepository = $this->entityManager->getRepository(Setting::class);
 
         return [
@@ -386,15 +390,17 @@ class ArrivageService {
             'message' => ($isArrivalUrgent
                 ? (!$askQuestion
                     ? 'Arrivage URGENT enregistré avec succès.'
-                    : ($msgSedUrgent ?? ''))
+                    : ($emergencyMessage ?? ''))
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalKey' => 'emergency',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
             'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
-            'numeroCommande' => $numeroCommande,
-            'postNb' => $postNb,
+            'numeroCommande' => $emergencyOrderNumber
+                ?: $arrivalOrderNumbersStr
+                ?: null,
+            'postNb' => $postNb ?? null,
             'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
         ];
     }

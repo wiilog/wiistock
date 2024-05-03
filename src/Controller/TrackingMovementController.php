@@ -113,28 +113,6 @@ class TrackingMovementController extends AbstractController
         return $this->json(array_values($columns));
     }
 
-    #[Route("/colonne-visible", name: "save_column_visible_for_tracking_movement", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
-
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('trackingMovement', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
-        ]);
-    }
-
     #[Route("/creer", name: "mvt_traca_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request,

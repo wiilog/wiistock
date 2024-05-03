@@ -118,8 +118,6 @@ class OrdreCollecteService
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
-		$settingRepository = $em->getRepository(Setting::class);
-        $userRepository = $em->getRepository(Utilisateur::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
         $referenceArticleRepository = $em->getRepository(ReferenceArticle::class);
@@ -295,12 +293,8 @@ class OrdreCollecteService
 		$partialCollect = !empty($rowsToRemove);
 
         if($demandeCollecte->getDemandeur()){
-            $kioskUser = $demandeCollecte->getDemandeur()?->isKioskUser();
-            $to = $kioskUser
-                ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
-                : $demandeCollecte->getDemandeur();
-
-            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $to = $demandeCollecte->getKiosk()?->getRequester() ?: $demandeCollecte->getDemandeur();
+            if( $demandeCollecte->getKiosk() && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
                 $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
                     ->map(fn(Utilisateur $manager) => $manager->getEmail())
                     ->toArray();
@@ -441,22 +435,23 @@ class OrdreCollecteService
     }
 
     public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
-        $demande = $ordreCollecte->getDemandeCollecte();
-        $requester = FormatHelper::collectRequester($demande);
-        $pointCollecte = $demande ? $demande->getPointCollecte() : null;
+        $demandeCollecte = $ordreCollecte->getDemandeCollecte();
+        $requester = $this->formatService->collectRequester($demandeCollecte);
+        $pointCollecte = $demandeCollecte?->getPointCollecte();
         $dateCreation = $ordreCollecte->getDate();
         $dateCollecte = $ordreCollecte->getTreatingDate();
-        $comment = $demande->getCommentaire();
+        $comment = $demandeCollecte->getCommentaire();
 
         return [
             [ 'label' => 'Numéro', 'value' => $ordreCollecte->getNumero() ],
             [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($this->formatService->status($ordreCollecte->getStatut())) : '' ],
-            [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
+            [ 'label' => 'Opérateur', 'value' => $this->formatService->user($ordreCollecte->getUtilisateur()) ],
             [ 'label' => 'Demandeur', 'value' => $requester],
-            [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
-            [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
-            [ 'label' => 'Date de création', 'value' => $dateCreation ? $dateCreation->format('d/m/Y H:i') : '' ],
-            [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
+            [ 'label' => 'Destination', 'value' => $demandeCollecte->isStock() ? 'Mise en stock' : 'Destruction' ],
+            [ 'label' => 'Point de collecte', 'value' => $this->formatService->location($pointCollecte) ],
+            [ 'label' => 'Date de création', 'value' => $this->formatService->datetime($dateCreation) ],
+            [ 'label' => 'Date de collecte', 'value' => $this->formatService->datetime($dateCollecte) ],
+            [ 'label' => 'Provenance', 'value' => $demandeCollecte->getKiosk()?->getName() ?: '' ],
             [
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',

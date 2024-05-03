@@ -63,10 +63,16 @@ class ArticleController extends AbstractController
 
     #[Route("/", name: "article_index", methods: [self::GET])]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
-    public function index(EntityManagerInterface $entityManager,
+    public function index(Request                $request,
+                          EntityManagerInterface $entityManager,
                           ArticleDataService     $articleDataService,
                           TagTemplateService     $tagTemplateService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        $referenceFilter = $request->query->getInt("referenceFilter");
+        $reference = $referenceFilter
+            ? $entityManager->find(ReferenceArticle::class, $referenceFilter)
+            : null;
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -76,7 +82,8 @@ class ArticleController extends AbstractController
             "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
             "searches" => $currentUser->getRechercheForArticle(),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
-            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
+            "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue()),
+            "referenceFilter" => $reference?->getReference(),
         ]);
     }
 
@@ -161,7 +168,7 @@ class ArticleController extends AbstractController
         );
     }
 
-    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function show(Request $request,
                             ArticleDataService $articleDataService,
                             EntityManagerInterface $entityManager): JsonResponse
@@ -581,26 +588,6 @@ class ArticleController extends AbstractController
             return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_article", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        /** @var $user Utilisateur */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('article', $fields, $user);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
-        ]);
     }
 
     #[Route("/get-article-fournisseur", name: "demande_reference_by_fournisseur", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]

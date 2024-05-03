@@ -229,7 +229,7 @@ class EnCoursService
             $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
-            dump($oldestDrop);
+
             $fromColumnData = $this->trackingMovementService->getFromColumnData([
                 "entity" => $oldestDrop['entity'],
                 "entityId" => $oldestDrop['entityId'],
