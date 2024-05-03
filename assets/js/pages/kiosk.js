@@ -169,15 +169,14 @@ $(function () {
 
                                 // in case the free field have data-input-type = switch, show 'oui' or 'non' instead of the value of the input
                                 if($freeFieldLabel.find('[type="radio"]').length > 0){
-                                    /* In case of switch $freeFieldInput contains 2 inputs
-                                     so if the first one is checked, the value is 'Oui' else it's 'Non'
-                                     check if at least one of the input is checked because it's not necessary a required field
+                                    /*
+                                    In case of switch $freeFieldInput contains 2 inputs
+                                    checkedId is the id of the input checked
+                                    freeFieldLabelValue is the text of the label corresponding to the checked input
                                     */
-                                    if($freeFieldInput[0].checked || $freeFieldInput[1].checked){
-                                        freeFieldLabelValue = $freeFieldInput[0].checked ? 'Oui' : 'Non';
-                                    }
-                                    // default
-                                    else {
+                                    const checkedId = $freeFieldInput.filter(':checked').attr('id');
+                                    freeFieldLabelValue = $freeFieldLabel.find(`label[for="${checkedId}"]`).text();
+                                    if(!checkedId){
                                         freeFieldLabelValue = '-';
                                     }
                                 }
@@ -188,7 +187,7 @@ $(function () {
                                     || $freeFieldLabel.find('textarea').val()
                                     || $freeFieldLabel.find('select').find('option:selected').text());
 
-                                $('.reference-commentary').html($('input[name=reference-comment]').val());
+                                $('.reference-commentary').html($('input[name=reference-comment]').val() || '-');
                             }
                             else {
                                 $modalArticleIsNotValid.modal('show');
