@@ -66,4 +66,14 @@
                 }) }}
         </div>
     </div>
+
+    <div class="row">
+        <div class="form-group w-fit-content col-6">
+            {% set settingShowLoginLogo = setting_value('SHOW_LOGIN_LOGO') %}
+            {{ form.switch(setting('SHOW_LOGIN_LOGO'), "Afficher le logo à la connexion sur l'application", false, [
+                {label: 'Oui', value: true, checked: settingShowLoginLogo},
+                {label: 'Non', value: false, checked: not settingShowLoginLogo},
+            ]) }}
+        </div>
+    </div>
 </div>

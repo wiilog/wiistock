@@ -189,6 +189,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FONT_FAMILY => [
                 'default' => Setting::DEFAULT_FONT_FAMILY
             ],
+            Setting::SHOW_LOGIN_LOGO => [
+              'default' => true,
+            ],
             Setting::FILE_OVERCONSUMPTION_LOGO => [],
             Setting::FILE_WEBSITE_LOGO => [
                 'default' => Setting::DEFAULT_WEBSITE_LOGO_VALUE
