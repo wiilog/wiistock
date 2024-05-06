@@ -426,20 +426,6 @@ class DemandeCollecteService
             $freeFieldData[$freeFieldId] = $freeFieldValue;
         }
 
-        $data = [
-            'numero' => $collect->getNumero(),
-            'creationDate' => $collect->getDate() ? $collect->getDate()->format('d/m/Y h:i') : '',
-            'validationDate' => $collect->getValidationDate() ? $collect->getValidationDate()->format('d/m/Y h:i') : '',
-            'type' => $collect->getType() ? $collect->getType()->getLabel() : '',
-            'statut' => $collect->getStatut() ? $this->formatService->status($collect->getStatut()) : '',
-            'subject' => $collect->getObjet(),
-            'destination' => $collect->isStock() ? "Mise en stock" : "Destruction",
-            'requester' => FormatHelper::collectRequester($collect),
-            'gatheringPoint' => $collect->getPointCollecte() ? $collect->getPointCollecte()->getLabel() : '',
-            'comment' => $collect->getCommentaire() ? strip_tags($collect->getCommentaire()) : '',
-            'freeFields' => $freeFieldData,
-        ];
-
         return [
             'numero' => $collect->getNumero(),
             'creationDate' => $collect->getDate() ? $collect->getDate()->format('d/m/Y h:i') : '',
