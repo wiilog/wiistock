@@ -105,7 +105,7 @@ jobs:
                   name: dev-log-symfony
                   path: dev_log
 
-            -   name: Deploy
+            -   name: Deploy Cypress HTML report to GitHub Pages
                 uses: JamesIves/github-pages-deploy-action@v4
                 with:
-                    folder: cypress/reports/html # The folder the action should deploy.
+                    folder: cypress/reports/html/ # The folder the action should deploy.
