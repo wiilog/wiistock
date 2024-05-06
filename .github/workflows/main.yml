@@ -105,9 +105,9 @@ jobs:
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
                 run: |
-                    docker cp wiistock_cypress:/project/cypress/logs/ cypress_logs
-                    docker cp wiistock_cypress:/project/cypress/videos/ cypress_videos
-                    docker cp wiistock_cypress:/project/var/log/dev.log dev_log
+                    docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
+                    docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
+                    docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
                 if: failure()
