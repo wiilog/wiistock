@@ -11,7 +11,10 @@
 {% set maxLengthUserLabel = 20 %}
 
 {% set currentPath = app.request.pathinfo %}
-{% set isLoginPageAndShowLogo = (currentPath != path('login') or currentPath == path('login')) and setting_value('SHOW_LOGIN_LOGO') %}
+{% set isLoginPageAndShowLogo = (
+    currentPath != path('login')
+    or (currentPath == path('login') and setting_value('SHOW_LOGIN_LOGO'))
+) %}
 
 <div class="main-header">
     <div class="px-lg-3 w-100">
