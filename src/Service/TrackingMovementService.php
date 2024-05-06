@@ -222,7 +222,6 @@ class TrackingMovementService extends AbstractController
 
     public function dataRowMouvement(TrackingMovement $movement): array {
         $fromColumnData = $this->getFromColumnData($movement);
-        dump($movement->getPackArticle()?->getLabel());
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
                 $this->entityManager,

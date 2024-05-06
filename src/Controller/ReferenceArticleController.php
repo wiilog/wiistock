@@ -122,9 +122,7 @@ class ReferenceArticleController extends AbstractController
         return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
     }
 
-    /**
-     * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function new(Request $request,
                         UserService $userService,
                         FreeFieldService $champLibreService,
@@ -143,6 +141,7 @@ class ReferenceArticleController extends AbstractController
         if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
+            $now = new DateTime('now');
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -210,7 +209,7 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'))
+                ->setCreatedAt($now)
                 ->setNdpCode($data['ndpCode'] ?? null)
                 ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setOnuCode($data['onuCode'] ?? null)
@@ -331,19 +330,22 @@ class ReferenceArticleController extends AbstractController
                 );
                 $mouvementStockService->finishStockMovement(
                     $mvtStock,
-                    new DateTime('now'),
+                    $now,
                     $emplacement
                 );
                 $traceMovement = $trackingMovementService->createTrackingMovement(
-                    $refArticle->getReference(),
+                    $refArticle->getTrackingPack() ?: $refArticle->getBarCode(),
                     $refArticle->getEmplacement(),
-                    $this->getUser(),
-                    new DateTime('now'),
+                    $loggedUser,
+                    $now,
                     false,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
-                    ['mouvementStock' => $mvtStock,
-                        "quantity" => $refArticle->getQuantiteStock()]
+                    [   "mouvementStock" => $mvtStock,
+                        "quantity" => $refArticle->getQuantiteStock(),
+                        "entityManager" => $entityManager,
+                        "refOrArticle" => $refArticle,
+                    ]
                 );
                 $entityManager->persist($mvtStock);
                 $entityManager->persist($traceMovement);
