@@ -44,6 +44,9 @@ $(function() {
         .on('change', '[name="chosen-art-barcode"]', (event) => {
             showFieldsAndFillOnArticleChange($(event.target));
         })
+        .onOpen(() => {
+            resetNewModal($modalNewMvtStock);
+        });
 
     initDateTimePicker();
     Select2Old.init($('#emplacement'), 'Emplacements');
@@ -149,7 +152,7 @@ function resetNewModal($modal) {
     const $typeMvt = $modal.find('[name="chosen-type-mvt"]');
     $modal.find('.is-hidden-by-ref').addClass('d-none');
     $modal.find('.is-hidden-by-type').addClass('d-none');
-    $('[name="chosen-art-barcode"]').parent().parent().addClass('d-none');
+    $modal.find('.chosen-art-barcode').parent().parent().addClass('d-none');
     $typeMvt.removeClass('needed');
     $modal.find('.select2-autocomplete-ref-articles').empty();
     $modal.find('.select2-autocomplete-articles').empty();
