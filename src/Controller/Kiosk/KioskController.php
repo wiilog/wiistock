@@ -55,10 +55,6 @@ class KioskController extends AbstractController
         $kioskRepository = $manager->getRepository(Kiosk::class);
         $kiosk = $kioskRepository->find($kioskId);
 
-        if($kiosk->getToken() === 'TOKEN_JKZ1930IOFN24FE4JOF32UE') {
-            throw new FormException("Vous ne pouvez pas modifier cette borne.");
-        }
-
         if(!$kiosk){
             throw new FormException("La borne n'existe pas.");
         }
