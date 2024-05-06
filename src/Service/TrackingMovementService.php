@@ -40,6 +40,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
 use WiiCommon\Helper\StringHelper;
+use function PHPUnit\Framework\throwException;
 
 class TrackingMovementService extends AbstractController
 {
@@ -221,7 +222,7 @@ class TrackingMovementService extends AbstractController
 
     public function dataRowMouvement(TrackingMovement $movement): array {
         $fromColumnData = $this->getFromColumnData($movement);
-
+        dump($movement->getPackArticle()?->getLabel());
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
                 $this->entityManager,

@@ -27,6 +27,7 @@ use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -46,6 +47,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -128,6 +130,7 @@ class ReferenceArticleController extends AbstractController
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
+                        TrackingMovementService $trackingMovementService,
                         RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
@@ -245,7 +248,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
+                $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 1) : 1); // protection contre quantités négatives ou 0
             } else {
                 $refArticle->setQuantiteStock(0);
             }
@@ -331,7 +334,19 @@ class ReferenceArticleController extends AbstractController
                     new DateTime('now'),
                     $emplacement
                 );
+                $traceMovement = $trackingMovementService->createTrackingMovement(
+                    $refArticle->getReference(),
+                    $refArticle->getEmplacement(),
+                    $this->getUser(),
+                    new DateTime('now'),
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    ['mouvementStock' => $mvtStock,
+                        "quantity" => $refArticle->getQuantiteStock()]
+                );
                 $entityManager->persist($mvtStock);
+                $entityManager->persist($traceMovement);
             }
 
             $entityManager->persist($refArticle);
