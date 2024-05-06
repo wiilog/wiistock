@@ -78,6 +78,7 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
             .click()
             .wait(100)
             .type(`${element}`, {delay: customDelay ?? defaultTypeSpeed})
+            .find('.select2-results__option')
             .contains(value)
             .should('be.visible')
             .first()
