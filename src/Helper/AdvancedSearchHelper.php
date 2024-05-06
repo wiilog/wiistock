@@ -13,10 +13,13 @@ class AdvancedSearchHelper {
 
 
     private const HIGHLIGHT_COLOR = "#FFFF00";
+    private const SPAN_ELEMENT_REGEX = "/<span[^>]*>.*?<\/span>/";
 
     private const EXCLUDED_FIELDS = [
         "Actions",
         "actions",
+        "image",
+        "colorClass",
     ];
 
     public static function bindSearch(array $conditions, int $index, bool $forSelect = false): Stream {
@@ -51,8 +54,26 @@ class AdvancedSearchHelper {
                     && (empty($searchableFields) || in_array($field, $searchableFields))) {
                     foreach ($searchParts as $part) {
                         $startPosition = strpos(strtolower($value), strtolower($part));
-
                         if ($startPosition !== false) {
+                            preg_match_all(self::SPAN_ELEMENT_REGEX, $value, $matchedTags, PREG_OFFSET_CAPTURE);
+
+                            $excludedParts = Stream::from($matchedTags[0])
+                                ->map(static function($matchedTag) {
+                                    $length = strlen($matchedTag[0]);
+                                    $start = $matchedTag[1];
+                                    $end = $start + $length;
+
+                                    return [
+                                        $start,
+                                        $end,
+                                    ];
+                                });
+
+                            $exclude = !!$excludedParts->find(static fn(array $positions) => $startPosition > $positions[0] && $startPosition < $positions[1]);
+                            if ($exclude) {
+                                continue;
+                            }
+
                             $endPosition = $startPosition + strlen($part);
                             $highlightedPart = substr($value, $startPosition, strlen($part));
 

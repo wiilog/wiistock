@@ -765,26 +765,26 @@ class ReferenceArticleRepository extends EntityRepository {
                         };
 
                         $queryBuilder
-                            ->innerJoin("ra.articlesFournisseur", "sub_supplierArticle_$key")
-                            ->innerJoin("sub_supplierArticle_$key.fournisseur", "sub_supplier_$key");
+                            ->leftJoin("ra.articlesFournisseur", "sub_supplierArticle_$key")
+                            ->leftJoin("sub_supplierArticle_$key.fournisseur", "sub_supplier_$key");
 
                         $conditions[] = "sub_supplier_$key.$dbField LIKE :search_value";
 
                         break;
                     case "referenceSupplierArticle":
-                        $queryBuilder->innerJoin("ra.articlesFournisseur", "sub_supplierArticle_$key");
+                        $queryBuilder->leftJoin("ra.articlesFournisseur", "sub_supplierArticle_$key");
 
                         $conditions[] = "sub_supplierArticle_$key.reference LIKE :search_value";
 
                         break;
                     case "managers":
-                        $queryBuilder->innerJoin("sub_referenceArticle_$key.managers", "search_managers");
+                        $queryBuilder->leftJoin("sub_referenceArticle_$key.managers", "search_managers");
 
                         $conditions[] = "search_managers.username LIKE :search_value";
 
                         break;
                     case "buyer":
-                        $queryBuilder->innerJoin("ra.buyer", "search_buyer");
+                        $queryBuilder->leftJoin("ra.buyer", "search_buyer");
 
                         $conditions[] = "search_buyer.username LIKE :search_value";
 
@@ -846,9 +846,9 @@ class ReferenceArticleRepository extends EntityRepository {
 
                 $previousAction = $params->get("previousAction");
                 if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
-                    $queryBuilder->addOrderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0", Criteria::DESC);
                 } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
-                    $queryBuilder->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0", Criteria::DESC);
                 }
 
                 $queryBuilder

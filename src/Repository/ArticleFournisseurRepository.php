@@ -127,8 +127,7 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function findByParams(InputBag $params, Utilisateur $user): array
-    {
+    public function findByParams(InputBag $params, Utilisateur $user): array {
         $queryBuilder = $this->createQueryBuilder('supplier_article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -211,9 +210,9 @@ class ArticleFournisseurRepository extends EntityRepository
 
                 $previousAction = $params->get("previousAction");
                 if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
-                    $queryBuilder->addOrderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0", Criteria::DESC);
                 } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
-                    $queryBuilder->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0", Criteria::DESC);
                 }
             }
         }
@@ -232,9 +231,9 @@ class ArticleFournisseurRepository extends EntityRepository
         }
 
         return [
-            'data' => $queryBuilder->getQuery()->getResult(),
-            'count' => $countQuery ?? 0,
-            'total' => $countTotal,
+            "data" => $queryBuilder->getQuery()->getResult(),
+            "count" => $countQuery,
+            "total" => $countTotal,
             "searchParts" => $searchParts,
         ];
     }
