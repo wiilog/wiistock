@@ -104,3 +104,8 @@ jobs:
                 with:
                   name: dev-log-symfony
                   path: dev_log
+
+            -   name: Deploy
+                uses: JamesIves/github-pages-deploy-action@v4
+                with:
+                    folder: cypress/reports/html # The folder the action should deploy.

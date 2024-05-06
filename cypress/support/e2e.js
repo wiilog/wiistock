@@ -12,9 +12,10 @@
 // You can read more here:
 // https://on.cypress.io/configuration
 // ***********************************************************
-
+import 'cypress-mochawesome-reporter/register';
 require('cypress-failed-log');
 import 'cypress-failed-log';
+
 Cypress.on('uncaught:exception', (err, runnable) => {
     if (err.message.includes('printing error')) {
         return false
