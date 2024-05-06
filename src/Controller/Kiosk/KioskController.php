@@ -40,16 +40,12 @@ class KioskController extends AbstractController
         $manager->remove($kiosk);
         $manager->flush();
 
-        return $this->json([
-            'success' => true,
-            'msg' => 'La borne a bien été supprimée.'
-        ]);
     }
 
     #[Route('/edit-api', name: 'kiosk_edit_api', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function editApi(EntityManagerInterface $manager,
-                            Request                $request): JsonResponse {
+                            Request                $request)  {
         $kioskId= $request->query->get('id');
         $kioskRepository = $manager->getRepository(Kiosk::class);
         $kiosk = $kioskRepository->find($kioskId);
@@ -71,7 +67,6 @@ class KioskController extends AbstractController
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_TOUCH_TERMINAL])]
     public function editKiosk(Request                   $request,
                               EntityManagerInterface    $entityManager): JsonResponse {
-        $inputBag = $request->request;
 
         // repositories
         $kioskRepository = $entityManager->getRepository(Kiosk::class);
