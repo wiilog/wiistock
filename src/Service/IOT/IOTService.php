@@ -174,7 +174,10 @@ class IOTService
     #[required]
     public StatusHistoryService $statusHistoryService;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, LoRaWANServer $loRaWANServer, bool $local = false): void {
+    public function onMessageReceived(array $frame,
+                                      EntityManagerInterface $entityManager,
+                                      LoRaWANServer $loRaWANServer,
+                                      bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
         foreach ($messages as $message) {
             if($message){
@@ -579,7 +582,10 @@ class IOTService
         }
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local, $loRaWANServer): array {
+    private function parseAndCreateMessage(array $message,
+                                           EntityManagerInterface $entityManager,
+                                           bool $local,
+                                           LoRaWANServer $loRaWANServer): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
         $deviceCode = match ($loRaWANServer) {
@@ -1118,7 +1124,7 @@ class IOTService
                                 'event' => IOTService::ACS_PRESENCE,
                             ];
 
-                            $this->onMessageReceived($fakeFrame, $entityManager, true, LoRaWANServer::Orange);
+                            $this->onMessageReceived($fakeFrame, $entityManager, LoRaWANServer::Orange, true);
                         }
                     }
                 }
