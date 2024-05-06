@@ -139,6 +139,7 @@ function ajaxGetAndFillArticle($select) {
             Select2Old.user($editNewArticle.find('.ajax-autocomplete-user-edit[name=managers]'));
 
             setMaxQuantity($select);
+            ajaxEditArticle($('#article'))
         }, 'json');
     }
 }
