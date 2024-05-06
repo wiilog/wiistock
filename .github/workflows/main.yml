@@ -79,7 +79,10 @@ jobs:
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
-#           TODO : Run install.sh
+#            -   name: get the version of wiistock config/services.yaml and store it in the environment
+#                run: |
+#                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
+#                    export VERSION=$(cat version.txt)
 
             -   name: Install composer dependencies in app
                 run: docker exec wiistock-cypress_php composer install
