@@ -52,10 +52,6 @@ class KioskController extends AbstractController
                             Request                $request): JsonResponse {
         $kioskId= $request->query->get('id');
         $kioskId= $request->query->get('id');
-        $kioskId= $request->query->get('id');
-        $kioskId= $request->query->get('id');
-        $kioskId= $request->query->get('id');
-        $kioskId= $request->query->get('id');
         $kioskRepository = $manager->getRepository(Kiosk::class);
         $kiosk = $kioskRepository->find($kioskId);
 
