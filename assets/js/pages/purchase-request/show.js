@@ -4,6 +4,7 @@ import moment from 'moment';
 import FixedFieldEnum from '@generated/fixed-field-enum';
 import Form from '@app/form';
 import {onStatusChange} from '@app/pages/purchase-request/common';
+import {initDataTable} from "@app/datatable";
 
 global.deleteRowLine = deleteRowLine;
 global.openEvolutionModal = openEvolutionModal;

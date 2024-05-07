@@ -156,7 +156,6 @@ function initTableArrival(dispatchMode = false) {
             columns,
             drawConfig: {
                 needsResize: true,
-                needsSearchOverride: true,
                 hidePaging: dispatchMode,
             },
             rowConfig: {
@@ -176,10 +175,6 @@ function initTableArrival(dispatchMode = false) {
                 type: "customDate",
                 targets: "creationDate"
             }],
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'arrivalsTable'
-            },
             lengthMenu: [10, 25, 50, 100],
             page: 'arrival',
             disabledRealtimeReorder: dispatchMode,
@@ -202,12 +197,7 @@ function initTableArrival(dispatchMode = false) {
             extendsDateSort('customDate');
         }
 
-        const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
-        arrivalsTable.on('responsive-resize', function () {
-            resizeTable(arrivalsTable);
-        });
-
-        return arrivalsTable;
+        return initDataTable('arrivalsTable', tableArrivageConfig);
     }
 }
 

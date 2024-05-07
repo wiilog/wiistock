@@ -92,10 +92,6 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                 ...columns,
                 {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
-            hideColumnConfig: {
-                columns,
-                tableFilter: tableId,
-            },
             rowConfig: {
                 needsColor: true,
                 color: 'danger',

@@ -67,10 +67,9 @@
     } %}
 
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableShippings',
-        'route': 'save_column_visible_for_shipping_request',
-        'reload': true
+        fields,
+        table: 'tableShippings',
+        page: 'shippingRequest',
     } %}
 {% endblock %}
 

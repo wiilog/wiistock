@@ -104,10 +104,10 @@ export default class Form {
      * @param {"GET"|"POST"|"PUT"|"PATCH"|"DELETE"} method HTTP method
      * @param {string} route Symfony route name
      * @param {{
-     *    keepModal: boolean|undefined,
-     *    success: function|undefined,
-     *    routeParams: {[string]: string}|undefined,
-     *    tables: Datatable|Datatable[],
+     *    keepModal?: boolean,
+     *    success?: function,
+     *    routeParams?: {[string]: string},
+     *    tables?: Datatable|Datatable[],
      * }} options
      * @returns {Form}
      */

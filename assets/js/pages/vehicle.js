@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 $(function() {
     const vehicleTable = initVehicleTable();
@@ -38,8 +39,5 @@ function initVehicleTable() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     });
 }

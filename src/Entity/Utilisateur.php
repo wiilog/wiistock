@@ -319,9 +319,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private ?bool $kioskUser = false;
 
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
-    private ?KioskToken $kioskToken = null;
-
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
 
@@ -1906,24 +1903,24 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getKioskToken(): ?KioskToken
+    public function getKiosk(): ?Kiosk
     {
-        return $this->kioskToken;
+        return $this->kiosk;
     }
 
-    public function setKioskToken(?KioskToken $kioskToken): self
+    public function setKiosk(?Kiosk $kiosk): self
     {
         // unset the owning side of the relation if necessary
-        if ($kioskToken === null && $this->kioskToken !== null) {
-            $this->kioskToken->setUser(null);
+        if ($kiosk === null && $this->kiosk !== null) {
+            $this->kiosk->setUser(null);
         }
 
         // set the owning side of the relation if necessary
-        if ($kioskToken !== null && $kioskToken->getUser() !== $this) {
-            $kioskToken->setUser($this);
+        if ($kiosk !== null && $kiosk->getUser() !== $this) {
+            $kiosk->setUser($this);
         }
 
-        $this->kioskToken = $kioskToken;
+        $this->kiosk = $kiosk;
 
         return $this;
     }

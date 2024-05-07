@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 export function initializeLicencesPage() {
     initDataTable('tableSessionHistoryRecords', {

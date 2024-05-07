@@ -1,9 +1,10 @@
 import AJAX, {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 let tables = [];
 let editableTableArticles = null;
-const requestId = $('[name=requestId]').val();
+const requestId = $('[name=id]').val();
 let pageInitialized = false;
 
 global.ajaxGetAndFillArticle = ajaxGetAndFillArticle;
@@ -81,13 +82,6 @@ function loadLogisticUnitList(requestId) {
                             },
                             domConfig: {
                                 removeInfo: true,
-                            },
-                            drawConfig: {
-                                needsColumnHide: true,
-                            },
-                            hideColumnConfig: {
-                                columns,
-                                tableFilter: 'logistic-units-container'
                             },
                         });
 
@@ -348,13 +342,6 @@ function initEditableTableArticles($table) {
         domConfig: {
             removeInfo: true,
         },
-        drawConfig: {
-            needsColumnHide: true,
-        },
-        hideColumnConfig: {
-            columns,
-            tableFilter: 'editableTableArticles'
-        },
         ordering: false,
         paging: false,
         searching: false,
@@ -459,7 +446,7 @@ function initEditableTableArticles($table) {
         if ($articleSelect.exists()) {
             if(typeQuantite === 'article') {
                 AJAX
-                    .route(AJAX.GET, 'api_articles-by-reference', {'request': $('[name=requestId]').val(), referenceArticle})
+                    .route(AJAX.GET, 'api_articles-by-reference', {'request': $('[name=id]').val(), referenceArticle})
                     .json()
                     .then(({data}) => {
                         const articleSelect = $row.find('select[name="article"]')

@@ -1,5 +1,4 @@
 let onFlyFormOpened = {};
-let receptionsTable;
 
 $(function () {
     // RECEPTION
@@ -88,26 +87,14 @@ function initTableReception() {
                     }
                 },
                 columns,
-                drawConfig: {
-                    needsSearchOverride: true,
-                    needsColumnHide: true,
-                },
                 rowConfig: {
                     needsColor: true,
                     color: 'danger',
                     needsRowClickAction: true,
                     dataToCheck: 'emergency'
                 },
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'tableReception_id'
-                },
             };
 
-            receptionsTable = initDataTable('tableReception_id', tableReceptionConfig);
-            receptionsTable.on('responsive-resize', function () {
-                resizeTable(receptionsTable);
-            });
-            return receptionsTable;
+            return initDataTable('tableReception_id', tableReceptionConfig);
         });
 }

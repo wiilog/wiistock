@@ -10,13 +10,21 @@
 {% set defaultLangage = language_service.defaultLanguage %}
 {% set maxLengthUserLabel = 20 %}
 
+{% set currentPath = app.request.pathinfo %}
+{% set isLoginPageAndShowLogo = (
+    currentPath != path('login')
+    or (currentPath == path('login') and setting_value('SHOW_LOGIN_LOGO'))
+) %}
+
 <div class="main-header">
     <div class="px-lg-3 w-100">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-12 col-lg-auto d-flex align-items-end justify-content-center">
-                <a class="position-relative" href="{{ path('app_index') }}">
-                    <img src="{{ logo('website') }}" alt="Logo de l'application" height="100" class="sizeLogo"/>
-                </a>
+                {% if isLoginPageAndShowLogo %}
+                    <a class="position-relative" href="{{ path('app_index') }}">
+                        <img src="{{ logo('website') }}" alt="Logo de l'application" height="100" class="sizeLogo"/>
+                    </a>
+                {% endif %}
                 <span class="web-version d-none d-lg-inline">
                     {% if app_context is not same as('prod') %}
                         <span class="h3">
@@ -315,6 +323,7 @@
                                              aria-expanded="false">
                                             {% include 'menu/menu-item.html.twig' with {
                                                 label: itemMenu.label,
+                                                id: itemMenu.icon is defined ? itemMenu.icon,
                                                 icon: itemMenu.icon is defined ? itemMenu.icon,
                                                 title: itemMenu.title is defined ? itemMenu.title,
                                                 isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
@@ -325,6 +334,7 @@
                                             {% for itemMenuSub in itemMenu.sub %}
                                                 {% include 'menu/menu-item.html.twig' with {
                                                     label: itemMenuSub.label,
+                                                    id: itemMenu.icon is defined ? itemMenu.icon,
                                                     icon: itemMenuSub.icon is defined ? itemMenuSub.icon,
                                                     title: itemMenuSub.title is defined ? itemMenuSub.title,
                                                     isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
@@ -339,6 +349,7 @@
                                     {% if itemMenu.label != constant('App\\Entity\\Menu::PARAM') | capitalize or (itemMenu.label == constant('App\\Entity\\Menu::PARAM') | capitalize and displaySettings()) %}
                                         {% include 'menu/menu-item.html.twig' with {
                                             label: itemMenu.label,
+                                            id: itemMenu.icon is defined ? itemMenu.icon,
                                             icon: itemMenu.icon is defined ? itemMenu.icon,
                                             isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
                                             url: itemMenu.url is defined ? itemMenu.url : (itemMenu.path is defined ? path(itemMenu.path) : '#'),

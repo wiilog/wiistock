@@ -66,9 +66,9 @@
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableHandlings',
-        'route': 'save_column_visible_for_handling'
+        fields,
+        table: 'tableHandlings',
+        page: 'handling'
     } %}
 {% endblock %}
 

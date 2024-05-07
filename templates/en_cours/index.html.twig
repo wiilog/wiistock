@@ -67,10 +67,9 @@
     <input type="hidden" name="useTruckArrivalsFromDashboard" value="{{ useTruckArrivalsFromDashboard }}">
 
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': emplacements|map(emplacement => emplacement.id)|join('_'),
-        'route': 'save_column_visible_for_encours',
-        'reload': true,
+        fields,
+        table: emplacements|map(emplacement => emplacement.id)|join(';'),
+        page: 'onGoing',
     } %}
 {% endblock %}
 

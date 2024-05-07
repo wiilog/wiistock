@@ -15,7 +15,7 @@
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     <div class="btn btn-primary split-button"
-                         onclick="saveExportFile('export_csv_dispute', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false)}}', true)">
+                         onclick="saveExportFile('dispute_export_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false)}}', true)">
                         <i class="fa fa-file-csv mr-2"></i>{{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
                     </div>
                     <button type="button"
@@ -43,7 +43,9 @@
                         <span class="sr-only">Loading...</span>
                     </div>
                 </div>
-                <table id="tableLitiges" class="table nowrap w-100">
+                <table id="tableLitiges"
+                       class="table nowrap w-100"
+                       data-initial-visible="{{ fields | json_encode }}">
                 </table>
             </div>
         </div>
@@ -52,9 +54,9 @@
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig'%}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableLitiges',
-        'route': 'save_column_visible_for_litige'
+        fields,
+        table: 'tableLitiges',
+        page: "dispute"
     } %}
 {% endblock %}
 

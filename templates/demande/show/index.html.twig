@@ -121,18 +121,17 @@
     <input type="hidden" name="showTargetLocationPicking" value="{{ showTargetLocationPicking }}">
     <input type="hidden" name="managePreparationWithPlanning" value="{{ managePreparationWithPlanning }}">
     {{ form.hidden("manageDeliveriesWithoutStockQuantity", manageDeliveriesWithoutStockQuantity) }}
-    <input name="requestId" type="hidden" value="{{ demande.id }}"/>
+    <input name="id" type="hidden" value="{{ demande.id }}"/>
 
     {% if modifiable and setting_value('DELIVERY_REQUEST_ADD_UL') and hasRightEdit %}
         {% include 'demande/modalNewArticle.html.twig' %}
         {% include 'demande/modalEditArticle.html.twig' %}
     {%  else %}
         {% include "utils/visible_columns.html.twig" with {
-            'fields': fields,
-            'table': 'editableTableArticles',
-            'route': 'save_visible_columns_for_delivery_request_show',
-            'otherFields': form.input('id' , null, false, demande.id, {type: 'hidden'}),
-            'reload': '1',
+            fields,
+            table: 'editableTableArticles',
+            page: 'deliveryRequestShow',
+            otherFields: form.input('id' , null, false, demande.id, {type: 'hidden'}),
         } %}
     {% endif %}
 

@@ -3,6 +3,7 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
 import {toggleFrequencyInput} from "@app/pages/settings/utils";
+import {initDataTable} from "@app/datatable";
 
 global.openFormPurchaseRequestPlanner = openFormPurchaseRequestPlanner;
 

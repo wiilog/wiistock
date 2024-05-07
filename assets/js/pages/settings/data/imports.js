@@ -4,6 +4,7 @@ import Flash from "@app/flash";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
 import {getUserFiltersByPage} from '@app/utils';
+import {initDataTable} from "@app/datatable";
 
 global.importTemplateChanged = importTemplateChanged;
 global.displayFirstModal = displayFirstModal;
@@ -46,9 +47,6 @@ export function initializeImports() {
         ],
         rowConfig: {
             needsRowClickAction: true
-        },
-        drawConfig: {
-            needsSearchOverride: true,
         },
         order: [[`id`, `desc`]],
         page: `import`,

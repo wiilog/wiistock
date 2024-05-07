@@ -57,6 +57,9 @@ enum FixedFieldEnum: string
     case requester = "Demandeur";
     case carrierTrackingNumber = "N° tracking transporteur";
     case emails = "Email(s)";
+    case object = "Objet";
+    case pickingLocation = "Point de collecte";
+    case quantityToPick = "Quantité à collecter";
 
     public static function fromCase(string $case): string|null {
         try {

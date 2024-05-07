@@ -1,5 +1,6 @@
 import {createManagementHeaderPage} from "./utils";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 global.addPhoneNumber = addPhoneNumber;
 global.deletePhoneNumber = deletePhoneNumber;

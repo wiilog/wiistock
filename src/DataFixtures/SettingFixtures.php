@@ -189,6 +189,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FONT_FAMILY => [
                 'default' => Setting::DEFAULT_FONT_FAMILY
             ],
+            Setting::SHOW_LOGIN_LOGO => [
+              'default' => true,
+            ],
             Setting::FILE_OVERCONSUMPTION_LOGO => [],
             Setting::FILE_WEBSITE_LOGO => [
                 'default' => Setting::DEFAULT_WEBSITE_LOGO_VALUE
@@ -303,9 +306,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::STATUT_REFERENCE_CREATE => [
                 'default' => "actif"
-            ],
-            Setting::COLLECT_REQUEST_DESTINATION => [
-                'default' => 'stock'
             ],
             Setting::WELCOME_MESSAGE => [
                 'default' => 'Veuillez scanner l’étiquette pour faire une entrée de stock.'

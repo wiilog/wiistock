@@ -20,9 +20,6 @@ $(function() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false, width: '10px'},
             {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur'},

@@ -183,13 +183,14 @@ class DemandeCollecteService
         return array_merge(
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : '' ],
-                ['label' => 'Demandeur', 'value' => FormatHelper::collectRequester($collecte)],
-                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
-                [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
+                [ 'label' => 'Demandeur', 'value' => $this->formatService->collectRequester($collecte) ],
+                [ 'label' => 'Date de la demande', 'value' => $this->formatService->date($date) ],
+                [ 'label' => 'Date de validation', 'value' => $this->formatService->datetime($validationDate) ],
                 [ 'label' => 'Destination', 'value' => $collecte->isStock() ? 'Mise en stock' : 'Destruction' ],
                 [ 'label' => 'Objet', 'value' => $object ],
-                [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
-                [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
+                [ 'label' => 'Point de collecte', 'value' => $this->formatService->location($pointCollecte) ],
+                [ 'label' => 'Type', 'value' => $this->formatService->type($type) ],
+                [ 'label' => 'Provenance', 'value' => $collecte->getKiosk()?->getName() ?: '' ],
             ],
             $freeFieldArray,
             [

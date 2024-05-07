@@ -20,7 +20,7 @@ function openNewLitigeModal($button) {
 
 function initTableArticleLitige() {
 
-    let pathArticleLitige = Routing.generate('article_dispute_api', {dispute: $('#disputeId').val()}, true);
+    let pathArticleLitige = Routing.generate('dispute_article_api', {dispute: $('#disputeId').val()}, true);
     let tableArticleLitigeConfig = {
         ajax: {
             "url": pathArticleLitige,

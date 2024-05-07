@@ -3,6 +3,7 @@ import Form from "@app/form";
 import Routing from '@app/fos-routing';
 import {initFormAddInventoryLocations} from "@app/pages/inventory-mission/form-add-inventory-locations";
 import {toggleFrequencyInput} from '@app/pages/settings/utils';
+import {initDataTable} from "@app/datatable";
 
 let tableInventoryPanning;
 

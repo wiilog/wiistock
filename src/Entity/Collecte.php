@@ -82,6 +82,10 @@ class Collecte implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
+    #[ORM\ManyToOne(targetEntity: Kiosk::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Kiosk $kiosk = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
@@ -330,6 +334,16 @@ class Collecte implements PairedEntity {
             }
         }
         return $activePairing;
+    }
+
+    public function getKiosk(): ?Kiosk {
+        return $this->kiosk;
+    }
+
+    public function setKiosk(?Kiosk $kiosk): self {
+        $this->kiosk = $kiosk;
+
+        return $this;
     }
 
 }

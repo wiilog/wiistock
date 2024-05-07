@@ -1,4 +1,5 @@
 import AJAX, {POST} from "@app/ajax";
+import {initDataTable} from "@app/datatable";
 
 global.initFormAddInventoryLocations = initFormAddInventoryLocations;
 

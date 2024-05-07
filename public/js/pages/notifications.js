@@ -7,7 +7,6 @@ let tableNotificationsConfig = {
         "type": "POST",
     },
     drawConfig: {
-        needsSearchOverride: true,
         needsResize: true
     },
     columns: [

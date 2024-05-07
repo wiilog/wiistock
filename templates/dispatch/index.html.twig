@@ -93,9 +93,9 @@
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableDispatches',
-        'route': 'save_column_visible_for_dispatch'
+        fields,
+        table: 'tableDispatches',
+        page: 'dispatch'
     } %}
 {% endblock %}
 

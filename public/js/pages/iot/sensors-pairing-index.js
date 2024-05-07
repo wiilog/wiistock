@@ -15,9 +15,6 @@ function initPageDataTable() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
             {data: 'element', name: 'element', title: 'Elément'},
