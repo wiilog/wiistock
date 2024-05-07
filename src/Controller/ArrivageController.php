@@ -277,7 +277,7 @@ class ArrivageController extends AbstractController {
                 $arrivage->addAcheteur($userRepository->find($acheteurId));
             }
         }
-        $attachmentService->persistAttachmentsForEntity($arrivage, $request, $entityManager);
+        $attachmentService->persistAttachments($arrivage, $request->files, $entityManager);
 
         $natures = Stream::from(isset($data['packs']) ? json_decode($data['packs'], true) : [])
             ->filter()
@@ -638,7 +638,7 @@ class ArrivageController extends AbstractController {
             }
         }
 
-        $attachmentService->persistAttachmentsForEntity($arrivage, $request, $entityManager);
+        $attachmentService->persistAttachments($arrivage, $request->files, $entityManager);
 
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
@@ -929,7 +929,7 @@ class ArrivageController extends AbstractController {
 
         $entityManager->persist($historyRecord);
 
-        $attachmentService->persistAttachmentsForEntity($dispute, $request, $entityManager);
+        $attachmentService->persistAttachments($dispute, $request->files, $entityManager);
         try {
             $entityManager->flush();
         }
@@ -1200,7 +1200,7 @@ class ArrivageController extends AbstractController {
             }
         }
 
-        $attachmentService->persistAttachmentsForEntity($dispute, $request, $entityManager);
+        $attachmentService->persistAttachments($dispute, $request->files, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBefore !== $statutAfter);
         if ($isStatutChange) {

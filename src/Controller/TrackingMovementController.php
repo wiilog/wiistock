@@ -310,8 +310,10 @@ class TrackingMovementController extends AbstractController
                     $attachmentService->saveFile($file)
                 );
             }
-            foreach ($createdMouvements as $mouvement) {
-                $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
+        }
+        foreach ($createdMouvements as $mouvement) {
+            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
+            if(isset($fileNames)){
                 $attachmentService->persistAttachments($mouvement, $fileNames, $entityManager);
             }
         }

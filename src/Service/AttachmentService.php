@@ -164,10 +164,10 @@ class AttachmentService {
         return $filePath;
     }
 
-    public function persistAttachments(AttachmentContainer $attachmentContainer,
-                                        FileBag|array $files,
-                                        EntityManagerInterface $entityManager,
-                                        array $options = []): void {
+    public function persistAttachments(AttachmentContainer    $attachmentContainer,
+                                       FileBag|array          $files,
+                                       EntityManagerInterface $entityManager,
+                                       array                  $options = []): void {
         $isAddToDispatch = $options['addToDispatch'] ?? false;
         $attachments = $this->createAttachments($files);
         foreach($attachments as $attachment) {
@@ -176,19 +176,6 @@ class AttachmentService {
             if ($attachmentContainer instanceof TrackingMovement && $isAddToDispatch && $attachmentContainer->getDispatch()) {
                 $attachmentContainer->getDispatch()->addAttachment($attachment);
             }
-        }
-        $entityManager->persist($attachmentContainer);
-        $entityManager->flush();
-    }
-
-    public function persistAttachmentsForEntity(AttachmentContainer $attachmentContainer,
-                                                 Request $request,
-                                                 EntityManagerInterface $entityManager): void
-    {
-        $attachments = $this->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $attachmentContainer->addAttachment($attachment);
         }
         $entityManager->persist($attachmentContainer);
     }
