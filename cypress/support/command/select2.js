@@ -24,7 +24,6 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
 
     cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .parents('.select2-dropdown')
-        .find('.select2-results__option')
         .should('be.visible', {timeout: 6000})
         .contains(value)
         .should('be.visible')
@@ -78,10 +77,11 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
             .click()
             .wait(100)
             .type(`${element}`, {delay: customDelay ?? defaultTypeSpeed})
-            .find('.select2-results__option')
-            .contains(value)
+            .get('.select2-dropdown')
+            .contains(element)
             .should('be.visible')
             .first()
+            .click()
     });
 
     cy.get(`[name=${selectName}]`).then(($select) => {

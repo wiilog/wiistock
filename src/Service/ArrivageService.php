@@ -537,7 +537,7 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Chauffeur'),
-                'value' => $driver ? $driver->getNom() : '',
+                'value' => $this->formatService->driver($driver),
                 'show' => ['fieldName' => 'chauffeur'],
                 'isRaw' => true
             ],

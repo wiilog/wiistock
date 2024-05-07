@@ -794,9 +794,7 @@ class ArrivageController extends AbstractController {
         }, "export-arrivages_$today.csv", $header);
     }
 
-    /**
-     * @Route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-     */
+    #[Route("/voir/{id}", name: "arrivage_show", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
                          PackService            $packService,
