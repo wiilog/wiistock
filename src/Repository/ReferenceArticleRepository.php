@@ -765,20 +765,20 @@ class ReferenceArticleRepository extends EntityRepository {
                         };
 
                         $queryBuilder
-                            ->leftJoin("ra.articlesFournisseur", "sub_supplierArticle_$key")
-                            ->leftJoin("sub_supplierArticle_$key.fournisseur", "sub_supplier_$key");
+                            ->leftJoin("ra.articlesFournisseur", "search_supplierArticle_$key")
+                            ->leftJoin("search_supplierArticle_$key.fournisseur", "search_supplier_$key");
 
-                        $conditions[] = "sub_supplier_$key.$dbField LIKE :search_value";
+                        $conditions[] = "search_supplier_$key.$dbField LIKE :search_value";
 
                         break;
                     case "referenceSupplierArticle":
-                        $queryBuilder->leftJoin("ra.articlesFournisseur", "sub_supplierArticle_$key");
+                        $queryBuilder->leftJoin("ra.articlesFournisseur", "search_supplierArticle");
 
-                        $conditions[] = "sub_supplierArticle_$key.reference LIKE :search_value";
+                        $conditions[] = "search_supplierArticle.reference LIKE :search_value";
 
                         break;
                     case "managers":
-                        $queryBuilder->leftJoin("sub_referenceArticle_$key.managers", "search_managers");
+                        $queryBuilder->leftJoin("ra.managers", "search_managers");
 
                         $conditions[] = "search_managers.username LIKE :search_value";
 
