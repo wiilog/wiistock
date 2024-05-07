@@ -846,9 +846,9 @@ class ReferenceArticleRepository extends EntityRepository {
 
                 $previousAction = $params->get("previousAction");
                 if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
-                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0", Criteria::DESC);
+                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
                 } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
-                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0", Criteria::DESC);
+                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
                 }
 
                 $queryBuilder
