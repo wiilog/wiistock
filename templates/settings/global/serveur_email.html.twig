@@ -23,8 +23,7 @@
             {{ form.input(setting, "Nom d'utilisateur", true, setting_value(setting)) }}
         </div>
         <div class="form-group col-md-6 col-12">
-            {% set setting = constant('App\\Entity\\Setting::MAILER_PASSWORD') %}
-            {{ form.input(setting, "Mot de passe", true, setting_value(setting), {
+            {{ form.input(setting, "Mot de passe", true, "",{
                 type: 'password'
             }) }}
         </div>
