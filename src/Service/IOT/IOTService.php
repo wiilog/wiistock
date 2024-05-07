@@ -183,7 +183,10 @@ class IOTService
     #[required]
     public StatusHistoryService $statusHistoryService;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, LoRaWANServer $loRaWANServer, bool $local = false): void {
+    public function onMessageReceived(array $frame,
+                                      EntityManagerInterface $entityManager,
+                                      LoRaWANServer $loRaWANServer,
+                                      bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
         foreach ($messages as $message) {
             if($message){
@@ -588,7 +591,10 @@ class IOTService
         }
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local, $loRaWANServer): array {
+    private function parseAndCreateMessage(array $message,
+                                           EntityManagerInterface $entityManager,
+                                           bool $local,
+                                           LoRaWANServer $loRaWANServer): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
         $deviceCode = match ($loRaWANServer) {
@@ -1159,7 +1165,7 @@ class IOTService
                                 'event' => IOTService::ACS_PRESENCE,
                             ];
 
-                            $this->onMessageReceived($fakeFrame, $entityManager, true, LoRaWANServer::Orange);
+                            $this->onMessageReceived($fakeFrame, $entityManager, LoRaWANServer::Orange, true);
                         }
                     }
                 }
@@ -1344,14 +1350,13 @@ class IOTService
         }
     }
 
-    public function validateFrame(string $profile, string $payload): bool {
+    public function validateFrame(string $profile, ?string $payload): bool {
         return match ($profile) {
             IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d'),
             IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
             IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
-
             default => true,
         };
     }
