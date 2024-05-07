@@ -27,10 +27,10 @@ class SpecificService
 	const CLIENT_GRATIN_DAUPHINOIS = 'gratin_dauphinois';
 	const CLIENT_TRUFFADE = 'truffade';
     const CLIENT_ALIGOT = 'aligot';
-    const CLIENT_TARTIFLETTE = 'tartiflette';
     const CLIENT_GALETTE_SAUCISSE = 'galette_saucisse';
     const CLIENT_PAELLA = 'paella';
     const CLIENT_SAUCISSON_BRIOCHE = 'saucisson_brioche';
+    const CLIENT_QUENELLE = 'quenelle';
 
     public const SPECIFIC_DASHBOARD_REFRESH_RATE = [
         self::CLIENT_QUICHE => 1,

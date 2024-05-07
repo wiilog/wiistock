@@ -107,14 +107,14 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => KooveaHubsCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_TARTIFLETTE => '*/1 * * * *'
+                SpecificService::CLIENT_SAUCISSON_BRIOCHE => '*/1 * * * *'
             ],
             'description' => '',
         ],
         [
             'command' => KooveaTagsCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_TARTIFLETTE => '*/5 * * * *'
+                SpecificService::CLIENT_SAUCISSON_BRIOCHE => '*/5 * * * *'
             ],
             'description' => '',
         ],
