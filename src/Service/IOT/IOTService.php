@@ -815,7 +815,7 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config, string $profile, string $payload): array {
+    public function extractMainDataFromConfig(array $config, string $profile, ?string $payload): array {
         switch ($profile) {
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 $hexTemperature = substr($payload, 6, 2);
@@ -986,7 +986,7 @@ class IOTService
         return 'Évenement non trouvé';
     }
 
-    public function extractBatteryLevelFromMessage(array $config, string $profile, string $payload) {
+    public function extractBatteryLevelFromMessage(array $config, string $profile, ?string $payload) {
         switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
