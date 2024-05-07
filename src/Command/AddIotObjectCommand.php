@@ -17,11 +17,13 @@ use Symfony\Contracts\Service\Attribute\Required;
     name: 'app:iot:add',
     description: 'Add Iot Object(s).',
 )]
-class AddIotObjectCommand extends Command {
+class AddIotObjectCommand extends Command
+{
     #[Required]
     public EntityManagerInterface $entityManager;
 
-    protected function configure(): void {
+    protected function configure(): void
+    {
         $this
             ->addArgument('type', InputArgument::REQUIRED, 'Type of the object(s)')
             ->addArgument('profile', InputArgument::REQUIRED, 'Profile of the object(s)')
@@ -30,14 +32,18 @@ class AddIotObjectCommand extends Command {
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int {
-        $type = $this->entityManager->getRepository(Type::class)->findOneBy(['label' => $input->getArgument('type')]);
-        $profile = $this->entityManager->getRepository(SensorProfile::class)->findOneBy(['name' => $input->getArgument('profile')]);
+        $entityManager = $this->entityManager;
+
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $profileRepository = $entityManager->getRepository(SensorProfile::class);
+
+        $type = $typeRepository->findOneBy(['label' => $input->getArgument('type')]);
+        $profile = $profileRepository->findOneBy(['name' => $input->getArgument('profile')]);
         $frequency = $input->getArgument('frequency');
         $codes = $input->getArgument('code');
 
         if (!$type || !$profile) {
-            $output->writeln('Type or Profile not found');
-            return Command::FAILURE;
+            throw new \Exception('Type or Profile not found');
         }
 
         foreach ($codes as $code) {
