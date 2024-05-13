@@ -16,6 +16,10 @@ jobs:
             image: docker:latest
             options: --user root
         steps:
+            -   name: Install rsync 📚
+                run: |
+                    apt-get update && apt-get install -y rsync
+
             -   name: Checkout wiistock-docker
                 uses: actions/checkout@v4
                 with:
