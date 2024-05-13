@@ -17,7 +17,7 @@ jobs:
             options: --user root
         steps:
             -   name: Install rsync 📚
-                run: apt update && apt-get install -y rsync
+                run: apk add -y rsync
 
             -   name: Checkout wiistock-docker
                 uses: actions/checkout@v4
