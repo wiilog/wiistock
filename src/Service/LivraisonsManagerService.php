@@ -16,6 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -146,8 +147,13 @@ class LivraisonsManagerService
             $articleLines = $preparation->getArticleLines();
 
             $packs = stream::from($articleLines)
-                ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
-                ->filter()
+                ->filterMap(static function (PreparationOrderArticleLine $line) : ?Pack {
+                    $currentLU = $line->getArticle()->getCurrentLogisticUnit();
+                    if ($currentLU && !$currentLU->getLastDrop()?->getEmplacement()) {
+                        throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles. ");
+                    }
+                    return $currentLU;
+                })
                 ->unique()
                 ->toArray();
 
