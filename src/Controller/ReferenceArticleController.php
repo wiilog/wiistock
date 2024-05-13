@@ -247,7 +247,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 1) : 1); // protection contre quantités négatives ou 0
+                $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             } else {
                 $refArticle->setQuantiteStock(0);
             }
@@ -318,9 +318,9 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
-                $refArticle->getQuantiteStock() > 0 &&
-                $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                && $refArticle->getQuantiteStock() > 0
+                && $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -341,7 +341,8 @@ class ReferenceArticleController extends AbstractController
                     false,
                     true,
                     TrackingMovement::TYPE_DEPOSE,
-                    [   "mouvementStock" => $mvtStock,
+                    [
+                        "mouvementStock" => $mvtStock,
                         "quantity" => $refArticle->getQuantiteStock(),
                         "entityManager" => $entityManager,
                         "refOrArticle" => $refArticle,
