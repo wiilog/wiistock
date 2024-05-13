@@ -107,7 +107,7 @@ jobs:
 
             -   name: Install rsync 📚
                 run: |
-                    apt-get update && apt-get install -y rsync
+                    sudo apt-get update && sudo apt-get install -y rsync
 
             -   name: Cp cypress report to /var/www/cypress/reports/html
                 run: docker cp wiistock_cypress:/var/www/cypress/reports/html cypress_reports
