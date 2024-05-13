@@ -168,7 +168,7 @@ class ArticleFournisseurRepository extends EntityRepository
         }
 
         $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
-            ->filter()
+            ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
             ->values();
 
         if (!empty($searchParts)) {
@@ -186,10 +186,11 @@ class ArticleFournisseurRepository extends EntityRepository
             ];
 
             $orX = $expr->orX();
+            $searchPartsLength = count($searchParts);
             foreach ($searchParts as $index => $part) {
-                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index)->toArray());
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray());
 
-                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, true)
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true)
                     ->join(" + ");
 
                 $queryBuilder

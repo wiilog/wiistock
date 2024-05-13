@@ -734,9 +734,8 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        // prise en compte des paramètres issus du datatable
         $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
-            ->filter()
+            ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
             ->values();
 
         if (!empty($searchParts)) {
@@ -830,10 +829,11 @@ class ReferenceArticleRepository extends EntityRepository {
             }
 
             $orX = $queryBuilder->expr()->orX();
+            $searchPartsLength = count($searchParts);
             foreach ($searchParts as $index => $part) {
-                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index)->toArray());
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray());
 
-                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, true)
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true)
                     ->join(" + ");
 
                 $queryBuilder

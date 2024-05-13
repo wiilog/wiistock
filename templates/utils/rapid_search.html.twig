@@ -7,6 +7,16 @@
             } %}
 
             <div class="modal-body">
+                {% if hints is defined and hints %}
+                    <span class="wii-small-text">La recherche multi-critères fonctionne de la manière suivante :</span>
+                    <ul>
+                        <li class="wii-small-text ml-3">- Le séparateur est l'espace</li>
+                        <li class="wii-small-text ml-3">- Le poids des termes recherchés dépend de leur position</li>
+                        <li class="wii-small-text ml-3">- Le minimum de caractères requis pour la recherche est de {{ constant("App\\Helper\\AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH") }}</li>
+                    </ul>
+                {% endif %}
+
+                <div class="wii-section-title mt-3">Champs à rechercher</div>
                 <table class="table float-left w-49">
                     <thead>
                     <tr>
