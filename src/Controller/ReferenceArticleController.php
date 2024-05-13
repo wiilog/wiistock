@@ -1063,7 +1063,7 @@ class ReferenceArticleController extends AbstractController
             $reference = (new ReferenceArticle())
                 ->setReference($data->get('reference'))
                 ->setLibelle($data->get('label'))
-                ->setCreatedBy($userRepository->getKioskUser())
+                ->setCreatedBy($this->getUser())
                 ->setCreatedAt(new DateTime())
                 ->setBarCode($refArticleDataService->generateBarCode())
                 ->setStatut($status)
@@ -1112,10 +1112,9 @@ class ReferenceArticleController extends AbstractController
         $barcodesToPrint = [];
         try {
             $number = $uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
-            $collecte = new Collecte();
-            $collecte
+            $collecte = (new Collecte())
                 ->setNumero($number)
-                ->setDemandeur($userRepository->getKioskUser())
+                ->setDemandeur($this->getUser())
                 ->setDate(new DateTime())
                 ->setValidationDate(new DateTime())
                 ->setType($kiosk->getPickingType())
