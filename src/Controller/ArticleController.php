@@ -269,7 +269,7 @@ class ArticleController extends AbstractController
                 $entityManager->flush();
 
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
-                    $article,
+                    $article->getTrackingPack() ?: $article->getBarCode(),
                     $article->getEmplacement(),
                     $this->getUser(),
                     new DateTime('now'),
