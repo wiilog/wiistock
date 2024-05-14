@@ -1891,28 +1891,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getKiosk(): ?Kiosk
-    {
-        return $this->kiosk;
-    }
-
-    public function setKiosk(?Kiosk $kiosk): self
-    {
-        // unset the owning side of the relation if necessary
-        if ($kiosk === null && $this->kiosk !== null) {
-            $this->kiosk->setUser(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($kiosk !== null && $kiosk->getUser() !== $this) {
-            $kiosk->setUser($this);
-        }
-
-        $this->kiosk = $kiosk;
-
-        return $this;
-    }
-
     public function getSavedDeliveryOrderDeliveryNoteData(): array {
         return $this->savedDeliveryDeliveryNoteData ?? [];
     }
