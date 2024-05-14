@@ -72,7 +72,7 @@ class AdvancedSearchHelper {
                                     ];
                                 });
 
-                            $exclude = !!$excludedParts->find(static fn(array $positions) => $startPosition > $positions[0] && $startPosition < $positions[1]);
+                            $exclude = $excludedParts->some(static fn(array $positions) => $startPosition > $positions[0] && $startPosition < $positions[1]);
                             if ($exclude) {
                                 continue;
                             }
