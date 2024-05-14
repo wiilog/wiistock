@@ -1353,7 +1353,7 @@ class IOTService
     public function validateFrame(string $profile, ?string $payload): bool {
         return match ($profile) {
             IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d'),
-            IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
+            IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
             IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
