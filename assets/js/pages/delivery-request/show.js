@@ -115,6 +115,8 @@ function getCompareStock(submit) {
 
 function ajaxGetAndFillArticle($select) {
     if ($select.val() !== null) {
+        const $modal = $select.closest('.modal');
+
         let path = Routing.generate('demande_article_by_refArticle', true);
         let refArticle = $select.val();
         const deliveryRequestId = $('[name="delivery-request-id"]').val();
@@ -139,7 +141,8 @@ function ajaxGetAndFillArticle($select) {
             Select2Old.user($editNewArticle.find('.ajax-autocomplete-user-edit[name=managers]'));
 
             setMaxQuantity($select);
-            ajaxEditArticle($('#article'))
+
+            ajaxEditArticle($modal.find('[name="article"]'));
         }, 'json');
     }
 }
