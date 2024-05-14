@@ -1,9 +1,13 @@
+import AJAX, {GET, POST, DELETE} from '@app/ajax';
+import Form from '@app/form';
+import {getUserFiltersByPage} from '@app/utils';
+
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
 $(function() {
     $('.select2').select2();
     AJAX.route(
-        AJAX.GET,
+        GET,
         "mouvement_stock_api_columns",
         {}
     )
@@ -17,7 +21,7 @@ $(function() {
                 order: [['date', "desc"]],
                 ajax: {
                     "url": pathMvt,
-                    "type": "POST"
+                    "type": POST
                 },
                 drawConfig: {
                     needsSearchOverride: true,
@@ -34,7 +38,7 @@ $(function() {
 
     Form
         .create('#modalNewMvtStock',{clearOnOpen: true})
-        .submitTo(AJAX.POST, "mvt_stock_new", {tables: [tableMvt]})
+        .submitTo(POST, "mvt_stock_new", {tables: [tableMvt]})
         .on('change', '[name="reference-new-mvt"]', (event) => {
             newMvtStockArticleChosen($(event.target));
         })
@@ -48,19 +52,9 @@ $(function() {
             resetNewModal($modalNewMvtStock);
         });
 
-    initDateTimePicker();
-    Select2Old.init($('#emplacement'), 'Emplacements');
-
     // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_MVT_STOCK);
-    $.post(path, params, function(data) {
-        displayFiltersSup(data);
-    }, 'json');
+    getUserFiltersByPage(PAGE_MVT_STOCK);
 
-    Select2Old.user('Opérateurs');
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
-    Select2Old.articleReference($modalNewMvtStock.find('.select2-autocomplete-ref-articles'));
 });
 
 function newMvtStockArticleChosen($select) {
@@ -80,24 +74,14 @@ function newMvtStockArticleChosen($select) {
         const typeQuantity = selectedArticle.typeQuantite;
         const $fieldToHide = typeQuantity === 'article' ? $refMvt : $artMvt;
         const $fieldToShow = typeQuantity === 'article' ? $artMvt : $refMvt;
+        const elements = [$location, $quantity, $type, $locationTo, $quantityEntranceOut];
 
         $fieldToShow.addClass('needed').addClass('data');
         $fieldToShow.parent().parent().removeClass('d-none');
-
         $fieldToHide.parent().parent().addClass('d-none');
-
-        $location.parent().parent().removeClass('needed').addClass('d-none');
-        $quantity.parent().parent().removeClass('needed').addClass('d-none');
-        $type.parent().parent().removeClass('needed').addClass('d-none');
-        $locationTo.parent().parent().removeClass('needed').addClass('d-none');
-        $quantityEntranceOut.parent().parent().removeClass('needed').addClass('d-none');
-
-        const $selectArticles = $modalNewMvtStock.find('.select2-autocomplete-articles');
-        if ($selectArticles.hasClass('select2-hidden-accessible')) {
-            $selectArticles.select2('destroy');
-            $selectArticles.val(null);
-            $type.val(null);
-        }
+        elements.forEach((element) => {
+            element.parent().parent().removeClass('needed').addClass('d-none');
+        })
 
         if(typeQuantity === 'reference') {
             $location.parent().parent().addClass('needed').removeClass('d-none');
@@ -105,21 +89,15 @@ function newMvtStockArticleChosen($select) {
             $type.parent().parent().addClass('needed').removeClass('d-none');
             $artMvt.removeClass('needed');
         }
-        Select2Old.article($selectArticles, selectedArticle.text, 0);
     }
 }
 
 function showFieldsAndFillOnArticleChange($select) {
     let currentArticle = $select.select2('data')[0];
-    const $location = $('[name="chosen-ref-location"]');
-    const $quantity = $('[name="chosen-ref-quantity"]');
-    const $type = $('[name="chosen-type-mvt"]');
+    const $elements = $('[name="chosen-ref-location"], [name="chosen-ref-quantity"], [name="chosen-type-mvt"]');
     const $barcodeInput = $('input[name="chosen-ref-barcode"]');
     if (currentArticle) {
-
-        $location.parent().parent().addClass('needed').removeClass('d-none');
-        $quantity.parent().parent().addClass('needed').removeClass('d-none');
-        $type.parent().parent().addClass('needed').removeClass('d-none');
+        $elements.parent().parent().addClass('needed').removeClass('d-none');
 
         const $articleLocation = $modalNewMvtStock.find('[name="chosen-ref-location"]');
         const $articleQuantity = $modalNewMvtStock.find('[name="chosen-ref-quantity"]');
@@ -154,8 +132,6 @@ function resetNewModal($modal) {
     $modal.find('.is-hidden-by-type').addClass('d-none');
     $modal.find('.chosen-art-barcode').parent().parent().addClass('d-none');
     $typeMvt.removeClass('needed');
-    $modal.find('.select2-autocomplete-ref-articles').empty();
-    $modal.find('.select2-autocomplete-articles').empty();
 }
 
 function newMvtStockTypeChanged($select) {
@@ -194,7 +170,7 @@ function newMvtStockTypeChanged($select) {
 function deleteMvtStock(id) {
     Modal.confirm({
         ajax: {
-            method: "DELETE",
+            method: DELETE,
             route: `mvt_stock_delete`,
             params: {mvtStock: id},
         },

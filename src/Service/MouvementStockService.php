@@ -333,7 +333,7 @@ class MouvementStockService
         }
     }
 
-    public function getColumnVisibleConfig(Utilisateur $user): array{
+    public function getColumnVisibleConfig(Utilisateur $user): array {
         $columnsVisible = $user->getVisibleColumns()['stockMovement'];
         $fieldConfig = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],

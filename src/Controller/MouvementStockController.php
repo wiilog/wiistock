@@ -38,9 +38,9 @@ class MouvementStockController extends AbstractController
 {
 
     #[Route("/", name: "mouvement_stock_index")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOV_STOCK])]
     public function index(EntityManagerInterface $entityManager,
-                          MouvementStockService  $mouvementStockService)
+                          MouvementStockService  $mouvementStockService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -59,7 +59,7 @@ class MouvementStockController extends AbstractController
     }
 
     #[Route("/api", name: "mouvement_stock_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOV_STOCK], mode: HasPermission::IN_JSON)]
     public function api(Request $request, MouvementStockService $mouvementStockService): Response
     {
         /** @var Utilisateur $user */
@@ -70,7 +70,7 @@ class MouvementStockController extends AbstractController
     }
 
     #[Route("/api-columns", name: "mouvement_stock_api_columns", options: ["expose" => true], methods: [self::GET,self::POST], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOUV_STOCK])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOV_STOCK])]
     public function apiColumns(MouvementStockService $mouvementStockService, EntityManagerInterface $entityManager): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -95,7 +95,6 @@ class MouvementStockController extends AbstractController
         $entityManager->flush();
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Mouvement de stock bien supprimé.'
         ]);
     }
 
