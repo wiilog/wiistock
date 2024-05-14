@@ -350,7 +350,7 @@ class DeliveryStationController extends AbstractController
 
         foreach ($deliveryRequest->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
-            $outMovement = $preparationOrderService->createMovementLivraison(
+            $outMovement = $preparationOrderService->persistDeliveryMovement(
                 $entityManager,
                 $articleLine->getPickedQuantity(),
                 $user,
@@ -367,7 +367,7 @@ class DeliveryStationController extends AbstractController
 
         foreach ($deliveryRequest->getReferenceLines() as $referenceLine) {
             $reference = $referenceLine->getReference();
-            $outMovement = $preparationOrderService->createMovementLivraison(
+            $outMovement = $preparationOrderService->persistDeliveryMovement(
                 $entityManager,
                 $referenceLine->getPickedQuantity(),
                 $user,
