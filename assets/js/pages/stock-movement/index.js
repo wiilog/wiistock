@@ -40,6 +40,7 @@ $(function() {
         .create('#modalNewMvtStock',{clearOnOpen: true})
         .submitTo(POST, "mvt_stock_new", {tables: [tableMvt]})
         .on('change', '[name="reference-new-mvt"]', (event) => {
+            resetNewModal($modalNewMvtStock);
             newMvtStockArticleChosen($(event.target));
         })
         .on('change', '[name="chosen-type-mvt"]', (event) => {
@@ -55,6 +56,10 @@ $(function() {
     // filtres enregistrés en base pour chaque utilisateur
     getUserFiltersByPage(PAGE_MVT_STOCK);
 
+});
+
+$(document).on('click', '.deleteMvtStock', function (event) {
+    deleteMvtStock($(event.target).data().id);
 });
 
 function newMvtStockArticleChosen($select) {
