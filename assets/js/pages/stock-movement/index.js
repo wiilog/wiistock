@@ -92,13 +92,13 @@ function newMvtStockArticleChosen($select) {
         $fieldToShow.parent().parent().removeClass('d-none');
         $fieldToHide.parent().parent().addClass('d-none');
         elements.forEach((element) => {
-            element.parent().parent().removeClass('needed').addClass('d-none');
+            element.trigger('change').parent().parent().removeClass('needed').addClass('d-none');
         })
 
         if(typeQuantity === 'reference') {
             $location.parent().parent().addClass('needed').removeClass('d-none');
             $quantity.parent().parent().addClass('needed').removeClass('d-none');
-            $type.parent().parent().addClass('needed').removeClass('d-none');
+            $type.trigger('change').parent().parent().addClass('needed').removeClass('d-none');
             $artMvt.removeClass('needed');
         }
     }
