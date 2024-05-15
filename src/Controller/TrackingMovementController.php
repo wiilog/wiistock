@@ -25,22 +25,19 @@ use App\Service\CSVExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
-use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 
-use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 #[Route("/mouvement-traca")]
 class TrackingMovementController extends AbstractController

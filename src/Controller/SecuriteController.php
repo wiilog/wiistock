@@ -10,7 +10,7 @@ use App\Service\MailerService;
 use App\Service\SessionHistoryRecordService;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
