@@ -160,9 +160,7 @@ class TrackingMovementController extends AbstractController
             $date = $this->formatService->parseDatetime($post->get("datetime"), [$format]) ?: new DateTime();
         }
 
-        $fileBag = $request->files->count() > 0 ? $request->files : null;
-
-        $createdMouvements = [];
+        $createdMovements = [];
         try {
             if (!empty($post->get('is-group'))) {
                 $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $date);
@@ -170,7 +168,7 @@ class TrackingMovementController extends AbstractController
                     return $this->json($groupTreatment);
                 }
 
-                $createdMouvements = $groupTreatment['createdMovements'];
+                $createdMovements = $groupTreatment['createdMovements'];
             }
             else if (empty($post->get('is-mass'))) {
                 $location = $emplacementRepository->find($post->get('emplacement'));
@@ -192,7 +190,7 @@ class TrackingMovementController extends AbstractController
                 );
 
                 if ($res['success']) {
-                    array_push($createdMouvements, ...$res['movements']);
+                    array_push($createdMovements, ...$res['movements']);
                 }
                 else {
                     return $this->json($this->treatPersistTrackingError($res));
@@ -233,7 +231,7 @@ class TrackingMovementController extends AbstractController
                         );
 
                         if ($pickingRes['success']) {
-                            array_push($createdMouvements, ...$pickingRes['movements']);
+                            array_push($createdMovements, ...$pickingRes['movements']);
 
                             $codeToPack = Stream::from($pickingRes['movements'])
                                 ->keymap(static function(TrackingMovement $movement) {
@@ -266,7 +264,7 @@ class TrackingMovementController extends AbstractController
                         );
 
                         if ($dropRes['success']) {
-                            array_push($createdMouvements, ...$dropRes['movements']);
+                            array_push($createdMovements, ...$dropRes['movements']);
 
                             $codeToPack = Stream::from($dropRes['movements'])
                                 ->keymap(static function(TrackingMovement $movement) {
@@ -299,23 +297,21 @@ class TrackingMovementController extends AbstractController
                 ]);
             }
         }
-        if (isset($fileBag)) {
-            $fileNames = [];
-            foreach ($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
+
+        /** @var TrackingMovement[] $createdMovements */
+        foreach ($createdMovements as $movement) {
+            $freeFieldService->manageFreeFields($movement, $post->all(), $entityManager, $this->getUser());
+            if (!isset($trackingAttachments)) {
+                // first time we upload attachments
+                $trackingAttachments = $attachmentService->persistAttachments($entityManager, $movement, $request->files);
             }
-        }
-        foreach ($createdMouvements as $mouvement) {
-            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
-            if(isset($fileNames)){
-                $attachmentService->persistAttachments($mouvement, $fileNames, $entityManager);
+            else {
+                // next attachment are already saved, we link them to the movement
+                $movement->setAttachments($trackingAttachments);
             }
         }
 
-        $countCreatedMouvements = count($createdMouvements);
+        $countCreatedMouvements = count($createdMovements);
         $entityManager->flush();
 
         return new JsonResponse([
@@ -440,18 +436,11 @@ class TrackingMovementController extends AbstractController
             ->setQuantity($quantity)
             ->setCommentaire($post->get('commentaire'));
 
-        $entityManager->flush();
+        $attachmentService->removeAttachments($entityManager, $mvt, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $mvt, $request->files, ['addToDispatch' => true]);
 
-        $listAttachmentIdToKeep = $post->all('files');
-        $attachments = $mvt->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $mvt);
-            }
-        }
-        $attachmentService->persistAttachments($mvt, $request->files, $entityManager, ['addToDispatch' => true]);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
+
         $entityManager->flush();
 
         return new JsonResponse([

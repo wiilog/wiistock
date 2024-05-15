@@ -318,18 +318,6 @@ class DisputeService {
         }
     }
 
-    public function createDisputeAttachments(Dispute                $dispute,
-                                             Request                $request,
-                                             EntityManagerInterface $entityManager): void {
-        $attachments = $this->attachmentService->createAttachments($request->files);
-        foreach($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $dispute->addAttachment($attachment);
-        }
-        $entityManager->persist($dispute);
-        $entityManager->flush();
-    }
-
     public function createDisputeHistoryRecord(Dispute     $dispute,
                                                Utilisateur $user,
                                                array       $commentPart): DisputeHistoryRecord {

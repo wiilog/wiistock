@@ -518,7 +518,8 @@ class PurchaseRequestController extends AbstractController
             ->setSupplier($supplier)
             ->setDeliveryFee($post->get('deliveryFee') ?? null);
 
-        $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
+
+        $attachmentService->removeAttachments($entityManager, $purchaseRequest, $post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
 
         $entityManager->flush();

@@ -20,7 +20,8 @@
 
         {% if not noLabel %}
             <label for="dropfile"
-                   class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">
+                   style="margin-bottom: 5px"
+                   class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }}">
             <span class="attachment-label">
                 {{ trans('Général', null, 'Modale', labelTitle) }}
             </span>{{ required ? '*' }}

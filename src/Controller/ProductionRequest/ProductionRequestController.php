@@ -196,11 +196,10 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Accès refusé");
         }
 
-        foreach ($productionRequest->getAttachments() as $attachement) {
-            $attachmentService->removeAndDeleteAttachment($attachement, $productionRequest);
-        }
+        $attachmentService->removeAttachments($entityManager, $productionRequest);
 
         $entityManager->remove($productionRequest);
+
         $entityManager->flush();
 
         return $this->json([

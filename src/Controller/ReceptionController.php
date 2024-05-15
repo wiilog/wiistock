@@ -202,17 +202,8 @@ class ReceptionController extends AbstractController {
                 $reception->setCommentaire($data->get('commentaire'));
             }
 
-            $listAttachmentIdToKeep = $request->request->all('files') ?: [];
-            $attachments = $reception->getAttachments()->toArray();
-
-            foreach ($attachments as $attachment) {
-                /** @var Attachment $attachment */
-                if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $attachmentService->removeAndDeleteAttachment($attachment, $reception);
-                }
-            }
-
-            $attachmentService->persistAttachments($reception, $request->files, $entityManager);
+            $attachmentService->removeAttachments($entityManager, $reception, $request->request->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $reception, $request->files);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
 
@@ -1081,16 +1072,9 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
+        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
         if($isStatutChange) {
@@ -1108,10 +1092,11 @@ class ReceptionController extends AbstractController {
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               DisputeService         $disputeService,
+                              AttachmentService      $attachmentService,
                               ArticleDataService     $articleDataService,
                               Request                $request,
                               UniqueNumberService    $uniqueNumberService,
-                              TranslationService    $translation): Response
+                              TranslationService     $translation): Response
     {
         $post = $request->request;
 
@@ -1177,8 +1162,9 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
         $entityManager->flush();
+
         $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
 
         return new JsonResponse([

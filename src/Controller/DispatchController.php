@@ -48,6 +48,7 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -68,9 +69,6 @@ class DispatchController extends AbstractController {
 
     #[Required]
     public UserService $userService;
-
-    #[Required]
-    public AttachmentService $attachmentService;
 
     #[Route("/", name: "dispatch_index")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE])]
@@ -452,7 +450,6 @@ class DispatchController extends AbstractController {
         $entityManager->persist($dispatch);
 
         try {
-            $entityManager->persist($dispatch);
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
         catch(UniqueConstraintViolationException) {
@@ -620,17 +617,8 @@ class DispatchController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?: [];
-
-        $attachments = $dispatch->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $dispatch);
-            }
-        }
-
-        $attachmentService->persistAttachments($dispatch, $request->files, $entityManager);
+        $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispatch, $request->files);
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);

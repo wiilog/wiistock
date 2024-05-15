@@ -52,7 +52,7 @@ class ReserveController extends AbstractController
                 throw new FormException('Le type de réserve est obligatoire');
             }
 
-            $attachmentService->persistAttachments($reserve, $request->files, $entityManager);
+            $attachmentService->persistAttachments($entityManager, $reserve, $request->files);
         } else {
             if (!empty($data['hasGeneralReserve']) || !empty($data['hasQuantityReserve'])) {
                 $type = $data['type'] ?? null;

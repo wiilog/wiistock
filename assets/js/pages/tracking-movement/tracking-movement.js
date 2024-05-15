@@ -2,6 +2,7 @@ import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from '@app/ajax';
 import Flash from '@app/ajax';
 import Modal from '@app/modal';
+import Camera from '@app/camera';
 import moment from 'moment';
 import Form from '@app/form';
 import {initDataTable, initSearchDate} from "@app/datatable";
@@ -132,6 +133,7 @@ function initPageModals(tableMvt) {
         .create($modalEditMvtTraca, {clearOnOpen: false})
         .onOpen(function (event) {
             const trackingMovement = $(event.relatedTarget).data('id');
+            clearModal($modalEditMvtTraca);
             Modal.load('tracking_movement_api_edit',
                 {trackingMovement},
                 $modalEditMvtTraca,
@@ -142,11 +144,10 @@ function initPageModals(tableMvt) {
                             .init(
                                 $modalEditMvtTraca.find(`.take-picture-modal-button`),
                                 $modalEditMvtTraca.find(`[name="files[]"]`)
-                            )
+                            );
                     }
                 })
             initDatePickers();
-
         })
         .submitTo(
             POST,
@@ -188,7 +189,7 @@ function initPageModals(tableMvt) {
                 .init(
                     $modalNewMvtTraca.find(`.take-picture-modal-button`),
                     $modalNewMvtTraca.find(`[name="files[]"]`)
-                )
+                );
         })
         .onSubmit(function (data, form) {
             const pack = $modalNewMvtTraca.find(`[name="pack"]`).val();

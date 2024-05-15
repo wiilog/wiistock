@@ -72,9 +72,6 @@ class ArrivageController extends AbstractController {
     public UserService $userService;
 
     #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
     public LanguageService $languageService;
 
     private ?string $defaultLanguageSlug = null;
@@ -85,7 +82,6 @@ class ArrivageController extends AbstractController {
      */
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
-                          KeptFieldService $keptFieldService,
                           TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
@@ -277,7 +273,7 @@ class ArrivageController extends AbstractController {
                 $arrivage->addAcheteur($userRepository->find($acheteurId));
             }
         }
-        $attachmentService->persistAttachments($arrivage, $request->files, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $arrivage, $request->files);
 
         $natures = Stream::from(isset($data['packs']) ? json_decode($data['packs'], true) : [])
             ->filter()
@@ -628,17 +624,8 @@ class ArrivageController extends AbstractController {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-
-        $attachments = $arrivage->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $arrivage);
-            }
-        }
-
-        $attachmentService->persistAttachments($arrivage, $request->files, $entityManager);
+        $attachmentService->removeAttachments($entityManager, $arrivage, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $arrivage, $request->files);
 
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
@@ -681,6 +668,7 @@ class ArrivageController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::DELETE_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
+                           AttachmentService $attachmentService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -708,11 +696,7 @@ class ArrivageController extends AbstractController {
                     $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
-                $entityManager->flush();
-
-                foreach ($arrivage->getAttachments() as $attachement) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
-                }
+                $attachmentService->removeAttachments($entityManager, $arrivage);
 
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
@@ -929,7 +913,7 @@ class ArrivageController extends AbstractController {
 
         $entityManager->persist($historyRecord);
 
-        $attachmentService->persistAttachments($dispute, $request->files, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
         try {
             $entityManager->flush();
         }
@@ -1190,17 +1174,9 @@ class ArrivageController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
+        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
 
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
-
-        $attachmentService->persistAttachments($dispute, $request->files, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBefore !== $statutAfter);
         if ($isStatutChange) {

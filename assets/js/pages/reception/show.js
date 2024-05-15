@@ -5,6 +5,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
 import Modal from "@app/modal";
 import Form from "@app/form";
+import Camera from "@app/camera";
 import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";

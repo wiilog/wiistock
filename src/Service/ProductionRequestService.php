@@ -251,17 +251,11 @@ class ProductionRequestService
             }
         }
 
-        $attachments = $productionRequest->getAttachments()->toArray();
         $alreadySavedFiles = $data->has('files')
             ? $data->all('files')
             : [];
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $alreadySavedFiles)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
-            }
-        }
 
+        $this->attachmentService->removeAttachments($entityManager, $productionRequest, $alreadySavedFiles);
         $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
 
         if ($productionRequest->getAttachments()->isEmpty() && $productionRequest->getStatus()->isRequiredAttachment()) {

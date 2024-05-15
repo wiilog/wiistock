@@ -349,15 +349,15 @@ class HandlingController extends AbstractController {
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];
 
-        $attachments = $handling->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $handling);
-            }
+        $attachmentsToRemove = Stream::from($handling->getAttachments()->toArray())
+            ->filter(static fn(Attachment $attachment) => !in_array($attachment->getId(), $listAttachmentIdToKeep))
+            ->toArray();
+        foreach ($attachmentsToRemove as $attachment) {
+            $handling->removeAttachment($attachment);
+            $entityManager->remove($attachment);
         }
 
-        $attachmentService->persistAttachments($handling, $request->files, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $handling, $request->files);
         $entityManager->flush();
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';

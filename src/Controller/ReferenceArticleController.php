@@ -68,7 +68,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -494,6 +493,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
+                         AttachmentService      $attachmentService,
                          TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
@@ -517,7 +517,7 @@ class ReferenceArticleController extends AbstractController
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $refArticle->removeIfNotIn($data->all()['files'] ?? []);
+                    $attachmentService->removeAttachments($entityManager, $refArticle, $data->all()['files'] ?? []);
                     $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
