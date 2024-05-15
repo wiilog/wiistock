@@ -20,6 +20,7 @@ class Sensor {
     const EXTENDER = 'Extender';
     const ZONE = 'Zone';
     const TRACER = 'Tracer';
+    const GATEWAY = 'Gateway';
 
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
@@ -28,6 +29,7 @@ class Sensor {
         self::HYGROMETRY => 'iot-hygrometry',
         self::TRACER => 'iot-tracer',
         self::ZONE => 'iot-zone',
+        self::GATEWAY => 'Gateway',
     ];
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';

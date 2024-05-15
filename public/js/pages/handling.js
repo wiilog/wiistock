@@ -80,9 +80,6 @@ function initDatatable(params) {
                     color: 'danger',
                     dataToCheck: 'emergency'
                 },
-                drawConfig: {
-                    needsSearchOverride: true,
-                },
                 ajax: {
                     "url": pathHandling,
                     "type": "POST",
@@ -90,13 +87,6 @@ function initDatatable(params) {
                         'filterStatus': $('#filterStatus').val(),
                         'selectedDate': () => params.date,
                     },
-                },
-                hideColumnConfig: {
-                    columns: [
-                        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-                        ...columns,
-                    ],
-                    tableFilter: 'tableHandlings',
                 },
                 columns: [
                     {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},

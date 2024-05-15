@@ -202,14 +202,7 @@ function initTableDispatch(groupedSignatureMode = false) {
                 color: 'danger',
                 dataToCheck: 'emergency'
             },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             columns,
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableDispatches'
-            },
             page: 'dispatch',
             disabledRealtimeReorder: groupedSignatureMode,
             createdRow: (row) => {
@@ -223,13 +216,7 @@ function initTableDispatch(groupedSignatureMode = false) {
             extendsDateSort('customDate');
         }
 
-        const dispatchsTable = initDataTable('tableDispatches', tableDispatchConfig);
-        dispatchsTable.on('responsive-resize', function () {
-            resizeTable(dispatchsTable);
-        });
-
-
-        return dispatchsTable;
+        return initDataTable('tableDispatches', tableDispatchConfig);
     }
 }
 

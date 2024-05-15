@@ -8,10 +8,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SettingRepository::class)]
 class Setting {
 
-    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
-    const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
-    const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
-    const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
+    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/wiilog.svg';
+    const DEFAULT_EMAIL_LOGO_VALUE = '/img/wiilog.svg';
+    const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/wiilog.svg';
+    const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/wiilog.svg';
     const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
@@ -138,14 +138,6 @@ class Setting {
     const FOURNISSEUR_LABEL_REFERENCE_CREATE = 'FOURNISSEUR_LABEL_REFERENCE_CREATE';
     const FOURNISSEUR_REFERENCE_CREATE = 'FOURNISSEUR_REFERENCE_CREATE';
 
-    // borne tactile - demande de collect
-    const COLLECT_REQUEST_TYPE = 'COLLECT_REQUEST_TYPE';
-    const COLLECT_REQUEST_REQUESTER = 'COLLECT_REQUEST_REQUESTER';
-    const COLLECT_REQUEST_OBJECT = 'COLLECT_REQUEST_OBJECT';
-    const COLLECT_REQUEST_POINT_COLLECT = 'COLLECT_REQUEST_POINT_COLLECT';
-    const COLLECT_REQUEST_DESTINATION = 'COLLECT_REQUEST_DESTINATION';
-    const COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT = 'COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT';
-
     // demande livraison rapide
 
     const DELIVERY_STATION_TOP_LEFT_LOGO = 'DELIVERY_STATION_TOP_LEFT_LOGO';
@@ -169,6 +161,7 @@ class Setting {
     const FILE_MOBILE_LOGO_HEADER = 'MOBILE_LOGO_HEADER';
     const FILE_MOBILE_LOGO_LOGIN = 'MOBILE_LOGO_LOGIN';
     const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
+    const SHOW_LOGIN_LOGO = 'SHOW_LOGIN_lOGO';
     const APP_CLIENT_LABEL = 'APP_CLIENT_LABEL';
 
     const DEFAULT_FONT_FAMILY = self::FONT_MYRIAD;

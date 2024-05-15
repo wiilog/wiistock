@@ -13,9 +13,6 @@ $(function() {
             "url": pathMvt,
             "type": "POST"
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         columns: [
             {data: 'actions', title: '', orderable: false},
             {data: 'date', title: 'Date'},

@@ -27,7 +27,6 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -39,7 +38,6 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
-use WiiCommon\Helper\StringHelper;
 
 class TrackingMovementService extends AbstractController
 {
@@ -221,7 +219,6 @@ class TrackingMovementService extends AbstractController
 
     public function dataRowMouvement(TrackingMovement $movement): array {
         $fromColumnData = $this->getFromColumnData($movement);
-
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig(
                 $this->entityManager,
@@ -1318,6 +1315,7 @@ class TrackingMovementService extends AbstractController
         $inCarts = [];
 
         $trackingDate = $options['trackingDate'] ?? new DateTime();
+        $reception = $options['reception'] ?? false;
 
         // clear given options articles
         unset($options['articles']);
@@ -1347,10 +1345,7 @@ class TrackingMovementService extends AbstractController
         foreach($articles as $article) {
             $pickLocation = $article->getEmplacement();
 
-            $isUnitChanges = (
-                $article->getCurrentLogisticUnit()
-                && $article->getCurrentLogisticUnit()?->getId() !== $pack?->getId()
-            );
+            $isUnitChanges = ($article->getCurrentLogisticUnit()?->getId() !== $pack?->getId());
             $isLocationChanges = $pickLocation?->getId() !== $dropLocation->getId();
 
             $options['quantity'] = $article->getQuantite();
@@ -1370,7 +1365,8 @@ class TrackingMovementService extends AbstractController
             $pack?->setArticleContainer(true);
 
             $newMovements = [];
-            if ($isUnitChanges || $isLocationChanges) {
+            if (!$reception
+                && ($isUnitChanges || $isLocationChanges)) {
                 //generate pick movements
                 $pick = $this->persistTrackingMovement(
                     $manager,
@@ -1387,7 +1383,7 @@ class TrackingMovementService extends AbstractController
                 $newMovements[] = $pick;
             }
 
-            if ($isUnitChanges) {
+            if (!$reception && $isUnitChanges) {
                 //generate pick in LU movements
                 /** @var TrackingMovement $luPick */
                 $luPick = $this->persistTrackingMovement(
@@ -1413,7 +1409,7 @@ class TrackingMovementService extends AbstractController
             // then change the project of the article according to the pack project
             $this->projectHistoryRecordService->changeProject($manager, $article, $pack?->getProject(), $trackingDate);
 
-            if ($isUnitChanges || $isLocationChanges) {
+            if ($reception || $isUnitChanges || $isLocationChanges) {
                 //generate drop movements
                 /** @var TrackingMovement $drop */
                 $drop = $this->persistTrackingMovement(
@@ -1451,7 +1447,7 @@ class TrackingMovementService extends AbstractController
             }
 
             foreach ($newMovements as $movement) {
-                $movement->setMainMovement($luDrop ?? $drop);
+                $movement->setMainMovement($luDrop ?? $drop ?? null);
             }
 
             if ($isLocationChanges) {

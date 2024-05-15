@@ -316,12 +316,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptFieldValue::class)]
     private Collection $keptFieldValues;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
-    private ?bool $kioskUser = false;
-
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
-    private ?KioskToken $kioskToken = null;
-
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
 
@@ -1893,37 +1887,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
                 $keptFieldValue->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function isKioskUser(): ?bool {
-        return $this->kioskUser;
-    }
-
-    public function setKioskUser(?bool $kioskUser): self {
-        $this->kioskUser = $kioskUser;
-        return $this;
-    }
-
-    public function getKioskToken(): ?KioskToken
-    {
-        return $this->kioskToken;
-    }
-
-    public function setKioskToken(?KioskToken $kioskToken): self
-    {
-        // unset the owning side of the relation if necessary
-        if ($kioskToken === null && $this->kioskToken !== null) {
-            $this->kioskToken->setUser(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($kioskToken !== null && $kioskToken->getUser() !== $this) {
-            $kioskToken->setUser($this);
-        }
-
-        $this->kioskToken = $kioskToken;
 
         return $this;
     }

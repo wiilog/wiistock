@@ -4,6 +4,7 @@ import {$document} from "@app/app";
 import AJAX, {GET, POST} from "@app/ajax";
 import {initializeFilters} from "@app/pages/transport/common";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 global.editStatusChange = editStatusChange;
 

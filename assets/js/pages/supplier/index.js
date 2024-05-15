@@ -2,6 +2,7 @@ import FixedFieldEnum from "@generated/fixed-field-enum";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import {POST, DELETE} from "@app/ajax";
+import {initDataTable} from "@app/datatable";
 
 $(function () {
     $('.select2').select2();
@@ -30,9 +31,6 @@ $(function () {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     };
     let supplierTable = initDataTable('supplier-table', supplierTableConfig);
 

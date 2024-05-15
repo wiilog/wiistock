@@ -4,9 +4,11 @@ import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
 import Modal from "@app/modal";
+import Form from "@app/form";
 import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
+import {initDataTable} from "@app/datatable";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -268,7 +270,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
@@ -279,7 +281,7 @@ function getCommentAndAddHisto() {
 }
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             url: pathHistoLitige,
@@ -548,7 +550,7 @@ function initNewLigneReception() {
                 Modal.confirm({
                     message: `
                         <p class="mb-2 text-center">L'emplacement de réception est différent de l'emplacement de l'unité logistique.</p>
-                        <p class="text-center">Les articles seront déposés sur l'emplacement de réception puis déplacés sur l'emplacement de l'unité logistique.</p>
+                        <p class="text-center">Les articles seront déposés sur l'emplacement de l'unité logistique.</p>
                     `,
                     validateButton: {
                         color: 'success',
@@ -685,11 +687,9 @@ function onReferenceToReceiveChange() {
                 .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
 
             // user can't make a transfer if the article is in a pack
-            if (Object.keys(pack).length) {
-                $('.create-request-container').find('input[value=transfer]').prop('disabled', true);
-            } else {
-                $('.create-request-container').find('input[value=transfer]').prop('disabled', false);
-            }
+            $modal
+                .find('.create-request-container input[value=transfer]')
+                .prop('disabled', Object.keys(pack).length);
         }
         else {
             $selectPack.prop('disabled', false)
@@ -732,9 +732,6 @@ function onReferenceToReceiveChange() {
             .removeAttr('data-other-params-order-number')
             .val(null).select2('data', null);
     }
-
-    $selectArticleFournisseur.trigger('change');
-    $selectPack.trigger('change');
 }
 
 function clearPackingContent($element, hideSubFields = true, hidePackingContainer = true) {

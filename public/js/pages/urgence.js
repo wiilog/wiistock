@@ -44,9 +44,6 @@ function initPage() {
             {"data": 'internalArticleCode', 'name': 'internalArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article interne', false)},
             {"data": 'supplierArticleCode', 'name': 'supplierArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article fournisseur', false)},
         ],
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         rowConfig: {
             needsRowClickAction: true,
         },
@@ -63,7 +60,7 @@ function initPage() {
 
     let $modalNewUrgence = $('#modalNewEmergency');
     Form
-        .create($modalNewUrgence)
+        .create($modalNewUrgence, {clearOnOpen: true})
         .submitTo(AJAX.POST, 'emergency_new', {
             success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
             tables: tableEmergencies

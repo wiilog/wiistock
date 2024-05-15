@@ -18,7 +18,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Image externe' => [
             'hint' => 'Image statique',
             'exampleValues' => [
-                'url' => '/img/mobile_logo_header.svg',
+                'url' => '/img/wiilog.svg',
             ],
             'category' => Dashboard\ComponentType::CATEGORY_OTHER,
             'template' => Dashboard\ComponentType::EXTERNAL_IMAGE,

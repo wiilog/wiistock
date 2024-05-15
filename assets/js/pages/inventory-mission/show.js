@@ -1,5 +1,6 @@
 import {ERROR} from "@app/flash";
 import {POST} from "@app/ajax";
+import {initDataTable, initSearchDate} from "@app/datatable";
 
 let tableLocationMission;
 
@@ -103,9 +104,6 @@ function initInventoryEntryDatatables(missionId) {
 
                     return json.data;
                 }
-            },
-            drawConfig: {
-                needsSearchOverride: true,
             },
             domConfig: {
                 removeInfo: true,

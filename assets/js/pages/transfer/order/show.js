@@ -1,3 +1,5 @@
+import {initDataTable} from "@app/datatable";
+
 global.validateOrder = validateOrder;
 global.deleteOrder = deleteOrder;
 

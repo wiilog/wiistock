@@ -274,10 +274,6 @@ function changeNewReferenceStatus($select) {
         $reference.prop(`disabled`, draftSelected);
         $location.prop('disabled', draftSelected);
 
-        if ($location.exists()) {
-            $location.prop(`disabled`, draftSelected);
-        }
-
         if (draftSelected) {
             const defaultDraftReference = $reference.data('draft-default');
 
