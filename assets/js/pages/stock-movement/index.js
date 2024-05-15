@@ -40,7 +40,7 @@ $(function() {
 
     Form
         .create('#modalNewMvtStock',{clearOnOpen: true})
-        .submitTo(POST, "mvt_stock_new", {tables: () => [tableMvt]})
+        .submitTo(POST, "mvt_stock_new", {tables: () => {return tableMvt}})
         .on('change', '[name="reference-new-mvt"]', (event) => {
             resetNewModal($modalNewMvtStock);
             newMvtStockArticleChosen($(event.target));
