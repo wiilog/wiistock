@@ -2,7 +2,7 @@
     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-wiilog pointer">
+        <div class="dropdown-menu dropdown-wiilog pointer">
             <div class="dropdown-item d-flex align-items-center action-on-click" data-id='{{ ligneId }}' data-toggle='modal' data-target='#modalEditReference'
                  onclick="editRow($(this), Routing.generate('dispatch_edit_reference_api', {dispatchReferenceArticle: {{ ligneId }}}, true), $('#modalEditReference'), $('#submitEditReference')),
                           clearModal('#modalEditReference')">

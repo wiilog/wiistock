@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between">
         <div class="dropdown dropright">
             {{ include('datatable/dotsRow.html.twig') }}
-            <div class="dropdown-menu dropdown-follow-wiilog pointer">
+            <div class="dropdown-menu dropdown-wiilog pointer">
                 {% if pack.arrivage %}
                     <a class="dropdown-item  d-flex align-items-center"
                        href="{{ path('print_arrivage_single_pack_bar_codes', {arrivage: pack.arrivage.id, pack: pack.id}) }}">

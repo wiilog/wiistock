@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-wiilog pointer">
+        <div class="dropdown-menu dropdown-wiilog pointer">
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class='d-none action-on-click'
                      onclick="displayCarrierModal({{ transporteur.id }})">
