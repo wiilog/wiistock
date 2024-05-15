@@ -190,7 +190,7 @@ parameters:
                     path: 'mouvement_stock_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_MOUV_STOC
+                        action: App\Entity\Action::DISPLAY_MOV_STOCK
                 -   label: 'Inventaire'
                     path: 'inventory_mission_index'
                     rights:

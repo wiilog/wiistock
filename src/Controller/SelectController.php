@@ -691,8 +691,7 @@ class SelectController extends AbstractController {
      * @Route("/select/articles", name="ajax_select_articles", options={"expose"=true})
      */
     public function articles(Request $request, EntityManagerInterface $entityManager): Response {
-        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"));
-
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"), null, $request->query->get("reference-new-mvt"));
         return $this->json([
             "results" => $results
         ]);

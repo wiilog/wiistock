@@ -194,6 +194,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.isUrgent AS urgent')
             ->addSelect('reference.emergencyComment AS emergencyComment')
+            ->addSelect('reference.quantiteDisponible AS quantityDisponible')
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
