@@ -890,7 +890,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => isset($code)
-                    ? ("<span title='$code'>$code</span>". $this->formService->macro('hidden', 'pack', $code))
+                    ? ("<span title='$code'>".htmlspecialchars($code)."</span>". $this->formService->macro('hidden', 'pack', $code))
                     : "<select name='pack'
                                data-s2='keyboardPacks'
                                data-parent='body'
@@ -1056,7 +1056,7 @@ class DispatchService {
         } else if($dispatchPack) {
             $data = [
                 "actions" => $actions,
-                "code" => $code,
+                "code" => htmlspecialchars($code),
                 "nature" => $nature?->getLabel(),
                 "quantity" => $quantity,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $weight,
