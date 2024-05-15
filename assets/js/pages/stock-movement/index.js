@@ -1,6 +1,8 @@
 import AJAX, {GET, POST, DELETE} from '@app/ajax';
 import Form from '@app/form';
 import {getUserFiltersByPage} from '@app/utils';
+import Flash, {ERROR} from "@app/flash";
+import {initDataTable} from "@app/datatable";
 
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
@@ -73,6 +75,11 @@ function newMvtStockArticleChosen($select) {
     const $quantityEntranceOut = $('[name="chosen-mvt-quantity"]');
 
     const selectedArticles = $select.select2('data');
+
+    $artMvt.text("");
+    $quantityEntranceOut.val("");
+    $locationTo.text("");
+    $type.val("")
 
     if (selectedArticles.length > 0) {
         const selectedArticle = selectedArticles[0];
@@ -173,6 +180,9 @@ function newMvtStockTypeChanged($select) {
 }
 
 function deleteMvtStock(id) {
+    if(id === undefined){
+        Flash.add(ERROR, `Une erreur est survenue lors de la suppression de votre mouvement de stock. Veuillez recharger la page et réessayer.`);
+    }
     Modal.confirm({
         ajax: {
             method: DELETE,
