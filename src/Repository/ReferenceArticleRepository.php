@@ -799,7 +799,7 @@ class ReferenceArticleRepository extends EntityRepository {
                             if ($freeFieldTyping === FreeField::TYPE_BOOL) {
                                 if (!$searchBooleanValues->isEmpty()) {
                                     foreach ($searchBooleanValues->toArray() as $booleanValue) {
-                                        $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', $booleanValue, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                        $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', '$booleanValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     }
                                 }
                             } elseif (in_array($freeFieldTyping, [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])) {
