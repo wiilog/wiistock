@@ -104,6 +104,12 @@ function visiteLinkText($el) {
     cy.wait('@request').its('response.statusCode').should('not.eq', 500)
 }
 
+function navigate(menuPage, subMenu) {
+    cy.navigateInNavMenu(menuPage.menu, subMenu)
+    // request should not have 500 status code
+    cy.wait('@request').its('response.statusCode').should('not.eq', 500)
+}
+
 describe('Open all pages', () => {
     beforeEach(() => {
         cy.login(user);
@@ -112,12 +118,9 @@ describe('Open all pages', () => {
     })
 
     it('Pages from menu', () => {
-        // todo: ouvrir la modal de création pour chaque page et vérifier que la modal est ouverte est contient au moins 1 input
         menuPages.forEach((menuPage) => {
             menuPage.subMenu.forEach((subMenu) => {
-                cy.navigateInNavMenu(menuPage.menu, subMenu)
-                // request should not have 500 status code
-                cy.wait('@request').its('response.statusCode').should('not.eq', 500)
+                navigate(menuPage, subMenu);
             })
         })
     })
