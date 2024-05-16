@@ -79,7 +79,7 @@ const menuPages = [
             'pairing_index',
         ],
     },
-    {
+    /*{
         menu : 'parametre',
     },
     {
@@ -87,8 +87,9 @@ const menuPages = [
     },
     {
         menu : 'phone',
-    },
+    },*/
 ]
+
 
 describe('Open all pages', () => {
     beforeEach(() => {
@@ -99,7 +100,7 @@ describe('Open all pages', () => {
 
     it('Pages from menu', () => {
         menuPages.forEach((menuPage) => {
-            menuPage.subMenu?.forEach((subMenu) => {
+            menuPage.subMenu.forEach((subMenu) => {
                 cy.navigateInNavMenu(menuPage.menu, subMenu)
                 // request should not have 500 status code
                 cy.wait('@request').its('response.statusCode').should('not.eq', 500)
@@ -108,6 +109,20 @@ describe('Open all pages', () => {
     })
 
     it('Pages from setting', () => {
+        let settingPages = []
+        cy.navigateInNavMenu('parametre')
 
+        cy.get('.settings-menu a').each(($el) => {
+            settingPages.push($el.attr('href'))
+        }).then(() => {
+
+            cy.log("We have " + settingPages.length + " setting pages");
+
+            settingPages.forEach((settingPage) => {
+                cy.visit(settingPage)
+                // request should not have 500 status code
+                cy.wait('@request').its('response.statusCode').should('not.eq', 500)
+            })
+        })
     })
 })
