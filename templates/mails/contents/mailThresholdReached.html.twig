@@ -11,7 +11,7 @@
         <li>Quantité en stock : <strong>{{ reference.quantiteStock }}</strong></li>
         <li>Seuil d'alerte : <strong>{{ reference.limitWarning }}</strong></li>
         <li>Seuil de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
-        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_RATATOUILLE')) %}
             <li>Machine PDT : <strong>{{ machinePDTValue }}</strong></li>
         {% endif %}
         <li>Fournisseur(s) :</li>
