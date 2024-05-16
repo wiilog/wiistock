@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -14,9 +16,10 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
-class TrackingMovement {
+class TrackingMovement implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
+    use AttachmentTrait;
 
     const DEFAULT_QUANTITY = 1;
 

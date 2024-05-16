@@ -2,6 +2,7 @@ import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from '@app/ajax';
 import Flash from '@app/ajax';
 import Modal from '@app/modal';
+import Camera from '@app/camera';
 import moment from 'moment';
 import Form from '@app/form';
 import {initDataTable, initSearchDate} from "@app/datatable";
@@ -129,10 +130,23 @@ function initTrackingMovementTable(columns) {
 function initPageModals(tableMvt) {
     let $modalEditMvtTraca = $("#modalEditMvtTraca");
     Form
-        .create($modalEditMvtTraca)
+        .create($modalEditMvtTraca, {clearOnOpen: false})
         .onOpen(function (event) {
             const trackingMovement = $(event.relatedTarget).data('id');
-            Modal.load('tracking_movement_api_edit', {trackingMovement}, $modalEditMvtTraca)
+            clearModal($modalEditMvtTraca);
+            Modal.load('tracking_movement_api_edit',
+                {trackingMovement},
+                $modalEditMvtTraca,
+                $modalEditMvtTraca.find(`.modal-body`),
+                {
+                    onOpen: () => {
+                        Camera
+                            .init(
+                                $modalEditMvtTraca.find(`.take-picture-modal-button`),
+                                $modalEditMvtTraca.find(`[name="files[]"]`)
+                            );
+                    }
+                })
             initDatePickers();
         })
         .submitTo(
@@ -171,6 +185,11 @@ function initPageModals(tableMvt) {
         .create($modalNewMvtTraca)
         .onOpen(function () {
             fillDatePickers($modalNewMvtTraca.find('[name="datetime"]') , 'YYYY-MM-DD', true);
+            Camera
+                .init(
+                    $modalNewMvtTraca.find(`.take-picture-modal-button`),
+                    $modalNewMvtTraca.find(`[name="files[]"]`)
+                );
         })
         .onSubmit(function (data, form) {
             const pack = $modalNewMvtTraca.find(`[name="pack"]`).val();

@@ -62,7 +62,6 @@ use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,7 +71,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
@@ -203,16 +202,13 @@ class ReceptionController extends AbstractController {
                 $reception->setCommentaire($data->get('commentaire'));
             }
 
-            if ($data->has('files')) {
-                $reception->removeIfNotIn($data->get('files') ?: []);
-            }
-
-            $entityManager->flush();
+            $attachmentService->removeAttachments($entityManager, $reception, $request->request->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $reception, $request->files);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
-            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
+
             $json = [
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
@@ -1076,16 +1072,9 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
+        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
         if($isStatutChange) {
@@ -1103,10 +1092,11 @@ class ReceptionController extends AbstractController {
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               DisputeService         $disputeService,
+                              AttachmentService      $attachmentService,
                               ArticleDataService     $articleDataService,
                               Request                $request,
                               UniqueNumberService    $uniqueNumberService,
-                              TranslationService    $translation): Response
+                              TranslationService     $translation): Response
     {
         $post = $request->request;
 
@@ -1172,8 +1162,9 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
         $entityManager->flush();
+
         $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
 
         return new JsonResponse([
