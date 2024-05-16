@@ -1421,7 +1421,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    $options + ['ignoreProjectChange' => true],
+                    $options + ["ignoreProjectChange" => true, "stockAction" => true],
                 )["movement"];
 
                 $movements[] = $drop;
