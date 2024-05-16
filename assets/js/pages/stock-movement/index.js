@@ -7,6 +7,7 @@ import {initDataTable} from "@app/datatable";
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
 $(function() {
+    initDateTimePicker();
     $('.select2').select2();
     AJAX.route(
         GET,
