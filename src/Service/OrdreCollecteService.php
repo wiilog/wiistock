@@ -296,12 +296,8 @@ class OrdreCollecteService
 		$partialCollect = !empty($rowsToRemove);
 
         if($demandeCollecte->getDemandeur()){
-            $kioskUser = $demandeCollecte->getDemandeur()?->isKioskUser();
-            $to = $kioskUser
-                ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
-                : $demandeCollecte->getDemandeur();
-
-            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
+            $to = $demandeCollecte->getKiosk()?->getRequester() ?: $demandeCollecte->getDemandeur();
+            if($demandeCollecte->getKiosk() && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
                 $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
                     ->map(fn(Utilisateur $manager) => $manager->getEmail())
                     ->toArray();
