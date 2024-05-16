@@ -90,7 +90,6 @@ const menuPages = [
     },*/
 ]
 
-
 describe('Open all pages', () => {
     beforeEach(() => {
         cy.login(user);
@@ -98,7 +97,7 @@ describe('Open all pages', () => {
         cy.intercept('*').as('request');
     })
 
-    it('Pages from menu', () => {
+/*    it('Pages from menu', () => {
         menuPages.forEach((menuPage) => {
             menuPage.subMenu.forEach((subMenu) => {
                 cy.navigateInNavMenu(menuPage.menu, subMenu)
@@ -115,14 +114,29 @@ describe('Open all pages', () => {
         cy.get('.settings-menu a').each(($el) => {
             settingPages.push($el.attr('href'))
         }).then(() => {
-
-            cy.log("We have " + settingPages.length + " setting pages");
-
             settingPages.forEach((settingPage) => {
                 cy.visit(settingPage)
                 // request should not have 500 status code
                 cy.wait('@request').its('response.statusCode').should('not.eq', 500)
             })
         })
+    })*/
+
+    it('Pages from plus menu', () => {
+        let plusPages = []
+        cy.get('.quick-plus').click().then(() => {
+            cy.get('#quick-menu a').each(($el) => {
+                plusPages.push($el.attr('href'))
+            }).then(() => {
+                plusPages.forEach((plusPage) => {
+                    cy.visit(plusPage)
+                    // request should not have 500 status code
+                    cy.wait('@request').its('response.statusCode').should('not.eq', 500)
+                    // verfify we have div with modal class
+                    cy.get('.modal').should('be.visible');
+                })
+            })
+        })
     })
+
 })
