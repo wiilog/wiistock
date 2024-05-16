@@ -1377,7 +1377,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
-                    $options,
+                    $options + ["stockAction" => true],
                 )["movement"];
                 $movements[] = $pick;
                 $newMovements[] = $pick;
@@ -1395,7 +1395,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
-                    $options,
+                    $options + ["stockAction" => true],
                 )["movement"];
 
                 $oldCurrentLogisticUnit = $article->getCurrentLogisticUnit();
@@ -1439,7 +1439,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_DROP_LU,
                     false,
-                    $options,
+                    $options + ["stockAction" => true],
                 )["movement"];
 
                 $luDrop->setLogisticUnitParent($pack);
