@@ -320,7 +320,6 @@ class SettingsService {
             $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
             $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
             $check = $request->request->get('createMvt');
-            $settingRepository = $entityManager->getRepository(Setting::class);
 
             if (!$check) {
                 if ($defaultLocationUL !== null) {
@@ -339,6 +338,15 @@ class SettingsService {
 
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
+        }
+
+        if ($request->request->has("MAILER_PASSWORD")) {
+            $settingMailPassword = $settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
+            $newMailPassword = $request->request->get("MAILER_PASSWORD");
+            if ($settingMailPassword != $newMailPassword && $newMailPassword) {
+                $settingMailPassword->setValue($newMailPassword);
+            }
+            $updated[] = "MAILER_PASSWORD";
         }
     }
 
