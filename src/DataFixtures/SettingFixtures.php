@@ -39,10 +39,13 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MAX_SESSION_TIME => [
                 'default' => 30,
             ],
+            Setting::APP_CLIENT_LABEL => [
+                'default' => SpecificService::DEFAULT_CLIENT_LABEL,
+            ],
             Setting::CREATE_DL_AFTER_RECEPTION => [
                 'default' => false,
-                SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                SpecificService::CLIENT_BOURGUIGNON => true,
+                SpecificService::CLIENT_BARBECUE => true
             ],
             Setting::CREATE_PREPA_AFTER_DL => [
                 'default' => true,
@@ -52,11 +55,11 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DIRECT_DELIVERY => [
                 'default' => false,
-                SpecificService::CLIENT_ARCELOR => true
+                SpecificService::CLIENT_GRATIN_DAUPHINOIS => true
             ],
             Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST => [
                 'default' => false,
-                SpecificService::CLIENT_SAFRAN_ED => true,
+                SpecificService::CLIENT_PETIT_SALE => true,
             ],
             Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION => [
                 'default' => false,
@@ -69,20 +72,20 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
                 'default' => false,
-                SpecificService::CLIENT_SAFRAN_ED => true,
+                SpecificService::CLIENT_PETIT_SALE => true,
             ],
             Setting::INCLUDE_BL_IN_LABEL => [
                 'default' => false,
-                SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                SpecificService::CLIENT_BOURGUIGNON => true,
+                SpecificService::CLIENT_BARBECUE => true
             ],
             Setting::REDIRECT_AFTER_NEW_ARRIVAL => [
                 'default' => true,
-                SpecificService::CLIENT_SAFRAN_ED => false
+                SpecificService::CLIENT_PETIT_SALE => false
             ],
             Setting::SEND_MAIL_AFTER_NEW_ARRIVAL => [
                 'default' => false,
-                SpecificService::CLIENT_SAFRAN_ED => true
+                SpecificService::CLIENT_PETIT_SALE => true
             ],
             Setting::INCLUDE_DZ_LOCATION_IN_LABEL => [
                 'default' => true,
@@ -92,7 +95,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             setting::INCLUDE_BUSINESS_UNIT_IN_LABEL => [
                 'default' => false,
-                SpecificService::CLIENT_INEO_LAV => true,
+                SpecificService::CLIENT_ALIGOT => true,
             ],
             setting::INCLUDE_PROJECT_IN_LABEL => [
                 'default' => false,
@@ -159,23 +162,23 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [
                 'default' => false,
-                SpecificService::CLIENT_ARCELOR => true
+                SpecificService::CLIENT_GRATIN_DAUPHINOIS => true
             ],
             Setting::SEND_MAIL_MANAGER_SECURITY_THRESHOLD => [
                 'default' => false,
-                SpecificService::CLIENT_ARCELOR => true
+                SpecificService::CLIENT_GRATIN_DAUPHINOIS => true
             ],
             Setting::STOCK_EXPIRATION_DELAY => [],
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => [
                 "default" => false,
-                SpecificService::CLIENT_AIA_BRETAGNE => implode(",", ["FME", "JAM", "CC", "Autres"])
+                SpecificService::CLIENT_GALETTE_SAUCISSE => implode(",", ["FME", "JAM", "CC", "Autres"])
             ],
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
             Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT => [
                 'default' => true,
-                SpecificService::CLIENT_SAFRAN_ED => false
+                SpecificService::CLIENT_PETIT_SALE => false
             ],
             Setting::DISPLAY_WARNING_WRONG_LOCATION => [
                 'default' => false,
@@ -253,32 +256,32 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FILE_WAYBILL_LOGO => [], // TODO WIIS-8882
             Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
+                SpecificService::CLIENT_TRUFFADE => '#2b78e4'
             ],
             Setting::DISPATCH_EXPECTED_DATE_COLOR_D_DAY => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#009e0f'
+                SpecificService::CLIENT_TRUFFADE => '#009e0f'
             ],
             Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
+                SpecificService::CLIENT_TRUFFADE => '#cf2a27'
             ],
 
             Setting::HANDLING_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
+                SpecificService::CLIENT_TRUFFADE => '#2b78e4'
             ],
             Setting::HANDLING_EXPECTED_DATE_COLOR_D_DAY => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#009e0f'
+                SpecificService::CLIENT_TRUFFADE => '#009e0f'
             ],
             Setting::HANDLING_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
+                SpecificService::CLIENT_TRUFFADE => '#cf2a27'
             ],
             Setting::SEND_PACK_DELIVERY_REMIND => [
                 'default' => 0,
-                SpecificService::CLIENT_INEO_LAV => true
+                SpecificService::CLIENT_ALIGOT => true
             ],
             Setting::NON_BUSINESS_HOURS_MESSAGE => [
                 'default' => null,

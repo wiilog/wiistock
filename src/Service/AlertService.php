@@ -127,7 +127,7 @@ class AlertService {
         /** @var Article $article */
         [$reference, $article] = $alert->getLinkedArticles();
 
-        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
             $freeFieldRepository = $entityManager->getRepository(FreeField::class);
             $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
 

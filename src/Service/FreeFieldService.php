@@ -90,6 +90,8 @@ class FreeFieldService {
             }
         }
 
+        // concat new free fields with existing ones
+        $freeFields = $freeFields + $entity->getFreeFields();
         $entity->setFreeFields($freeFields);
     }
 

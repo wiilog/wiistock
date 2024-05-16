@@ -159,7 +159,7 @@ class PreparationsManagerService
 
             if ($isMovableElement
                 && (!$movement || $movement->getType() === MouvementStock::TYPE_TRANSFER)) {
-                $this->createMovementLivraison(
+                $this->persistDeliveryMovement(
                     $entityManager,
                     $quantity,
                     $user,
@@ -392,7 +392,7 @@ class PreparationsManagerService
         return $newPreparation;
     }
 
-    public function createMovementLivraison(EntityManagerInterface   $entityManager,
+    public function persistDeliveryMovement(EntityManagerInterface   $entityManager,
                                             int                      $quantity,
                                             Utilisateur              $userNomade,
                                             Livraison                $livraison,

@@ -28,7 +28,7 @@ final class Version20220704140723 extends AbstractMigration
         $this->addSql("INSERT INTO setting (label, value) VALUES ('$directDelivery', 0)");
         $this->addSql("INSERT INTO setting (label, value) VALUES ('$createDeliveryOnly', 0)");
 
-        if($_SERVER["APP_CLIENT"] !== SpecificService::CLIENT_ARCELOR) {
+        if($_SERVER["APP_CLIENT"] !== SpecificService::CLIENT_GRATIN_DAUPHINOIS) {
             $createPreparationAfterDeliverySetting = $this->connection
                 ->executeQuery("SELECT * FROM setting WHERE label = '$createPreparationAfterDelivery' AND value = 1")
                 ->fetchFirstColumn();

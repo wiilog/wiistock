@@ -1272,6 +1272,10 @@ class SettingsService {
         if (array_intersect($updated, [Setting::FONT_FAMILY])) {
             $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "font-family");
         }
+        if (array_intersect($updated, [Setting::APP_CLIENT_LABEL])) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::APP_CLIENT_LABEL);
+        }
+
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig($entityManager);
             $this->cacheClear();

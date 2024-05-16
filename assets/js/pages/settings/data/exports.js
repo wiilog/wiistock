@@ -356,19 +356,29 @@ function onFormEntityChange() {
     }
 }
 
+/**
+ * Render the exportable columns in the select element
+ * @param $columnToExport select element
+ * @param entityExportableColumns the columns that can be exported
+ * @param choosenColumnsToExport the columns that are already choosen
+ */
 function renderExportableColumns($columnToExport, entityExportableColumns, choosenColumnsToExport) {
     $columnToExport.empty();
 
-    const columns = Object.entries(entityExportableColumns)
-        // alphanumeric sort
-        .sort(([_1, label1], [_2, label2]) => (label1 > label2) - (label1 < label2))
-        .map(([value, label]) => {
-            const selected = choosenColumnsToExport.includes(value) ? `selected` : ``;
-            return `<option value="${value}" ${selected}>${label}</option>`;
-        })
-        .join(``);
+    // Prepare options for chosen columns
+    const chosenOptions = choosenColumnsToExport.map(key => {
+        const columnLabel = entityExportableColumns[key];
+        return `<option value="${key}" selected>${columnLabel}</option>`;
+    });
 
-    $columnToExport.append(columns);
+    // Prepare options for remaining columns
+    const remainingOptions = Object.entries(entityExportableColumns)
+        .filter(([key]) => !choosenColumnsToExport.includes(key))
+        .map(([key, label]) => `<option value="${key}">${label}</option>`);
+
+    // Concatenate all options and append to select element
+    const allOptions = [...chosenOptions, ...remainingOptions];
+    $columnToExport.append(allOptions.join(''));
 }
 
 function onFormTypeChange(resetFrequency = true) {
