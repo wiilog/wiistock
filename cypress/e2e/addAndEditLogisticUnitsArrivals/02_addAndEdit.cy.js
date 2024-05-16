@@ -1,5 +1,4 @@
 import routes, {interceptRoute} from "../../support/utils/routes";
-import {ULArrivals, ULArrivalsChanged, ULdispute, ULdisputeChanged, ULnewUL, ULnumberPacksNature1, ULnumberPacksNature2} from "./00_setup-env";
 import {capitalizeFirstLetter, getColumnIndexByColumnName} from "../../support/utils";
 const user= Cypress.config('user');
 
