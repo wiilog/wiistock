@@ -240,14 +240,7 @@ function createArrival(form = null) {
 
         $modal = $(`#modalNewArrivage`);
     }
-    $modal
-        .off('shown.bs.modal.create-arrival')
-        .on('shown.bs.modal.create-arrival', function () {
-            Camera.init(
-                $modal.find(`.take-picture-modal-button`),
-                $modal.find(`[name="files[]"]`)
-            );
-        });
+
     const $element = $modal.find("select[name='noTracking']");
     if ($element.is(`.select2-hidden-accessible`)) {
         $element.val(null).html(``);
@@ -256,6 +249,11 @@ function createArrival(form = null) {
     }
 
     setTimeout(() => {
+        Camera.init(
+            $modal.find(`.take-picture-modal-button`),
+            $modal.find(`[name="files[]"]`)
+        );
+
         onTypeChange($modal.find('[name="type"]'));
         initDateTimePicker('.date-cl');
 

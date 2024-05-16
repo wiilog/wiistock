@@ -94,14 +94,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
     let params = {
         disputeId
     };
-    Form
-        .create($modal, {clearOnOpen: false})
-        .onOpen(() => {
-            Camera.init(
-                $modal.find(`.take-picture-modal-button`),
-                $modal.find(`[name="files[]"]`)
-            )
-        });
 
     if (isArrivage) {
         params.arrivageId = arrivageOrReceptionId;
@@ -132,6 +124,12 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 
             $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         }
+
+        Camera.init(
+            $modal.find(`.take-picture-modal-button`),
+            $modal.find(`[name="files[]"]`)
+        );
+
         fillDemandeurField($modal);
         $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();
