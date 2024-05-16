@@ -8,6 +8,7 @@ use App\Entity\Type;
 use App\Security\UserChecker;
 use App\Service\MailerService;
 use App\Service\SessionHistoryRecordService;
+use App\Service\TranslationService;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -82,8 +83,9 @@ class SecuriteController extends AbstractController {
     }
 
     #[Route("/register", name: "register")]
-    public function register(Request $request,
-                             PasswordService $passwordService,
+    public function register(Request                $request,
+                             PasswordService        $passwordService,
+                             TranslationService     $translationService,
                              EntityManagerInterface $entityManager): Response {
         $session = $request->getSession();
         $user = new Utilisateur();
@@ -113,7 +115,7 @@ class SecuriteController extends AbstractController {
                 $userMailByRole = $utilisateur->getUserMailByIsMailSendRole();
                 if(!empty($userMailByRole)) {
                     $this->mailerService->sendMail(
-                        'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                        $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Notification de création d\'un compte utilisateur',
                         $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
                             'user' => $user->getUsername(),
                             'mail' => $user->getEmail(),

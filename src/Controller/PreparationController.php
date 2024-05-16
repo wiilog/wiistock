@@ -883,6 +883,7 @@ class PreparationController extends AbstractController
     public function checkStock(Request                  $request,
                                EntityManagerInterface   $manager,
                                MailerService            $mailerService,
+                               TranslationService       $translationService,
                                RefArticleDataService    $refArticleDataService,
                                NotificationService      $notificationService,
                                TranslationService       $translation): JsonResponse {
@@ -954,7 +955,7 @@ class PreparationController extends AbstractController
 
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
-                        'FOLLOW GT // Validation d\'une demande vous concernant',
+                        $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             'demande' => $demande,
                             'title' => 'La ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '

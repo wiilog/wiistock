@@ -274,9 +274,12 @@ class LivraisonsManagerService
                 }
             }
 
-            $title = $demandeIsPartial
-                ? 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
-                : 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
+            $title = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) .
+                MailerService::OBJECT_SERPARATOR .
+                ( $demandeIsPartial
+                    ? $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
+                    : $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée'
+                );
             $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
             $sendMailCallback = function(array $to) use ($title, $demande, $preparation, $bodyTitle, $nextLocation): void {

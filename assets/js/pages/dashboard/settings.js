@@ -468,7 +468,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                         html: [
                             '<i class="fas fa-cog" data-toggle="dropdown"></i>',
                             $(`<div/>`, {
-                                class: 'dropdown-menu dropdown-follow-gt dropdown-menu-right pointer ',
+                                class: 'dropdown-menu dropdown-wiilog dropdown-menu-right pointer ',
                                 html: [
                                     $editButton,
                                     $deleteButton
@@ -570,7 +570,7 @@ function createDashboardSelectorItem(dashboard) {
                 <span class="pointer" data-toggle="dropdown">
                     <i class="fas fa-cog"></i>
                 </span>
-                <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-menu dropdown-wiilog pointer">
                     <a class="dropdown-item rename-dashboard" role="button" data-dashboard-index="${dashboard.dashboardIndex}"
                          data-toggle="modal" data-target="#rename-dashboard-modal">
                         <i class="fas fa-cog mr-2"></i>Paramétrage

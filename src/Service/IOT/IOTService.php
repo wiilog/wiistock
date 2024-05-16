@@ -43,6 +43,7 @@ use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use DateInterval;
 use DateTimeZone;
@@ -179,6 +180,9 @@ class IOTService
 
     #[required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     #[required]
     public StatusHistoryService $statusHistoryService;
@@ -647,7 +651,7 @@ class IOTService
             $device->setBattery($newBattery);
             if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Batterie capteur faible',
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Batterie capteur faible',
                     $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
                         'sensorCode' => $device->getCode(),
                         'sensorName' => $wrapper->getName(),

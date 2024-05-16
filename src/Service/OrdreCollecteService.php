@@ -74,6 +74,9 @@ class OrdreCollecteService
     #[Required]
     public SpecificService $specificService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
                                 MailerService $mailerService,
@@ -305,7 +308,7 @@ class OrdreCollecteService
                 $to = array_merge([$to], $managers);
             }
             $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Collecte effectuée',
                 $this->templating->render(
                     'mails/contents/mailCollecteDone.html.twig',
                     [

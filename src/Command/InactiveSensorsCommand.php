@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\IOT\SensorWrapper;
 use App\Service\MailerService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -29,6 +30,9 @@ class InactiveSensorsCommand extends Command {
     #[Required]
     public Twig_Environment $templating;
 
+    #[Required]
+    public TranslationService $translationService;
+
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $wrapperRepository = $this->entityManager->getRepository(SensorWrapper::class);
         $wrappers = $wrapperRepository->findInactives();
@@ -37,7 +41,7 @@ class InactiveSensorsCommand extends Command {
             if (!$wrapper->isInactivityAlertSent() && $wrapper->getManager() && $wrapper->getInactivityAlertThreshold()) {
                 $sensor = $wrapper->getSensor();
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Aucune donnée capteur détectée',
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Aucune donnée capteur détectée',
                     $this->templating->render('mails/contents/iot/mailSensorInactive.html.twig', [
                         'sensorCode' => $sensor->getCode(),
                         'sensorName' => $wrapper->getName(),

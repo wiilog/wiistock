@@ -3,7 +3,7 @@
     {% set canEdit = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT'))  %}
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-gt">
+        <div class="dropdown-menu dropdown-wiilog">
             <a class="dropdown-item" href="{{ path(route, {id: artOrRefId}) }}" target="_blank">
                 <i class='fas fa-eye mr-2'></i>Voir
             </a>

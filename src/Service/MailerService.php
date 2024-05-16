@@ -28,6 +28,8 @@ class MailerService
         "nomail.com",
     ];
 
+    public const OBJECT_SERPARATOR = ' // ';
+
     // visit https://i.stack.imgur.com/dmsiJ.png for the details
     public const EMAIL_SLICING_REGEX = "/^(?<Email>.*@)?(?<Protocol>\w+:\/\/)?(?<SubDomain>(?:[\w-]{2,63}\.){0,127}?)?(?<DomainWithTLD>(?<Domain>[\w-]{2,63})\.(?<TopLevelDomain>[\w-]{2,63}?)(?:\.(?<CountryCode>[a-z]{2}))?)(?:[:](?<Port>\d+))?(?<Path>(?:[\/]\w*)+)?(?<QString>(?<QSParams>(?:[?&=][\w-]*)+)?(?:[#](?<Anchor>\w*))*)?$/";
 
@@ -196,7 +198,7 @@ class MailerService
 
                         $subject = match(true) {
                             is_callable($subject) => $this->translationService->translateIn($slug, ...($subject($slug))),
-                            is_array($subject)    => $this->translationService->translateIn($slug, ...$subject),
+                            is_array($subject)    => $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translateIn($slug, ...$subject),
                             default               => $subject
                         };
 
