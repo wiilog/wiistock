@@ -31,7 +31,7 @@ trait AttachmentTrait {
         return $this;
     }
 
-    public function setAttachments($attachments): self {
+    public function setAttachments(iterable $attachments): self {
         foreach($attachments as $attachment) {
             $this->addAttachment($attachment);
         }
@@ -42,15 +42,6 @@ trait AttachmentTrait {
     public function clearAttachments(): self {
         $this->attachments->clear();
 
-        return $this;
-    }
-
-    public function removeIfNotIn(array $ids): self {
-        foreach($this->attachments as $attachment) {
-            if(!in_array($attachment->getId(), $ids)) {
-                $this->attachments->removeElement($attachment);
-            }
-        }
         return $this;
     }
 

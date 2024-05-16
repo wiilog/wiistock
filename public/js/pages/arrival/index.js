@@ -249,6 +249,11 @@ function createArrival(form = null) {
     }
 
     setTimeout(() => {
+        Camera.init(
+            $modal.find(`.take-picture-modal-button`),
+            $modal.find(`[name="files[]"]`)
+        );
+
         onTypeChange($modal.find('[name="type"]'));
         initDateTimePicker('.date-cl');
 

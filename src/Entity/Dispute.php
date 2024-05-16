@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\Traits\AttachmentTrait;
 use App\Repository\DisputeRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,7 +11,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DisputeRepository::class)]
-class Dispute {
+class Dispute implements AttachmentContainer {
+
+    use AttachmentTrait;
 
     // origine du litige
     const ORIGIN_RECEPTION = 'REC';

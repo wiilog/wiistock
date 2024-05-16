@@ -3,8 +3,7 @@
 namespace App\Controller\Api;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use FOS\RestBundle\Controller\Annotations as Rest;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route("/api", name: "api_")]
 class ApiController extends AbstractApiController {

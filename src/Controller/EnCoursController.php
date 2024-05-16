@@ -14,12 +14,10 @@ use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\LanguageService;
-use App\Service\TranslationService;
-use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 

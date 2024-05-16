@@ -48,6 +48,7 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -58,7 +59,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -68,9 +69,6 @@ class DispatchController extends AbstractController {
 
     #[Required]
     public UserService $userService;
-
-    #[Required]
-    public AttachmentService $attachmentService;
 
     #[Route("/", name: "dispatch_index")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE])]
@@ -452,7 +450,6 @@ class DispatchController extends AbstractController {
         $entityManager->persist($dispatch);
 
         try {
-            $entityManager->persist($dispatch);
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
         catch(UniqueConstraintViolationException) {
@@ -598,7 +595,8 @@ class DispatchController extends AbstractController {
                          DispatchService        $dispatchService,
                          TranslationService     $translationService,
                          FreeFieldService       $freeFieldService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         AttachmentService      $attachmentService): Response
     {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -619,17 +617,8 @@ class DispatchController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?: [];
-
-        $attachments = $dispatch->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $dispatch);
-            }
-        }
-
-        $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
+        $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispatch, $request->files);
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
@@ -871,18 +860,6 @@ class DispatchController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function persistAttachments(Dispatch $entity,
-                                        AttachmentService $attachmentService,
-                                        Request $request,
-                                        EntityManagerInterface $entityManager): void {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-        $entityManager->flush();
-    }
 
     #[Route("/dispatch-editable-logistic-unit-columns-api", name: "dispatch_editable_logistic_unit_columns_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]

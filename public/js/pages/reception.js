@@ -18,7 +18,12 @@ $(function () {
         });
     }
     InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
-
+    $modalReceptionNew.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalReceptionNew.find(`.take-picture-modal-button`),
+            $modalReceptionNew.find(`[name="files[]"]`)
+        );
+    });
     if (query["open-modal"] === "new") {
         delete query['arrivage'];
         initNewReceptionEditor($modalReceptionNew);
