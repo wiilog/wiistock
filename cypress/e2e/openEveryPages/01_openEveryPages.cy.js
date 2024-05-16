@@ -79,15 +79,6 @@ const menuPages = [
             'pairing_index',
         ],
     },
-    /*{
-        menu : 'parametre',
-    },
-    {
-        menu : 'documentation',
-    },
-    {
-        menu : 'phone',
-    },*/
 ]
 
 describe('Open all pages', () => {
@@ -97,14 +88,14 @@ describe('Open all pages', () => {
         cy.intercept('*').as('request');
     })
 
-/*    it('Pages from menu', () => {
-        menuPages.forEach((menuPage) => {
-            menuPage.subMenu.forEach((subMenu) => {
-                cy.navigateInNavMenu(menuPage.menu, subMenu)
-                // request should not have 500 status code
-                cy.wait('@request').its('response.statusCode').should('not.eq', 500)
+    it('Pages from menu', () => {
+            menuPages.forEach((menuPage) => {
+                menuPage.subMenu.forEach((subMenu) => {
+                    cy.navigateInNavMenu(menuPage.menu, subMenu)
+                    // request should not have 500 status code
+                    cy.wait('@request').its('response.statusCode').should('not.eq', 500)
+                })
             })
-        })
     })
 
     it('Pages from setting', () => {
@@ -120,7 +111,7 @@ describe('Open all pages', () => {
                 cy.wait('@request').its('response.statusCode').should('not.eq', 500)
             })
         })
-    })*/
+    })
 
     it('Pages from plus menu', () => {
         let plusPages = []
