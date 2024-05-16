@@ -14,7 +14,7 @@ class SpecificService
     #[Required]
     public CacheService $cacheService;
 
-    const DEFAULT_CLIENT_LABEL= 'WiiStock';
+    const DEFAULT_CLIENT_LABEL= 'Wiilog';
 
 	const CLIENT_BARBECUE = 'barbecue';
 	const CLIENT_BOURGUIGNON = 'bourguignon';
