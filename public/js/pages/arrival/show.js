@@ -246,12 +246,14 @@ function editRowArrivage($button) {
         }
     );
 
-    modal.on('shown.bs.modal', function () {
-        Camera.init(
-            modal.find(`.take-picture-modal-button`),
-            modal.find(`[name="files[]"]`)
-        );
-    });
+    modal
+        .on('shown.bs.modal.edit-row-arrival')
+        .on('shown.bs.modal.edit-row-arrival', function () {
+            Camera.init(
+                modal.find(`.take-picture-modal-button`),
+                modal.find(`[name="files[]"]`)
+            );
+        });
     modal.find(submit).attr('value', id);
 }
 
