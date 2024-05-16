@@ -467,7 +467,6 @@ class ArrivageController extends AbstractController {
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      */
     public function postArrivalTrackingMovements(Arrivage                $arrival,
-                                                 ArrivageService         $arrivageDataService,
                                                  TrackingMovementService $trackingMovementService,
                                                  EntityManagerInterface  $entityManager): Response
     {
