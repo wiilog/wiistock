@@ -20,7 +20,7 @@ final class Version20211215110228 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_CEA_LETI) {
+        if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_RATATOUILLE) {
         // je recupere l'id de l'utilisateur Société GT
             $user = $this->connection->executeQuery("SELECT id FROM utilisateur WHERE username = 'Société GT'")->fetchOne();
             // j'attribue l'id de société GT à la colonne createdBy de toute les references

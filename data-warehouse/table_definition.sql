@@ -121,7 +121,8 @@ CREATE TABLE dw_mouvement_stock
     date                 timestamp(0),
     emplacement_stock    varchar(255),
     code_barre_article   varchar(255),
-    prix_unitaire        float
+    prix_unitaire        float,
+    commentaire          text
 );
 
 CREATE TABLE dw_reception

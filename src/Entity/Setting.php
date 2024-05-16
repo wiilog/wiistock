@@ -162,6 +162,7 @@ class Setting {
     const FILE_MOBILE_LOGO_LOGIN = 'MOBILE_LOGO_LOGIN';
     const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
     const SHOW_LOGIN_LOGO = 'SHOW_LOGIN_lOGO';
+    const APP_CLIENT_LABEL = 'APP_CLIENT_LABEL';
 
     const DEFAULT_FONT_FAMILY = self::FONT_MYRIAD;
     const FONT_MONTSERRAT = 'Montserrat';

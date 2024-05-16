@@ -11,9 +11,12 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Traits\CleanedCommentTrait;
 
 #[ORM\Entity(repositoryClass: MouvementStockRepository::class)]
 class MouvementStock {
+
+    use CleanedCommentTrait;
 
     const TYPE_ENTREE = 'entrée';
     const TYPE_SORTIE = 'sortie';
@@ -236,7 +239,7 @@ class MouvementStock {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
-
+        $this->setCleanedComment($comment);
         return $this;
     }
 

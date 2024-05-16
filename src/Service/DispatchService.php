@@ -315,7 +315,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
-        $dispatchEmails = $dispatch->getEmails();
+        $dispatchEmails = $dispatch->getEmails() ?: [];
         $updatedAt = $dispatch->getUpdatedAt() ?: null;
 
         $receiverDetails = [
@@ -1170,7 +1170,7 @@ class DispatchService {
         $overConsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
-        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_BARBECUE)) {
             $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
             $freeFieldValues = $dispatch->getFreeFields();
 
@@ -1895,17 +1895,17 @@ class DispatchService {
 
         $now = new DateTime('now');
 
-        $isEmerson = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+        $isOmelette = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_OMELETTE);
 
         $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
         $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
             ? $consignorUsername
-            : ($isEmerson ? $user->getUsername() : null);
+            : ($isOmelette ? $user->getUsername() : null);
 
         $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
         $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
             ? $consignorEmail
-            : ($isEmerson ? $user->getEmail() : null);
+            : ($isOmelette ? $user->getEmail() : null);
 
         $defaultData = [
             'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
@@ -1916,8 +1916,8 @@ class DispatchService {
             'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
-            'receiverUsername' => $isEmerson ? $user->getUsername() : null,
-            'receiverEmail' => $isEmerson ? $user->getEmail() : null,
+            'receiverUsername' => $isOmelette ? $user->getUsername() : null,
+            'receiverEmail' => $isOmelette ? $user->getEmail() : null,
             'packsCounter' => $dispatch?->getDispatchPacks()->count()
         ];
         return Stream::from(Dispatch::WAYBILL_DATA)

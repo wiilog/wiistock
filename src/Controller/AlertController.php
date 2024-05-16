@@ -148,7 +148,7 @@ class AlertController extends AbstractController {
                 "groupe(s) de visibilité"
             ];
 
-            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
                 $specificHeader = [
                     'Nom fournisseur',
                     'Réf art Fournisseur',
