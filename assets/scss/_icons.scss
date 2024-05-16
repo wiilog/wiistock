@@ -140,6 +140,7 @@ $icons: (
     "question-mark": "../../public/svg/question-mark.svg",
     "production": "../../public/svg/production.svg",
     "camera": "../../public/svg/camera.svg",
+    "links": "../../public/svg/links.svg",
 );
 
 @each $iconName, $iconPath in $icons {
