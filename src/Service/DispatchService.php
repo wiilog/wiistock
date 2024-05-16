@@ -315,7 +315,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
-        $dispatchEmails = $dispatch->getEmails();
+        $dispatchEmails = $dispatch->getEmails() ?: [];
         $updatedAt = $dispatch->getUpdatedAt() ?: null;
 
         $receiverDetails = [
