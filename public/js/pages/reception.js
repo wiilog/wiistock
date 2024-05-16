@@ -9,16 +9,6 @@ $(function () {
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataire(s)');
 
     let $modalReceptionNew = $("#modalNewReception");
-
-    Form
-        .create($modalReceptionNew, {clearOnOpen: true})
-        .onOpen(() => {
-            Camera.init(
-                $modalReceptionNew.find(`.take-picture-modal-button`),
-                $modalReceptionNew.find(`[name="files[]"]`)
-            )
-        });
-
     let $submitNewReception = $("#submitReceptionButton");
     let urlReceptionIndex = Routing.generate('reception_new', true);
     const query = GetRequestQuery();
@@ -28,7 +18,12 @@ $(function () {
         });
     }
     InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
-
+    $modalReceptionNew.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalReceptionNew.find(`.take-picture-modal-button`),
+            $modalReceptionNew.find(`[name="files[]"]`)
+        );
+    });
     if (query["open-modal"] === "new") {
         delete query['arrivage'];
         initNewReceptionEditor($modalReceptionNew);

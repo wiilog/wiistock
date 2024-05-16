@@ -319,7 +319,7 @@ class ArrivageController extends AbstractController {
             false,
             $project
         );
-
+        $entityManager->persist($arrivage);
         try {
             $entityManager->flush();
         }

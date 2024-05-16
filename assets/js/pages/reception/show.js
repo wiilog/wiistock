@@ -164,28 +164,37 @@ function initPageModals() {
     InitModal($modalCancel, $submitCancel, urlCancelReception);
 
     let $modalModifyReception = $('#modalEditReception');
-    Form
-        .create($modalModifyReception, {clearOnOpen: false})
-        .onOpen(() => {
-            Camera.init(
-                $modalModifyReception.find(`.take-picture-modal-button`),
-                $modalModifyReception.find(`[name="files[]"]`)
-            )
-        });
-
     let $submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
     InitModal($modalModifyReception, $submitModifyReception, urlModifyReception);
+    $modalModifyReception.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalModifyReception.find(`.take-picture-modal-button`),
+            $modalModifyReception.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalNewLitige = $('#modalNewLitige');
+    let $modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new_reception', true);
-    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
+    InitModal($modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
+    $modalNewLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalNewLitige.find(`.take-picture-modal-button`),
+            $modalNewLitige.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalEditLitige = $('#modalEditLitige');
+    let $modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
+    InitModal($modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
+    $modalEditLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalEditLitige.find(`.take-picture-modal-button`),
+            $modalEditLitige.find(`[name="files[]"]`)
+        );
+    });
 
     let $modalDeleteLitige = $("#modalDeleteLitige");
     let $submitDeleteLitige = $("#submitDeleteLitige");

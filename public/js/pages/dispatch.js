@@ -34,15 +34,11 @@ $(function() {
     const $modalNewDispatch = $('#modalNewDispatch');
     $modalNewDispatch.on('show.bs.modal', function () {
         initNewDispatchEditor('#modalNewDispatch');
+        Camera.init(
+            $modalNewDispatch.find(`.take-picture-modal-button`),
+            $modalNewDispatch.find(`[name="files[]"]`)
+        );
     });
-    Form
-        .create($modalNewDispatch, {clearOnOpen: true})
-        .onOpen(() => {
-            Camera.init(
-                $modalNewDispatch.find(`.take-picture-modal-button`),
-                $modalNewDispatch.find(`[name="files[]"]`)
-            )
-        });
 
     const $dispatchsTable = $(`#tableDispatches`);
     const $dispatchModeContainer = $(`.dispatch-button-container`);

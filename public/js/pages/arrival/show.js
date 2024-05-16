@@ -143,31 +143,27 @@ $(function () {
     let tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLitigesConfig);
     extendsDateSort('customDate');
 
-    let modalNewLitige = $('#modalNewLitige');
+    let $modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new', {reloadArrivage: $('#arrivageId').val()}, true);
-    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableArrivageLitiges]});
-    Form
-        .create(modalNewLitige, {clearOnOpen: true})
-        .onOpen(() => {
-            Camera.init(
-                modalNewLitige.find(`.take-picture-modal-button`),
-                modalNewLitige.find(`[name="files[]"]`)
-            )
-        });
+    InitModal($modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableArrivageLitiges]});
+    $modalNewLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalNewLitige.find(`.take-picture-modal-button`),
+            $modalNewLitige.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalEditLitige = $('#modalEditLitige');
+    let $modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_arrivage', {reloadArrivage: $('#arrivageId').val()}, true);
-    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableArrivageLitiges]});
-    Form
-        .create(modalEditLitige, {clearOnOpen: false})
-        .onOpen(() => {
-            Camera.init(
-                modalEditLitige.find(`.take-picture-modal-button`),
-                modalEditLitige.find(`[name="files[]"]`)
-            )
-        });
+    InitModal($modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableArrivageLitiges]});
+    $modalEditLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalEditLitige.find(`.take-picture-modal-button`),
+            $modalEditLitige.find(`[name="files[]"]`)
+        );
+    });
 
     let ModalDeleteLitige = $("#modalDeleteLitige");
     let SubmitDeleteLitige = $("#submitDeleteLitige");
@@ -250,15 +246,12 @@ function editRowArrivage($button) {
         }
     );
 
-    Form
-        .create(modal, {clearOnOpen: false})
-        .onOpen(() => {
-            Camera.init(
-                modal.find(`.take-picture-modal-button`),
-                modal.find(`[name="files[]"]`)
-            )
-        });
-
+    modal.on('shown.bs.modal', function () {
+        Camera.init(
+            modal.find(`.take-picture-modal-button`),
+            modal.find(`[name="files[]"]`)
+        );
+    });
     modal.find(submit).attr('value', id);
 }
 
