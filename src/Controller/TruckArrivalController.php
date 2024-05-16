@@ -240,15 +240,10 @@ class TruckArrivalController extends AbstractController
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
 
             $truckArrival->setNumber($number);
-        } else {
-            $files = $request->files->all();
-            $truckArrival->clearAttachments();
-
-            $attachments = $attachmentService->createAttachments($files);
-            foreach ($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $truckArrival->addAttachment($attachment);
-            }
+        }
+        else {
+            $attachmentService->removeAttachments($entityManager, $truckArrival, $data->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $truckArrival, $request->files);
         }
 
         $truckArrival

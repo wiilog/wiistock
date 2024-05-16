@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
-use App\Repository\ReserveRepository;
 use App\Repository\TruckArrivalRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,7 +12,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TruckArrivalRepository::class)]
-class TruckArrival
+class TruckArrival implements AttachmentContainer
 {
     use AttachmentTrait;
 
