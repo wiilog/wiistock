@@ -215,6 +215,7 @@ class DisputeService {
         $columnsVisible = $currentUser->getVisibleColumns()['dispute'];
         return $this->visibleColumnService->getArrayConfig(
             [
+                ["name" => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],
                 ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Type')],
                 ["name" => 'arrivalNumber', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL')],
