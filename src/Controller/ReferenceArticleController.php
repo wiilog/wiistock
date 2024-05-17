@@ -783,16 +783,11 @@ class ReferenceArticleController extends AbstractController
         $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
-        $refs = $queryResult['data'];
-        $refs = array_map(function($refArticle) {
-            return is_array($refArticle) ? $refArticle[0] : $refArticle;
-        }, $refs);
-        $barcodeConfigs = array_map(
-            function (ReferenceArticle $reference) use ($refArticleDataService) {
-                return $refArticleDataService->getBarcodeConfig($reference);
-            },
-            $refs
-        );
+
+        $barcodeConfigs = Stream::from($queryResult['data'])
+            ->map(static fn($refArticle) => is_array($refArticle) ? $refArticle[0] : $refArticle)
+            ->map(static fn(ReferenceArticle $reference) => $refArticleDataService->getBarcodeConfig($reference))
+            ->toArray();
 
         $barcodeCounter = count($barcodeConfigs);
 
