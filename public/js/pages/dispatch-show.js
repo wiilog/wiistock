@@ -554,7 +554,18 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             $row.removeClass(`focus-within`);
             $select.closest(`td, th`)
                 .empty()
-                .append(`<span title="${code}">${code}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
+                .append(
+                    $('<span/>', {
+                        title: code,
+                        text: code,
+                    }),
+                    $('<input/>', {
+                        type: 'hidden',
+                        name: 'pack',
+                        class: 'data',
+                        value: code,
+                    }),
+                );
             $row.find(`.d-none`).removeClass(`d-none`);
             $row.find(`[name=weight]`).val(value.weight);
             $row.find(`[name=volume]`).val(value.volume);
