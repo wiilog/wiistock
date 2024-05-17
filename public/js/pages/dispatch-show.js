@@ -549,7 +549,18 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             $row.removeClass(`focus-within`);
             $select.closest(`td, th`)
                 .empty()
-                .append(`<span title="${code}">${escapeHtml(code)}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
+                .append(
+                    $('<span/>', {
+                        title: code,
+                        text: code,
+                    }),
+                    $('<input/>', {
+                        type: 'hidden',
+                        name: 'pack',
+                        class: 'data',
+                        value: code,
+                    }),
+                );
             $row.find(`.d-none`).removeClass(`d-none`);
             $row.find(`[name=weight]`).val(value.weight);
             $row.find(`[name=volume]`).val(value.volume);
@@ -633,18 +644,6 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     });
 
     return table;
-}
-
-function escapeHtml(text) {
-    var map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function addPackRow(table, $button) {

@@ -890,7 +890,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => isset($code)
-                    ? ("<span title='$code'>".htmlspecialchars($code)."</span>". $this->formService->macro('hidden', 'pack', $code))
+                    ? ("<span title='$code'>" . htmlspecialchars($code) . "</span>" . $this->formService->macro('hidden', 'pack', $code))
                     : "<select name='pack'
                                data-s2='keyboardPacks'
                                data-parent='body'
