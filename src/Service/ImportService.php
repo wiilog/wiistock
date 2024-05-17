@@ -1298,19 +1298,20 @@ class ImportService
             }
 
             $supplierArticleReference = $data["supplierArticleReference"];
+            $supplierCode = $data["supplierCode"];
             try {
                 $this->articleFournisseurService->createArticleFournisseur([
-                    "fournisseur" => $data["supplierCode"],
+                    "fournisseur" => $supplierCode,
                     "article-reference" => $refArt,
                     "label" => $data["supplierArticleLabel"],
                     "reference" => $supplierArticleReference,
                 ], false, $this->entityManager);
             } catch (Throwable $throwable) {
-                if ($throwable->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                    throw new ImportException("La référence $supplierArticleReference existe déjà pour un article fournisseur.");
-                } else {
-                    throw $throwable;
-                }
+                match ($throwable->getMessage()) {
+                    ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS => throw new ImportException("La référence $supplierArticleReference existe déjà pour un article fournisseur."),
+                    ArticleFournisseurService::ERROR_SUPPLIER_DOES_NOT_EXIST => throw new ImportException("Le code fournisseur $supplierCode ne correspond à aucun fournisseur."),
+                    default => throw $throwable,
+                };
             }
         }
 
