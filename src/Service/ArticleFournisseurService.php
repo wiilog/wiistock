@@ -15,7 +15,6 @@ class ArticleFournisseurService
 {
 
     public const ERROR_REFERENCE_ALREADY_EXISTS = "reference-already-exists";
-    public const ERROR_SUPPLIER_DOES_NOT_EXIST = "supplier-does-not-exist";
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -43,10 +42,6 @@ class ArticleFournisseurService
                 ? $fournisseurRepository->find(intval($data['fournisseur']))
                 : $fournisseurRepository->findOneBy(["codeReference" => $data['fournisseur']])
             );
-
-        if (empty($supplier)) {
-            throw new Exception(self::ERROR_SUPPLIER_DOES_NOT_EXIST);
-        }
 
         $referenceArticle = ($data['article-reference'] instanceof ReferenceArticle)
             ? $data['article-reference']
