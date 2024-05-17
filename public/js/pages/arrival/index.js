@@ -81,7 +81,12 @@ $(function () {
                     $modalNewDispatch.find(`.modal-body`),
                     {
                         onOpen: () => {
-                            $modalNewDispatch.find('[name=type]').trigger('change')
+                            $modalNewDispatch.find('[name=type]').trigger('change');
+                            Camera
+                                .init(
+                                    $modalNewDispatch.find(`.take-picture-modal-button`),
+                                    $modalNewDispatch.find(`[name="files[]"]`)
+                                );
                         }
                     }
                 )
