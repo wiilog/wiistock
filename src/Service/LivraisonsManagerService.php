@@ -147,21 +147,23 @@ class LivraisonsManagerService
             $articleLines = $preparation->getArticleLines();
 
             $packs = [];
-            foreach ($articleLines as $line) {
-                $currentLU = $line->getArticle()->getCurrentLogisticUnit();
-                if ($currentLU && !$currentLU->getLastDrop()?->getEmplacement()) {
-                    throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles. ");
-                }
-                if ($packs) {
-                    $packs[$currentLU->getId()] = $currentLU;
-                }
-            }
+
+            $packs = stream::from($articleLines)
+                ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
+                ->filter()
+                ->unique()
+                ->toArray();
 
             foreach ($packs as $pack) {
+                $currentPackLocation = $pack->getLastDrop()?->getEmplacement();
+                if (!$currentPackLocation) {
+                    throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles.");
+                }
+
                 $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
-                    $pack->getLastDrop()->getEmplacement(),
+                    $currentPackLocation,
                     $user,
                     $dateEnd,
                     true,
