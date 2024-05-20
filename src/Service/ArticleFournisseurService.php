@@ -8,18 +8,16 @@ use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Contracts\Service\Attribute\Required;
 
 
 class ArticleFournisseurService
 {
 
     public const ERROR_REFERENCE_ALREADY_EXISTS = "reference-already-exists";
-    private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this ->entityManager = $entityManager;
-    }
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
 
     /**
@@ -38,7 +36,7 @@ class ArticleFournisseurService
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        $fournisseur = ($data['fournisseur'] instanceof Fournisseur)
+        $supplier = ($data['fournisseur'] instanceof Fournisseur)
             ? $data['fournisseur']
             : (intval($data['fournisseur'])
                 ? $fournisseurRepository->find(intval($data['fournisseur']))
@@ -54,7 +52,7 @@ class ArticleFournisseurService
         if ($generateReference) {
             $countReference = $articleFournisseurRepository->count([
                 'referenceArticle' => $referenceArticle,
-                'fournisseur' => $fournisseur
+                'fournisseur' => $supplier
             ]);
         }
         else {
@@ -81,7 +79,7 @@ class ArticleFournisseurService
 
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
-                ->setFournisseur($fournisseur)
+                ->setFournisseur($supplier)
                 ->setReference(trim($generatedReference))
                 ->setReferenceArticle($referenceArticle)
                 ->setLabel(trim($label))
