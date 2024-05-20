@@ -15,7 +15,7 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                {% set useAiArrivals = setting_value('USE_AI_ARRIVALS') %}
+                {% set useAiArrivals = app.request.server.get('DN_READER_URL') ?? false %}
                 {% if useAiArrivals %}
                         <div class="d-flex justify-content-between">
                                 {% include 'attachment/attachment.html.twig' with {

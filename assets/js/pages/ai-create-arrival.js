@@ -2,7 +2,7 @@ import AJAX, {POST} from "@app/ajax";
 
 $(function () {
     $(document)
-        .on('change', `input[name='uploadAndScan']`, function () {
+        .on('change', `[name="uploadAndScan"]`, function () {
             scanDeliveryNoteFile($(this));
         })
         .on('change', '.ai-field', function () {

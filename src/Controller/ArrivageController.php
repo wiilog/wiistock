@@ -1571,7 +1571,7 @@ class ArrivageController extends AbstractController {
                 if ($e->getCode() === 400 && $e->getMessage()) {
                     throw new FormException($e->getMessage());
                 }
-                throw new FormException('Une erreur s\'est produite lors de la récupération des informations du BL');
+                throw $e; //FormException('Une erreur s\'est produite lors de la récupération des informations du BL');
             }
 
             $originalUploadedFileName = $uploadedFile->getClientOriginalName();

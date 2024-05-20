@@ -132,7 +132,7 @@
     <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/arrival/index.js') }}?v={{ web_version }}"></script>
-    {% if setting_value('USE_AI_ARRIVALS') %}
+    {% if app.request.server.get('DN_READER_URL') ?? false %}
         {{ encore_entry_script_tags('ai-create-arrival') }}
     {% endif %}
 {% endblock %}
