@@ -48,7 +48,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -168,12 +168,13 @@ class RequestController extends AbstractController {
 
     #[Route("/new", name: "transport_request_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function new(Request $request,
+    public function new(Request                $request,
                         EntityManagerInterface $entityManager,
-                        TransportService $transportService,
-                        MailerService $mailerService,
-                        Environment $templating,
-                        RouterInterface $router): JsonResponse {
+                        TransportService       $transportService,
+                        MailerService          $mailerService,
+                        Environment            $templating,
+                        TranslationService     $translationService,
+                        RouterInterface        $router): JsonResponse {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
         $prefixDeliveryRequest = TransportRequest::NUMBER_PREFIX;
@@ -202,7 +203,7 @@ class RequestController extends AbstractController {
 
             if(!empty($receivers)) {
                 $mailerService->sendMail(
-                    'FOLLOW GT // Nouvelle demande de transport à valider',
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Nouvelle demande de transport à valider',
                     $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
                         'transportRequest' => $mainTransportRequest,
                         'urlSuffix' => $router->generate("transport_subcontract_index"),

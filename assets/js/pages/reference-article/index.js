@@ -104,19 +104,10 @@ function initTableRefArticle() {
             };
 
             pageTables = initDataTable('tableRefArticle', tableRefArticleConfig);
-            pageTables.on('responsive-resize', function () {
-                resizeTable();
-            });
 
             window.pageTables = pageTables;
             return pageTables;
         });
-}
-
-function resizeTable() {
-    pageTables
-        .columns.adjust()
-        .responsive.recalc();
 }
 
 // affiche le filtre après ajout
@@ -240,7 +231,7 @@ function printReferenceArticleBarCode($button, event) {
                 {
                     length: pageTables.page.info().length,
                     start: pageTables.page.info().start,
-                    search: $('#tableRefArticle_filter input').val()
+                    search: {"value": $('#tableRefArticle_filter input').val()},
                 },
                 true
             );

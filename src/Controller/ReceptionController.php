@@ -62,7 +62,6 @@ use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,7 +71,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
@@ -203,16 +202,13 @@ class ReceptionController extends AbstractController {
                 $reception->setCommentaire($data->get('commentaire'));
             }
 
-            if ($data->has('files')) {
-                $reception->removeIfNotIn($data->get('files') ?: []);
-            }
-
-            $entityManager->flush();
+            $attachmentService->removeAttachments($entityManager, $reception, $request->request->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $reception, $request->files);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
-            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
+
             $json = [
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
@@ -1076,16 +1072,9 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
+        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
         if($isStatutChange) {
@@ -1103,10 +1092,11 @@ class ReceptionController extends AbstractController {
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               DisputeService         $disputeService,
+                              AttachmentService      $attachmentService,
                               ArticleDataService     $articleDataService,
                               Request                $request,
                               UniqueNumberService    $uniqueNumberService,
-                              TranslationService    $translation): Response
+                              TranslationService     $translation): Response
     {
         $post = $request->request;
 
@@ -1172,8 +1162,9 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
         $entityManager->flush();
+
         $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
 
         return new JsonResponse([
@@ -1697,6 +1688,7 @@ class ReceptionController extends AbstractController {
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
+                                   TranslationService         $translationService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
@@ -1816,7 +1808,7 @@ class ReceptionController extends AbstractController {
                                 ]);
                             }
                             foreach ($mouvements as $mouvement) {
-                                $preparationsManagerService->createMovementLivraison(
+                                $preparationsManagerService->persistDeliveryMovement(
                                     $entityManager,
                                     $mouvement->getQuantity(),
                                     $currentUser,
@@ -1881,29 +1873,24 @@ class ReceptionController extends AbstractController {
         }
 
         $receptionLocation = $reception->getLocation();
-        // crée les articles et les ajoute à la demande, à la réception, crée les urgences
-        $receptionLocationId = $receptionLocation?->getId();
         $emergencies = [];
 
         $createdArticles = [];
+        $transferStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
+
         foreach($articles as &$articleArray) {
-            $createdLoopArticles = [];
             $createdLoopEntryStockMovements = [];
 
             /** @var ReceptionReferenceArticle $receptionReferenceArticle */
             $receptionReferenceArticle = $articleArray['receptionReferenceArticle'];
-            /** @var Pack|null $pack */
-            $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
             /** @var ReferenceArticle $referenceArticle */
             $referenceArticle = $articleArray['refArticle'];
 
+            $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
             $location = isset($data['pack']) ? $pack?->getLastDrop()?->getEmplacement() : null;
+
             if (isset($location) && !$location->ableToBeDropOff($pack)) {
                 throw new FormException("Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel());
-            }
-
-            if(isset($receptionLocationId)) {
-                $articleArray['emplacement'] = $receptionLocationId;
             }
 
             if ($transferRequest ?? false) {
@@ -1916,6 +1903,13 @@ class ReceptionController extends AbstractController {
             if ($receptionReferenceArticle->getUnitPrice() !== null) {
                 $articleArray["prix"] = $receptionReferenceArticle->getUnitPrice();
             }
+
+            $articleDropLocation = $pack?->getLastDrop()?->getEmplacement() ?: $receptionLocation;
+            if (!$articleDropLocation) {
+                throw new FormException("Aucun emplacement trouvé pour réceptionner les articles");
+            }
+
+            $articleArray['emplacement'] = $articleDropLocation->getId();
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
@@ -1931,14 +1925,13 @@ class ReceptionController extends AbstractController {
                     /** @var Preparation $preparation */
                     $preparation = $demande->getPreparations()->first();
                     if ($preparation) {
-
                         $preparationArticleLine = $deliveryArticleLine->createPreparationOrderLine()
                             ->setPickedQuantity($preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0)
                             ->setPreparation($preparation);
 
                         $entityManager->persist($preparationArticleLine);
 
-                        $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                        $article->setStatut($transferStatus);
                     }
                 }
 
@@ -1955,71 +1948,58 @@ class ReceptionController extends AbstractController {
                     null,
                     $article->getQuantite(),
                     $article,
-                    MouvementStock::TYPE_ENTREE
+                    MouvementStock::TYPE_ENTREE,
+                    [
+                        "from" => $reception,
+                        "locationTo" => $articleDropLocation,
+                        "date" => $now,
+                    ]
                 );
-                $stockMovement->setReceptionOrder($reception);
-
-                $mouvementStockService->finishStockMovement($stockMovement, $now, $receptionLocation);
 
                 $entityManager->persist($stockMovement);
 
                 $entityManager->flush();
+
                 $createdArticles[] = $article;
-                $createdLoopArticles[] = $article;
                 $createdLoopEntryStockMovements[] = $stockMovement;
             }
 
-            // if logistic unit selected on packing
-            if ($pack && $pack->getLastDrop()?->getEmplacement()) {
+            /** @var MouvementStock $stockMovement */
+            foreach($createdLoopEntryStockMovements as $stockMovement) {
+                $article = $stockMovement->getArticle();
+
+                // create drop tracking movements
                 $trackingMovementService->persistLogisticUnitMovements(
                     $entityManager,
                     $pack,
-                    $pack->getLastDrop()?->getEmplacement(),
-                    $createdLoopArticles,
+                    $articleDropLocation,
+                    [$stockMovement->getArticle()],
                     $currentUser,
                     [
-                        'from' => $reception,
-                        'trackingDate' => $now
+                        "mouvementStock" => $stockMovement,
+                        "from" => $reception,
+                        "trackingDate" => $now,
+                        "refOrArticle" => $article,
+                        "reception" => true,
                     ]
                 );
+
+                // create delivery stock movement
                 if ($createDirectDelivery && isset($delivery) && isset($preparation)) {
-                    foreach ($createdLoopArticles as $article) {
-                        $preparationsManagerService->createMovementLivraison(
-                            $entityManager,
-                            $article->getQuantite(),
-                            $currentUser,
-                            $delivery,
-                            false,
-                            $article,
-                            $preparation,
-                            false,
-                            $pack->getLastDrop()?->getEmplacement()
-                        );
-                    }
-                }
-            } else if ($receptionLocation) {
-                /** @var MouvementStock $stockMovement */
-                foreach($createdLoopEntryStockMovements as $stockMovement) {
-                    $article = $stockMovement->getArticle();
-                    $createdMvt = $trackingMovementService->createTrackingMovement(
-                        $article->getTrackingPack() ?? $article->getBarCode(),
-                        $receptionLocation,
+                    $preparationsManagerService->persistDeliveryMovement(
+                        $entityManager,
+                        $article->getQuantite(),
                         $currentUser,
-                        $now,
+                        $delivery,
                         false,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        [
-                            'mouvementStock' => $stockMovement,
-                            'quantity' => $stockMovement->getQuantity(),
-                            'from' => $reception,
-                            "refOrArticle" => $article
-                        ]
+                        $article,
+                        $preparation,
+                        false,
+                        $articleDropLocation
                     );
-                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
                 }
             }
+
             $entityManager->flush();
         }
 
@@ -2055,7 +2035,7 @@ class ReceptionController extends AbstractController {
             if(!empty($destinataires)) {
                 // on envoie un mail aux demandeurs
                 $mailerService->sendMail(
-                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Article urgent réceptionné', $mailContent,
                     $destinataires
                 );
             }
@@ -2090,7 +2070,7 @@ class ReceptionController extends AbstractController {
 
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
-                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'fournisseur' => $reception->getFournisseur(),

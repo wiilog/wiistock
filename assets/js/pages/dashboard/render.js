@@ -662,7 +662,7 @@ function createExternalImage(data, config) {
     if(config.component.config) {
         url = config.component.config.url;
     } else {
-        url = '/img/mobile_logo_header.svg';
+        url = '/img/wiilog.svg';
     }
 
     return $(`

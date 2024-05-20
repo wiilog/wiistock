@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestRepository;
@@ -13,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: PurchaseRequestRepository::class)]
-class PurchaseRequest {
+class PurchaseRequest implements AttachmentContainer {
 
     use AttachmentTrait;
 

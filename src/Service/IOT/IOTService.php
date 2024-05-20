@@ -43,6 +43,7 @@ use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use DateInterval;
 use DateTimeZone;
@@ -180,10 +181,16 @@ class IOTService
     #[required]
     public TrackingMovementService $trackingMovementService;
 
+    #[Required]
+    public TranslationService $translationService;
+
     #[required]
     public StatusHistoryService $statusHistoryService;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, LoRaWANServer $loRaWANServer, bool $local = false): void {
+    public function onMessageReceived(array $frame,
+                                      EntityManagerInterface $entityManager,
+                                      LoRaWANServer $loRaWANServer,
+                                      bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
         foreach ($messages as $message) {
             if($message){
@@ -588,7 +595,10 @@ class IOTService
         }
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local, $loRaWANServer): array {
+    private function parseAndCreateMessage(array $message,
+                                           EntityManagerInterface $entityManager,
+                                           bool $local,
+                                           LoRaWANServer $loRaWANServer): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
         $deviceCode = match ($loRaWANServer) {
@@ -641,7 +651,7 @@ class IOTService
             $device->setBattery($newBattery);
             if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Batterie capteur faible',
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Batterie capteur faible',
                     $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
                         'sensorCode' => $device->getCode(),
                         'sensorName' => $wrapper->getName(),
@@ -809,7 +819,7 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config, string $profile, string $payload): array {
+    public function extractMainDataFromConfig(array $config, string $profile, ?string $payload): array {
         switch ($profile) {
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 $hexTemperature = substr($payload, 6, 2);
@@ -980,7 +990,7 @@ class IOTService
         return 'Évenement non trouvé';
     }
 
-    public function extractBatteryLevelFromMessage(array $config, string $profile, string $payload) {
+    public function extractBatteryLevelFromMessage(array $config, string $profile, ?string $payload) {
         switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
@@ -1159,7 +1169,7 @@ class IOTService
                                 'event' => IOTService::ACS_PRESENCE,
                             ];
 
-                            $this->onMessageReceived($fakeFrame, $entityManager, true, LoRaWANServer::Orange);
+                            $this->onMessageReceived($fakeFrame, $entityManager, LoRaWANServer::Orange, true);
                         }
                     }
                 }
@@ -1344,14 +1354,13 @@ class IOTService
         }
     }
 
-    public function validateFrame(string $profile, string $payload): bool {
+    public function validateFrame(string $profile, ?string $payload): bool {
         return match ($profile) {
             IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d'),
-            IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
+            IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
             IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
-
             default => true,
         };
     }

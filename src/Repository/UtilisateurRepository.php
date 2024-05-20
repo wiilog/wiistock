@@ -25,7 +25,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     public function findOneByEmail(string $email) {
         return $this->createQueryBuilder("user")
             ->where("LOWER(user.email) = :email")
-            ->andWhere("user.kioskUser = 0")
             ->setParameter('email', strtolower($email))
             ->getQuery()
             ->getOneOrNullResult();
@@ -61,7 +60,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $qb
             ->andWhere("user.username LIKE :term")
             ->andWhere('user.status = 1')
-            ->andWhere("user.kioskUser = 0")
             ->setParameter("term", "%$term%")
             ->orderBy('user.username','ASC')
             ->getQuery()
@@ -74,7 +72,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->select("COUNT(user)")
             ->join("user.role", "role")
             ->where("role.id = :roleId")
-            ->andWhere("user.kioskUser = 0")
             ->setParameter("roleId", $roleId)
             ->getQuery()
             ->getSingleScalarResult();
@@ -88,7 +85,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 Join::WITH,
                 "session_history_record.closedAt IS NULL AND session_history_record.sessionId = :key")
             ->andWhere("user.status = 1")
-            ->andWhere("user.kioskUser = 0")
             ->setParameter('key', $key)
             ->getQuery();
 
@@ -97,8 +93,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
     public function findByParams(InputBag $params): array
     {
-        $qb = $this->createQueryBuilder('user')
-            ->andWhere("user.kioskUser = 0");
+        $qb = $this->createQueryBuilder('user');
 
         if (!empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
@@ -186,7 +181,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->select('utilisateur.email AS email')
             ->join('utilisateur.role','role' )
             ->where('role.isMailSendAccountCreation = :isMailSend')
-            ->andWhere("utilisateur.kioskUser = 0")
             ->setParameter('isMailSend', true)
             ->getQuery()
             ->execute();
@@ -203,7 +197,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->join('utilisateur.role','role' )
             ->join('role.actions','actions' )
             ->where('actions.label = :actionLabel')
-            ->andWhere("utilisateur.kioskUser = 0")
             ->setParameter('actionLabel', Action::REFERENCE_VALIDATOR)
             ->getQuery()
             ->execute();
@@ -215,7 +208,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
     public function iterateAll(): iterable {
         return $this->createQueryBuilder('user')
-            ->where("user.kioskUser = 0")
             ->getQuery()
             ->toIterable();
     }
@@ -234,14 +226,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->setParameter('dispute', $dispute)
             ->getQuery()
             ->getResult();
-    }
-
-    // return one user
-    public function getKioskUser(): ?Utilisateur {
-        $result = $this->createQueryBuilder("user")
-            ->where("user.kioskUser = 1");
-
-        return $result->getQuery()->getOneOrNullResult();
     }
 
     public function getAll(): array {

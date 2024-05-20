@@ -3,7 +3,7 @@
 namespace App\Controller\IOT;
 
 use App\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 
 /**

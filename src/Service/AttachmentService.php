@@ -3,23 +3,19 @@
 namespace App\Service;
 
 use App\Entity\Attachment;
+use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\TrackingMovement;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 
 class AttachmentService {
 
     private string $attachmentDirectory;
-
-    #[Required]
-	public EntityManagerInterface $em;
-
-    #[Required]
-    public KernelInterface $kernel;
 
     public function __construct(KernelInterface $kernel) {
         $this->attachmentDirectory = "{$kernel->getProjectDir()}/public/uploads/attachments";
@@ -63,27 +59,10 @@ class AttachmentService {
         if (!file_exists($this->attachmentDirectory)) {
             mkdir($this->attachmentDirectory, 0777);
         }
-
         $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
         $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
     }
-
-	public function removeAndDeleteAttachment(Attachment $attachment, mixed $entity = null): void
-	{
-		if ($entity) {
-            $entity->removeAttachment($attachment);
-		}
-
-        $attachmentRepository = $this->em->getRepository(Attachment::class);
-        $pieceJointeAlreadyInDB = $attachmentRepository->findOneByFileName($attachment->getFileName());
-        if (count($pieceJointeAlreadyInDB) === 1) {
-            $this->deleteAttachment($attachment);
-        }
-
-        $this->em->remove($attachment);
-        $this->em->flush();
-	}
 
 	public function getServerPath(Attachment $attachment): string {
 	    return $this->attachmentDirectory . '/' . $attachment->getFileName();
@@ -143,13 +122,6 @@ class AttachmentService {
             ->setFileName($fileName);
     }
 
-    public function deleteAttachment(Attachment $attachment): void {
-        $path = $this->getServerPath($attachment);
-        if(file_exists($path)) {
-            unlink($path);
-        }
-    }
-
     public function createFile(string $fileName, string $data): string {
         $attachmentsDirectory = $this->attachmentDirectory;
         if (!file_exists($attachmentsDirectory)) {
@@ -160,5 +132,52 @@ class AttachmentService {
         file_put_contents($filePath, $data);
 
         return $filePath;
+    }
+
+    /**
+     * @param FileBag|UploadedFile[] $files
+     * @return Attachment[]
+     */
+    public function persistAttachments(EntityManagerInterface $entityManager,
+                                       AttachmentContainer    $attachmentContainer,
+                                       FileBag|array          $files,
+                                       array                  $options = []): array {
+
+        if ($files instanceof FileBag) {
+            $files = $files->all();
+        }
+
+        if (!empty($files)) {
+            $isAddToDispatch = $options['addToDispatch'] ?? false;
+            $attachments = $this->createAttachments($files);
+            foreach ($attachments as $attachment) {
+                $entityManager->persist($attachment);
+                $attachmentContainer->addAttachment($attachment);
+                if ($attachmentContainer instanceof TrackingMovement && $isAddToDispatch && $attachmentContainer->getDispatch()) {
+                    $attachmentContainer->getDispatch()->addAttachment($attachment);
+                }
+            }
+        }
+
+        return $attachments ?? [];
+    }
+
+    /**
+     * @param int[] $attachmentIdToKeep
+     */
+    public function removeAttachments(EntityManagerInterface $entityManager,
+                                      AttachmentContainer    $attachmentContainer,
+                                      array                  $attachmentIdToKeep = []): void {
+        $attachmentsToRemove = Stream::from($attachmentContainer->getAttachments()->toArray())
+            ->filter(static fn(Attachment $attachment) => (
+                empty($attachmentIdToKeep)
+                || !in_array($attachment->getId(), $attachmentIdToKeep)
+            ))
+            ->toArray();
+
+        foreach ($attachmentsToRemove as $attachment) {
+            $attachmentContainer->removeAttachment($attachment);
+            $entityManager->remove($attachment);
+        }
     }
 }

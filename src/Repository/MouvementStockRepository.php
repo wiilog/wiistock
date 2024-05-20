@@ -8,6 +8,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -34,7 +35,8 @@ class MouvementStockRepository extends EntityRepository
         'destination' => 'emplacementTo',
         'type' => 'type',
         'operateur' => 'user',
-        'barCode' => 'barCode'
+        'barCode' => 'barCode',
+        'unitPrice' => 'unitPrice',
     ];
 
     public function countByLocation(Emplacement $location): int {
@@ -102,6 +104,7 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect('mouvementStock.type as type')
             ->addSelect('user.username as operator')
             ->addSelect('mouvementStock.unitPrice AS unitPrice')
+            ->addSelect('mouvementStock.comment AS comment')
             ->leftJoin('mouvementStock.preparationOrder','preparation')
             ->leftJoin('mouvementStock.livraisonOrder','livraison')
             ->leftJoin('mouvementStock.collecteOrder','collecte')
@@ -317,9 +320,10 @@ class MouvementStockRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters(InputBag $params,
-                                           array $filters,
-                                           Utilisateur $user)
+    public function findByParamsAndFilters(InputBag             $params,
+                                           array                $filters,
+                                           VisibleColumnService $visibleColumnService,
+                                           Utilisateur          $user,)
     {
         $queryBuilder = $this->createQueryBuilder('stock_movement');
         $exprBuilder = $queryBuilder->expr();
@@ -385,6 +389,7 @@ class MouvementStockRepository extends EntityRepository
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
+                    $visibleColumnService->bindSearchableColumns([], 'stockMovement', $queryBuilder, $user, $search);
                     $queryBuilder
                         ->leftJoin('stock_movement.refArticle', 'ra3')
                         ->leftJoin('stock_movement.article', 'a3')

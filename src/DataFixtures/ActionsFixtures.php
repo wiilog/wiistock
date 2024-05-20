@@ -250,7 +250,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DISPLAY_ARTI_FOUR,
             ],
             self::SUB_MENU_STOCK_MOVEMENTS => [
-                Action::DISPLAY_MOUV_STOC,
+                Action::DISPLAY_MOV_STOCK,
             ],
             self::SUB_MENU_ALERTS => [
                 Action::DISPLAY_ALER,

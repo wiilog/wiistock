@@ -13,33 +13,36 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
-                    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
-                        <button type="button"
-                                data-toggle="modal"
-                                data-target="#modalNewMvtStock"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                onclick="clearModal('#modalNewMvtStock'), resetNewModal($('#modalNewMvtStock'))">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                            Nouveau mouvement
-                        </button>
-                    {% endif %}
-                    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
-                        <button type="button"
-                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                            <button type="button"
-                                    class="dropdown-item pointer"
-                                    onclick="saveExportFile('get_stock_movements_csv')">
-                                <span class="fa fa-file-csv mr-2"></span>
-                                Exporter au format CSV
-                            </button>
-                        </div>
-                    {% endif %}
+                        {% include "utils/action-buttons/header-buttons.html.twig" with {
+                            actions: [
+                                {
+                                    hasRight: hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')),
+                                    title: "Nouveau mouvement",
+                                    icon: "wii-icon wii-icon-plus",
+                                    attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalNewMvtStock",
+                                    },
+                                },
+                                {
+                                    hasRight: hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')),
+                                    title: "Exporter au format CSV",
+                                    icon: "fa fa-file-csv",
+                                    attributes: {
+                                    "onclick": "saveExportFile('get_stock_movements_csv')"
+                                    },
+                                },
+                                {
+                                    hasRight: hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')),
+                                    title: "Gestion des colonnes",
+                                    icon: "fas fa-cog",
+                                    attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalColumnVisible",
+                                    },
+                                }
+                            ]
+                        } %}
                 </div>
             </div>
         </div>
@@ -50,11 +53,16 @@
             </div>
         </div>
     </div>
-    {% include "mouvement_stock/modalDeleteMvtStock.html.twig" %}
     {% include "mouvement_stock/modalNewMvtStock.html.twig" %}
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableMvts',
+        'route': 'save_column_visible_for_stock_movements',
+        'page': 'stockMovement',
+    } %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/mouvement_stock.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('stock-movement-index') }}
 {% endblock %}

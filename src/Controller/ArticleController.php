@@ -35,7 +35,6 @@ use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,7 +43,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route("/article")]
@@ -168,10 +167,10 @@ class ArticleController extends AbstractController
         );
     }
 
-    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    public function show(Request $request,
-                            ArticleDataService $articleDataService,
-                            EntityManagerInterface $entityManager): JsonResponse
+    #[Route("/voir", name: "article_show", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    public function show(Request                $request,
+                         ArticleDataService     $articleDataService,
+                         EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -269,7 +268,7 @@ class ArticleController extends AbstractController
                 $entityManager->flush();
 
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
-                    $article,
+                    $article->getTrackingPack() ?: $article->getBarCode(),
                     $article->getEmplacement(),
                     $this->getUser(),
                     new DateTime('now'),

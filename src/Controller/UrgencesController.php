@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/urgences')]
 class UrgencesController extends AbstractController
@@ -66,20 +66,20 @@ class UrgencesController extends AbstractController
 
         $response = [];
 
-        $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-            || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
+        $isPetitSaleCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_PETIT_SALE)
+            || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CHOU_FARCI);
 
         $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
             $urgence->getDateStart(),
             $urgence->getDateEnd(),
             $urgence->getProvider(),
             $urgence->getCommande(),
-            $isSEDCurrentClient ? $urgence->getPostNb() : null
+            $isPetitSaleCurrentClient ? $urgence->getPostNb() : null
         );
 
         if ($sameUrgentCounter > 0) {
             $response['success'] = false;
-            $response['msg'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);
+            $response['msg'] = $this->getErrorMessageForDuplicate($isPetitSaleCurrentClient);
         }
         else {
             $entityManager->persist($urgence);
@@ -145,8 +145,8 @@ class UrgencesController extends AbstractController
         $response = [];
 
         if ($urgence) {
-            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-                || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
+            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_PETIT_SALE)
+                || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CHOU_FARCI);
 
             $urgenceService->updateUrgence($entityManager, $urgence, $data, $formatService);
             $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(

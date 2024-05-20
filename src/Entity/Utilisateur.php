@@ -46,6 +46,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
     const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["origin", "LU", "date", "delay", "reference", "libelle"];
+    const DEFAULT_STOCK_MOVEMENT_VISIBLE_COLUMNS = ["date", "from", "barCode", "refArticle", "quantity", "origin", "destination", "type", "operator", "unitPrice", "comment"];
     const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
         FixedFieldEnum::number->name,
         FixedFieldEnum::createdAt->name,
@@ -78,6 +79,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
         'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS,
         'onGoing' => self::DEFAULT_ON_GOING_VISIBLE_COLUMNS,
+        'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -315,9 +317,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptFieldValue::class)]
     private Collection $keptFieldValues;
-
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
-    private ?bool $kioskUser = false;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
@@ -1890,37 +1889,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
                 $keptFieldValue->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function isKioskUser(): ?bool {
-        return $this->kioskUser;
-    }
-
-    public function setKioskUser(?bool $kioskUser): self {
-        $this->kioskUser = $kioskUser;
-        return $this;
-    }
-
-    public function getKiosk(): ?Kiosk
-    {
-        return $this->kiosk;
-    }
-
-    public function setKiosk(?Kiosk $kiosk): self
-    {
-        // unset the owning side of the relation if necessary
-        if ($kiosk === null && $this->kiosk !== null) {
-            $this->kiosk->setUser(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($kiosk !== null && $kiosk->getUser() !== $this) {
-            $kiosk->setUser($this);
-        }
-
-        $this->kiosk = $kiosk;
 
         return $this;
     }

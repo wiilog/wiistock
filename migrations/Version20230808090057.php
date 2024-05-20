@@ -23,7 +23,7 @@ final class Version20230808090057 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_AIA_CUERS) {
+        if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_PAELLA) {
 
             $fields = [
                 FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH => FixedFieldStandard::FIELD_LABEL_CUSTOMER_NAME_DISPATCH,

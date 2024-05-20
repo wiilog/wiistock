@@ -1,7 +1,7 @@
 {% set addPhotoButton = addPhotoButton is defined and addPhotoButton %}
 
 <div class="attachments-container">
-    <div class="{{ bigger is defined ? bigger }} {{ addPhotoButton ? "d-flex" }}">
+    <div class="{{ bigger is defined ? bigger }} {{ addPhotoButton ? "d-flex flex-column" }}">
         {% set multiple = multiple is defined and multiple %}
         {% set required = required is defined and required %}
         {% set editAttachments = editAttachments is not defined or editAttachments %}
@@ -22,62 +22,69 @@
 
         {% if not noLabel %}
             <label for="dropfile"
-                   class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">
+                   style="margin-bottom: 5px"
+                   class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }}">
             <span class="attachment-label">
                 {{ trans('Général', null, 'Modale', labelTitle) }}
             </span>{{ required ? '*' }}
             </label>
         {% endif %}
         {% if editAttachments %}
-            <div class="dropFrame {{ dropFrameName }} {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
-                 data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
-                 data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
-                 ondragenter="dragEnterDiv(event, $(this))"
-                 ondragover="dragOverDiv(event, $(this))"
-                 ondragleave="dragLeaveDiv(event, $(this))"
-                 ondrop="saveDroppedFiles(event, $(this))">
-                {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-                <div class="drop-file-hint d-flex flex-column justify-content-center">
-                    {% if not buttonOnly %}
-                        <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
-                    {% endif %}
-                    <button onclick="openFileExplorer($(this))"
-                            class="btn btn-primary {{ buttonOnly ? 'w-fit-content' }}"
-                            type="button" {{ disabled ? 'disabled' }}>
-                        <i class="fa fa-folder-open mr-2"></i>
-                        {% if buttonOnly %}
-                            {{ buttonTitle ? : 'Importer' }}
-                        {% else %}
-                            {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
+            <div class="d-flex">
+                <div class="dropFrame {{ dropFrameName }} {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
+                     data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
+                     data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
+                     ondragenter="dragEnterDiv(event, $(this))"
+                     ondragover="dragOverDiv(event, $(this))"
+                     ondragleave="dragLeaveDiv(event, $(this))"
+                     ondrop="saveDroppedFiles(event, $(this))">
+                    {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
+                    <div class="drop-file-hint d-flex flex-column justify-content-center">
+                        {% if not buttonOnly %}
+                            <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
                         {% endif %}
-                    </button>
-                    {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
-                    {% if not name %}
-                        <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }}
-                               class="d-none fileInput"
-                               onchange="saveInputFiles($(this), {lineClass: '{{ lineClass }}'})"
-                            {% if formats %}
-                                accept="{{ formats }}"
+                        <button onclick="openFileExplorer($(this))"
+                                class="btn btn-primary {{ buttonOnly ? 'w-fit-content' }}"
+                                type="button" {{ disabled ? 'disabled' }}>
+                            <i class="fa fa-folder-open mr-2"></i>
+                            {% if buttonOnly %}
+                                {{ buttonTitle ? : 'Importer' }}
+                            {% else %}
+                                {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
                             {% endif %}
-                        >
-                    {% else %}
-                        <input type="file"
-                               name="{{ name }}"
-                               class="data-file d-none fileInput"
-                               onchange="saveInputFiles($(this), {singleton: true, lineClass: '{{ lineClass }}'})"
-                            {% if formats %}
-                                accept="{{ formats }}"
-                            {% endif %}
-                        >
-                    {% endif %}
+                        </button>
+                        {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
+                        {% if not name %}
+                            <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }}
+                                   class="d-none fileInput"
+                                   onchange="saveInputFiles($(this), {lineClass: '{{ lineClass }}'})"
+                                {% if formats %}
+                                    accept="{{ formats }}"
+                                {% endif %}
+                            >
+                        {% else %}
+                            <input type="file"
+                                   name="{{ name }}"
+                                   class="data-file d-none fileInput"
+                                   onchange="saveInputFiles($(this), {singleton: true, lineClass: '{{ lineClass }}'})"
+                                {% if formats %}
+                                    accept="{{ formats }}"
+                                {% endif %}
+                            >
+                        {% endif %}
+                    </div>
                 </div>
+
+                {% if addPhotoButton %}
+                    <button class="btn btn-primary ml-3 take-picture-modal-button">
+                        <span class="wii-icon wii-icon-camera wii-icon-25px px-3"></span>
+                    </button>
+                {% endif %}
+
             </div>
+
         {% endif %}
-        {% if addPhotoButton %}
-            <button class="btn btn-primary ml-3 take-picture-modal-button">
-                <span class="wii-icon wii-icon-camera wii-icon-25px px-3"></span>
-            </button>
-        {% endif %}
+
     </div>
     <div class="file-bag" onclick="">
         {% if attachments is defined %}

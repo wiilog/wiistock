@@ -73,8 +73,10 @@ class PurchaseRequestService
     #[Required]
     public UserService $userService;
 
-    public function getDataForDatatable($params = null)
-    {
+    #[Required]
+    public TranslationService $translation;
+
+    public function getDataForDatatable($params = null): array {
         $filters = $this->entityManager->getRepository(FiltreSup::class)
             ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PURCHASE_REQUEST, $this->tokenStorage->getToken()->getUser());
 
@@ -95,8 +97,7 @@ class PurchaseRequestService
         ];
     }
 
-    public function dataRowPurchaseRequest(PurchaseRequest $request)
-    {
+    public function dataRowPurchaseRequest(PurchaseRequest $request): array {
         $url = $this->router->generate('purchase_request_show', [
             "id" => $request->getId()
         ]);
@@ -122,8 +123,7 @@ class PurchaseRequestService
     public function putPurchaseRequestLine($handle,
                                            CSVExportService $CSVExportService,
                                            array $request,
-                                           array $line = [])
-    {
+                                           array $line = []): void {
         $CSVExportService->putLine($handle, [
             $request['number'] ?? '',
             $request['statusName'] ?? '',
@@ -143,8 +143,7 @@ class PurchaseRequestService
         ]);
     }
 
-    public function createHeaderDetailsConfig(PurchaseRequest $request): array
-    {
+    public function createHeaderDetailsConfig(PurchaseRequest $request): array {
         return [
             ['label' => 'Statut', 'value' => $this->formatService->status($request->getStatus())],
             ['label' => 'Demandeur', 'value' =>  $this->formatService->user($request->getRequester())],
@@ -174,8 +173,7 @@ class PurchaseRequestService
 
     public function createPurchaseRequest(?Statut      $status,
                                           ?Utilisateur $requester,
-                                                       $options = []): PurchaseRequest
-    {
+                                                       $options = []): PurchaseRequest {
         $comment = $options["comment"] ?? null;
         $validationDate = $options["validationDate"] ?? null;
         $buyer = $options["buyer"] ?? null;
@@ -202,8 +200,7 @@ class PurchaseRequestService
 
     public function createPurchaseRequestLine(?ReferenceArticle $reference,
                                               ?int              $requestedQuantity,
-                                              array             $options = []): PurchaseRequestLine
-    {
+                                              array             $options = []): PurchaseRequestLine {
         $supplier = $options["supplier"] ?? null;
         $purchaseRequest = $options["purchaseRequest"] ?? null;
         $location = $options["location"] ?? null;
@@ -280,7 +277,7 @@ class PurchaseRequestService
                 ->toArray();
 
             $this->mailerService->sendMail(
-                'FOLLOW GT // ' . $subject,
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $subject,
                 $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
                     'title' => $title,
                     'purchaseRequest' => $purchaseRequest,
@@ -291,8 +288,7 @@ class PurchaseRequestService
         }
     }
 
-    public function getDataForReferencesDatatable($params = null)
-    {
+    public function getDataForReferencesDatatable($params = null): array {
         $demande = $this->entityManager->find(PurchaseRequest::class, $params);
         $referenceLines = $demande->getPurchaseRequestLines();
 
@@ -307,8 +303,7 @@ class PurchaseRequestService
         ];
     }
 
-    public function dataRowReference(PurchaseRequestLine $line)
-    {
+    public function dataRowReference(PurchaseRequestLine $line): array {
         return [
             'reference' => $line->getReference()->getReference(),
             'libelle' => $line->getReference()->getLibelle(),

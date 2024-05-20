@@ -129,6 +129,7 @@ $(function () {
         if ($current.find('.invalid').length === 0) {
             if ($($current.next()[0]).hasClass('summary-container')) {
                 const $articleDataInput = $('input[name=reference-article-input]');
+
                 wrapLoadingOnActionButton($(this), () => (
                     AJAX.route(POST, 'check_article_is_valid', {token, barcode: $articleDataInput.val() || null, referenceLabel : $referenceRefInput.val() })
                         .json()
@@ -155,24 +156,47 @@ $(function () {
 
                                 const $applicantInput = $('select[name=applicant] option:selected');
                                 const $followerInput = $('select[name=follower] option:selected');
+
                                 if ($applicantInput.val()) {
                                     $('.reference-managers').html(
                                         $followerInput.val() ?
                                             $applicantInput.text().concat(', ', $followerInput.text()) :
                                             $applicantInput.text());
                                 }
+
                                 let $freeFieldLabel = $('.free-field-label');
+                                let $freeFieldInput = $freeFieldLabel.find('input');
+                                let freeFieldLabelValue = $freeFieldInput.val()
+
+                                // in case the free field have data-input-type = switch, show 'oui' or 'non' instead of the value of the input
+                                if($freeFieldLabel.find('[type="radio"]').length > 0){
+                                    /*
+                                    In case of switch $freeFieldInput contains 2 inputs
+                                    checkedId is the id of the input checked
+                                    freeFieldLabelValue is the text of the label corresponding to the checked input
+                                    */
+                                    const checkedId = $freeFieldInput.filter(':checked').attr('id');
+                                    freeFieldLabelValue = $freeFieldLabel.find(`label[for="${checkedId}"]`).text();
+                                    if(!checkedId){
+                                        freeFieldLabelValue = '-';
+                                    }
+                                }
+
+                                // show value depend on the type of the input (params selected)
                                 $('.reference-free-field').html(
-                                    $freeFieldLabel.find('input').val()
+                                    freeFieldLabelValue
                                     || $freeFieldLabel.find('textarea').val()
                                     || $freeFieldLabel.find('select').find('option:selected').text());
-                                $('.reference-commentary').html($('input[name=reference-comment]').val());
-                            } else {
+
+                                $('.reference-commentary').html($('input[name=reference-comment]').val() || '-');
+                            }
+                            else {
                                 $modalArticleIsNotValid.modal('show');
                                 $modalArticleIsNotValid.find('.bookmark-icon').removeClass('d-none');
                             }
                         })));
-            } else {
+            }
+            else {
                 $current.removeClass('active').addClass('d-none');
                 $($current.next()[0]).addClass('active').removeClass('d-none');
                 $currentTimelineEvent.removeClass('current');

@@ -25,7 +25,7 @@
     transition: border 0.15s ease-in-out, color 0.15s ease-in-out;
 }
 
-.dropdown-follow-gt .checkbox label::before {
+.dropdown-wiilog .checkbox label::before {
     border-color: #1B14649E;
 }
 
@@ -42,7 +42,7 @@
     color: #555555;
 }
 
-.dropdown-follow-gt .checkbox label::after {
+.dropdown-wiilog .checkbox label::after {
     color: #1B1464;
 }
 

@@ -127,8 +127,7 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function findByParams(InputBag $params, Utilisateur $user): array
-    {
+    public function findByParams(InputBag $params, Utilisateur $user): array {
         $queryBuilder = $this->createQueryBuilder('supplier_article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -169,7 +168,7 @@ class ArticleFournisseurRepository extends EntityRepository
         }
 
         $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
-            ->filter()
+            ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
             ->values();
 
         if (!empty($searchParts)) {
@@ -187,10 +186,11 @@ class ArticleFournisseurRepository extends EntityRepository
             ];
 
             $orX = $expr->orX();
+            $searchPartsLength = count($searchParts);
             foreach ($searchParts as $index => $part) {
-                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index)->toArray());
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray());
 
-                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, true)
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true)
                     ->join(" + ");
 
                 $queryBuilder
@@ -211,9 +211,9 @@ class ArticleFournisseurRepository extends EntityRepository
 
                 $previousAction = $params->get("previousAction");
                 if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
-                    $queryBuilder->addOrderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
                 } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
-                    $queryBuilder->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
                 }
             }
         }
@@ -232,9 +232,9 @@ class ArticleFournisseurRepository extends EntityRepository
         }
 
         return [
-            'data' => $queryBuilder->getQuery()->getResult(),
-            'count' => $countQuery ?? 0,
-            'total' => $countTotal,
+            "data" => $queryBuilder->getQuery()->getResult(),
+            "count" => $countQuery,
+            "total" => $countTotal,
             "searchParts" => $searchParts,
         ];
     }

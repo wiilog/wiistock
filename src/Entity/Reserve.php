@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\ReserveRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,8 +10,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ReserveRepository::class)]
-class Reserve
-{
+class Reserve implements AttachmentContainer {
     use AttachmentTrait;
 
     const MINUS = 'moins';

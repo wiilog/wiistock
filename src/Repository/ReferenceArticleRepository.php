@@ -194,6 +194,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.isUrgent AS urgent')
             ->addSelect('reference.emergencyComment AS emergencyComment')
+            ->addSelect('reference.quantiteDisponible AS quantityDisponible')
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -734,9 +735,8 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        // prise en compte des paramètres issus du datatable
         $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
-            ->filter()
+            ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
             ->values();
 
         if (!empty($searchParts)) {
@@ -765,26 +765,26 @@ class ReferenceArticleRepository extends EntityRepository {
                         };
 
                         $queryBuilder
-                            ->innerJoin("ra.articlesFournisseur", "sub_supplierArticle_$key")
-                            ->innerJoin("sub_supplierArticle_$key.fournisseur", "sub_supplier_$key");
+                            ->leftJoin("ra.articlesFournisseur", "search_supplierArticle_$key")
+                            ->leftJoin("search_supplierArticle_$key.fournisseur", "search_supplier_$key");
 
-                        $conditions[] = "sub_supplier_$key.$dbField LIKE :search_value";
+                        $conditions[] = "search_supplier_$key.$dbField LIKE :search_value";
 
                         break;
                     case "referenceSupplierArticle":
-                        $queryBuilder->innerJoin("ra.articlesFournisseur", "sub_supplierArticle_$key");
+                        $queryBuilder->leftJoin("ra.articlesFournisseur", "search_supplierArticle");
 
-                        $conditions[] = "sub_supplierArticle_$key.reference LIKE :search_value";
+                        $conditions[] = "search_supplierArticle.reference LIKE :search_value";
 
                         break;
                     case "managers":
-                        $queryBuilder->innerJoin("sub_referenceArticle_$key.managers", "search_managers");
+                        $queryBuilder->leftJoin("ra.managers", "search_managers");
 
                         $conditions[] = "search_managers.username LIKE :search_value";
 
                         break;
                     case "buyer":
-                        $queryBuilder->innerJoin("ra.buyer", "search_buyer");
+                        $queryBuilder->leftJoin("ra.buyer", "search_buyer");
 
                         $conditions[] = "search_buyer.username LIKE :search_value";
 
@@ -800,7 +800,7 @@ class ReferenceArticleRepository extends EntityRepository {
                             if ($freeFieldTyping === FreeField::TYPE_BOOL) {
                                 if (!$searchBooleanValues->isEmpty()) {
                                     foreach ($searchBooleanValues->toArray() as $booleanValue) {
-                                        $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', $booleanValue, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                        $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', '$booleanValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     }
                                 }
                             } elseif (in_array($freeFieldTyping, [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])) {
@@ -830,10 +830,11 @@ class ReferenceArticleRepository extends EntityRepository {
             }
 
             $orX = $queryBuilder->expr()->orX();
+            $searchPartsLength = count($searchParts);
             foreach ($searchParts as $index => $part) {
-                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index)->toArray());
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray());
 
-                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, true)
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true)
                     ->join(" + ");
 
                 $queryBuilder
@@ -846,9 +847,9 @@ class ReferenceArticleRepository extends EntityRepository {
 
                 $previousAction = $params->get("previousAction");
                 if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
-                    $queryBuilder->addOrderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
                 } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
-                    $queryBuilder->orderBy("SUM({$relevances->join(" + ")})", Criteria::DESC);
+                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
                 }
 
                 $queryBuilder
