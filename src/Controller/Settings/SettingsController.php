@@ -2359,6 +2359,13 @@ class SettingsController extends AbstractController {
                     "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type ? $type->hasReusableStatuses() : true),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+                $data[] = [
+                    "label" => "Actif",
+                    "value" => $formService->macro("checkbox", "active", '', null, $type ? $type->isActive() : true),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2475,6 +2482,13 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
                     "value" => $this->formatService->bool($type->hasReusableStatuses(), "Non"),
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+                $data[] = [
+                    "label" => "Actif",
+                    "value" => $this->formatService->bool($type->isActive(), "Non"),
                 ];
             }
         }
