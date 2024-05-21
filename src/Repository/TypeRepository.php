@@ -14,6 +14,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
@@ -253,6 +254,17 @@ class TypeRepository extends EntityRepository {
         ]);
 
         return $query->getOneOrNullResult();
+    }
+
+    public function countActiveTypeByCategoryType(int $categoryType): int
+    {
+        $queryBuilder = $this->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.id = :category')
+            ->andWhere('type.active = 1')
+            ->setParameter("category", $categoryType);
+
+        return QueryBuilderHelper::count($queryBuilder, 'type');
     }
 
 }
