@@ -74,6 +74,9 @@ class ReceptionService
     #[Required]
     public ReceptionLineService $receptionLineService;
 
+    #[Required]
+    public CSVExportService $CSVExportService;
+
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
@@ -538,5 +541,77 @@ class ReceptionService
                 ? Reception::STATUT_RECEPTION_PARTIELLE
                 : Reception::STATUT_EN_ATTENTE);
         return $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+    }
+
+    public function putLine($handle, array $reception, array &$addedRefs, array $requesters): void {
+        if($reception['articleId'] || $reception['referenceArticleId']) {
+            if($reception['articleId']) {
+                $row = [
+                    ...$this->serializeReception($reception),
+                    ...[
+                        $requesters["{$reception['id']}-{$reception['articleId']}"] ?? "",
+                        $reception["articleReference"],
+                        $reception["articleLabel"],
+                        $reception["articleQuantity"],
+                        $reception["articleTypeLabel"],
+                        $reception["referenceArticleBarcode"],
+                        $reception["articleBarcode"],
+                        $reception["currentLogisticUnit"],
+                        $reception["receptionReferenceArticleUnitPrice"],
+                    ],
+                ];
+
+                $this->CSVExportService->putLine($handle, $row);
+            } else {
+                if (!isset($addedRefs[$reception['referenceArticleId']])) {
+                    $addedRefs[$reception['referenceArticleId']] = true;
+
+                    $row = [
+                        ...$this->serializeReception($reception),
+                        ...[
+                            "",
+                            $reception["referenceArticleReference"],
+                            $reception["referenceArticleLibelle"],
+                            $reception["referenceArticleQuantiteStock"],
+                            $reception["referenceArticleTypeLabel"],
+                            $reception["referenceArticleBarcode"],
+                            "",
+                            $reception["currentLogisticUnit"],
+                            $reception["receptionReferenceArticleUnitPrice"],
+                        ],
+                    ];
+
+                    $this->CSVExportService->putLine($handle, $row);
+                }
+            }
+        } else {
+            $this->CSVExportService->putLine($handle, $this->serializeReception($reception));
+        }
+    }
+
+    private function serializeReception(array $reception): array {
+        return [
+            $reception["number"],
+            $reception["orderNumber"]
+                ? join(", ", $reception["orderNumber"])
+                : "",
+            $reception["providerName"],
+            $reception["userUsername"],
+            $reception["statusName"],
+            $this->formatService->datetime($reception["date"]),
+            $this->formatService->datetime($reception["dateFinReception"]),
+            $reception["commentaire"]
+                ? strip_tags($reception["commentaire"])
+                : "",
+            $reception["receptionRefArticleQuantiteAR"],
+            (!$reception["referenceArticleId"] && !$reception["articleId"]
+                ? ""
+                : ($reception["receptionRefArticleQuantite"]
+                    ?: 0)),
+            $reception["storageLocation"],
+            $this->formatService->bool($reception["receptionEmergency"]),
+            $this->formatService->bool($reception["referenceEmergency"]),
+            $reception["deliveryFee"],
+        ];
     }
 }
