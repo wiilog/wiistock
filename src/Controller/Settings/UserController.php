@@ -2,6 +2,7 @@
 
 namespace App\Controller\Settings;
 
+use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
@@ -49,15 +50,13 @@ class UserController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $languageRepository = $entityManager->getRepository(Language::class);
             $fixedFieldRepository = $entityManager->getRepository(FixedFieldByType::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
 
             $user = $utilisateurRepository->find($data['id']);
 
             return new JsonResponse([
-                'userDeliveryTypes' => $user->getDeliveryTypeIds(),
-                'userDispatchTypes' => $user->getDispatchTypeIds(),
-                'userHandlingTypes' => $user->getHandlingTypeIds(),
-                'html' => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
-                    'user' => $user,
+                "html" => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
+                    "user" => $user,
                     "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
@@ -74,6 +73,27 @@ class UserController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "deliveryTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
+                        ->map(fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                            "selected" => in_array($type->getId(), $user->getDeliveryTypeIds()),
+                        ])
+                        ->toArray(),
+                    "dispatchTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                        ->map(fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                            "selected" => in_array($type->getId(), $user->getDispatchTypeIds()),
+                        ])
+                        ->toArray(),
+                    "handlingTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
+                        ->map(fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                            "selected" => in_array($type->getId(), $user->getHandlingTypeIds()),
+                        ])
+                        ->toArray(),
                 ])
             ]);
         }
@@ -179,181 +199,192 @@ class UserController extends AbstractController {
                          EntityManagerInterface $entityManager,
                          CacheService $cacheService): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
+        $data = $request->request->all();
 
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $roleRepository = $entityManager->getRepository(Role::class);
-            $languageRepository = $entityManager->getRepository(Language::class);
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
 
-            $user = $utilisateurRepository->find($data['user']);
-            $role = $roleRepository->find($data['role']);
-            $language = $languageRepository->find($data['language']);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
 
-            $result = $passwordService->checkPassword($data['password'],$data['password2']);
-            if ($result['response'] == false){
-                throw new FormException($result['message']);
-            }
+        $user = $utilisateurRepository->find($data['user']);
+        $role = $roleRepository->find($data['role']);
+        $language = $languageRepository->find($data['language']);
 
-            // unicité de l'email
-            $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
+        $result = $passwordService->checkPassword($data['password'] ?? '',$data['password2'] ?? '');
+        if ($result['response'] == false){
+            throw new FormException($result['message']);
+        }
 
-            if ($emailAlreadyUsed > 0  && $data['email'] != $user->getEmail()) {
-                throw new FormException("Cette adresse email est déjà utilisée.");
-            }
+        // unicité de l'email
+        $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
-            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new FormException("L'adresse email principale {$data['email']} n'est pas valide");
-            }
+        if ($emailAlreadyUsed > 0  && $data['email'] != $user->getEmail()) {
+            throw new FormException("Cette adresse email est déjà utilisée.");
+        }
 
-            // unicité de l'username
-            $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
+        if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new FormException("L'adresse email principale {$data['email']} n'est pas valide");
+        }
 
-            if ($usernameAlreadyUsed > 0  && $data['username'] != $user->getUsername() ) {
-                throw new FormException("Ce nom d'utilisateur est déjà utilisé.");
-            }
+        // unicité de l'username
+        $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
-            //vérification que l'user connecté ne se désactive pas
-            if ($user->getId() === $loggedUser->getId() && $data['status'] == 0) {
-                throw new FormException('Vous ne pouvez pas désactiver votre propre compte.');
-            }
+        if ($usernameAlreadyUsed > 0  && $data['username'] != $user->getUsername() ) {
+            throw new FormException("Ce nom d'utilisateur est déjà utilisé.");
+        }
 
-            // vérification si logged user a le droit de modifier un utilisateur wiilog
-            if (!$loggedUser->isWiilogUser() && $user->isWiilogUser()) {
-                throw new FormException("Vous ne pouvez pas modifier un membre de l'equipe Wiilog.");
-            }
+        //vérification que l'user connecté ne se désactive pas
+        if ($user->getId() === $loggedUser->getId() && $data['status'] == 0) {
+            throw new FormException('Vous ne pouvez pas désactiver votre propre compte.');
+        }
 
-            $secondaryEmails = isset($data['secondaryEmails'])
-                ? json_decode($data['secondaryEmails'])
-                : [];
+        // vérification si logged user a le droit de modifier un utilisateur wiilog
+        if (!$loggedUser->isWiilogUser() && $user->isWiilogUser()) {
+            throw new FormException("Vous ne pouvez pas modifier un membre de l'equipe Wiilog.");
+        }
+
+        $secondaryEmails = isset($data['secondaryEmails'])
+            ? explode(',', $data['secondaryEmails'])
+            : [];
+
+        if($secondaryEmails){
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    throw new FormException("L'adresse email $email n'est pas valide");
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "L'adresse email $email n'est pas valide"
+                    ]);
                 }
             }
+        }
 
-            $dropzone = explode(":", $data['dropzone']);
-            if($dropzone[0] === 'location') {
-                $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
-            } elseif($dropzone[0] === 'locationGroup') {
-                $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
-            }
+        $dropzone = explode(":", $data['dropzone']);
+        if($dropzone[0] === 'location') {
+            $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
+        } elseif($dropzone[0] === 'locationGroup') {
+            $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
+        }
 
-            $user
-                ->setSecondaryEmails($secondaryEmails)
-                ->setRole($role)
-                ->setStatus($data['status'])
-                ->setUsername($data['username'])
-                ->setAddress($data['address'])
-                ->setDropzone($dropzone)
-                ->setEmail($data['email'])
-                ->setPhone($data['phoneNumber'] ?? '')
-                ->setDeliverer($data['deliverer'] ?? false)
-                ->setLanguage($language)
-                ->setDateFormat($data['dateFormat'])
-                ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
+        $user
+            ->setSecondaryEmails($secondaryEmails)
+            ->setRole($role)
+            ->setStatus($data['status'])
+            ->setUsername($data['username'])
+            ->setAddress($data['address'])
+            ->setDropzone($dropzone)
+            ->setEmail($data['email'])
+            ->setPhone($data['phoneNumber'] ?? '')
+            ->setDeliverer($data['deliverer'] ?? false)
+            ->setLanguage($language)
+            ->setDateFormat($data['dateFormat'])
+            ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
 
-            $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
-            if ($visibilityGroupsIds) {
-                $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
-            }
+        $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+        if ($visibilityGroupsIds) {
+            $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
+        }
 
-            $user->setVisibilityGroups($visibilityGroups ?? []);
+        $user->setVisibilityGroups($visibilityGroups ?? []);
 
-            if(!$user->getVisibilityGroups()->isEmpty()) {
-                $filters = $entityManager->getRepository(FiltreRef::class)->findBy(["champFixe" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP]);
-                foreach($filters as $filter) {
-                    $entityManager->remove($filter);
-                }
+        if(!$user->getVisibilityGroups()->isEmpty()) {
+            $filters = $entityManager->getRepository(FiltreRef::class)->findBy(["champFixe" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP]);
+            foreach($filters as $filter) {
+                $entityManager->remove($filter);
             }
+        }
 
-            $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
-            if (!empty($plainSignatoryPassword)) {
-                if (strlen($plainSignatoryPassword) < 4) {
-                    throw new FormException("Le code signataire doit contenir au moins 4 caractères");
-                }
-                $signatoryPassword = $encoder->hashPassword($user, $plainSignatoryPassword);
-                $user->setSignatoryPassword($signatoryPassword);
+        $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
+        if (!empty($plainSignatoryPassword)) {
+            if (strlen($plainSignatoryPassword) < 4) {
+                throw new FormException("Le code signataire doit contenir au moins 4 caractères");
             }
+            $signatoryPassword = $encoder->hashPassword($user, $plainSignatoryPassword);
+            $user->setSignatoryPassword($signatoryPassword);
+        }
 
 
-            if ($data['password'] !== '') {
-                $password = $encoder->hashPassword($user, $data['password']);
-                $user->setPassword($password);
+        if ($data['password'] !== null) {
+            $password = $encoder->hashPassword($user, $data['password']);
+            $user->setPassword($password);
+        }
+        foreach ($user->getDeliveryTypes() as $typeToRemove) {
+            $user->removeDeliveryType($typeToRemove);
+        }
+        if (isset($data['deliveryTypes'])) {
+            $deliveryTypes = explode(',', $data['deliveryTypes']);
+            foreach ($deliveryTypes as $typeId) {
+                $deliveryType = $typeRepository->find($typeId);
+                $user->addDeliveryType($deliveryType);
             }
-            foreach ($user->getDeliveryTypes() as $typeToRemove) {
-                $user->removeDeliveryType($typeToRemove);
+        }
+        foreach ($user->getDispatchTypes() as $typeToRemove) {
+            $user->removeDispatchType($typeToRemove);
+        }
+        if (isset($data['dispatchTypes'])) {
+            $dispatchTypes = explode(',', $data['dispatchTypes']);
+            foreach ($dispatchTypes as $typeId) {
+                $dispatchType = $typeRepository->find($typeId);
+                $user->addDispatchType($dispatchType);
             }
-            if (isset($data['deliveryTypes'])) {
-                foreach ($data['deliveryTypes'] as $type) {
-                    $user->addDeliveryType($typeRepository->find($type));
-                }
+        }
+        foreach ($user->getHandlingTypes() as $typeToRemove) {
+            $user->removeHandlingType($typeToRemove);
+        }
+        if (isset($data['handlingTypes'])) {
+            $handlingTypes = explode(',', $data['handlingTypes']);
+            foreach ($handlingTypes as $typeId) {
+                $handlingType = $typeRepository->find($typeId);
+                $user->addHandlingType($handlingType);
             }
-            foreach ($user->getDispatchTypes() as $typeToRemove) {
-                $user->removeDispatchType($typeToRemove);
-            }
-            if (isset($data['dispatchTypes'])) {
-                foreach ($data['dispatchTypes'] as $type) {
-                    $user->addDispatchType($typeRepository->find($type));
-                }
-            }
-            foreach ($user->getHandlingTypes() as $typeToRemove) {
-                $user->removeHandlingType($typeToRemove);
-            }
-            if (isset($data['handlingTypes'])) {
-                foreach ($data['handlingTypes'] as $type) {
-                    $user->addHandlingType($typeRepository->find($type));
-                }
-            }
+        }
 
-            if (!empty($data['mobileLoginKey'])
-                && $data['mobileLoginKey'] !== $user->getMobileLoginKey()) {
+        if (!empty($data['mobileLoginKey'])
+            && $data['mobileLoginKey'] !== $user->getMobileLoginKey()) {
 
-                $usersWithKey = $utilisateurRepository->findBy([
-                    'mobileLoginKey' => $data['mobileLoginKey']
-                ]);
-                if (!empty($usersWithKey)
-                    && (
-                        count($usersWithKey) > 1
-                        || $usersWithKey[0]->getId() !== $user->getId()
-                    )) {
-                    throw new FormException("Cette clé de connexion est déjà utilisée.");
+            $usersWithKey = $utilisateurRepository->findBy([
+                'mobileLoginKey' => $data['mobileLoginKey']
+            ]);
+            if (!empty($usersWithKey)
+                && (
+                    count($usersWithKey) > 1
+                    || $usersWithKey[0]->getId() !== $user->getId()
+                )) {
+                throw new FormException("Cette clé de connexion est déjà utilisée.");
+            }
+            else {
+                $mobileLoginKey = $data['mobileLoginKey'];
+                if (empty($mobileLoginKey)
+                    || strlen($mobileLoginKey) < UserService::MIN_MOBILE_KEY_LENGTH
+                    || strlen($mobileLoginKey) > UserService::MAX_MOBILE_KEY_LENGTH) {
+                    throw new FormException('La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.');
                 }
                 else {
-                    $mobileLoginKey = $data['mobileLoginKey'];
-                    if (empty($mobileLoginKey)
-                        || strlen($mobileLoginKey) < UserService::MIN_MOBILE_KEY_LENGTH
-                        || strlen($mobileLoginKey) > UserService::MAX_MOBILE_KEY_LENGTH) {
-                        throw new FormException('La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.');
-                    }
-                    else {
-                        $user->setMobileLoginKey($mobileLoginKey);
-                    }
+                    $user->setMobileLoginKey($mobileLoginKey);
                 }
             }
-
-            $entityManager->persist($user);
-            $entityManager->flush();
-            $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
-
-            $dataResponse = ['success' => true];
-
-            if ($user->getId() != $loggedUser->getId()) {
-                $dataResponse['msg'] = 'L\'utilisateur <strong>' . $user->getUsername() . '</strong> a bien été modifié.';
-            } else {
-                if ($userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                    $dataResponse['msg'] = 'Vous avez bien modifié votre compte utilisateur.';
-                } else {
-                    $dataResponse['msg'] = 'Vous avez bien modifié votre rôle utilisateur.';
-                    $dataResponse['redirect'] = $this->generateUrl('access_denied');
-                }
-            }
-            return $this->json($dataResponse);
         }
-        throw new BadRequestHttpException();
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+        $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
+
+        $dataResponse = ['success' => true];
+
+        if ($user->getId() != $loggedUser->getId()) {
+            $dataResponse['msg'] = 'L\'utilisateur <strong>' . $user->getUsername() . '</strong> a bien été modifié.';
+        } else {
+            if ($userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                $dataResponse['msg'] = 'Vous avez bien modifié votre compte utilisateur.';
+            } else {
+                $dataResponse['msg'] = 'Vous avez bien modifié votre rôle utilisateur.';
+                $dataResponse['redirect'] = $this->generateUrl('access_denied');
+            }
+        }
+        return $this->json($dataResponse);
     }
 
     /**
@@ -405,57 +436,60 @@ class UserController extends AbstractController {
                         UserService $userService,
                         LanguageService $languageService,
                         EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $roleRepository = $entityManager->getRepository(Role::class);
-            $languageRepository = $entityManager->getRepository(Language::class);
+        $data = $request->request->all();
 
-            $password = $data['password'];
-            $password2 = $data['password2'];
-            // validation du mot de passe
-            $result = $passwordService->checkPassword($password, $password2);
-            if($result['response'] == false){
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => $result['message'],
-                    'action' => 'new'
-                ]);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
 
-            }
+        $password = $data['password'];
+        $password2 = $data['password2'];
+        // validation du mot de passe
+        $result = $passwordService->checkPassword($password, $password2);
+        if($result['response'] == false){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => $result['message'],
+                'action' => 'new'
+            ]);
 
-            // unicité de l'email
-            $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
+        }
 
-            if ($emailAlreadyUsed > 0) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Cette adresse email est déjà utilisée.',
-                    'action' => 'new'
-                ]);
-            }
+        // unicité de l'email
+        $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
-            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
-                ]);
-            }
+        if ($emailAlreadyUsed > 0) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Cette adresse email est déjà utilisée.',
+                'action' => 'new'
+            ]);
+        }
 
-            // unicité de l'username
-            $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
-            if ($usernameAlreadyUsed > 0) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "Ce nom d'utilisateur est déjà utilisé.",
-                    'action' => 'new'
-                ]);
-            }
+        if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
+            ]);
+        }
 
-            $secondaryEmails = isset($data['secondaryEmails'])
-                ? json_decode($data['secondaryEmails'])
-                : [];
+        // unicité de l'username
+        $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
+        if ($usernameAlreadyUsed > 0) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Ce nom d'utilisateur est déjà utilisé.",
+                'action' => 'new'
+            ]);
+        }
+
+        $secondaryEmails = isset($data['secondaryEmails'])
+            ? explode(',', $data['secondaryEmails'])
+            : [];
+
+        if($secondaryEmails){
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return $this->json([
@@ -464,87 +498,86 @@ class UserController extends AbstractController {
                     ]);
                 }
             }
-
-            $dropzone = explode(":", $data['dropzone']);
-            if($dropzone[0] === 'location') {
-                $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
-            } elseif($dropzone[0] === 'locationGroup') {
-                $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
-            }
-
-            $utilisateur = new Utilisateur();
-            $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
-            $language = !empty($data['language'])
-                ? $languageRepository->find($data['language'])
-                : $languageService->getNewUserLanguage($entityManager);
-            $role = $roleRepository->find($data['role']);
-
-            $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
-
-            if (!empty($plainSignatoryPassword) && strlen($plainSignatoryPassword) < 4) {
-                throw new FormException("Le code signataire doit contenir au moins 4 caractères");
-            }
-
-            $signatoryPassword = $plainSignatoryPassword ? $encoder->hashPassword($utilisateur, $plainSignatoryPassword) : null;
-
-            $utilisateur
-                ->setUsername($data['username'])
-                ->setEmail($data['email'])
-                ->setSecondaryEmails($secondaryEmails)
-                ->setPhone($data['phoneNumber'])
-                ->setRole($role)
-                ->setStatus(true)
-                ->setDropzone($dropzone)
-                ->setAddress($data['address'])
-                ->setLanguage($language)
-                ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
-                ->setMobileLoginKey($uniqueMobileKey)
-                ->setDeliverer($data['deliverer'] ?? false)
-                ->setSignatoryPassword($signatoryPassword)
-                ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
-
-            if ($password !== '') {
-                $password = $encoder->hashPassword($utilisateur, $data['password']);
-                $utilisateur->setPassword($password);
-            }
-
-            $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
-            if ($visibilityGroupsIds) {
-                $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
-            }
-
-            $utilisateur->setVisibilityGroups($visibilityGroups ?? []);
-
-            if (!empty($data['deliveryTypes'])) {
-                $types = $typeRepository->findBy(["id" => $data['deliveryTypes']]);
-                foreach ($types as $type) {
-                    $utilisateur->addDeliveryType($type);
-                }
-            }
-
-            if (!empty($data['dispatchTypes'])) {
-                $types = $typeRepository->findBy(["id" => $data['dispatchTypes']]);
-                foreach ($types as $type) {
-                    $utilisateur->addDispatchType($type);
-                }
-            }
-
-            if (!empty($data['handlingTypes'])) {
-                $types = $typeRepository->findBy(["id" => $data['handlingTypes']]);
-                foreach ($types as $type) {
-                    $utilisateur->addHandlingType($type);
-                }
-            }
-
-            $entityManager->persist($utilisateur);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
-            ]);
         }
-        throw new BadRequestHttpException();
+
+        $dropzone = explode(":", $data['dropzone']);
+        if($dropzone[0] === 'location') {
+            $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
+        } elseif($dropzone[0] === 'locationGroup') {
+            $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
+        }
+
+        $utilisateur = new Utilisateur();
+        $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
+        $language = !empty($data['language'])
+            ? $languageRepository->find($data['language'])
+            : $languageService->getNewUserLanguage($entityManager);
+        $role = $roleRepository->find($data['role']);
+
+        $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
+
+        if (!empty($plainSignatoryPassword) && strlen($plainSignatoryPassword) < 4) {
+            throw new FormException("Le code signataire doit contenir au moins 4 caractères");
+        }
+
+        $signatoryPassword = $plainSignatoryPassword ? $encoder->hashPassword($utilisateur, $plainSignatoryPassword) : null;
+
+        $utilisateur
+            ->setUsername($data['username'])
+            ->setEmail($data['email'])
+            ->setSecondaryEmails($secondaryEmails)
+            ->setPhone($data['phoneNumber'])
+            ->setRole($role)
+            ->setStatus(true)
+            ->setDropzone($dropzone)
+            ->setAddress($data['address'])
+            ->setLanguage($language)
+            ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
+            ->setMobileLoginKey($uniqueMobileKey)
+            ->setDeliverer($data['deliverer'] ?? false)
+            ->setSignatoryPassword($signatoryPassword)
+            ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
+
+        if ($password !== '') {
+            $password = $encoder->hashPassword($utilisateur, $data['password']);
+            $utilisateur->setPassword($password);
+        }
+
+        $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+        if ($visibilityGroupsIds) {
+            $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
+        }
+
+        $utilisateur->setVisibilityGroups($visibilityGroups ?? []);
+
+        if (!empty($data['deliveryTypes'])) {
+            $types = $typeRepository->findBy(["id" => json_decode($data['deliveryTypes'])]);
+            foreach ($types as $type) {
+                $utilisateur->addDeliveryType($type);
+            }
+        }
+
+        if (!empty($data['dispatchTypes'])) {
+            $types = $typeRepository->findBy(["id" =>  json_decode($data['dispatchTypes'])]);
+            foreach ($types as $type) {
+                $utilisateur->addDispatchType($type);
+            }
+        }
+
+        if (!empty($data['handlingTypes'])) {
+            $types = $typeRepository->findBy(["id" =>  json_decode($data['handlingTypes'])]);
+            foreach ($types as $type) {
+                $utilisateur->addHandlingType($type);
+            }
+        }
+
+        $entityManager->persist($utilisateur);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
+        ]);
     }
 
     /**
