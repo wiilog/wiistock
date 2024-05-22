@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+//use App\Command\AttachmentCleanCommand;
 use App\Command\Cron\AverageRequestTimeCommand;
 use App\Command\Cron\CheckPairingValidityCommand;
 use App\Command\Cron\CloseInactiveSessionsCommand;
@@ -131,6 +132,11 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'schedule' => '*/1 * * * *',
             'description' => '',
         ]
+//        [
+//            'command' => AttachmentCleanCommand::COMMAND_NAME,
+//            'schedule' => '0 2 * * 1',
+//            'description' => '',
+//        ],
     ];
 
     public function load(ObjectManager $manager): void {
