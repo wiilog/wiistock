@@ -862,9 +862,7 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        $queryBuilder
-            ->addSelect("COUNT_OVER(ra.id) AS __query_count")
-            ->addGroupBy("ra.id");
+        $queryBuilder->addSelect("COUNT_OVER(ra.id) AS __query_count");
 
         if ($params->getInt('start')) {
             $queryBuilder->setFirstResult($params->getInt('start'));
