@@ -35,6 +35,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -80,7 +81,10 @@ class CollecteController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
+        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
+        $types = Stream::from($collectTypes)
+            ->filter(fn(Type $type) => $type->isActive())
+            ->toArray();
         $restrictedResults = $paramGlobalRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
 		$typeChampLibre = [];
 		foreach ($types as $type) {
@@ -96,7 +100,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
-			'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
+			'types' => $types,
 			'filterStatus' => $filter,
             'restrictResults' => $restrictedResults,
         ]);

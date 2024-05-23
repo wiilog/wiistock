@@ -279,6 +279,9 @@ class DemandeController extends AbstractController
             'typeChampsLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
+            'typesForModal' => Stream::from($types)
+                ->filter(fn(Type $type) => $type->isActive())
+                ->toArray(),
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,

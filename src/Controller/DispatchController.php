@@ -117,7 +117,10 @@ class DispatchController extends AbstractController {
         }
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $types = Stream::from($dispatchTypes)
+            ->filter(fn(Type $type) => in_array($type->getId(), $currentUser->getDispatchTypeIds()))
+            ->toArray();
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
@@ -125,13 +128,16 @@ class DispatchController extends AbstractController {
 
         $dispatchEmergenciesForFilter = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
+        $dispatchStatuses = $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder');
+        $statuses = Stream::from($dispatchStatuses)
+            ->filter(fn(Statut $statut) => in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()))
+            ->toArray();
         return $this->render('dispatch/index.html.twig', [
-            'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
+            'statuses' => $statuses,
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => [$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergenciesForFilter],
             'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
-                ->filter(fn(Type $type) => in_array($type->getId(), $currentUser->getDispatchTypeIds()))
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $this->getFormatter()->type($type)
@@ -310,7 +316,12 @@ class DispatchController extends AbstractController {
             }
         }
 
+        $currentUser = $this->getUser();
         $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
+        if(!$type->isActive() || !in_array($type->getId(), $currentUser->getDispatchTypeIds())){
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+        }
+
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true, $type);
         $locationTake = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)
             ? ($emplacementRepository->find($post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
@@ -363,7 +374,6 @@ class DispatchController extends AbstractController {
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
-        $currentUser = $this->getUser();
         $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
         if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
@@ -1564,7 +1574,10 @@ class DispatchController extends AbstractController {
             $arrival = $arrivageRepository->find($request->query->get('arrival'));
         }
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $types = Stream::from($dispatchTypes)
+            ->filter(fn(Type $type) => in_array($type->getId(), $this->getUser()->getDispatchTypeIds()))
+            ->toArray();
 
         $packs = [];
         if(!empty($arrivals)) {

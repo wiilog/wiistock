@@ -131,6 +131,7 @@ class TypeRepository extends EntityRepository {
 
         return $query
             ->andWhere("type.label LIKE :term")
+            ->andWhere("type.active = 1")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
