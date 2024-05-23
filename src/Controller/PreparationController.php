@@ -48,26 +48,20 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/preparation")
- */
+
+#[Route('/preparation')]
 class PreparationController extends AbstractController
 {
-    /**
-     * @Route("/finir/{idPrepa}", name="preparation_finish", methods={"POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function finishPrepa($idPrepa,
-                                Request $request,
-                                NotificationService $notificationService,
-                                EntityManagerInterface $entityManager,
-                                LivraisonsManagerService $livraisonsManager,
-                                PreparationsManagerService $preparationsManager) {
-
+    #[Route("/finir/{preparation}", name: "preparation_finish", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function finishPrepa(Preparation                 $preparation,
+                                Request                     $request,
+                                NotificationService         $notificationService,
+                                EntityManagerInterface      $entityManager,
+                                LivraisonsManagerService    $livraisonsManager,
+                                PreparationsManagerService  $preparationsManager): JsonResponse {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $preparationRepository = $entityManager->getRepository(Preparation::class);
 
-        $preparation = $preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
         $user = $this->getUser();
@@ -88,7 +82,6 @@ class PreparationController extends AbstractController
 
         $preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
-        $entityManager->flush();
         $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
@@ -105,33 +98,26 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/liste/{demandId}", name="preparation_index", methods="GET|POST")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
-     */
+    #[Route("/liste/{deliveryRequest}", name: "preparation_index", methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA])]
     public function index(EntityManagerInterface $entityManager,
-                          string                 $demandId = null): Response
+                          ?Demande               $deliveryRequest = null): Response
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $demandeRepository = $entityManager->getRepository(Demande::class);
-
-        $demandeLivraison = $demandId ? $demandeRepository->find($demandId) : null;
 
         return $this->render('preparation/index.html.twig', [
-            'filterDemandId' => isset($demandeLivraison) ? $demandId : null,
-            'filterDemandValue' => isset($demandeLivraison) ? $demandeLivraison->getNumero() : null,
-            'filtersDisabled' => isset($demandeLivraison),
+            'filterDemandId' => $deliveryRequest?->getId(),
+            'filterDemandValue' => $deliveryRequest?->getNumero(),
+            'filtersDisabled' => isset($deliveryRequest),
             'displayDemandFilter' => true,
             'statuts' => $statutRepository->findByCategorieName(Preparation::CATEGORIE),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON])
         ]);
     }
 
-    /**
-     * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "preparation_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         PreparationsManagerService $preparationsManagerService): Response
     {
@@ -141,7 +127,7 @@ class PreparationController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/preparation-order-logistic-units-api", name: "preparation_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/preparation-order-logistic-units-api", name: "preparation_order_logistic_units_api", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
     public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
         $preparationOrder = $manager->find(Preparation::class, $request->query->get('id'));
@@ -249,10 +235,8 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/voir/{id}", name="preparation_show", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
-     */
+    #[Route('/voir/{id}', name: 'preparation_show', options: ['expose' => true], methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA])]
     public function show(Preparation                $preparation,
                          TagTemplateService         $tagTemplateService,
                          EntityManagerInterface     $entityManager,
@@ -316,16 +300,13 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/supprimer/{preparation}", name="preparation_delete", methods="POST", options={"expose"=true})
-     * @HasPermission({Menu::ORDRE, Action::DELETE})
-     */
+    #[Route('/supprimer/{preparation}', name: 'preparation_delete', options: ['expose' => true], methods: [self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DELETE])]
     public function delete(Preparation                $preparation,
                            EntityManagerInterface     $entityManager,
                            PreparationsManagerService $preparationsManagerService,
                            MouvementStockService      $mouvementStockService,
-                           RefArticleDataService      $refArticleDataService): Response
-    {
+                           RefArticleDataService      $refArticleDataService): Response {
 
         $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager, $mouvementStockService);
         $entityManager->flush();
@@ -349,10 +330,9 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    #[Route('/modifier', name: "preparation_edit", options: ['expose' => true], methods: 'POST')]
+    #[Route('/modifier', name: "preparation_edit", options: ['expose' => true], methods: [self::POST])]
     #[HasPermission([Menu::ORDRE, Action::EDIT_PREPARATION_DATE])]
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response {
         $preparation = $entityManager->find(Preparation::class, $request->request->get('id'));
 
         $preparation->setExpectedAt(DateTime::createFromFormat("Y-m-d", $request->request->get('expectedAt')));
@@ -364,12 +344,9 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/commencer-scission", name: "start_splitting", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function startSplitting(EntityManagerInterface $entityManager,
-                                   Request                $request): Response
-    {
+                                   Request                $request): Response {
         if ($ligneArticleId = json_decode($request->getContent(), true)) {
             $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -416,13 +393,10 @@ class PreparationController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/finir-scission", name: "submit_splitting", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
     public function submitSplitting(Request                    $request,
                                     PreparationsManagerService $preparationsManagerService,
-                                    EntityManagerInterface     $entityManager): Response
-    {
+                                    EntityManagerInterface     $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -502,13 +476,10 @@ class PreparationController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier-article", name="prepa_edit_ligne_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier-article", name: "prepa_edit_ligne_article", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editLigneArticle(Request                $request,
-                                     EntityManagerInterface $entityManager): Response
-    {
+                                     EntityManagerInterface $entityManager): Response {
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $preparationOrderReferenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -555,10 +526,8 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier-article-api", name="prepa_edit_api", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier-article-api", name: "prepa_edit_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEditLigneArticle(Request                $request,
                                         EntityManagerInterface $entityManager): Response
     {
@@ -590,9 +559,7 @@ class PreparationController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/csv", name="get_preparations_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/cvs", name: "get_preparations_csv", options: ["expose" => true], methods: [self::GET])]
     public function getPreparationCSV(Request                    $request,
                                       PreparationsManagerService $preparationsManager,
                                       CSVExportService           $CSVExportService,
@@ -639,9 +606,7 @@ class PreparationController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/{preparation}/check-etiquette", name="count_bar_codes", options={"expose"=true})
-     */
+    #[Route("/{preparation}/check-etiquette", name: "count_bar_codes", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     public function countBarcode(Preparation $preparation): Response
     {
         $articleCount = $preparation->getArticleLines()->count();
@@ -656,16 +621,13 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{preparation}/etiquettes", name="preparation_bar_codes_print", options={"expose"=true})
-     */
-    public function getBarCodes(Preparation           $preparation,
-                                RefArticleDataService $refArticleDataService,
-                                ArticleDataService    $articleDataService,
-                                EntityManagerInterface $entityManager,
-                                Request $request,
-                                PDFGeneratorService   $PDFGeneratorService): ?Response
-    {
+    #[Route("/{preparation}/etiquettes", name: "preparation_bar_codes_print", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    public function getBarCodes(Preparation             $preparation,
+                                RefArticleDataService   $refArticleDataService,
+                                ArticleDataService      $articleDataService,
+                                EntityManagerInterface  $entityManager,
+                                Request                 $request,
+                                PDFGeneratorService     $PDFGeneratorService): ?Response {
         $forceTagEmpty = $request->query->get('forceTagEmpty', false);
         $tag = $forceTagEmpty
             ? null
@@ -716,14 +678,11 @@ class PreparationController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/associer", name="preparation_sensor_pairing_new",options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/associer", name: "preparation_sensor_pairing_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::PAIR_SENSOR], mode: HasPermission::IN_JSON)]
     function newPreparationPairingSensor(PreparationsManagerService $preparationsService,
                                          EntityManagerInterface     $entityManager,
-                                         Request                    $request): Response
-    {
+                                         Request                    $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
             if (!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
@@ -760,8 +719,7 @@ class PreparationController extends AbstractController
 
     #[Route('/planning', name: 'preparation_planning_index', methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function planning(EntityManagerInterface $entityManager): Response
-    {
+    public function planning(EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         return $this->render('preparation/planning.html.twig', [
             'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
@@ -770,8 +728,7 @@ class PreparationController extends AbstractController
 
     #[Route('/lancement-preparation/recuperer-prepa', name: 'planning_preparation_launching_filter', options: ['expose' => true], methods: 'POST')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function getPrepasForModal(EntityManagerInterface $manager, Request $request)
-    {
+    public function getPrepasForModal(EntityManagerInterface $manager, Request $request): JsonResponse {
         $preparationRepository = $manager->getRepository(Preparation::class);
         $from = DateTime::createFromFormat("Y-m-d", $request->query->get("from"));
         $to = DateTime::createFromFormat("Y-m-d", $request->query->get("to"));
@@ -787,8 +744,7 @@ class PreparationController extends AbstractController
     #[Route('/planning/api', name: 'preparation_planning_api', options: ['expose' => true], methods: 'GET')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
     public function planningApi(EntityManagerInterface $entityManager,
-                                Request                $request): Response
-    {
+                                Request                $request): Response {
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $nbDaysOnPlanning = 5;
@@ -868,8 +824,7 @@ class PreparationController extends AbstractController
     #[Route('/modifier-date-preparation/{preparation}/{date}', name: 'preparation_edit_preparation_date', options: ['expose' => true], methods: 'PUT')]
     public function editPreparationDate(Preparation            $preparation,
                                         string                 $date,
-                                        EntityManagerInterface $manager): Response
-    {
+                                        EntityManagerInterface $manager): Response {
         $preparation->setExpectedAt(new DateTime($date));
         $manager->flush();
         return $this->json([

@@ -193,7 +193,7 @@ class DeliveryRequestService
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
         if ($requestStatus === Demande::STATUT_A_TRAITER && !$demande->getPreparations()->isEmpty()) {
-            $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
+            $href = $this->router->generate('preparation_index', ['deliveryRequest' => $demande->getId()]);
         } else if (
             (
                 $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
