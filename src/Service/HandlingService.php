@@ -85,7 +85,7 @@ class HandlingService {
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
-        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $selectedDate, [
+        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $user, $selectedDate, [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language
         ]);
