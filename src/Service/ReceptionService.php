@@ -543,11 +543,11 @@ class ReceptionService
         return $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
     }
 
-    public function putLine($handle, array $reception, array &$addedRefs, array $requesters): void {
+    public function putLine($handle, array $reception, array &$addedRefs, array $requesters, array $deliveryFees): void {
         if($reception['articleId'] || $reception['referenceArticleId']) {
             if($reception['articleId']) {
                 $row = [
-                    ...$this->serializeReception($reception),
+                    ...$this->serializeReception($reception, $deliveryFees),
                     ...[
                         $requesters["{$reception['id']}-{$reception['articleId']}"] ?? "",
                         $reception["articleReference"],
@@ -567,7 +567,7 @@ class ReceptionService
                     $addedRefs[$reception['referenceArticleId']] = true;
 
                     $row = [
-                        ...$this->serializeReception($reception),
+                        ...$this->serializeReception($reception, $deliveryFees),
                         ...[
                             "",
                             $reception["referenceArticleReference"],
@@ -585,11 +585,11 @@ class ReceptionService
                 }
             }
         } else {
-            $this->CSVExportService->putLine($handle, $this->serializeReception($reception));
+            $this->CSVExportService->putLine($handle, $this->serializeReception($reception, $deliveryFees));
         }
     }
 
-    private function serializeReception(array $reception): array {
+    private function serializeReception(array $reception, array $deliveryFees): array {
         return [
             $reception["number"],
             $reception["orderNumber"]
@@ -611,7 +611,7 @@ class ReceptionService
             $reception["storageLocation"],
             $this->formatService->bool($reception["receptionEmergency"]),
             $this->formatService->bool($reception["referenceEmergency"]),
-            $reception["deliveryFee"],
+            $deliveryFees[$reception["id"]] ?? null,
         ];
     }
 }

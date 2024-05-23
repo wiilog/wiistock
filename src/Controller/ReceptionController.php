@@ -1559,12 +1559,14 @@ class ReceptionController extends AbstractController {
                                     Request                $request): Response {
         $receptionRepository = $entityManager->getRepository(Reception::class);
         $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
+        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
 
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', "{$request->query->get("dateMin")} 00:00:00");
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', "{$request->query->get("dateMax")}  23:59:59");
 
         $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
         $requesters = $deliveryRequestRepository->getRequestersForReceptionExport();
+        $deliveryFees = $purchaseRequestRepository->getDeliveryFeesForReceptionExport();
 
         $headers = [
             $translation->translate("Ordre", "Réceptions", "n° de réception", false),
@@ -1603,9 +1605,9 @@ class ReceptionController extends AbstractController {
         );
 
         return $CSVExportService->streamResponse(
-            function ($output) use ($receptions, $receptionService, $addedRefs, $requesters) {
+            function ($output) use ($receptions, $receptionService, $addedRefs, $requesters, $deliveryFees) {
                 foreach ($receptions as $reception) {
-                    $receptionService->putLine($output, $reception, $addedRefs, $requesters);
+                    $receptionService->putLine($output, $reception, $addedRefs, $requesters, $deliveryFees);
                 }
             },
             "$name.csv",

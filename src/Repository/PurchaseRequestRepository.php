@@ -9,6 +9,7 @@ use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method PurchaseRequest|null find($id, $lockMode = null, $lockVersion = null)
@@ -221,5 +222,19 @@ class PurchaseRequestRepository extends EntityRepository
             ->setParameter("draft", STATUT::DRAFT)
             ->getQuery()
             ->getResult();
+    }
+
+    public function getDeliveryFeesForReceptionExport(): array {
+        $qb = $this->createQueryBuilder("purchase_request")
+            ->select("join_reception.id AS reception_id")
+            ->addSelect("purchase_request.deliveryFee AS delivery_fee")
+            ->innerJoin("purchase_request.purchaseRequestLines", "join_purchaseRequestLines")
+            ->innerJoin("join_purchaseRequestLines.reception", "join_reception")
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($qb)
+            ->keymap(static fn(array $data) => [$data["reception_id"], $data["delivery_fee"]])
+            ->toArray();
     }
 }
