@@ -98,6 +98,13 @@ class SettingsService {
             ->toArray();
     }
 
+    public function getOneParamByLabel(string $label ,EntityManagerInterface $entityManager): mixed {
+        return  $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $label, static function () use ($label, $entityManager) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            return $settingRepository->getOneParamByLabel($label);
+        });
+    }
+
     public function getSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
@@ -1277,11 +1284,9 @@ class SettingsService {
     private function postSaveTreatment(EntityManagerInterface $entityManager,
                                        array                  $updated): void {
         $this->getTimestamp(true);
-        if (array_intersect($updated, [Setting::FONT_FAMILY])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "font-family");
-        }
-        if (array_intersect($updated, [Setting::APP_CLIENT_LABEL])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::APP_CLIENT_LABEL);
+
+        foreach ($updated as $setting) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, $setting);
         }
 
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
