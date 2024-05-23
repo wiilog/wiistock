@@ -1603,7 +1603,7 @@ class ReceptionController extends AbstractController {
         );
 
         return $CSVExportService->streamResponse(
-            function ($output) use ($receptions, $CSVExportService, $headers, $receptionService, $addedRefs, $requesters) {
+            function ($output) use ($receptions, $receptionService, $addedRefs, $requesters) {
                 foreach ($receptions as $reception) {
                     $receptionService->putLine($output, $reception, $addedRefs, $requesters);
                 }

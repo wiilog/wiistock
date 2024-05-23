@@ -554,7 +554,7 @@ class ReceptionService
                         $reception["articleLabel"],
                         $reception["articleQuantity"],
                         $reception["articleTypeLabel"],
-                        $reception["referenceArticleBarcode"],
+                        $reception["articleReferenceArticleBarcode"],
                         $reception["articleBarcode"],
                         $reception["currentLogisticUnit"],
                         $reception["receptionReferenceArticleUnitPrice"],
