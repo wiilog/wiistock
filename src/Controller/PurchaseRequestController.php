@@ -14,17 +14,13 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
-use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
-use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\PurchaseRequestService;
-use App\Service\ReceptionLineService;
-use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use DateTime;
@@ -185,9 +181,6 @@ class PurchaseRequestController extends AbstractController
             $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequest = $requestRepository->find($data['request']);
 
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
-
             $status = $purchaseRequest->getStatus();
             if (!$status ||
                 ($status->isDraft() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_DRAFT_PURCHASE_REQUEST)) ||
@@ -207,7 +200,7 @@ class PurchaseRequestController extends AbstractController
             }
             $entityManager->flush();
             foreach ($refsToUpdate as $reference) {
-                $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                $refArticleDataService->setStateAccordingToRelations($entityManager, $reference);
             }
             $entityManager->remove($purchaseRequest);
             $entityManager->flush();
