@@ -1436,7 +1436,8 @@ class ArrivageController extends AbstractController {
                     );
                 }
                 return null;
-            })->values();
+            })
+            ->values();
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
