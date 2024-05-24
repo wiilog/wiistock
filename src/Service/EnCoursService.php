@@ -302,7 +302,7 @@ class EnCoursService
         $columns = [
             ['title' => 'Issu de', 'name' => 'origin'],
             ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU', 'searchable' => true],
-            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date', 'searchable' => true],
+            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date',  'type' => "customDate",'searchable' => true],
             ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay', 'searchable' => true],
             ['title' => 'Référence', 'name' => 'reference', 'searchable' => true],
             ['title' => 'Libellé', 'name' => 'libelle', 'searchable' => true],

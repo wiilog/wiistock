@@ -315,7 +315,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
-        $dispatchEmails = $dispatch->getEmails();
+        $dispatchEmails = $dispatch->getEmails() ?: [];
         $updatedAt = $dispatch->getUpdatedAt() ?: null;
 
         $receiverDetails = [
@@ -549,11 +549,11 @@ class DispatchService {
 
             $subject = ($status->isTreated() || $status->isPartial() || $sendReport)
                 ? ($dispatch->getEmergency()
-                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement", false]
-                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Notification de traitement d'une demande d'acheminement", false])
+                    ? ["Demande", "Acheminements", "Emails", "Urgence : Notification de traitement d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "Notification de traitement d'une demande d'acheminement", false])
                 : (!$isUpdate
-                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Création d'une demande d'acheminement", false]
-                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Changement de statut d'une demande d'acheminement", false]);
+                    ? ["Demande", "Acheminements", "Emails", "Création d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "Changement de statut d'une demande d'acheminement", false]);
 
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
@@ -890,7 +890,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => isset($code)
-                    ? ("<span title='$code'>$code</span>". $this->formService->macro('hidden', 'pack', $code))
+                    ? ("<span title='$code'>" . htmlspecialchars($code) . "</span>" . $this->formService->macro('hidden', 'pack', $code))
                     : "<select name='pack'
                                data-s2='keyboardPacks'
                                data-parent='body'
@@ -1056,7 +1056,7 @@ class DispatchService {
         } else if($dispatchPack) {
             $data = [
                 "actions" => $actions,
-                "code" => $code,
+                "code" => htmlspecialchars($code),
                 "nature" => $nature?->getLabel(),
                 "quantity" => $quantity,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $weight,
@@ -1170,7 +1170,7 @@ class DispatchService {
         $overConsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
-        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_BARBECUE)) {
             $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
             $freeFieldValues = $dispatch->getFreeFields();
 
@@ -1895,17 +1895,17 @@ class DispatchService {
 
         $now = new DateTime('now');
 
-        $isEmerson = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+        $isOmelette = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_OMELETTE);
 
         $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
         $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
             ? $consignorUsername
-            : ($isEmerson ? $user->getUsername() : null);
+            : ($isOmelette ? $user->getUsername() : null);
 
         $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
         $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
             ? $consignorEmail
-            : ($isEmerson ? $user->getEmail() : null);
+            : ($isOmelette ? $user->getEmail() : null);
 
         $defaultData = [
             'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
@@ -1916,8 +1916,8 @@ class DispatchService {
             'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
-            'receiverUsername' => $isEmerson ? $user->getUsername() : null,
-            'receiverEmail' => $isEmerson ? $user->getEmail() : null,
+            'receiverUsername' => $isOmelette ? $user->getUsername() : null,
+            'receiverEmail' => $isOmelette ? $user->getEmail() : null,
             'packsCounter' => $dispatch?->getDispatchPacks()->count()
         ];
         return Stream::from(Dispatch::WAYBILL_DATA)

@@ -34,6 +34,10 @@ $(function() {
     const $modalNewDispatch = $('#modalNewDispatch');
     $modalNewDispatch.on('show.bs.modal', function () {
         initNewDispatchEditor('#modalNewDispatch');
+        Camera.init(
+            $modalNewDispatch.find(`.take-picture-modal-button`),
+            $modalNewDispatch.find(`[name="files[]"]`)
+        );
     });
 
     const $dispatchsTable = $(`#tableDispatches`);
@@ -216,13 +220,7 @@ function initTableDispatch(groupedSignatureMode = false) {
             extendsDateSort('customDate');
         }
 
-        const dispatchsTable = initDataTable('tableDispatches', tableDispatchConfig);
-        dispatchsTable.on('responsive-resize', function () {
-            resizeTable(dispatchsTable);
-        });
-
-
-        return dispatchsTable;
+        return initDataTable('tableDispatches', tableDispatchConfig);
     }
 }
 

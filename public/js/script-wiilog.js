@@ -217,7 +217,7 @@ function showRow(button, path, modal) {
 
 function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
-    clearModal(modal)
+    clearModal(modal);
 
     let params;
     if (button) {

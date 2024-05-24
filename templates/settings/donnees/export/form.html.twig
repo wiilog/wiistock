@@ -284,7 +284,7 @@
                 onChange: 'destinationExportChange()'
             }) }}
             <div class="export-email-destination my-3">
-                {{ form.select('recipientUsers', 'Utilisateur(s) Follow GT', false, {
+                {{ form.select('recipientUsers', 'Utilisateur(s) ' ~ trans('Général', null, 'Header', 'Wiilog', false), false, {
                     type: 'user',
                     items: export.recipientUsers|map((user) => {
                         label: user.username,

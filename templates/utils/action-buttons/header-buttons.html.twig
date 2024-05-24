@@ -40,7 +40,7 @@ How to use :
                     aria-expanded="false">
                     <i class="fa fa-angle-down"></i>
             </button>
-            <div class="dropdown-menu dropdown-follow-gt {{ dropdownDirection is defined and dropdownDirection ? dropdownDirection : 'dropdown-menu-right' }}">
+            <div class="dropdown-menu dropdown-wiilog {{ dropdownDirection is defined and dropdownDirection ? dropdownDirection : 'dropdown-menu-right' }}">
                 {% for action in actionsFiltered %}
                     {% if action != firstAction %}
                         {{ common.dropdownItem(action) }}

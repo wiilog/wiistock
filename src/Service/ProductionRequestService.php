@@ -75,6 +75,9 @@ class ProductionRequestService
     #[Required]
     public MailerService $mailerService;
 
+    #[Required]
+    public TranslationService $translation;
+
     private ?array $freeFieldsConfig = null;
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, bool $forExport = false): array {
@@ -251,17 +254,11 @@ class ProductionRequestService
             }
         }
 
-        $attachments = $productionRequest->getAttachments()->toArray();
         $alreadySavedFiles = $data->has('files')
             ? $data->all('files')
             : [];
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $alreadySavedFiles)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
-            }
-        }
 
+        $this->attachmentService->removeAttachments($entityManager, $productionRequest, $alreadySavedFiles);
         $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
 
         if ($productionRequest->getAttachments()->isEmpty() && $productionRequest->getStatus()->isRequiredAttachment()) {
@@ -623,7 +620,7 @@ class ProductionRequestService
         $isTreatedStatus = $status->isTreated();
         $isNew = $productionRequest->getStatusHistory()->count() === 1;
 
-        $subject = "FOLLOW GT // ";
+        $subject = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR;
         $subject .= $isNew && !$isTreatedStatus
             ? "Notification de création d'une demande de production"
             : (!$isTreatedStatus

@@ -8,7 +8,7 @@ use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route("/visible-column", name: "visible_column_")]
 class VisibleColumnController extends AbstractController {
@@ -20,6 +20,7 @@ class VisibleColumnController extends AbstractController {
         "arrival",
         "article",
         "deliveryRequest",
+        "stockMovement",
         self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS,
         "dispatch",
         "dispute",

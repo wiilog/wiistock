@@ -22,7 +22,7 @@ final class Version20230807123125 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        if ($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_ARKEMA_SERQUIGNY) {
+        if ($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_TRUFFADE) {
             // create setting
             $this->addSql('INSERT INTO `setting` (label , value) VALUES (:label, :value)', [
                 'label' => Setting::DISPATCH_NUMBER_FORMAT,

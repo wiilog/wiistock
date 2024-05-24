@@ -29,7 +29,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route('/arrivage-camion', name: "truck_arrival_")]
@@ -240,15 +240,10 @@ class TruckArrivalController extends AbstractController
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
 
             $truckArrival->setNumber($number);
-        } else {
-            $files = $request->files->all();
-            $truckArrival->clearAttachments();
-
-            $attachments = $attachmentService->createAttachments($files);
-            foreach ($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $truckArrival->addAttachment($attachment);
-            }
+        }
+        else {
+            $attachmentService->removeAttachments($entityManager, $truckArrival, $data->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $truckArrival, $request->files);
         }
 
         $truckArrival

@@ -5,19 +5,15 @@ namespace App\Controller\Settings;
 use App\Controller\AbstractController;
 use App\Entity\CategorieCL;
 use App\Entity\DeliveryStationLine;
-use App\Entity\Emplacement;
 use App\Entity\FreeField;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\VisibilityGroup;
 use App\Service\DeliveryStationLineService;
-use App\Service\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 

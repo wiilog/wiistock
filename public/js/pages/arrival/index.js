@@ -81,7 +81,12 @@ $(function () {
                     $modalNewDispatch.find(`.modal-body`),
                     {
                         onOpen: () => {
-                            $modalNewDispatch.find('[name=type]').trigger('change')
+                            $modalNewDispatch.find('[name=type]').trigger('change');
+                            Camera
+                                .init(
+                                    $modalNewDispatch.find(`.take-picture-modal-button`),
+                                    $modalNewDispatch.find(`[name="files[]"]`)
+                                );
                         }
                     }
                 )
@@ -197,12 +202,7 @@ function initTableArrival(dispatchMode = false) {
             extendsDateSort('customDate');
         }
 
-        const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
-        arrivalsTable.on('responsive-resize', function () {
-            resizeTable(arrivalsTable);
-        });
-
-        return arrivalsTable;
+        return initDataTable('arrivalsTable', tableArrivageConfig);
     }
 }
 
@@ -254,6 +254,11 @@ function createArrival(form = null) {
     }
 
     setTimeout(() => {
+        Camera.init(
+            $modal.find(`.take-picture-modal-button`),
+            $modal.find(`[name="files[]"]`)
+        );
+
         onTypeChange($modal.find('[name="type"]'));
         initDateTimePicker('.date-cl');
 

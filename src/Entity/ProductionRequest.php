@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\Traits\AttachmentTrait;
@@ -17,7 +18,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductionRequestRepository::class)]
-class ProductionRequest extends StatusHistoryContainer
+class ProductionRequest extends StatusHistoryContainer implements AttachmentContainer
 {
 
     use AttachmentTrait;

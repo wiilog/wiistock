@@ -265,8 +265,8 @@ class ArrivageService {
 
             $this->mailerService->sendMail(
                 ($isUrgentArrival
-                    ? ['Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'FOLLOW GT // Arrivage UL urgent', false]
-                    : ['Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'FOLLOW GT // Arrivage UL', false]
+                    ? ['Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Arrivage UL urgent', false]
+                    : ['Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Arrivage UL', false]
                 ),
                 [
                     'name' => 'mails/contents/mailArrivage.html.twig',
@@ -702,7 +702,7 @@ class ArrivageService {
             $pack->setIsDeliveryDone(true);
             if (!empty($receivers)) {
                 $this->mailerService->sendMail(
-                    ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
+                    ['Traçabilité', 'Général', 'Dépose effectuée', false],
                     [
                         "name" => "mails/contents/mailPackDeliveryDone.html.twig",
                         "context" => [

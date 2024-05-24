@@ -50,9 +50,12 @@
                 value: setting_value('FONT_FAMILY')
             }) }}
         </div>
-    </div>
 
-    <div class="row">
+        {% set setting = constant('App\\Entity\\Setting::APP_CLIENT_LABEL') %}
+        <div class="form-group w-fit-content col-6">
+            {{ form.input(setting, 'Nom du client', true, setting_value(setting)) }}
+        </div>
+
         <div class="form-group w-fit-content col-6">
             {{ form.input(setting('MAX_SESSION_TIME'),
                 '<span class="wii-field-name">Temps de session en minutes&nbsp;</span><span class="wii-small-text">(maximum 24h)</span>',
@@ -64,6 +67,16 @@
                             déconnecté. Le paramétrage ne prendra effet qu'à la prochaine connexion de l'utilisateur.",
                     }
                 }) }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group w-fit-content col-6">
+            {% set settingShowLoginLogo = setting_value('SHOW_LOGIN_LOGO') %}
+            {{ form.switch(setting('SHOW_LOGIN_LOGO'), "Afficher le logo à la connexion sur l'application", false, [
+                {label: 'Oui', value: true, checked: settingShowLoginLogo},
+                {label: 'Non', value: false, checked: not settingShowLoginLogo},
+            ]) }}
         </div>
     </div>
 </div>

@@ -102,12 +102,6 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                 removeInfo: true,
             },
             order: [["delay", "desc"]],
-            columnDefs: [
-                {
-                    type: "customDate",
-                    targets: `date`,
-                }
-            ],
             page: 'encours',
         };
         initDataTable(tableId, tableConfig);

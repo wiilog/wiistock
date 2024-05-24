@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route("/caisse-automatique")]
@@ -350,7 +350,7 @@ class DeliveryStationController extends AbstractController
 
         foreach ($deliveryRequest->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
-            $outMovement = $preparationOrderService->createMovementLivraison(
+            $outMovement = $preparationOrderService->persistDeliveryMovement(
                 $entityManager,
                 $articleLine->getPickedQuantity(),
                 $user,
@@ -367,7 +367,7 @@ class DeliveryStationController extends AbstractController
 
         foreach ($deliveryRequest->getReferenceLines() as $referenceLine) {
             $reference = $referenceLine->getReference();
-            $outMovement = $preparationOrderService->createMovementLivraison(
+            $outMovement = $preparationOrderService->persistDeliveryMovement(
                 $entityManager,
                 $referenceLine->getPickedQuantity(),
                 $user,

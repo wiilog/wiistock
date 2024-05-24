@@ -74,6 +74,9 @@ class OrdreCollecteService
     #[Required]
     public SpecificService $specificService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
                                 MailerService $mailerService,
@@ -294,14 +297,14 @@ class OrdreCollecteService
 
         if($demandeCollecte->getDemandeur()){
             $to = $demandeCollecte->getKiosk()?->getRequester() ?: $demandeCollecte->getDemandeur();
-            if( $demandeCollecte->getKiosk() && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            if($demandeCollecte->getKiosk() && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
                 $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
                     ->map(fn(Utilisateur $manager) => $manager->getEmail())
                     ->toArray();
                 $to = array_merge([$to], $managers);
             }
             $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Collecte effectuée',
                 $this->templating->render(
                     'mails/contents/mailCollecteDone.html.twig',
                     [

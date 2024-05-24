@@ -27,6 +27,7 @@ use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -46,6 +47,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -61,12 +63,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -120,14 +121,13 @@ class ReferenceArticleController extends AbstractController
         return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
     }
 
-    /**
-     * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function new(Request $request,
                         UserService $userService,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
+                        TrackingMovementService $trackingMovementService,
                         RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
@@ -140,6 +140,7 @@ class ReferenceArticleController extends AbstractController
         if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
+            $now = new DateTime('now');
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -207,7 +208,7 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'))
+                ->setCreatedAt($now)
                 ->setNdpCode($data['ndpCode'] ?? null)
                 ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setOnuCode($data['onuCode'] ?? null)
@@ -316,9 +317,9 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
-                $refArticle->getQuantiteStock() > 0 &&
-                $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                && $refArticle->getQuantiteStock() > 0
+                && $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -328,10 +329,26 @@ class ReferenceArticleController extends AbstractController
                 );
                 $mouvementStockService->finishStockMovement(
                     $mvtStock,
-                    new DateTime('now'),
+                    $now,
                     $emplacement
                 );
+                $traceMovement = $trackingMovementService->createTrackingMovement(
+                    $refArticle->getTrackingPack() ?: $refArticle->getBarCode(),
+                    $refArticle->getEmplacement(),
+                    $loggedUser,
+                    $now,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        "mouvementStock" => $mvtStock,
+                        "quantity" => $refArticle->getQuantiteStock(),
+                        "entityManager" => $entityManager,
+                        "refOrArticle" => $refArticle,
+                    ]
+                );
                 $entityManager->persist($mvtStock);
+                $entityManager->persist($traceMovement);
             }
 
             $entityManager->persist($refArticle);
@@ -476,6 +493,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
+                         AttachmentService      $attachmentService,
                          TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
@@ -499,7 +517,7 @@ class ReferenceArticleController extends AbstractController
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $refArticle->removeIfNotIn($data->all()['files'] ?? []);
+                    $attachmentService->removeAttachments($entityManager, $refArticle, $data->all()['files'] ?? []);
                     $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
@@ -765,16 +783,11 @@ class ReferenceArticleController extends AbstractController
         $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
-        $refs = $queryResult['data'];
-        $refs = array_map(function($refArticle) {
-            return is_array($refArticle) ? $refArticle[0] : $refArticle;
-        }, $refs);
-        $barcodeConfigs = array_map(
-            function (ReferenceArticle $reference) use ($refArticleDataService) {
-                return $refArticleDataService->getBarcodeConfig($reference);
-            },
-            $refs
-        );
+
+        $barcodeConfigs = Stream::from($queryResult['data'])
+            ->map(static fn($refArticle) => is_array($refArticle) ? $refArticle[0] : $refArticle)
+            ->map(static fn(ReferenceArticle $reference) => $refArticleDataService->getBarcodeConfig($reference))
+            ->toArray();
 
         $barcodeCounter = count($barcodeConfigs);
 
@@ -1063,7 +1076,7 @@ class ReferenceArticleController extends AbstractController
             $reference = (new ReferenceArticle())
                 ->setReference($data->get('reference'))
                 ->setLibelle($data->get('label'))
-                ->setCreatedBy($userRepository->getKioskUser())
+                ->setCreatedBy($this->getUser())
                 ->setCreatedAt(new DateTime())
                 ->setBarCode($refArticleDataService->generateBarCode())
                 ->setStatut($status)
@@ -1112,10 +1125,9 @@ class ReferenceArticleController extends AbstractController
         $barcodesToPrint = [];
         try {
             $number = $uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
-            $collecte = new Collecte();
-            $collecte
+            $collecte = (new Collecte())
                 ->setNumero($number)
-                ->setDemandeur($userRepository->getKioskUser())
+                ->setDemandeur($this->getUser())
                 ->setDate(new DateTime())
                 ->setValidationDate(new DateTime())
                 ->setType($kiosk->getPickingType())

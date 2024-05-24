@@ -1284,7 +1284,7 @@ class ImportService
         $supplierStream = Stream::from(["supplierName", "supplierCode", "supplierArticleReference", "supplierArticleLabel"]);
         if ($supplierStream->some(static fn($field) => isset($data[$field]))) {
 
-            $missingFields = $supplierStream->filter(static fn(string $field) => !isset($data[$field]));
+            $missingFields = $supplierStream->filter(static fn(string $field) => empty($data[$field]));
             if(!$missingFields->isEmpty()) {
                 $joinedFields = $missingFields
                     ->map(static fn(string $field) => Import::FIELDS_ENTITY["default"][$field])
@@ -1297,20 +1297,22 @@ class ImportService
                 throw new ImportException("$start requis pour pouvoir ajouter un article fournisseur sur la référence.");
             }
 
-            $supplierArticleReference = $data["supplierArticleReference"];
+            $supplierArticleReference = $data["supplierArticleReference"] ?? null;
+            $supplierCode = $data["supplierCode"] ?? null;
+            $supplier = $this->checkAndCreateProvider($supplierCode, $data["supplierName"]);
+
             try {
                 $this->articleFournisseurService->createArticleFournisseur([
-                    "fournisseur" => $data["supplierCode"],
+                    "fournisseur" => $supplier,
                     "article-reference" => $refArt,
                     "label" => $data["supplierArticleLabel"],
                     "reference" => $supplierArticleReference,
                 ], false, $this->entityManager);
             } catch (Throwable $throwable) {
-                if ($throwable->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                    throw new ImportException("La référence $supplierArticleReference existe déjà pour un article fournisseur.");
-                } else {
-                    throw $throwable;
-                }
+                match ($throwable->getMessage()) {
+                    ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS => throw new ImportException("La référence $supplierArticleReference existe déjà pour un article fournisseur."),
+                    default => throw $throwable,
+                };
             }
         }
 
@@ -2164,16 +2166,16 @@ class ImportService
         }
     }
 
-    private function checkAndCreateProvider(string $ref)
+    private function checkAndCreateProvider(string $code, string $name = null)
     {
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
-        $provider = $fournisseurRepository->findOneBy(['codeReference' => $ref]);
+        $provider = $fournisseurRepository->findOneBy(['codeReference' => $code]);
 
         if (empty($provider)) {
             $provider = new Fournisseur();
             $provider
-                ->setCodeReference($ref)
-                ->setNom($ref);
+                ->setCodeReference($code)
+                ->setNom($name ?: $code);
             $this->entityManager->persist($provider);
         }
 

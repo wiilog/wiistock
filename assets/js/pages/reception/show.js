@@ -4,6 +4,8 @@ import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
 import Modal from "@app/modal";
+import Form from "@app/form";
+import Camera from "@app/camera";
 import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
@@ -165,16 +167,34 @@ function initPageModals() {
     let $submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
     InitModal($modalModifyReception, $submitModifyReception, urlModifyReception);
+    $modalModifyReception.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalModifyReception.find(`.take-picture-modal-button`),
+            $modalModifyReception.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalNewLitige = $('#modalNewLitige');
+    let $modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new_reception', true);
-    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
+    InitModal($modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
+    $modalNewLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalNewLitige.find(`.take-picture-modal-button`),
+            $modalNewLitige.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalEditLitige = $('#modalEditLitige');
+    let $modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
+    InitModal($modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
+    $modalEditLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalEditLitige.find(`.take-picture-modal-button`),
+            $modalEditLitige.find(`[name="files[]"]`)
+        );
+    });
 
     let $modalDeleteLitige = $("#modalDeleteLitige");
     let $submitDeleteLitige = $("#submitDeleteLitige");
@@ -549,7 +569,7 @@ function initNewLigneReception() {
                 Modal.confirm({
                     message: `
                         <p class="mb-2 text-center">L'emplacement de réception est différent de l'emplacement de l'unité logistique.</p>
-                        <p class="text-center">Les articles seront déposés sur l'emplacement de réception puis déplacés sur l'emplacement de l'unité logistique.</p>
+                        <p class="text-center">Les articles seront déposés sur l'emplacement de l'unité logistique.</p>
                     `,
                     validateButton: {
                         color: 'success',
@@ -686,11 +706,9 @@ function onReferenceToReceiveChange() {
                 .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
 
             // user can't make a transfer if the article is in a pack
-            if (Object.keys(pack).length) {
-                $('.create-request-container').find('input[value=transfer]').prop('disabled', true);
-            } else {
-                $('.create-request-container').find('input[value=transfer]').prop('disabled', false);
-            }
+            $modal
+                .find('.create-request-container input[value=transfer]')
+                .prop('disabled', Object.keys(pack).length);
         }
         else {
             $selectPack.prop('disabled', false)
@@ -733,9 +751,6 @@ function onReferenceToReceiveChange() {
             .removeAttr('data-other-params-order-number')
             .val(null).select2('data', null);
     }
-
-    $selectArticleFournisseur.trigger('change');
-    $selectPack.trigger('change');
 }
 
 function clearPackingContent($element, hideSubFields = true, hidePackingContainer = true) {

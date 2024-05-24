@@ -25,7 +25,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OneToMany;
 
-
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
 class Emplacement implements PairedEntity {
 
@@ -462,11 +461,15 @@ class Emplacement implements PairedEntity {
 
     public function ableToBeDropOff(?Pack $pack): bool {
         return (
-            $this->getAllowedNatures()->isEmpty()
-            || (
-                $pack
-                && $pack->getNature()
-                && $this->getAllowedNatures()->contains($pack->getNature())
+            $pack
+            && (
+                // all tracking movements on stock objects are allowed
+                (!empty($pack->getArticle()) || !empty($pack->getReferenceArticle()))
+                || $this->getAllowedNatures()->isEmpty()
+                || (
+                    $pack->getNature()
+                    && $this->getAllowedNatures()->contains($pack->getNature())
+                )
             )
         );
     }

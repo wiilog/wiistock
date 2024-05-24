@@ -13,10 +13,11 @@ use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\MailerService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
@@ -54,6 +55,7 @@ class InventoryMissionRuleController extends AbstractController
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
                          Request                $request,
+                         TranslationService     $translationService,
                          MailerService          $mailerService): JsonResponse
     {
 
@@ -157,9 +159,11 @@ class InventoryMissionRuleController extends AbstractController
 
         $entityManager->flush();
 
-        $subject = $edit
-            ? 'FOLLOW GT // Modification planification mission d’inventaire'
-            : 'FOLLOW GT // Création planification mission d’inventaire';
+        $subject = $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . (
+            $edit
+                ? 'Modification planification mission d’inventaire'
+                : 'Création planification mission d’inventaire'
+            );
 
         $mailerService->sendMail(
             $subject,
