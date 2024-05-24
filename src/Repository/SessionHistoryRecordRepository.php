@@ -43,7 +43,7 @@ class SessionHistoryRecordRepository extends EntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findByParams(ParameterBag $params): array{
+    public function findByParams(ParameterBag $params): array {
         $data = [];
         $queryBuilder = $this->createQueryBuilder('session_history_record');
         $data["recordsTotal"] = QueryBuilderHelper::count($queryBuilder, 'session_history_record');
@@ -111,8 +111,7 @@ class SessionHistoryRecordRepository extends EntityRepository
         return $data;
     }
 
-    public function getActiveLicenceCount(): int
-    {
+    public function getActiveLicenceCount(): int {
         $queryBuilder = $this->createQueryBuilder('session_history_record')
             ->andWhere('session_history_record.closedAt IS NULL');
 
@@ -147,4 +146,26 @@ class SessionHistoryRecordRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    public function countActiveUsers(DateTime $from,DateTime $to): int {
+        $wiilogDomains = Stream::explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "")
+            ->filter()
+            ->toArray();
+
+        $queryBuilder = $this->createQueryBuilder("session_history_record")
+            ->select('COUNT(DISTINCT session_history_record.user)')
+            ->orWhere('session_history_record.openedAt BETWEEN :from AND :to')
+            ->orWhere('session_history_record.closedAt BETWEEN :from AND :to')
+            ->leftJoin('session_history_record.user', 'user')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+
+        foreach ($wiilogDomains as $index => $domain) {
+            $parameterName = "domain$index";
+            $queryBuilder
+                ->andWhere("user.email NOT LIKE :$parameterName")
+                ->setParameter($parameterName, "%@$domain");
+        }
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
+    }
 }
