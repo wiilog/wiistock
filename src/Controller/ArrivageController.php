@@ -1217,9 +1217,7 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{arrivage}/UL/{pack}/etiquette", name: "print_arrivage_single_pack_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArrivagePackBarCodes(Arrivage               $arrivage,
                                               Request                $request,
                                               EntityManagerInterface $entityManager,
@@ -1360,15 +1358,12 @@ class ArrivageController extends AbstractController {
         );
     }
 
-    /**
-     * @Route("/{arrivage}/etiquettes", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{arrivage}/etiquettes", name: "print_arrivage_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArrivageAlias(Arrivage               $arrivage,
                                        Request                $request,
                                        PackService            $packService,
                                        EntityManagerInterface $entityManager,
-                                       PDFGeneratorService    $PDFGeneratorService)
-    {
+                                       PDFGeneratorService    $PDFGeneratorService): Response {
         $template = $request->query->get('template')
             ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
             : null;
@@ -1392,37 +1387,55 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $projectParam = false,
                                                    ?bool        $showDateAndHourArrivalUl = false,
                                                    ?TagTemplate $tagTemplate = null,
-                                                   bool         $forceTagEmpty = false,
-    ): array {
-        $total = $arrivage->getPacks()->count();
-        $packs = [];
-        foreach($arrivage->getPacks() as $index => $pack) {
-            $position = $index + 1;
-            if (
-                (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
-                (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
-                (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
-            ) {
-                $packs[] = $packService->getBarcodePackConfig(
-                    $pack,
-                    $arrivage->getReceivers()->toArray(),
-                    "$position/$total",
-                    $typeArrivalParamIsDefined,
-                    $usernameParamIsDefined,
-                    $dropzoneParamIsDefined,
-                    $packCountParamIsDefined,
-                    $commandAndProjectNumberIsDefined,
-                    $firstCustomIconConfig,
-                    $secondCustomIconConfig,
-                    $showTypeLogoArrivalUl,
-                    $businessUnitParam,
-                    $projectParam,
-                    $showDateAndHourArrivalUl,
-                );
-            }
-        }
+                                                   bool         $forceTagEmpty = false): array {
+        $packs = Stream::from($arrivage->getPacks());
+        $total = $packs->count();
 
-        return $packs;
+        return $packs
+            ->sort(fn(Pack $pack1, Pack $pack2) => $pack1->getCode() <=> $pack2->getCode())
+            ->filterMap(static function (Pack $pack, int $index) use (  $forceTagEmpty,
+                                                                        $packIdsFilter,
+                                                                        $tagTemplate,
+                                                                        $showDateAndHourArrivalUl,
+                                                                        $projectParam,
+                                                                        $businessUnitParam,
+                                                                        $showTypeLogoArrivalUl,
+                                                                        $secondCustomIconConfig,
+                                                                        $firstCustomIconConfig,
+                                                                        $commandAndProjectNumberIsDefined,
+                                                                        $packCountParamIsDefined,
+                                                                        $dropzoneParamIsDefined,
+                                                                        $usernameParamIsDefined,
+                                                                        $typeArrivalParamIsDefined,
+                                                                        $total,
+                                                                        $arrivage,
+                                                                        $packService): ?array {
+                $position = $index + 1;
+                if (
+                    (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
+                    (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
+                    (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
+                ) {
+                    return $packService->getBarcodePackConfig(
+                        $pack,
+                        $arrivage->getReceivers()->toArray(),
+                        "$position/$total",
+                        $typeArrivalParamIsDefined,
+                        $usernameParamIsDefined,
+                        $dropzoneParamIsDefined,
+                        $packCountParamIsDefined,
+                        $commandAndProjectNumberIsDefined,
+                        $firstCustomIconConfig,
+                        $secondCustomIconConfig,
+                        $showTypeLogoArrivalUl,
+                        $businessUnitParam,
+                        $projectParam,
+                        $showDateAndHourArrivalUl,
+                    );
+                }
+                return null;
+            })
+            ->values();
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
