@@ -7,10 +7,10 @@ on:
             - 'v*'
 
 jobs:
-    build_php_directories:
+    build_deployment:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-builder:latest
+            image: wiilog/wiistock-builder:v1.0.0
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
