@@ -74,20 +74,6 @@ class MouvementStockService
         $fromPath = $fromColumnConfig['path'];
         $fromPathParams = $fromColumnConfig['pathParams'];
 
-		$refArticleCheck = '';
-        if($mouvement->getArticle()) {
-            $articleFournisseur = $mouvement->getArticle()->getArticleFournisseur();
-            if($articleFournisseur) {
-                $referenceArticle = $articleFournisseur->getReferenceArticle();
-                if($referenceArticle) {
-                    $refArticleCheck = $referenceArticle->getReference() ?: '';
-                }
-            }
-        }
-        else {
-            $refArticleCheck = $mouvement->getRefArticle()->getReference();
-        }
-
 		return [
 			'id' => $mouvement->getId(),
 			'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
@@ -96,14 +82,22 @@ class MouvementStockService
 				'path' => $fromPath,
 				'pathParams' => $fromPathParams
 			]),
-			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
-			'refArticle' => $refArticleCheck,
-            'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
+			'date' => $this->formatService->datetime($mouvement->getDate()),
+			'refArticle' => (
+                $mouvement->getArticle()?->getReferenceArticle()?->getReference()
+                ?: $mouvement->getRefArticle()?->getReference()
+                ?: ""
+            ),
+            'barCode' => (
+                $mouvement->getArticle()?->getBarCode()
+                ?: $mouvement->getRefArticle()?->getBarCode()
+                ?: ""
+            ),
             'quantite' => $this->formatHTMLQuantity($mouvement),
-			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
-			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
+			'origine' => $this->formatService->location($mouvement->getEmplacementFrom()),
+			'destination' => $this->formatService->location($mouvement->getEmplacementTo()),
 			'type' => $mouvement->getType(),
-			'operateur' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '',
+			'operateur' => $this->formatService->user($mouvement->getUser()),
 			'unitPrice' => $mouvement->getUnitPrice(),
 			'actions' => $this->templating->render('mouvement_stock/datatableMvtStockRow.html.twig', [
 				'mvt' => $mouvement,
