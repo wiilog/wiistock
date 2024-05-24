@@ -66,13 +66,16 @@ class HandlingController extends AbstractController {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $user = $this->getUser();
+        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $types = Stream::from($handlingTypes)
+            ->filter(fn(Type $type) => in_array($type->getId(), $user->getHandlingTypeIds()))
+            ->toArray();
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
         $filterStatus = $request->query->get('filter');
-        $user = $this->getUser();
         $dateChoice = [
             [
                 'value' => 'creationDate',
@@ -96,14 +99,19 @@ class HandlingController extends AbstractController {
 
         $filterDate = $request->query->get('date');
 
+        $handlingStatuses = $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder');
+        $statuses = Stream::from($handlingStatuses)
+            ->filter(fn(Statut $statut) => in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
+            ->toArray();
+
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
-            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
-			'filterStatus' => $filterStatus,
             'types' => $types,
+            'statuses' => $statuses,
+            'filterStatus' => $filterStatus,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
             'statusStateValues' => Stream::from($statusService->getStatusStatesValues())

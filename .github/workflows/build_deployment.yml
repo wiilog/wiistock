@@ -7,10 +7,10 @@ on:
             - 'v*'
 
 jobs:
-    build_php_directories:
+    build_deployment:
         runs-on: ubuntu-latest
         container:
-            image: wiilog/wiistock-initializer:v2
+            image: wiilog/wiistock-builder:v1.0.0
             credentials:
                 username: ${{ secrets.DOCKER_USER }}
                 password: ${{ secrets.DOCKER_PULL_TOKEN }}
@@ -21,7 +21,7 @@ jobs:
 
         steps:
             -   name: Go to project
-                run: mkdir /project && cd /project
+                run: cd /project
 
             -   name: Checkout wiistock
                 uses: actions/checkout@v4

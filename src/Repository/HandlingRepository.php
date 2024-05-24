@@ -134,10 +134,13 @@ class HandlingRepository extends EntityRepository
     }
 
 
-    public function findByParamAndFilters(InputBag $params, $filters, $selectedDate = null, array $options = []): array
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, $selectedDate = null, array $options = []): array
     {
         $qb = $this->createQueryBuilder('handling')
-            ->groupBy('handling.id');
+            ->join('handling.type', 'join_type')
+            ->andWhere('join_type.id IN (:userHandlingTypeIds)')
+            ->groupBy('handling.id')
+            ->setParameter('userHandlingTypeIds', $user->getHandlingTypeIds());
 
         if ($selectedDate) {
             $qb->andWhere('handling.desiredDate >= :filter_dateMin_value')
