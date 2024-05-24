@@ -283,8 +283,7 @@ class ReceptionController extends AbstractController {
     #[Route("/api", name: "reception_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
-                        ReceptionService $receptionService,
-                        EntityManagerInterface $entityManager): Response {
+                        ReceptionService $receptionService): Response {
         $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
 
         /** @var Utilisateur $user */
@@ -380,8 +379,6 @@ class ReceptionController extends AbstractController {
         if($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
 
             /** @var Reception $reception */
             $reception = $receptionRepository->find($data['receptionId']);
@@ -410,7 +407,7 @@ class ReceptionController extends AbstractController {
                 }
                 $entityManager->flush();
                 foreach ($refsToUpdate as $reference) {
-                    $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                    $refArticleDataService->setStateAccordingToRelations($entityManager, $reference);
                 }
                 $entityManager->remove($reception);
                 $entityManager->flush();
@@ -460,7 +457,6 @@ class ReceptionController extends AbstractController {
                                                     Request                $request): Response {
         if($data = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             /** @var ReceptionReferenceArticle $ligneArticle */
@@ -512,7 +508,7 @@ class ReceptionController extends AbstractController {
 
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
-            $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+            $refArticleDataService->setStateAccordingToRelations($entityManager, $reference);
 
             $reception->setStatut($receptionService->getNewStatus($reception));
 
@@ -1558,15 +1554,13 @@ class ReceptionController extends AbstractController {
                                     ReceptionService       $receptionService,
                                     Request                $request): Response {
         $receptionRepository = $entityManager->getRepository(Reception::class);
-        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
-        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
 
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', "{$request->query->get("dateMin")} 00:00:00");
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', "{$request->query->get("dateMax")}  23:59:59");
 
-        $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
-        $requesters = $deliveryRequestRepository->getRequestersForReceptionExport();
-        $deliveryFees = $purchaseRequestRepository->getDeliveryFeesForReceptionExport();
+        $receptions = $receptionRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+        $requesters = $receptionRepository->getDeliveryRequestersOnReception($dateTimeMin, $dateTimeMax);
+        $deliveryFees = $receptionRepository->getReceptionDeliveryFees($dateTimeMin, $dateTimeMax);
 
         $headers = [
             $translation->translate("Ordre", "Réceptions", "n° de réception", false),

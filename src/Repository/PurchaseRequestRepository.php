@@ -223,18 +223,4 @@ class PurchaseRequestRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
-
-    public function getDeliveryFeesForReceptionExport(): array {
-        $qb = $this->createQueryBuilder("purchase_request")
-            ->select("join_reception.id AS reception_id")
-            ->addSelect("purchase_request.deliveryFee AS delivery_fee")
-            ->innerJoin("purchase_request.purchaseRequestLines", "join_purchaseRequestLines")
-            ->innerJoin("join_purchaseRequestLines.reception", "join_reception")
-            ->getQuery()
-            ->getResult();
-
-        return Stream::from($qb)
-            ->keymap(static fn(array $data) => [$data["reception_id"], $data["delivery_fee"]])
-            ->toArray();
-    }
 }

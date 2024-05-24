@@ -9,6 +9,7 @@ use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -86,7 +87,7 @@ class ReceptionRepository extends EntityRepository
             ->execute();
     }
 
-    public function getByDates(DateTime $dateMin, DateTime $dateMax): iterable {
+    public function iterateByDates(DateTime $dateMin, DateTime $dateMax): iterable {
         return $this->createQueryBuilder("reception")
             ->distinct()
             ->select("reception.id AS id")
@@ -317,6 +318,50 @@ class ReceptionRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function getReceptionDeliveryFees(DateTime $receptionDateMin,
+                                             DateTime $receptionDateMax): array {
+        $result = $this->createQueryBuilder("reception")
+            ->select("reception.id AS reception_id")
+            ->addSelect("MAX(join_purchaseRequest.deliveryFee) AS delivery_fee")
+            ->innerJoin("reception.purchaseRequestLines", "join_purchaseRequestLine")
+            ->innerJoin("join_purchaseRequestLine.purchaseRequest", "join_purchaseRequest", Join::WITH, "join_purchaseRequest.deliveryFee IS NOT NULL")
+            ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
+            ->addGroupBy("reception_id")
+            ->setParameters([
+                "dateMin" => $receptionDateMin,
+                "dateMax" => $receptionDateMax,
+            ])
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($result)
+            ->keymap(static fn(array $data) => [$data["reception_id"], $data["delivery_fee"]])
+            ->toArray();
+    }
+
+    public function getDeliveryRequestersOnReception(DateTime $receptionDateMin,
+                                                     DateTime $receptionDateMax): array {
+        $result = $this->createQueryBuilder("reception")
+            ->select("join_requester.username AS username")
+            ->addSelect("reception.id AS reception_id")
+            ->addSelect("join_article.id AS article_id")
+            ->innerJoin("reception.demandes", "join_request")
+            ->innerJoin("join_request.utilisateur", "join_requester")
+            ->innerJoin("join_request.articleLines", "join_article_line")
+            ->innerJoin("join_article_line.article", "join_article")
+            ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                "dateMin" => $receptionDateMin,
+                "dateMax" => $receptionDateMax,
+            ])
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($result)
+            ->keymap(fn(array $data) => [$data["reception_id"] . "-" . $data["article_id"], $data["username"]])
+            ->toArray();
     }
 
 }

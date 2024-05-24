@@ -428,23 +428,6 @@ class DemandeRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
-    public function getRequestersForReceptionExport() {
-        $qb = $this->createQueryBuilder("request")
-            ->select("requester.username AS username")
-            ->addSelect("reception.id AS reception_id")
-            ->addSelect("article.id AS article_id")
-            ->leftJoin("request.articleLines", "dral")
-            ->leftJoin("request.utilisateur", "requester")
-            ->leftJoin("request.reception", "reception")
-            ->leftJoin("dral.article", "article")
-            ->getQuery()
-            ->getResult();
-
-        return Stream::from($qb)
-            ->keymap(fn(array $data) => [$data["reception_id"] ."-". $data["article_id"], $data["username"]])
-            ->toArray();
-    }
-
     public function getDeliveryRequestForSelect(Utilisateur $currentUser) {
         return $this->createQueryBuilder("demande")
             ->leftJoin("demande.statut", "delivery_statut")
