@@ -1,4 +1,4 @@
-name: build_dependencies_directories
+name: build_deployment
 
 on:
     workflow_dispatch:
