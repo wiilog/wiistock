@@ -100,9 +100,9 @@
     {% set mailLogoPath = logo('email', true) %}
 
     {% if mailLogoPath is not null %}
-    <img alt="Logo de l'application"
-         width="300"
-         src="{{ base64(mailLogoPath) }}"/>
+        <img alt="Logo de l'application"
+             width="300"
+             src="{{ base64(mailLogoPath) }}"/>
     {% endif %}
 
     {% if title is defined %}
