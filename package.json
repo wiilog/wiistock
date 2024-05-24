@@ -35,6 +35,7 @@
         "bootstrap": "^4.5.3",
         "chart.js": "^2.9.4",
         "copy-webpack-plugin": "^9.0.0",
+        "cypress-mochawesome-reporter": "^3.8.2",
         "datatables.net": "^1.11.3",
         "datatables.net-buttons": "^1.6.4",
         "datatables.net-buttons-dt": "^1.6.4",

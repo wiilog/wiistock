@@ -16,6 +16,9 @@ jobs:
             image: docker:latest
             options: --user root
         steps:
+            -   name: Install rsync 📚
+                run: apk add rsync
+
             -   name: Checkout wiistock-docker
                 uses: actions/checkout@v4
                 with:
@@ -104,3 +107,11 @@ jobs:
                 with:
                   name: dev-log-symfony
                   path: dev_log
+
+            -   name: Cp cypress report to /var/www/cypress/reports/html
+                run: docker cp wiistock_cypress:/var/www/cypress/reports/html cypress_reports
+
+            -   name: Deploy Cypress HTML report to GitHub Pages
+                uses: JamesIves/github-pages-deploy-action@v4
+                with:
+                    folder: cypress_reports #The folder the action should deploy.
