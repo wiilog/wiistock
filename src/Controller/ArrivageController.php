@@ -1395,7 +1395,7 @@ class ArrivageController extends AbstractController {
 
         return $packs
             ->sort(fn(Pack $pack1, Pack $pack2) => $pack1->getCode() <=> $pack2->getCode())
-            ->map(static function (Pack $pack, int $index) use ($forceTagEmpty, $packIdsFilter, $tagTemplate, $showDateAndHourArrivalUl, $projectParam, $businessUnitParam, $showTypeLogoArrivalUl, $secondCustomIconConfig, $firstCustomIconConfig, $commandAndProjectNumberIsDefined, $packCountParamIsDefined, $dropzoneParamIsDefined, $usernameParamIsDefined, $typeArrivalParamIsDefined, $total, $arrivage, $packService): array {
+            ->filterMap(static function (Pack $pack, int $index) use ($forceTagEmpty, $packIdsFilter, $tagTemplate, $showDateAndHourArrivalUl, $projectParam, $businessUnitParam, $showTypeLogoArrivalUl, $secondCustomIconConfig, $firstCustomIconConfig, $commandAndProjectNumberIsDefined, $packCountParamIsDefined, $dropzoneParamIsDefined, $usernameParamIsDefined, $typeArrivalParamIsDefined, $total, $arrivage, $packService): array {
                 $position = $index + 1;
                 if (
                     (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
@@ -1419,7 +1419,7 @@ class ArrivageController extends AbstractController {
                         $showDateAndHourArrivalUl,
                     );
                 }
-            })->toArray();
+            })->values();
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
