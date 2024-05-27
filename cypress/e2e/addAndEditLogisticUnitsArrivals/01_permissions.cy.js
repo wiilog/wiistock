@@ -1,4 +1,4 @@
-import routes, {interceptRoute} from "/cypress/support/routes";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user= Cypress.config('user');
 
 const ULFreeFieldsLines = 'table[data-table-processing=fixedFields] tbody tr';
