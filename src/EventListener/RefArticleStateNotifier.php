@@ -38,7 +38,6 @@ class RefArticleStateNotifier {
         }
 
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
-        $purchaseRequestLineRepository = $this->entityManager->getRepository(PurchaseRequestLine::class);
 
         if ($entity instanceof Reception) {
             $status = $entity->getStatut() ? $entity->getStatut()->getCode() : null;
@@ -53,7 +52,7 @@ class RefArticleStateNotifier {
                     if ($receptionReferenceArticle->getQuantite() !== $receptionReferenceArticle->getQuantiteAR()) {
                         $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                     } else{
-                        $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                        $this->refService->setStateAccordingToRelations($this->entityManager, $reference);
                     }
                 }
             } else if ($status === Reception::STATUT_EN_ATTENTE ) {
@@ -64,7 +63,7 @@ class RefArticleStateNotifier {
             } else {
                 foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
                     $reference = $receptionReferenceArticle->getReferenceArticle();
-                    $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                    $this->refService->setStateAccordingToRelations($this->entityManager, $reference);
                 }
             }
         } else if ($entity instanceof PurchaseRequest) {
@@ -87,7 +86,7 @@ class RefArticleStateNotifier {
             } else {
                 foreach ($lines as $line) {
                     $reference = $line->getReference();
-                    $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                    $this->refService->setStateAccordingToRelations($this->entityManager, $reference);
                 }
             }
         }

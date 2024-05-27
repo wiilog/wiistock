@@ -742,6 +742,15 @@ class SettingsService {
                     }
                 }
 
+                if(isset($data["active"]) && $type->getId()){
+                    $categoryTypeId = $type->getCategory()->getId();
+                    $countActiveTypeByCategoryType = $typeRepository->countActiveTypeByCategoryType($categoryTypeId);
+
+                    if($countActiveTypeByCategoryType <= 1 && !$data["active"]){
+                        throw new RuntimeException("Au moins un type doit être actif pour cette entité.");
+                    }
+                }
+
                 $newLabel = $data["label"] ?? $type->getLabel();
                 $type
                     ->setLabel($newLabel)
@@ -755,6 +764,7 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setReusableStatuses($data["reusableStatuses"] ?? false)
+                    ->setActive($data["active"] ?? false)
                     ->setColor($data["color"] ?? null);
 
                 $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);

@@ -23,6 +23,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
@@ -986,9 +987,11 @@ class RefArticleDataService
         return $title;
     }
 
-    public function setStateAccordingToRelations(ReferenceArticle                    $reference,
-                                                 PurchaseRequestLineRepository       $purchaseRequestLineRepository,
-                                                 ReceptionReferenceArticleRepository $receptionReferenceArticleRepository): void {
+    public function setStateAccordingToRelations(EntityManagerInterface $entityManager,
+                                                 ReferenceArticle       $reference): void {
+        $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
+        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+
         $associatedLines = $receptionReferenceArticleRepository->findByReferenceArticleAndReceptionStatus(
             $reference,
             [Reception::STATUT_EN_ATTENTE, Reception::STATUT_RECEPTION_PARTIELLE],

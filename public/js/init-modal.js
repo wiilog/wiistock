@@ -410,9 +410,13 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
     $inputs.each(function () {
         const $input = $(this);
+        const $formGroup = $input.closest(`.form-group`);
         const name = $input.attr('name');
 
-        let $formGroupLabel = $input.closest('.form-group').find('.field-label, label');
+        let $formGroupLabel = $formGroup.find(`.field-label`).exists()
+            ? $formGroup.find(`.field-label`)
+            : $formGroup.find(`label`);
+
         if (!$formGroupLabel.exists()) {
             $formGroupLabel = $input.closest('label').find('.wii-field-name');
         }

@@ -131,6 +131,7 @@ class DispatchController extends AbstractController {
             'emergencies' => [$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergenciesForFilter],
             'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
+                ->filter(fn(Type $type) => in_array($type->getId(), $currentUser->getDispatchTypeIds()))
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $this->getFormatter()->type($type)

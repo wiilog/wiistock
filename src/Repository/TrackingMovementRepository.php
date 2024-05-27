@@ -166,7 +166,7 @@ class TrackingMovementRepository extends EntityRepository
                 if (!empty($search)) {
                     $conditions = [
                         "date" =>  "DATE_FORMAT(tracking_movement.datetime, '%d/%m/%Y %H:%i:%s') LIKE :search_value",
-                        "code" => "search_pack.code LIKE :search_value",
+                        "pack" => "search_pack.code LIKE :search_value",
                         "reference" => "search_pack_supplierItem_referenceArticle.reference LIKE :search_value",
                         "label" => 'search_pack_article.label LIKE :search_value',
                         "group" => "search_pack_group.code LIKE :search_value",

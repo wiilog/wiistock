@@ -2,26 +2,24 @@
 
 namespace App\DQL\Functions;
 
+use Doctrine\ORM\Query\AST\Node;
 use Doctrine\ORM\Query\AST\Functions\FunctionNode;
-use Doctrine\ORM\Query\AST\Subselect;
 use Doctrine\ORM\Query\Lexer;
 use Doctrine\ORM\Query\Parser;
 use Doctrine\ORM\Query\SqlWalker;
-use Symfony\Contracts\Service\Attribute\Required;
 
-class FirstFunction extends FunctionNode
+class CountOver extends FunctionNode
 {
-    #[Required]
-    public Subselect $subselect;
+    private Node $field;
 
     public function parse(Parser $parser): void {
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
-        $this->subselect = $parser->Subselect();
+        $this->field = $parser->StringPrimary();
         $parser->match(Lexer::T_CLOSE_PARENTHESIS);
     }
 
     public function getSql(SqlWalker $sqlWalker): string {
-        return "({$this->subselect->dispatch($sqlWalker)} LIMIT 1)";
+        return "COUNT({$this->field->dispatch($sqlWalker)}) OVER()";
     }
 }
