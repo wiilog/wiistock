@@ -1,12 +1,11 @@
-import routes, {interceptRoute} from "../../support/utils/routes";
-import {capitalizeFirstLetter, getColumnIndexByColumnName} from "../../support/utils";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
+import {capitalizeFirstLetter, getColumnIndexByColumnName} from "/cypress/support/utils";
 const user= Cypress.config('user');
 
 
-
-const ULnumberPacksNature1 = 1;
-const ULnumberPacksNature2 = 4;
-const ULArrivals = {
+const numberPacksNature1 = 1;
+const numberPacksNature2 = 4;
+const arrival = {
     fournisseur: 'FOURNISSEUR',
     transporteur: 'DHL',
     chauffeur: 'Georges',
@@ -24,10 +23,10 @@ const ULArrivals = {
     project: 'PROJET',
     comment: 'Cypress',
     file: 'logo.jpg',
-    numberPacks: ULnumberPacksNature1 + ULnumberPacksNature2,
+    numberPacks: numberPacksNature1 + numberPacksNature2,
 }
 
-const ULArrivalsChanged = {
+const arrivalChanged = {
     fournisseur: 'SAMSUNG',
     transporteur: 'GT',
     chauffeur: 'Marcel GEORGES',
@@ -44,17 +43,17 @@ const ULArrivalsChanged = {
     file: 'logo.jpg',
 }
 
-const ULnewUL = {
+const newUL = {
     project: 'PROJET',
 }
 
-const ULdispute = {
+const dispute = {
     type: 'manque BL',
     reporter: 'Lambda',
     status: 'En cours de traitement',
 }
 
-const ULdisputeChanged = {
+const disputeChanged = {
     type: 'écart qualité',
     reporter: 'Admin',
     status: 'Traité',
@@ -93,39 +92,39 @@ describe('Add and edit logistic units arrivals', () => {
         cy.openModal(selectorModal, 'noProject', 'button[name=new-arrival]')
 
         //select2ajax
-        cy.select2Ajax('fournisseur', ULArrivals.fournisseur, "modalNewArrivage");
+        cy.select2Ajax('fournisseur', arrival.fournisseur, "modalNewArrivage");
 
-        cy.select2Ajax('dropLocation', ULArrivals.dropLocation, "modalNewArrivage");
-        cy.select2Ajax('project', ULArrivals.project);
+        cy.select2Ajax('dropLocation', arrival.dropLocation, "modalNewArrivage");
+        cy.select2Ajax('project', arrival.project);
 
         //select2
-        cy.select2('transporteur', ULArrivals.transporteur);
-        cy.select2('chauffeur', ULArrivals.chauffeur);
-        cy.select2('numeroCommandeList', [ULArrivals.firstNumeroCommandeList, ULArrivals.secondNumeroCommandeList]);
-        cy.select2('receivers', [ULArrivals.destinataire], 400);
-        cy.select2('acheteurs', [ULArrivals.firstAcheteurs, ULArrivals.secondAcheteurs], 300);
+        cy.select2('transporteur', arrival.transporteur);
+        cy.select2('chauffeur', arrival.chauffeur);
+        cy.select2('numeroCommandeList', [arrival.firstNumeroCommandeList, arrival.secondNumeroCommandeList]);
+        cy.select2('receivers', [arrival.destinataire], 400);
+        cy.select2('acheteurs', [arrival.firstAcheteurs, arrival.secondAcheteurs], 300);
 
         //input
         cy.typeInModalInputs(selectorModal, {
-            noTracking: ULArrivals.noTracking,
-            noProject: ULArrivals.noProject,
+            noTracking: arrival.noTracking,
+            noProject: arrival.noProject,
         })
 
         cy.get('input[name=packs]')
             .first()
             .click()
             .clear()
-            .type(`${ULnumberPacksNature1}`);
+            .type(`${numberPacksNature1}`);
         cy.get('input[name=packs]')
             .last()
             .click()
             .clear()
-            .type(`${ULnumberPacksNature2}`);
+            .type(`${numberPacksNature2}`);
 
         //select
-        cy.selectInModal(selectorModal, 'type', ULArrivals.type);
-        cy.selectInModal(selectorModal, 'status', ULArrivals.statut);
-        cy.selectInModal(selectorModal, 'businessUnit', ULArrivals.businessUnit);
+        cy.selectInModal(selectorModal, 'type', arrival.type);
+        cy.selectInModal(selectorModal, 'status', arrival.statut);
+        cy.selectInModal(selectorModal, 'businessUnit', arrival.businessUnit);
 
         //checkbox
         cy.checkCheckbox(selectorModal, 'input[name=customs]', true);
@@ -136,11 +135,11 @@ describe('Add and edit logistic units arrivals', () => {
         // comment
         cy.get('.ql-editor')
             .click()
-            .type(ULArrivals.comment);
+            .type(arrival.comment);
 
         // put file in the input
         cy.get('input[type=file]')
-            .selectFile(`cypress/fixtures/${ULArrivals.file}`, {force: true});
+            .selectFile(`cypress/fixtures/${arrival.file}`, {force: true});
 
         cy.getTheDate().then(logisticUnitsArrivalCreationDate => {
             cy.wrap(logisticUnitsArrivalCreationDate).as('logisticUnitsArrivalCreationDate');
@@ -172,7 +171,7 @@ describe('Add and edit logistic units arrivals', () => {
             "Nombre d'UL": "numberPacks",
         }
 
-        cy.checkDataInDatatable(ULArrivals, 'type', 'arrivalsTable', propertiesMaps, ['project', 'comment', 'dropLocation', 'file', 'firstAcheteurs', 'secondAcheteurs', 'firstNumeroCommandeList', 'secondNumeroCommandeList'])
+        cy.checkDataInDatatable(arrival, 'type', 'arrivalsTable', propertiesMaps, ['project', 'comment', 'dropLocation', 'file', 'firstAcheteurs', 'secondAcheteurs', 'firstNumeroCommandeList', 'secondNumeroCommandeList'])
     })
 
     it("should add a new dispute", () => {
@@ -202,7 +201,7 @@ describe('Add and edit logistic units arrivals', () => {
             .should('be.visible');
 
         cy.get(`${selectorModalNewLitige} [name=disputeType]`)
-            .select(ULdispute.type);
+            .select(dispute.type);
 
         // remove the reporter if it's already selected
         cy.get(selectorModalNewLitige).then(($modal) => {
@@ -217,10 +216,10 @@ describe('Add and edit logistic units arrivals', () => {
             }
         })
         // and select the new one
-        cy.select2Ajax('disputeReporter', ULdispute.reporter);
+        cy.select2Ajax('disputeReporter', dispute.reporter);
 
         cy.get(`${selectorModalNewLitige} [name=disputeStatus]`)
-            .select(ULdispute.status);
+            .select(dispute.status);
 
         // fill the dispute packs with the first and the last logistic units selected before
         cy.get('@firstLU').then((firstLU) => {
@@ -239,7 +238,7 @@ describe('Add and edit logistic units arrivals', () => {
         }
 
         // check the dispute created in the datatable
-        cy.checkDataInDatatable(ULdispute, 'type', 'tableArrivageLitiges_wrapper', propertiesMap, ['reporter']);
+        cy.checkDataInDatatable(dispute, 'type', 'tableArrivageLitiges_wrapper', propertiesMap, ['reporter']);
     })
 
     it("should edit a dispute", () => {
@@ -273,9 +272,9 @@ describe('Add and edit logistic units arrivals', () => {
 
         // edit the dispute
         cy.get(`${modalEditLitige} [name=disputeType]`)
-            .select(ULdisputeChanged.type);
+            .select(disputeChanged.type);
         cy.get(`${modalEditLitige} [name=disputeStatus]`)
-            .select(ULdisputeChanged.status);
+            .select(disputeChanged.status);
         cy.get(`${modalEditLitige} [name=disputeReporter]`)
             .siblings('.select2')
             .find('.select2-selection__clear')
@@ -283,7 +282,7 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get(`${modalEditLitige} [name=disputeReporter]`)
             .siblings('.select2')
             .click();
-        cy.select2Ajax('disputeReporter', ULdisputeChanged.reporter);
+        cy.select2Ajax('disputeReporter', disputeChanged.reporter);
 
         // remove the packs if they are already selected
         cy.get(`${modalEditLitige}`).then(($modal) => {
@@ -321,7 +320,7 @@ describe('Add and edit logistic units arrivals', () => {
         }
 
         // check the dispute created in the datatable
-        cy.checkDataInDatatable(ULdisputeChanged, 'type', 'tableArrivageLitiges_wrapper', propertiesMap, ['reporter']);
+        cy.checkDataInDatatable(disputeChanged, 'type', 'tableArrivageLitiges_wrapper', propertiesMap, ['reporter']);
 
     })
 
@@ -344,7 +343,7 @@ describe('Add and edit logistic units arrivals', () => {
             .click();
 
         cy.get(`${selectorModalAddPacks} [name=project]`)
-            .select(ULnewUL.project);
+            .select(newUL.project);
 
         // get all inputs[name=pack] and fill them with the random number of logistic units
         cy.get('input[name=pack]').each(($input) => {
@@ -407,7 +406,7 @@ describe('Add and edit logistic units arrivals', () => {
                 .last()
                 .find('td')
                 .eq(index)
-                .contains(ULnewUL.project);
+                .contains(newUL.project);
         });
     })
 
@@ -421,9 +420,9 @@ describe('Add and edit logistic units arrivals', () => {
             .wait('@arrivage_edit_api');
 
         // select2ajax
-        cy.select2Ajax('fournisseur', ULArrivalsChanged.fournisseur, '', true, '', false);
-        cy.select2Ajax('transporteur', ULArrivalsChanged.transporteur, '', true, '', false);
-        cy.select2Ajax('chauffeur', ULArrivalsChanged.chauffeur, '', true, '', false);
+        cy.select2Ajax('fournisseur', arrivalChanged.fournisseur, '', true, '', false);
+        cy.select2Ajax('transporteur', arrivalChanged.transporteur, '', true, '', false);
+        cy.select2Ajax('chauffeur', arrivalChanged.chauffeur, '', true, '', false);
 
         // remove the first and the second numeroCommandeList if they are already selected
         cy.clearSelect2("numeroCommandeList", "modalEditArrivage");
@@ -431,33 +430,33 @@ describe('Add and edit logistic units arrivals', () => {
         cy.clearSelect2("receivers", "modalEditArrivage");
 
         // refill the select2
-        cy.select2('numeroCommandeList', [ULArrivalsChanged.firstNumeroCommandeList, ULArrivalsChanged.secondNumeroCommandeList]);
-        cy.select2('acheteurs', [ULArrivalsChanged.firstAcheteurs, ULArrivalsChanged.secondAcheteurs]);
-        cy.select2('receivers', [ULArrivalsChanged.destinataire,ULArrivalsChanged.firstAcheteurs], 300);
+        cy.select2('numeroCommandeList', [arrivalChanged.firstNumeroCommandeList, arrivalChanged.secondNumeroCommandeList]);
+        cy.select2('acheteurs', [arrivalChanged.firstAcheteurs, arrivalChanged.secondAcheteurs]);
+        cy.select2('receivers', [arrivalChanged.destinataire,arrivalChanged.firstAcheteurs], 300);
 
         cy.get(`${selectorModalEditArrivage} select[name=statut]`)
-            .select(ULArrivalsChanged.statut, {force: true});
+            .select(arrivalChanged.statut, {force: true});
         cy.get('[name=businessUnit]')
-            .select(ULArrivalsChanged.businessUnit, {force: true});
+            .select(arrivalChanged.businessUnit, {force: true});
 
         // type in inputs with name attribute
         cy.typeInModalInputs(selectorModalEditArrivage, {
-            noProject: ULArrivalsChanged.noProject,
-            noTracking: ULArrivalsChanged.noTracking,
+            noProject: arrivalChanged.noProject,
+            noTracking: arrivalChanged.noTracking,
         });
         // fill comment
         cy.get('.ql-editor')
             .click()
             .clear()
-            .type(ULArrivalsChanged.comment);
+            .type(arrivalChanged.comment);
 
         // remove the file if it's already selected
         cy.get(selectorModalEditArrivage).then(($modal) => {
-            if ($modal.find(`a[data-original-title="${ULArrivals.file}"]`).siblings('svg').length) {
-                cy.get(`a[data-original-title="${ULArrivals.file}"]`).siblings('svg').then(($elements) => {
+            if ($modal.find(`a[data-original-title="${arrival.file}"]`).siblings('svg').length) {
+                cy.get(`a[data-original-title="${arrival.file}"]`).siblings('svg').then(($elements) => {
                     const numElements = $elements.length;
                     for (let i = 0; i < numElements; i++) {
-                        cy.get(`a[data-original-title="${ULArrivals.file}"]`).siblings('svg')
+                        cy.get(`a[data-original-title="${arrival.file}"]`).siblings('svg')
                             .eq(0)
                             .click();
                     }
@@ -466,7 +465,7 @@ describe('Add and edit logistic units arrivals', () => {
         })
         // put file in the input
         cy.get('input[type=file]')
-            .selectFile(`cypress/fixtures/${ULArrivalsChanged.file}`, {force: true});
+            .selectFile(`cypress/fixtures/${arrivalChanged.file}`, {force: true});
 
         // close the modal and verify the response
         cy.closeAndVerifyModal(selectorModalEditArrivage, 'submitEditArrivage', 'arrivage_edit');
@@ -476,17 +475,17 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click();
 
         const fieldsToCheck = [
-            { title: 'Statut', value: capitalizeFirstLetter(ULArrivalsChanged.statut) },
-            { title: 'Fournisseur', value: ULArrivalsChanged.fournisseur },
-            { title: 'Transporteur', value: ULArrivalsChanged.transporteur },
-            { title: 'Chauffeur', value: ULArrivalsChanged.chauffeur },
-            { title: 'N° tracking transporteur', value: ULArrivalsChanged.noTracking },
-            { title: 'N° commande / BL', value: [ULArrivalsChanged.firstNumeroCommandeList, ULArrivalsChanged.secondNumeroCommandeList] },
-            { title: 'Destinataire(s)', value: ULArrivalsChanged.destinataire },
-            { title: 'Acheteur(s)', value: [ULArrivalsChanged.firstAcheteurs, ULArrivalsChanged.secondAcheteurs] },
-            { title: 'Numéro de projet', value: ULArrivalsChanged.noProject },
-            { title: 'Business unit', value: ULArrivalsChanged.businessUnit },
-            { title: 'Commentaire', value: ULArrivalsChanged.comment }
+            { title: 'Statut', value: capitalizeFirstLetter(arrivalChanged.statut) },
+            { title: 'Fournisseur', value: arrivalChanged.fournisseur },
+            { title: 'Transporteur', value: arrivalChanged.transporteur },
+            { title: 'Chauffeur', value: arrivalChanged.chauffeur },
+            { title: 'N° tracking transporteur', value: arrivalChanged.noTracking },
+            { title: 'N° commande / BL', value: [arrivalChanged.firstNumeroCommandeList, arrivalChanged.secondNumeroCommandeList] },
+            { title: 'Destinataire(s)', value: arrivalChanged.destinataire },
+            { title: 'Acheteur(s)', value: [arrivalChanged.firstAcheteurs, arrivalChanged.secondAcheteurs] },
+            { title: 'Numéro de projet', value: arrivalChanged.noProject },
+            { title: 'Business unit', value: arrivalChanged.businessUnit },
+            { title: 'Commentaire', value: arrivalChanged.comment }
         ];
 
         fieldsToCheck.forEach(({ title, value }) => {
@@ -506,6 +505,6 @@ describe('Add and edit logistic units arrivals', () => {
 
         cy.get('[title=Douane]').parent().siblings().contains('Non');
         cy.get('[title=Congelé]').parent().siblings().contains('Non');
-        cy.get('a[download]').contains(ULArrivalsChanged.file);
+        cy.get('a[download]').contains(arrivalChanged.file);
     })
 })

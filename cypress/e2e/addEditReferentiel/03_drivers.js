@@ -1,4 +1,4 @@
-import routes, {interceptRoute} from "../../support/utils/routes";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user = Cypress.config('user');
 
 describe('Add and edit components in Referentiel > Chauffeurs', () => {

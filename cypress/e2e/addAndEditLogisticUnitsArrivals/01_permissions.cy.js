@@ -1,7 +1,7 @@
-import routes, {interceptRoute} from "../../support/utils/routes";
+import routes, {interceptRoute} from "/cypress/support/routes";
 const user= Cypress.config('user');
 
-const ULFreeFieldsLine = 'table[data-table-processing=fixedFields] tbody tr';
+const ULFreeFieldsLines = 'table[data-table-processing=fixedFields] tbody tr';
 
 describe('Get the right permissions for logistic units arrivals', () => {
     beforeEach(() => {
@@ -52,7 +52,7 @@ describe('Get the right permissions for logistic units arrivals', () => {
             .click();
 
         // check the table has at least one line
-        cy.get(ULFreeFieldsLine)
+        cy.get(ULFreeFieldsLines)
             .find('td', {timeout: 10000})
             .should('have.length.gt', 1);
         // uncheck all the checkboxes
@@ -74,7 +74,7 @@ describe('Get the right permissions for logistic units arrivals', () => {
             });
         })
 
-        cy.get(ULFreeFieldsLine).each((tr) => {
+        cy.get(ULFreeFieldsLines).each((tr) => {
             columnsToCheck.forEach((columnIndex) => {
                 cy.wrap(tr).find(`td:eq(${columnIndex}) input[type=checkbox]`)
                     .check({force: true});

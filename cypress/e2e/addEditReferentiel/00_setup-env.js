@@ -1,4 +1,4 @@
-import {uncaughtException} from "../../support/utils";
+import {uncaughtException} from "/cypress/support/utils";
 
 describe('Setup the environment', () => {
     it('Reset the db', () => {
