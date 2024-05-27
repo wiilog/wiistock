@@ -1,4 +1,5 @@
 const user = Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
 function isLinkAndIsAvailable($el, queueLink, visitedLinks) {
     return $el.attr('href') !== undefined && !isAlreadyInStack(queueLink,$el) && !visitedLinks.includes($el.attr('href'));

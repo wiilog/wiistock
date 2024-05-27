@@ -1,6 +1,7 @@
 import routes, {interceptRoute} from "/cypress/support/utils/routes";
 import {capitalizeFirstLetter, getColumnIndexByColumnName} from "/cypress/support/utils";
 const user= Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
 
 const numberPacksNature1 = 1;
