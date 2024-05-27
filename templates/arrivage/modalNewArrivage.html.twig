@@ -22,11 +22,12 @@
                                     {{ form.select('fournisseur', 'Fournisseur', supplierRequired, {
                                         type: 'provider',
                                         multiple: false,
+                                        emptyOption: true,
                                         items: fournisseurs|map((supplier) => {
                                             value: supplier.id,
                                             label: supplier.nom,
                                             selected: (keptFields[supplierFieldCode] ?? null) == supplier.id,
-                                            'possible-customs': supplier.possibleCustoms ? 1:0
+                                            'possible-customs': supplier.possibleCustoms ? 1 : 0
                                         }),
                                     }) }}
                                 </div>

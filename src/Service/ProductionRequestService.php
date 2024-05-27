@@ -268,7 +268,7 @@ class ProductionRequestService
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
             $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
         } else {
-            $dropLocation = $productionRequest->getType()?->getDropLocation();
+            $dropLocation = $productionRequest->getDropLocation() ?: $productionRequest->getType()?->getDropLocation();
         }
         $productionRequest->setDropLocation($dropLocation);
 

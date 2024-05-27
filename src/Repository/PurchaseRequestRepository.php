@@ -9,6 +9,7 @@ use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method PurchaseRequest|null find($id, $lockMode = null, $lockVersion = null)

@@ -24,8 +24,9 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
 
     cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .parents('.select2-dropdown')
-        .find('.select2-results__option')
         .should('be.visible', {timeout: 6000})
+        .contains(value)
+        .should('be.visible')
         .first()
         .click({waitForAnimations: false, force: true})
         .then(() => {
@@ -53,6 +54,8 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
             .then(() => {
                 cy.get('.select2-dropdown')
                     .find('.select2-results__option')
+                    .contains(element)
+                    .should('be.visible')
                     .first()
                     .click({waitForAnimations: false, multiple: true})
             })
@@ -73,9 +76,13 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
             .siblings('.select2')
             .click()
             .wait(100)
-            .type(`${element}{enter}`, {delay: customDelay ?? defaultTypeSpeed})
+            .type(`${element}`, {delay: customDelay ?? defaultTypeSpeed})
+            .get('.select2-dropdown')
+            .contains(element)
+            .should('be.visible')
+            .first()
+            .click()
     });
-
 
     cy.get(`[name=${selectName}]`).then(($select) => {
         if ($select.hasOwnProperty('multiple')) {
