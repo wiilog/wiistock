@@ -26,7 +26,7 @@ describe('Add and edit components in Referentiel > Projet', () => {
         }
         const selectorModal = '#modalNewProject';
         // open modal
-        cy.openModal(selectorModal, 'code','[data-toggle="modal"]' );
+        cy.openModal(selectorModal, 'code','[data-toggle="modal"] [data-target="#modalNewProject"]' );
 
         cy.get(selectorModal).should('be.visible', {timeout: 8000}).then(() => {
 

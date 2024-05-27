@@ -83,6 +83,8 @@ describe('Add and edit logistic units arrivals', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('traca', 'arrivage_index');
+        uncaughtException();
+
     })
 
     it("should add a new logistic units arrivals without the redirect after a new arrival", () => {

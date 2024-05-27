@@ -12,6 +12,7 @@ describe('Get the right permissions for logistic units arrivals', () => {
         cy.login(user);
         cy.visit('/');
         cy.openSettingsItem('arrivages');
+        uncaughtException();
     })
 
     it('should get the right permissions', () => {
