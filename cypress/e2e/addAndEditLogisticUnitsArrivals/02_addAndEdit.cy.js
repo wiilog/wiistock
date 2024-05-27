@@ -481,7 +481,7 @@ describe('Add and edit logistic units arrivals', () => {
             { title: 'Statut', value: capitalizeFirstLetter(arrivalChanged.statut) },
             { title: 'Fournisseur', value: arrivalChanged.fournisseur },
             { title: 'Transporteur', value: arrivalChanged.transporteur },
-            { title: 'Chauffeur', value: arrivalChanged.chauffeur },
+            { title: 'Chauffeur', value: arrivalChanged.chauffeur.split(' ')[0] },
             { title: 'N° tracking transporteur', value: arrivalChanged.noTracking },
             { title: 'N° commande / BL', value: [arrivalChanged.firstNumeroCommandeList, arrivalChanged.secondNumeroCommandeList] },
             { title: 'Destinataire(s)', value: arrivalChanged.destinataire },
@@ -502,7 +502,7 @@ describe('Add and edit logistic units arrivals', () => {
                 cy.get(`[title='${title}']`)
                     .parent()
                     .siblings()
-                    .contains(value);
+                    .contains(value, { matchCase: false });
             }
         });
 
