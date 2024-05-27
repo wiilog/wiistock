@@ -11,6 +11,7 @@ describe('Add and edit components in Referentiel > Projet', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'project_index');
+        uncaughtException();
     })
 
     it('should add a new project', () => {

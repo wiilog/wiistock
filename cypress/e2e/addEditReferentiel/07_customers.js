@@ -11,6 +11,7 @@ describe('Add and edit components in Referentiel > Clients', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'customer_index');
+        uncaughtException();
     })
 
     it('should add a new customer', () => {

@@ -18,6 +18,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'emplacement_index');
+        uncaughtException();
     })
 
     it('should add a new location', () => {

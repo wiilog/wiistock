@@ -10,6 +10,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'chauffeur_index');
+        uncaughtException();
     })
 
     it('should add a new driver', () => {

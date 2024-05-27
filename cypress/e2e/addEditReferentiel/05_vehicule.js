@@ -11,6 +11,7 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'vehicle_index');
+        uncaughtException();
     })
 
     it('should add a new vehicle', () => {

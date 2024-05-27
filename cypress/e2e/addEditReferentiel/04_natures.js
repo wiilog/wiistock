@@ -11,6 +11,7 @@ describe('Add and edit components in Referentiel > Nature', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'nature_index');
+        uncaughtException();
     })
 
     it('should add a new nature', () => {

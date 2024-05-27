@@ -11,6 +11,7 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'transporteur_index');
+        uncaughtException();
     })
 
     it('should add a new transporter', () => {

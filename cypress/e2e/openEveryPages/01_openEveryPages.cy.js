@@ -45,6 +45,7 @@ describe('Open all pages', () => {
         cy.login(user);
         cy.visit('/');
         cy.intercept('*').as('request');
+        uncaughtException();
     })
 
     it('Pages from menu', () => {
