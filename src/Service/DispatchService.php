@@ -549,11 +549,11 @@ class DispatchService {
 
             $subject = ($status->isTreated() || $status->isPartial() || $sendReport)
                 ? ($dispatch->getEmergency()
-                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement", false]
-                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Notification de traitement d'une demande d'acheminement", false])
+                    ? ["Demande", "Acheminements", "Emails", "Urgence : Notification de traitement d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "Notification de traitement d'une demande d'acheminement", false])
                 : (!$isUpdate
-                    ? ["Demande", "Acheminements", "Emails", "FOLLOW GT // Création d'une demande d'acheminement", false]
-                    : ["Demande", "Acheminements", "Emails", "FOLLOW GT // Changement de statut d'une demande d'acheminement", false]);
+                    ? ["Demande", "Acheminements", "Emails", "Création d'une demande d'acheminement", false]
+                    : ["Demande", "Acheminements", "Emails", "Changement de statut d'une demande d'acheminement", false]);
 
             $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->isTreated();
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
@@ -890,7 +890,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => isset($code)
-                    ? ("<span title='$code'>$code</span>". $this->formService->macro('hidden', 'pack', $code))
+                    ? ("<span title='$code'>" . htmlspecialchars($code) . "</span>" . $this->formService->macro('hidden', 'pack', $code))
                     : "<select name='pack'
                                data-s2='keyboardPacks'
                                data-parent='body'
@@ -1056,7 +1056,7 @@ class DispatchService {
         } else if($dispatchPack) {
             $data = [
                 "actions" => $actions,
-                "code" => $code,
+                "code" => htmlspecialchars($code),
                 "nature" => $nature?->getLabel(),
                 "quantity" => $quantity,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $weight,

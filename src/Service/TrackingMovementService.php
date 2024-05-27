@@ -227,8 +227,6 @@ class TrackingMovementService extends AbstractController
             );
         }
 
-        $article = $movement->getPackArticle()?->getBarCode();
-
         if ($movement->getLogisticUnitParent()) {
             if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
                 $packCode = "";
@@ -236,13 +234,15 @@ class TrackingMovementService extends AbstractController
                 $packCode = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $packCode = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
+            $packCode = $movement->getPackArticle()
+                ? ""
+                : $movement->getPack()->getCode();
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'packCode' => $packCode,
+            'pack' => $packCode,
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -259,7 +259,7 @@ class TrackingMovementService extends AbstractController
                     ? $movement->getPackArticle()->getLabel()
                     : null),
             "quantity" => $movement->getQuantity(),
-            "article" => $article,
+            "article" => $movement->getPackArticle()?->getBarCode(),
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
             "actions" => $this->templating->render('tracking_movement/datatableMvtTracaRow.html.twig', [
@@ -691,7 +691,7 @@ class TrackingMovementService extends AbstractController
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Issu de', false), 'name' => 'origin', 'orderable' => false],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Date', false), 'name' => 'date'],
-            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'packCode'],
+            ['title' => $this->translation->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'pack'],
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Article', false), 'name' => 'article'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Référence', false), 'name' => 'reference'],
             ['title' => $this->translation->translate('Traçabilité', 'Mouvements', 'Libellé', false),  'name' => 'label'],
@@ -1377,7 +1377,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
-                    $options,
+                    $options + ["stockAction" => true],
                 )["movement"];
                 $movements[] = $pick;
                 $newMovements[] = $pick;
@@ -1395,7 +1395,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
-                    $options,
+                    $options + ["stockAction" => true],
                 )["movement"];
 
                 $oldCurrentLogisticUnit = $article->getCurrentLogisticUnit();
@@ -1421,7 +1421,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    $options + ['ignoreProjectChange' => true],
+                    $options + ["ignoreProjectChange" => true, "stockAction" => true],
                 )["movement"];
 
                 $movements[] = $drop;
@@ -1439,7 +1439,7 @@ class TrackingMovementService extends AbstractController
                     true,
                     TrackingMovement::TYPE_DROP_LU,
                     false,
-                    $options,
+                    $options + ["stockAction" => true],
                 )["movement"];
 
                 $luDrop->setLogisticUnitParent($pack);

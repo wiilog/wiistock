@@ -79,7 +79,7 @@ class MailsLitigesComand extends Command
 
         $listEmails = '';
 
-        $subject = ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Récapitulatif de vos litiges", false];
+        $subject = ["Traçabilité", "Arrivages UL", "Email litige", "Récapitulatif de vos litiges", false];
         $title = ["Traçabilité", "Arrivages UL", "Email litige", "Récapitulatif de vos litiges", false];
 
         foreach ($disputesByBuyer as $res) {

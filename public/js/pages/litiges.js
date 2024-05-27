@@ -124,6 +124,12 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 
             $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         }
+
+        Camera.init(
+            $modal.find(`.take-picture-modal-button`),
+            $modal.find(`[name="files[]"]`)
+        );
+
         fillDemandeurField($modal);
         $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();

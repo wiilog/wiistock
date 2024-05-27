@@ -23,6 +23,7 @@ import "firebase/messaging";
 import "./flash";
 import "./ajax";
 import "./utils";
+import Camera from "@app/camera"
 
 import BrowserSupport from './support';
 import Wiistock from './general';
@@ -56,6 +57,7 @@ importChart();
 importLeaflet();
 importIntlTelInput();
 importFirebase();
+importCamera();
 importDatatable();
 importVisibleColumn();
 
@@ -75,6 +77,10 @@ function importWiistock() {
 function importForm() {
     // TODO remove when all js will be in asset
     global.Form = Form;
+}
+
+function importCamera() {
+    global.Camera = Camera;
 }
 
 function importVisibleColumn() {

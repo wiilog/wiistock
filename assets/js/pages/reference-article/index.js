@@ -231,7 +231,7 @@ function printReferenceArticleBarCode($button, event) {
                 {
                     length: pageTables.page.info().length,
                     start: pageTables.page.info().start,
-                    search: $('#tableRefArticle_filter input').val()
+                    search: {"value": $('#tableRefArticle_filter input').val()},
                 },
                 true
             );

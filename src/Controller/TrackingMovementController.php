@@ -25,22 +25,19 @@ use App\Service\CSVExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
-use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 
-use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 #[Route("/mouvement-traca")]
 class TrackingMovementController extends AbstractController
@@ -163,9 +160,7 @@ class TrackingMovementController extends AbstractController
             $date = $this->formatService->parseDatetime($post->get("datetime"), [$format]) ?: new DateTime();
         }
 
-        $fileBag = $request->files->count() > 0 ? $request->files : null;
-
-        $createdMouvements = [];
+        $createdMovements = [];
         try {
             if (!empty($post->get('is-group'))) {
                 $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $date);
@@ -173,7 +168,7 @@ class TrackingMovementController extends AbstractController
                     return $this->json($groupTreatment);
                 }
 
-                $createdMouvements = $groupTreatment['createdMovements'];
+                $createdMovements = $groupTreatment['createdMovements'];
             }
             else if (empty($post->get('is-mass'))) {
                 $location = $emplacementRepository->find($post->get('emplacement'));
@@ -195,7 +190,7 @@ class TrackingMovementController extends AbstractController
                 );
 
                 if ($res['success']) {
-                    array_push($createdMouvements, ...$res['movements']);
+                    array_push($createdMovements, ...$res['movements']);
                 }
                 else {
                     return $this->json($this->treatPersistTrackingError($res));
@@ -236,7 +231,7 @@ class TrackingMovementController extends AbstractController
                         );
 
                         if ($pickingRes['success']) {
-                            array_push($createdMouvements, ...$pickingRes['movements']);
+                            array_push($createdMovements, ...$pickingRes['movements']);
 
                             $codeToPack = Stream::from($pickingRes['movements'])
                                 ->keymap(static function(TrackingMovement $movement) {
@@ -269,7 +264,7 @@ class TrackingMovementController extends AbstractController
                         );
 
                         if ($dropRes['success']) {
-                            array_push($createdMouvements, ...$dropRes['movements']);
+                            array_push($createdMovements, ...$dropRes['movements']);
 
                             $codeToPack = Stream::from($dropRes['movements'])
                                 ->keymap(static function(TrackingMovement $movement) {
@@ -303,23 +298,20 @@ class TrackingMovementController extends AbstractController
             }
         }
 
-        if (isset($fileBag)) {
-            $fileNames = [];
-            foreach ($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
+        /** @var TrackingMovement[] $createdMovements */
+        foreach ($createdMovements as $movement) {
+            $freeFieldService->manageFreeFields($movement, $post->all(), $entityManager, $this->getUser());
+            if (!isset($trackingAttachments)) {
+                // first time we upload attachments
+                $trackingAttachments = $attachmentService->persistAttachments($entityManager, $movement, $request->files);
             }
-            foreach ($createdMouvements as $mouvement) {
-                $this->persistAttachments($mouvement, $attachmentService, $fileNames, $entityManager);
+            else {
+                // next attachment are already saved, we link them to the movement
+                $movement->setAttachments($trackingAttachments);
             }
         }
 
-        foreach ($createdMouvements as $mouvement) {
-            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager, $this->getUser());
-        }
-        $countCreatedMouvements = count($createdMouvements);
+        $countCreatedMouvements = count($createdMovements);
         $entityManager->flush();
 
         return new JsonResponse([
@@ -444,18 +436,11 @@ class TrackingMovementController extends AbstractController
             ->setQuantity($quantity)
             ->setCommentaire($post->get('commentaire'));
 
-        $entityManager->flush();
+        $attachmentService->removeAttachments($entityManager, $mvt, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $mvt, $request->files, ['addToDispatch' => true]);
 
-        $listAttachmentIdToKeep = $post->all('files');
-        $attachments = $mvt->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $mvt);
-            }
-        }
-        $this->persistAttachments($mvt, $attachmentService, $request->files, $entityManager, ['addToDispatch' => true]);
         $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
+
         $entityManager->flush();
 
         return new JsonResponse([
@@ -627,19 +612,6 @@ class TrackingMovementController extends AbstractController
             "error" => false,
             "quantity" => $quantity > 0 ? $quantity : null, //regle de gestion : l'UL doit contenir au moins un article pour qu'on grise le champ
         ]);
-    }
-
-    private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager ,  array $options = [])
-    {
-        $isAddToDispatch = $options['addToDispatch'] ?? false;
-        $attachments = $attachmentService->createAttachments($files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $trackingMovement->addAttachment($attachment);
-            if ($isAddToDispatch && $trackingMovement->getDispatch()) {
-                $trackingMovement->getDispatch()->addAttachment($attachment);
-            }
-        }
     }
 
     private function treatPersistTrackingError(array $res): array {

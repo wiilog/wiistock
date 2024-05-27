@@ -43,6 +43,7 @@ use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use DateInterval;
 use DateTimeZone;
@@ -75,9 +76,9 @@ class IOTService
     const MULTITECH_GATEWAY = 'gateway_multitech';
 
     const PROFILE_TO_MAX_TRIGGERS = [
-        self::INEO_SENS_ACS_TEMP => 2,
-        self::INEO_SENS_ACS_HYGRO => 2,
-        self::INEO_SENS_ACS_TEMP_HYGRO => 4,
+        self::INEO_SENS_ACS_TEMP => 4,
+        self::INEO_SENS_ACS_HYGRO => 4,
+        self::INEO_SENS_ACS_TEMP_HYGRO => 8,
         self::INEO_SENS_GPS => 1,
         self::INEO_SENS_ACS_BTN => 1,
         self::SYMES_ACTION_MULTI => 4,
@@ -87,7 +88,7 @@ class IOTService
         self::INEO_INS_EXTENDER => 0,
         self::INEO_TRK_TRACER => 3,
         self::INEO_TRK_ZON => 0,
-        self::YOKOGAWA_XS550_XS110A => 2,
+        self::YOKOGAWA_XS550_XS110A => 4,
         self::MULTITECH_GATEWAY => 0,
     ];
 
@@ -179,6 +180,9 @@ class IOTService
 
     #[required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     #[required]
     public StatusHistoryService $statusHistoryService;
@@ -647,7 +651,7 @@ class IOTService
             $device->setBattery($newBattery);
             if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Batterie capteur faible',
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Batterie capteur faible',
                     $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
                         'sensorCode' => $device->getCode(),
                         'sensorName' => $wrapper->getName(),

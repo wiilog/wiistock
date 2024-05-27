@@ -42,7 +42,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -66,13 +66,16 @@ class HandlingController extends AbstractController {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $user = $this->getUser();
+        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $types = Stream::from($handlingTypes)
+            ->filter(fn(Type $type) => in_array($type->getId(), $user->getHandlingTypeIds()))
+            ->toArray();
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
         $filterStatus = $request->query->get('filter');
-        $user = $this->getUser();
         $dateChoice = [
             [
                 'value' => 'creationDate',
@@ -96,14 +99,19 @@ class HandlingController extends AbstractController {
 
         $filterDate = $request->query->get('date');
 
+        $handlingStatuses = $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder');
+        $statuses = Stream::from($handlingStatuses)
+            ->filter(fn(Statut $statut) => in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
+            ->toArray();
+
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
-            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
-			'filterStatus' => $filterStatus,
             'types' => $types,
+            'statuses' => $statuses,
+            'filterStatus' => $filterStatus,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
             'statusStateValues' => Stream::from($statusService->getStatusStatesValues())
@@ -349,16 +357,15 @@ class HandlingController extends AbstractController {
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];
 
-        $attachments = $handling->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $handling);
-            }
+        $attachmentsToRemove = Stream::from($handling->getAttachments()->toArray())
+            ->filter(static fn(Attachment $attachment) => !in_array($attachment->getId(), $listAttachmentIdToKeep))
+            ->toArray();
+        foreach ($attachmentsToRemove as $attachment) {
+            $handling->removeAttachment($attachment);
+            $entityManager->remove($attachment);
         }
 
-        $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
-
+        $attachmentService->persistAttachments($entityManager, $handling, $request->files);
         $entityManager->flush();
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';
@@ -369,16 +376,6 @@ class HandlingController extends AbstractController {
 
     }
 
-    private function persistAttachments(Handling $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-        $entityManager->flush();
-    }
 
     #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]

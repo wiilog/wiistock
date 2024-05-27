@@ -27,7 +27,6 @@ use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 
-use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,7 +34,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use DateTime;
 use App\Service\TranslationService;
 use Throwable;

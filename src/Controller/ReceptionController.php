@@ -62,7 +62,6 @@ use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,10 +71,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/reception")
@@ -203,16 +203,13 @@ class ReceptionController extends AbstractController {
                 $reception->setCommentaire($data->get('commentaire'));
             }
 
-            if ($data->has('files')) {
-                $reception->removeIfNotIn($data->get('files') ?: []);
-            }
-
-            $entityManager->flush();
+            $attachmentService->removeAttachments($entityManager, $reception, $request->request->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $reception, $request->files);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
-            $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
+
             $json = [
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
@@ -286,8 +283,7 @@ class ReceptionController extends AbstractController {
     #[Route("/api", name: "reception_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
-                        ReceptionService $receptionService,
-                        EntityManagerInterface $entityManager): Response {
+                        ReceptionService $receptionService): Response {
         $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
 
         /** @var Utilisateur $user */
@@ -383,8 +379,6 @@ class ReceptionController extends AbstractController {
         if($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
 
             /** @var Reception $reception */
             $reception = $receptionRepository->find($data['receptionId']);
@@ -413,7 +407,7 @@ class ReceptionController extends AbstractController {
                 }
                 $entityManager->flush();
                 foreach ($refsToUpdate as $reference) {
-                    $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                    $refArticleDataService->setStateAccordingToRelations($entityManager, $reference);
                 }
                 $entityManager->remove($reception);
                 $entityManager->flush();
@@ -463,7 +457,6 @@ class ReceptionController extends AbstractController {
                                                     Request                $request): Response {
         if($data = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             /** @var ReceptionReferenceArticle $ligneArticle */
@@ -515,7 +508,7 @@ class ReceptionController extends AbstractController {
 
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
-            $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+            $refArticleDataService->setStateAccordingToRelations($entityManager, $reference);
 
             $reception->setStatut($receptionService->getNewStatus($reception));
 
@@ -1076,16 +1069,9 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
+        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
         if($isStatutChange) {
@@ -1103,10 +1089,11 @@ class ReceptionController extends AbstractController {
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               DisputeService         $disputeService,
+                              AttachmentService      $attachmentService,
                               ArticleDataService     $articleDataService,
                               Request                $request,
                               UniqueNumberService    $uniqueNumberService,
-                              TranslationService    $translation): Response
+                              TranslationService     $translation): Response
     {
         $post = $request->request;
 
@@ -1172,8 +1159,9 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
         $entityManager->flush();
+
         $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
 
         return new JsonResponse([
@@ -1561,126 +1549,64 @@ class ReceptionController extends AbstractController {
 
     #[Route("/csv", name: "get_receptions_csv", options: ["expose" => true], methods: "GET")]
     public function getReceptionCSV(EntityManagerInterface $entityManager,
-                                    TranslationService $translation,
-                                    CSVExportService $CSVExportService,
-                                    Request $request): Response {
-        $dateMin = $request->query->get('dateMin');
-        $dateMax = $request->query->get('dateMax');
+                                    TranslationService     $translation,
+                                    CSVExportService       $CSVExportService,
+                                    ReceptionService       $receptionService,
+                                    Request                $request): Response {
+        $receptionRepository = $entityManager->getRepository(Reception::class);
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch(Throwable $throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', "{$request->query->get("dateMin")} 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', "{$request->query->get("dateMax")}  23:59:59");
 
-        if(isset($dateTimeMin) && isset($dateTimeMax)) {
-            $receptionRepository = $entityManager->getRepository(Reception::class);
-            $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
-            $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
+        $receptions = $receptionRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+        $requesters = $receptionRepository->getDeliveryRequestersOnReception($dateTimeMin, $dateTimeMax);
+        $deliveryFees = $receptionRepository->getReceptionDeliveryFees($dateTimeMin, $dateTimeMax);
 
-            $requesters = $deliveryRequestRepository->getRequestersForReceptionExport();
-
-            $csvHeader = [
-                $translation->translate('Ordre', 'Réceptions', 'n° de réception', false),
-                'n° de commande',
-                'fournisseur',
-                'utilisateur',
-                'statut',
-                'date de création',
-                'date de fin',
-                'commentaire',
-                'quantité à recevoir',
-                'quantité reçue',
-                'emplacement de stockage',
-                'réception urgente',
-                'référence urgente',
-                'Frais de livraison',
-                'destinataire',
-                'référence',
-                'libellé',
-                'quantité stock',
-                'type',
-                'code-barre reference',
-                'code-barre article',
-                'unité logistique',
-                'Prix unitaire',
-            ];
-            $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
-            $addedRefs = [];
-
-            return $CSVExportService->createBinaryResponseFromData(
-                "export-" . str_replace(["/", "\\"], "-", $translation->translate('Ordre', 'Réception', 'réception', false)) . "-$nowStr.csv",
-                $receptions,
-                $csvHeader,
-                function($reception) use (&$addedRefs, $requesters) {
-                    $rows = [];
-                    if($reception['articleId'] || $reception['referenceArticleId']) {
-                        if($reception['articleId']) {
-                            $row = $this->serializeReception($reception);
-
-                            $row[] = $requesters[$reception['id'] ."-". $reception['articleId']] ?? "";
-                            $row[] = $reception['articleReference'] ?: '';
-                            $row[] = $reception['articleLabel'] ?: '';
-                            $row[] = $reception['articleQuantity'] ?: '';
-                            $row[] = $reception['articleTypeLabel'] ?: '';
-                            $row[] = $reception['articleReferenceArticleBarcode'] ?: '';
-                            $row[] = $reception['articleBarcode'] ?: '';
-                            $row[] = $reception['currentLogisticUnit'] ?: '';
-                            $row[] = $reception['receptionReferenceArticleUnitPrice'] ?: '';
-
-                            $rows[] = $row;
-                        }
-
-                        else {
-                            if (!isset($addedRefs[$reception['referenceArticleId']])) {
-                                $addedRefs[$reception['referenceArticleId']] = true;
-                                $row = $this->serializeReception($reception);
-
-                                $row[] = '';
-                                $row[] = $reception['referenceArticleReference'] ?: '';
-                                $row[] = $reception['referenceArticleLibelle'] ?: '';
-                                $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
-                                $row[] = $reception['referenceArticleTypeLabel'] ?: '';
-                                $row[] = $reception['referenceArticleBarcode'] ?: '';
-                                $row[] = '';
-                                $row[] = $reception['currentLogisticUnit'] ?: '';
-                                $row[] = $reception['receptionReferenceArticleUnitPrice'] ?: '';
-
-                                $rows[] = $row;
-                            }
-                        }
-                    } else {
-                        $rows[] = $this->serializeReception($reception);
-                    }
-                    return $rows;
-                }
-            );
-
-        } else {
-            throw new BadRequestHttpException();
-        }
-    }
-
-    private function serializeReception(array $reception): array {
-        return [
-            $reception['number'] ?: '',
-            $reception['orderNumber'] ? join(', ', $reception['orderNumber']) : '',
-            $reception['providerName'] ?: '',
-            $reception['userUsername'] ?: '',
-            $reception['statusName'] ?: '',
-            $this->formatService->datetime($reception['date']),
-            $this->formatService->datetime($reception['dateFinReception']),
-            $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
-            $reception['receptionRefArticleQuantiteAR'] ?: '',
-            (!$reception['referenceArticleId'] && !$reception['articleId']
-                ? ''
-                : ($reception['receptionRefArticleQuantite']
-                    ?: 0)),
-            $reception['storageLocation'] ?: '',
-            $this->formatService->bool($reception['receptionEmergency']),
-            $this->formatService->bool($reception['referenceEmergency']),
-            $reception['deliveryFee'] ?: '',
+        $headers = [
+            $translation->translate("Ordre", "Réceptions", "n° de réception", false),
+            "n° de commande",
+            "fournisseur",
+            "utilisateur",
+            "statut",
+            "date de création",
+            "date de fin",
+            "commentaire",
+            "quantité à recevoir",
+            "quantité reçue",
+            "emplacement de stockage",
+            "réception urgente",
+            "référence urgente",
+            "frais de livraison",
+            "destinataire",
+            "référence",
+            "libellé",
+            "quantité stock",
+            "type",
+            "code-barre reference",
+            "code-barre article",
+            "unité logistique",
+            "prix unitaire",
         ];
+
+        $nowStr = (new DateTime("now"))->format("d-m-Y-H-i-s");
+        $addedRefs = [];
+        $name = StringHelper::slugify(
+            str_replace(" ","-",
+                "export-"
+                . str_replace(["/", "\\"], "-", $translation->translate("Ordre", "Réception", "réception", false))
+                . "-$nowStr"
+            )
+        );
+
+        return $CSVExportService->streamResponse(
+            function ($output) use ($receptions, $receptionService, $addedRefs, $requesters, $deliveryFees) {
+                foreach ($receptions as $reception) {
+                    $receptionService->putLine($output, $reception, $addedRefs, $requesters, $deliveryFees);
+                }
+            },
+            "$name.csv",
+            $headers
+        );
     }
 
     #[Route("/avec-conditionnement/{reception}", name: "reception_new_with_packing", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
@@ -1697,6 +1623,7 @@ class ReceptionController extends AbstractController {
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
+                                   TranslationService         $translationService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
@@ -2043,7 +1970,7 @@ class ReceptionController extends AbstractController {
             if(!empty($destinataires)) {
                 // on envoie un mail aux demandeurs
                 $mailerService->sendMail(
-                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Article urgent réceptionné', $mailContent,
                     $destinataires
                 );
             }
@@ -2078,7 +2005,7 @@ class ReceptionController extends AbstractController {
 
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
-                'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'fournisseur' => $reception->getFournisseur(),

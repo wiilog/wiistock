@@ -464,7 +464,7 @@ class Emplacement implements PairedEntity {
             $pack
             && (
                 // all tracking movements on stock objects are allowed
-                (empty($pack->getArticle()) && empty($pack->getReferenceArticle()))
+                (!empty($pack->getArticle()) || !empty($pack->getReferenceArticle()))
                 || $this->getAllowedNatures()->isEmpty()
                 || (
                     $pack->getNature()

@@ -16,6 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -145,6 +146,8 @@ class LivraisonsManagerService
             $inactiveArticleStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $articleLines = $preparation->getArticleLines();
 
+            $packs = [];
+
             $packs = stream::from($articleLines)
                 ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
                 ->filter()
@@ -152,10 +155,15 @@ class LivraisonsManagerService
                 ->toArray();
 
             foreach ($packs as $pack) {
+                $currentPackLocation = $pack->getLastDrop()?->getEmplacement();
+                if (!$currentPackLocation) {
+                    throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles.");
+                }
+
                 $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
-                    $pack->getLastDrop()->getEmplacement(),
+                    $currentPackLocation,
                     $user,
                     $dateEnd,
                     true,
@@ -274,9 +282,12 @@ class LivraisonsManagerService
                 }
             }
 
-            $title = $demandeIsPartial
-                ? 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
-                : 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
+            $title = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) .
+                MailerService::OBJECT_SERPARATOR .
+                ( $demandeIsPartial
+                    ? $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
+                    : $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée'
+                );
             $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
             $sendMailCallback = function(array $to) use ($title, $demande, $preparation, $bodyTitle, $nextLocation): void {

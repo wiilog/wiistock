@@ -810,7 +810,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                     }
                                 }
                             } else {
-                                $conditions[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                             }
                         } else if (property_exists(ReferenceArticle::class, $field)) {
                             if (in_array($field, self::FIELDS_TYPE_DATE)) {
@@ -862,8 +862,7 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        // compte éléments filtrés
-        $countQuery = QueryBuilderHelper::count($queryBuilder, "ra");
+        $queryBuilder->addSelect("COUNT_OVER(ra.id) AS __query_count");
 
         if ($params->getInt('start')) {
             $queryBuilder->setFirstResult($params->getInt('start'));
@@ -875,9 +874,10 @@ class ReferenceArticleRepository extends EntityRepository {
 
         $queryBuilder->distinct();
 
+        $results = $queryBuilder->getQuery()->getResult();
         return [
-            "data" => $queryBuilder->getQuery()->getResult(),
-            "count" => $countQuery,
+            "data" => $results,
+            "count" => $results[0]["__query_count"] ?? 0,
             "searchParts" => $searchParts,
             "searchableFields" => $user->getRecherche(),
         ];

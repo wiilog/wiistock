@@ -43,7 +43,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -242,7 +242,10 @@ class DemandeController extends AbstractController
         $projectRepository = $entityManager->getRepository(Project::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $types = Stream::from($deliveryTypes)
+            ->filter(fn(Type $type) => in_array($type->getId(), $this->getUser()->getDeliveryTypeIds()))
+            ->toArray();
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
         $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';

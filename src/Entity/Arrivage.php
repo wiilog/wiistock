@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArrivageRepository;
@@ -12,10 +14,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 #[ORM\Entity(repositoryClass: ArrivageRepository::class)]
-class Arrivage {
+class Arrivage implements AttachmentContainer {
 
     use CleanedCommentTrait;
     use FreeFieldsManagerTrait;
+    use AttachmentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

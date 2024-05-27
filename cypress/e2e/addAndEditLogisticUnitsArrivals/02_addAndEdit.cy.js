@@ -30,7 +30,7 @@ const ULArrivals = {
 const ULArrivalsChanged = {
     fournisseur: 'SAMSUNG',
     transporteur: 'GT',
-    chauffeur: 'Georges',
+    chauffeur: 'Marcel GEORGES',
     noTracking: '7654',
     firstNumeroCommandeList: '9876',
     secondNumeroCommandeList: '4321',

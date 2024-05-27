@@ -57,7 +57,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
@@ -72,9 +72,6 @@ class ArrivageController extends AbstractController {
     public UserService $userService;
 
     #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
     public LanguageService $languageService;
 
     private ?string $defaultLanguageSlug = null;
@@ -85,7 +82,6 @@ class ArrivageController extends AbstractController {
      */
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
-                          KeptFieldService $keptFieldService,
                           TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
@@ -277,7 +273,7 @@ class ArrivageController extends AbstractController {
                 $arrivage->addAcheteur($userRepository->find($acheteurId));
             }
         }
-        $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $arrivage, $request->files);
 
         $natures = Stream::from(isset($data['packs']) ? json_decode($data['packs'], true) : [])
             ->filter()
@@ -323,7 +319,7 @@ class ArrivageController extends AbstractController {
             false,
             $project
         );
-
+        $entityManager->persist($arrivage);
         try {
             $entityManager->flush();
         }
@@ -471,7 +467,6 @@ class ArrivageController extends AbstractController {
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      */
     public function postArrivalTrackingMovements(Arrivage                $arrival,
-                                                 ArrivageService         $arrivageDataService,
                                                  TrackingMovementService $trackingMovementService,
                                                  EntityManagerInterface  $entityManager): Response
     {
@@ -504,7 +499,8 @@ class ArrivageController extends AbstractController {
                          SpecificService        $specificService,
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         AttachmentService      $attachmentService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -627,17 +623,8 @@ class ArrivageController extends AbstractController {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-
-        $attachments = $arrivage->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $arrivage);
-            }
-        }
-
-        $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
+        $attachmentService->removeAttachments($entityManager, $arrivage, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $arrivage, $request->files);
 
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
@@ -680,6 +667,7 @@ class ArrivageController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::DELETE_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
+                           AttachmentService $attachmentService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -707,11 +695,7 @@ class ArrivageController extends AbstractController {
                     $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
-                $entityManager->flush();
-
-                foreach ($arrivage->getAttachments() as $attachement) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
-                }
+                $attachmentService->removeAttachments($entityManager, $arrivage);
 
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
@@ -794,9 +778,7 @@ class ArrivageController extends AbstractController {
         }, "export-arrivages_$today.csv", $header);
     }
 
-    /**
-     * @Route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-     */
+    #[Route("/voir/{id}", name: "arrivage_show", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
                          PackService            $packService,
@@ -863,7 +845,8 @@ class ArrivageController extends AbstractController {
                                DisputeService         $disputeService,
                                EntityManagerInterface $entityManager,
                                UniqueNumberService    $uniqueNumberService,
-                               TranslationService    $translation): Response
+                               TranslationService     $translation,
+                               AttachmentService      $attachmentService): Response
     {
         $post = $request->request;
 
@@ -927,7 +910,7 @@ class ArrivageController extends AbstractController {
 
         $entityManager->persist($historyRecord);
 
-        $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
         try {
             $entityManager->flush();
         }
@@ -1119,7 +1102,8 @@ class ArrivageController extends AbstractController {
                                ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
-                               Twig_Environment       $templating): Response
+                               Twig_Environment       $templating,
+                               AttachmentService      $attachmentService): Response
     {
         $post = $request->request;
 
@@ -1187,17 +1171,9 @@ class ArrivageController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
+        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
 
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
-
-        $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBefore !== $statutAfter);
         if ($isStatutChange) {
@@ -1241,9 +1217,7 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{arrivage}/UL/{pack}/etiquette", name: "print_arrivage_single_pack_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArrivagePackBarCodes(Arrivage               $arrivage,
                                               Request                $request,
                                               EntityManagerInterface $entityManager,
@@ -1384,15 +1358,12 @@ class ArrivageController extends AbstractController {
         );
     }
 
-    /**
-     * @Route("/{arrivage}/etiquettes", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{arrivage}/etiquettes", name: "print_arrivage_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArrivageAlias(Arrivage               $arrivage,
                                        Request                $request,
                                        PackService            $packService,
                                        EntityManagerInterface $entityManager,
-                                       PDFGeneratorService    $PDFGeneratorService)
-    {
+                                       PDFGeneratorService    $PDFGeneratorService): Response {
         $template = $request->query->get('template')
             ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
             : null;
@@ -1416,37 +1387,55 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $projectParam = false,
                                                    ?bool        $showDateAndHourArrivalUl = false,
                                                    ?TagTemplate $tagTemplate = null,
-                                                   bool         $forceTagEmpty = false,
-    ): array {
-        $total = $arrivage->getPacks()->count();
-        $packs = [];
-        foreach($arrivage->getPacks() as $index => $pack) {
-            $position = $index + 1;
-            if (
-                (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
-                (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
-                (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
-            ) {
-                $packs[] = $packService->getBarcodePackConfig(
-                    $pack,
-                    $arrivage->getReceivers()->toArray(),
-                    "$position/$total",
-                    $typeArrivalParamIsDefined,
-                    $usernameParamIsDefined,
-                    $dropzoneParamIsDefined,
-                    $packCountParamIsDefined,
-                    $commandAndProjectNumberIsDefined,
-                    $firstCustomIconConfig,
-                    $secondCustomIconConfig,
-                    $showTypeLogoArrivalUl,
-                    $businessUnitParam,
-                    $projectParam,
-                    $showDateAndHourArrivalUl,
-                );
-            }
-        }
+                                                   bool         $forceTagEmpty = false): array {
+        $packs = Stream::from($arrivage->getPacks());
+        $total = $packs->count();
 
-        return $packs;
+        return $packs
+            ->sort(fn(Pack $pack1, Pack $pack2) => $pack1->getCode() <=> $pack2->getCode())
+            ->filterMap(static function (Pack $pack, int $index) use (  $forceTagEmpty,
+                                                                        $packIdsFilter,
+                                                                        $tagTemplate,
+                                                                        $showDateAndHourArrivalUl,
+                                                                        $projectParam,
+                                                                        $businessUnitParam,
+                                                                        $showTypeLogoArrivalUl,
+                                                                        $secondCustomIconConfig,
+                                                                        $firstCustomIconConfig,
+                                                                        $commandAndProjectNumberIsDefined,
+                                                                        $packCountParamIsDefined,
+                                                                        $dropzoneParamIsDefined,
+                                                                        $usernameParamIsDefined,
+                                                                        $typeArrivalParamIsDefined,
+                                                                        $total,
+                                                                        $arrivage,
+                                                                        $packService): ?array {
+                $position = $index + 1;
+                if (
+                    (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
+                    (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
+                    (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
+                ) {
+                    return $packService->getBarcodePackConfig(
+                        $pack,
+                        $arrivage->getReceivers()->toArray(),
+                        "$position/$total",
+                        $typeArrivalParamIsDefined,
+                        $usernameParamIsDefined,
+                        $dropzoneParamIsDefined,
+                        $packCountParamIsDefined,
+                        $commandAndProjectNumberIsDefined,
+                        $firstCustomIconConfig,
+                        $secondCustomIconConfig,
+                        $showTypeLogoArrivalUl,
+                        $businessUnitParam,
+                        $projectParam,
+                        $showDateAndHourArrivalUl,
+                    );
+                }
+                return null;
+            })
+            ->values();
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
@@ -1469,16 +1458,6 @@ class ArrivageController extends AbstractController {
         }
 
         return $response;
-    }
-
-    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
     }
 
     /**

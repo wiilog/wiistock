@@ -11,6 +11,7 @@ use App\Entity\TrackingMovement;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -30,6 +31,9 @@ class TrackingMovementListener implements EventSubscriber
 
     #[Required]
     public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public TranslationService $translation;
 
     /**
      * @var TrackingMovement[]
@@ -90,7 +94,7 @@ class TrackingMovementListener implements EventSubscriber
                         );
 
                         $this->mailerService->sendMail(
-                            "FOLLOW GT // Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
+                            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
                             [
                                 'name' => 'mails/contents/mailDropLuOnLocation.html.twig',
                                 'context' => [

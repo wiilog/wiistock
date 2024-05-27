@@ -63,12 +63,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -494,6 +493,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
+                         AttachmentService      $attachmentService,
                          TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
@@ -517,7 +517,7 @@ class ReferenceArticleController extends AbstractController
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $refArticle->removeIfNotIn($data->all()['files'] ?? []);
+                    $attachmentService->removeAttachments($entityManager, $refArticle, $data->all()['files'] ?? []);
                     $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
@@ -783,16 +783,11 @@ class ReferenceArticleController extends AbstractController
         $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
-        $refs = $queryResult['data'];
-        $refs = array_map(function($refArticle) {
-            return is_array($refArticle) ? $refArticle[0] : $refArticle;
-        }, $refs);
-        $barcodeConfigs = array_map(
-            function (ReferenceArticle $reference) use ($refArticleDataService) {
-                return $refArticleDataService->getBarcodeConfig($reference);
-            },
-            $refs
-        );
+
+        $barcodeConfigs = Stream::from($queryResult['data'])
+            ->map(static fn($refArticle) => is_array($refArticle) ? $refArticle[0] : $refArticle)
+            ->map(static fn(ReferenceArticle $reference) => $refArticleDataService->getBarcodeConfig($reference))
+            ->toArray();
 
         $barcodeCounter = count($barcodeConfigs);
 

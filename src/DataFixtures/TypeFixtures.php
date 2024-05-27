@@ -92,6 +92,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                         $type = new Type();
                         $type
                             ->setCategory($this->getReference('type-' . $categoryName))
+                            ->setColor(Type::DEFAULT_COLOR)
                             ->setLabel($typeName);
 
                         if($categoryName === CategoryType::TRANSFER_REQUEST) {

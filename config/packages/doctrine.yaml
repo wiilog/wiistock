@@ -51,4 +51,5 @@ doctrine:
                 DAYNAME: DoctrineExtensions\Query\Mysql\DayName
 
                 # Custom DQL functions
-                FIRST: App\DQL\Functions\FirstFunction
+                FIRST: App\DQL\Functions\First
+                COUNT_OVER: App\DQL\Functions\CountOver

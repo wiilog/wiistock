@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use DateTime;
 
 #[Route("/mouvement-stock")]
@@ -165,6 +165,20 @@ class MouvementStockController extends AbstractController
                         $chosenArticleToMove
                             ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
                     }
+
+                    $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
+                        $chosenArticleToMove->getTrackingPack() ?: $chosenArticleToMove->getBarCode(),
+                        $emplacementTo,
+                        $loggedUser,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        ['quantity' => $quantity]
+                    );
+
+                    $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
+                    $entityManager->persist($associatedDropTracaMvt);
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER || $chosenMvtType === MouvementStock::TYPE_SORTIE) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if (($chosenArticleToMove instanceof Article && !in_array($chosenArticleToMove->getStatut()->getCode(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]))
@@ -196,7 +210,7 @@ class MouvementStockController extends AbstractController
                             }
                         }
                         $associatedPickTracaMvt = $trackingMovementService->createTrackingMovement(
-                            $chosenArticleToMove->getBarCode(),
+                            $chosenArticleToMove->getTrackingPack() ?: $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
                             $loggedUser,
                             $now,

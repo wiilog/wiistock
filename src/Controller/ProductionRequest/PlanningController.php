@@ -22,15 +22,12 @@ use App\Entity\WorkFreeDay;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route('/production/planning', name: 'production_request_planning_')]

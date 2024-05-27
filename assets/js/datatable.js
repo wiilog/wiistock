@@ -1,3 +1,5 @@
+import moment from "moment";
+
 const ORDER_ACTION = `order`;
 const SEARCH_ACTION = `search`;
 
@@ -153,13 +155,16 @@ function getAppropriateRowCallback({needsColor, classField, color, dataToCheck, 
     }
 }
 
-function overrideSearch($input, table, $table) {
+function overrideSearch($input, $table) {
     $input
         .off()
         .on(`keyup`, function (e) {
             if (e.key === `Enter`) {
                 setPreviousAction($table);
-                table.search(this.value.trim()).draw();
+                const datatable = $table.DataTable();
+                datatable
+                    .search(this.value.trim())
+                    .draw();
             }
         });
 
@@ -370,7 +375,9 @@ export function initDataTable($table, options) {
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
                 const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
-                overrideSearch($searchInput, datatableToReturn, $table);
+
+                overrideSearch($searchInput, $table);
+
                 setTimeout(() => {
                     drawCallback(response);
                 });
