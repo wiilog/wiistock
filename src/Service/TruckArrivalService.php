@@ -51,7 +51,7 @@ class TruckArrivalService
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
-        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->query, $filters, $user, $this->visibleColumnService);
+        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->visibleColumnService);
         $truckArrivals = Stream::from($queryResult['data'])
             ->map(function (TruckArrival $truckArrival) use ($entityManager) {
                 return $this->dataRowTruckArrival($truckArrival, $entityManager);

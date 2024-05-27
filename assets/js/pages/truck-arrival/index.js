@@ -71,7 +71,7 @@ function initTruckArrivalTable() {
                 },
                 ajax: {
                     "url": pathTruckArrivalList,
-                    "type": GET,
+                    "type": POST,
                 },
                 columns: [
                     {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
