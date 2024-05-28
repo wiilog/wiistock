@@ -126,6 +126,7 @@ install_yarn() {
 
 cd /project
 echo '{"parameters":{"session_lifetime": 1440}}' > config/generated.yaml
+echo '* { font-family: "Montserrat" !important; }' > public/generated/fonts.css
 
 prepare_project
 install_symfony
