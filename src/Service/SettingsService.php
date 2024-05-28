@@ -764,7 +764,7 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setReusableStatuses($data["reusableStatuses"] ?? false)
-                    ->setActive($data["active"] ?? false)
+                    ->setActive($data["active"] ?? true)
                     ->setColor($data["color"] ?? null);
 
                 $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
