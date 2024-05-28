@@ -1,7 +1,7 @@
 import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user = Cypress.config('user');
 
-describe('Add a new production request', () => {
+describe('edit a production request', () => {
     beforeEach(() => {
         interceptRoute(routes.production_edit);
         interceptRoute(routes.production_api);
