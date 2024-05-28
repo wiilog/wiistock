@@ -32,6 +32,8 @@ prepare_project() {
         tar xzf /cache/cache.tar.gz
     fi
 
+    chmod -R 777 /project/public/generated -r
+
     composer install \
         --no-dev \
         --optimize-autoloader \
@@ -120,7 +122,6 @@ install_symfony() {
 install_yarn() {
     php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
     yarn build:only:production || true
-    yarn production || true
 }
 
 cd /project
