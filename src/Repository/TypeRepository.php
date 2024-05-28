@@ -33,7 +33,7 @@ class TypeRepository extends EntityRepository {
      * @param string|null $order ("asc" ou "desc")
      * @return Type[]
      */
-    public function findByCategoryLabels(array $categoryLabels, $order = null): array {
+    public function findByCategoryLabels(array $categoryLabels, string $order = null, array $options = []): array {
         if (empty($categoryLabels)) {
             return [];
         }
@@ -43,6 +43,16 @@ class TypeRepository extends EntityRepository {
             ->join('type.category', 'category')
             ->where('category.label IN (:categoryLabels)')
             ->setParameter('categoryLabels', $categoryLabels);
+
+        if(isset($options['onlyActive']) && $options['onlyActive']){
+            $queryBuilder->andWhere('type.active = 1');
+        }
+
+        if(isset($options['idsToFind'])){
+            $queryBuilder
+                ->andWhere('type.id IN (:idsToFind)')
+                ->setParameter('idsToFind', $options['idsToFind']);
+        }
 
         if ($order) {
             $queryBuilder->orderBy('type.label', $order);

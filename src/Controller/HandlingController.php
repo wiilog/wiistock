@@ -68,10 +68,11 @@ class HandlingController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $user = $this->getUser();
-        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC');
-        $types = Stream::from($handlingTypes)
-            ->filter(fn(Type $type) => in_array($type->getId(), $user->getHandlingTypeIds()))
-            ->toArray();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC', [
+            'onlyActive' => true,
+            'idsToFind' => $user->getHandlingTypeIds()
+        ]);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
@@ -131,9 +132,7 @@ class HandlingController extends AbstractController {
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
-                'handlingTypes' => Stream::from($types)
-                    ->filter(fn(Type $type) => $type->isActive())
-                    ->toArray(),
+                'handlingTypes' => $types,
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                 'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),

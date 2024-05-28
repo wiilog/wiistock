@@ -82,7 +82,6 @@ class DispatchController extends AbstractController {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $query = $request->query;
@@ -117,10 +116,10 @@ class DispatchController extends AbstractController {
         }
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
-        $types = Stream::from($dispatchTypes)
-            ->filter(fn(Type $type) => in_array($type->getId(), $currentUser->getDispatchTypeIds()))
-            ->toArray();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
+            'onlyActive' => true,
+            'idsToFind' => $currentUser->getDispatchTypeIds(),
+        ]);
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
@@ -1574,10 +1573,10 @@ class DispatchController extends AbstractController {
             $arrival = $arrivageRepository->find($request->query->get('arrival'));
         }
 
-        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
-        $types = Stream::from($dispatchTypes)
-            ->filter(fn(Type $type) => in_array($type->getId(), $this->getUser()->getDispatchTypeIds()))
-            ->toArray();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
+            'onlyActive' => true,
+            'idsToFind' => $this->getUser()->getDispatchTypeIds(),
+        ]);
 
         $packs = [];
         if(!empty($arrivals)) {

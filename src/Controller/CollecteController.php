@@ -81,10 +81,9 @@ class CollecteController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
-        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-        $types = Stream::from($collectTypes)
-            ->filter(fn(Type $type) => $type->isActive())
-            ->toArray();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE], null, [
+            'onlyActive' => true,
+        ]);
         $restrictedResults = $paramGlobalRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
 		$typeChampLibre = [];
 		foreach ($types as $type) {
