@@ -706,6 +706,8 @@ class ProductionRequestService
 
             if ($type) {
                 $productionRequest->setType($type);
+            } else if(!$type->isActive()) {
+                throw new ImportException("Le type n'est pas actif.");
             } else {
                 throw new ImportException("Le type n'existe pas.");
             }
