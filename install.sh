@@ -118,11 +118,7 @@ install_symfony() {
 }
 
 install_yarn() {
-    if has_option "--with-fos"; then
-        php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
-    fi
-
-    php bin/console app:update:fixed-fields
+    php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
     yarn build:only:production || true
     yarn production || true
 }
@@ -131,15 +127,8 @@ cd /project
 echo '{"parameters":{"session_lifetime": 1440}}' > config/generated.yaml
 
 prepare_project
-install_symfony &
-pid_symfony=$!
+install_symfony
 
-install_yarn    &
-pid_yarn=$!
+install_yarn
 
-wait $pid_symfony ; error_symfony=$?
-wait $pid_yarn ; error_yarn=$?
-
-if [ $error_symfony -ne 0 ] || [ $error_yarn -ne 0 ]; then
-    exit 1
-fi;
+echo "Current date: $(date)"
