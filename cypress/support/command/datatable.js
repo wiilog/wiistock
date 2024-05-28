@@ -42,10 +42,19 @@ Cypress.Commands.add('checkDataInDatatable', (object, objectId = 'label', tableI
             // Use the indexes to check the values
             Object.keys(columnIndexes).forEach((objectProperty) => {
                 cy.log(`Checking ${objectProperty} with value ${object[objectProperty]}`)
-                cy.wrap(td).parent('tr')
-                    .find('td')
-                    .eq(columnIndexes[objectProperty])
-                    .contains(object[objectProperty]?.toString());
+                cy.wrap(td).invoke("prop","tagName").then((tagNane) => {
+                    if (tagNane==="TD") {
+                        cy.wrap(td).parent('tr')
+                            .find('td')
+                            .eq(columnIndexes[objectProperty])
+                            .contains(object[objectProperty]?.toString());
+                    } else {
+                        cy.wrap(td).parent('td').parent('tr')
+                            .find('td')
+                            .eq(columnIndexes[objectProperty])
+                            .contains(object[objectProperty]?.toString());
+                    }
+                })
             });
         });
     });

@@ -207,11 +207,47 @@ export const routes = {
         route: '/arrivage/api-modifier',
         alias: 'arrivage_edit_api'
     },
-     arrivage_edit:{
+    arrivage_edit:{
         method: 'POST',
         route: '/arrivage/modifier',
         alias: 'arrivage_edit'
-     }
+    },
+    production_new:{
+        method: 'POST',
+        route: '/production/new',
+        alias: 'production_new'
+    },
+    production_api: {
+        method: 'POST',
+        route: '/production/api*',
+        alias: 'production_api'
+    },
+    production_edit: {
+        method: 'POST',
+        route: 'production/*/edit',
+        alias: 'production_edit'
+    },
+    production_operation_history_api: {
+        method: 'GET',
+        route: 'production/*/operation-history-api',
+        alias: 'production_operation_history_api'
+    },
+    production_status_history_api: {
+        method: 'GET',
+        route: 'production/*/status-history-api',
+        alias: 'production_status_history_api'
+    },
+    production_update_status_content: {
+        method: 'GET',
+        route: 'production/*/update-status-content',
+        alias: 'production_update_status_content'
+    },
+    production_update_status: {
+        method: 'GET',
+        route: 'production/*/update-status',
+        alias: 'production_update_status'
+    },
+
 };
 export default routes;
 
