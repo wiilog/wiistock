@@ -243,7 +243,7 @@ export const routes = {
         alias: 'production_update_status_content'
     },
     production_update_status: {
-        method: 'GET',
+        method: 'POST',
         route: 'production/*/update-status',
         alias: 'production_update_status'
     },
