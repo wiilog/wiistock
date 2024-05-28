@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 #[AsCommand(
     name: 'app:sessions:countActiveUsers',
@@ -27,8 +28,8 @@ class CountActiveUserCommand extends Command {
 
     protected function configure(): void {
         $this
-            ->addArgument('from', InputArgument::REQUIRED, 'From date')
-            ->addArgument('to', InputArgument::REQUIRED, 'To date');
+            ->addArgument('from', InputArgument::REQUIRED, 'From date (YYYY-MM-DD)')
+            ->addArgument('to', InputArgument::REQUIRED, 'To date (YYYY-MM-DD)');
     }
 
     /*
@@ -47,7 +48,11 @@ class CountActiveUserCommand extends Command {
             return 1;
         }
 
-        echo $sessionHistoryRecordRepository->countActiveUsers($from, $to) . "\n" ;
+        $wiilogDomains = Stream::explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "")
+            ->filter()
+            ->toArray();
+
+        $output->writeln($sessionHistoryRecordRepository->countActiveUsers($from, $to, $wiilogDomains));
 
         return 0;
     }

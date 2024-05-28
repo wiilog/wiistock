@@ -146,20 +146,30 @@ class SessionHistoryRecordRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countActiveUsers(DateTime $from,DateTime $to): int {
-        $wiilogDomains = Stream::explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "")
-            ->filter()
-            ->toArray();
-
+    public function countActiveUsers(DateTime $from, DateTime $to, array $excludedDomains): int {
+        $expressionBuilder = $this->getEntityManager()->getExpressionBuilder();
         $queryBuilder = $this->createQueryBuilder("session_history_record")
             ->select('COUNT(DISTINCT session_history_record.user)')
-            ->orWhere('session_history_record.openedAt BETWEEN :from AND :to')
-            ->orWhere('session_history_record.closedAt BETWEEN :from AND :to')
+            //->orWhere('session_history_record.openedAt BETWEEN :from AND :to')
+            //->orWhere('session_history_record.closedAt BETWEEN :from AND :to')
+            // use orX
+            ->andWhere(
+                $expressionBuilder->orX(
+                    $expressionBuilder->orX(
+                        $expressionBuilder->between('session_history_record.openedAt', ':from', ':to'),
+                        $expressionBuilder->between('session_history_record.closedAt', ':from', ':to'),
+                    ),
+                    $expressionBuilder->andX(
+                        $expressionBuilder->lt('session_history_record.openedAt', ':from'),
+                        $expressionBuilder->gt('session_history_record.closedAt', ':to'),
+                    ),
+                )
+            )
             ->leftJoin('session_history_record.user', 'user')
             ->setParameter('from', $from)
             ->setParameter('to', $to);
 
-        foreach ($wiilogDomains as $index => $domain) {
+        foreach ($excludedDomains as $index => $domain) {
             $parameterName = "domain$index";
             $queryBuilder
                 ->andWhere("user.email NOT LIKE :$parameterName")
