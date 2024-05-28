@@ -42,6 +42,7 @@ class TypeRepository extends EntityRepository {
             ->createQueryBuilder('type')
             ->join('type.category', 'category')
             ->where('category.label IN (:categoryLabels)')
+            ->andWhere('type.active = 1')
             ->setParameter('categoryLabels', $categoryLabels);
 
         if ($order) {

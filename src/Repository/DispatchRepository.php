@@ -391,6 +391,7 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch_status_history.status', 'status_history_status')
             ->join('dispatch.type', 'type')
             ->join('dispatch.statut', 'status')
+            ->andWhere('type.active = 1')
             ->setParameter('draftStatusState', Statut::DRAFT);
 
         if ($dispatch) {
