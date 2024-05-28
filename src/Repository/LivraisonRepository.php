@@ -70,6 +70,7 @@ class LivraisonRepository extends EntityRepository
             ->where('status.nom = :statusLabel')
             ->andWhere('(delivery_order.utilisateur IS NULL OR delivery_order.utilisateur = :user)')
             ->andWhere('join_type.id IN (:typeIds)')
+            ->andWhere('join_type.active = 1')
             ->orderBy('delivery_order.date', Criteria::ASC)
             ->setMaxResults($maxResult)
             ->setParameters([
