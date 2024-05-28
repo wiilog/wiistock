@@ -1,7 +1,7 @@
 import {formatIconSelector} from "@app/form";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
-import POST from "@app/ajax";
+import {POST} from "@app/ajax";
 import Form from "@app/form";
 
 global.editRowUser = editRowUser;
