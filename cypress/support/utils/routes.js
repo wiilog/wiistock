@@ -247,7 +247,11 @@ export const routes = {
         route: 'production/*/update-status',
         alias: 'production_update_status'
     },
-
+    production_delete: {
+        method: 'DELETE',
+        route: 'production/delete/*',
+        alias: 'production_delete'
+    },
 };
 export default routes;
 
