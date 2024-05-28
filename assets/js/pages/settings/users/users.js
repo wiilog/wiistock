@@ -34,7 +34,7 @@ export function initUserPage($container) {
     });
 
     let $modalNewUser = $("#modalNewUser");
-    Form.create($modalNewUser)
+    Form.create($modalNewUser, {clearOnOpen: true})
         .onOpen(() => {
             $modalNewUser.find('.select-all-options').each(function() {
                 const $select = $(this);

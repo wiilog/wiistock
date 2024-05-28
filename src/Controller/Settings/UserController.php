@@ -199,7 +199,7 @@ class UserController extends AbstractController {
                          EntityManagerInterface $entityManager,
                          CacheService $cacheService): Response
     {
-        $data = $request->request->all();
+        $data = $request->request;
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -210,35 +210,35 @@ class UserController extends AbstractController {
         $roleRepository = $entityManager->getRepository(Role::class);
         $languageRepository = $entityManager->getRepository(Language::class);
 
-        $user = $utilisateurRepository->find($data['user']);
-        $role = $roleRepository->find($data['role']);
-        $language = $languageRepository->find($data['language']);
+        $user = $utilisateurRepository->find($data->get('user'));
+        $role = $roleRepository->find($data->get('role'));
+        $language = $languageRepository->find($data->get('language'));
 
-        $result = $passwordService->checkPassword($data['password'] ?? '',$data['password2'] ?? '');
-        if ($result['response'] == false){
+        $result = $passwordService->checkPassword($data->get('password') ?? '',$data->get('password2') ?? '');
+        if (!$result['response']){
             throw new FormException($result['message']);
         }
 
         // unicité de l'email
-        $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
+        $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data->get('email')]);
 
-        if ($emailAlreadyUsed > 0  && $data['email'] != $user->getEmail()) {
+        if ($emailAlreadyUsed > 0  && $data->get('email') != $user->getEmail()) {
             throw new FormException("Cette adresse email est déjà utilisée.");
         }
 
-        if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new FormException("L'adresse email principale {$data['email']} n'est pas valide");
+        if(!filter_var($data->get('email'), FILTER_VALIDATE_EMAIL)) {
+            throw new FormException("L'adresse email principale {$data->get('email')} n'est pas valide");
         }
 
         // unicité de l'username
-        $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
+        $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data->get('username')]);
 
-        if ($usernameAlreadyUsed > 0  && $data['username'] != $user->getUsername() ) {
+        if ($usernameAlreadyUsed > 0  && $data->get('username') != $user->getUsername() ) {
             throw new FormException("Ce nom d'utilisateur est déjà utilisé.");
         }
 
         //vérification que l'user connecté ne se désactive pas
-        if ($user->getId() === $loggedUser->getId() && $data['status'] == 0) {
+        if ($user->getId() === $loggedUser->getId() && $data->get('status') == 0) {
             throw new FormException('Vous ne pouvez pas désactiver votre propre compte.');
         }
 
@@ -247,7 +247,7 @@ class UserController extends AbstractController {
             throw new FormException("Vous ne pouvez pas modifier un membre de l'equipe Wiilog.");
         }
 
-        $secondaryEmails = isset($data['secondaryEmails'])
+        $secondaryEmails = $data->has('secondaryEmails')
             ? explode(',', $data['secondaryEmails'])
             : [];
 
@@ -262,7 +262,7 @@ class UserController extends AbstractController {
             }
         }
 
-        $dropzone = explode(":", $data['dropzone']);
+        $dropzone = explode(":", $data->get('dropzone'));
         if($dropzone[0] === 'location') {
             $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
         } elseif($dropzone[0] === 'locationGroup') {
@@ -272,18 +272,18 @@ class UserController extends AbstractController {
         $user
             ->setSecondaryEmails($secondaryEmails)
             ->setRole($role)
-            ->setStatus($data['status'])
-            ->setUsername($data['username'])
-            ->setAddress($data['address'])
+            ->setStatus($data->get('status'))
+            ->setUsername($data->get('username'))
+            ->setAddress($data->get('address'))
             ->setDropzone($dropzone)
-            ->setEmail($data['email'])
-            ->setPhone($data['phoneNumber'] ?? '')
-            ->setDeliverer($data['deliverer'] ?? false)
+            ->setEmail($data->get('email'))
+            ->setPhone($data->get('phoneNumber') ?? '')
+            ->setDeliverer($data->get('deliverer') ?? false)
             ->setLanguage($language)
-            ->setDateFormat($data['dateFormat'])
-            ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
+            ->setDateFormat($data->get('dateFormat'))
+            ->setDispatchBusinessUnit($data->get('dispatchBusinessUnit') ?? null);
 
-        $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+        $visibilityGroupsIds = is_string($data->get("visibility-group")) ? explode(',', $data->get('visibility-group')) : $data->get("visibility-group");
         if ($visibilityGroupsIds) {
             $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
         }
@@ -297,7 +297,7 @@ class UserController extends AbstractController {
             }
         }
 
-        $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
+        $plainSignatoryPassword = $data->get('signatoryPassword') ?? null;
         if (!empty($plainSignatoryPassword)) {
             if (strlen($plainSignatoryPassword) < 4) {
                 throw new FormException("Le code signataire doit contenir au moins 4 caractères");
@@ -307,15 +307,15 @@ class UserController extends AbstractController {
         }
 
 
-        if ($data['password'] !== null) {
-            $password = $encoder->hashPassword($user, $data['password']);
+        if ($data->get('password') !== null) {
+            $password = $encoder->hashPassword($user, $data->get('password'));
             $user->setPassword($password);
         }
         foreach ($user->getDeliveryTypes() as $typeToRemove) {
             $user->removeDeliveryType($typeToRemove);
         }
-        if (isset($data['deliveryTypes'])) {
-            $deliveryTypes = explode(',', $data['deliveryTypes']);
+        if ($data->get('deliveryTypes')) {
+            $deliveryTypes = explode(',', $data->get('deliveryTypes'));
             foreach ($deliveryTypes as $typeId) {
                 $deliveryType = $typeRepository->find($typeId);
                 $user->addDeliveryType($deliveryType);
@@ -324,8 +324,8 @@ class UserController extends AbstractController {
         foreach ($user->getDispatchTypes() as $typeToRemove) {
             $user->removeDispatchType($typeToRemove);
         }
-        if (isset($data['dispatchTypes'])) {
-            $dispatchTypes = explode(',', $data['dispatchTypes']);
+        if ($data->get('dispatchTypes')) {
+            $dispatchTypes = explode(',', $data->get('dispatchTypes'));
             foreach ($dispatchTypes as $typeId) {
                 $dispatchType = $typeRepository->find($typeId);
                 $user->addDispatchType($dispatchType);
@@ -334,19 +334,19 @@ class UserController extends AbstractController {
         foreach ($user->getHandlingTypes() as $typeToRemove) {
             $user->removeHandlingType($typeToRemove);
         }
-        if (isset($data['handlingTypes'])) {
-            $handlingTypes = explode(',', $data['handlingTypes']);
+        if ($data->get('handlingTypes')) {
+            $handlingTypes = explode(',', $data->get('handlingTypes'));
             foreach ($handlingTypes as $typeId) {
                 $handlingType = $typeRepository->find($typeId);
                 $user->addHandlingType($handlingType);
             }
         }
 
-        if (!empty($data['mobileLoginKey'])
-            && $data['mobileLoginKey'] !== $user->getMobileLoginKey()) {
+        if (!empty($data->get('mobileLoginKey'))
+            && $data->get('mobileLoginKey') !== $user->getMobileLoginKey()) {
 
             $usersWithKey = $utilisateurRepository->findBy([
-                'mobileLoginKey' => $data['mobileLoginKey']
+                'mobileLoginKey' => $data->get('mobileLoginKey'),
             ]);
             if (!empty($usersWithKey)
                 && (
@@ -356,7 +356,7 @@ class UserController extends AbstractController {
                 throw new FormException("Cette clé de connexion est déjà utilisée.");
             }
             else {
-                $mobileLoginKey = $data['mobileLoginKey'];
+                $mobileLoginKey = $data->get('mobileLoginKey');
                 if (empty($mobileLoginKey)
                     || strlen($mobileLoginKey) < UserService::MIN_MOBILE_KEY_LENGTH
                     || strlen($mobileLoginKey) > UserService::MAX_MOBILE_KEY_LENGTH) {
@@ -436,7 +436,7 @@ class UserController extends AbstractController {
                         UserService $userService,
                         LanguageService $languageService,
                         EntityManagerInterface $entityManager): Response {
-        $data = $request->request->all();
+        $data = $request->request;
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
@@ -444,11 +444,11 @@ class UserController extends AbstractController {
         $roleRepository = $entityManager->getRepository(Role::class);
         $languageRepository = $entityManager->getRepository(Language::class);
 
-        $password = $data['password'];
-        $password2 = $data['password2'];
+        $password = $data->get('password');
+        $password2 = $data->get('password2');
         // validation du mot de passe
         $result = $passwordService->checkPassword($password, $password2);
-        if($result['response'] == false){
+        if(!$result['response']){
             return new JsonResponse([
                 'success' => false,
                 'msg' => $result['message'],
@@ -458,7 +458,7 @@ class UserController extends AbstractController {
         }
 
         // unicité de l'email
-        $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
+        $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data->get('email')]);
 
         if ($emailAlreadyUsed > 0) {
             return new JsonResponse([
@@ -468,15 +468,15 @@ class UserController extends AbstractController {
             ]);
         }
 
-        if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        if(!filter_var($data->get('email'), FILTER_VALIDATE_EMAIL)) {
             return $this->json([
                 "success" => false,
-                "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
+                "msg" => "L'adresse email principale \"{$data->get('email')}\" n'est pas valide"
             ]);
         }
 
         // unicité de l'username
-        $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
+        $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data->get('username')]);
         if ($usernameAlreadyUsed > 0) {
             return new JsonResponse([
                 'success' => false,
@@ -485,8 +485,8 @@ class UserController extends AbstractController {
             ]);
         }
 
-        $secondaryEmails = isset($data['secondaryEmails'])
-            ? explode(',', $data['secondaryEmails'])
+        $secondaryEmails = $data->has('secondaryEmails')
+            ? explode(',', $data->get('secondaryEmails'))
             : [];
 
         if($secondaryEmails){
@@ -500,7 +500,7 @@ class UserController extends AbstractController {
             }
         }
 
-        $dropzone = explode(":", $data['dropzone']);
+        $dropzone = explode(":", $data->get('dropzone'));
         if($dropzone[0] === 'location') {
             $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
         } elseif($dropzone[0] === 'locationGroup') {
@@ -509,12 +509,12 @@ class UserController extends AbstractController {
 
         $utilisateur = new Utilisateur();
         $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
-        $language = !empty($data['language'])
-            ? $languageRepository->find($data['language'])
+        $language = !empty($data->get('language'))
+            ? $languageRepository->find($data->get('language'))
             : $languageService->getNewUserLanguage($entityManager);
-        $role = $roleRepository->find($data['role']);
+        $role = $roleRepository->find($data->get('role'));
 
-        $plainSignatoryPassword = $data['signatoryPassword'] ?? null;
+        $plainSignatoryPassword = $data->get('signatoryPassword') ?? null;
 
         if (!empty($plainSignatoryPassword) && strlen($plainSignatoryPassword) < 4) {
             throw new FormException("Le code signataire doit contenir au moins 4 caractères");
@@ -523,51 +523,53 @@ class UserController extends AbstractController {
         $signatoryPassword = $plainSignatoryPassword ? $encoder->hashPassword($utilisateur, $plainSignatoryPassword) : null;
 
         $utilisateur
-            ->setUsername($data['username'])
-            ->setEmail($data['email'])
+            ->setUsername($data->get('username'))
+            ->setEmail($data->get('email'))
             ->setSecondaryEmails($secondaryEmails)
-            ->setPhone($data['phoneNumber'])
+            ->setPhone($data->get('phoneNumber'))
             ->setRole($role)
             ->setStatus(true)
             ->setDropzone($dropzone)
-            ->setAddress($data['address'])
+            ->setAddress($data->get('address'))
             ->setLanguage($language)
-            ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
+            ->setDateFormat($data->get('dateFormat') ?? Utilisateur::DEFAULT_DATE_FORMAT)
             ->setMobileLoginKey($uniqueMobileKey)
-            ->setDeliverer($data['deliverer'] ?? false)
+            ->setDeliverer($data->get('deliverer') ?? false)
             ->setSignatoryPassword($signatoryPassword)
-            ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
+            ->setDispatchBusinessUnit($data->get('dispatchBusinessUnit') ?? null);
 
         if ($password !== '') {
-            $password = $encoder->hashPassword($utilisateur, $data['password']);
+            $password = $encoder->hashPassword($utilisateur, $data->get('password'));
             $utilisateur->setPassword($password);
         }
 
-        $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+        $visibilityGroupsIds = is_string($data->get("visibility-group")) ? explode(',', $data->get("visibility-group")) : $data->get("visibility-group");
         if ($visibilityGroupsIds) {
             $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
         }
 
         $utilisateur->setVisibilityGroups($visibilityGroups ?? []);
-
-        if (!empty($data['deliveryTypes'])) {
-            $types = $typeRepository->findBy(["id" => json_decode($data['deliveryTypes'])]);
-            foreach ($types as $type) {
-                $utilisateur->addDeliveryType($type);
+        if ($data->get('deliveryTypes')) {
+            $deliveryTypes = explode(',', $data->get('deliveryTypes'));
+            foreach ($deliveryTypes as $typeId) {
+                $deliveryType = $typeRepository->find($typeId);
+                $utilisateur->addDeliveryType($deliveryType);
             }
         }
 
-        if (!empty($data['dispatchTypes'])) {
-            $types = $typeRepository->findBy(["id" =>  json_decode($data['dispatchTypes'])]);
-            foreach ($types as $type) {
-                $utilisateur->addDispatchType($type);
+        if ($data->get('dispatchTypes')) {
+            $dispatchTypes = explode(',', $data->get('dispatchTypes'));
+            foreach ($dispatchTypes as $typeId) {
+                $dispatchType = $typeRepository->find($typeId);
+                $utilisateur->addDispatchType($dispatchType);
             }
         }
 
-        if (!empty($data['handlingTypes'])) {
-            $types = $typeRepository->findBy(["id" =>  json_decode($data['handlingTypes'])]);
-            foreach ($types as $type) {
-                $utilisateur->addHandlingType($type);
+        if ($data->get('handlingTypes')) {
+            $handlingTypes = explode(',', $data->get('handlingTypes'));
+            foreach ($handlingTypes as $typeId) {
+                $handlingType = $typeRepository->find($typeId);
+                $utilisateur->addHandlingType($handlingType);
             }
         }
 
@@ -576,7 +578,7 @@ class UserController extends AbstractController {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'L\'utilisateur <strong>' . $data['username'] . '</strong> a bien été créé.'
+            'msg' => 'L\'utilisateur <strong>' . $data->get('username') . '</strong> a bien été créé.'
         ]);
     }
 
