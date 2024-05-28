@@ -61,7 +61,7 @@ class Arrivage implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesUtilisateur')]
     private ?Utilisateur $utilisateur = null;
 
-    #[ORM\OneToMany(mappedBy: 'arrivage', targetEntity: Pack::class)]
+    #[ORM\OneToMany(mappedBy: 'arrivage', targetEntity: Pack::class, cascade: ["persist"])]
     private Collection $packs;
 
     #[ORM\Column(type: 'text', nullable: true)]
