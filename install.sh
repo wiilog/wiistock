@@ -32,7 +32,7 @@ prepare_project() {
         tar xzf /cache/cache.tar.gz
     fi
 
-    chmod -R 777 /project/public/generated -r
+    chmod -R 777 /project/public/generated -R
 
     composer install \
         --no-dev \
