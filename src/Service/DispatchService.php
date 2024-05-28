@@ -2281,6 +2281,8 @@ class DispatchService {
         $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_DISPATCH, $data[FixedFieldEnum::type->name]);
         if (!$type) {
             throw new ImportException("Le type n'existe pas.");
+        } else if(!$type->isActive()) {
+            throw new ImportException("Le type n'est pas actif.");
         }
 
         $draftStatuses = $statusRepository->findBy([

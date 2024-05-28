@@ -1792,6 +1792,8 @@ class ImportService
 
         if (!$type) {
             throw new ImportException('Type inconnu.');
+        } else if(!$type->isActive()) {
+            throw new ImportException("Le type n'est pas actif.");
         } else if (!$request->getType()) {
             $request->setType($type);
         }

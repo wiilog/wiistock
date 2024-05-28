@@ -99,9 +99,11 @@
 <div class="mail">
     {% set mailLogoPath = logo('email', true) %}
 
-    <img alt="Logo de l'application"
-         width="300"
-         src="{{ base64(mailLogoPath) }}"/>
+    {% if mailLogoPath is not null %}
+        <img alt="Logo de l'application"
+             width="300"
+             src="{{ base64(mailLogoPath) }}"/>
+    {% endif %}
 
     {% if title is defined %}
         <h1>{{ title }}</h1>

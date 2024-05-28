@@ -92,7 +92,7 @@ class TruckArrivalController extends AbstractController
         );
     }
 
-    #[Route('/api-list', name: 'api_list', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api-list', name: 'api_list', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
     public function apiList(TruckArrivalService     $truckArrivalService,
                             EntityManagerInterface  $entityManager,

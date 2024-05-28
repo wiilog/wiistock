@@ -17,6 +17,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\Kiosk\KioskService;
+use App\Service\SettingsService;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -194,12 +195,10 @@ class KioskController extends AbstractController
 
     #[Route("/formulaire", name: "kiosk_form", options: ["expose" => true])]
     #[HasValidToken]
-    public function form(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function form(Request $request, EntityManagerInterface $entityManager, SettingsService $settingsService): Response {
         // repositories
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $kioskRepository = $entityManager->getRepository(Kiosk::class);
 
@@ -226,7 +225,7 @@ class KioskController extends AbstractController
             $reference = new ReferenceArticle();
         }
 
-        $freeField = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE) ? $freeFieldRepository->find($settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE)) : '';
+        $freeField = $settingsService->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE, $entityManager) ? $freeFieldRepository->find($settingsService->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE, $entityManager)) : '';
 
         return $this->render('kiosk/form.html.twig', [
             'kiosk' => $kiosk,

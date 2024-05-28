@@ -173,7 +173,7 @@ class PurchaseRequestService
 
     public function createPurchaseRequest(?Statut      $status,
                                           ?Utilisateur $requester,
-                                                       $options = []): PurchaseRequest {
+                                          array        $options = []): PurchaseRequest {
         $comment = $options["comment"] ?? null;
         $validationDate = $options["validationDate"] ?? null;
         $buyer = $options["buyer"] ?? null;

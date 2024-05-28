@@ -1,6 +1,6 @@
 <div class="modal fade" id="modalEditUser" role="dialog" aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: "Modifier un utilisateur"
@@ -10,7 +10,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success submit-button', text: 'Enregistrer'}
+                    {classes: 'btn btn-success submit-button', type: 'submit', text: 'Enregistrer'}
                 ],
             } %}
 
