@@ -1394,7 +1394,6 @@ class ArrivageController extends AbstractController {
         $total = $packs->count();
 
         return $packs
-            ->sort(fn(Pack $pack1, Pack $pack2) => $pack1->getCode() <=> $pack2->getCode())
             ->filterMap(static function (Pack $pack, int $index) use (  $forceTagEmpty,
                                                                         $packIdsFilter,
                                                                         $tagTemplate,

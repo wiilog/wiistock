@@ -421,7 +421,6 @@ class PackService {
                         $arrivage
                     );
                 }
-                $entityManager->persist($pack);
                 $createdPacks[] = $pack;
             }
         }
