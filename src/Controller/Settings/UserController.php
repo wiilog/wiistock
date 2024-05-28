@@ -188,10 +188,8 @@ class UserController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier", name: "user_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          UserPasswordHasherInterface $encoder,
                          PasswordService $passwordService,
@@ -248,7 +246,7 @@ class UserController extends AbstractController {
         }
 
         $secondaryEmails = $data->has('secondaryEmails')
-            ? explode(',', $data['secondaryEmails'])
+            ? explode(',', $data->get('secondaryEmails'))
             : [];
 
         if($secondaryEmails){
@@ -426,10 +424,8 @@ class UserController extends AbstractController {
         );
     }
 
-    /**
-     * @Route("/creer", name="user_new",  options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: "user_new", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_USERS], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         UserPasswordHasherInterface $encoder,
                         PasswordService $passwordService,

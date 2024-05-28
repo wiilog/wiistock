@@ -1798,19 +1798,19 @@ class SettingsController extends AbstractController {
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                     "deliveryTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
-                        ->map(fn(Type $type) => [
+                        ->map(static fn(Type $type) => [
                             "label" => $type->getLabel(),
                             "value" => $type->getId(),
                         ])
                         ->toArray(),
                     "dispatchTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
-                        ->map(fn(Type $type) => [
+                        ->map(static fn(Type $type) => [
                             "label" => $type->getLabel(),
                             "value" => $type->getId(),
                         ])
                         ->toArray(),
                     "handlingTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
-                        ->map(fn(Type $type) => [
+                        ->map(static fn(Type $type) => [
                             "label" => $type->getLabel(),
                             "value" => $type->getId(),
                         ])
