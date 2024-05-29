@@ -182,7 +182,7 @@ class RefArticleDataService
         }
         $userId = $currentUser->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $currentUser);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $currentUser, $this->formatService);
         $refs = $queryResult['data'];
         $searchParts = $queryResult["searchParts"];
         $searchableFields = $queryResult["searchableFields"];

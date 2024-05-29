@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
+use App\Service\FormatService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
@@ -457,7 +458,8 @@ class ReferenceArticleRepository extends EntityRepository {
 
     public function findByFiltersAndParams(array                 $filters,
                                            InputBag              $params,
-                                           Utilisateur           $user): array
+                                           Utilisateur           $user,
+                                           FormatService         $formatService): array
     {
         $em = $this->getEntityManager();
         $index = 0;
@@ -752,7 +754,8 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->unique();
 
             $searchDateValues = Stream::from($searchParts)
-                ->filterMap(static fn(string $part) => (DateTime::createFromFormat('d/m/Y', $part) ?: null)?->format("Y-m-d"));
+                ->filterMap(static fn(string $part) => ($formatService->parseDatetime($part) ?: null)?->format("Y-m-d"))
+                ->toArray();
 
             $conditions = [];
             foreach ($searchableFields as $key => $searchableField) {
@@ -804,17 +807,15 @@ class ReferenceArticleRepository extends EntityRepository {
                                     }
                                 }
                             } elseif (in_array($freeFieldTyping, [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])) {
-                                if(!$searchDateValues->isEmpty()) {
-                                    foreach ($searchDateValues->toArray() as $dateValue) {
-                                        $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', '$dateValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                    }
+                                foreach ($searchDateValues as $dateValue) {
+                                    $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', '$dateValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                 }
                             } else {
                                 $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                             }
                         } else if (property_exists(ReferenceArticle::class, $field)) {
                             if (in_array($field, self::FIELDS_TYPE_DATE)) {
-                                foreach ($searchDateValues->toArray() as $dateIndex => $dateValue) {
+                                foreach ($searchDateValues as $dateIndex => $dateValue) {
                                     $conditions[] = "ra.$field BETWEEN :dateMin_{$key}_$dateIndex AND :dateMax_{$key}_$dateIndex";
 
                                     $queryBuilder
@@ -871,8 +872,6 @@ class ReferenceArticleRepository extends EntityRepository {
         if ($params->getInt('length')) {
             $queryBuilder->setMaxResults($params->getInt('length'));
         }
-
-        $queryBuilder->distinct();
 
         $results = $queryBuilder->getQuery()->getResult();
         return [
