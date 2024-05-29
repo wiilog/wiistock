@@ -78,14 +78,20 @@ class PreparationController extends AbstractController
         $dateEnd = new DateTime('now');
         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
+        $newPreparation = $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
 
         $preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
         $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
+
+        $entityManager->flush();
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
         $entityManager->flush();
+        if ($newPreparation
+            && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($newPreparation);
+        }
         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
             $notificationService->toTreat($livraison);
         }

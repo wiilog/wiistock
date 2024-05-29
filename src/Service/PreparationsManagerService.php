@@ -387,11 +387,6 @@ class PreparationsManagerService
         }
 
         $entityManager->persist($newPreparation);
-        $entityManager->flush();
-
-        if ($newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($newPreparation);
-        }
 
         return $newPreparation;
     }

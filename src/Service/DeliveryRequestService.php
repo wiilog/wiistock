@@ -605,21 +605,29 @@ class DeliveryRequestService
 
             $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, ['entityManager' => $entityManager]);
+            $newPreparation = $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, ['entityManager' => $entityManager]);
             $this->preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
-            $entityManager->flush();
             $this->preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
+
+            $entityManager->flush();
             $this->preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
+            $entityManager->flush();
+
+            if ($newPreparation
+                && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($newPreparation);
+            }
+
+            if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($livraison);
+            }
+
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => false,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $entityManager->flush();
-            if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
-                $this->notificationService->toTreat($livraison);
-            }
         }
 
         return $response;
