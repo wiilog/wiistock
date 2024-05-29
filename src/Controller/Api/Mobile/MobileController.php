@@ -2270,6 +2270,7 @@ class MobileController extends AbstractApiController
                 'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
                 'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
                 'reusableStatuses' => $type->hasReusableStatuses(),
+                'active' => $type->isActive(),
             ])->toArray();
 
         if ($rights['inventoryManager']) {
@@ -2434,6 +2435,7 @@ class MobileController extends AbstractApiController
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
+                'active' => $type->isActive(),
             ])->toArray();
 
         $users = $userRepository->getAll();
@@ -2482,6 +2484,7 @@ class MobileController extends AbstractApiController
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
+                    'active' => $type->isActive(),
                 ])
                 ->toArray();
 
