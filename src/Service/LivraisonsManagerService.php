@@ -145,8 +145,6 @@ class LivraisonsManagerService
             $inactiveArticleStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $articleLines = $preparation->getArticleLines();
 
-            $packs = [];
-
             $packs = stream::from($articleLines)
                 ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
                 ->filter()
@@ -270,6 +268,40 @@ class LivraisonsManagerService
                         throw new NegativeQuantityException($reference);
                     }
                 }
+
+                $tracking = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $reference->getTrackingPack() ?: $reference->getBarCode(),
+                    $preparation->getEndLocation(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    false,
+                    [
+                        "refOrArticle" => $reference,
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ],
+                );
+
+                $pickingMovement = $tracking["movement"];
+
+                $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pickingMovement->getPack(),
+                    $nextLocation,
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    false,
+                    [
+                        "refOrArticle" => $reference,
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ],
+                );
             }
 
             // on termine les mouvements de livraison
