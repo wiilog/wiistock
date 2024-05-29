@@ -616,7 +616,7 @@ class DeliveryRequestService
 
             $this->preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
 
-            $entityManager->flush();
+            $entityManager->flush(); // need to flush before quantity update
             $this->preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
             $entityManager->flush();
 
