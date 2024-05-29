@@ -98,7 +98,6 @@ class TypeRepository extends EntityRepository {
             ->getQuery()
             ->getDQL();
 
-
         $qb = $this->createQueryBuilder("type")
             ->addSelect("type.id AS id")
             ->addSelect("type.label AS text")
@@ -149,9 +148,9 @@ class TypeRepository extends EntityRepository {
 
     public function countAvailableForSelect(?string $category, array $options = []): int {
         return $this->createSelectBuilder($category, $options)
-            ->select("COUNT(type)")
+            ->addSelect("COUNT_OVER(type.id) AS __query_count")
             ->getQuery()
-            ->getFirstResult();
+            ->getResult()[0]["__query_count"] ?? 0;
     }
 
     public function getIdAndLabelByCategoryLabel($category) {
