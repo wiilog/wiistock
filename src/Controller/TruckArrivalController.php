@@ -243,7 +243,7 @@ class TruckArrivalController extends AbstractController
         }
         else {
             $attachmentService->removeAttachments($entityManager, $truckArrival, $data->all('files') ?: []);
-            $attachmentService->persistAttachments($entityManager, $truckArrival, $request->files);
+            $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $truckArrival]);
         }
 
         $truckArrival

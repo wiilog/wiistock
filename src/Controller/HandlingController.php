@@ -214,7 +214,6 @@ class HandlingController extends AbstractController {
 
         $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
-        $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
@@ -257,21 +256,7 @@ class HandlingController extends AbstractController {
         }
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $currentUser);
-
-        if (isset($fileBag)) {
-            $fileNames = [];
-            foreach ($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            $attachments = $attachmentService->createAttachments($fileNames);
-            foreach ($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $handling->addAttachment($attachment);
-            }
-        }
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
 
         $entityManager->persist($handling);
         try {
@@ -372,7 +357,7 @@ class HandlingController extends AbstractController {
             $entityManager->remove($attachment);
         }
 
-        $attachmentService->persistAttachments($entityManager, $handling, $request->files);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
         $entityManager->flush();
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';

@@ -303,7 +303,7 @@ class TrackingMovementController extends AbstractController
             $freeFieldService->manageFreeFields($movement, $post->all(), $entityManager, $this->getUser());
             if (!isset($trackingAttachments)) {
                 // first time we upload attachments
-                $trackingAttachments = $attachmentService->persistAttachments($entityManager, $movement, $request->files);
+                $trackingAttachments = $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $movement]);
             }
             else {
                 // next attachment are already saved, we link them to the movement
@@ -377,22 +377,22 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
-        $mvt = $trackingMovementRepository->find($post->get('id'));
-        $pack = $mvt->getPack();
+        $trackingMovement = $trackingMovementRepository->find($post->get('id'));
+        $pack = $trackingMovement->getPack();
 
         $newDate = $this->formatService->parseDatetime($post->get('date'));
         $newCode = $post->get('pack');
-        $currentDate = clone $mvt->getDatetime();
+        $currentDate = clone $trackingMovement->getDatetime();
         $currentDate = $currentDate->setTime($currentDate->format('H'), $currentDate->format('i'), 0);
 
         $hasChanged = (
-            $mvt->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
+            $trackingMovement->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
             || $currentDate != $newDate // required != comparison
             || $pack->getCode() !== $newCode
         );
 
-        $mainMvt = $mvt->getMainMovement();
-        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $mvt]);
+        $mainMvt = $trackingMovement->getMainMovement();
+        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $trackingMovement]);
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             $response = $trackingMovementService->persistTrackingMovement(
@@ -402,7 +402,7 @@ class TrackingMovementController extends AbstractController
                 $operator,
                 $newDate,
                 true,
-                $mvt->getType(),
+                $trackingMovement->getType(),
                 false,
                 ['disableUngrouping'=> true, 'ignoreProjectChange' => true, 'mainMovement'=>$mainMvt],
                 true,
@@ -410,36 +410,44 @@ class TrackingMovementController extends AbstractController
             if ($response['success']) {
                 /** @var TrackingMovement $new */
                 $new = $response['movement'];
-                $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+                $trackingMovementService->manageLinksForClonedMovement($trackingMovement, $new);
 
                 foreach ($linkedMouvements as $linkedMvt) {
                     $linkedMvt->setMainMovement($new);
                 }
 
                 $entityManager->persist($new);
-                $entityManager->remove($mvt);
+                $entityManager->remove($trackingMovement);
                 $entityManager->flush();
 
                 $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
                 $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
                 $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
 
-                $mvt = $new;
+                $trackingMovement = $new;
             } else {
                 return $this->json($response);
             }
 
         }
-        /** @var TrackingMovement $mvt */
-        $mvt
+        /** @var TrackingMovement $trackingMovement */
+        $trackingMovement
             ->setOperateur($operator)
             ->setQuantity($quantity)
             ->setCommentaire($post->get('commentaire'));
 
-        $attachmentService->removeAttachments($entityManager, $mvt, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $mvt, $request->files, ['addToDispatch' => true]);
+        $attachmentService->removeAttachments($entityManager, $trackingMovement, $post->all('files') ?: []);
+        $attachments = $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $trackingMovement]);
 
-        $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
+        $movementDispatch = $trackingMovement->getDispatch();
+        if ($movementDispatch) {
+            foreach ($attachments as $attachment) {
+                $movementDispatch->addAttachment($attachment);
+            }
+        }
+
+
+        $freeFieldService->manageFreeFields($trackingMovement, $post->all(), $entityManager);
 
         $entityManager->flush();
 

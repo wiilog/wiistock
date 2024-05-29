@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Repository\DispatchReferenceArticleRepository;
@@ -10,7 +11,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DispatchReferenceArticleRepository::class)]
-class DispatchReferenceArticle
+class DispatchReferenceArticle implements AttachmentContainer
 {
     use AttachmentTrait;
     use CleanedCommentTrait;

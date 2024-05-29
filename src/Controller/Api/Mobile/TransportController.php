@@ -776,9 +776,10 @@ class TransportController extends AbstractApiController
 
         $signature = $files->get('signature');
         $photo = $files->get('photo');
-
-        $signatureAttachment = $signature ? $attachmentService->createAttachments([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachments([$photo])[0] : null;
+        $files = [
+            ...($signature ? [$signature] : []),
+            ...($photo ? [$photo] : []),
+        ];
 
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
@@ -795,21 +796,10 @@ class TransportController extends AbstractApiController
             $this->updateTransportComment($manager, $historyService, $request, $comment);
         }
 
-        if ($signatureAttachment || $photoAttachment) {
-            if ($signatureAttachment) {
-                $order->setSignature($signatureAttachment);
-            }
+        $attachments = $attachmentService->persistAttachments($manager, $files, ["attachmentContainer" => $order]);
 
-            if ($photoAttachment) {
-                $order->addAttachment($photoAttachment);
-            }
-
-            $this->updateTransportAttachment($manager,
-                $historyService,
-                $request,
-                $signatureAttachment,
-                $photoAttachment,
-            );
+        if (!empty($attachments)) {
+            $this->updateTransportAttachment($manager, $historyService, $request, $attachments);
         }
 
         if (!$isEdit) {
@@ -984,25 +974,14 @@ class TransportController extends AbstractApiController
 
         $signature = $files->get('signature');
         $photo = $files->get('photo');
+        $files = [
+            ...($signature ? [$signature] : []),
+            ...($photo ? [$photo] : []),
+        ];
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachments([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachments([$photo])[0] : null;
-
-        if ($signatureAttachment) {
-            $order->setSignature($signatureAttachment);
-        }
-
-        if ($photoAttachment) {
-            $order->addAttachment($photoAttachment);
-        }
-
-        if ($signatureAttachment || $photoAttachment) {
-            $this->updateTransportAttachment($manager,
-                $historyService,
-                $request,
-                $signatureAttachment,
-                $photoAttachment
-            );
+        $attachments = $attachmentService->persistAttachments($manager, $files, ["attachmentContainer" => $order]);
+        if (!empty($attachments)) {
+            $this->updateTransportAttachment($manager, $historyService, $request, $attachments);
         }
 
         if (!$isEdit) {
@@ -1428,18 +1407,16 @@ class TransportController extends AbstractApiController
     public function updateTransportAttachment(EntityManagerInterface                           $manager,
                                               OperationHistoryService                          $historyService,
                                               TransportDeliveryRequest|TransportCollectRequest $request,
-                                              mixed                                            $signatureAttachment,
-                                              mixed                                            $photoAttachment): void {
+                                              array                                            $attachments): void {
         $order =  $request instanceof TransportCollectRequest
             ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
             : $request->getOrder();
 
+        $user = $this->getUser();
+
         $historyService->persistTransportHistory($manager, $request, OperationHistoryService::TYPE_ADD_ATTACHMENT, [
-            "user" => $this->getUser(),
-            "attachments" => [
-                ...($signatureAttachment ? [$signatureAttachment] : []),
-                ...($photoAttachment ? [$photoAttachment] : []),
-            ],
+            "user" => $user,
+            "attachments" => $attachments,
         ]);
 
         if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
@@ -1447,20 +1424,14 @@ class TransportController extends AbstractApiController
                 $request->getDelivery(),
                 OperationHistoryService::TYPE_ADD_ATTACHMENT,
                 [
-                    "user" => $this->getUser(),
-                    "attachments" => [
-                        ...($signatureAttachment ? [$signatureAttachment] : []),
-                        ...($photoAttachment ? [$photoAttachment] : []),
-                    ],
+                    "user" => $user,
+                    "attachments" => $attachments,
                 ]);
         }
 
         $historyService->persistTransportHistory($manager, $order, OperationHistoryService::TYPE_ADD_ATTACHMENT, [
-            "user" => $this->getUser(),
-            "attachments" => [
-                ...($signatureAttachment ? [$signatureAttachment] : []),
-                ...($photoAttachment ? [$photoAttachment] : []),
-            ],
+            "user" => $user,
+            "attachments" => $attachments,
         ]);
     }
 

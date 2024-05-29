@@ -204,7 +204,7 @@ class ReceptionController extends AbstractController {
             }
 
             $attachmentService->removeAttachments($entityManager, $reception, $request->request->all('files') ?: []);
-            $attachmentService->persistAttachments($entityManager, $reception, $request->files);
+            $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $reception]);
 
             $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
 
@@ -1070,7 +1070,7 @@ class ReceptionController extends AbstractController {
         }
 
         $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
 
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
@@ -1159,7 +1159,7 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $attachmentService->persistAttachments($entityManager, $dispute, $request->files);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
         $entityManager->flush();
 
         $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
