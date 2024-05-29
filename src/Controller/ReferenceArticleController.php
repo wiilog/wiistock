@@ -782,7 +782,7 @@ class ReferenceArticleController extends AbstractController
 
         $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user, $this->getFormatter());
 
         $barcodeConfigs = Stream::from($queryResult['data'])
             ->map(static fn($refArticle) => is_array($refArticle) ? $refArticle[0] : $refArticle)

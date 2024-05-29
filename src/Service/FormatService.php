@@ -29,6 +29,7 @@ use App\Entity\Zone;
 use App\Service\IOT\IOTService;
 use DateTime;
 use DateTimeInterface;
+use Exception;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -259,7 +260,11 @@ class FormatService
             }
         }
 
-        return new DateTime($date) ?: null;
+        try {
+            return new DateTime($date) ?: null;
+        } catch (Exception) {
+            return null;
+        }
     }
 
     public function freeField(?string     $value,
