@@ -147,27 +147,26 @@ class SessionHistoryRecordRepository extends EntityRepository
     }
 
     public function countActiveUsers(DateTime $from, DateTime $to, array $excludedDomains): int {
-        $expressionBuilder = $this->getEntityManager()->getExpressionBuilder();
-        $queryBuilder = $this->createQueryBuilder("session_history_record")
-            ->select('COUNT(DISTINCT session_history_record.user)')
-            //->orWhere('session_history_record.openedAt BETWEEN :from AND :to')
-            //->orWhere('session_history_record.closedAt BETWEEN :from AND :to')
-            // use orX
+        $queryBuilder = $this->createQueryBuilder("session_history_record");
+        $expressionBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select("COUNT(DISTINCT session_history_record.user)")
             ->andWhere(
                 $expressionBuilder->orX(
                     $expressionBuilder->orX(
-                        $expressionBuilder->between('session_history_record.openedAt', ':from', ':to'),
-                        $expressionBuilder->between('session_history_record.closedAt', ':from', ':to'),
+                        $expressionBuilder->between("session_history_record.openedAt", ":from", ":to"),
+                        $expressionBuilder->between("session_history_record.closedAt", ":from", ":to"),
                     ),
                     $expressionBuilder->andX(
-                        $expressionBuilder->lt('session_history_record.openedAt', ':from'),
-                        $expressionBuilder->gt('session_history_record.closedAt', ':to'),
+                        $expressionBuilder->lt("session_history_record.openedAt", ":from"),
+                        $expressionBuilder->gt("session_history_record.closedAt", ":to"),
                     ),
                 )
             )
-            ->leftJoin('session_history_record.user', 'user')
-            ->setParameter('from', $from)
-            ->setParameter('to', $to);
+            ->join("session_history_record.user", "user")
+            ->setParameter("from", $from)
+            ->setParameter("to", $to);
 
         foreach ($excludedDomains as $index => $domain) {
             $parameterName = "domain$index";
@@ -176,6 +175,8 @@ class SessionHistoryRecordRepository extends EntityRepository
                 ->setParameter($parameterName, "%@$domain");
         }
 
-        return $queryBuilder->getQuery()->getSingleScalarResult();
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
