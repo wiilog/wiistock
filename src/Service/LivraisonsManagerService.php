@@ -271,7 +271,7 @@ class LivraisonsManagerService
 
                 $tracking = $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
-                    $reference->getTrackingPack() ?? $reference->getBarCode(),
+                    $reference->getTrackingPack() ?: $reference->getBarCode(),
                     $preparation->getEndLocation(),
                     $user,
                     $dateEnd,
@@ -279,6 +279,7 @@ class LivraisonsManagerService
                     TrackingMovement::TYPE_PRISE,
                     false,
                     [
+                        "refOrArticle" => $reference,
                         "delivery" => $livraison,
                         "stockAction" => true,
                     ],
@@ -296,6 +297,7 @@ class LivraisonsManagerService
                     TrackingMovement::TYPE_DEPOSE,
                     false,
                     [
+                        "refOrArticle" => $reference,
                         "delivery" => $livraison,
                         "stockAction" => true,
                     ],
