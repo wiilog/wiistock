@@ -25,7 +25,7 @@ class AttachmentService {
      * @param UploadedFile[]|FileBag $files
      * @return Attachment[]
      */
-	public function createAttachments(array|FileBag $files): array {
+	public function createAttachmentsDeprecated(array|FileBag $files): array {
 		$attachments = [];
 
         if ($files instanceof FileBag) {
@@ -112,10 +112,10 @@ class AttachmentService {
 
         $uploadedFile->move($dedicatedFolder, $filename);
 
-        return $this->createAttachment($filename, $publicPath);
+        return $this->createAttachmentDeprecated($filename, $publicPath);
     }
 
-    public function createAttachment(string $fileName, string $fullPath): Attachment {
+    public function createAttachmentDeprecated(string $fileName, string $fullPath): Attachment {
         return (new Attachment())
             ->setOriginalName($fileName)
             ->setFullPath($fullPath)
@@ -139,27 +139,43 @@ class AttachmentService {
      * @return Attachment[]
      */
     public function persistAttachments(EntityManagerInterface $entityManager,
-                                       AttachmentContainer    $attachmentContainer,
                                        FileBag|array          $files,
                                        array                  $options = []): array {
+
+        $attachments = [];
 
         if ($files instanceof FileBag) {
             $files = $files->all();
         }
 
-        if (!empty($files)) {
-            $isAddToDispatch = $options['addToDispatch'] ?? false;
-            $attachments = $this->createAttachments($files);
-            foreach ($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $attachmentContainer->addAttachment($attachment);
-                if ($attachmentContainer instanceof TrackingMovement && $isAddToDispatch && $attachmentContainer->getDispatch()) {
-                    $attachmentContainer->getDispatch()->addAttachment($attachment);
-                }
-            }
+        foreach ($files as $uploadedFile) {
+            $attachments[] = $this->persistAttachment($entityManager, $uploadedFile, $options);
         }
 
-        return $attachments ?? [];
+        return $attachments;
+    }
+
+    public function persistAttachment(EntityManagerInterface $entityManager,
+                                      UploadedFile           $uploadedFile,
+                                      array                  $options = []): Attachment {
+
+        $attachmentContainer = $options["attachmentContainer"] ?? null;
+
+        $fileArray = $this->saveFile($uploadedFile);
+        $originalFileName = $uploadedFile->getClientOriginalName();
+        $fileName = $fileArray[$originalFileName];
+
+        $attachment = new Attachment();
+        $attachment
+            ->setOriginalName($originalFileName)
+            ->setFileName($fileName)
+            ->setFullPath("/uploads/attachments/$fileName");
+
+        $attachmentContainer?->addAttachment($attachment);
+
+        $entityManager->persist($attachment);
+
+        return $attachment;
     }
 
     /**

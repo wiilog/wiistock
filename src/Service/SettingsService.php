@@ -786,7 +786,8 @@ class SettingsService {
                 }
 
                 if (isset($files["logo"])) {
-                    $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
+                    $logoAttachment = $this->attachmentService->persistAttachment($entityManager, $files["logo"]);
+                    $type->setLogo($logoAttachment);
                 } else {
                     if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
                         $type->setLogo(null);

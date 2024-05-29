@@ -975,24 +975,25 @@ class SettingsController extends AbstractController {
      * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
-    public function saveTranslationApi(EntityManagerInterface $manager,
+    public function saveTranslationApi(EntityManagerInterface $entityManager,
                                        Request                $request,
                                        AttachmentService      $attachmentService,
                                        SettingsService        $settingsService,
                                        CacheService           $cacheService): Response {
         $data = $request->request;
         $file = $request->files;
-        $languageRepository = $manager->getRepository(Language::class);
-        $translationRepository = $manager->getRepository(Translation::class);
-        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
+        $translationRepository = $entityManager->getRepository(Translation::class);
+        $translationSourceRepository = $entityManager->getRepository(TranslationSource::class);
 
         $language = $data->get('language');
         if ($language === 'NEW') {
             $language = new Language;
-            $flagCustom = $file->get('flagCustom');
+            $flagCustom = $request->files->get('flagCustom');
             if ($flagCustom) {
-                $flagFile = $attachmentService->createAttachments($file);
-                $languageFile = $flagFile[0]->getFullPath();
+                $flagAttachment = $attachmentService->persistAttachment($entityManager, $file);
+                $languageFile = $flagAttachment->getFullPath();
+//                TODO Adrien pourquoi language n'est pas lié à attachment
             }
             else {
                 $languageFile = $data->get('flagDefault');
@@ -1005,7 +1006,7 @@ class SettingsController extends AbstractController {
                 ->setSelectable(false)
                 ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
                 ->setSelected(false);
-            $manager->persist($language);
+            $entityManager->persist($language);
         } else {
             $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
@@ -1022,7 +1023,7 @@ class SettingsController extends AbstractController {
                    $translation->setTranslation($value);
                }
                else {
-                   $manager->remove($translation);
+                   $entityManager->remove($translation);
                }
            }
            elseif ($value != null or $value != '') {
@@ -1031,11 +1032,11 @@ class SettingsController extends AbstractController {
                    ->setTranslation($value)
                    ->setSource($source)
                    ->setLanguage($language);
-                $manager->persist($translation);
+                $entityManager->persist($translation);
            }
         }
 
-        $manager->flush();
+        $entityManager->flush();
 
         $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
         $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);

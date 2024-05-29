@@ -89,7 +89,7 @@ class TransporteurController extends AbstractController
         $isRecurrent = $data['is-recurrent'] ?? false;
         /** @var Attachment $logo */
         $logo = $request->files->get('logo')
-            ? $attachmentService->createAttachments([$request->files->get('logo')])[0]
+            ? $attachmentService->createAttachmentsDeprecated([$request->files->get('logo')])[0]
             : null;
 
         $carrierId = $request->query->get('carrier');

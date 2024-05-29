@@ -640,7 +640,7 @@ class MobileController extends AbstractApiController
                                 if (!empty($photoFile)) {
                                     $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
                                 }
-                                $attachments = $attachmentService->createAttachments($fileNames);
+                                $attachments = $attachmentService->createAttachmentsDeprecated($fileNames);
                                 foreach ($attachments as $attachment) {
                                     $entityManager->persist($attachment);
                                     $packMvt->addAttachment($attachment);
@@ -1147,7 +1147,7 @@ class MobileController extends AbstractApiController
             do {
                 $photoFile = $request->files->get("photo_$fileCounter");
                 if (!empty($photoFile)) {
-                    $attachments = $attachmentService->createAttachments([$photoFile]);
+                    $attachments = $attachmentService->createAttachmentsDeprecated([$photoFile]);
                     if (!empty($attachments)) {
                         $attachment = $attachments[0];
                         $handling->addAttachment($attachment);
@@ -1442,7 +1442,7 @@ class MobileController extends AbstractApiController
                     }
 
                     foreach ($newMovements as $movement) {
-                        $attachments = $attachmentService->createAttachments($fileNames);
+                        $attachments = $attachmentService->createAttachmentsDeprecated($fileNames);
                         foreach ($attachments as $attachment) {
                             $entityManager->persist($attachment);
                             $movement->addAttachment($attachment);

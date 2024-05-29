@@ -511,10 +511,8 @@ class RefArticleDataService
 
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $attachments = $this->attachmentService->createAttachments([$fileBag->get('image')]);
-                $entityManager->persist($attachments[0]);
-
-                $refArticle->setImage($attachments[0]);
+                $imageAttachment = $this->attachmentService->persistAttachment($entityManager, $fileBag->get('image'));
+                $refArticle->setImage($imageAttachment);
                 $fileBag->remove('image');
             } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getImage();
@@ -526,10 +524,9 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $attachments = $this->attachmentService->createAttachments([$fileBag->get('fileSheet')]);
-                $entityManager->persist($attachments[0]);
+                $sheetAttachment = $this->attachmentService->persistAttachment($entityManager, $fileBag->get('fileSheet'));
+                $refArticle->setSheet($sheetAttachment);
 
-                $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
             } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getSheet();
