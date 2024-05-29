@@ -1142,14 +1142,21 @@ class MobileController extends AbstractApiController
 
             $maxNbFilesSubmitted = 10;
             $fileCounter = 1;
+            $addedAttachments = [];
             // upload of photo_1 to photo_10
             do {
                 $photoFile = $request->files->get("photo_$fileCounter");
                 if (!empty($photoFile)) {
                     $attachments = $attachmentService->createAttachments([$photoFile]);
                     if (!empty($attachments)) {
-                        $handling->addAttachment($attachments[0]);
-                        $entityManager->persist($attachments[0]);
+                        $attachment = $attachments[0];
+                        $handling->addAttachment($attachment);
+                        $entityManager->persist($attachment);
+
+                        $addedAttachments[] = [
+                            "name" => $attachment->getOriginalName(),
+                            "href" => "{$request->getSchemeAndHttpHost()}/uploads/attachments/{$attachment->getFileName()}",
+                        ];
                     }
                 }
                 $fileCounter++;
@@ -1182,6 +1189,7 @@ class MobileController extends AbstractApiController
             $data['success'] = true;
             $data['state'] = $statusService->getStatusStateCode($handling->getStatus()->getState());
             $data['freeFields'] = json_encode($handling->getFreeFields());
+            $data["addedAttachments"] = $addedAttachments;
         } else {
             $data['success'] = false;
             $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
