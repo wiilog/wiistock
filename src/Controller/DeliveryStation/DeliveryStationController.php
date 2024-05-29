@@ -395,10 +395,8 @@ class DeliveryStationController extends AbstractController
                 ->toArray(),
         ]);
 
-        $entityManager->flush();
-
+        $entityManager->flush(); // need to flush before quantity update
         $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
-
         $entityManager->flush();
 
         if ($newPreparation

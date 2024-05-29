@@ -84,10 +84,10 @@ class PreparationController extends AbstractController
 
         $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
 
-        $entityManager->flush();
+        $entityManager->flush(); // need to flush before quantity update
         $preparationsManager->updateRefArticlesQuantities($preparation);
-
         $entityManager->flush();
+
         if ($newPreparation
             && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
             $notificationService->toTreat($newPreparation);

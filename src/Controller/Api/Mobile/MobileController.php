@@ -83,8 +83,6 @@ use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\ReceiptAssociationService;
-use App\Service\ReceptionService;
-use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
@@ -96,14 +94,12 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -966,15 +962,16 @@ class MobileController extends AbstractApiController
                             throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                         }
 
-                        $entityManager->flush();
+                        $entityManager->flush(); // need to flush before quantity update
 
                         if ($insertedPreparation
                             && $insertedPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-                            $notificationService->toTreat($newPreparation);
+                            $this->notificationService->toTreat($insertedPreparation);
                         }
                         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
                             $this->notificationService->toTreat($livraison);
                         }
+
                         $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                     });
 
@@ -1749,13 +1746,13 @@ class MobileController extends AbstractApiController
         ]);
         $livraisonsManagerService->finishLivraison($nomadUser, $deliveryOrder, $now, $request->getDestination());
 
-        $entityManager->flush();
+        $entityManager->flush(); // need to flush before quantity update
         $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
         $entityManager->flush();
 
         if ($newPreparation
             && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-            $notificationService->toTreat($newPreparation);
+            $this->notificationService->toTreat($newPreparation);
         }
 
         return new JsonResponse([
