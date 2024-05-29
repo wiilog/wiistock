@@ -20,6 +20,7 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use App\Repository\SettingRepository;
@@ -211,14 +212,17 @@ class PreparationsManagerService
                 }
 
                 $entityManager->persist($trackingMovementDrop);
-                $entityManager->flush();
             }
         }
 
-        if (!empty($ulToMove)){
+        if (!empty($ulToMove)) {
             /** @var Pack $lu */
             foreach (array_unique($ulToMove) as $lu) {
-                if ($lu != null){
+                if ($lu != null) {
+                    $lastLuDropLocation = $lu->getLastDrop()?->getEmplacement();
+                    if (!$lastLuDropLocation) {
+                        throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles.");
+                    }
                     $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
                         $lu,
                         $lu->getLastDrop()->getEmplacement(),
@@ -383,11 +387,6 @@ class PreparationsManagerService
         }
 
         $entityManager->persist($newPreparation);
-        $entityManager->flush();
-
-        if ($newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($newPreparation);
-        }
 
         return $newPreparation;
     }
@@ -542,10 +541,9 @@ class PreparationsManagerService
         $this->refMouvementsToRemove = [];
     }
 
-    public function createMouvementsPrepaAndSplit(Preparation $preparation,
-                                                  Utilisateur $user,
-                                                  EntityManagerInterface $entityManager): array
-    {
+    public function createMouvementsPrepaAndSplit(Preparation               $preparation,
+                                                  Utilisateur               $user,
+                                                  EntityManagerInterface    $entityManager): array {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $splitArticleLineIds = [];
 

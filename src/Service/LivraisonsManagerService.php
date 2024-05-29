@@ -96,8 +96,7 @@ class LivraisonsManagerService
                                     Livraison    $livraison,
                                     DateTime     $dateEnd,
                                     ?Emplacement $nextLocation,
-                                    array        $options = []): void
-    {
+                                    array        $options = []): void {
         $pairings = $livraison->getPreparation()->getPairings();
         $pairingEnd = new DateTime('now');
         foreach ($pairings as $pairing) {

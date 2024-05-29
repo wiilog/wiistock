@@ -1713,6 +1713,7 @@ class ReceptionController extends AbstractController {
                     if ($createDirectDelivery) {
                         $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
                         if ($validateResponse['success']) {
+                            /** @var Preparation $preparation */
                             $preparation = $demande->getPreparations()->first();
 
                             /** @var Utilisateur $currentUser */
@@ -1724,14 +1725,16 @@ class ReceptionController extends AbstractController {
 
                             $locationEndPreparation = $demande->getDestination();
 
-                            $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
+                            $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
                             $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
-
-                            $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                            $mouvements = $mouvementRepository->findByPreparation($preparation);
 
                             try {
                                 $entityManager->flush();
+
+                                if ($newPreparation
+                                    && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                                    $notificationService->toTreat($newPreparation);
+                                }
                                 if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
                                     $this->notificationService->toTreat($delivery);
                                 }
@@ -1742,14 +1745,15 @@ class ReceptionController extends AbstractController {
                                     'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
                                 ]);
                             }
-                            foreach ($mouvements as $mouvement) {
+                            $preparationMovements = $preparation->getMouvements();
+                            foreach ($preparationMovements as $movement) {
                                 $preparationsManagerService->persistDeliveryMovement(
                                     $entityManager,
-                                    $mouvement->getQuantity(),
+                                    $movement->getQuantity(),
                                     $currentUser,
                                     $delivery,
-                                    !empty($mouvement->getRefArticle()),
-                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    !empty($movement->getRefArticle()),
+                                    $movement->getRefArticle() ?? $movement->getArticle(),
                                     $preparation,
                                     false,
                                     $locationEndPreparation

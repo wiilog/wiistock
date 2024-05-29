@@ -967,6 +967,11 @@ class MobileController extends AbstractApiController
                         }
 
                         $entityManager->flush();
+
+                        if ($insertedPreparation
+                            && $insertedPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                            $notificationService->toTreat($newPreparation);
+                        }
                         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
                             $this->notificationService->toTreat($livraison);
                         }
@@ -1737,13 +1742,21 @@ class MobileController extends AbstractApiController
             $entityManager->persist($outMovement);
             $mouvementStockService->finishStockMovement($outMovement, $now, $request->getDestination());
         }
-        $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
+
+        $newPreparation = $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
             "entityManager" => $entityManager,
             "changeArticleLocation" => false,
         ]);
-        $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
         $livraisonsManagerService->finishLivraison($nomadUser, $deliveryOrder, $now, $request->getDestination());
+
         $entityManager->flush();
+        $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
+        $entityManager->flush();
+
+        if ($newPreparation
+            && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($newPreparation);
+        }
 
         return new JsonResponse([
             'success' => true,

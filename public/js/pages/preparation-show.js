@@ -305,7 +305,7 @@ function finishPrepa($button) {
                     $button,
                     () => (
                         $.post({
-                            url: Routing.generate('preparation_finish', {'idPrepa': $preparationId.val()}),
+                            url: Routing.generate('preparation_finish', {'preparation': $preparationId.val()}),
                             data: {
                                 emplacement: value
                             }
