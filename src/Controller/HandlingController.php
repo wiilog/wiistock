@@ -19,6 +19,7 @@ use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
@@ -67,10 +68,11 @@ class HandlingController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $user = $this->getUser();
-        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
-        $types = Stream::from($handlingTypes)
-            ->filter(fn(Type $type) => in_array($type->getId(), $user->getHandlingTypeIds()))
-            ->toArray();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC', [
+            'onlyActive' => true,
+            'idsToFind' => $user->getHandlingTypeIds()
+        ]);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
@@ -130,6 +132,7 @@ class HandlingController extends AbstractController {
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
+                'handlingTypes' => $types,
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                 'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
@@ -201,10 +204,14 @@ class HandlingController extends AbstractController {
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
+        $currentUser = $this->getUser();
+
+        if(!$type->isActive() || !in_array($type->getId(), $currentUser->getHandlingTypeIds())){
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+        }
 
         $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $currentUser = $this->getUser();
         $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;

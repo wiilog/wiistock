@@ -242,10 +242,11 @@ class DemandeController extends AbstractController
         $projectRepository = $entityManager->getRepository(Project::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
-        $types = Stream::from($deliveryTypes)
-            ->filter(fn(Type $type) => in_array($type->getId(), $this->getUser()->getDeliveryTypeIds()))
-            ->toArray();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON], null, [
+            'onlyActive' => true,
+            'idsToFind' => $this->getUser()->getDeliveryTypeIds(),
+        ]);
+
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
         $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
@@ -279,6 +280,7 @@ class DemandeController extends AbstractController
             'typeChampsLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
+            'typesForModal' => $types,
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,

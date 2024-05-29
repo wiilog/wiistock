@@ -27,6 +27,7 @@ use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -286,8 +287,14 @@ class DeliveryRequestService
         $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
         $isFastDelivery = $data['isFastDelivery'] ?? false;
 
+        $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
+
+        if(!$type->isActive() || !in_array($type->getId(), $utilisateur->getDeliveryTypeIds())){
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+        }
+
         if (!$fromNomade && !$disabledFieldsChecking) {
             $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
@@ -305,7 +312,6 @@ class DeliveryRequestService
                 ];
             }
         }
-        $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
         $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
