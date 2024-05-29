@@ -69,7 +69,6 @@ class HandlingController extends AbstractController {
 
         $user = $this->getUser();
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC', [
-            'onlyActive' => true,
             'idsToFind' => $user->getHandlingTypeIds()
         ]);
 
@@ -132,7 +131,9 @@ class HandlingController extends AbstractController {
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
-                'handlingTypes' => $types,
+                'handlingTypes' => Stream::from($types)
+                    ->filter(static fn(Type $type) => $type->isActive())
+                    ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                 'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),

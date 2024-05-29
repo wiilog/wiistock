@@ -257,6 +257,10 @@ class DispatchService {
             'statut' => $draftStatuses
         ]);
 
+        $types = Stream::from($types)
+            ->filter(static fn(Type $type) => $type->isActive())
+            ->toArray();
+
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,

@@ -117,7 +117,6 @@ class DispatchController extends AbstractController {
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
-            'onlyActive' => true,
             'idsToFind' => $currentUser->getDispatchTypeIds(),
         ]);
 
@@ -1574,7 +1573,6 @@ class DispatchController extends AbstractController {
         }
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
-            'onlyActive' => true,
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
