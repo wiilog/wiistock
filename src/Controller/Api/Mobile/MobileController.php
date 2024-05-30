@@ -2262,7 +2262,14 @@ class MobileController extends AbstractApiController
 
         $fieldsParam = array_merge($fieldsParamStandard, $fieldsParamByType);
 
-        $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE]))
+        $userAllowedTypeIds = Stream::from([$user->getDeliveryTypeIds(), $user->getDispatchTypeIds(), $user->getHandlingTypeIds()])
+            ->flatten()
+            ->toArray();
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE], null, [
+            'idsToFind' => $userAllowedTypeIds,
+        ]);
+        $mobileTypes = Stream::from($types)
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
