@@ -1748,86 +1748,10 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function formReference(Request                $request,
                                   EntityManagerInterface $entityManager,
-                                  AttachmentService      $attachmentService): JsonResponse
-    {
-        $data = $request->request->all();
+                                  DispatchService        $dispatchService): JsonResponse {
+        $dispatchReferenceArticleId = $request->request->get('dispatchReferenceArticle') ?? null;
 
-        $dispatchId = $data['dispatch'] ?? null;
-        $packId = $data['pack'] ?? null;
-        $referenceArticleId = $data['reference'] ?? null;
-        $quantity = $data['quantity'] ?? null;
-
-        if (!$dispatchId) {
-            throw new FormException("Une erreur est survenue");
-        }
-        if (!$packId || !$referenceArticleId || !$quantity ) {
-            throw new FormException("Une erreur est survenue, des données sont manquantes");
-        }
-        if ($quantity <= 0) {
-            throw new FormException('La quantité doit être supérieure à 0');
-        }
-        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-
-        $referenceArticle = $referenceRepository->find($referenceArticleId);
-        $dispatchPack = $dispatchPackRepository->findOneBy(['dispatch' => $dispatchId, 'pack' => $packId]);
-
-        if (!$dispatchPack) {
-            throw new FormException('Une erreur est survenue lors du traitement de votre demande');
-        }
-
-        $dispatchReferenceArticleId = $data['dispatchReferenceArticle'] ?? null;
-        if ($dispatchReferenceArticleId) {
-            $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
-            $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
-
-            if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
-                throw new FormException('Le poids doit être supérieur à 0');
-            } else if (isset($data['ULVolume']) && intval($data['ULVolume']) < 0) {
-                throw new FormException('Le volume doit être supérieur à 0');
-            }
-
-            $nature = $data['nature'] ? $natureRepository->find($data['nature']) : null;
-            if (!$nature) {
-                throw new FormException("La nature de l'UL est incorrecte");
-            }
-
-            $dispatchPack->getPack()
-                ->setNature($nature)
-                ->setWeight($data['ULWeight'] ?? null)
-                ->setVolume($data['ULVolume'] ?? null)
-                ->setComment($data['ULComment'] ?? null);
-        } else {
-            $dispatchReferenceArticle = new DispatchReferenceArticle();
-        }
-
-        $dispatchReferenceArticle
-            ->setDispatchPack($dispatchPack)
-            ->setReferenceArticle($referenceArticle)
-            ->setQuantity($quantity)
-            ->setBatchNumber($data['batch'] ?? null)
-            ->setSealingNumber($data['sealing'] ?? null)
-            ->setSerialNumber($data['series'] ?? null)
-            ->setComment($data['comment'] ?? null)
-            ->setAdr(isset($data['adr']) && boolval($data['adr']));
-
-        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatchReferenceArticle]);
-
-        $dispatchPack->getDispatch()->setUpdatedAt(new DateTime());
-        $entityManager->persist($dispatchReferenceArticle);
-
-        $description = [
-            'outFormatEquipment' => $data['outFormatEquipment'] ?? null,
-            'manufacturerCode' => $data['manufacturerCode'] ?? null,
-            'volume' => $data['volume'] ?? null,
-            'width' => $data['width'] ?? null,
-            'height' => $data['height'] ?? null,
-            'length' => $data['length'] ?? null,
-            'weight' => $data['weight'] ?? null,
-            'associatedDocumentTypes' => $data['associatedDocumentTypes'] ?? null,
-        ];
-        $this->refArticleDataService->updateDescriptionField($entityManager, $referenceArticle, $description);
+        $dispatchService->persistDispatchReferenceArticle($entityManager, $request);
 
         $entityManager->flush();
 
