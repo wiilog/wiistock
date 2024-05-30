@@ -178,6 +178,7 @@ class MailerService
             foreach ($emails as $email) {
                 // ignore if invalid email
                 // ignore if the domain is in NO_MAIL_DOMAINS
+                $email = strtolower($email);
                 preg_match(self::EMAIL_SLICING_REGEX, $email, $slicedAddress);
                 if (filter_var($email, FILTER_VALIDATE_EMAIL) && !in_array($slicedAddress["DomainWithTLD"] ?? null, self::NO_MAIL_DOMAINS)){
                     if (!isset($contents[$slug])) {
