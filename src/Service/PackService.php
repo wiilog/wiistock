@@ -378,13 +378,13 @@ class PackService {
         );
     }
 
-    public function persistMultiPacks(EntityManagerInterface $entityManager,
-                                      Arrivage               $arrivage,
-                                      array                  $packByNatures,
-                                                             $user,
-                                      bool                   $persistTrackingMovements = true,
-                                      Project                $project = null,
-                                      Reception              $reception = null): array
+    public function createMultiplePacks(EntityManagerInterface $entityManager,
+                                        Arrivage               $arrivage,
+                                        array                  $packByNatures,
+                                                               $user,
+                                        bool                   $persistTrackingMovements = true,
+                                        Project                $project = null,
+                                        Reception              $reception = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -421,6 +421,7 @@ class PackService {
                         $arrivage
                     );
                 }
+                // pack persisted by Arrival cascade persist
                 $createdPacks[] = $pack;
             }
         }
