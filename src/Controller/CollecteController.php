@@ -81,9 +81,7 @@ class CollecteController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE], null, [
-            'onlyActive' => true,
-        ]);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
         $restrictedResults = $paramGlobalRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
 		$typeChampLibre = [];
 		foreach ($types as $type) {
@@ -95,11 +93,15 @@ class CollecteController extends AbstractController
 				'champsLibres' => $champsLibres,
 			];
 		}
+        $typesForModal = Stream::from($types)
+            ->filter(static fn(Type $type) => $type->isActive())
+            ->toArray();
 
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
 			'types' => $types,
+			'typesForModal' => $typesForModal,
 			'filterStatus' => $filter,
             'restrictResults' => $restrictedResults,
         ]);
