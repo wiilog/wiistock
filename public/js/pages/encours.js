@@ -96,7 +96,6 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                 needsColor: true,
                 color: 'danger',
                 dataToCheck: 'late',
-                needsRowClickAction: true,
             },
             domConfig: {
                 removeInfo: true,
