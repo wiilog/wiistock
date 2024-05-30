@@ -102,11 +102,10 @@ class OrdreCollecteService
     }
 
     public function finishCollecte(OrdreCollecte $ordreCollecte,
-                                   Utilisateur $user,
-                                   DateTime $date,
-                                   array $mouvements,
-                                   bool $fromNomade = false)
-	{
+                                   Utilisateur   $user,
+                                   DateTime      $date,
+                                   array         $mouvements,
+                                   bool          $fromNomade = false): ?OrdreCollecte {
 
         $pairings = $ordreCollecte->getPairings();
         $pairingEnd = new DateTime('now');
@@ -186,7 +185,6 @@ class OrdreCollecteService
             }
         }
 
-
 		$listArticles = $ordreCollecte->getArticles();
 		foreach ($listArticles as $article) {
 		    $barCode = $article->getBarCode();
@@ -209,7 +207,7 @@ class OrdreCollecteService
             $demandeCollecte->removeArticle($article);
         }
         $this->entityManager->flush();
-        $this->removeArticlesFromCollecte($rowsToRemove, $ordreCollecte, $em);
+        $pickingOrder = $this->removeArticlesFromCollecte($rowsToRemove, $ordreCollecte, $em);
 
 		// on modifie le statut de l'ordre de collecte
 		$ordreCollecte
@@ -305,21 +303,21 @@ class OrdreCollecteService
             }
             $this->mailerService->sendMail(
                 $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Collecte effectuée',
-                $this->templating->render(
-                    'mails/contents/mailCollecteDone.html.twig',
-                    [
-                        'title' => $partialCollect
-                            ? 'Votre demande de collecte a été partiellement effectuée.'
-                            : 'Votre demande de collecte a bien été effectuée.',
-                        'collecte' => $ordreCollecte,
-                        'demande' => $demandeCollecte,
-                    ]
-                ),
+                $this->templating->render('mails/contents/mailCollecteDone.html.twig', [
+                    "title" => $partialCollect
+                        ? "Votre demande de collecte a été partiellement effectuée."
+                        : "Votre demande de collecte a bien été effectuée.",
+                    "collecte" => $ordreCollecte,
+                    "demande" => $demandeCollecte,
+                    "urlSuffix" => $this->router->generate("ordre_collecte_show", [
+                        "id" => $ordreCollecte->getId(),
+                    ]),
+                ]),
                 $to
             );
         }
 
-		return $newCollecte ?? null;
+		return $pickingOrder;
 	}
 
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
@@ -468,11 +466,13 @@ class OrdreCollecteService
 
     private function removeArticlesFromCollecte(array $articlesToRemove,
                                                 OrdreCollecte $ordreCollecte,
-                                                EntityManagerInterface $entityManager) {
+                                                EntityManagerInterface $entityManager): ?OrdreCollecte {
         $demandeCollecte = $ordreCollecte->getDemandeCollecte();
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dateNow = new DateTime('now');
         // cas de collecte partielle
+
+        $newCollecte = null;
         if (!empty($articlesToRemove)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
@@ -515,6 +515,8 @@ class OrdreCollecteService
             $demandeCollecte
                 ->setStatut($statutCollecte);
         }
+
+        return $newCollecte;
     }
 
     public function putCollecteLine($handle,

@@ -918,12 +918,15 @@ class PreparationController extends AbstractController
                     $mailerService->sendMail(
                         $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                            'demande' => $demande,
-                            'title' => 'La ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
+                            "demande" => $demande,
+                            "title" => "La " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " " . $demande->getNumero() . " de type "
                                 . $demande->getType()->getLabel()
-                                . ' a bien été validée le '
-                                . $nowDate->format('d/m/Y \à H:i')
-                                . '.',
+                                . " a bien été validée le "
+                                . $nowDate->format("d/m/Y à H:i")
+                                . ".",
+                            "urlSuffix" => $this->generateUrl("demande_show", [
+                                "id" => $demande->getId(),
+                            ]),
                         ]),
                         $to
                     );

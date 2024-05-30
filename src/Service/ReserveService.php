@@ -95,8 +95,11 @@ class ReserveService
         $this->mailerService->sendMail(
             $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réserve arrivage camion',
             $this->templating->render('mails/contents/mailTruckArrival.html.twig', [
-                'truckArrival' => $truckArrival,
-                'reserves' => $reserves,
+                "truckArrival" => $truckArrival,
+                "reserves" => $reserves,
+                "urlSuffix" => $this->router->generate("truck_arrival_show", [
+                    "id" => $truckArrival->getId(),
+                ]),
             ]),
             $reserveType->getNotifiedUsers()->toArray(),
             $attachments

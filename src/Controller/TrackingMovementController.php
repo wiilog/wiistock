@@ -54,9 +54,9 @@ class TrackingMovementController extends AbstractController
                           TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
+        $currentUser = $this->getUser();
         $packFilter = $request->query->get('pack');
         $article = null;
         $filterArticle = $request->query->get('article');
@@ -66,16 +66,13 @@ class TrackingMovementController extends AbstractController
         }
 
         if (!empty($packFilter)) {
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
-            $filtreSupRepository->clearFiltersByUserAndPage($loggedUser, FiltreSup::PAGE_MVT_TRACA);
-            $entityManager->flush();
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $loggedUser);
+            $filtreSupRepository->clearFiltersByUserAndPage($currentUser, FiltreSup::PAGE_MVT_TRACA);
+            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $currentUser);
+
             $entityManager->persist($filter);
             $entityManager->flush();
         }
 
-        $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         $mvtStatuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);

@@ -565,13 +565,16 @@ class DeliveryRequestService
             $this->mailerService->sendMail(
                 $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                    'demande' => $demande,
-                    'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
+                    "demande" => $demande,
+                    "title" => "La "  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " " . $demande->getNumero() . " de type "
                         . $demande->getType()->getLabel()
-                        . ' a bien été validée le '
-                        . $nowDate->format('d/m/Y \à H:i')
-                        . '.',
-                    'requester' => $options['requester'] ?? null,
+                        . " a bien été validée le "
+                        . $nowDate->format("d/m/Y à H:i")
+                        . ".",
+                    "requester" => $options["requester"] ?? null,
+                    "urlSuffix" => $this->router->generate("demande_show", [
+                        "id" => $demande->getId(),
+                    ]),
                 ]),
                 $to
             );

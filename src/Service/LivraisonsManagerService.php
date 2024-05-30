@@ -8,7 +8,6 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -20,8 +19,8 @@ use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -61,6 +60,9 @@ class LivraisonsManagerService
 
     #[Required]
     public MouvementStockService $mouvementStockService;
+
+    #[Required]
+    public RouterInterface $router;
 
     public function createLivraison(DateTime               $dateEnd,
                                     Preparation            $preparation,
@@ -328,7 +330,10 @@ class LivraisonsManagerService
                         'request' => $demande,
                         'preparation' => $preparation,
                         'title' => $bodyTitle,
-                        'dropLocation' => $nextLocation
+                        'dropLocation' => $nextLocation,
+                        "urlSuffix" => $this->router->generate("demande_show", [
+                            "id" => $demande->getId(),
+                        ]),
                     ]),
                     $to
                 );
