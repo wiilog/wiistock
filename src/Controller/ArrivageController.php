@@ -311,7 +311,7 @@ class ArrivageController extends AbstractController {
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
         // packs tracking movement are create at the end of the creation of the arrival, after truckArrivalLine reserve modal
-        $packService->persistMultiPacks(
+        $packService->createMultiplePacks(
             $entityManager,
             $arrivage,
             $natures->toArray(),
@@ -983,7 +983,7 @@ class ArrivageController extends AbstractController {
             if ($reception = $arrivage->getReception()) {
                 $statusCode = $reception->getStatut()->getCode();
                 if ($statusCode === Reception::STATUT_EN_ATTENTE) {
-                    $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
+                    $persistedPack = $packService->createMultiplePacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
                     $entityManager->flush();
                 } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE) {
                     $response = [
@@ -992,7 +992,7 @@ class ArrivageController extends AbstractController {
                     ];
                 }
             } else {
-                $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
+                $persistedPack = $packService->createMultiplePacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
                 $entityManager->flush();
             }
 
