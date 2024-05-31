@@ -16,6 +16,7 @@ use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
 use App\Helper\FormatHelper;
@@ -72,6 +73,9 @@ class ScheduledExportService
 
     #[Required]
     public TranslationService $translation;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
     public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
         $this->cacheService->set(CacheService::COLLECTION_EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
@@ -162,6 +166,21 @@ class ScheduledExportService
             $csvHeader = $this->dataExportService->createArrivalsHeader($entityManager, $exportToRun->getColumnToExport());
             $this->csvExportService->putLine($output, $csvHeader);
             $this->dataExportService->exportArrivages($arrivals, $output, $exportToRun->getColumnToExport());
+        } else if($exportToRun->getEntity() === Export::ENTITY_TRACKING_MOVEMENT) {
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $trackingMovements = $trackingMovementRepository->getByDates($startDate, $endDate);
+
+            $freeFieldsById = Stream::from($trackingMovements)
+                ->keymap(static fn(array $trackingMovement) => [
+                    $trackingMovement['id'], $trackingMovement['freeFields']
+                ])->toArray();
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
+            $columnToExport = $exportToRun->getColumnToExport();
+
+            $csvHeader = $this->dataExportService->createTrackingMovementsHeader($entityManager, $columnToExport);
+            $this->csvExportService->putLine($output, $csvHeader);
+            $this->dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
         } else if ($exportToRun->getEntity() === Export::ENTITY_REF_LOCATION) {
             $storageRules = $entityManager->getRepository(StorageRule::class)->iterateAll();
 

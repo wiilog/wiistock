@@ -11,7 +11,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
-use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Language;
@@ -22,6 +21,7 @@ use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -37,6 +37,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\RefArticleDataService;
 use App\Service\ScheduleRuleService;
+use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
@@ -374,6 +375,45 @@ class DataExportController extends AbstractController {
         );
     }
 
+    #[Route("/export/unique/tracking-movements", name: "settings_export_tracking_movements", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function exportTrackingMovements(EntityManagerInterface $manager,
+                                            CSVExportService       $csvService,
+                                            DataExportService      $dataExportService,
+                                            FreeFieldService       $freeFieldService,
+                                            Request                $request): StreamedResponse {
+        $columnToExport = $request->query->all("columnToExport");
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::MVT_TRACA]);
+        $headers = $dataExportService->createTrackingMovementsHeader($manager, $columnToExport);
+
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
+
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        return $csvService->streamResponse(
+            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig, $columnToExport) {
+                $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+                $userDateFormat = $this->getUser()->getDateFormat();
+                $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
+
+                $freeFieldsById = Stream::from($trackingMovements)
+                    ->keymap(fn($dispatch) => [
+                        $dispatch['id'], $dispatch['freeFields']
+                    ])->toArray();
+
+                $start = new DateTime();
+                $dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
+                $dataExportService->createUniqueExportLine(Export::ENTITY_TRACKING_MOVEMENT, $start);
+            },
+            "export_mouvements_tracabilite-$today.csv",
+            $headers
+        );
+    }
+
     #[Route("/export/unique/production-requests", name: "settings_export_production_requests", options: ["expose" => true], methods: self::GET)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportProductionRequests(EntityManagerInterface $manager,
@@ -431,10 +471,11 @@ class DataExportController extends AbstractController {
 
     #[Route("/export-template", name: "export_template", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function exportTemplate(EntityManagerInterface $entityManager,
-                                   Request                $request,
-                                   ArrivageService        $arrivalService,
-                                   DispatchService        $dispatchService): JsonResponse {
+    public function exportTemplate(EntityManagerInterface  $entityManager,
+                                   Request                 $request,
+                                   ArrivageService         $arrivalService,
+                                   DispatchService         $dispatchService,
+                                   TrackingMovementService $trackingMovementService): JsonResponse {
 
         $exportRepository = $entityManager->getRepository(Export::class);
 
@@ -445,6 +486,7 @@ class DataExportController extends AbstractController {
 
         $arrivalExportableColumns = $arrivalService->getArrivalExportableColumns($entityManager);
         $dispatchExportableColumns = $dispatchService->getDispatchExportableColumns($entityManager);
+        $trackingMovementExportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
         $refTypes = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::ARTICLE]);
 
         $statuses = $entityManager->getRepository(Statut::class)->findBy(["nom" => [Article::STATUT_ACTIF, Article::STATUT_INACTIF]]);
@@ -466,6 +508,9 @@ class DataExportController extends AbstractController {
                     ->keymap(fn(array $config) => [$config['code'], $config['label']])
                     ->toArray(),
                 Export::ENTITY_DISPATCH => Stream::from($dispatchExportableColumns)
+                    ->keymap(fn(array $config) => [$config['code'], $config['label']])
+                    ->toArray(),
+                Export::ENTITY_TRACKING_MOVEMENT => Stream::from($trackingMovementExportableColumns)
                     ->keymap(fn(array $config) => [$config['code'], $config['label']])
                     ->toArray(),
             ],

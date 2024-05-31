@@ -487,35 +487,31 @@ class TrackingMovementController extends AbstractController
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
             if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
-                $csvHeader = array_merge([
-                    $translationService->translate('Traçabilité', 'Général', 'Date', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
-                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
-                    $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
-                    $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
-                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
-                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence', false),
-                    $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
-                ], $freeFieldsConfig['freeFieldsHeader']);
+                $userDateFormat = $this->getUser()->getDateFormat();
+                $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-                $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+                $freeFieldsById = Stream::from($trackingMovements)
+                    ->keymap(static fn(array $trackingMovement) => [
+                        $trackingMovement['id'], $trackingMovement['freeFields']
+                    ])->toArray();
+
+                $exportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
+                $headers = Stream::from($exportableColumns)
+                    ->map(fn(array $column) => $column['label'] ?? '')
+                    ->toArray();
+
+                // same order than header column
+                $exportableColumnCodes = Stream::from($exportableColumns)
+                    ->map(fn(array $column) => $column['code'] ?? '')
+                    ->toArray();
 
                 return $CSVExportService->streamResponse(
-                    function ($output) use ($trackingMovements, $CSVExportService, $trackingMovementService, $freeFieldsConfig) {
+                    function ($output) use ($trackingMovements, $CSVExportService, $trackingMovementService, $freeFieldsConfig, $exportableColumnCodes, $freeFieldsById) {
                         foreach ($trackingMovements as $movement) {
-                            $trackingMovementService->putMovementLine(
-                                $output,
-                                $CSVExportService,
-                                $movement,
-                                $freeFieldsConfig
-                            );
+                            $trackingMovementService->putMovementLine($output, $movement, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById);
                         }
                     }, 'Export_Mouvement_Traca.csv',
-                    $csvHeader
+                    $headers
                 );
 
             }

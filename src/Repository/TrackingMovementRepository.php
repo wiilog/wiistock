@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
@@ -43,50 +44,51 @@ class TrackingMovementRepository extends EntityRepository
         'quantity' => 'quantity'
     ];
 
-    public function iterateByDates(DateTime $dateMin,
-                                   DateTime $dateMax): iterable
-    {
-        $dateMax = $dateMax->format('Y-m-d H:i:s');
-        $dateMin = $dateMin->format('Y-m-d H:i:s');
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax,
+                               string   $userDateFormat = Language::DMY_FORMAT): array {
+        $dateMax = $dateMax->format("Y-m-d H:i:s");
+        $dateMin = $dateMin->format("Y-m-d H:i:s");
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
 
-        return $this->createQueryBuilder('tracking_movement')
-            ->select('tracking_movement.id as id')
-            ->addSelect('tracking_movement.datetime as datetime')
-            ->addSelect('pack.code AS code')
-            ->addSelect('tracking_movement.quantity as quantity')
-            ->addSelect('join_location.label as locationLabel')
-            ->addSelect('join_type.nom as typeName')
-            ->addSelect('join_operator.username as operatorUsername')
-            ->addSelect('tracking_movement.commentaire as commentaire')
-            ->addSelect('pack_arrival.numeroArrivage as numeroArrivage')
-            ->addSelect('pack_arrival.numeroCommandeList AS numeroCommandeListArrivage')
-            ->addSelect('pack_arrival.isUrgent as isUrgent')
-            ->addSelect('join_reception.number AS receptionNumber')
-            ->addSelect('join_reception.orderNumber AS orderNumber')
-            ->addSelect('tracking_movement.freeFields as freeFields')
-            ->addSelect('transferOrder.number as transferNumber')
-            ->addSelect('dispatches.number as dispatchNumber')
-            ->addSelect("CONCAT(join_packParent.code, '-', tracking_movement.groupIteration) as packParent")
+        return $this->createQueryBuilder("tracking_movement")
+            ->select("tracking_movement.id AS id")
+            ->addSelect("DATE_FORMAT(tracking_movement.datetime, '$dateFormat') AS date")
+            ->addSelect("pack.code AS logisticUnit")
+            ->addSelect("tracking_movement.quantity AS quantity")
+            ->addSelect("join_location.label AS location")
+            ->addSelect("join_type.nom AS type")
+            ->addSelect("join_operator.username as operator")
+            ->addSelect("tracking_movement.commentaire AS comment")
+            ->addSelect("pack_arrival.numeroArrivage AS arrivalNumber")
+            ->addSelect("pack_arrival.numeroCommandeList AS arrivalOrderNumber")
+            ->addSelect("pack_arrival.isUrgent AS isUrgent")
+            ->addSelect("join_reception.number AS receptionNumber")
+            ->addSelect("join_reception.orderNumber AS orderNumber")
+            ->addSelect("tracking_movement.freeFields as freeFields")
+            ->addSelect("transferOrder.number AS transferNumber")
+            ->addSelect("dispatches.number AS dispatchNumber")
+            ->addSelect("CONCAT(join_packParent.code, '-', tracking_movement.groupIteration) AS packParent")
             ->addSelect("IF(SIZE(tracking_movement.attachments) > 0, 'oui', 'non') AS hasAttachments")
 
-            ->andWhere('tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
+            ->andWhere("tracking_movement.datetime BETWEEN :dateMin AND :dateMax")
 
-            ->innerJoin('tracking_movement.pack', 'pack')
-            ->leftJoin('tracking_movement.emplacement', 'join_location')
-            ->leftJoin('tracking_movement.type', 'join_type')
-            ->leftJoin('tracking_movement.operateur', 'join_operator')
-            ->leftJoin('pack.arrivage', 'pack_arrival')
-            ->leftJoin('tracking_movement.reception', 'join_reception')
-            ->leftJoin('tracking_movement.mouvementStock', 'mouvementStock')
-            ->leftJoin('mouvementStock.transferOrder', 'transferOrder')
-            ->leftJoin('tracking_movement.dispatch','dispatches')
-            ->leftJoin('tracking_movement.packParent', 'join_packParent')
+            ->innerJoin("tracking_movement.pack", "pack")
+            ->leftJoin("tracking_movement.emplacement", "join_location")
+            ->leftJoin("tracking_movement.type", "join_type")
+            ->leftJoin("tracking_movement.operateur", "join_operator")
+            ->leftJoin("pack.arrivage", "pack_arrival")
+            ->leftJoin("tracking_movement.reception", "join_reception")
+            ->leftJoin("tracking_movement.mouvementStock", "mouvementStock")
+            ->leftJoin("mouvementStock.transferOrder", "transferOrder")
+            ->leftJoin("tracking_movement.dispatch","dispatches")
+            ->leftJoin("tracking_movement.packParent", "join_packParent")
             ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax
+                "dateMin" => $dateMin,
+                "dateMax" => $dateMax
             ])
             ->getQuery()
-            ->toIterable();
+            ->getResult();
     }
 
     public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array

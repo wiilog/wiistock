@@ -57,6 +57,9 @@ class DataExportService
     #[Required]
     public ProductionRequestService $productionRequestService;
 
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
             'reference',
@@ -215,6 +218,19 @@ class DataExportService
             ->toArray();
     }
 
+    public function createTrackingMovementsHeader(EntityManagerInterface $entityManager,
+                                                  array                  $columnToExport): array
+    {
+        $exportableColumns = Stream::from($this->trackingMovementService->getTrackingMovementExportableColumns($entityManager));
+        return Stream::from($columnToExport)
+            ->filterMap(function(string $code) use ($exportableColumns) {
+                $column = $exportableColumns
+                    ->find(fn(array $config) => $config['code'] === $code);
+                return $column['label'] ?? null;
+            })
+            ->toArray();
+    }
+
     public function createStorageRulesHeader(): array
     {
         return [
@@ -296,6 +312,16 @@ class DataExportService
         /** @var Arrivage $arrival */
         foreach ($data as $arrival) {
             $this->arrivalService->putArrivalLine($output, $arrival, $columnToExport);
+        }
+    }
+
+    public function exportTrackingMovements(iterable $data,
+                                            mixed    $output,
+                                            array    $columnToExport,
+                                            array    $freeFieldsConfig,
+                                            array    $freeFieldsById): void {
+        foreach ($data as $trackingMovement) {
+            $this->trackingMovementService->putMovementLine($output, $trackingMovement, $columnToExport, $freeFieldsConfig, $freeFieldsById);
         }
     }
 
@@ -401,7 +427,7 @@ class DataExportService
             ]);
         }
 
-        if(in_array($entity, [Export::ENTITY_ARRIVAL, Export::ENTITY_DISPATCH])) {
+        if(in_array($entity, [Export::ENTITY_ARRIVAL, Export::ENTITY_DISPATCH, Export::ENTITY_TRACKING_MOVEMENT])) {
             $columnToExport = Stream::explode(",", $data["columnToExport"])
                 ->filter()
                 ->toArray();
@@ -410,7 +436,7 @@ class DataExportService
             $export->setColumnToExport([]);
         }
 
-        if(in_array($entity, [Export::ENTITY_ARRIVAL,Export::ENTITY_DELIVERY_ROUND, Export::ENTITY_DISPATCH, Export::ENTITY_PRODUCTION])) {
+        if(in_array($entity, [Export::ENTITY_ARRIVAL,Export::ENTITY_DELIVERY_ROUND, Export::ENTITY_DISPATCH, Export::ENTITY_PRODUCTION, Export::ENTITY_TRACKING_MOVEMENT])) {
             $export
                 ->setPeriod($data["period"])
                 ->setPeriodInterval($data["periodInterval"]);
