@@ -2272,7 +2272,7 @@ class MobileController extends AbstractApiController
             'idsToFind' => $userAllowedTypeIds,
         ]);
 
-        $mobileTypes = Stream::from([$types, $typesInUser])
+        $mobileTypes = Stream::from(array_merge($types, $typesInUser))
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
