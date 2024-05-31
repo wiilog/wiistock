@@ -2266,10 +2266,13 @@ class MobileController extends AbstractApiController
             ->flatten()
             ->toArray();
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE], null, [
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE,CategoryType::DEMANDE_COLLECTE]);
+
+        $typesInUser = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON], null, [
             'idsToFind' => $userAllowedTypeIds,
         ]);
-        $mobileTypes = Stream::from($types)
+
+        $mobileTypes = Stream::from([$types, $typesInUser])
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
