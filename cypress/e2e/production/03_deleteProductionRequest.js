@@ -15,20 +15,13 @@ describe('Delete the production request', () => {
     });
 
     it('Delete the production request', () => {
-        let productionRequestId;
-        cy.get('table#tableProductions tbody tr')
-            .first()
-            .find('td')
-            .eq(1)
-            .invoke("text")
-            .then( (id) => {
-                productionRequestId = id.trim();
-            });
+        let productionRequestId = "P-2024053014490001"
 
         cy.get('#tableProductions_filter').should('be.visible', {timeout: 8000}).then((div) => {
             cy.wrap(div)
                 .find('input')
-                .type(`${productionRequestId}{enter}`);
+                .type(`${productionRequestId}{enter}`)
+                .wait(1000);
         });
 
         cy.get('table#tableProductions tbody tr')

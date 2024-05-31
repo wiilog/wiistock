@@ -31,19 +31,19 @@
                     </span>
                 </div>
                 {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
-                <div class="mt-1">
+                <div class="mt-1" data-field-label="{{ fieldLabel }}">
                     {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>
                 </div>
                 {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').value %}
-                <div class="mt-1">
+                <div class="mt-1" data-field-label="{{ fieldLabel }}">
                     {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.manufacturingOrderNumber ?? "-" }}</span>
                 </div>
                 {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
-                <div class="mt-1">
+                <div class="mt-1" data-field-label="{{ fieldLabel }}">
                     {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.dropLocation|format_helper("location", "-") }}</span>
                 </div>
                 {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').value %}
-                <div class="mt-1">
+                <div class="mt-1" data-field-label="{{ fieldLabel }}">
                     {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.quantity ?? "-" }}</span>
                 </div>
             </div>
@@ -73,7 +73,7 @@
                 {% set id = "cardCollapse-" ~ random() %}
                 <div class="col-12 collapse" id="{{ id }}">
                     {% for name, value in fields %}
-                        <div class="mt-1">
+                        <div class="mt-1" data-field-label="{{ name }}">
                             {{ name }}&nbsp;:&nbsp;<span class="font-weight-bold ">{{ value }}</span>
                         </div>
                     {% endfor %}

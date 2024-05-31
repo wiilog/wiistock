@@ -17,6 +17,7 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
         .then(() => {
             if (shouldWait) {
                 cy
+                    .wait(1000)
                     .wait(`@${requestAlias}Request`, {timeout: 20000})
                     .its('response.statusCode').should('eq', 200)
             }

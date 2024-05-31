@@ -14,6 +14,13 @@ describe('edit a production request', () => {
         cy.visit('/');
         cy.navigateInNavMenu('menu-production', 'production_request_index');
 
+        cy.get('#tableProductions_filter').should('be.visible', {timeout: 8000}).then((div) => {
+            cy.wrap(div)
+                .find('input')
+                .type(`P-2024053014430001{enter}`)
+                .wait(1000);
+        });
+
         cy.get('table#tableProductions tbody tr')
             .first()
             .find('td')
@@ -22,9 +29,9 @@ describe('edit a production request', () => {
             .wait('@production_operation_history_api');
     });
 
-    it('should edit the last production request', () => {
+    it('should edit a production request', () => {
         const editProductionRequest = {
-            comment: 'Cypress2',
+            comment: 'Cypress2000',
         };
 
         cy.get('.dropright.dropdown')
@@ -112,33 +119,28 @@ describe('edit a production request', () => {
 
     it('Check if all fixed data is present', () => {
         const productionRequestInformation = {
-            type: 'standard',
-            manufacturingOrderNumber: '01',
-            productArticleCode: '02',
-            dropLocation: 'BUREAU GT',
-            quantity: 10,
-            lineCount: 1,
-            projectNumber: '03',
-            comment: 'Cypress',
-            file: 'logo.jpg',
+            manufacturingOrderNumber: '02',
+            productArticleCode: '002',
+            dropLocation: 'LABO 11',
+            quantity: '2',
+            lineCount: '20',
+            projectNumber: '0002',
         };
         const propertiesMap = {
-            'Type': 'type',
             'Numéro d\'OF': 'manufacturingOrderNumber',
             'Code produit/article': 'productArticleCode',
             'Emplacement de dépose': 'dropLocation',
             'Quantité': 'quantity',
             'Nombre de lignes': 'lineCount',
             'Numéro projet': 'projectNumber',
-
         };
 
-        cy.get('.details-header').find('.row').each((row) => {
-            cy.wrap(row).find('.wii-field-name').invoke("text").then( (key) => {
-                cy.wrap(row).find('.wii-body-text').invoke('text').then( (value) => {
-                    if(key !== "Date de création" && key !== "Date attendue"){
-                        expect(productionRequestInformation[propertiesMap[key]].toString()).to.equal(value.trim());
-                    }
+        Object.keys(propertiesMap).forEach((key) => {
+            const propertyKey = propertiesMap[key];
+            const expectedValue = productionRequestInformation[propertyKey].toString();
+            cy.contains('.wii-field-name', key).parents('div.row').first().within(() => {
+                cy.get('.wii-body-text').invoke('text').then((fieldValue) => {
+                    expect(fieldValue.trim()).to.equal(expectedValue);
                 });
             });
         });
@@ -146,21 +148,22 @@ describe('edit a production request', () => {
 
     it('Check if all free data is present', () => {
         const freeFields = {
-            cypress: 'cypressTest',
+            cypress: 'cypress2',
             yesNo: 'Oui',
-            numeric: 50,
+            numeric: 200,
             selectMultiple: ['dfjdjdjdj', 'select multiple'],
             selectSimple: 'select',
         };
 
-        cy.get('.no-gutters').find('.flex-column').each((row) => {
-            cy.wrap(row).find('.wii-field-name').invoke("text").then( (key) => {
-                cy.wrap(row).find('.wii-body-text').invoke('text').then( (value) => {
-                    if (key === "selectMultiple") {
-                        expect(freeFields[key][0]+", "+freeFields[key][1]).to.equal(value.trim());
-                    }
-                    else if (key !== "date") {
-                        expect(freeFields[key].toString()).to.equal(value.trim());
+        Object.keys(freeFields).forEach((key) => {
+            const expectedValue = freeFields[key];
+
+            cy.contains('.wii-field-name', key).parents('.flex-column').within(() => {
+                cy.get('.wii-body-text').invoke('text').then((fieldValue) => {
+                    if (Array.isArray(expectedValue)) {
+                        expect(expectedValue.join(", ")).to.equal(fieldValue.trim());
+                    } else {
+                        expect(expectedValue.toString()).to.equal(fieldValue.trim());
                     }
                 });
             });

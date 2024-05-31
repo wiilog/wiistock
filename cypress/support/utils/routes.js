@@ -252,6 +252,12 @@ export const routes = {
         route: 'production/delete/*',
         alias: 'production_delete'
     },
+    production_request_planning_api_test: {
+        method: 'GET',
+        route: "production/planning/*",
+        alias: 'production_request_planning_api_test'
+    },
+
 };
 export default routes;
 

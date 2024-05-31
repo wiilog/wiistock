@@ -33,46 +33,44 @@ Cypress.Commands.add('navigateInQuickMoreMenu', (request) => {
 })
 
 Cypress.Commands.add('fillFreeFields', (freeFields) => {
-    cy.get('.free-fields-container label').each(($label) => {
+    Object.keys(freeFields).forEach((key) => {
+        const value = freeFields[key];
 
-        const labelText = $label.find('.field-label').text().replace(/\*/, '').trim();
-        if (labelText in freeFields) {
-            const value = freeFields[labelText];
+        cy.contains('.free-fields-container label', key).then($label => {
             const $inputOrSelect = $label.find('input, select, textarea');
 
             if ($inputOrSelect.length > 0) {
                 const elementType = $inputOrSelect[0].tagName.toLowerCase();
                 switch (elementType) {
                     case 'input':
-                        if ($inputOrSelect.length > 1) {
+                        if ($inputOrSelect.attr('type') === 'checkbox' || $inputOrSelect.attr('type') === 'radio') {
                             cy.wrap($inputOrSelect).each(($input) => {
-                                cy.get(`label[for=${$input[0].id}] > span`).then(($label) => {
-                                    if ($label.text().trim() === value) {
-                                        cy.get(`#${$input[0].id}`).check({ force: true });
+                                cy.get(`label[for=${$input[0].id}] > span`).then(($inputLabel) => {
+                                    if ($inputLabel.text().trim() === value) {
+                                        cy.wrap($input).check({ force: true });
                                     }
                                 });
-                            })
-                        } else{
-                            cy.wrap($inputOrSelect).type(value);
+                            });
+                        } else {
+                            cy.wrap($inputOrSelect).type(value, { force: true });
                         }
                         break;
                     case 'select':
-                        if($inputOrSelect.hasClass("list-multiple")) {
-                            cy.select2($inputOrSelect.attr("name"), value);
-                        }
-                        else{
-                            cy.select2Ajax($inputOrSelect.attr("name"), value, '', true, '/select/*', true);
+                        if ($inputOrSelect.hasClass('list-multiple')) {
+                            cy.select2($inputOrSelect.attr('name'), value);
+                        } else {
+                            cy.select2Ajax($inputOrSelect.attr('name'), value, '', true, '/select/*', true);
                         }
                         break;
                     case 'textarea':
-                        cy.wrap($inputOrSelect).type(value);
+                        cy.wrap($inputOrSelect).type(value, { force: true });
                         break;
                     default:
                         cy.log(`Type d'élément non supporté: ${elementType}`);
                 }
+            } else {
+                cy.log(`Aucun champ trouvé pour le label: ${key}`);
             }
-        }
+        });
     });
 });
-
-
