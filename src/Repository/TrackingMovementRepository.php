@@ -51,8 +51,10 @@ class TrackingMovementRepository extends EntityRepository
         $dateMin = $dateMin->format("Y-m-d H:i:s");
         $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
 
-        return $this->createQueryBuilder("tracking_movement")
-            ->select("tracking_movement.id AS id")
+        $queryBuilder = $this->createQueryBuilder("tracking_movement");
+
+        return QueryBuilderHelper::addTrackingEntities($queryBuilder, "tracking_movement")
+            ->addSelect("tracking_movement.id AS id")
             ->addSelect("DATE_FORMAT(tracking_movement.datetime, '$dateFormat') AS date")
             ->addSelect("pack.code AS logisticUnit")
             ->addSelect("tracking_movement.quantity AS quantity")
@@ -60,14 +62,9 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect("join_type.nom AS type")
             ->addSelect("join_operator.username as operator")
             ->addSelect("tracking_movement.commentaire AS comment")
-            ->addSelect("pack_arrival.numeroArrivage AS arrivalNumber")
             ->addSelect("pack_arrival.numeroCommandeList AS arrivalOrderNumber")
             ->addSelect("pack_arrival.isUrgent AS isUrgent")
-            ->addSelect("join_reception.number AS receptionNumber")
-            ->addSelect("join_reception.orderNumber AS orderNumber")
             ->addSelect("tracking_movement.freeFields as freeFields")
-            ->addSelect("transferOrder.number AS transferNumber")
-            ->addSelect("dispatches.number AS dispatchNumber")
             ->addSelect("CONCAT(join_packParent.code, '-', tracking_movement.groupIteration) AS packParent")
             ->addSelect("IF(SIZE(tracking_movement.attachments) > 0, 'oui', 'non') AS hasAttachments")
 
@@ -78,15 +75,9 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin("tracking_movement.type", "join_type")
             ->leftJoin("tracking_movement.operateur", "join_operator")
             ->leftJoin("pack.arrivage", "pack_arrival")
-            ->leftJoin("tracking_movement.reception", "join_reception")
-            ->leftJoin("tracking_movement.mouvementStock", "mouvementStock")
-            ->leftJoin("mouvementStock.transferOrder", "transferOrder")
-            ->leftJoin("tracking_movement.dispatch","dispatches")
             ->leftJoin("tracking_movement.packParent", "join_packParent")
-            ->setParameters([
-                "dateMin" => $dateMin,
-                "dateMax" => $dateMax
-            ])
+            ->setParameter("dateMin", $dateMin)
+            ->setParameter("dateMax", $dateMax)
             ->getQuery()
             ->getResult();
     }

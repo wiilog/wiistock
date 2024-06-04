@@ -318,13 +318,13 @@ class DataExportService
         }
     }
 
-    public function exportTrackingMovements(iterable $data,
-                                            mixed    $output,
-                                            array    $columnToExport,
-                                            array    $freeFieldsConfig,
-                                            array    $freeFieldsById): void {
+    public function exportTrackingMovements(iterable     $data,
+                                            mixed        $output,
+                                            array        $columnToExport,
+                                            array        $freeFieldsConfig,
+                                            ?Utilisateur $user = null): void {
         foreach ($data as $trackingMovement) {
-            $this->trackingMovementService->putMovementLine($output, $trackingMovement, $columnToExport, $freeFieldsConfig, $freeFieldsById);
+            $this->trackingMovementService->putMovementLine($output, $trackingMovement, $columnToExport, $freeFieldsConfig, $user);
         }
     }
 

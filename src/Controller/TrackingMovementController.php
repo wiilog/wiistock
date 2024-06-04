@@ -14,14 +14,13 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
-use App\Entity\Setting;
-use App\Entity\Attachment;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
@@ -470,9 +469,9 @@ class TrackingMovementController extends AbstractController
     #[Route("/csv", name: "get_mouvements_traca_csv", options: ["expose" => true], methods: ["GET"])]
     public function getTrackingMovementCSV(Request                 $request,
                                            CSVExportService        $CSVExportService,
+                                           DataExportService       $dataExportService,
                                            TrackingMovementService $trackingMovementService,
                                            FreeFieldService        $freeFieldService,
-                                           TranslationService      $translationService,
                                            EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -480,41 +479,32 @@ class TrackingMovementController extends AbstractController
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
+            $loggedUser = $this->getUser();
+            $userDateFormat = $this->getUser()->getDateFormat();
 
-            if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
-                $userDateFormat = $this->getUser()->getDateFormat();
-                $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
+            $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-                $freeFieldsById = Stream::from($trackingMovements)
-                    ->keymap(static fn(array $trackingMovement) => [
-                        $trackingMovement['id'], $trackingMovement['freeFields']
-                    ])->toArray();
+            $exportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
+            $headers = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['label'] ?? '')
+                ->toArray();
 
-                $exportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
-                $headers = Stream::from($exportableColumns)
-                    ->map(fn(array $column) => $column['label'] ?? '')
-                    ->toArray();
+            // same order than header column
+            $exportableColumnCodes = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['code'] ?? '')
+                ->toArray();
 
-                // same order than header column
-                $exportableColumnCodes = Stream::from($exportableColumns)
-                    ->map(fn(array $column) => $column['code'] ?? '')
-                    ->toArray();
-
-                return $CSVExportService->streamResponse(
-                    function ($output) use ($trackingMovements, $CSVExportService, $trackingMovementService, $freeFieldsConfig, $exportableColumnCodes, $freeFieldsById) {
-                        foreach ($trackingMovements as $movement) {
-                            $trackingMovementService->putMovementLine($output, $movement, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById);
-                        }
-                    }, 'Export_Mouvement_Traca.csv',
-                    $headers
-                );
-
-            }
+            return $CSVExportService->streamResponse(
+                function ($output) use ($trackingMovements, $dataExportService, $freeFieldsConfig, $exportableColumnCodes, $loggedUser) {
+                    $dataExportService->exportTrackingMovements($trackingMovements, $output, $exportableColumnCodes, $freeFieldsConfig, $loggedUser);
+                },
+                'Export_Mouvement_Traca.csv',
+                $headers
+            );
         }
 
         throw new BadRequestHttpException();

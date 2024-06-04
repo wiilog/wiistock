@@ -742,24 +742,14 @@ class TrackingMovementService extends AbstractController
                                     array $movement,
                                     array $columnToExport,
                                     array $freeFieldsConfig,
-                                    array $freeFieldsById,
                                     Utilisateur $user = null): void {
 
-        $freeFieldValues = $freeFieldsById[$movement['id']];
+        $freeFieldValues = $movement["freeFields"];
 
-        $from = "";
-        if(!empty($movement['numeroArrivage'])) {
-           $from =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['arrivalNumber'];
-        }
-        if(!empty($movement['receptionNumber'])) {
-            $from = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];
-        }
-        if(!empty($movement['dispatchNumber'])) {
-            $from = $this->translation->translate("Demande", "Acheminements", "Général", "Acheminement", false) . '-' . $movement['dispatchNumber'];
-        }
-        if(!empty($movement['transferNumber'])) {
-            $from = 'transfert-' . $movement['transferNumber'];
-        }
+        $fromData = $this->getFromColumnData($movement);
+        $fromLabel = $fromData["fromLabel"] ?? "";
+        $fromNumber = $fromData["from"] ?? "";
+        $from = trim("$fromLabel $fromNumber") ?: null;
 
         $line = [];
         foreach ($columnToExport as $column) {
@@ -1586,7 +1576,7 @@ class TrackingMovementService extends AbstractController
     public function getTrackingMovementExportableColumns(EntityManagerInterface $entityManager): array {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
-        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::DEMANDE_DISPATCH]);
+        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::MVT_TRACA]);
 
         $userLanguage = $this->userService->getUser()?->getLanguage() ?: $this->languageService->getDefaultSlug();
         $defaultLanguage = $this->languageService->getDefaultSlug();

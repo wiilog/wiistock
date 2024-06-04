@@ -171,16 +171,12 @@ class ScheduledExportService
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $trackingMovements = $trackingMovementRepository->getByDates($startDate, $endDate);
 
-            $freeFieldsById = Stream::from($trackingMovements)
-                ->keymap(static fn(array $trackingMovement) => [
-                    $trackingMovement['id'], $trackingMovement['freeFields']
-                ])->toArray();
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
             $columnToExport = $exportToRun->getColumnToExport();
 
             $csvHeader = $this->dataExportService->createTrackingMovementsHeader($entityManager, $columnToExport);
             $this->csvExportService->putLine($output, $csvHeader);
-            $this->dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
+            $this->dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig);
         } else if ($exportToRun->getEntity() === Export::ENTITY_REF_LOCATION) {
             $storageRules = $entityManager->getRepository(StorageRule::class)->iterateAll();
 

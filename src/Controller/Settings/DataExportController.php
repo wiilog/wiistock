@@ -400,14 +400,10 @@ class DataExportController extends AbstractController {
         $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
         return $csvService->streamResponse(
-            function ($output) use ($trackingMovements, $entityManager, $dataExportService, $freeFieldsConfig, $columnToExport) {
-
-                $freeFieldsById = Stream::from($trackingMovements)
-                    ->keymap(fn($dispatch) => [$dispatch['id'], $dispatch['freeFields']])
-                    ->toArray();
+            static function ($output) use ($trackingMovements, $entityManager, $dataExportService, $freeFieldsConfig, $columnToExport) {
 
                 $start = new DateTime();
-                $dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
+                $dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig);
                 $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_TRACKING_MOVEMENT, $start);
                 $entityManager->flush();
             },
