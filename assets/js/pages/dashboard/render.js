@@ -19,6 +19,7 @@ const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const REQUESTS_TO_TREAT = 'requests_to_treat';
+const DISPUTES_TO_TREAT = 'disputes_to_treat';
 const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
 const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
@@ -111,6 +112,9 @@ const creators = {
         }
     },
     [REQUESTS_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
+    [DISPUTES_TO_TREAT]: {
         callback: createIndicatorElement
     },
     [ORDERS_TO_TREAT]: {

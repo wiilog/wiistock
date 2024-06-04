@@ -246,6 +246,7 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
             case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
             case Dashboard\ComponentType::REFERENCE_RELIABILITY:
+            case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_DISPATCHES:
@@ -1333,6 +1334,18 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
                 $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
+                break;
+            case Dashboard\ComponentType::DISPUTES_TO_TREAT:
+                $statuses = $config['disputeStatuses'];
+                $types = $config['disputeTypes'];
+                $emergency = $config['disputeEmergency'];
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('dispute_index', [
+                    'statuses' => $statuses,
+                    'types' => $types,
+                    'emergency' => $emergency,
+                    'fromDashboard' => true,
+                ]) : null;
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 $statuses = $config['entityStatuses'];

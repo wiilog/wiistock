@@ -188,6 +188,9 @@ class DashboardSettingsController extends AbstractController {
             "pickLocations" => [],
             "dropLocations" => [],
             "dispatchEmergencies" => [],
+            "disputeTypes" => [],
+            "disputeStatuses" => [],
+            "disputeEmergency" => false,
         ];
         $entities = [];
         $entityTypes = [];
@@ -346,6 +349,14 @@ class DashboardSettingsController extends AbstractController {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
+        if(!empty($values['disputeTypes'])) {
+            $values['disputeTypes'] = $typeRepository->findBy(['id' => $values['disputeTypes']]);
+        }
+
+        if(!empty($values['disputeStatuses'])){
+            $values['disputeStatuses'] = $statusRepository->findBy(['id' => $values['disputeStatuses']]);
+        }
+
         if(!empty($values['pickLocations'])) {
             $values['pickLocations'] = Stream::from($locationRepository->findBy(['id' => $values['pickLocations']]))
                     ->map(static fn(Emplacement $pickLocation) => [
@@ -439,10 +450,12 @@ class DashboardSettingsController extends AbstractController {
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $deliveryOrderTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $deliveryOrderStatuses = $statusRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
         $productionStatuses = $statusRepository->findByCategorieName(CategorieStatut::PRODUCTION);
+        $disputeStatuses = $statusRepository->findByCategorieNames([CategorieStatut::DISPUTE_ARR, CategorieStatut::LITIGE_RECEPT]);
 
         $natures = $natureRepository->findAll();
         if($templateName) {
@@ -481,6 +494,8 @@ class DashboardSettingsController extends AbstractController {
                             'selected' => in_array($emergency, $values['dispatchEmergencies']),
                         ])
                         ->toArray(),
+                    'disputeTypes' => $disputeTypes,
+                    'disputeStatuses' => $disputeStatuses,
                 ])
             ]);
         } else {

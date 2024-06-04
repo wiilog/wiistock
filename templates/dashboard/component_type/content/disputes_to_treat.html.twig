@@ -1,0 +1,45 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="form-group col-12">
+            {{ form.select('disputeTypes', 'Type(s) de litige', true, {
+                type: '',
+                multiple: true,
+                items: disputeTypes|map((disputeType) => {
+                    value: disputeType.id,
+                    label: disputeType.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
+                    selected: disputeType in values.disputeTypes,
+                }),
+            }) }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-12">
+            {{ form.select('disputeStatuses', 'Statut(s) de litige', true, {
+                type: '',
+                multiple: true,
+                items: disputeStatuses|map((disputeStatus) => {
+                    label: disputeStatus.code,
+                    value: disputeStatus.id,
+                    selected: disputeStatus in values.disputeStatuses,
+                }),
+            }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-12">
+            {{ form.checkbox('disputeEmergency', 'Urgence', false, values.disputeEmergency ?? false, {
+                isSlider: true,
+            }) }}
+        </div>
+        <div class="form-group col-12">
+            {{ form.checkbox('redirect', 'Rediriger au clic vers la page des litiges', false, values.redirect ?? false, {
+                isSlider: true,
+            }) }}
+        </div>
+    </div>
+{% endblock %}

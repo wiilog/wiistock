@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispute;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\DisputeHistoryRecord;
 
@@ -28,6 +29,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/litige", name: "dispute_")]
 class DisputeController extends AbstractController
@@ -36,6 +38,7 @@ class DisputeController extends AbstractController
     #[Route("/liste", name: "index", options: ["expose" => true], methods: [self::GET, self::POST])]
     #[HasPermission([Menu::QUALI, Action::DISPLAY_LITI])]
     public function index(DisputeService         $disputeService,
+                          Request $request,
                           EntityManagerInterface $entityManager) {
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -44,13 +47,38 @@ class DisputeController extends AbstractController
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
+        $data = $request->query;
+        $fromDashboard = $data->has('fromDashboard') ? $data->get('fromDashboard') : false;
+        $disputeEmergency = $data->has('emergency') ? $data->get('emergency') : false;
+        $statusesFilter = $data->has('statuses') ? $data->all('statuses') : [];
+        $typesFilter = $data->has('types') ? $data->all('types') : [];
+
+        if($fromDashboard){
+            if(!empty($typesFilter)){
+                $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
+                    ->filterMap(fn(Type $type) => $type->getLabelIn($user->getLanguage()))
+                    ->toArray();
+            }
+
+            if (!empty($statusesFilter)) {
+                $statusesFilter = Stream::from($statutRepository->findBy(['id' => $statusesFilter]))
+                    ->map(fn(Statut $status) => $status->getId())
+                    ->toArray();
+            }
+        }
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::DISPUTE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
 			'litigeOrigins' => $disputeService->getLitigeOrigin(),
-            'fields' => $disputeService->getColumnVisibleConfig($user)
+            'fields' => $disputeService->getColumnVisibleConfig($user),
+            'fromDashboard' => $fromDashboard,
+            ...($fromDashboard ? [
+                'filterTypes' => $typesFilter,
+                'filterStatus' => $statusesFilter,
+                'disputeEmergency' => $disputeEmergency,
+            ] : []),
 		]);
     }
 
@@ -58,7 +86,36 @@ class DisputeController extends AbstractController
     #[HasPermission([Menu::QUALI, Action::DISPLAY_LITI], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         DisputeService $disputeService) {
-        $data = $disputeService->getDataForDatatable($request->request);
+        $fromDashboard = $request->query->getBoolean('fromDashboard');
+
+        if ($fromDashboard) {
+            $preFilledStatuses = $request->query->has('preFilledStatuses')
+                ? implode(",", $request->query->all('preFilledStatuses'))
+                : [];
+            $preFilledTypes = $request->query->has('preFilledTypes')
+                ? implode(",", $request->query->all('preFilledTypes'))
+                : [];
+            $disputeEmergency = $request->query->has('disputeEmergency')
+                ? $request->query->get('disputeEmergency')
+                : false;
+
+            $preFilledFilters = [
+                [
+                    'field' => FiltreSup::FIELD_STATUT,
+                    'value' => $preFilledStatuses,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
+                    'value' => $preFilledTypes,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_EMERGENCY,
+                    'value' => $disputeEmergency,
+                ],
+            ];
+        }
+
+        $data = $disputeService->getDataForDatatable($request->request, $fromDashboard, $preFilledFilters ?? []);
         return new JsonResponse($data);
 	}
 

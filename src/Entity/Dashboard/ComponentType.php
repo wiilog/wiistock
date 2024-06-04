@@ -50,6 +50,7 @@ class ComponentType
     public const ORDERS_TO_TREAT_PREPARATION = 'orders_to_treat_preparation';
     public const ORDERS_TO_TREAT_TRANSFER = 'orders_to_treat_transfer';
     public const REQUESTS_TO_TREAT = 'requests_to_treat';
+    public const DISPUTES_TO_TREAT = 'disputes_to_treat';
     public const REQUESTS_TO_TREAT_COLLECT = 'requests_to_treat_collect';
     public const REQUESTS_TO_TREAT_HANDLING = 'requests_to_treat_handling';
     public const REQUESTS_TO_TREAT_DELIVERY = 'requests_to_treat_delivery';
@@ -82,7 +83,8 @@ class ComponentType
             self::PACK_TO_TREAT_FROM,
             self::ENTRIES_TO_HANDLE,
             self::ORDERS_TO_TREAT,
-            self::DAILY_DELIVERY_ORDERS
+            self::DAILY_DELIVERY_ORDERS,
+            self::DISPUTES_TO_TREAT,
         ],
         self::CATEGORY_STOCK => [
             self::ACTIVE_REFERENCE_ALERTS,
