@@ -1,19 +1,30 @@
 import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user = Cypress.config('user');
 
-describe('edit a production request', () => {
+describe('create a production request', () => {
     beforeEach(() => {
         interceptRoute(routes.production_new);
         interceptRoute(routes.production_api);
 
         cy.login(user);
         cy.visit('/');
+    });
+
+    it('Opening production request creation modal from production request page', () =>{
+        cy.navigateInNavMenu('menu-production', 'production_request_index');
         cy.navigateInQuickMoreMenu('production');
+        cy.get('#modalNewProductionRequest').should('be.visible', { timeout: 8000 });
+    });
+
+    it('Opening production request creation modal from home page', () =>{
+        cy.navigateInQuickMoreMenu('production');
+        cy.get('#modalNewProductionRequest').should('be.visible', { timeout: 8000 });
     });
 
     it('should add a new production request', () => {
+        cy.navigateInQuickMoreMenu('production');
         const selectorModal = '#modalNewProductionRequest';
-        const date = new Date(Date.now()).toISOString()
+        const date = new Date(Date.now()).toISOString();
         const newProductionRequest = {
             type: 'standard',
             manufacturingOrderNumber: '01',
