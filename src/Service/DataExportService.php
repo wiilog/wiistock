@@ -276,13 +276,16 @@ class DataExportService
         }
     }
 
-    public function createUniqueExportLine(string $entity, DateTime $from) {
-        $type = $this->entityManager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(
+    public function persistUniqueExport(EntityManagerInterface $entityManager, string $entity, DateTime $from): Export {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(
             CategoryType::EXPORT,
             Type::LABEL_UNIQUE_EXPORT,
         );
 
-        $status = $this->entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+        $status = $statusRepository->findOneByCategorieNameAndStatutCode(
             CategorieStatut::EXPORT,
             Export::STATUS_FINISHED,
         );
@@ -299,8 +302,8 @@ class DataExportService
         $export->setEndedAt($to);
         $export->setForced(false);
 
-        $this->entityManager->persist($export);
-        $this->entityManager->flush();
+        $entityManager->persist($export);
+        $entityManager->flush();
 
         return $export;
     }

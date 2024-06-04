@@ -193,25 +193,26 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/unique/reference", name: "settings_export_references", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function exportReferences(EntityManagerInterface $manager,
+    public function exportReferences(EntityManagerInterface $entityManager,
                                      CSVExportService       $csvService,
                                      DataExportService      $dataExportService,
                                      UserService            $userService,
                                      RefArticleDataService  $refArticleDataService,
                                      FreeFieldService       $freeFieldService): StreamedResponse {
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
         $header = $dataExportService->createReferencesHeader($freeFieldsConfig);
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($manager, $dataExportService, $user, $freeFieldsConfig, $refArticleDataService) {
-            $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-            $references = $referenceArticleRepository->iterateAll($user);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $references = $referenceArticleRepository->iterateAll($user);
 
+        return $csvService->streamResponse(function($output) use ($references, $entityManager, $dataExportService, $freeFieldsConfig, $refArticleDataService) {
             $start = new DateTime();
             $dataExportService->exportReferences($refArticleDataService, $freeFieldsConfig, $references, $output);
-            $dataExportService->createUniqueExportLine(Export::ENTITY_REFERENCE, $start);
+            $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_REFERENCE, $start);
+            $entityManager->flush();
         }, "export-references-$today.csv", $header);
     }
 
@@ -246,15 +247,14 @@ class DataExportController extends AbstractController {
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
         $user = $userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $dataExportService, $user,
-            $articleDataService, $options) {
-            $articleRepository = $entityManager->getRepository(Article::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->iterateAll($user, $options);
 
-            $articles = $articleRepository->iterateAll($user, $options);
-
+        return $csvService->streamResponse(function($output) use ($articles, $freeFieldsConfig, $entityManager, $dataExportService, $articleDataService) {
             $start = new DateTime();
             $dataExportService->exportArticles($articleDataService, $freeFieldsConfig, $articles, $output);
-            $dataExportService->createUniqueExportLine(Export::ENTITY_ARTICLE, $start);
+            $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_ARTICLE, $start);
+            $entityManager->flush();
         }, "export-articles-$today.csv", $header);
     }
 
@@ -279,10 +279,11 @@ class DataExportController extends AbstractController {
         $header = $dataExportService->createDeliveryRoundHeader();
 
         $transportRoundsIterator = $transportRoundRepository->iterateFinishedTransportRounds($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($csvService, $dataExportService, $dateTimeMin, $dateTimeMax, $transportRoundService, $transportRoundsIterator) {
+        return $csvService->streamResponse(function ($output) use ($csvService, $dataExportService, $entityManager, $dateTimeMin, $dateTimeMax, $transportRoundService, $transportRoundsIterator) {
             $start = new DateTime();
             $dataExportService->exportTransportRounds($transportRoundService, $transportRoundsIterator, $output, $dateTimeMin, $dateTimeMax);
-            $dataExportService->createUniqueExportLine(Export::ENTITY_DELIVERY_ROUND, $start);
+            $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_DELIVERY_ROUND, $start);
+            $entityManager->flush();
         }, "export-tournees-$today.csv", $header);
     }
 
@@ -309,18 +310,18 @@ class DataExportController extends AbstractController {
         $csvHeader = $dataExportService->createArrivalsHeader($entityManager, $columnToExport);
 
         $arrivalsIterator = $arrivageRepository->iterateArrivals($dateTimeMin, $dateTimeMax);
-        return $csvService->streamResponse(function ($output) use ($dataExportService, $columnToExport, $arrivalsIterator) {
+        return $csvService->streamResponse(function ($output) use ($entityManager, $dataExportService, $columnToExport, $arrivalsIterator) {
             $start = new DateTime();
             $dataExportService->exportArrivages($arrivalsIterator, $output, $columnToExport);
-            $dataExportService->createUniqueExportLine(Export::ENTITY_ARRIVAL, $start);
+            $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_ARRIVAL, $start);
+            $entityManager->flush();
         }, $nameFile, $csvHeader);
     }
 
     #[Route("/export/unique/ref-location", name: "settings_export_ref_location", options: ["expose" => true], methods: "GET")]
-    public function exportRefLocation(CSVExportService     $csvService,
-                                   DataExportService      $dataExportService,
-                                   EntityManagerInterface $entityManager,
-                                   Request                $request): Response {
+    public function exportRefLocation(CSVExportService       $csvService,
+                                      DataExportService      $dataExportService,
+                                      EntityManagerInterface $entityManager): Response {
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
@@ -329,23 +330,24 @@ class DataExportController extends AbstractController {
         $csvHeader = $dataExportService->createStorageRulesHeader();
         $refLocationsIterator = $entityManager->getRepository(StorageRule::class)->iterateAll();
 
-        return $csvService->streamResponse(function ($output) use ($dataExportService, $refLocationsIterator) {
+        return $csvService->streamResponse(function ($output) use ($entityManager, $dataExportService, $refLocationsIterator) {
             $start = new DateTime();
             $dataExportService->exportRefLocation($refLocationsIterator, $output);
-            $dataExportService->createUniqueExportLine(Export::ENTITY_REF_LOCATION, $start);
+            $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_REF_LOCATION, $start);
+            $entityManager->flush();
         }, $nameFile, $csvHeader);
     }
 
     #[Route("/export/unique/dispatches", name: "settings_export_dispatches", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function exportDispatches(EntityManagerInterface $manager,
+    public function exportDispatches(EntityManagerInterface $entityManager,
                                      CSVExportService       $csvService,
                                      DataExportService      $dataExportService,
                                      FreeFieldService       $freeFieldService,
                                      Request                $request): StreamedResponse {
         $columnToExport = $request->query->all("columnToExport");
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::DEMANDE_DISPATCH]);
-        $headers = $dataExportService->createDispatchesHeader($manager, $columnToExport);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+        $headers = $dataExportService->createDispatchesHeader($entityManager, $columnToExport);
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
@@ -356,19 +358,19 @@ class DataExportController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
 
         return $csvService->streamResponse(
-            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig, $columnToExport) {
-                $dispatchRepository = $manager->getRepository(Dispatch::class);
+            function ($output) use ($dateTimeMax, $dateTimeMin, $entityManager, $dataExportService, $csvService, $freeFieldsConfig, $columnToExport) {
+                $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 $userDateFormat = $this->getUser()->getDateFormat();
                 $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
                 $freeFieldsById = Stream::from($dispatches)
-                    ->keymap(fn($dispatch) => [
-                        $dispatch['id'], $dispatch['freeFields']
-                    ])->toArray();
+                    ->keymap(fn($dispatch) => [$dispatch['id'], $dispatch['freeFields']])
+                    ->toArray();
 
                 $start = new DateTime();
                 $dataExportService->exportDispatch($dispatches, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
-                $dataExportService->createUniqueExportLine(Export::ENTITY_DISPATCH, $start);
+                $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_DISPATCH, $start);
+                $entityManager->flush();
             },
             "export_acheminements-$today.csv",
             $headers
@@ -377,14 +379,14 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/unique/tracking-movements", name: "settings_export_tracking_movements", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function exportTrackingMovements(EntityManagerInterface $manager,
+    public function exportTrackingMovements(EntityManagerInterface $entityManager,
                                             CSVExportService       $csvService,
                                             DataExportService      $dataExportService,
                                             FreeFieldService       $freeFieldService,
                                             Request                $request): StreamedResponse {
         $columnToExport = $request->query->all("columnToExport");
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::MVT_TRACA]);
-        $headers = $dataExportService->createTrackingMovementsHeader($manager, $columnToExport);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
+        $headers = $dataExportService->createTrackingMovementsHeader($entityManager, $columnToExport);
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
@@ -393,21 +395,21 @@ class DataExportController extends AbstractController {
 
         $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
         $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $userDateFormat = $this->getUser()->getDateFormat();
+        $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
         return $csvService->streamResponse(
-            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig, $columnToExport) {
-                $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
-                $userDateFormat = $this->getUser()->getDateFormat();
-                $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
+            function ($output) use ($trackingMovements, $entityManager, $dataExportService, $freeFieldsConfig, $columnToExport) {
 
                 $freeFieldsById = Stream::from($trackingMovements)
-                    ->keymap(fn($dispatch) => [
-                        $dispatch['id'], $dispatch['freeFields']
-                    ])->toArray();
+                    ->keymap(fn($dispatch) => [$dispatch['id'], $dispatch['freeFields']])
+                    ->toArray();
 
                 $start = new DateTime();
                 $dataExportService->exportTrackingMovements($trackingMovements, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
-                $dataExportService->createUniqueExportLine(Export::ENTITY_TRACKING_MOVEMENT, $start);
+                $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_TRACKING_MOVEMENT, $start);
+                $entityManager->flush();
             },
             "export_mouvements_tracabilite-$today.csv",
             $headers
@@ -462,7 +464,7 @@ class DataExportController extends AbstractController {
 
                 $start = new DateTime();
                 $dataExportService->exportProductionRequest($productionRequests, $output, $freeFieldsConfig, $freeFieldsById);
-                $dataExportService->createUniqueExportLine(Export::ENTITY_PRODUCTION, $start);
+                $dataExportService->persistUniqueExport(Export::ENTITY_PRODUCTION, $start);
             },
             "export_productions-$today.csv",
             $header
