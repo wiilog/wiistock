@@ -183,7 +183,7 @@ export const routes = {
         alias: 'arrivageLitiges_api'
     },
     litige_api_edit:{
-        method: 'POST',
+        method: 'GET',
         route: '/arrivage/api-modifier-litige',
         alias: 'litige_api_edit'
     },

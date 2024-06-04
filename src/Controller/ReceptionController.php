@@ -1170,50 +1170,48 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function apiEditLitige(EntityManagerInterface $entityManager,
-                                  Request $request): Response {
-        if($data = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $disputeRepository = $entityManager->getRepository(Dispute::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
+    #[Route("/api-modifier-litige/{id}", name: "litige_api_edit_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Entity("dispute", expr: "repository.find(id)")]
+    public function apiEditLitige(EntityManagerInterface    $entityManager,
+                                  Dispute                   $dispute,
+                                  Request                   $request): Response  {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-            $dispute = $disputeRepository->find($data['disputeId']);
-            $packsCode = [];
-            $acheteursCode = [];
-
-            foreach($dispute->getArticles() as $pack) {
-                $packsCode[] = [
-                    'id' => $pack->getId(),
-                    'text' => $pack->getBarCode(),
-                ];
-            }
-            foreach($dispute->getBuyers() as $buyer) {
-                $acheteursCode[] = $buyer->getId();
-            }
-
-            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
-                ->map(fn(Statut $statut) => [
-                    'id' => $statut->getId(),
-                    'type' => $statut->getType(),
-                    'nom' => $this->getFormatter()->status($statut),
-                    'treated' => $statut->isTreated(),
-                ])
-                ->toArray();
-
-            $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
-                'dispute' => $dispute,
-                'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $disputeStatuses,
-                'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-            ]);
-
-            return new JsonResponse(['html' => $html, 'packs' => $packsCode, 'acheteurs' => $acheteursCode]);
+        $packsCode = [];
+        $acheteursCode = [];
+        foreach($dispute->getArticles() as $pack) {
+            $packsCode[] = [
+                'id' => $pack->getId(),
+                'text' => $pack->getBarCode(),
+            ];
         }
-        throw new BadRequestHttpException();
+        foreach($dispute->getBuyers() as $buyer) {
+            $acheteursCode[] = $buyer->getId();
+        }
+
+        $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+                'treated' => $statut->isTreated(),
+            ])
+            ->toArray();
+
+        $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
+            'dispute' => $dispute,
+            'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
+            'disputeStatuses' => $disputeStatuses,
+            'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
+        ]);
+
+        return new JsonResponse([
+            'html' => $html,
+            'packs' => $packsCode,
+            'acheteurs' => $acheteursCode
+        ]);
     }
 
     /**

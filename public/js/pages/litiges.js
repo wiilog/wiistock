@@ -88,27 +88,21 @@ function initDatatableLitiges() {
 
 function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, disputeId, disputeNumber) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
-    let path = Routing.generate(route, true);
+    let path = Routing.generate(route, {id: disputeId});
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
-    let params = {
-        disputeId
-    };
-
+    let params = {};
     if (isArrivage) {
         params.arrivageId = arrivageOrReceptionId;
     } else {
         params.reception = arrivageOrReceptionId;
     }
 
-    $.post(path, JSON.stringify(params), function (data) {
+    $.get(path, JSON.stringify(params), function (data) {
         $modal.find('.error-msg').html('');
         $modal.find('.modal-body').html(data.html);
-        if (isArrivage) {
-            $modal.find('#packEditLitige').val(data.packs).select2();
-        } else {
+        if (!isArrivage) {
             Select2Old.articleReception($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
-
             let values = [];
             data.packs.forEach(val => {
                 values.push({
@@ -142,7 +136,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 
 function openTableHisto() {
 
-    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
@@ -165,7 +159,7 @@ function openTableHisto() {
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 

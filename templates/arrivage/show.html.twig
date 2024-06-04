@@ -86,6 +86,8 @@
                                     {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                                         <button type="button"
                                                 data-id="{{ arrivage.id }}"
+                                                data-toggle="modal"
+                                                data-target="#modalNewLitige"
                                                 class="btn btn-primary new-dispute-modal d-flex align-items-center">
                                             <span class="wii-icon wii-icon-plus mr-2"></span>
                                             {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Nouveau litige') }}
@@ -108,7 +110,20 @@
     {% include 'arrivage/modalAddPacks.html.twig' %}
     {% include "arrivage/modalEditArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
-    {% include 'arrivage/modalNewLitige.html.twig' %}
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalNewLitige',
+        size: 'modal-xl',
+        header: {
+            title: trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Nouveau litige')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+            ],
+        }
+    } %}
+
     {% include 'arrivage/modalEditLitige.html.twig' %}
     {% include 'arrivage/modalDeleteLitige.html.twig' %}
     {% include 'pack/modalEditPack.html.twig' %}

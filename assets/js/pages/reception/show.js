@@ -253,17 +253,16 @@ function initDateTimePickerReception() {
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, disputeId, disputeNumber) {
-    let path = Routing.generate('litige_api_edit_reception', true);
+    let path = Routing.generate('litige_api_edit_reception', {id: disputeId});
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
-        disputeId,
         reception: receptionId,
         disputeNumber: disputeNumber
     };
 
-    $.post(path, JSON.stringify(params), function (data) {
+    $.get(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         Select2Old.articleReception(modal.find('.select2-autocomplete-articles'));
@@ -289,7 +288,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
@@ -300,7 +299,7 @@ function getCommentAndAddHisto() {
 }
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             url: pathHistoLitige,
