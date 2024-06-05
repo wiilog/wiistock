@@ -47,6 +47,9 @@ class Component {
     #[ORM\OneToMany(targetEntity: LocationCluster::class, mappedBy: 'component', cascade: ['remove'])]
     private Collection $locationClusters;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $errorMessage = null;
+
     /**
      * Component constructor.
      */
@@ -122,17 +125,15 @@ class Component {
     /**
      * @return DashboardMeter\Indicator|DashboardMeter\Chart|null
      */
-    public function getMeter() {
-        return isset($this->indicatorMeter)
-            ? $this->indicatorMeter
-            : $this->chartMeter;
+    public function getMeter(): DashboardMeter\Indicator|DashboardMeter\Chart|null {
+        return $this->indicatorMeter ?? $this->chartMeter;
     }
 
     /**
      * @param DashboardMeter\Indicator|DashboardMeter\Chart|null $meter
      * @return Component
      */
-    public function setMeter($meter): self {
+    public function setMeter(DashboardMeter\Indicator|DashboardMeter\Chart|null $meter): self {
         if($meter instanceof DashboardMeter\Indicator) {
             $this->indicatorMeter = $meter;
         } else if($meter instanceof DashboardMeter\Chart) {
@@ -167,6 +168,17 @@ class Component {
         if($this->locationClusters->contains($locationCluster)) {
             $this->locationClusters->removeElement($locationCluster);
         }
+        return $this;
+    }
+
+    public function getErrorMessage(): ?string
+    {
+        return $this->errorMessage;
+    }
+
+    public function setErrorMessage(?string $errorMessage): static
+    {
+        $this->errorMessage = $errorMessage;
         return $this;
     }
 

@@ -4,14 +4,11 @@
 namespace App\Service;
 
 
-use App\Entity\CategorieStatut;
 use App\Entity\Pack;
 use App\Entity\DaysWorked;
-use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
-use App\Helper\FormatHelper;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -230,11 +227,13 @@ class EnCoursService
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
 
-            $fromColumnData = $this->trackingMovementService->getFromColumnData([
+            $fromColumnData = $fromOnGoing
+                ? $this->trackingMovementService->getFromColumnData([
                 "entity" => $oldestDrop['entity'],
                 "entityId" => $oldestDrop['entityId'],
                 "entityNumber" => $oldestDrop['entityNumber'],
-            ]);
+                ])
+                : [];
 
             if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
                 $emplacementInfo[] = [
@@ -246,7 +245,9 @@ class EnCoursService
                     'emp' => $oldestDrop['label'],
                     'libelle' => $oldestDrop['reference_label'] ?? null,
                     'reference' => $oldestDrop['reference_reference'] ?? null,
-                    'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+                    ...($fromOnGoing
+                        ? ['origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData)]
+                        : []),
                 ];
             }
         }

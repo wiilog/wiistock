@@ -134,6 +134,7 @@ class DashboardSettingsService {
                                         "config" => $config,
                                         "meterKey" => $meterKey,
                                         "initData" => $this->serializeValues($entityManager, $type, $config, $mode, $mode === self::MODE_EDIT, $meter, $user),
+                                        "errorMessage" => $component->getErrorMessage(),
                                     ];
                                 })
                                 ->getValues(),
