@@ -52,6 +52,12 @@
                 value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PRODUCTION'),
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PRODUCTION'),
                 disabled: export.id is not null
+            },
+            {
+                label: 'Mouvements',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRACKING_MOVEMENT'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRACKING_MOVEMENT'),
+                disabled: export.id is not null
             }
         ], {expanded: true}) }}
 
@@ -87,7 +93,7 @@
             <div class="column-to-export d-none">
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
                     type: null,
-                    items: [],
+                    items: export.columnToExport,
                     multiple: true,
                     attributes: {
                         "data-keep-selected-order": 1,
@@ -245,7 +251,7 @@
         <div class="column-to-export d-none">
             {{ form.select('columnToExport', 'Colonnes à exporter', false, {
                 type: null,
-                items: [],
+                items: export.columnToExport,
                 multiple: true,
                 attributes: {
                     "data-keep-selected-order": 1,
