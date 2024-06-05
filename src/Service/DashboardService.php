@@ -37,6 +37,7 @@ use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
+use App\Exceptions\DashboardException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
@@ -520,7 +521,7 @@ class DashboardService {
     public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component): void {
 
-        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
+        $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -643,6 +644,8 @@ class DashboardService {
 
         $globalCounter = 0;
 
+        $maxResultPackOnCluster = 1000;
+
         $olderPackLocation = [
             'locationLabel' => null,
             'locationId' => null,
@@ -651,7 +654,10 @@ class DashboardService {
 
         if (!empty($naturesFilter)) {
             $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
-            $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+            $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+            if ($locationClusterRepository->countPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage) > $maxResultPackOnCluster) {
+                throw new DashboardException("Nombre de données trop important");
+            }
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
             $packsOnClusterVerif = Stream::from(
                 $packsRepository->getCurrentPackOnLocations(

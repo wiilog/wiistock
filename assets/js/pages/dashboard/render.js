@@ -32,6 +32,7 @@ const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
 const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
+const ERROR_COMPONENT = 'error_component';
 export const ONGOING_PACK = 'ongoing_packs';
 export const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
@@ -143,6 +144,9 @@ const creators = {
     [DAILY_DELIVERY_ORDERS]: {
         callback: createChart
     },
+    [ERROR_COMPONENT]: {
+        callback: createErrorComponent
+    },
 };
 
 /**
@@ -167,16 +171,24 @@ export function renderComponent(component, $container, data) {
             $modal.find(`.component-numbering`).empty();
             displayLegendTranslation(data);
         }
+        let $element;
+        if (component.errorMessage) {
+            const {callback, arguments: callbackArguments} = creators["error_component"];
+            $element = callback(
+                component.errorMessage
+            );
+        } else {
+            const {callback, arguments: callbackArguments} = creators[component.meterKey];
+            $element = callback(
+                data,
+                Object.assign({
+                    meterKey: component.meterKey,
+                    rowSize: $container.closest('.dashboard-row').data('size'),
+                    component: component
+                }, callbackArguments || {})
+            );
+        }
 
-        const {callback, arguments: callbackArguments} = creators[component.meterKey];
-        const $element = callback(
-            data,
-            Object.assign({
-                meterKey: component.meterKey,
-                rowSize: $container.closest('.dashboard-row').data('size'),
-                component: component
-            }, callbackArguments || {})
-        );
 
         if($element) {
             $container.html($element);
@@ -670,6 +682,22 @@ function createExternalImage(data, config) {
             <img src="${url}" style="width:100%;height:auto;max-height:100%;object-fit: contain;" alt="Composant image">
         </div>
     `);
+}
+
+function createErrorComponent(errorMessage) {
+    return $(`<div class="dashboard-box w-100 d-flex align-items-center justify-content-center flex-row">
+                        <div class="text-center">
+                            <i class="error-msg fas fa-exclamation-triangle mr-2"></i>
+                        </div>
+                        <div class="text-center">
+                            <span class="error-msg font-weight-bold font-size-100">
+                                ${errorMessage}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <i class="error-msg fas fa-exclamation-triangle mr-2"></i>
+                        </div>
+                    </div>`);
 }
 
 
