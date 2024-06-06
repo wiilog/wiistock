@@ -70,12 +70,12 @@ jobs:
 
             -   name: Start containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
-
+            -   name: show logs
+                run: docker logs wiistock-cypress_php
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
-            -   name: show logs
-                run: docker logs wiistock-cypress_php
+
 
 #            -   name: get the version of wiistock config/services.yaml and store it in the environment
 #                run: |
