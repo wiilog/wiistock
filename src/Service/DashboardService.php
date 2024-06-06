@@ -620,7 +620,9 @@ class DashboardService {
      * @throws NoResultException
      * @throws Exception
      */
-    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component) {
+    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component): void
+    {
+
         $config = $component->getConfig();
 
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -668,7 +670,7 @@ class DashboardService {
                         'field' => 'pack.id, emplacement.label'
                     ]
                 )
-            )->reduce(function(array $carry, array $pack) {
+            )->reduce(function (array $carry, array $pack) {
                 if (!isset($carry[$pack['label']])) {
                     $carry[$pack['label']] = [];
                 }
@@ -682,9 +684,8 @@ class DashboardService {
             $segments = $config['segments'];
             $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
-            $lastSegmentKey = count($segments);
-            $lastSegment = $segments[$lastSegmentKey - 1];
-            $adminDelay = "$lastSegment:00";
+            $lastSegmentKey = count($segments) - 1;
+            $adminDelay = "$segments[$lastSegmentKey]:00";
 
             $truckArrivalTime = $config['truckArrivalTime'] ?? null;
 
@@ -726,28 +727,8 @@ class DashboardService {
                             }
                             $countByNature[$pack['natureLabel']]++;
 
-                            $currentLocationLabel = $pack['currentLocationLabel'];
-                            $currentLocationId = $pack['currentLocationId'];
-                            $lastTrackingDateTime = $pack['lastTrackingDateTime'];
-
-                            // get older pack
-                            if ((
-                                    empty($olderPackLocation['locationLabel'])
-                                    || empty($olderPackLocation['locationId'])
-                                    || empty($olderPackLocation['packDateTime'])
-                                )
-                                || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)) {
-                                $olderPackLocation['locationLabel'] = $currentLocationLabel;
-                                $olderPackLocation['locationId'] = $currentLocationId;
-                                $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
-                            }
-
-                            // increment counters
-                            if (empty($locationCounters[$currentLocationId])) {
-                                $locationCounters[$currentLocationId] = 0;
-                            }
-
-                            $locationCounters[$currentLocationId]++;
+                            $this->updateOlderPackLocation($olderPackLocation, $pack);
+                            $locationCounters[$pack['currentLocationId']] = ($locationCounters[$pack['currentLocationId']] ?? 0) + 1;
                             $globalCounter++;
                         } else {
                             $packUntreated[] = $pack;
@@ -765,13 +746,9 @@ class DashboardService {
             });
         }
 
-        $totalToDisplay = !empty($olderPackLocation['locationId'])
-            ? $globalCounter
-            : null;
+        $totalToDisplay = $olderPackLocation['locationId'] ? $globalCounter : null;
 
-        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
-            ? $olderPackLocation['locationLabel']
-            : null;
+        $locationToDisplay = $olderPackLocation['locationLabel'] ?? null;
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
@@ -790,8 +767,20 @@ class DashboardService {
                 )
             )
             ->setData($graphData)
-            ->setTotal(!empty($totalToDisplay) ? $totalToDisplay : '-')
-            ->setLocation(!empty($locationToDisplay) ? $locationToDisplay : '-');
+            ->setTotal($totalToDisplay ?? '-')
+            ->setLocation($locationToDisplay ?? '-');
+    }
+
+    private function updateOlderPackLocation(array &$olderPackLocation, array $pack): void
+    {
+        if (empty($olderPackLocation['locationLabel']) || empty($olderPackLocation['locationId'])
+            || empty($olderPackLocation['packDateTime'])
+            || $olderPackLocation['packDateTime'] > $pack['lastTrackingDateTime'])
+        {
+            $olderPackLocation['locationLabel'] = $pack['currentLocationLabel'];
+            $olderPackLocation['locationId'] = $pack['currentLocationId'];
+            $olderPackLocation['packDateTime'] = $pack['lastTrackingDateTime'];
+        }
     }
 
     /**
