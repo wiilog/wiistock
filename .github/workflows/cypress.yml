@@ -74,6 +74,9 @@ jobs:
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
+            -   name: show logs
+                run: docker logs wiistock-cypress_php
+
 #            -   name: get the version of wiistock config/services.yaml and store it in the environment
 #                run: |
 #                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
