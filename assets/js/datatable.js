@@ -339,6 +339,16 @@ export function initDataTable($table, options) {
     }
 
     datatableToReturn = $table
+        .on(`preInit.dt`, function (e, settings, data) {
+            const previousAction = $table.data(`previous-action`);
+            if (previousAction) {
+                settings.ajax.data = {
+                    'previousAction': previousAction,
+                };
+
+                return data;
+            }
+        })
         .on(`error.dt`, function (e, settings, techNote, message) {
             console.error(`An error has been reported by DataTables: `, message, e, $table.attr(`id`));
         })
