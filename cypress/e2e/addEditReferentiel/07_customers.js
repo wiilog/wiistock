@@ -1,5 +1,6 @@
-import routes, {interceptRoute} from "../../support/utils/routes";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user = Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
 describe('Add and edit components in Referentiel > Clients', () => {
     beforeEach(() => {
@@ -10,6 +11,7 @@ describe('Add and edit components in Referentiel > Clients', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'customer_index');
+        uncaughtException();
     })
 
     it('should add a new customer', () => {

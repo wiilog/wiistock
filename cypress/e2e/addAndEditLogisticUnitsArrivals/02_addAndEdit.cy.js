@@ -1,15 +1,12 @@
-import {capitalizeFirstLetter, getColumnIndexByColumnName} from "../support/utils";
-import routes, {interceptRoute} from "../support/utils/routes";
-import {uncaughtException} from "../support/utils";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
+import {capitalizeFirstLetter, getColumnIndexByColumnName} from "/cypress/support/utils";
+const user= Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
-const user = Cypress.config('user');
-
-const linesTableFreeFieldsComponent = 'table[data-table-processing=fixedFields] tbody tr';
 
 const numberPacksNature1 = 1;
 const numberPacksNature2 = 4;
-
-const LUArrivals = {
+const arrival = {
     fournisseur: 'FOURNISSEUR',
     transporteur: 'DHL',
     chauffeur: 'Georges',
@@ -30,7 +27,7 @@ const LUArrivals = {
     numberPacks: numberPacksNature1 + numberPacksNature2,
 }
 
-const LUArrivalsChanged = {
+const arrivalChanged = {
     fournisseur: 'SAMSUNG',
     transporteur: 'GT',
     chauffeur: 'Marcel GEORGES',
@@ -47,7 +44,7 @@ const LUArrivalsChanged = {
     file: 'logo.jpg',
 }
 
-const newLU = {
+const newUL = {
     project: 'PROJET',
 }
 
@@ -62,96 +59,6 @@ const disputeChanged = {
     reporter: 'Admin',
     status: 'Traité',
 }
-
-describe('Setup the environment', () => {
-    it('Reset the db', () => {
-        cy.startingCypressEnvironnement(true)
-        uncaughtException();
-    });
-})
-
-describe('Get the right permissions for logistic units arrivals', () => {
-    beforeEach(() => {
-        interceptRoute(routes.settings_save);
-        interceptRoute(routes.settings_free_field_api);
-
-        cy.login(user);
-        cy.visit('/');
-        cy.openSettingsItem('arrivages');
-    })
-
-    it('should get the right permissions', () => {
-        cy.get(`[data-menu=configurations] input[type=checkbox]`)
-            .uncheck({force: true});
-        cy.get(`[data-menu=configurations] [data-name=AUTO_PRINT_LU] input[type=checkbox]`)
-            .check({force: true});
-        cy.get(`[data-menu=configurations] [data-name=SEND_MAIL_AFTER_NEW_ARRIVAL] input[type=checkbox]`)
-            .check({force: true});
-
-        cy.get('[data-menu=configurations]').then(($item) => {
-            const selects = [
-                {
-                    name: 'MVT_DEPOSE_DESTINATION',
-                },
-                {
-                    name: 'DROP_OFF_LOCATION_IF_CUSTOMS',
-                },
-                {
-                    name: 'DROP_OFF_LOCATION_IF_EMERGENCY',
-                }
-            ]
-
-            selects.forEach((select) => {
-                if ($item.find(`select[name=${select.name}]`).siblings('.select2').find('.select2-selection__clear').length) {
-                    cy.get(`select[name=${select.name}]`)
-                        .siblings('.select2')
-                        .find('.select2-selection__clear')
-                        .click();
-                }
-            })
-        })
-
-        cy.get('button.save-settings')
-            .click();
-        cy.get(`[data-menu=champs_fixes]`)
-            .eq(0)
-            .first()
-            .click();
-
-        // check the table has at least one line
-        cy.get(linesTableFreeFieldsComponent)
-            .find('td', {timeout: 10000})
-            .should('have.length.gt', 1);
-        // uncheck all the checkboxes
-        cy.get(`[data-menu=champs_fixes] input[type=checkbox]`)
-            .uncheck({force: true});
-
-
-        const columnsToCheck = [];
-        const columnsToCheckName = ["Afficher","Obligatoire"];
-
-        // get the index of the columns with her name
-        cy.get("#table-arrival-fixed-fields thead tr[role=row] th").then(($ths) => {
-            $ths.each((index, th) => {
-                if (columnsToCheckName.includes(th.textContent)) {
-                    // get the index of the columns to check in the datatable
-                    // -4 because the first 4 columns come from ??
-                    columnsToCheck.push(index - 4);
-                }
-            });
-        })
-
-        cy.get(linesTableFreeFieldsComponent).each((tr) => {
-            columnsToCheck.forEach((columnIndex) => {
-                cy.wrap(tr).find(`td:eq(${columnIndex}) input[type=checkbox]`)
-                    .check({force: true});
-            });
-        });
-
-        cy.get('button.save-settings')
-            .click().wait('@settings_save');
-    })
-})
 
 describe('Add and edit logistic units arrivals', () => {
 
@@ -176,76 +83,78 @@ describe('Add and edit logistic units arrivals', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('traca', 'arrivage_index');
+        uncaughtException();
+
     })
 
-        it("should add a new logistic units arrivals without the redirect after a new arrival", () => {
+    it("should add a new logistic units arrivals without the redirect after a new arrival", () => {
 
-            const selectorModal = '#modalNewArrivage';
+        const selectorModal = '#modalNewArrivage';
 
-            // click btn new Arrival and verify the modal is visible
-            cy.openModal(selectorModal, 'noProject', 'button[name=new-arrival]')
+        // click btn new Arrival and verify the modal is visible
+        cy.openModal(selectorModal, 'noProject', 'button[name=new-arrival]')
 
-            //select2ajax
-            cy.select2Ajax('fournisseur', LUArrivals.fournisseur, "modalNewArrivage");
+        //select2ajax
+        cy.select2Ajax('fournisseur', arrival.fournisseur, "modalNewArrivage");
 
-            cy.select2Ajax('dropLocation', LUArrivals.dropLocation, "modalNewArrivage");
-            cy.select2Ajax('project', LUArrivals.project);
+        cy.select2Ajax('dropLocation', arrival.dropLocation, "modalNewArrivage");
+        cy.select2Ajax('project', arrival.project);
 
-            //select2
-            cy.select2('transporteur', LUArrivals.transporteur);
-            cy.select2('chauffeur', LUArrivals.chauffeur);
-            cy.select2('numeroCommandeList', [LUArrivals.firstNumeroCommandeList, LUArrivals.secondNumeroCommandeList]);
-            cy.select2('receivers', [LUArrivals.destinataire], 400);
-            cy.select2('acheteurs', [LUArrivals.firstAcheteurs, LUArrivals.secondAcheteurs], 300);
+        //select2
+        cy.select2('transporteur', arrival.transporteur);
+        cy.select2('chauffeur', arrival.chauffeur);
+        cy.select2('numeroCommandeList', [arrival.firstNumeroCommandeList, arrival.secondNumeroCommandeList]);
+        cy.select2('receivers', [arrival.destinataire], 400);
+        cy.select2('acheteurs', [arrival.firstAcheteurs, arrival.secondAcheteurs], 300);
 
-            //input
-            cy.typeInModalInputs(selectorModal, {
-                noTracking: LUArrivals.noTracking,
-                noProject: LUArrivals.noProject,
-            })
-
-            cy.get('input[name=packs]')
-                .first()
-                .click()
-                .clear()
-                .type(`${numberPacksNature1}`);
-            cy.get('input[name=packs]')
-                .last()
-                .click()
-                .clear()
-                .type(`${numberPacksNature2}`);
-
-            //select
-            cy.selectInModal(selectorModal, 'type', LUArrivals.type);
-            cy.selectInModal(selectorModal, 'status', LUArrivals.statut);
-            cy.selectInModal(selectorModal, 'businessUnit', LUArrivals.businessUnit);
-
-            //checkbox
-            cy.checkCheckbox(selectorModal, 'input[name=customs]', true);
-            cy.checkCheckbox(selectorModal, 'input[name=frozen]', true);
-            cy.checkCheckbox(selectorModal, 'input[name=printArrivage]', false);
-            cy.checkCheckbox(selectorModal, 'input[name=printPacks]', false);
-
-            // comment
-            cy.get('.ql-editor')
-                .click()
-                .type(LUArrivals.comment);
-
-            // put file in the input
-            cy.get('input[type=file]')
-                .selectFile(`cypress/fixtures/${LUArrivals.file}`, {force: true});
-
-            cy.getTheDate().then(logisticUnitsArrivalCreationDate => {
-                cy.wrap(logisticUnitsArrivalCreationDate).as('logisticUnitsArrivalCreationDate');
-            })
-
-            cy.closeAndVerifyModal(selectorModal, null, 'arrivage_new', true);
-
-            cy.get('#alert-modal', {timeout: 30000})
-                .should('be.visible');
-
-            cy.preventPageLoading();
+        //input
+        cy.typeInModalInputs(selectorModal, {
+            noTracking: arrival.noTracking,
+            noProject: arrival.noProject,
         })
+
+        cy.get('input[name=packs]')
+            .first()
+            .click()
+            .clear()
+            .type(`${numberPacksNature1}`);
+        cy.get('input[name=packs]')
+            .last()
+            .click()
+            .clear()
+            .type(`${numberPacksNature2}`);
+
+        //select
+        cy.selectInModal(selectorModal, 'type', arrival.type);
+        cy.selectInModal(selectorModal, 'status', arrival.statut);
+        cy.selectInModal(selectorModal, 'businessUnit', arrival.businessUnit);
+
+        //checkbox
+        cy.checkCheckbox(selectorModal, 'input[name=customs]', true);
+        cy.checkCheckbox(selectorModal, 'input[name=frozen]', true);
+        cy.checkCheckbox(selectorModal, 'input[name=printArrivage]', false);
+        cy.checkCheckbox(selectorModal, 'input[name=printPacks]', false);
+
+        // comment
+        cy.get('.ql-editor')
+            .click()
+            .type(arrival.comment);
+
+        // put file in the input
+        cy.get('input[type=file]')
+            .selectFile(`cypress/fixtures/${arrival.file}`, {force: true});
+
+        cy.getTheDate().then(logisticUnitsArrivalCreationDate => {
+            cy.wrap(logisticUnitsArrivalCreationDate).as('logisticUnitsArrivalCreationDate');
+        })
+
+        cy.closeAndVerifyModal(selectorModal, null, 'arrivage_new', true);
+
+        cy.get('#alert-modal', {timeout: 30000})
+            .should('be.visible');
+
+        cy.preventPageLoading();
+    })
 
     it("should check all checkboxes in column management modal ", () => {
         cy.checkAllInColumnManagement('.arrival-mode-container');
@@ -265,7 +174,7 @@ describe('Add and edit logistic units arrivals', () => {
             "Nombre d'UL": "numberPacks",
         }
 
-        cy.checkDataInDatatable(LUArrivals, 'type', 'arrivalsTable', propertiesMaps, ['project', 'comment', 'dropLocation', 'file', 'firstAcheteurs', 'secondAcheteurs', 'firstNumeroCommandeList', 'secondNumeroCommandeList'])
+        cy.checkDataInDatatable(arrival, 'type', 'arrivalsTable', propertiesMaps, ['project', 'comment', 'dropLocation', 'file', 'firstAcheteurs', 'secondAcheteurs', 'firstNumeroCommandeList', 'secondNumeroCommandeList'])
     })
 
     it("should add a new dispute", () => {
@@ -437,7 +346,7 @@ describe('Add and edit logistic units arrivals', () => {
             .click();
 
         cy.get(`${selectorModalAddPacks} [name=project]`)
-            .select(newLU.project);
+            .select(newUL.project);
 
         // get all inputs[name=pack] and fill them with the random number of logistic units
         cy.get('input[name=pack]').each(($input) => {
@@ -459,12 +368,12 @@ describe('Add and edit logistic units arrivals', () => {
         const selectorArrivalsTable = '#arrivalsTable';
 
         // get logistic units number to check it after
-       getColumnIndexByColumnName("N° d'arrivage UL",'arrivalsTable').then((index) => {
-           cy.get('#arrivalsTable tbody tr').last().find('td').eq(index).then(($text) => {
-               const logisticUnitsNumber = $text.text();
-               cy.wrap(logisticUnitsNumber).as('logisticUnitsNumber');
-           })
-       })
+        getColumnIndexByColumnName("N° d'arrivage UL",'arrivalsTable').then((index) => {
+            cy.get('#arrivalsTable tbody tr').last().find('td').eq(index).then(($text) => {
+                const logisticUnitsNumber = $text.text();
+                cy.wrap(logisticUnitsNumber).as('logisticUnitsNumber');
+            })
+        })
 
         // click on the last logistic units arrivals to check the new logistic units
         // bug if we just use .last().click() so we need to use .last().find('td').eq(2).click()
@@ -500,7 +409,7 @@ describe('Add and edit logistic units arrivals', () => {
                 .last()
                 .find('td')
                 .eq(index)
-                .contains(newLU.project);
+                .contains(newUL.project);
         });
     })
 
@@ -514,9 +423,9 @@ describe('Add and edit logistic units arrivals', () => {
             .wait('@arrivage_edit_api');
 
         // select2ajax
-        cy.select2Ajax('fournisseur', LUArrivalsChanged.fournisseur, '', true, '', false);
-        cy.select2Ajax('transporteur', LUArrivalsChanged.transporteur, '', true, '', false);
-        cy.select2Ajax('chauffeur', LUArrivalsChanged.chauffeur, '', true, '', false);
+        cy.select2Ajax('fournisseur', arrivalChanged.fournisseur, '', true, '', false);
+        cy.select2Ajax('transporteur', arrivalChanged.transporteur, '', true, '', false);
+        cy.select2Ajax('chauffeur', arrivalChanged.chauffeur, '', true, '', false);
 
         // remove the first and the second numeroCommandeList if they are already selected
         cy.clearSelect2("numeroCommandeList", "modalEditArrivage");
@@ -524,33 +433,33 @@ describe('Add and edit logistic units arrivals', () => {
         cy.clearSelect2("receivers", "modalEditArrivage");
 
         // refill the select2
-        cy.select2('numeroCommandeList', [LUArrivalsChanged.firstNumeroCommandeList, LUArrivalsChanged.secondNumeroCommandeList]);
-        cy.select2('acheteurs', [LUArrivalsChanged.firstAcheteurs, LUArrivalsChanged.secondAcheteurs]);
-        cy.select2('receivers', [LUArrivalsChanged.destinataire,LUArrivalsChanged.firstAcheteurs], 300);
+        cy.select2('numeroCommandeList', [arrivalChanged.firstNumeroCommandeList, arrivalChanged.secondNumeroCommandeList]);
+        cy.select2('acheteurs', [arrivalChanged.firstAcheteurs, arrivalChanged.secondAcheteurs]);
+        cy.select2('receivers', [arrivalChanged.destinataire,arrivalChanged.firstAcheteurs], 300);
 
         cy.get(`${selectorModalEditArrivage} select[name=statut]`)
-            .select(LUArrivalsChanged.statut, {force: true});
+            .select(arrivalChanged.statut, {force: true});
         cy.get('[name=businessUnit]')
-            .select(LUArrivalsChanged.businessUnit, {force: true});
+            .select(arrivalChanged.businessUnit, {force: true});
 
         // type in inputs with name attribute
         cy.typeInModalInputs(selectorModalEditArrivage, {
-            noProject: LUArrivalsChanged.noProject,
-            noTracking: LUArrivalsChanged.noTracking,
+            noProject: arrivalChanged.noProject,
+            noTracking: arrivalChanged.noTracking,
         });
         // fill comment
         cy.get('.ql-editor')
             .click()
             .clear()
-            .type(LUArrivalsChanged.comment);
+            .type(arrivalChanged.comment);
 
         // remove the file if it's already selected
         cy.get(selectorModalEditArrivage).then(($modal) => {
-            if ($modal.find(`a[data-original-title="${LUArrivals.file}"]`).siblings('svg').length) {
-                cy.get(`a[data-original-title="${LUArrivals.file}"]`).siblings('svg').then(($elements) => {
+            if ($modal.find(`a[data-original-title="${arrival.file}"]`).siblings('svg').length) {
+                cy.get(`a[data-original-title="${arrival.file}"]`).siblings('svg').then(($elements) => {
                     const numElements = $elements.length;
                     for (let i = 0; i < numElements; i++) {
-                        cy.get(`a[data-original-title="${LUArrivals.file}"]`).siblings('svg')
+                        cy.get(`a[data-original-title="${arrival.file}"]`).siblings('svg')
                             .eq(0)
                             .click();
                     }
@@ -559,7 +468,7 @@ describe('Add and edit logistic units arrivals', () => {
         })
         // put file in the input
         cy.get('input[type=file]')
-            .selectFile(`cypress/fixtures/${LUArrivalsChanged.file}`, {force: true});
+            .selectFile(`cypress/fixtures/${arrivalChanged.file}`, {force: true});
 
         // close the modal and verify the response
         cy.closeAndVerifyModal(selectorModalEditArrivage, 'submitEditArrivage', 'arrivage_edit');
@@ -569,17 +478,17 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click();
 
         const fieldsToCheck = [
-            { title: 'Statut', value: capitalizeFirstLetter(LUArrivalsChanged.statut) },
-            { title: 'Fournisseur', value: LUArrivalsChanged.fournisseur },
-            { title: 'Transporteur', value: LUArrivalsChanged.transporteur },
-            { title: 'Chauffeur', value: LUArrivalsChanged.chauffeur },
-            { title: 'N° tracking transporteur', value: LUArrivalsChanged.noTracking },
-            { title: 'N° commande / BL', value: [LUArrivalsChanged.firstNumeroCommandeList, LUArrivalsChanged.secondNumeroCommandeList] },
-            { title: 'Destinataire(s)', value: LUArrivalsChanged.destinataire },
-            { title: 'Acheteur(s)', value: [LUArrivalsChanged.firstAcheteurs, LUArrivalsChanged.secondAcheteurs] },
-            { title: 'Numéro de projet', value: LUArrivalsChanged.noProject },
-            { title: 'Business unit', value: LUArrivalsChanged.businessUnit },
-            { title: 'Commentaire', value: LUArrivalsChanged.comment }
+            { title: 'Statut', value: capitalizeFirstLetter(arrivalChanged.statut) },
+            { title: 'Fournisseur', value: arrivalChanged.fournisseur },
+            { title: 'Transporteur', value: arrivalChanged.transporteur },
+            { title: 'Chauffeur', value: arrivalChanged.chauffeur.split(' ')[0] },
+            { title: 'N° tracking transporteur', value: arrivalChanged.noTracking },
+            { title: 'N° commande / BL', value: [arrivalChanged.firstNumeroCommandeList, arrivalChanged.secondNumeroCommandeList] },
+            { title: 'Destinataire(s)', value: arrivalChanged.destinataire },
+            { title: 'Acheteur(s)', value: [arrivalChanged.firstAcheteurs, arrivalChanged.secondAcheteurs] },
+            { title: 'Numéro de projet', value: arrivalChanged.noProject },
+            { title: 'Business unit', value: arrivalChanged.businessUnit },
+            { title: 'Commentaire', value: arrivalChanged.comment }
         ];
 
         fieldsToCheck.forEach(({ title, value }) => {
@@ -593,13 +502,12 @@ describe('Add and edit logistic units arrivals', () => {
                 cy.get(`[title='${title}']`)
                     .parent()
                     .siblings()
-                    .contains(value);
+                    .contains(value, { matchCase: false });
             }
         });
 
         cy.get('[title=Douane]').parent().siblings().contains('Non');
         cy.get('[title=Congelé]').parent().siblings().contains('Non');
-        cy.get('a[download]').contains(LUArrivalsChanged.file);
+        cy.get('a[download]').contains(arrivalChanged.file);
     })
 })
-

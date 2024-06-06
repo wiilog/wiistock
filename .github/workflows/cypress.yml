@@ -1,17 +1,13 @@
 name: run-cypress
 
 on:
-#    pull_request:
-#        branches:
-#            - "*"
-    push:
+    pull_request:
         branches:
-            - "WIIS-11016-cypress"
+            - "*"
 
-#
-#concurrency:
-#    group: ${{ github.head_ref }}
-#    cancel-in-progress: true
+concurrency:
+    group: ${{ github.head_ref }}
+    cancel-in-progress: true
 
 jobs:
     cypress-run:
@@ -40,8 +36,7 @@ jobs:
                 uses: actions/checkout@v4
                 with:
                     repository: wiilog/wiistock
-#                    ref: ${{ github.event.pull_request.head.sha }}
-                    ref: WIIS-11016-cypress
+                    ref: ${{ github.event.pull_request.head.sha }}
                     path: projects/wiistock
 
             -   name: Login to docker hub
