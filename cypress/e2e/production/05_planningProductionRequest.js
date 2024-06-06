@@ -1,10 +1,15 @@
 import routes, { interceptRoute } from "/cypress/support/utils/routes";
-const user = Cypress.config('user');
-import '@4tw/cypress-drag-drop'
-import 'cypress-real-events'
+import {uncaughtException} from "/cypress/support/utils";
+import {inProgress, toTreat, processed} from '/cypress/support/utils/statusConstants';
 
+const user = Cypress.config('user');
+const modalUpdateStatus = 'modalUpdateProductionRequestStatus';
+const openModalUpdateProductionRequestStatus = 'div.open-modal-update-production-request-status';
+const expectedAt = "2024-05-28";
+const productionRequestCardColumn = `div.production-request-card-column[data-date=${expectedAt}]`;
 describe('Test of the production request', () => {
     beforeEach(() => {
+        uncaughtException();
         interceptRoute(routes.production_update_status);
         interceptRoute(routes.production_request_planning_api_test)
         cy.login(user);
@@ -23,8 +28,6 @@ describe('Test of the production request', () => {
     });
 
     it('The production request should be present with the informations', () => {
-        const status = 'A Traiter';
-        const expectedAt = "2024-05-28";
         const productionRequest = {
             'Numéro d\'OF': '1',
             'Code produit/article': '1',
@@ -32,21 +35,27 @@ describe('Test of the production request', () => {
             'Quantité': '5',
             'Nombre de lignes': '1',
             'Numéro projet': '1',
+            // Utilisation d'un string et non d'un booleen car la carte contient un string pour indiquer s'il y a une pièce jointe où non.
             'Pièces jointes': 'Oui',
+            // Utilisation d'un string et non d'un booleen car la valeur peut avoir plus de deux valeurs possible.
             'yesNo': 'Non',
         };
 
-        cy.get(`div.production-request-card-column[data-date=${expectedAt}]`).find('a.planning-card')
+        cy
+            .get(productionRequestCardColumn)
+            .find('a.planning-card') //Recupération de la carte pour un jour donné.
             .then((card) => {
-                cy.wrap(card)
-                    .find('div.open-modal-update-production-request-status')
+                cy
+                    .wrap(card)
+                    .find(openModalUpdateProductionRequestStatus)
                     .children()
                     .invoke('text')
                     .then((statusValue) => {
-                        expect(statusValue.trim()).to.equal(status);
+                        expect(statusValue.trim()).to.equal(toTreat);//Vérification du statut
                     });
                 for (const key in productionRequest) {
-                    cy.wrap(card)
+                    cy
+                        .wrap(card)
                         .find(`div[data-field-label="${key}"]`)
                         .children()
                         .invoke('text')
@@ -58,25 +67,29 @@ describe('Test of the production request', () => {
     });
 
     it('Change the status to in progress', () => {
-        const expectedAt = "2024-05-28";
-        const inProgress = "En cours";
-
-        cy.get(`div.production-request-card-column[data-date=${expectedAt}]`).find('a.planning-card')
+        cy
+            .get(productionRequestCardColumn)
+            .find('a.planning-card')
             .then((card) => {
-                cy.wrap(card)
-                    .find('div.open-modal-update-production-request-status')
+                cy
+                    .wrap(card)
+                    .find(openModalUpdateProductionRequestStatus)
                     .click()
             });
-        cy.log(routes.production_request_planning_api_test.route )
-        cy.get('#modalUpdateProductionRequestStatus').should('be.visible', {timeout: 8000}).then(() => {
-            cy.select2Ajax('status', inProgress, 'modalUpdateProductionRequestStatus', true, 'production_request_planning_api_test', false);
-            cy.closeAndVerifyModal('#modalUpdateProductionRequestStatus', 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
-            cy.wait(1000);
-        });
-        cy.get(`div.production-request-card-column[data-date=${expectedAt}]`).find('a.planning-card')
+        cy
+            .get(`#${modalUpdateStatus}`).should('be.visible', {timeout: 8000})
+            .then(() => {
+                cy.select2Ajax('status', inProgress, modalUpdateStatus, true, 'production_request_planning_api_test', false);
+                cy.closeAndVerifyModal(`#${modalUpdateStatus}`, 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
+                cy.wait(1000);
+            });
+        cy
+            .get(productionRequestCardColumn)
+            .find('a.planning-card')
                 .then((card) => {
-                    cy.wrap(card)
-                        .find('div.open-modal-update-production-request-status')
+                    cy
+                        .wrap(card)
+                        .find(openModalUpdateProductionRequestStatus)
                         .children()
                         .invoke('text')
                         .then((statusValue) => {
@@ -86,25 +99,29 @@ describe('Test of the production request', () => {
     });
 
     it('Change the status to processed', () => {
-        const expectedAt = "2024-05-28";
-        const processed = "Traité";
-
-        cy.get(`div.production-request-card-column[data-date=${expectedAt}]`).find('a.planning-card')
+        cy
+            .get(productionRequestCardColumn)
+            .find('a.planning-card')
             .then((card) => {
-                cy.wrap(card)
-                    .find('div.open-modal-update-production-request-status')
-                    .click()
+                cy
+                    .wrap(card)
+                    .find(openModalUpdateProductionRequestStatus)
+                    .click();
             });
-        cy.log(routes.production_request_planning_api_test.route )
-        cy.get('#modalUpdateProductionRequestStatus').should('be.visible', {timeout: 8000}).then(() => {
-            cy.select2Ajax('status', processed, 'modalUpdateProductionRequestStatus', true, 'production_request_planning_api_test', false);
-            cy.closeAndVerifyModal('#modalUpdateProductionRequestStatus', 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
-            cy.wait(1000);
-        });
-        cy.get(`div.production-request-card-column[data-date=${expectedAt}]`).find('a.planning-card')
+        cy
+            .get(`#${modalUpdateStatus}`).should('be.visible', {timeout: 8000})
+            .then(() => {
+                cy.select2Ajax('status', processed, modalUpdateStatus, true, 'production_request_planning_api_test', false);
+                cy.closeAndVerifyModal(`#${modalUpdateStatus}`, 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
+                cy.wait(1000);
+            });
+        cy
+            .get(productionRequestCardColumn)
+            .find('a.planning-card')
             .then((card) => {
-                cy.wrap(card)
-                    .find('div.open-modal-update-production-request-status')
+                cy
+                    .wrap(card)
+                    .find(openModalUpdateProductionRequestStatus)
                     .children()
                     .invoke('text')
                     .then((statusValue) => {

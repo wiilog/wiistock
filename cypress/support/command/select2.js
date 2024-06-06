@@ -1,4 +1,4 @@
-import {defaultTypeSpeed} from '../utils/constants';
+import {defaultTypeSpeed} from '../utils/cypressConfigConstants';
 
 Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldClick = true, requestAlias = '/select/*', shouldWait = true) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
@@ -17,7 +17,6 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
         .then(() => {
             if (shouldWait) {
                 cy
-                    .wait(1000)
                     .wait(`@${requestAlias}Request`, {timeout: 20000})
                     .its('response.statusCode').should('eq', 200)
             }

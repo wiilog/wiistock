@@ -1,9 +1,10 @@
 import routes, {interceptRoute} from "/cypress/support/utils/routes";
-import {wrap} from "regenerator-runtime";
 const user = Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
 describe('Delete the production request', () => {
     beforeEach(() => {
+        uncaughtException();
         interceptRoute(routes.production_edit);
         interceptRoute(routes.production_api);
         interceptRoute(routes.production_operation_history_api);
@@ -16,48 +17,35 @@ describe('Delete the production request', () => {
 
     it('Delete the production request', () => {
         let productionRequestId = "P-2024053014490001"
+        const tableProductions = 'tableProductions'
+        const columnNumberId = 1;
 
-        cy.get('#tableProductions_filter').should('be.visible', {timeout: 8000}).then((div) => {
-            cy.wrap(div)
-                .find('input')
-                .type(`${productionRequestId}{enter}`)
-                .wait(1000);
-        });
+        cy.searchInDatatable('#tableProductions_filter', productionRequestId);
 
-        cy.get('table#tableProductions tbody tr')
+        cy
+            .get(`table#${tableProductions} tbody tr`)
             .first()
             .find('td')
-            .eq(1)
+            .eq(columnNumberId)
             .invoke("text")
             .then( (id) => {
                 expect(id.trim()).to.equal(productionRequestId);
             });
 
-        cy.get('table#tableProductions tbody tr')
+        cy
+            .get(`table#${tableProductions} tbody tr`)
             .first()
             .find('td')
-            .eq(1)
+            .eq(columnNumberId)
             .click()
             .wait('@production_operation_history_api');
 
-        cy.get('.dropright.dropdown')
-            .click()
-            .find("span[title=Supprimer]")
-            .click()
-            .wait(200);
+        cy.dropdownDroprightAction('Supprimer');
 
-        cy.get("#confirmation-modal")
-            .find("button[name=request]")
-            .click();
+        cy.confirmModal();
 
-        cy.get('#tableProductions_filter').should('be.visible', {timeout: 8000}).then((div) => {
-           cy.wrap(div)
-               .find('input')
-               .type(`${productionRequestId}{enter}`);
-        });
+        cy.searchInDatatable('#tableProductions_filter', productionRequestId);
 
-        cy.get('#tableProductions')
-            .find('.dataTables_empty')
-            .should("be.visible");
+        cy.checkDatatableIsEmpty(`#${tableProductions}`);
     });
 });

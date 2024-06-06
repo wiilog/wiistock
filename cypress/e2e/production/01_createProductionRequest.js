@@ -1,8 +1,12 @@
 import routes, {interceptRoute} from "/cypress/support/utils/routes";
+import {uncaughtException} from "/cypress/support/utils";
+
 const user = Cypress.config('user');
+const selectorModal = 'modalNewProductionRequest';
 
 describe('create a production request', () => {
     beforeEach(() => {
+        uncaughtException();
         interceptRoute(routes.production_new);
         interceptRoute(routes.production_api);
 
@@ -13,23 +17,21 @@ describe('create a production request', () => {
     it('Opening production request creation modal from production request page', () =>{
         cy.navigateInNavMenu('menu-production', 'production_request_index');
         cy.navigateInQuickMoreMenu('production');
-        cy.get('#modalNewProductionRequest').should('be.visible', { timeout: 8000 });
+        cy.get(`#${selectorModal}`).should('be.visible', { timeout: 8000 });
     });
 
     it('Opening production request creation modal from home page', () =>{
         cy.navigateInQuickMoreMenu('production');
-        cy.get('#modalNewProductionRequest').should('be.visible', { timeout: 8000 });
+        cy.get(`#${selectorModal}`).should('be.visible', { timeout: 8000 });
     });
 
     it('should add a new production request', () => {
         cy.navigateInQuickMoreMenu('production');
-        const selectorModal = '#modalNewProductionRequest';
         const date = new Date(Date.now()).toISOString();
         const newProductionRequest = {
             type: 'standard',
             manufacturingOrderNumber: '01',
             productArticleCode: '02',
-            //TODO voir pour la date par rapport au format de l'utilisateur.
             expectedAt: date.substring(0, 16),
             dropLocation: 'BUREAU GT',
             quantity: 10,
@@ -50,6 +52,7 @@ describe('create a production request', () => {
         };
         const freeFields = {
             cypress: 'cypressTest',
+            // Utilisation d'un string et non d'un booleen car la valeur peut avoir plus de deux valeurs possible.
             yesNo: 'Oui',
             date: date.substring(0,10),
             numeric: 50,
@@ -57,23 +60,18 @@ describe('create a production request', () => {
             selectSimple: 'select',
         };
 
-        cy.get(selectorModal).should('be.visible', { timeout: 8000 }).then(() => {
+        cy.get(`#${selectorModal}`).should('be.visible', { timeout: 8000 }).then(() => {
             // Type in the inputs
-            //TODO : Voir Pourquoi shouldWait doit être à false pour type le wait ne récupère pas la réponse.
-            cy.select2Ajax('type', newProductionRequest.type, 'modalNewProductionRequest', true, '/select/*', false);
-            cy.select2Ajax('dropLocation', newProductionRequest.dropLocation, 'modalNewProductionRequest');
-            cy.typeInModalInputs(selectorModal, newProductionRequest, ['type', 'dropLocation', 'comment', 'file']);
+            cy.select2Ajax('type', newProductionRequest.type, selectorModal, true, '/select/*', false);
+            cy.select2Ajax('dropLocation', newProductionRequest.dropLocation, selectorModal);
+            cy.typeInModalInputs(`#${selectorModal}`, newProductionRequest, ['type', 'dropLocation', 'comment', 'file']);
             cy.fillFreeFields(freeFields);
             // comment
-            cy.get('.ql-editor')
-                .click()
-                .type(newProductionRequest.comment);
+            cy.fillComment('.ql-editor', newProductionRequest.comment);
             // put file in the input
-            cy.get('input[type=file]')
-                .selectFile(`cypress/fixtures/${newProductionRequest.file}`, {force: true});
-
+            cy.fillFileInput(`cypress/fixtures/${newProductionRequest.file}`)
             // Close and verify modal
-            cy.closeAndVerifyModal(selectorModal, 'submitNewProductionRequest', 'production_new',true);
+            cy.closeAndVerifyModal(`#${selectorModal}`, 'submitNewProductionRequest', 'production_new', true);
 
             // Wait for the datatable to be reloaded
             cy.wait('@production_api');
@@ -84,7 +82,7 @@ describe('create a production request', () => {
         });
 
         // Ensure modal is not visible
-        cy.get(selectorModal).should('not.be.visible');
+        cy.get(`#${selectorModal}`).should('not.be.visible');
 
     });
 });

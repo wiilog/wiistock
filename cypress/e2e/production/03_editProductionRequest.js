@@ -1,8 +1,14 @@
 import routes, {interceptRoute} from "/cypress/support/utils/routes";
+import {uncaughtException} from "/cypress/support/utils";
+import {inProgress, toTreat, processed} from '/cypress/support/utils/statusConstants';
+
 const user = Cypress.config('user');
+const selectorUpdateModal = 'modalUpdateProductionRequestStatus';
+const buttonUpdateStatus= '.open-modal-update-production-request-status';
 
 describe('edit a production request', () => {
     beforeEach(() => {
+        uncaughtException();
         interceptRoute(routes.production_edit);
         interceptRoute(routes.production_api);
         interceptRoute(routes.production_operation_history_api);
@@ -11,109 +17,67 @@ describe('edit a production request', () => {
         interceptRoute(routes.production_update_status);
 
         cy.login(user);
-        cy.visit('/');
-        cy.navigateInNavMenu('menu-production', 'production_request_index');
-
-        cy.get('#tableProductions_filter').should('be.visible', {timeout: 8000}).then((div) => {
-            cy.wrap(div)
-                .find('input')
-                .type(`P-2024053014430001{enter}`)
-                .wait(1000);
-        });
-
-        cy.get('table#tableProductions tbody tr')
-            .first()
-            .find('td')
-            .eq(1)
-            .click()
-            .wait('@production_operation_history_api');
+        cy.visit('/production/voir/3');
     });
 
     it('should edit a production request', () => {
         const editProductionRequest = {
             comment: 'Cypress2000',
         };
+        const selectorEditModal = 'modalEditProductionRequest';
 
         cy.get('.dropright.dropdown')
             .click()
             .find("span[title=Modifier]")
             .click();
 
-        cy.get('#modalEditProductionRequest').should('be.visible', { timeout: 8000 }).then(() => {
-            cy.get('#modalEditProductionRequest .ql-editor')
-                .click()
-                .clear()
-                .type(editProductionRequest.comment);
-
-            cy.closeAndVerifyModal('#modalEditProductionRequest', 'submitEditProductionRequest', 'production_edit',true);
+        cy.get(`#${selectorEditModal}`).should('be.visible', { timeout: 8000 }).then(() => {
+            cy.fillComment(`#${selectorEditModal} .ql-editor`, editProductionRequest.comment);
+            cy.closeAndVerifyModal(`#${selectorEditModal}`, 'submitEditProductionRequest', 'production_edit',true);
 
         });
 
-        cy.get('.comment-container')
-            .find('p')
-            .invoke('text')
-            .then((text) => {
-                expect(text).to.equal(editProductionRequest.comment)
-            });
+        cy.verifyComment(editProductionRequest.comment)
     });
 
     it('should change the status of production request to in progress', () => {
-        const inProgress = "En cours";
-
-        cy.get('.open-modal-update-production-request-status')
+        cy.get(buttonUpdateStatus)
             .click();
-        cy.get('#modalUpdateProductionRequestStatus').should('be.visible', { timeout: 8000 }).then(() => {
-            cy.select2Ajax('status', inProgress, 'modalUpdateProductionRequestStatus');
 
-            cy.closeAndVerifyModal('#modalUpdateProductionRequestStatus', 'submitEditUpdateStatusProductionRequest', 'production_operation_history_api',true);
+        cy.get(`#${selectorUpdateModal}`).should('be.visible', { timeout: 8000 }).then(() => {
+            cy.select2Ajax('status', inProgress, selectorUpdateModal);
 
-            cy.get('.timeline')
-                .find('strong')
-                .invoke('text')
-                .then((text) => {
-                    expect(text).to.equal(inProgress)
-                });
+            cy.closeAndVerifyModal(`#${selectorUpdateModal}`, 'submitEditUpdateStatusProductionRequest', 'production_operation_history_api',true);
+
+            cy.verifyStatus(inProgress);
         });
     });
 
     it('should change the status of production request to treat', () => {
-        const toTreat = "A Traiter";
-
-        cy.get('.open-modal-update-production-request-status')
+        cy.get(buttonUpdateStatus)
             .click();
-        cy.get('#modalUpdateProductionRequestStatus').should('be.visible', { timeout: 8000 }).then(() => {
-            cy.select2Ajax('status', toTreat, 'modalUpdateProductionRequestStatus');
 
-            cy.closeAndVerifyModal('#modalUpdateProductionRequestStatus', 'submitEditUpdateStatusProductionRequest', 'production_operation_history_api',true);
+        cy.get(`#${selectorUpdateModal}`).should('be.visible', { timeout: 8000 }).then(() => {
+            cy.select2Ajax('status', toTreat, selectorUpdateModal);
 
-            cy.get('.timeline')
-                .find('strong')
-                .invoke('text')
-                .then((text) => {
-                    expect(text).to.equal(toTreat)
-                });
+            cy.closeAndVerifyModal(`#${selectorUpdateModal}`, 'submitEditUpdateStatusProductionRequest', 'production_operation_history_api',true);
+
+            cy.verifyStatus(toTreat);
         });
     });
 
 
     it('should change the status of production request to processed', () => {
-        const processed = "Traité";
-
-        cy.get('.open-modal-update-production-request-status')
+        cy.get(buttonUpdateStatus)
             .click();
-        cy.get('#modalUpdateProductionRequestStatus').should('be.visible', { timeout: 8000 }).then(() => {
-            cy.select2Ajax('status', processed, 'modalUpdateProductionRequestStatus');
+        cy.get(`#${selectorUpdateModal}`).should('be.visible', { timeout: 8000 }).then(() => {
+            cy.select2Ajax('status', processed, selectorUpdateModal);
 
-            cy.closeAndVerifyModal('#modalUpdateProductionRequestStatus', 'submitEditUpdateStatusProductionRequest', 'production_operation_history_api',true);
+            cy.closeAndVerifyModal(`#${selectorUpdateModal}`, 'submitEditUpdateStatusProductionRequest', 'production_operation_history_api',true);
 
-            cy.get('.open-modal-update-production-request-status').should('not.exist');
+            cy.get(buttonUpdateStatus).should('not.exist');
 
-            cy.get('.timeline')
-                .find('strong')
-                .invoke('text')
-                .then((text) => {
-                    expect(text).to.equal(processed)
-                });
+            cy.verifyStatus(processed);
         });
     });
 
@@ -138,17 +102,26 @@ describe('edit a production request', () => {
         Object.keys(propertiesMap).forEach((key) => {
             const propertyKey = propertiesMap[key];
             const expectedValue = productionRequestInformation[propertyKey].toString();
-            cy.contains('.wii-field-name', key).parents('div.row').first().within(() => {
-                cy.get('.wii-body-text').invoke('text').then((fieldValue) => {
-                    expect(fieldValue.trim()).to.equal(expectedValue);
+            //Allows us to search the data of a production request against the array provided by searching for the key
+            cy
+                .contains('.wii-field-name', key)
+                .parents('div.row')
+                .first()
+                .within(() => {
+                    cy
+                        .get('.wii-body-text')
+                        .invoke('text')
+                        .then((fieldValue) => {
+                            expect(fieldValue.trim()).to.equal(expectedValue);
+                        });
                 });
-            });
         });
     });
 
     it('Check if all free data is present', () => {
         const freeFields = {
             cypress: 'cypress2',
+            // Utilisation d'un string et non d'un booleen car la valeur peut avoir plus de deux valeurs possible.
             yesNo: 'Oui',
             numeric: 200,
             selectMultiple: ['dfjdjdjdj', 'select multiple'],
@@ -157,16 +130,23 @@ describe('edit a production request', () => {
 
         Object.keys(freeFields).forEach((key) => {
             const expectedValue = freeFields[key];
-
-            cy.contains('.wii-field-name', key).parents('.flex-column').within(() => {
-                cy.get('.wii-body-text').invoke('text').then((fieldValue) => {
-                    if (Array.isArray(expectedValue)) {
-                        expect(expectedValue.join(", ")).to.equal(fieldValue.trim());
-                    } else {
-                        expect(expectedValue.toString()).to.equal(fieldValue.trim());
-                    }
+            //Allows us to search the data free fields of a production request against the array provided by searching for the key
+            cy
+                .contains('.wii-field-name', key)
+                .parents('.flex-column')
+                .within(() => {
+                    cy
+                        .get('.wii-body-text')
+                        .invoke('text')
+                        .then((fieldValue) => {
+                            if (Array.isArray(expectedValue)) {
+                                //For the multiple select
+                                expect(expectedValue.join(", ")).to.equal(fieldValue.trim());
+                            } else {
+                                expect(expectedValue.toString()).to.equal(fieldValue.trim());
+                            }
+                        });
                 });
-            });
         });
     });
 });
