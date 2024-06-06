@@ -74,16 +74,9 @@ class SensorMessage {
         return $this;
     }
 
-    public function setSensor(?Sensor $sensor): self {
-        if($this->sensor && $this->sensor !== $sensor) {
-            $this->sensor->removeSensorMessage($this);
-        }
+    public function setSensor(?Sensor $sensor): void
+    {
         $this->sensor = $sensor;
-        if($sensor) {
-            $sensor->addSensorMessage($this);
-        }
-
-        return $this;
     }
 
     public function getSensor(): ?Sensor {
