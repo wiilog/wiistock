@@ -74,9 +74,10 @@ class SensorMessage {
         return $this;
     }
 
-    public function setSensor(?Sensor $sensor): void
-    {
+    public function setSensor(?Sensor $sensor): self {
         $this->sensor = $sensor;
+
+        return $this;
     }
 
     public function getSensor(): ?Sensor {
