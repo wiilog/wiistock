@@ -84,3 +84,30 @@ Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelec
     cy.get(`${modalSelector} button[type='submit']`).click();
     cy.get(modalSelector).should('not.be.visible');
 })
+
+/**
+ * Allows us to search in a datatable.
+ * @param selector Id of the div who contains the input.
+ * @param value Value to search.
+ */
+Cypress.Commands.add('searchInDatatable', (selector, value) => {
+    cy
+        .get(selector).should('be.visible', {timeout: 8000}).then((div) => {
+        cy
+            .wrap(div)
+            .find('input')
+            .type(`${value}{enter}`)
+            .wait(1000);
+    });
+})
+
+/**
+ * Allows us to check if the datatable is empty.
+ * @param selector The selector of the datatable.
+ */
+Cypress.Commands.add('checkDatatableIsEmpty', (selector) => {
+    cy
+        .get(selector)
+        .find('.dataTables_empty')
+        .should("be.visible");
+})
