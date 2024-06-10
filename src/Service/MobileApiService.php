@@ -201,25 +201,25 @@ class MobileApiService {
         return $color;
     }
 
-    public function getMobileParameters(SettingRepository $globalsParameters): array {
+    public function getMobileParameters(SettingsService $globalsParameters, EntityManagerInterface $entityManager): array {
         return Stream::from([
-            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
-            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
-            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
-            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
-            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
-            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_FREE_DROP) == 1,
-            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION) == 1,
-            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
-            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES) == 1,
-            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
-            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
-            "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX) ?: null,
-            "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE),
-            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
-            "displayReferenceCodeAndScan" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
-            "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getOneParamByLabel(Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
-            "displayWarningWrongLocation" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
+            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS, $entityManager) == 1,
+            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_VALIDATIONS, $entityManager) == 1,
+            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(Setting::LIVRAISON_SKIP_QUANTITIES, $entityManager) == 1,
+            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS, $entityManager) == 1,
+            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS, $entityManager) == 1,
+            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::TRANSFER_FREE_DROP, $entityManager) == 1,
+            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION, $entityManager) == 1,
+            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_VALIDATIONS, $entityManager) == 1,
+            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_SKIP_QUANTITIES, $entityManager) == 1,
+            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL, $entityManager) == 1,
+            "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS, $entityManager) == 1,
+            "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX, $entityManager) ?: null,
+            "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE, $entityManager),
+            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION, $entityManager) == 1,
+            "displayReferenceCodeAndScan" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE, $entityManager) == 1,
+            "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getOneParamByLabel(Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES, $entityManager) == 1,
+            "displayWarningWrongLocation" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_WARNING_WRONG_LOCATION, $entityManager) == 1,
         ])
             ->toArray();
     }
