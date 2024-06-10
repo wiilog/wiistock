@@ -21,7 +21,7 @@ class SensorMessageService
 
         $rows = [];
         foreach ($sensorMessages as $sensorMessage) {
-            $rows[] = $this->dataRowSensorMessage($sensorMessage);
+            $rows[] = $sensorMessage;
         }
 
         return [

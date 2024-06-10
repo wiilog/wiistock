@@ -9,6 +9,7 @@ use App\Entity\LocationGroup;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use http\Exception\RuntimeException;
+use InfluxDB2;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -22,13 +23,14 @@ class SensorMessageRepository extends EntityRepository
 {
 
     public function findByParamsAndFilters(InputBag $params, Sensor $sensor):array {
-
+/*
         $qb = $this->createQueryBuilder("sensor_message")
             ->leftJoin('sensor_message.sensor', 'sensor')
             ->where('sensor = :sensor')
             ->setParameter('sensor', $sensor);
 
-        $total = QueryBuilderHelper::count($qb, "sensor_message");
+        $total = 0;
+        QueryBuilderHelper::count($qb, "sensor_message");
 
         //Filter search
         if (!empty($params)) {
@@ -64,11 +66,46 @@ class SensorMessageRepository extends EntityRepository
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        $result = $qb->getQuery()->getResult();*/
+
+        $client = new InfluxDB2\Client([
+            "url" => "http://influxdb:8086",
+            "token" => "8z964dq6s84dq6s5d4s6q5f4d65f4fdsq7f98dqsf78",
+            "bucket" => "wiistock_local",
+            "org" => "wiilog",
+            "precision" => InfluxDB2\Model\WritePrecision::NS
+        ]);
+
+        $queryApi = $client->createQueryApi();
+        $length = $params->getInt('length');
+        $start = $params->getInt('start');
+        $query = 'from(bucket: "wiistock_local") "
+        ." |> range(start: 2022-10-01T00:00:00Z, stop: 2022-10-10T00:00:00Z) "
+        ." |> filter(fn: (r) => r.sensor_id == "4")
+        ." |> group(columns: [])"
+        ." |> limit(n:' . $length . ', offset: '. $start . ')';
+        dump($query);
+        $resultStream = $queryApi->query($query);
+        foreach ($resultStream[0]->records as $record) {
+            dump($record);
+            $result[] = [
+
+                'date' => $record['date'],
+                'content' => $record['_value'],
+                'contentType' => $record['content_type'],
+                'event' => $record['event'] ?? ""
+            ];
+        }
+//        $resultStream = $queryApi->query('from(bucket: "wiistock_local") |> range(start: 2020-01-01T00:00:00Z, stop: 2025-01-01T00:00:00Z)|> count()');
+//        dump($resultStream);
+
+
+        $client->close();
 
         return [
-            'data' => $qb->getQuery()->getResult(),
-            'count' => $countFiltered,
-            'total' => $total
+            'data' => $result ?? [],
+            'count' => $countFiltered ?? 0,
+            'total' => $total ?? 0
         ];
     }
 
