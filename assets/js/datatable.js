@@ -342,6 +342,14 @@ export function initDataTable($table, options) {
         .on(`error.dt`, function (e, settings, techNote, message) {
             console.error(`An error has been reported by DataTables: `, message, e, $table.attr(`id`));
         })
+        .on(`preXhr.dt`, function (e, settings, data) {
+            const previousAction = $table.data(`previous-action`);
+            if (previousAction) {
+                data.previousAction = previousAction;
+
+                return data;
+            }
+        })
         .DataTable(Object.assign({
             fixedColumns: {
                 heightMatch: `auto`
@@ -396,15 +404,6 @@ export function initDataTable($table, options) {
     const $datatableContainer = $(datatableToReturn.table().container());
     $datatableContainer.on(`click`, `th.sorting, th.sorting_asc, th.sorting_desc`, () => {
         setPreviousAction($table, ORDER_ACTION);
-    });
-
-    datatableToReturn.on(`preXhr.dt`, function (e, settings, data) {
-        const previousAction = $table.data(`previous-action`);
-        if (previousAction) {
-            data.previousAction = previousAction;
-
-            return data;
-        }
     });
 
     return datatableToReturn;
