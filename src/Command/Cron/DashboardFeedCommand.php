@@ -64,7 +64,6 @@ class DashboardFeedCommand extends Command {
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
         $calculateLatePack = false;
-        $latePacks = [];
 
         foreach ($components as $component) {
             $componentType = $component->getType();
@@ -133,7 +132,7 @@ class DashboardFeedCommand extends Command {
                         break;
                     case Dashboard\ComponentType::LATE_PACKS:
                         $calculateLatePack = true;
-                        array_push($latePacks, $component);
+                        $latePackComponents[] = $component;
                         break;
                     case Dashboard\ComponentType::HANDLING_TRACKING:
                         $this->dashboardService->persistHandlingTracking($this->entityManager, $component);
@@ -147,7 +146,7 @@ class DashboardFeedCommand extends Command {
                 } else {
                     $component->setErrorMessage("Erreur : Impossible de charger le composant");
                 }
-                $this->entityManager=$this->getEntityManager();
+                $this->entityManager = $this->getEntityManager();
             }
         }
 
@@ -156,10 +155,10 @@ class DashboardFeedCommand extends Command {
                 $this->dashboardService->persistEntitiesLatePack($this->entityManager);
             }
         } catch (Throwable $exception) {
-            foreach ($latePacks as $latePack) {
-                $latePack->setErrorMessage("Erreur : Impossible de charger le composant");
+            foreach ($latePackComponents as $latePackComponent) {
+                $latePackComponent->setErrorMessage("Erreur : Impossible de charger le composant");
             }
-            $this->entityManager=$this->getEntityManager();
+            $this->entityManager = $this->getEntityManager();
         }
 
         $this->entityManager->flush();

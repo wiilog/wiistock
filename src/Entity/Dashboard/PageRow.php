@@ -21,7 +21,7 @@ class PageRow {
 
     #[ORM\ManyToOne(targetEntity: Page::class, inversedBy: 'rows')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Page $page;
+    private ?Page $page = null;
 
     #[ORM\OneToMany(targetEntity: Component::class, mappedBy: 'row')]
     private Collection $components;

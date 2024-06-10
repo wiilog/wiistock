@@ -21,7 +21,7 @@ class Page {
     private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: PageRow::class, mappedBy: 'page')]
-    private ?Collection $rows;
+    private Collection $rows;
 
     #[ORM\OneToOne(targetEntity: Action::class, cascade: ['persist', 'remove'], inversedBy: 'dashboard')]
     private ?Action $action = null;
