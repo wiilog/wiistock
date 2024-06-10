@@ -103,7 +103,7 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : $natures
         );
-        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, true, $this->getUser(), $useTruckArrivals);
+        $response = $enCoursService->getEnCours($entityManager, [$emplacement->getId()], $natureIds, false, true, $this->getUser(), $useTruckArrivals);
         return new JsonResponse([
             'data' => $response
         ]);
@@ -133,9 +133,10 @@ class EnCoursController extends AbstractController
 
     #[Route("/{emplacement}/csv", name: "ongoing_pack_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
-    public function getOngoingPackCSV(Emplacement      $emplacement,
-                                      CSVExportService $CSVExportService,
-                                      EnCoursService   $encoursService): Response
+    public function getOngoingPackCSV(Emplacement            $emplacement,
+                                      CSVExportService       $CSVExportService,
+                                      EnCoursService         $encoursService,
+                                      EntityManagerInterface $entityManager): Response
     {
         $headers = [
             'Emplacement',
@@ -151,9 +152,10 @@ class EnCoursController extends AbstractController
             function ($output) use ($emplacement,
                                     $CSVExportService,
                                     $encoursService,
-                                    $headers)
+                                    $headers,
+                                    $entityManager)
             {
-                $data = $encoursService->getEnCours([$emplacement->getId()], [], false, true, $this->getUser());
+                $data = $encoursService->getEnCours($entityManager, [$emplacement->getId()], [], false, true, $this->getUser());
                 foreach ($data as $line) {
                     $encoursService->putOngoingPackLine($output, $CSVExportService, $line);
                 }

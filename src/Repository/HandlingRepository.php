@@ -429,51 +429,6 @@ class HandlingRepository extends EntityRepository
         return $groupByTypes ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @param array $options
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function getEmergenciesHandlingForDashboardRedirect(DateTime $dateMin,
-                                                                 DateTime $dateMax,
-                                                                 array $options)
-    {
-        $emergency = $options['emergency'] ?? false;
-        $handlingStatusesFilter = $options['handlingStatusesFilter'] ?? [];
-        $handlingTypesFilter = $options['handlingTypesFilter'] ?? [];
-
-        $qb = $this->createQueryBuilder('handling')
-            ->select('handling.id')
-            ->where('handling.desiredDate BETWEEN :dateMin AND :dateMax')
-            ->join('handling.type', 'type')
-            ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax
-            ]);
-
-        if ($emergency) {
-            $qb
-                ->andWhere("handling.emergency NOT LIKE ''");
-        }
-
-        if (!empty($handlingStatusesFilter)) {
-            $qb
-                ->andWhere('handling.status IN (:handlingStatuses)')
-                ->setParameter('handlingStatuses', $handlingStatusesFilter);
-        }
-
-        if (!empty($handlingTypesFilter)) {
-            $qb
-                ->andWhere('handling.type IN (:handlingTypes)')
-                ->setParameter('handlingTypes', $handlingTypesFilter);
-        }
-
-        return $qb->getQuery()->getResult();
-    }
-
     public function getOlderDateToTreat(array $types = [],
                                         array $statuses = []): ?DateTime {
         if (!empty($types) && !empty($statuses)) {

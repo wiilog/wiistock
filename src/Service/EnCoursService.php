@@ -166,23 +166,23 @@ class EnCoursService
     /**
      * @throws Exception
      */
-    public function getLastEnCoursForLate()
+    public function getLastEnCoursForLate(EntityManagerInterface $entityManager)
     {
-        return $this->getEnCours([], [], true);
+        return $this->getEnCours($entityManager, [], [], true);
     }
 
-    public function getEnCours(array       $locations,
-                               array       $natures = [],
-                               bool        $onlyLate = false,
-                               bool        $fromOnGoing = false,
-                               Utilisateur $user = null,
-                               bool        $useTruckArrivals = false): array
+    public function getEnCours(EntityManagerInterface $entityManager,
+                               array                  $locations,
+                               array                  $natures = [],
+                               bool                   $onlyLate = false,
+                               bool                   $fromOnGoing = false,
+                               Utilisateur            $user = null,
+                               bool                   $useTruckArrivals = false): array
     {
-        $packRepository = $this->entityManager->getRepository(Pack::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
         $dropsCounter = 0;
-        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
-        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
-        $trackingMovementRepository =  $this->entityManager->getRepository(TrackingMovement::class);
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $emplacementInfo = [];
@@ -229,9 +229,9 @@ class EnCoursService
 
             $fromColumnData = $fromOnGoing
                 ? $this->trackingMovementService->getFromColumnData([
-                "entity" => $oldestDrop['entity'],
-                "entityId" => $oldestDrop['entityId'],
-                "entityNumber" => $oldestDrop['entityNumber'],
+                    "entity" => $oldestDrop['entity'],
+                    "entityId" => $oldestDrop['entityId'],
+                    "entityNumber" => $oldestDrop['entityNumber'],
                 ])
                 : [];
 

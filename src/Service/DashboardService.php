@@ -360,15 +360,6 @@ class DashboardService {
             ]
         );
 
-        $listEmergenciesHandlings = $handlingRepository->getEmergenciesHandlingForDashboardRedirect(
-            $nowMorning,
-            $nowEvening,
-            [
-                'handlingStatusesFilter' => $handlingStatusesFilter,
-                'handlingTypesFilter' => $handlingTypesFilter
-            ]
-        );
-
         $config = $component->getConfig();
         $config['selectedDate'] = true;
         $component->setConfig($config);
@@ -657,7 +648,8 @@ class DashboardService {
         if (!empty($naturesFilter)) {
             $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
             $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
-            if ($locationClusterRepository->countPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage) > $maxResultPackOnCluster) {
+            $nbPacksOnCluster = $locationClusterRepository->countPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
+            if ($nbPacksOnCluster > $maxResultPackOnCluster) {
                 throw new DashboardException("Nombre de données trop important");
             }
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
@@ -1440,7 +1432,7 @@ class DashboardService {
 
     public function persistEntitiesLatePack(EntityManagerInterface $entityManager) {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
-        $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        $lastLates = $this->enCoursService->getLastEnCoursForLate($entityManager);
         $latePackRepository->clearTable();
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();
