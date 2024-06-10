@@ -2,6 +2,8 @@
 
 {% set hasRightTreatDispute = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::TREAT_DISPUTE')) %}
 
+{{ form.hidden('disputeId', dispute.id)}}
+
 <div class="row">
     <div class="form-group col-8">
         {{ form.select('disputeType', trans('Qualité', 'Litiges', 'Type'), true , {
@@ -73,4 +75,3 @@
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>
 </div>
-{{ form.hidden('disputeId', dispute.id)}}

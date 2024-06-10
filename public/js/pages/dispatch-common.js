@@ -10,11 +10,11 @@ function initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch) {
             $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
         })
         .onOpen(() => {
-            initNewDispatchEditor('#modalNewDispatch');
+            initNewDispatchEditor($modalNewDispatch);
             Modal
                 .load(
-                    'create_from_arrival_template',
-                    {arrival: arrivalsToDispatch},
+                    'create_from_arrivals_template',
+                    {arrivals: arrivalsToDispatch},
                     $modalNewDispatch,
                     $modalNewDispatch.find(`.modal-body`),
                     {

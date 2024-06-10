@@ -47,7 +47,6 @@ use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,7 +59,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 
@@ -1005,7 +1003,7 @@ class ArrivageController extends AbstractController {
                 'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
                     'url' => [
-                        'edit' => $this->generateUrl('litige_api_edit', ['id' => $dispute->getId()])
+                        'edit' => $this->generateUrl('litige_api_edit', ['dispute' => $dispute->getId()])
                     ],
                     'disputeId' => $dispute->getId(),
                     'disputeNumber' => $dispute->getNumber()
@@ -1019,9 +1017,8 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Route("/api-modifier-litige/{id}", name: "litige_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier-litige/{dispute}", name: "litige_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
-    #[Entity("dispute", expr: "repository.find(id)")]
     public function apiEditLitige(Dispute                   $dispute,
                                   EntityManagerInterface    $entityManager): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1061,7 +1058,6 @@ class ArrivageController extends AbstractController {
                                ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
-                               Twig_Environment       $templating,
                                AttachmentService      $attachmentService): Response {
         $post = $request->request;
 
@@ -1071,7 +1067,7 @@ class ArrivageController extends AbstractController {
         $disputeRepository = $entityManager->getRepository(Dispute::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $dispute = $disputeRepository->find($post->get('id'));
+        $dispute = $disputeRepository->find($post->get('disputeId'));
         $typeBefore = $dispute->getType()->getId();
         $typeAfter = $post->getInt('disputeType');
         $statutBefore = $dispute->getStatus()->getId();
@@ -1079,7 +1075,7 @@ class ArrivageController extends AbstractController {
         $dispute
             ->setReporter($utilisateurRepository->find($post->get('disputeReporter')))
             ->setUpdateDate(new DateTime('now'));
-        $this->templating = $templating;
+
         $newStatus = $statutRepository->find($statutAfter);
         $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
 
@@ -1394,8 +1390,7 @@ class ArrivageController extends AbstractController {
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
                                                ArrivageService        $arrivageDataService,
-                                                                      $reloadArrivageId): ?array
-    {
+                                                                      $reloadArrivageId): ?array {
         $response = null;
         if (isset($reloadArrivageId)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);

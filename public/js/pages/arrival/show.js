@@ -4,6 +4,8 @@ let tablePacks;
 
 let tableArrivageLitiges
 $(function () {
+    extendsDateSort('customDate');
+
     const arrivalId = Number($('#arrivageId').val());
     const query = GetRequestQuery();
     let addPacks = $('#addPacks').val();
@@ -29,174 +31,20 @@ $(function () {
         $modalNewDispatch.modal(`show`);
     });
 
-    initDispatchCreateForm($modalNewDispatch, arrivalId);
+    initDispatchCreateForm($modalNewDispatch, [arrivalId]);
 
     AJAX
         .route(AJAX.GET, 'arrival_list_packs_api_columns', {})
         .json()
         .then((columns) => {
-            let pathPacks = Routing.generate('packs_api', {arrivage: arrivalId}, true);
-            let tablePacksConfig = {
-                ajax: {
-                    "url": pathPacks,
-                    "type": AJAX.POST,
-                },
-                domConfig: {
-                    removeInfo: true
-                },
-                processing: true,
-                rowConfig: {
-                    needsRowClickAction: true
-                },
-                columns: columns,
-                order: [['code', 'asc']]
-            };
-            tablePacks = initDataTable('tablePacks', tablePacksConfig);
+            const packDatatable = initPackDatatable(arrivalId, columns);
+            initPackModals(arrivalId, packDatatable);
         });
 
-    let $modalAddPacks = $('#modalAddPacks');
-    Form
-        .create($modalAddPacks)
-        .addProcessor((data) => {
-            data.append('arrivalId', arrivalId);
-        })
-        .addProcessor((data) => {
-            const $packs = $modalAddPacks.find('[name="pack"]');
-            let packs = {}
-            $packs.each((index, pack) => {
-                packs[$(pack).data('id')] = $(pack).val();
-            });
-            data.append('packs', JSON.stringify(packs));
-        })
-        .submitTo(
-            AJAX.POST,
-            'arrivage_add_pack',
-            {
-                tables: () => {return tablePacks},
-                success: (data) => {
-                    if (data.packs && data.packs.length > 0) {
-                        printArrival({
-                            arrivalId: data.arrivageId,
-                            printPacks: true,
-                            printArrivage: false,
-                            packs: data.packs.map(({id}) => id)
-                        });
-                    }
-                }
-            }
-        );
+    const disputeDatatable = initDisputeDatatable(arrivalId);
+    initDisputeModals(arrivalId, disputeDatatable);
 
-    //édition d'UL
-    const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
-        tables: [tablePacks],
-        waitForUserAction: () => {
-            return checkPossibleCustoms($modalEditPack);
-        },
-    });
-
-    //suppression d'UL
-    let modalDeletePack = $("#modalDeletePack");
-    let SubmitDeletePack = $("#submitDeletePack");
-    let urlDeletePack = Routing.generate('pack_delete', true);
-    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tablePacks], clearOnClose: true});
-
-
-    let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: arrivalId}, true);
-    let tableArrivageLitigesConfig = {
-        domConfig: {
-            removeInfo: true
-        },
-        ajax: {
-            "url": pathArrivageLitiges,
-            "type": AJAX.POST
-        },
-        columns: [
-            {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
-            {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', null, 'Zone liste', 'Date de création')},
-            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
-            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
-            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Date de modification')},
-            {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence'), visible: false},
-        ],
-        rowConfig: {
-            needsColor: true,
-            color: 'danger',
-            needsRowClickAction: true,
-            dataToCheck: 'urgence'
-        },
-        order: [['firstDate', 'desc']]
-    };
-    tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLitigesConfig);
-    extendsDateSort('customDate');
-
-    let $modalNewLitige = $('#modalNewLitige');
-    Form
-        .create($modalNewLitige)
-        .addProcessor((data) => {
-            data.append('reloadArrivage', arrivalId);
-        })
-        .submitTo(
-            AJAX.POST,
-            "dispute_new",
-            {
-                tables: [tableArrivageLitiges],
-            }
-        )
-        .onOpen((event) => {
-            const $button = $(event.relatedTarget)
-            Modal.load('new_dispute_template', {id: arrivalId}, $modalNewLitige, $modalNewLitige.find('.modal-body'), {
-                onOpen: () => {
-                    Camera.init(
-                        $modalNewLitige.find(`.take-picture-modal-button`),
-                        $modalNewLitige.find(`[name="files[]"]`)
-                    );
-                }
-            })
-        });
-
-    let $modalEditLitige = $('#modalEditLitige');
-    Form
-        .create($modalEditLitige)
-        .addProcessor((data) => {
-            data.append('reloadArrivage', arrivalId);
-        })
-        .onOpen((event) => {
-            const disputeId = $(event.relatedTarget).data('dispute');
-            Modal.load('litige_api_edit', {id: disputeId}, $modalEditLitige, $modalEditLitige.find('.modal-body'), {
-                onOpen: () => {
-                    Camera.init(
-                        $modalEditLitige.find(`.take-picture-modal-button`),
-                        $modalEditLitige.find(`[name="files[]"]`)
-                    );
-                    openTableHisto(disputeId)
-                }
-            })
-        })
-        .submitTo(
-            AJAX.POST,
-            'litige_edit_arrivage',
-            {
-                tables: [tableArrivageLitiges],
-            }
-        )
-
-    let ModalDeleteLitige = $("#modalDeleteLitige");
-    let SubmitDeleteLitige = $("#submitDeleteLitige");
-    let urlDeleteLitige = Routing.generate('litige_delete_arrivage', true);
-    InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableArrivageLitiges]});
-
-    let modalModifyArrivage = $('#modalEditArrivage');
-    let submitModifyArrivage = $('#submitEditArrivage');
-    let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-    InitModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, {success: (params) => arrivalCallback(false, params)});
-
-    let modalDeleteArrivage = $('#modalDeleteArrivage');
-    let submitDeleteArrivage = $('#submitDeleteArrivage');
-    let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
-    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
+    initArrivalModals();
 
     if (query.reserve) {
         $('.new-dispute-modal').click();
@@ -287,4 +135,175 @@ function getCommentAndAddHisto() {
         tableHistoLitige.ajax.reload();
         commentLitige.val('');
     });
+}
+
+function initPackDatatable(arrivalId, columns) {
+    return initDataTable('tablePacks', {
+        ajax: {
+            "url": Routing.generate('packs_api', {arrivage: arrivalId}, true),
+            "type": AJAX.POST,
+        },
+        domConfig: {
+            removeInfo: true
+        },
+        processing: true,
+        rowConfig: {
+            needsRowClickAction: true
+        },
+        columns,
+        order: [['code', 'asc']]
+    });
+}
+
+function initDisputeDatatable(arrivalId) {
+    let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: arrivalId}, true);
+    let tableArrivageLitigesConfig = {
+        domConfig: {
+            removeInfo: true
+        },
+        ajax: {
+            "url": pathArrivageLitiges,
+            "type": AJAX.POST
+        },
+        columns: [
+            {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
+            {data: 'firstDate', name: 'firstDate', title: Translation.of('Général', null, 'Zone liste', 'Date de création')},
+            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
+            {data: 'updateDate', name: 'updateDate', title: Translation.of('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Date de modification')},
+            {data: 'urgence', name: 'urgence', title: Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence'), visible: false},
+        ],
+        rowConfig: {
+            needsColor: true,
+            color: 'danger',
+            needsRowClickAction: true,
+            dataToCheck: 'urgence'
+        },
+        order: [['firstDate', 'desc']]
+    };
+    return initDataTable('tableArrivageLitiges', tableArrivageLitigesConfig);
+}
+
+function initPackModals(arrivalId, packDatatable) {
+    let $modalAddPacks = $('#modalAddPacks');
+    Form
+        .create($modalAddPacks, {clearOnOpen: true})
+        .addProcessor((data) => {
+            data.append('arrivalId', arrivalId);
+        })
+        .addProcessor((data) => {
+            const $packs = $modalAddPacks.find('[name="pack"]');
+            const packs = $packs.toArray()
+                .map((pack) => $(pack))
+                .reduce((carry, $pack) => ({
+                    ...carry,
+                    [$pack.data('id')]: $pack.val()
+                }), {});
+            data.append('packs', JSON.stringify(packs));
+        })
+        .submitTo(
+            AJAX.POST,
+            'arrivage_add_pack',
+            {
+                tables: [packDatatable],
+                success: (data) => {
+                    if (data.packs && data.packs.length > 0) {
+                        printArrival({
+                            arrivalId: data.arrivageId,
+                            printPacks: true,
+                            printArrivage: false,
+                            packs: data.packs.map(({id}) => id)
+                        });
+                    }
+                }
+            }
+        );
+
+    //édition d'UL
+    const $modalEditPack = $('#modalEditPack');
+    const $submitEditPack = $('#submitEditPack');
+    const urlEditPack = Routing.generate('pack_edit', true);
+    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+        tables: [packDatatable],
+        waitForUserAction: () => {
+            return checkPossibleCustoms($modalEditPack);
+        },
+    });
+
+    //suppression d'UL
+    let modalDeletePack = $("#modalDeletePack");
+    let SubmitDeletePack = $("#submitDeletePack");
+    let urlDeletePack = Routing.generate('pack_delete', true);
+    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packDatatable], clearOnClose: true});
+}
+
+function initDisputeModals(arrivalId, disputeDatatable) {
+
+    let $modalNewLitige = $('#modalNewLitige');
+    Form
+        .create($modalNewLitige, {clearOnOpen: true})
+        .addProcessor((data) => {
+            data.append('reloadArrivage', arrivalId);
+        })
+        .submitTo(
+            AJAX.POST,
+            "dispute_new",
+            {
+                tables: [disputeDatatable],
+            }
+        )
+        .onOpen((event) => {
+            const $button = $(event.relatedTarget)
+            Modal.load('new_dispute_template', {id: arrivalId}, $modalNewLitige, $modalNewLitige.find('.modal-body'), {
+                onOpen: () => {
+                    Camera.init(
+                        $modalNewLitige.find(`.take-picture-modal-button`),
+                        $modalNewLitige.find(`[name="files[]"]`)
+                    );
+                }
+            })
+        });
+
+    let $modalEditLitige = $('#modalEditLitige');
+    Form
+        .create($modalEditLitige, {clearOnOpen: true})
+        .addProcessor((data) => {
+            data.append('reloadArrivage', arrivalId);
+        })
+        .onOpen((event) => {
+            const disputeId = $(event.relatedTarget).data('dispute');
+            Modal.load('litige_api_edit', {dispute: disputeId}, $modalEditLitige, $modalEditLitige.find('.modal-body'), {
+                onOpen: () => {
+                    Camera.init(
+                        $modalEditLitige.find(`.take-picture-modal-button`),
+                        $modalEditLitige.find(`[name="files[]"]`)
+                    );
+                    openTableHisto(disputeId)
+                }
+            })
+        })
+        .submitTo(
+            AJAX.POST,
+            'litige_edit_arrivage',
+            {
+                tables: [disputeDatatable],
+            }
+        );
+
+    let ModalDeleteLitige = $("#modalDeleteLitige");
+    let SubmitDeleteLitige = $("#submitDeleteLitige");
+    let urlDeleteLitige = Routing.generate('litige_delete_arrivage', true);
+    InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [disputeDatatable]});
+}
+
+function initArrivalModals() {
+    let modalModifyArrivage = $('#modalEditArrivage');
+    let submitModifyArrivage = $('#submitEditArrivage');
+    let urlModifyArrivage = Routing.generate('arrivage_edit', true);
+    InitModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, {success: (params) => arrivalCallback(false, params)});
+
+    let modalDeleteArrivage = $('#modalDeleteArrivage');
+    let submitDeleteArrivage = $('#submitDeleteArrivage');
+    let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
+    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
 }

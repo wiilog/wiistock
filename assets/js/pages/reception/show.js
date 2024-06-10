@@ -253,7 +253,7 @@ function initDateTimePickerReception() {
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, disputeId, disputeNumber) {
-    let path = Routing.generate('litige_api_edit_reception', {id: disputeId});
+    let path = Routing.generate('litige_api_edit_reception', {dispute: disputeId});
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 

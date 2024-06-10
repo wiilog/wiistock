@@ -1,4 +1,8 @@
+{% import 'form.html.twig' as form %}
+
 {% set hasRightTreatDispute = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::TREAT_DISPUTE')) %}
+
+{{ form.hidden('disputeId', dispute.id)}}
 
 <div class="row">
     <div class="form-group col-8">
@@ -100,7 +104,6 @@
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>
 </div>
-<input hidden value="{{ dispute.id }}" name="disputeId" class="data">
 <div class="wii-section-title my-3 d-flex align-items-center">
     {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}
 </div>

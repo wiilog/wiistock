@@ -59,13 +59,12 @@ $(function () {
     });
 
     let $modalNewDispatch = $("#modalNewDispatch");
-    let $checkedCheckboxes = undefined;
-    let arrivalsToDispatch = undefined;
-    initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch);
 
     $dispatchModeContainer.find(`.validate`).on(`click`, function () {
-        $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
-        arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+
+        initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch);
         if (arrivalsToDispatch.length > 0) {
             $modalNewDispatch.modal(`show`);
         }

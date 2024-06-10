@@ -88,7 +88,7 @@ function initDatatableLitiges() {
 
 function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, disputeId, disputeNumber) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
-    let path = Routing.generate(route, {id: disputeId});
+    let path = Routing.generate(route, {dispute: disputeId});
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
     let params = {};

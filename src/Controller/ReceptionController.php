@@ -1170,26 +1170,23 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    #[Route("/api-modifier-litige/{id}", name: "litige_api_edit_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier-litige/{dispute}", name: "litige_api_edit_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[Entity("dispute", expr: "repository.find(id)")]
-    public function apiEditLitige(EntityManagerInterface    $entityManager,
-                                  Dispute                   $dispute,
-                                  Request                   $request): Response  {
+    public function apiEditLitige(EntityManagerInterface $entityManager,
+                                  Dispute                $dispute): Response  {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-        $packsCode = [];
-        $acheteursCode = [];
-        foreach($dispute->getArticles() as $pack) {
-            $packsCode[] = [
-                'id' => $pack->getId(),
-                'text' => $pack->getBarCode(),
-            ];
-        }
-        foreach($dispute->getBuyers() as $buyer) {
-            $acheteursCode[] = $buyer->getId();
-        }
+        $articles = Stream::from($dispute->getArticles()->toArray())
+            ->map(static fn (Article $article) => [
+                'id' => $article->getId(),
+                'text' => $article->getBarCode(),
+            ])
+            ->toArray();
+        $buyerIds = Stream::from($dispute->getBuyers()->toArray())
+            ->map(static fn (Utilisateur $user) => $user->getId())
+            ->toArray();
 
         $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
             ->map(fn(Statut $statut) => [
@@ -1209,8 +1206,8 @@ class ReceptionController extends AbstractController {
 
         return new JsonResponse([
             'html' => $html,
-            'packs' => $packsCode,
-            'acheteurs' => $acheteursCode
+            'packs' => $articles,
+            'acheteurs' => $buyerIds
         ]);
     }
 
@@ -1621,6 +1618,7 @@ class ReceptionController extends AbstractController {
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
+                                   NotificationService        $notificationService,
                                    TranslationService         $translationService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
