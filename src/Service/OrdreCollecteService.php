@@ -288,6 +288,17 @@ class OrdreCollecteService
                 );
             }
         }
+        // case $demandeCollecte is desctruct
+        else {
+            $articles = $ordreCollecte->getArticles();
+            $statutArticle = $statutRepository->findOneByCategorieNameAndStatutCode(
+                CategorieStatut::ARTICLE,
+                Article::STATUT_INACTIF
+            );
+            foreach ($articles as $article) {
+                $article->setStatut($statutArticle);
+            }
+        }
 
 		$this->entityManager->flush();
 
