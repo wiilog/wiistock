@@ -133,7 +133,7 @@ export default class Form {
                                 const tables = Array.isArray(options.tables)
                                     ? options.tables
                                     : [options.tables];
-console.log(tables)
+
                                 tables.forEach((table) => {
                                     if (table instanceof Function) {
                                         table().ajax.reload();
