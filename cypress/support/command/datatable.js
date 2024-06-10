@@ -42,10 +42,12 @@ Cypress.Commands.add('checkDataInDatatable', (object, objectId = 'label', tableI
             // Use the indexes to check the values
             Object.keys(columnIndexes).forEach((objectProperty) => {
                 cy.log(`Checking ${objectProperty} with value ${object[objectProperty]}`)
-                cy.wrap(td).parent('tr')
-                    .find('td')
-                    .eq(columnIndexes[objectProperty])
-                    .contains(object[objectProperty]?.toString());
+                cy.wrap(td).invoke("prop","tagName").then((tagNane) => {
+                    let newTd =  tagNane==="TD" ? cy.wrap(td).parent('tr') : cy.wrap(td).parent('td').parent('tr');
+                    newTd.find('td')
+                        .eq(columnIndexes[objectProperty])
+                        .contains(object[objectProperty]?.toString());
+                })
             });
         });
     });
@@ -81,4 +83,31 @@ Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelec
     // submit the modal & close it
     cy.get(`${modalSelector} button[type='submit']`).click();
     cy.get(modalSelector).should('not.be.visible');
+})
+
+/**
+ * Allows us to search in a datatable.
+ * @param selector Id of the div who contains the input.
+ * @param value Value to search.
+ */
+Cypress.Commands.add('searchInDatatable', (selector, value) => {
+    cy
+        .get(selector).should('be.visible', {timeout: 8000}).then((div) => {
+        cy
+            .wrap(div)
+            .find('input')
+            .type(`${value}{enter}`)
+            .wait(1000);
+    });
+})
+
+/**
+ * Allows us to check if the datatable is empty.
+ * @param selector The selector of the datatable.
+ */
+Cypress.Commands.add('checkDatatableIsEmpty', (selector) => {
+    cy
+        .get(selector)
+        .find('.dataTables_empty')
+        .should("be.visible");
 })

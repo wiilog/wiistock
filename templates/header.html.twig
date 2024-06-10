@@ -147,7 +147,9 @@
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
                                     <a class="d-flex align-items-center"
-                                       href="{{ path('redirect_before_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('redirect_before_index', {'open-modal': 'new'}) }}"
+                                       title="Livraison"
+                                       data-cy-request-item="delivery">
                                         <span class="wii-icon wii-icon-menu-delivery quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Livraison', 'Livraison') }}</span>
                                     </a>
@@ -157,7 +159,9 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'collecte_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('collecte_index', {'open-modal': 'new'}) }}"
+                                       title="Collecte"
+                                       data-cy-request-item="collecte">
                                         <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Collecte</span>
                                     </a>
@@ -166,7 +170,9 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}"
+                                       title="Service"
+                                       data-cy-request-item="handling">
                                         <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Services', null, 'Service') }}</span>
                                     </a>
@@ -175,7 +181,9 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}"
+                                       title="Acheminement"
+                                       data-cy-request-item="dispatch">
                                         <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Acheminements', 'Général', 'Acheminement') }}</span>
                                     </a>
@@ -185,7 +193,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
-                                       title="Transfert">
+                                       title="Transfert"
+                                       data-cy-request-item="transfert">
                                         <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transfert</span>
                                     </a>
@@ -195,7 +204,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('purchase_request_index', {'open-modal': 'new'}) }}"
-                                       title="Achat">
+                                       title="Achat"
+                                       data-cy-request-item="purchase">
                                         <span class="wii-icon wii-icon-menu-achat quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Achat</span>
                                     </a>
@@ -205,7 +215,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('transport_request_index', {'open-modal': 'new'}) }}"
-                                       title="Transport">
+                                       title="Transport"
+                                       data-cy-request-item="transport">
                                         <span class="wii-icon wii-icon-transport quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transport</span>
                                     </a>
@@ -222,7 +233,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('shipping_request_index', {'open-modal': 'new'}) }}"
-                                       title="Achat">
+                                       title="Expédition"
+                                       data-cy-request-item="shipping-request">
                                         <span class="wii-icon wii-icon-menu-expedition quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Expédition', 'Expédition') }}</span>
                                     </a>
@@ -232,7 +244,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('production_request_index', {'open-modal': 'new'}) }}"
-                                       title="Production">
+                                       title="Production"
+                                       data-cy-request-item="production">
                                         <span class="wii-icon wii-icon-production quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Production</span>
                                     </a>
