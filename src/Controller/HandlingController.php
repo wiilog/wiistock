@@ -102,7 +102,7 @@ class HandlingController extends AbstractController {
 
         $handlingStatuses = $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder');
         $statuses = Stream::from($handlingStatuses)
-            ->filter(fn(Statut $statut) => in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
+            ->filter(fn(Statut $statut) => empty($user->getHandlingTypeIds()) || in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
             ->toArray();
 
         return $this->render('handling/index.html.twig', [

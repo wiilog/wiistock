@@ -38,10 +38,14 @@ class DispatchRepository extends EntityRepository
                                           VisibleColumnService $visibleColumnService,
                                           array $options = []): array {
         $qb = $this->createQueryBuilder('dispatch')
-            ->join('dispatch.type', 'join_type')
-            ->andWhere('join_type.id IN (:userDispatchTypeIds)')
-            ->groupBy('dispatch.id')
-            ->setParameter('userDispatchTypeIds', $user->getDispatchTypeIds());
+            ->groupBy('dispatch.id');
+
+        if(!empty($user->getDispatchTypeIds())){
+            $qb
+                ->join('dispatch.type', 'join_type')
+                ->andWhere('join_type.id IN (:userDispatchTypeIds)')
+                ->setParameter('userDispatchTypeIds', $user->getDispatchTypeIds());
+        }
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispatch');
 

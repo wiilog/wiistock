@@ -129,7 +129,7 @@ class DispatchController extends AbstractController {
 
         $dispatchStatuses = $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder');
         $statuses = Stream::from($dispatchStatuses)
-            ->filter(fn(Statut $statut) => in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()))
+            ->filter(fn(Statut $statut) => empty($currentUser->getDispatchTypeIds()) || in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()))
             ->toArray();
         return $this->render('dispatch/index.html.twig', [
             'statuses' => $statuses,

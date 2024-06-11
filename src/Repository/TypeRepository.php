@@ -48,7 +48,7 @@ class TypeRepository extends EntityRepository {
             $queryBuilder->andWhere('type.active = 1');
         }
 
-        if(isset($options['idsToFind'])){
+        if(!empty($options['idsToFind'])){
             $queryBuilder
                 ->andWhere('type.id IN (:idsToFind)')
                 ->setParameter('idsToFind', $options['idsToFind']);
