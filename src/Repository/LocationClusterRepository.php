@@ -16,7 +16,7 @@ class LocationClusterRepository extends EntityRepository {
      */
     public function getPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage): array
     {
-        return $this->getClusterQueryBuilder($locationCluster, $naturesFilter, $defaultLanguage)
+        return $this->getPacksOnClusterQueryBuilder($locationCluster, $naturesFilter, $defaultLanguage)
             ->select('join_nature.id as natureId')
             ->addSelect("COALESCE(join_translation_nature.translation, join_translation_default_nature.translation, join_nature.label) AS natureLabel")
             ->addSelect('join_firstDrop.datetime AS firstTrackingDateTime')
@@ -32,13 +32,13 @@ class LocationClusterRepository extends EntityRepository {
 
     public function countPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage): int
     {
-        return $this->getClusterQueryBuilder($locationCluster, $naturesFilter, $defaultLanguage)
+        return $this->getPacksOnClusterQueryBuilder($locationCluster, $naturesFilter, $defaultLanguage)
             ->select('COUNT(DISTINCT join_logisticUnit.id)')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    public function getClusterQueryBuilder(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage):  QueryBuilder
+    public function getPacksOnClusterQueryBuilder(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage):  QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('cluster')
             ->innerJoin('cluster.locationClusterRecords', 'record')

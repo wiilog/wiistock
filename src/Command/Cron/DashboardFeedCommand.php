@@ -63,6 +63,8 @@ class DashboardFeedCommand extends Command {
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
+        $latePackComponents = [];
+
         $calculateLatePack = false;
 
         foreach ($components as $component) {
