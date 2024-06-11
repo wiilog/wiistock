@@ -696,13 +696,17 @@ class DashboardService {
                             ($countDownHours < 0 && $beginSpan === -1) // count late pack
                             || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                         )) {
-                        if (empty($countByNature[$pack['natureLabel']])) {
-                            $countByNature[$pack['natureLabel']] = 0;
-                        }
-                        $countByNature[$pack['natureLabel']]++;
 
                         $this->updateOlderPackLocation($olderPackLocation, $pack);
-                        $locationCounters[$pack['currentLocationId']] = ($locationCounters[$pack['currentLocationId']] ?? 0) + 1;
+
+                        $natureLabel = $pack['natureLabel'];
+                        $countByNature[$natureLabel] = $countByNature[$natureLabel] ?? 0;
+                        $countByNature[$natureLabel]++;
+
+                        $currentLocationId = $pack['currentLocationId'];
+                        $locationCounters[$currentLocationId] = $locationCounters[$currentLocationId] ?? 0;
+                        $locationCounters[$currentLocationId]++;
+
                         $globalCounter++;
                     } else {
                         $packUntreated[] = $pack;
