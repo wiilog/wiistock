@@ -734,39 +734,32 @@ class DashboardService {
         }
 
         if (empty($graphData)) {
-            $graphData = $this->getObjectForTimeSpan(function () {
-                return 0;
-            });
+            $graphData = $this->getObjectForTimeSpan([], static fn() => 0);
         }
 
         $totalToDisplay = $olderPackLocation['locationId'] ? $globalCounter : null;
-
-        $locationToDisplay = $olderPackLocation['locationLabel'] ?? null;
+        $locationToDisplay = $olderPackLocation['locationLabel'] ?: null;
+        $chartColors = Stream::from($naturesFilter)
+            ->filter(fn (Nature $nature) => $nature->getColor())
+            ->keymap(fn(Nature $nature) => [
+                $this->formatService->nature($nature),
+                $nature->getColor()
+            ])
+            ->toArray();
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
         $meter
-            ->setChartColors(
-                array_reduce(
-                    $naturesFilter,
-                    function (array $carry, Nature $nature) {
-                        $color = $nature->getColor();
-                        if (!empty($color)) {
-                            $carry[$this->formatService->nature($nature)] = $color;
-                        }
-                        return $carry;
-                    },
-                    []
-                )
-            )
+            ->setChartColors($chartColors)
             ->setData($graphData)
-            ->setTotal($totalToDisplay ?? '-')
-            ->setLocation($locationToDisplay ?? '-');
+            ->setTotal($totalToDisplay ?: '-')
+            ->setLocation($locationToDisplay ?: '-');
     }
 
     private function updateOlderPackLocation(array &$olderPackLocation, array $pack): void
     {
-        if (empty($olderPackLocation['locationLabel']) || empty($olderPackLocation['locationId'])
+        if (empty($olderPackLocation['locationLabel'])
+            || empty($olderPackLocation['locationId'])
             || empty($olderPackLocation['packDateTime'])
             || $olderPackLocation['packDateTime'] > $pack['lastTrackingDateTime'])
         {
