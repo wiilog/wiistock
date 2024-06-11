@@ -654,22 +654,7 @@ class DashboardService {
                 throw new DashboardException("Nombre de données trop important");
             }
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
-            $packsOnClusterVerif = Stream::from(
-                $packsRepository->getCurrentPackOnLocations(
-                    $locationCluster->getLocations()->toArray(),
-                    [
-                        'natures' => $naturesFilter,
-                        'isCount' => false,
-                        'field' => 'pack.id, emplacement.label'
-                    ]
-                )
-            )->reduce(function (array $carry, array $pack) {
-                if (!isset($carry[$pack['label']])) {
-                    $carry[$pack['label']] = [];
-                }
-                $carry[$pack['label']][] = $pack['id'];
-                return $carry;
-            }, []);
+
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {
                 $countByNatureBase[$this->formatService->nature($wantedNature)] = 0;
@@ -691,7 +676,6 @@ class DashboardService {
                                                                     $naturesFilter,
                                                                     &$packsOnCluster,
                                                                     $adminDelay,
-                                                                    $packsOnClusterVerif,
                                                                     &$locationCounters,
                                                                     &$olderPackLocation,
                                                                     &$globalCounter,
@@ -699,36 +683,36 @@ class DashboardService {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    if (isset($packsOnClusterVerif[$pack['currentLocationLabel']]) && in_array(intval($pack['packId']), $packsOnClusterVerif[$pack['currentLocationLabel']])) {
-                        $interval = $this->timeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
-                        $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
-                        $countDownHours = isset($timeInformation['countDownLateTimespan'])
-                            ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
-                            : null;
+                    $interval = $this->timeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
+                    $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
+                    $countDownHours = isset($timeInformation['countDownLateTimespan'])
+                        ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
+                        : null;
 
-                        $countDownHours -= $truckArrivalTime && $pack['truckArrivalDelay']
-                            ? intval($pack['truckArrivalDelay']) / 1000 / 60 / 60
-                            : 0;
+                    $countDownHours -= $truckArrivalTime && $pack['truckArrivalDelay']
+                        ? intval($pack['truckArrivalDelay']) / 1000 / 60 / 60
+                        : 0;
 
-                        if (isset($countDownHours)
-                            && (
-                                ($countDownHours < 0 && $beginSpan === -1) // count late pack
-                                || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
-                            )) {
-                            if (empty($countByNature[$pack['natureLabel']])) {
-                                $countByNature[$pack['natureLabel']] = 0;
-                            }
-                            $countByNature[$pack['natureLabel']]++;
-
-                            $this->updateOlderPackLocation($olderPackLocation, $pack);
-                            $locationCounters[$pack['currentLocationId']] = ($locationCounters[$pack['currentLocationId']] ?? 0) + 1;
-                            $globalCounter++;
-                        } else {
-                            $packUntreated[] = $pack;
+                    if (isset($countDownHours)
+                        && (
+                            ($countDownHours < 0 && $beginSpan === -1) // count late pack
+                            || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
+                        )) {
+                        if (empty($countByNature[$pack['natureLabel']])) {
+                            $countByNature[$pack['natureLabel']] = 0;
                         }
+                        $countByNature[$pack['natureLabel']]++;
+
+                        $this->updateOlderPackLocation($olderPackLocation, $pack);
+                        $locationCounters[$pack['currentLocationId']] = ($locationCounters[$pack['currentLocationId']] ?? 0) + 1;
+                        $globalCounter++;
+                    } else {
+                        $packUntreated[] = $pack;
                     }
                 }
+
                 $packsOnCluster = $packUntreated;
+
                 return $countByNature;
             });
         }
