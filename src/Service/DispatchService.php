@@ -598,19 +598,22 @@ class DispatchService {
     }
 
     public function treatDispatchRequest(EntityManagerInterface $entityManager,
-                                         Dispatch $dispatch,
-                                         Statut $treatedStatus,
-                                         Utilisateur $loggedUser,
-                                         bool $fromNomade = false,
-                                         array $treatedPacks = null): void {
+                                         Dispatch               $dispatch,
+                                         Statut                 $treatedStatus,
+                                         Utilisateur            $loggedUser,
+                                         bool                   $fromNomade = false,
+                                         array                  $treatedPacks = null): void {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
         $date = new DateTime('now');
 
-        $dispatch
-            ->setTreatmentDate($date)
-            ->setTreatedBy($loggedUser);
+        // only if the dispatch is treated and not partial
+        if ($treatedStatus->isTreated()) {
+            $dispatch
+                ->setTreatmentDate($date)
+                ->setTreatedBy($loggedUser);
+        }
 
         $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus, [
             "initiatedBy" => $loggedUser,
