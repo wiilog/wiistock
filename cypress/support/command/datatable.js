@@ -115,27 +115,30 @@ Cypress.Commands.add('checkDatatableIsEmpty', (selector) => {
 /**
  * Allows us to fill the select fields in the filters field.
  * @param data Contains the data to fill the selects.
- * @param excludeSelects Selects to exclude.
+ * @param excludeElements Elements to exclude.
  */
-Cypress.Commands.add('fillSelectsInFiltersField', (data, excludeSelects) => {
+Cypress.Commands.add('fillSelectsInFiltersField', (data, excludeElements) => {
     cy
         .get('div.filters-wrapper-row > div.select-filter')
         .each(($select) => {
-            if(!$select.hasClass('statuses-filter')){
-                const selectElement = $select.find('select').first();
-                if (selectElement) {
-                    cy
-                        .wrap(selectElement)
-                        .invoke('attr', 'name')
-                        .then((name) => {
-                            if (excludeSelects.includes(name)) {
-                                cy.select2(name, data[name]);
-                            } else {
-                                cy.select2AjaxMultiple(name, [data[name]]);
-                            }
-                        });
-                }
+            if ($select.hasClass('statuses-filter')) {
+                return;
             }
+            const selectElement = $select.find('select').first();
+            if (!selectElement) {
+                return;
+            }
+            cy
+                .wrap(selectElement)
+                .invoke('attr', 'name')
+                .then((name) => {
+                    if (excludeElements.includes(name)) {
+                        cy.select2(name, data[name]);
+                    } else {
+                        cy.select2AjaxMultiple(name, [data[name]]);
+                    }
+                });
+
         });
 });
 
@@ -145,17 +148,18 @@ Cypress.Commands.add('fillSelectsInFiltersField', (data, excludeSelects) => {
  */
 Cypress.Commands.add('fillInputsInFiltersField', (data) => {
     cy
-        .get('div.filters-wrapper-row > div.input-filter')
+        .get('div.filters-wrapper-row > div[data-cypress=input-filter]')
         .each(($input) => {
             const inputElement = $input.find('input').first();
-            if (inputElement) {
-                cy
-                    .wrap(inputElement)
-                    .invoke('attr', 'name')
-                    .then((name) => {
-                        cy.get(inputElement).type(data[name]);
-                    });
+            if (!inputElement) {
+                return;
             }
+            cy
+                .wrap(inputElement)
+                .invoke('attr', 'name')
+                .then((name) => {
+                    cy.get(inputElement).type(data[name]);
+                });
         });
 });
 

@@ -26,7 +26,7 @@ describe('Filter the production request datatable', () => {
     });
 
     it('Check if the clear filters button work correctly', () => {
-        cy.get('div.filters-container input[name=manufacturingOrderNumber').type(filterItems['manufacturingOrderNumber']);
+        cy.get('div.filters-container input[name=manufacturingOrderNumber').type(filterItems.manufacturingOrderNumber);
 
         cy.get('button.clearFiltersBtn').click();
 
