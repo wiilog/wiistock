@@ -621,6 +621,7 @@ class DashboardService {
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         $packsRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
         $naturesFilter = !empty($config['natures'])
@@ -646,7 +647,7 @@ class DashboardService {
         ];
 
         if (!empty($naturesFilter)) {
-            $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+            $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug($entityManager));
             $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
             $nbPacksOnCluster = $locationClusterRepository->countPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
             if ($nbPacksOnCluster > $maxResultPackOnCluster) {

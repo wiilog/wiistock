@@ -12,50 +12,31 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: LocationClusterRepository::class)]
 class LocationCluster {
 
-    public const CLUSTER_CODE_ADMIN_DASHBOARD_1 = 'ADMIN_DASHBOARD_1';
-    public const CLUSTER_CODE_ADMIN_DASHBOARD_2 = 'ADMIN_DASHBOARD_2';
-    public const CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE = 'DOCK_DASHBOARD_DROPZONE';
-    public const CLUSTER_CODE_PACKAGING_DSQR = 'PACKAGING_DSQR';
-    public const CLUSTER_CODE_PACKAGING_GT_TARGET = 'PACKAGING_GT_TARGET';
-    public const CLUSTER_CODE_PACKAGING_GT_ORIGIN = 'PACKAGING_GT_ORIGIN';
-
-    /**
-     * @var int|null
-     */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     /**
      * @var Collection
      */
     #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'clusters')]
-    private $locations;
+    private Collection $locations;
 
-    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'locationCluster', cascade: ['remove'])]
-    private $locationClusterRecords;
+    #[ORM\OneToMany(mappedBy: 'locationCluster', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
+    private Collection $locationClusterRecords;
 
-    /**
-     * @var Collection
-     */
-    #[ORM\OneToMany(targetEntity: LocationClusterMeter::class, mappedBy: 'locationClusterFrom', cascade: ['remove'])]
-    private $metersFrom;
+    #[ORM\OneToMany(mappedBy: 'locationClusterFrom', targetEntity: LocationClusterMeter::class, cascade: ['remove'])]
+    private Collection $metersFrom;
 
-    /**
-     * @var Collection
-     */
-    #[ORM\OneToMany(targetEntity: LocationClusterMeter::class, mappedBy: 'locationClusterInto', cascade: ['remove'])]
-    private $metersInto;
+    #[ORM\OneToMany(mappedBy: 'locationClusterInto', targetEntity: LocationClusterMeter::class, cascade: ['remove'])]
+    private Collection $metersInto;
 
-    /**
-     * @var Dashboard\Component
-     */
     #[ORM\ManyToOne(targetEntity: Dashboard\Component::class, inversedBy: 'locationClusters')]
-    private $component;
+    private ?Dashboard\Component $component = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
-    private $clusterKey;
+    private ?string $clusterKey = null;
 
     public function __construct() {
         $this->locations = new ArrayCollection();
