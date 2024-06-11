@@ -133,7 +133,7 @@ class DashboardFeedCommand extends Command {
                         $this->dashboardService->persistEntitiesToTreat($this->entityManager, $component, $daysWorked, $freeWorkDays);
                         break;
                     case Dashboard\ComponentType::DISPUTES_TO_TREAT:
-                        $this->dashboardService->persistDisputesToTreat($entityManager, $component);
+                        $this->dashboardService->persistDisputesToTreat($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::LATE_PACKS:
                         $calculateLatePack = true;

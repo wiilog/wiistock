@@ -402,7 +402,6 @@ class DisputeRepository extends EntityRepository
             ->setParameter('types', $filters['types'])
             ->setParameter('statuses', $filters['statuses']);
 
-
         if($filters["disputeEmergency"]){
             $qb->andWhere("dispute.emergencyTriggered = 1");
         }

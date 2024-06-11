@@ -292,72 +292,72 @@ class DashboardSettingsController extends AbstractController {
             }
         }
 
-        if(!empty($values['carriers'])) {
+        if (!empty($values['carriers'])) {
             $carrierRepository = $entityManager->getRepository(Transporteur::class);
             $values['carriers'] = $carrierRepository->findBy(['id' => $values['carriers']]);
         }
 
-        if(!empty($values['arrivalTypes'])) {
+        if (!empty($values['arrivalTypes'])) {
             $values['arrivalTypes'] = $typeRepository->findBy(['id' => $values['arrivalTypes']]);
         }
 
-        if(!empty($values['dispatchTypes'])) {
+        if (!empty($values['dispatchTypes'])) {
             $values['dispatchTypes'] = $typeRepository->findBy(['id' => $values['dispatchTypes']]);
         }
 
-        if(!empty($values['referenceTypes'])) {
+        if (!empty($values['referenceTypes'])) {
             $values['referenceTypes'] = $typeRepository->findBy(['id' => $values['referenceTypes']]);
         }
 
-        if(!empty($values['managers'])) {
+        if (!empty($values['managers'])) {
             $values['managers'] = $userRepository->findBy(['id' => $values['managers']]);
         }
 
-        if(!empty($values['handlingTypes'])) {
+        if (!empty($values['handlingTypes'])) {
             $values['handlingTypes'] = $typeRepository->findBy(['id' => $values['handlingTypes']]);
         }
 
-        if(!empty($values['productionTypes'])) {
+        if (!empty($values['productionTypes'])) {
             $values['productionTypes'] = $typeRepository->findBy(['id' => $values['productionTypes']]);
         }
 
-        if(!empty($values['arrivalStatuses'])) {
+        if (!empty($values['arrivalStatuses'])) {
             $values['arrivalStatuses'] = $statusRepository->findBy(['id' => $values['arrivalStatuses']]);
         }
 
-        if(!empty($values['dispatchStatuses'])) {
+        if (!empty($values['dispatchStatuses'])) {
             $values['dispatchStatuses'] = $statusRepository->findBy(['id' => $values['dispatchStatuses']]);
         }
 
-        if(!empty($values['productionStatuses'])) {
+        if (!empty($values['productionStatuses'])) {
             $values['productionStatuses'] = $statusRepository->findBy(['id' => $values['productionStatuses']]);
         }
 
-        if(!empty($values['deliveryOrderStatuses'])) {
+        if (!empty($values['deliveryOrderStatuses'])) {
             $values['deliveryOrderStatuses'] = $statusRepository->findBy(['id' => $values['deliveryOrderStatuses']]);
         }
 
-        if(!empty($values['deliveryOrderTypes'])) {
+        if (!empty($values['deliveryOrderTypes'])) {
             $values['deliveryOrderTypes'] = $typeRepository->findBy(['id' => $values['deliveryOrderTypes']]);
         }
 
-        if(!empty($values['handlingStatuses'])) {
+        if (!empty($values['handlingStatuses'])) {
             $values['handlingStatuses'] = $statusRepository->findBy(['id' => $values['handlingStatuses']]);
         }
 
-        if(!empty($values['natures'])) {
+        if (!empty($values['natures'])) {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
 
-        if(!empty($values['disputeTypes'])) {
+        if (!empty($values['disputeTypes'])) {
             $values['disputeTypes'] = $typeRepository->findBy(['id' => $values['disputeTypes']]);
         }
 
-        if(!empty($values['disputeStatuses'])){
+        if (!empty($values['disputeStatuses'])) {
             $values['disputeStatuses'] = $statusRepository->findBy(['id' => $values['disputeStatuses']]);
         }
 
-        if(!empty($values['pickLocations'])) {
+        if (!empty($values['pickLocations'])) {
             $values['pickLocations'] = Stream::from($locationRepository->findBy(['id' => $values['pickLocations']]))
                     ->map(static fn(Emplacement $pickLocation) => [
                         'label' => $pickLocation->getLabel(),
@@ -367,7 +367,7 @@ class DashboardSettingsController extends AbstractController {
                     ->toArray();
         }
 
-        if(!empty($values['dropLocations'])) {
+        if (!empty($values['dropLocations'])) {
             $values['dropLocations'] = Stream::from($locationRepository->findBy(['id' => $values['dropLocations']]))
                     ->map(static fn(Emplacement $dropLocation) => [
                         'label' => $dropLocation->getLabel(),
@@ -377,7 +377,7 @@ class DashboardSettingsController extends AbstractController {
                     ->toArray();
         }
 
-        if(!empty($values['dispatchEmergencies'])) {
+        if (!empty($values['dispatchEmergencies'])) {
             $values['dispatchEmergencies'] = Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                 ->filter(static fn($emergency) => in_array($emergency, $values['dispatchEmergencies']))
                 ->toArray();
@@ -412,7 +412,7 @@ class DashboardSettingsController extends AbstractController {
 
         $displayLegend = $componentType->getMeterKey() === Dashboard\ComponentType::HANDLING_TRACKING || $componentType->getMeterKey() === Dashboard\ComponentType::PACK_TO_TREAT_FROM;
         $values['legends'] = [];
-        if(!empty($values['chartColorsLabels'])){
+        if (!empty($values['chartColorsLabels'])) {
             $countLegend = 1;
             foreach($values['chartColorsLabels'] as $legend){
                 $values['legends'][$legend] = [];
@@ -426,7 +426,7 @@ class DashboardSettingsController extends AbstractController {
                     });
                 $countLegend++;
             }
-        } else if(!empty($values['chartColors'])){
+        } else if(!empty($values['chartColors'])) {
             $countLegend = 1;
             foreach($values['chartColors'] as $key => $legend){
                 $values['legends'][$key] = [];
@@ -458,7 +458,7 @@ class DashboardSettingsController extends AbstractController {
         $disputeStatuses = $statusRepository->findByCategorieNames([CategorieStatut::DISPUTE_ARR, CategorieStatut::LITIGE_RECEPT]);
 
         $natures = $natureRepository->findAll();
-        if($templateName) {
+        if ($templateName) {
             return $this->json([
                 'success' => true,
                 'html' => $this->renderView('dashboard/component_type/form.html.twig', [

@@ -53,8 +53,8 @@ class DisputeController extends AbstractController
         $statusesFilter = $data->has('statuses') ? $data->all('statuses') : [];
         $typesFilter = $data->has('types') ? $data->all('types') : [];
 
-        if($fromDashboard){
-            if(!empty($typesFilter)){
+        if ($fromDashboard) {
+            if (!empty($typesFilter)) {
                 $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
                     ->filterMap(fn(Type $type) => $type->getLabelIn($user->getLanguage()))
                     ->toArray();
