@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\Dashboard;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispute;
 use App\Entity\Handling;
 use App\Entity\Dispatch;
 use App\Entity\Language;
@@ -1600,5 +1601,23 @@ class DashboardService {
         if ($chartColors) {
             $meter->setChartColors($chartColors);
         }
+    }
+
+    public function persistDisputesToTreat(EntityManagerInterface $entityManager, Dashboard\Component $component): void
+    {
+        $config = $component->getConfig();
+        $disputeTypes = $config['disputeTypes'];
+        $disputeStatuses = $config['disputeStatuses'];
+        $disputeEmergency = $config['disputeEmergency'] ?? false;
+
+        $disputeRepository = $entityManager->getRepository(Dispute::class);
+        $count = $disputeRepository->countByFilters([
+            'types' => $disputeTypes,
+            'statuses' => $disputeStatuses,
+            'disputeEmergency' => $disputeEmergency,
+        ]);
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter->setCount($count ?? 0);
     }
 }

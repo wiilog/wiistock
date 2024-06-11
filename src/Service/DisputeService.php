@@ -67,12 +67,16 @@ class DisputeService {
         $this->CSVExportService = $CSVExportService;
     }
 
-    public function getDataForDatatable($params = null): array {
+    public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
+        if (!$fromDashboard) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
+        } else {
+            $filters = $preFilledFilters;
+        }
 
         $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->visibleColumnService);
         $disputes = $queryResult['data'];
