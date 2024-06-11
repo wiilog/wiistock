@@ -1325,7 +1325,8 @@ class DashboardSettingsService {
                         'natures' => implode(',', $natures),
                         'fromDashboard' => true,
                         'useTruckArrivalsFromDashboard' => $config["truckArrivalTime"] ?? false,
-                    ]) : null;
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $redirect = isset($config['redirect']) && $config['redirect'];
@@ -1340,12 +1341,14 @@ class DashboardSettingsService {
                 $types = $config['disputeTypes'];
                 $emergency = $config['disputeEmergency'];
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('dispute_index', [
-                    'statuses' => $statuses,
-                    'types' => $types,
-                    'emergency' => $emergency,
-                    'fromDashboard' => true,
-                ]) : null;
+                $link = $redirect
+                    ? $this->router->generate('dispute_index', [
+                        'statuses' => $statuses,
+                        'types' => $types,
+                        'emergency' => $emergency,
+                        'fromDashboard' => true,
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 $statuses = $config['entityStatuses'];
