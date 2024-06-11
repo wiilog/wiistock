@@ -114,10 +114,10 @@ Cypress.Commands.add('checkDatatableIsEmpty', (selector) => {
 
 /**
  * Allows us to fill the select fields in the filters field.
- * @param data Contains the data to fill the selects.
- * @param excludeElements Elements to exclude.
+ * @param object Contains the data to fill the selects.
+ * @param select2Name Name of selects without ajax request .
  */
-Cypress.Commands.add('fillSelectsInFiltersField', (data, excludeElements) => {
+Cypress.Commands.add('fillSelectsInFiltersField', (object, select2Name) => {
     cy
         .get('div.filters-wrapper-row > div.select-filter')
         .each(($select) => {
@@ -132,10 +132,10 @@ Cypress.Commands.add('fillSelectsInFiltersField', (data, excludeElements) => {
                 .wrap(selectElement)
                 .invoke('attr', 'name')
                 .then((name) => {
-                    if (excludeElements.includes(name)) {
-                        cy.select2(name, data[name]);
+                    if (select2Name.includes(name)) {
+                        cy.select2(name, object[name]);
                     } else {
-                        cy.select2AjaxMultiple(name, [data[name]]);
+                        cy.select2AjaxMultiple(name, [object[name]]);
                     }
                 });
 
