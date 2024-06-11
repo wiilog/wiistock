@@ -132,12 +132,12 @@ class DemandeRepository extends EntityRepository
         $qb = $this->createQueryBuilder("delivery_request")
             ->andWhere('delivery_request.manual = false');
 
-            if(!empty($user->getDeliveryTypeIds())){
-                $qb
-                    ->join('delivery_request.type', 'join_type')
-                    ->andWhere('join_type.id IN (:userDeliveryTypeIds)')
-                    ->setParameter('userDeliveryTypeIds', $user->getDeliveryTypeIds());
-            }
+        if(!empty($user->getDeliveryTypeIds())){
+            $qb
+                ->join('delivery_request.type', 'join_type')
+                ->andWhere('join_type.id IN (:userDeliveryTypeIds)')
+                ->setParameter('userDeliveryTypeIds', $user->getDeliveryTypeIds());
+        }
 
         $countTotal = QueryBuilderHelper::count($qb, 'delivery_request');
 
