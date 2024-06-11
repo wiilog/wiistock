@@ -35,10 +35,8 @@ export function initUserPage($container) {
     });
 
     let $modalNewUser = $("#modalNewUser");
-    Form.create($modalNewUser, {clearOnOpen: true})
-        .onOpen(() => {
-            $modalNewUser.find('.select-all-options').on('click', onSelectAll);
-        })
+    Form
+        .create($modalNewUser, {clearOnOpen: true})
         .submitTo(POST, `user_new`, {tables: [tableUser]});
 
     const $languageSelect = $('.utilisateur-language');
@@ -80,7 +78,6 @@ function editRowUser(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('.select-all-options').on('click', onSelectAll)
         Select2Old.location($('#dropzone'));
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);

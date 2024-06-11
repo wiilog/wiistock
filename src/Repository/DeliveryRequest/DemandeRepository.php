@@ -130,10 +130,14 @@ class DemandeRepository extends EntityRepository
 	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder("delivery_request")
-            ->join('delivery_request.type', 'join_type')
-            ->andWhere('delivery_request.manual = false')
-            ->andWhere('join_type.id IN (:userDeliveryTypeIds)')
-            ->setParameter('userDeliveryTypeIds', $user->getDeliveryTypeIds());
+            ->andWhere('delivery_request.manual = false');
+
+            if(!empty($user->getDeliveryTypeIds())){
+                $qb
+                    ->join('delivery_request.type', 'join_type')
+                    ->andWhere('join_type.id IN (:userDeliveryTypeIds)')
+                    ->setParameter('userDeliveryTypeIds', $user->getDeliveryTypeIds());
+            }
 
         $countTotal = QueryBuilderHelper::count($qb, 'delivery_request');
 
