@@ -671,9 +671,7 @@ class DashboardService {
                                                                 use (
                                                                     $workFreeDays,
                                                                     $daysWorked,
-                                                                    $workFreeDaysRepository,
                                                                     $countByNatureBase,
-                                                                    $naturesFilter,
                                                                     &$packsOnCluster,
                                                                     $adminDelay,
                                                                     &$locationCounters,
