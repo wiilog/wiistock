@@ -57,6 +57,8 @@ const DATE_FORMATS_TO_DISPLAY = {
     'm-d-Y': 'MM-DD-YYYY',
 }
 
+const onFlyFormOpened = [];
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
