@@ -47,6 +47,7 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
     value.forEach(element => {
         cy.get(getName)
             .siblings('.select2')
+            .first()
             .click()
             .type(element)
             .wait('@select2Request')

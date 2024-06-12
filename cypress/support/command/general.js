@@ -74,3 +74,15 @@ Cypress.Commands.add('dropdownDroprightAction', (action) => {
         .click()
         .wait(200);
 })
+
+/**
+ * Check if the result code status of a request is equal to a status code.
+ * @param request Request to wait.
+ * @param statusCode Status code expected.
+ */
+Cypress.Commands.add('checkRequestStatusCode', (request, statusCode) => {
+    cy
+        .wait(`@${request}`)
+        .its('response.statusCode')
+        .should('eq', statusCode);
+})
