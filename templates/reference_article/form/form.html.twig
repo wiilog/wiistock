@@ -31,7 +31,7 @@
                         <span>{{ reference.type.label }}</span>
                     </div>
                 {% endif %}
-                <div class="content row mx-0" style="border: {{ reference.id ? '1px solid ' ~ reference.type.color }}">
+                <div class="content row mx-0" style="border: {{ reference.type and reference.type.color ? '1px solid ' ~ reference.type.color }}">
                     <div class="col-md-4 col-12 p-0">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
