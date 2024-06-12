@@ -156,7 +156,7 @@ function initPackDatatable(arrivalId, columns) {
 }
 
 function initDisputeDatatable(arrivalId) {
-    let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: arrivalId}, true);
+    let pathArrivageLitiges = Routing.generate('arrival_diputes_api', {arrivage: arrivalId}, true);
     let tableArrivageLitigesConfig = {
         domConfig: {
             removeInfo: true
@@ -272,7 +272,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
         })
         .onOpen((event) => {
             const disputeId = $(event.relatedTarget).data('dispute');
-            Modal.load('litige_api_edit', {dispute: disputeId}, $modalEditLitige, $modalEditLitige.find('.modal-body'), {
+            Modal.load('arrival_dispute_api_edit', {dispute: disputeId}, $modalEditLitige, $modalEditLitige.find('.modal-body'), {
                 onOpen: () => {
                     Camera.init(
                         $modalEditLitige.find(`.take-picture-modal-button`),
@@ -284,7 +284,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
         })
         .submitTo(
             AJAX.POST,
-            'litige_edit_arrivage',
+            'arrival_edit_dispute',
             {
                 tables: [disputeDatatable],
             }

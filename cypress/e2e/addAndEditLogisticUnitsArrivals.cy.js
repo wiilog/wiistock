@@ -163,8 +163,8 @@ describe('Add and edit logistic units arrivals', () => {
         interceptRoute(routes.new_dispute_template);
         interceptRoute(routes.dispute_new);
         interceptRoute(routes.arrivage_litiges_api);
-        interceptRoute(routes.litige_api_edit);
-        interceptRoute(routes.litige_edit_arrivage);
+        interceptRoute(routes.arrival_dispute_api_edit);
+        interceptRoute(routes.arrival_edit_dispute);
         interceptRoute(routes.arrivage_add_pack);
         interceptRoute(routes.printPacks);
         interceptRoute(routes.arrivage_edit_api);
@@ -358,11 +358,11 @@ describe('Add and edit logistic units arrivals', () => {
             cy.wrap(secondLU).as('secondLU');
         })
 
-        cy.wait('@arrivageLitiges_api')
+        cy.wait('@arrival_diputes_api')
 
         // click on the last dispute to edit it
         cy.get('#tableArrivageLitiges tbody tr').last()
-            .click().wait('@litige_api_edit', {timeout: 8000});
+            .click().wait('@arrival_dispute_api_edit', {timeout: 8000});
 
         // edit the dispute
         cy.get(`${modalEditLitige} [name=disputeType]`)
@@ -406,7 +406,7 @@ describe('Add and edit logistic units arrivals', () => {
             })
         })
 
-        cy.closeAndVerifyModal(modalEditLitige, 'submitEditLitige', 'litige_edit_arrivage');
+        cy.closeAndVerifyModal(modalEditLitige, 'submitEditLitige', 'arrival_edit_dispute');
 
         const propertiesMap = {
             'Type': 'type',

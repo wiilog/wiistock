@@ -8,6 +8,7 @@
     <div class="form-group col-8">
         {{ form.select('disputeType', trans('Qualité', 'Litiges', 'Type'), true , {
             type : '',
+            disabled : not hasRightTreatDispute,
             items : disputeTypes|map((type) => {
                 value : type.id,
                 label : type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
@@ -30,13 +31,12 @@
         }) }}
     </div>
     <div class="form-group w-100 col-12">
-        {% set disputeReporter = dispute.reporter ?: app.user %}
         {{ form.select('disputeReporter', trans('Qualité', 'Litiges', 'Déclarant'), true, {
             type: 'user',
             multiple: false,
             items: [{
-                value: disputeReporter.id,
-                label: disputeReporter.username,
+                value: dispute.reporter ? dispute.reporter.id,
+                label: dispute.reporter ? dispute.reporter.username,
                 selected: true,
             },],
         }) }}

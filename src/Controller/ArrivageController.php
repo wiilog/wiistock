@@ -496,6 +496,7 @@ class ArrivageController extends AbstractController {
 
         $post = $request->request;
 
+
         $arrivage = $arrivageRepository->find($post->get('id'));
 
         $receivers = Stream::from($arrivage->getReceivers())
@@ -821,7 +822,7 @@ class ArrivageController extends AbstractController {
                                UniqueNumberService    $uniqueNumberService,
                                TranslationService     $translation,
                                AttachmentService      $attachmentService): Response {
-        $post = $request->request;
+        $data = $request->request;
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -834,14 +835,14 @@ class ArrivageController extends AbstractController {
 
         $dispute = new Dispute();
         $dispute
-            ->setReporter($usersRepository->find($post->get('disputeReporter')))
-            ->setStatus($statutRepository->find($post->get('disputeStatus')))
-            ->setType($typeRepository->find($post->get('disputeType')))
+            ->setReporter($usersRepository->find($data->get('disputeReporter')))
+            ->setStatus($statutRepository->find($data->get('disputeStatus')))
+            ->setType($typeRepository->find($data->get('disputeType')))
             ->setCreationDate($now)
             ->setNumber($disputeNumber);
 
         $arrivage = null;
-        if (!empty($packsStr = $post->get('disputePacks'))) {
+        if (!empty($packsStr = $data->get('disputePacks'))) {
             $packIds = explode(',', $packsStr);
             foreach ($packIds as $packId) {
                 $pack = $packRepository->find($packId);
@@ -851,8 +852,8 @@ class ArrivageController extends AbstractController {
                 }
             }
         }
-        if ($post->get('emergency')) {
-            $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
+        if ($data->get('emergency')) {
+            $dispute->setEmergencyTriggered($data->get('emergency') === 'true');
         }
         if ((!$dispute->getStatus() || !$dispute->getStatus()->isTreated()) && $arrivage) {
             $typeStatuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
@@ -876,7 +877,7 @@ class ArrivageController extends AbstractController {
             $dispute,
             $currentUser,
             [
-                $post->get('commentaire'),
+                $data->get('commentaire'),
                 $dispute->getType()->getDescription()
             ]
         );
@@ -942,7 +943,7 @@ class ArrivageController extends AbstractController {
             throw new BadRequestHttpException();
         }
 
-        $project =  $projectRepository->find($data->getInt('project'));
+        $project = $projectRepository->find($data->getInt('project'));
 
 
         $natures = json_decode($data->get('packs'), true);
@@ -954,10 +955,10 @@ class ArrivageController extends AbstractController {
         $persistedPack = [];
         if ($reception = $arrivage->getReception()) {
             $statusCode = $reception->getStatut()->getCode();
-            if ($statusCode === Reception::STATUT_EN_ATTENTE) {
+            if ($statusCode !== Reception::STATUT_RECEPTION_TOTALE) {
                 $persistedPack = $packService->createMultiplePacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
                 $entityManager->flush();
-            } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE) {
+            } else {
                 $response = [
                     'success' => false,
                     'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
@@ -985,7 +986,7 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    #[Route("/litiges/api/{arrivage}", name: "arrivageLitiges_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/litiges/api/{arrivage}", name: "arrival_diputes_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function apiArrivageLitiges(EntityManagerInterface $entityManager,
                                        Arrivage $arrivage): Response {
         $disputeRepository = $entityManager->getRepository(Dispute::class);
@@ -1003,7 +1004,7 @@ class ArrivageController extends AbstractController {
                 'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
                     'url' => [
-                        'edit' => $this->generateUrl('litige_api_edit', ['dispute' => $dispute->getId()])
+                        'edit' => $this->generateUrl('arrival_dispute_api_edit', ['dispute' => $dispute->getId()])
                     ],
                     'disputeId' => $dispute->getId(),
                     'disputeNumber' => $dispute->getNumber()
@@ -1017,9 +1018,9 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Route("/api-modifier-litige/{dispute}", name: "litige_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier-litige/{dispute}", name: "arrival_dispute_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function apiEditLitige(Dispute                   $dispute,
+    public function diputeApiEdit(Dispute                   $dispute,
                                   EntityManagerInterface    $entityManager): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1052,45 +1053,48 @@ class ArrivageController extends AbstractController {
         return new JsonResponse(['html' => $html, 'packs' => $packCode]);
     }
 
-    #[Route("/modifier-litige", name: "litige_edit_arrivage", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/modifier-litige", name: "arrival_edit_dispute", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editLitige(Request                $request,
+    public function editDispute(Request                $request,
                                ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
                                AttachmentService      $attachmentService): Response {
-        $post = $request->request;
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $disputeRepository = $entityManager->getRepository(Dispute::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $dispute = $disputeRepository->find($post->get('disputeId'));
-        $typeBefore = $dispute->getType()->getId();
-        $typeAfter = $post->getInt('disputeType');
-        $statutBefore = $dispute->getStatus()->getId();
-        $statutAfter = $post->getInt('disputeStatus');
-        $dispute
-            ->setReporter($utilisateurRepository->find($post->get('disputeReporter')))
-            ->setUpdateDate(new DateTime('now'));
+        $data = $request->request;
 
-        $newStatus = $statutRepository->find($statutAfter);
-        $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
-
-        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $currentUser);
 
-        if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
-            $dispute->setStatus($newStatus);
-        }
+        $dispute = $disputeRepository->find($data->get('disputeId'));
 
+        $typeBefore = $dispute->getType()->getId();
+        $typeAfter = $data->getInt('disputeType');
         if ($hasRightToTreatLitige) {
             $dispute->setType($typeRepository->find($typeAfter));
         }
 
-        if (!empty($newPack = $post->get('pack'))) {
+        $statutBefore = $dispute->getStatus()->getId();
+        $statutAfter = $data->getInt('disputeStatus');
+        $newStatus = $statutRepository->find($statutAfter);
+        if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
+            $dispute->setStatus($newStatus);
+        }
+
+        dump($utilisateurRepository->find($data->getInt('disputeReporter')));
+        dump($data->getInt('disputeReporter'));
+        $dispute
+            ->setReporter($utilisateurRepository->find($data->getInt('disputeReporter')))
+            ->setUpdateDate(new DateTime('now'));
+
+        dump($dispute->getReporter());
+
+        if (!empty($newPack = $data->get('disputePacks'))) {
             // on détache les UL existants...
             $existingPacks = $dispute->getPacks();
             foreach ($existingPacks as $existingPack) {
@@ -1105,11 +1109,11 @@ class ArrivageController extends AbstractController {
 
         $entityManager->flush();
 
-        if ($post->get('emergency')) {
-            $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
+        if ($data->has('emergency')) {
+            $dispute->setEmergencyTriggered($data->getBoolean('emergency'));
         }
 
-        $comment = trim($post->get('commentaire', ''));
+        $comment = trim($data->get('commentaire', ''));
         $typeDescription = $dispute->getType()->getDescription();
         if ($statutBefore !== $statutAfter
             || $typeBefore !== $typeAfter
@@ -1125,7 +1129,7 @@ class ArrivageController extends AbstractController {
             $entityManager->flush();
         }
 
-        $attachmentService->removeAttachments($entityManager, $dispute, $post->all('files') ?: []);
+        $attachmentService->removeAttachments($entityManager, $dispute, $data->all('files') ?: []);
         $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
 
         $entityManager->flush();

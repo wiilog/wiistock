@@ -124,7 +124,20 @@
         }
     } %}
 
-    {% include 'arrivage/modalEditLitige.html.twig' %}
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditLitige',
+        size: 'modal-lg',
+        header: {
+            title: trans('Qualité', 'Litiges', 'Modifier un litige')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+            ],
+        }
+    } %}
+
     {% include 'arrivage/modalDeleteLitige.html.twig' %}
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'pack/modalDeletePack.html.twig' %}

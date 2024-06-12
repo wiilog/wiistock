@@ -18,6 +18,7 @@ let tableArticleLitige;
 let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
+let receptionId = undefined;
 
 window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
@@ -33,13 +34,17 @@ window.initEditReception = initEditReception;
 window.updateQuantityToReceive = updateQuantityToReceive;
 
 $(function () {
+    receptionId = $('#receptionId').val();
     $('.select2').select2();
     receptionDisputesDatatable = InitDisputeDataTable();
     initPageModals();
     launchPackListSearching();
     loadReceptionLines();
 
-    $('#modalNewLitige').on('change', 'select[name=disputePacks]', function () {
+    const $modalNewDispute = $('#modalNewLitige');
+
+    Select2Old.articleReception($modalNewDispute.find('.select2-autocomplete-articles'), receptionId);
+    $modalNewDispute.on('change', 'select[name=disputePacks]', function () {
         const data = $(this).select2('data');
         const isUrgent = data.some((article) => article.isUrgent);
         $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
@@ -203,7 +208,7 @@ function initPageModals() {
 }
 
 function InitDisputeDataTable() {
-    let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
+    let pathLitigesReception = Routing.generate('litige_reception_api', {reception: receptionId}, true);
 
     let tableLitigeConfig = {
         lengthMenu: [5, 10, 25],
@@ -533,7 +538,7 @@ function initNewLigneReception() {
     Select2Old.init($modalNewLigneReception.find('[name=referenceToReceive]'), '', 0, {
         route: 'get_ref_article_reception',
         param: {
-            reception: $('#receptionId').val()
+            reception: receptionId
         }
     });
     $(`.modal-footer`).find(`.submit`).removeClass(LOADING_CLASS);
@@ -769,9 +774,8 @@ function clearPackingContent($element, hideSubFields = true, hidePackingContaine
 function loadReceptionLines({start, search} = {}) {
     start = start || 0;
     const $logisticUnitsContainer = $('.logistic-units-container');
-    const reception = $('#receptionId').val();
 
-    const params = {reception, start};
+    const params = {reception: receptionId, start};
     if (search) {
         params.search = search;
     }

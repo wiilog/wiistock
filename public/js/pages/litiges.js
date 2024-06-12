@@ -87,7 +87,7 @@ function initDatatableLitiges() {
 }
 
 function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, disputeId, disputeNumber) {
-    let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
+    let route = isArrivage ? 'arrival_dispute_api_edit' : 'litige_api_edit_reception';
     let path = Routing.generate(route, {dispute: disputeId});
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
@@ -117,6 +117,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
             });
 
             $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
+            fillDemandeurField($modal);
         }
 
         Camera.init(
@@ -124,7 +125,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
             $modal.find(`[name="files[]"]`)
         );
 
-        fillDemandeurField($modal);
         $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();
 

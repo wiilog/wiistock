@@ -1543,7 +1543,7 @@ class DispatchController extends AbstractController {
         return $response;
     }
 
-    #[Route("/create-form-arrival-template", name: "create_from_arrivals_template", options: ["expose" => true], methods: "GET")]
+    #[Route("/create-form-arrivals-template", name: "create_from_arrivals_template", options: ["expose" => true], methods: self::GET)]
     public function createFromArrivalTemplate(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService): JsonResponse

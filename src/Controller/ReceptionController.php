@@ -911,9 +911,7 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/autocomplete-art{reception}", name: "get_article_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     public function getArticles(ArticleDataService $articleDataService,
                                 Reception $reception): JsonResponse {
         $articles = [];
