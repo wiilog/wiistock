@@ -90,6 +90,8 @@ class ImportService
             "articleFournisseurReference",
             "fournisseurReference",
             "commentaire",
+            "emplacement",
+            "quantite",
             "stockEntryDate",
             "expiryDate",
             "dateLastInventory",
