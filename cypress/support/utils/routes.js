@@ -184,7 +184,7 @@ export const routes = {
     },
     arrival_dispute_api_edit:{
         method: 'GET',
-        route: '/arrivage/api-modifier-litige',
+        route: '/arrivage/api-modifier-litige/*',
         alias: 'arrival_dispute_api_edit'
     },
     arrival_edit_dispute:{
