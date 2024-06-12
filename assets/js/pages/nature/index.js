@@ -1,3 +1,11 @@
+import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
+
+global.onNewModalShow = onNewModalShow;
+global.toggleEntitiesContainer = toggleEntitiesContainer;
+global.toggleTypes = toggleTypes;
+global.selectAllTypes = selectAllTypes;
+
 $(function () {
     const table = initNatureTable();
 

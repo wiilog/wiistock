@@ -6,7 +6,9 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <button data-toggle="modal" data-target="#modalNewNature" class="btn btn-primary d-flex align-items-center"
+                <button data-toggle="modal"
+                        data-target="#modalNewNature"
+                        class="btn btn-primary d-flex align-items-center"
                         onclick="onNewModalShow();">
                     <span class="wii-icon wii-icon-plus mr-2"></span>
                     Ajouter une nature
@@ -29,5 +31,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/nature.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('nature-index') }}
 {% endblock %}
