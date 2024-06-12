@@ -393,7 +393,10 @@ function printArticles(preparation) {
     } else {
         window.location.href = Routing.generate(
             'preparation_bar_codes_print',
-            params,
+            {
+                forceTagEmpty: true,
+                ...params,
+            },
             true
         );
     }

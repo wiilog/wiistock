@@ -483,7 +483,7 @@ class PreparationController extends AbstractController
     }
 
     #[Route("/modifier-article", name: "prepa_edit_ligne_article", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::STOCK, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editLigneArticle(Request                $request,
                                      EntityManagerInterface $entityManager): Response {
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
@@ -565,7 +565,7 @@ class PreparationController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/cvs", name: "get_preparations_csv", options: ["expose" => true], methods: [self::GET])]
+    #[Route("/csv", name: "get_preparations_csv", options: ["expose" => true], methods: [self::GET])]
     public function getPreparationCSV(Request                    $request,
                                       PreparationsManagerService $preparationsManager,
                                       CSVExportService           $CSVExportService,
@@ -612,7 +612,7 @@ class PreparationController extends AbstractController
         }
     }
 
-    #[Route("/{preparation}/check-etiquette", name: "count_bar_codes", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{preparation}/check-etiquette", name: "count_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function countBarcode(Preparation $preparation): Response
     {
         $articleCount = $preparation->getArticleLines()->count();
@@ -627,19 +627,17 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    #[Route("/{preparation}/etiquettes", name: "preparation_bar_codes_print", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{preparation}/etiquettes", name: "preparation_bar_codes_print", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function getBarCodes(Preparation             $preparation,
                                 RefArticleDataService   $refArticleDataService,
                                 ArticleDataService      $articleDataService,
                                 EntityManagerInterface  $entityManager,
                                 Request                 $request,
                                 PDFGeneratorService     $PDFGeneratorService): ?Response {
-        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
-        $tag = $forceTagEmpty
-            ? null
-            : ($request->query->get('template')
-                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
-                : null);
+        $forceTagEmpty = $request->query->getBoolean('forceTagEmpty');
+        $tag = $request->query->get('template')
+            ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+            : null;
 
         $articles = $preparation->getArticleLines()->toArray();
         $lignesArticle = $preparation->getReferenceLines()->toArray();
@@ -653,7 +651,7 @@ class PreparationController extends AbstractController
                     ->some(static function (TagTemplate $tag) use ($article) {
                         return $tag->getTypes()->contains($article->getType());
                     });
-                return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                return ($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray()));
             })
             ->map(fn(PreparationOrderArticleLine $line) => $articleDataService->getBarcodeConfig($line->getArticle()))
             ->toArray();
