@@ -291,7 +291,8 @@ class DeliveryRequestService
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
 
-        if(!$type->isActive() || !in_array($type->getId(), $utilisateur->getDeliveryTypeIds())){
+        if ((!$type->isActive() || !in_array($type->getId(), $utilisateur->getDeliveryTypeIds()))
+            && !empty($utilisateur->getDeliveryTypeIds())) {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 

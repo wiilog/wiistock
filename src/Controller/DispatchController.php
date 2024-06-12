@@ -302,7 +302,9 @@ class DispatchController extends AbstractController {
 
         $currentUser = $this->getUser();
         $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
-        if(!$type->isActive() || !in_array($type->getId(), $currentUser->getDispatchTypeIds())){
+        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getDispatchTypeIds())
+            && !empty($currentUser->getDeliveryTypeIds())
+        ) {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 
