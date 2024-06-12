@@ -1,4 +1,3 @@
-$('.select2').select2();
 let tableLitiges;
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
@@ -15,11 +14,15 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
+    const $filtersContainer = $(`.filters-container`);
+    const $disputeTypeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+
     Select2Old.init($('#carriers'), 'Transporteurs');
     Select2Old.init($('#litigeOrigin'), Translation.of(`Qualité`, `Litiges`, `Origines`, false));
     Select2Old.user($('.ajax-autocomplete-user:eq(0)'), Translation.of(`Qualité`, `Litiges`, `Acheteurs`, false));
     Select2Old.user($('.ajax-autocomplete-user:eq(1)'), Translation.of(`Qualité`, `Litiges`, `Déclarant`, false));
     Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`, false));
+    Select2Old.init($disputeTypeFilter, Translation.of(`Qualité`, `Litiges`, `Types`, false));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
