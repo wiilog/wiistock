@@ -1086,13 +1086,9 @@ class ArrivageController extends AbstractController {
             $dispute->setStatus($newStatus);
         }
 
-        dump($utilisateurRepository->find($data->getInt('disputeReporter')));
-        dump($data->getInt('disputeReporter'));
         $dispute
             ->setReporter($utilisateurRepository->find($data->getInt('disputeReporter')))
             ->setUpdateDate(new DateTime('now'));
-
-        dump($dispute->getReporter());
 
         if (!empty($newPack = $data->get('disputePacks'))) {
             // on détache les UL existants...
