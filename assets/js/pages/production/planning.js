@@ -4,12 +4,13 @@ import Sortable from "@app/sortable";
 import AJAX, {PUT} from "@app/ajax";
 import Planning from "@app/planning";
 import moment from "moment";
-import {openModalUpdateProductionRequestStatus} from '@app/pages/production/form';
+import {displayAttachmentRequired, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 import {getUserFiltersByPage} from '@app/utils';
 
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 
 global.callbackSaveFilter = callbackSaveFilter;
+global.displayAttachmentRequired = displayAttachmentRequired;
 
 let planning = null;
 let external = null;

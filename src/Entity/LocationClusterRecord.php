@@ -21,7 +21,7 @@ class LocationClusterRecord {
      * @var bool
      */
     #[ORM\Column(type: 'boolean')]
-    private $active;
+    private bool $active = true;
 
     /**
      * @var Pack|null
@@ -42,16 +42,9 @@ class LocationClusterRecord {
     #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'lastTrackingRecords')]
     private $lastTracking;
 
-    /**
-     * @var LocationCluster|null
-     */
     #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'locationClusterRecords')]
     #[ORM\JoinColumn(nullable: false)]
-    private $locationCluster;
-
-    public function __construct() {
-        $this->active = true;
-    }
+    private ?LocationCluster $locationCluster = null;
 
     /**
      * @return int|null

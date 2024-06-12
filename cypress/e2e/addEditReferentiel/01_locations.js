@@ -1,5 +1,6 @@
-import routes, {interceptRoute} from "../../support/utils/routes";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user = Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
 describe('Add and edit components in Referentiel > Emplacements', () => {
     beforeEach(() => {
@@ -17,6 +18,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'emplacement_index');
+        uncaughtException();
     })
 
     it('should add a new location', () => {

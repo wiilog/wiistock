@@ -3,13 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\Dispute;
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Dispute|null find($id, $lockMode = null, $lockVersion = null)
@@ -220,11 +223,17 @@ class DisputeRepository extends EntityRepository
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-				case 'type':
-					$qb
-						->andWhere('t.label = :type')
-						->setParameter('type', $filter['value']);
-					break;
+                case FiltreSup::FIELD_MULTIPLE_TYPES:
+                    if(!empty($filter['value'])){
+                        $value = Stream::explode(',', $filter['value'])
+                            ->filter()
+                            ->map(static fn($type) => explode(':', $type)[0])
+                            ->toArray();
+                        $qb
+                            ->andWhere('t.id in (:filter_type_value)')
+                            ->setParameter('filter_type_value', $value);
+                    }
+                    break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
@@ -385,4 +394,20 @@ class DisputeRepository extends EntityRepository
         return $query->execute();
     }
 
+    public function countByFilters(array $filters = []): int {
+        $qb = $this->createQueryBuilder('dispute')
+            ->select('COUNT(dispute)')
+            ->innerJoin('dispute.status', 'status', JOIN::WITH, 'status.id IN (:statuses)')
+            ->innerJoin('dispute.type', 'type', JOIN::WITH, 'type.id IN (:types)')
+            ->setParameter('types', $filters['types'])
+            ->setParameter('statuses', $filters['statuses']);
+
+        if($filters["disputeEmergency"]){
+            $qb->andWhere("dispute.emergencyTriggered = 1");
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

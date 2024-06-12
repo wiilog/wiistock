@@ -76,9 +76,19 @@ class TrackingMovementService extends AbstractController
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UserService $userService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
+
     public array $stockStatuses = [];
 
     private ?array $freeFieldsConfig = null;
+
 
     public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
@@ -729,45 +739,51 @@ class TrackingMovementService extends AbstractController
     }
 
     public function putMovementLine($handle,
-                                    CSVExportService $CSVExportService,
                                     array $movement,
-                                    array $freeFieldsConfig)
-    {
+                                    array $columnToExport,
+                                    array $freeFieldsConfig,
+                                    Utilisateur $user = null): void {
 
-        if(!empty($movement['numeroArrivage'])) {
-           $origine =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['numeroArrivage'];
-        }
-        if(!empty($movement['receptionNumber'])) {
-            $origine = $this->translation->translate("Ordre", "Réceptions", "Reception", false) . '-' . $movement['receptionNumber'];
-        }
-        if(!empty($movement['dispatchNumber'])) {
-            $origine = $this->translation->translate("Demande", "Acheminements", "Général", "Acheminement", false) . '-' . $movement['dispatchNumber'];
-        }
-        if(!empty($movement['transferNumber'])) {
-            $origine = 'transfert-' . $movement['transferNumber'];
+        $freeFieldValues = $movement["freeFields"];
+
+        $fromData = $this->getFromColumnData($movement);
+        $fromLabel = $fromData["fromLabel"] ?? "";
+        $fromNumber = $fromData["from"] ?? "";
+        $from = trim("$fromLabel $fromNumber") ?: null;
+
+        $line = [];
+        foreach ($columnToExport as $column) {
+            if (preg_match('/free_field_(\d+)/', $column, $matches)) {
+                $freeFieldId = $matches[1];
+                $freeField = $freeFieldsConfig['freeFields'][$freeFieldId] ?? null;
+                $value = $freeFieldValues[$freeFieldId] ?? null;
+                $line[] = $freeField
+                    ? $this->formatService->freeField($value, $freeField, $user)
+                    : $value;
+            }
+            else {
+                $line[] = match ($column) {
+                    "date" => $movement["date"],
+                    "logisticUnit" => $movement["logisticUnit"],
+                    "location" => $movement["location"],
+                    "quantity" => $movement["quantity"],
+                    "type" => $movement["type"],
+                    "operator" => $movement["operator"],
+                    "comment" => $movement["comment"]
+                        ? $this->formatService->html($movement["comment"])
+                        : null,
+                    "hasAttachments" => $movement["hasAttachments"],
+                    "from" => $from,
+                    "arrivalOrderNumber" => $movement["arrivalOrderNumber"]
+                        ? implode(", ", $movement["arrivalOrderNumber"])
+                        : null,
+                    "isUrgent" => $this->formatService->bool($movement["isUrgent"]),
+                    "packParent" => $movement["packParent"],
+                };
+            }
         }
 
-        $data = [
-            $this->formatService->datetime($movement['datetime']),
-            $movement['code'],
-            $movement['locationLabel'],
-            $movement['quantity'],
-            $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
-            $movement['operatorUsername'],
-            $movement['commentaire'] ? strip_tags($movement['commentaire']) : "",
-            $movement["hasAttachments"],
-            $origine ?? ' ',
-            $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
-                        ? join(', ', $movement['numeroCommandeListArrivage'])
-                        : ($movement['orderNumber'] ? join(', ', $movement['orderNumber']) : ''),
-            $this->formatService->bool($movement['isUrgent']),
-            $movement['packParent'],
-        ];
-
-        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $data[] = $this->formatService->freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
-        }
-        $CSVExportService->putLine($handle, $data);
+        $this->CSVExportService->putLine($handle, $line);
     }
 
     public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {
@@ -1555,5 +1571,37 @@ class TrackingMovementService extends AbstractController
                 }
             }
         }
+    }
+
+    public function getTrackingMovementExportableColumns(EntityManagerInterface $entityManager): array {
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+
+        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::MVT_TRACA]);
+
+        $userLanguage = $this->userService->getUser()?->getLanguage() ?: $this->languageService->getDefaultSlug();
+        $defaultLanguage = $this->languageService->getDefaultSlug();
+
+        return Stream::from(
+            Stream::from([
+                ["code" => "date", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Date', false),],
+                ["code" => "logisticUnit", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),],
+                ["code" => "location", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement', false),],
+                ["code" => "quantity", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Quantité', false),],
+                ["code" => "type", "label" => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false),],
+                ["code" => "operator", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur', false),],
+                ["code" => "comment", "label" => $this->translationService->translate('Général', null, 'Modale', 'Commentaire', false),],
+                ["code" => "hasAttachments", "label" => $this->translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),],
+                ["code" => "from", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Issu de', false),],
+                ["code" => "arrivalOrderNumber", "label" => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),],
+                ["code" => "packParent", "label" => $this->translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),],
+            ]),
+            Stream::from($freeFields)
+                ->map(fn(FreeField $field) => [
+                    "code" => "free_field_{$field->getId()}",
+                    "label" => $field->getLabelIn($userLanguage, $defaultLanguage)
+                        ?: $field->getLabel(),
+                ])
+        )
+            ->toArray();
     }
 }

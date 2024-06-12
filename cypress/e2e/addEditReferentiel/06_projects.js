@@ -1,5 +1,6 @@
-import routes, {interceptRoute} from "../../support/utils/routes";
+import routes, {interceptRoute} from "/cypress/support/utils/routes";
 const user = Cypress.config('user');
+import {uncaughtException} from "/cypress/support/utils";
 
 describe('Add and edit components in Referentiel > Projet', () => {
     beforeEach(() => {
@@ -10,6 +11,7 @@ describe('Add and edit components in Referentiel > Projet', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'project_index');
+        uncaughtException();
     })
 
     it('should add a new project', () => {
@@ -24,7 +26,7 @@ describe('Add and edit components in Referentiel > Projet', () => {
         }
         const selectorModal = '#modalNewProject';
         // open modal
-        cy.openModal(selectorModal, 'code','[data-toggle="modal"]' );
+        cy.openModal(selectorModal, 'code','[data-target="#modalNewProject"]' );
 
         cy.get(selectorModal).should('be.visible', {timeout: 8000}).then(() => {
 

@@ -28,6 +28,7 @@ class Export {
     const ENTITY_REF_LOCATION = "reference_emplacement";
     const ENTITY_DISPATCH = "dispatch";
     const ENTITY_PRODUCTION = "production";
+    const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 
     const ENTITY_LABELS = [
         self::ENTITY_REFERENCE => "Références",
@@ -37,6 +38,7 @@ class Export {
         self::ENTITY_REF_LOCATION => "Référence emplacement",
         self::ENTITY_DISPATCH => "Acheminements",
         self::ENTITY_PRODUCTION => "Productions",
+        self::ENTITY_TRACKING_MOVEMENT => "Mouvements",
     ];
 
     const DESTINATION_EMAIL = 1;

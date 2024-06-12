@@ -19,6 +19,7 @@ const ENTITY_ARRIVALS = "arrivage";
 const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
+const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -228,6 +229,24 @@ function createForm() {
                             dateMax,
                             columnToExport,
                         }));
+                    } else if (content.entityToExport === ENTITY_TRACKING_MOVEMENT) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+                        const columnToExport = $modal.find(`[name=columnToExport]`).val();
+
+                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de mouvements de traçabilité`);
+                            return Promise.resolve();
+                        } else if(columnToExport.length === 0){
+                            Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_tracking_movements`, {
+                            dateMin,
+                            dateMax,
+                            columnToExport,
+                        }));
                     } else if (content.entityToExport === ENTITY_PRODUCTION) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
@@ -331,25 +350,19 @@ function onFormEntityChange() {
             $scheduledArticleDates.removeClass('d-none');
             break;
         case ENTITY_DISPATCH:
+        case ENTITY_ARRIVALS:
+        case ENTITY_TRACKING_MOVEMENT:
             $columnToExportContainer.removeClass('d-none');
             $columnToExport.addClass('needed');
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
 
-            renderExportableColumns($columnToExport, exportableColumns.dispatch, choosenColumnsToExport);
+            renderExportableColumns($columnToExport, exportableColumns[selectedEntity], choosenColumnsToExport);
             break;
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
-            break;
-        case ENTITY_ARRIVALS:
-            $dateLimit.removeClass('d-none');
-            $columnToExportContainer.removeClass('d-none');
-            $columnToExport.addClass('needed');
-            $periodInterval.removeClass('d-none');
-
-            renderExportableColumns($columnToExport, exportableColumns.arrivage, choosenColumnsToExport);
             break;
         default:
             break;
