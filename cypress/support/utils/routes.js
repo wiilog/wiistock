@@ -177,20 +177,20 @@ export const routes = {
         route: '/arrivage/creer-litige*',
         alias: 'dispute_new'
     },
-    arrivage_litiges_api: {
+    arrival_diputes_api: {
         method: 'POST',
         route: '/arrivage/litiges/api/*',
-        alias: 'arrivageLitiges_api'
+        alias: 'arrival_diputes_api'
     },
-    litige_api_edit:{
-        method: 'POST',
-        route: '/arrivage/api-modifier-litige',
-        alias: 'litige_api_edit'
+    arrival_dispute_api_edit:{
+        method: 'GET',
+        route: '/arrivage/api-modifier-litige/*',
+        alias: 'arrival_dispute_api_edit'
     },
-    litige_edit_arrivage:{
+    arrival_edit_dispute:{
         method: 'POST',
         route: '/arrivage/modifier-litige*',
-        alias: 'litige_edit_arrivage'
+        alias: 'arrival_edit_dispute'
     },
     arrivage_add_pack:{
         method: 'POST',

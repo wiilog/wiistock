@@ -60,22 +60,22 @@ Cypress.Commands.add('openModal', (modalId, inputName = 'name', customSelectorBt
  * @param {string} [submitButtonId='submitNewFournisseur'] : The ID of the submit button inside the modal.
  * @param {string} [interceptorAlias='supplier_new'] : The alias of the interceptor to wait for.
  * @param {boolean} [searchWithSubmitType=false] : If true, search for submit button based on type=submit attribute.
- * @param {string} [customId=null] : Custom submit button ID to use instead of the default.
+ * @param {string} [customSelector=null] : Custom submit button selector to use instead of the default.
  * @example :
  * cy.closeAndVerifyModal('#modalNewFournisseur');
  * cy.closeAndVerifyModal('#modalNewFournisseur', 'customSubmitButtonId', 'customInterceptorAlias', true);
  */
-Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId, interceptorAlias, searchWithSubmitType = false, customId = null) => {
-    let buttonSelector = `${modalId} button#${submitButtonId}`;
-
+Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId, interceptorAlias, searchWithSubmitType = false, customSelector = null) => {
     // If searchWithSubmitType is true, search for submit button based on type=submit attribute
+    let buttonSelector;
+
     if (searchWithSubmitType) {
         buttonSelector = `${modalId} button[type=submit]`;
-    }
-
-    // If customId is provided, use it as the button selector
-    if (customId) {
-        buttonSelector = customId;
+    } else if (customSelector) {
+        // If customId is provided, use it as the button selector
+        buttonSelector = customSelector;
+    } else {
+        buttonSelector = `${modalId} button#${submitButtonId}`;
     }
 
     cy.get(buttonSelector).click().wait(`@${interceptorAlias}`).then((xhr) => {

@@ -23,11 +23,11 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
         })
 
     cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
+        .wait(40)
         .parents('.select2-dropdown')
         .should('be.visible', {timeout: 6000})
         .contains(value)
         .should('be.visible')
-        .first()
         .click({waitForAnimations: false, force: true})
         .then(() => {
             cy.get(getName).find('option:selected').should('have.length', 1);
@@ -52,6 +52,7 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
             .type(element)
             .wait('@select2Request')
             .its('response.statusCode').should('eq', 200)
+            .wait(40)
             .then(() => {
                 cy.get('.select2-dropdown')
                     .find('.select2-results__option')
@@ -65,7 +66,7 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
     cy.get(getName).find('option:selected').should('have.length', value.length)
 })
 
-Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
+Cypress.Commands.add('select2', (selectName, value, customDelay = null, forceMultiple = false ) => {
     const select = cy.get(`[name=${selectName}]`);
 
     if (!Array.isArray(value)) {
@@ -78,6 +79,7 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
             .click()
             .wait(100)
             .type(`${element}`, {delay: customDelay ?? defaultTypeSpeed})
+            .wait(70)
             .get('.select2-dropdown')
             .contains(element)
             .should('be.visible')
@@ -86,11 +88,7 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
     });
 
     cy.get(`[name=${selectName}]`).then(($select) => {
-        if ($select.hasOwnProperty('multiple')) {
-            select.find('option').should('have.length', value.length)
-        } else {
-            select.find('option:selected').should('have.length', value.length)
-        }
+        select.find('option:selected').should('have.length', value.length)
     })
 })
 
@@ -131,6 +129,12 @@ Cypress.Commands.add('clearSelect2', (selectName, modalId = null) => {
 Cypress.Commands.add('clearSelect2AjaxValues', (selectName) => {
     cy.get(`select[name=${selectName}]`)
         .siblings('.select2')
-        .find('.select2-selection__clear')
-        .click();
+        .find('.select2-selection__clear, .select2-selection__choice__remove')
+        .each(($el) => {
+            cy.get(`select[name=${selectName}]`)
+                .siblings('.select2')
+                .find('.select2-selection__clear, .select2-selection__choice__remove')
+                .first()
+                .click();
+        })
 })

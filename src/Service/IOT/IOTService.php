@@ -202,7 +202,7 @@ class IOTService
         }
     }
 
-    private function treatTriggers(EntityManagerInterface $entityManager, SensorMessage $sensorMessage) {
+    private function treatTriggers(EntityManagerInterface $entityManager, SensorMessage $sensorMessage): void {
         $sensor = $sensorMessage->getSensor();
         $wrapper = $sensor->getAvailableSensorWrapper();
         if ($wrapper) {
