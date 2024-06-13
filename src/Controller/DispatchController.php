@@ -22,6 +22,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -82,7 +83,6 @@ class DispatchController extends AbstractController {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $query = $request->query;
@@ -117,7 +117,9 @@ class DispatchController extends AbstractController {
         }
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
+            'idsToFind' => $currentUser->getDispatchTypeIds(),
+        ]);
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
@@ -125,8 +127,12 @@ class DispatchController extends AbstractController {
 
         $dispatchEmergenciesForFilter = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
+        $dispatchStatuses = $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder');
+        $statuses = Stream::from($dispatchStatuses)
+            ->filter(fn(Statut $statut) => empty($currentUser->getDispatchTypeIds()) || in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()))
+            ->toArray();
         return $this->render('dispatch/index.html.twig', [
-            'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
+            'statuses' => $statuses,
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => [$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergenciesForFilter],
             'dateChoices' => $dateChoices,
@@ -293,23 +299,15 @@ class DispatchController extends AbstractController {
 
         $dispatch = new Dispatch();
         $date = new DateTime('now');
-        $fileBag = $request->files->count() > 0 ? $request->files : null;
-        if(isset($fileBag)) {
-            $fileNames = [];
-            foreach($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            $attachments = $attachmentService->createAttachments($fileNames);
-            foreach($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $dispatch->addAttachment($attachment);
-            }
+
+        $currentUser = $this->getUser();
+        $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
+        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getDispatchTypeIds())
+            && !empty($currentUser->getDeliveryTypeIds())
+        ) {
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 
-        $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true, $type);
         $locationTake = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)
             ? ($emplacementRepository->find($post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
@@ -362,7 +360,6 @@ class DispatchController extends AbstractController {
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
-        $currentUser = $this->getUser();
         $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
         if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
@@ -446,6 +443,8 @@ class DispatchController extends AbstractController {
         if(!empty($packs)) {
             $dispatchService->manageDispatchPacks($dispatch, $packs, $entityManager);
         }
+
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
 
         $entityManager->persist($dispatch);
 
@@ -618,7 +617,7 @@ class DispatchController extends AbstractController {
         }
 
         $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $dispatch, $request->files);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
@@ -1563,7 +1562,9 @@ class DispatchController extends AbstractController {
             $arrival = $arrivageRepository->find($request->query->get('arrival'));
         }
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
+            'idsToFind' => $this->getUser()->getDispatchTypeIds(),
+        ]);
 
         $packs = [];
         if(!empty($arrivals)) {
@@ -1747,12 +1748,17 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function formReference(Request                $request,
                                   EntityManagerInterface $entityManager,
-                                  DispatchService        $dispatchService): JsonResponse
-    {
-        $data = $request->request->all();
-        $data['files'] = $request->files ?? [];
+                                  DispatchService        $dispatchService): JsonResponse {
+        $dispatchReferenceArticleId = $request->request->get('dispatchReferenceArticle') ?? null;
 
-        return $dispatchService->updateDispatchReferenceArticle($entityManager, $data);
+        $dispatchService->persistDispatchReferenceArticle($entityManager, $request);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => $dispatchReferenceArticleId ? 'Référence et UL modifiées' : 'Référence ajoutée'
+        ]);
     }
 
     #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]

@@ -15,6 +15,7 @@ use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MouvementStockService;
+use App\Service\NotificationService;
 use App\Service\PreparationsManagerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -242,6 +243,7 @@ class DeliveryStationController extends AbstractController
                                   EntityManagerInterface     $entityManager,
                                   DeliveryRequestService     $deliveryRequestService,
                                   LivraisonsManagerService   $deliveryOrderService,
+                                  NotificationService        $notificationService,
                                   PreparationsManagerService $preparationOrderService,
                                   MouvementStockService      $stockMovementService): JsonResponse
     {
@@ -382,20 +384,25 @@ class DeliveryStationController extends AbstractController
             $stockMovementService->finishStockMovement($outMovement, $date, $deliveryRequest->getDestination());
         }
 
-        $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination(), [
+        $newPreparation = $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination(), [
             "entityManager" => $entityManager,
             "changeArticleLocation" => false,
             "articleLinesToKeep" => $articlesToKeep,
         ]);
-
-        $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
         $deliveryOrderService->finishLivraison($user, $deliveryOrder, $date, $deliveryRequest->getDestination(), [
             'deliveryStationLineReceivers' => Stream::from($deliveryStationLine->getReceivers())
                 ->map(static fn(Utilisateur $receiver) => $receiver->getEmail())
                 ->toArray(),
         ]);
 
+        $entityManager->flush(); // need to flush before quantity update
+        $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
         $entityManager->flush();
+
+        if ($newPreparation
+            && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($newPreparation);
+        }
 
         return $this->json([
             'success' => true,

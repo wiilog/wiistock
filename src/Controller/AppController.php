@@ -33,7 +33,7 @@ class AppController extends AbstractController {
     // Called to generate script tag in base.html.twig
     public function fontCSS(CacheService           $cacheService,
                             EntityManagerInterface $entityManager): Response {
-        $fontFamily = $cacheService->get(CacheService::COLLECTION_SETTINGS, "font-family", function() use ($entityManager) {
+        $fontFamily = $cacheService->get(CacheService::COLLECTION_SETTINGS, Setting::FONT_FAMILY, function() use ($entityManager) {
             $settingRepository = $entityManager->getRepository(Setting::class);
             return $settingRepository->getOneParamByLabel(Setting::FONT_FAMILY)
                 ?: Setting::DEFAULT_FONT_FAMILY;

@@ -305,7 +305,7 @@ function finishPrepa($button) {
                     $button,
                     () => (
                         $.post({
-                            url: Routing.generate('preparation_finish', {'idPrepa': $preparationId.val()}),
+                            url: Routing.generate('preparation_finish', {'preparation': $preparationId.val()}),
                             data: {
                                 emplacement: value
                             }
@@ -393,7 +393,10 @@ function printArticles(preparation) {
     } else {
         window.location.href = Routing.generate(
             'preparation_bar_codes_print',
-            params,
+            {
+                forceTagEmpty: true,
+                ...params,
+            },
             true
         );
     }

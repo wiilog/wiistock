@@ -1,9 +1,9 @@
 name: run-cypress
 
 on:
-   pull_request:
+    pull_request:
         branches:
-             - "*"
+            - "*"
 
 concurrency:
     group: ${{ github.head_ref }}
@@ -21,7 +21,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Robin Personal Access Token available until Jan 1, 2025
-                    ref: main
+                    ref: dev
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
@@ -39,8 +39,8 @@ jobs:
                     ref: ${{ github.event.pull_request.head.sha }}
                     path: projects/wiistock
 
-            #-   name: Login to docker hub
-            #    run: docker login --username ${{ secrets.WIISTOCK_DOCKER_USER }} --password ${{ secrets.WIISTOCK_DOCKER_ACCESS_TOCKEN }}
+            -   name: Login to docker hub
+                run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}
 
             -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
@@ -51,6 +51,9 @@ jobs:
             -   name: Change APP_ENV= to APP_ENV=dev
                 run: sed -i 's/APP_ENV=.*/APP_ENV=dev/g' projects/wiistock/.env.local
 
+            -   name: Change APP_URL= to APP_URL=http://wiistock-nginx:80
+                run: sed -i 's|APP_URL=http://localhost|APP_URL=http://wiistock-nginx|' projects/wiistock/.env.local
+
             -   name: Add generated.yaml to wiistock
                 run: |
                     touch projects/wiistock/config/generated.yaml &&
@@ -59,20 +62,40 @@ jobs:
             -   name: Give all right to wiistock
                 run: chmod -R 777 projects/wiistock/
 
-            -   name: Build & run containers
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
-
-            -   name: Give right to www-data user
-                run: docker exec wiistock-cypress_app chown -R www-data:www-data ./
+            -   name: Build containers
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
+                run: docker cp projects/wiistock/. wiistock-cypress_php:/project
+
+            -   name: Start containers
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
+
+            -   name: Give right to www-data user
+                run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
+
+#            -   name: get the version of wiistock config/services.yaml and store it in the environment
+#                run: |
+#                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
+#                    export VERSION=$(cat version.txt)
 
             -   name: Install composer dependencies in app
-                run: docker exec wiistock-cypress_app composer install
+                run: docker exec wiistock-cypress_php composer install
+
+            -   name: Create database
+                run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
+
+            -   name: Create routing
+                run: docker exec wiistock-cypress_php php bin/console fos:js-routing:dump
+
+            -   name: Convert enums
+                run: docker exec wiistock-cypress_php php bin/console app:update:fixed-fields
 
             -   name: Install yarn dependencies in app
-                run: docker exec wiistock-cypress_app yarn
+                run: docker exec wiistock-cypress_php yarn
+
+            -   name: Build assets in app
+                run: docker exec wiistock-cypress_php yarn build:only:production
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress

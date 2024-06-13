@@ -1,6 +1,9 @@
 {% extends 'filters/filters.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block filters %}
+    {{ form.hidden('fromDashboard', fromDashboard) }}
+
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
         placeholder: trans('Qualité', 'Litiges', 'Statuts', false)
@@ -11,8 +14,8 @@
     } %}
     {% include 'filters/filter_item/filterDisputeNumber.html.twig' %}
     {% include 'filters/filter_item/filterDeclarant.html.twig' %}
-    {% include 'filters/filter_item/filterType.html.twig' with {
-        placeholder: trans('Qualité', 'Litiges', 'Type', false)
-    } %}
-    {% include 'filters/filter_item/filterEmergency.html.twig' %}
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' %}
+    {% include 'filters/filter_item/filterEmergency.html.twig' with {
+        checked: disputeEmergency is defined ? disputeEmergency : false,
+    }%}
 {% endblock %}

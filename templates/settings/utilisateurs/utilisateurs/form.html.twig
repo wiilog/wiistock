@@ -2,7 +2,7 @@
 
 <form>
     {% if user.id %}
-        <input type="hidden" class="data" name="user" value="{{ user.id }}">
+        {{ form.hidden('user', user.id) }}
     {% endif %}
     <input type="text" class="d-none" title="Nom d'utilisateur" name="username">
     <input type="password" class="d-none" title="Mot de passe" name="password">
@@ -11,51 +11,39 @@
         <div class="col-12 col-md-6">
             <div class="p-3 bg-light">
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Statut*</label>
                     <div class="col-12">
-                        <div class="wii-switch needed" data-title="Statut">
-                            <input type="radio" name="status" value="1" content="Actif" title="Actif" {{ user.id and user.status ? 'checked' }}>
-                            <input type="radio" name="status" value="0" content="Inactif"
-                                   title="Inactif" {{ user.id and not user.status ? 'checked' }}>
-                        </div>
+                        {{ form.switch('status', 'Statut', true, [
+                            {label: 'Actif', value: '1', checked: user.id and user.status},
+                            {label: 'Inactif', value: '0', checked: user.id and not user.status},
+                        ]) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Rôle*</label>
                     <div class="col-12">
-                        <select name="role"
-                                title="Role"
-                                class="form-control data needed w-100"
-                                data-s2="roles"
-                                data-min-length="0">
-                            {% if user.role %}
-                                <option value="{{ user.role.id }}" selected>{{ user.role.label }}</option>
-                            {% endif %}
-                        </select>
+                        {{ form.select('role', 'Rôle', true, {
+                            type: 'roles',
+                            items: user.role ? [{
+                                value: user.role.id,
+                                label: user.role.label,
+                                selected: true,
+                            }]: [],
+                            minLength: 0,
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Nom d'utilisateur*</label>
                     <div class="col-12">
-                        <input type="text"
-                               title="Nom d'utilisateur"
-                               class="form-control data needed w-100"
-                               name="username"
-                               required
-                               value="{{ user.username }}"/>
+                        {{ form.input('username', "Nom d'utilisateur", true, user.username) }}
                     </div>
                 </div>
 
                 {% set secondary_emails = (user.secondaryEmails ?? []) | filter(e => e) %}
 
                 <div class="form-group row {% if secondary_emails | length < 2 %}mb-0{% endif %}">
-                    <label class="col-12 wii-field-name">Email*</label>
                     <div class="col-12">
-                        <input type="email"
-                               title="Email"
-                               class="form-control data needed w-100"
-                               name="email"
-                               value="{{ user.email }}">
+                        {{ form.input('email', 'Email', true, user.email, {
+                            type: 'email',
+                        }) }}
                     </div>
                     {% if secondary_emails | length < 2 %}
                         <div class="col-12" style="text-align: right">
@@ -67,92 +55,81 @@
                 {% for email in secondary_emails %}
                     {% set label = 'Email ' ~ (loop.index + 1) %}
                     <div class="form-group row">
-                        <label class="col-12 wii-field-name">{{ label }}</label>
                         <div class="col-12">
-                            <input type="email"
-                                   title="{{ label }}"
-                                   class="form-control data-array w-100"
-                                   name="secondaryEmails"
-                                   value="{{ email }}">
+                            {{ form.input('secondaryEmails', label, true, email, {
+                                type: 'email',
+                                inputClass: 'data-array',
+                            }) }}
                         </div>
                     </div>
                 {% endfor %}
 
                 {% for i in range(secondary_emails | length + 1, 2) %}
+                    {% set label = 'Email ' ~ (i +  1) %}
                     <div class="form-group row secondary-email d-none">
-                        <label class="col-12 wii-field-name">Email {{ i + 1 }}</label>
                         <div class="col-12">
-                            <input type="email"
-                                   title="Email {{ i }}"
-                                   class="form-control data-array w-100"
-                                   name="secondaryEmails"/>
+                            {{ form.input('secondaryEmails', label, true, '', {
+                                type: 'email',
+                                inputClass: 'data-array',
+                            }) }}
                         </div>
                     </div>
                 {% endfor %}
 
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Code signataire</label>
                     <div class="col-12">
-                        <input type="password"
-                               title="Code signataire"
-                               class="form-control data optional-password w-100"
-                               name="signatoryPassword">
+                        {{ form.input('signatoryPassword', 'Code signataire', false, '', {
+                            type: 'password',
+                            inputClass: 'data-array',
+                        }) }}
                     </div>
                 </div>
 
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Mot de passe{{ not user.id ? '*' }}</label>
                     <div class="col-12">
-                        <input type="password"
-                               title="Mot de passe"
-                               class="form-control data optional-password w-100 {{ not user.id ? 'needed' }}"
-                               name="password"
-                               autocomplete="new-password">
+                        {{ form.input('password', 'Mot de passe', not user.id, '', {
+                            type: 'password',
+                            inputClass: 'optional-password',
+                            attributes: {
+                                autocomplete: "new-password"
+                            },
+                        }) }}
                         <div class="password-error-msg"></div>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Confirmer le mot de passe{{ not user.id ? '*' }}</label>
                     <div class="col-12">
-                        <input type="password"
-                               title="Confirmer le mot de passe"
-                               class="form-control data optional-password w-100 {{ not user.id ? 'needed' }}"
-                               name="password2">
+                        {{ form.input('password2', 'Confirmer le mot de passe', not user.id, '', {
+                            type: 'password',
+                            inputClass: 'optional-password',
+                        }) }}
                     </div>
                 </div>
 
                 {% if user.id %}
                     <div class="form-group row">
-                        <label class="col-12 wii-field-name">Clé de connexion nomade*</label>
                         <div class="col-12">
-                            <input type="text"
-                                   class="form-control data needed is-barcode w-100"
-                                   name="mobileLoginKey"
-                                   title="Clé de connexion nomade"
-                                   value="{{ user.mobileLoginKey }}"/>
+                            {{ form.input('mobileLoginKey', 'Clé de connexion nomade', true, user.mobileLoginKey, {
+                                type: 'text',
+                                inputClass: 'is-barcode',
+                            }) }}
                         </div>
                     </div>
                 {% endif %}
 
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Numéro de téléphone</label>
                     <div class="col-12">
-                        <input type="tel"
-                               title="Numéro de téléphone"
-                               class="form-control data w-100"
-                               name="phoneNumber"
-                               maxlength="10"
-                               value="{{ user.phone ?? '' }}">
+                        {{ form.input('phoneNumber', 'Numéro de téléphone', false, user.phone ?? '', {
+                            type: 'tel',
+                            attributes: {
+                                maxlength: 10,
+                            },
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Adresse</label>
                     <div class="col-12">
-                        <textarea class="form-control data w-100"
-                                  title="Adresse"
-                                  name="address">
-                            {{- user.address -}}
-                        </textarea>
+                        {{ form.textarea('address', 'Adresse', false, user.address) }}
                     </div>
                 </div>
                 <div class="form-group row">
@@ -181,78 +158,65 @@
         <div class="col-12 col-md-6">
             <div class="p-3">
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</label>
                     <div class="col-12">
-                        <select name="deliveryTypes"
-                                class="form-control data w-100"
-                                multiple="multiple"
-                                title="Types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}"
-                                data-s2="deliveryType">
-                            {% for type in user.deliveryTypes %}
-                                <option value="{{ type.id }}" selected>{{ type.label }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.select('deliveryTypes', "Types de " ~ trans('Demande', 'Livraison', 'Livraison', false) | lower, false, {
+                            type: '',
+                            multiple: true,
+                            items: deliveryTypes,
+                            tooltip: "Filtre les vues nomades et web - si champs vide, ne filtre pas la vue web",
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">
-                        Types d'acheminement
-                    </label>
                     <div class="col-12">
-                        <select name="dispatchTypes"
-                                class="form-control data w-100"
-                                multiple="multiple"
-                                data-s2="dispatchType">
-                            {% for type in user.dispatchTypes %}
-                                <option value="{{ type.id }}" selected>{{ type.label }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.select('dispatchTypes', "Types d'acheminement", false, {
+                            type: '',
+                            multiple: true,
+                            items: dispatchTypes,
+                            tooltip: "Filtre les vues nomades et web - si champs vide, ne filtre pas la vue web",
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name"
-                           title="Types de service">
-                        {{ trans('Paramétrage', 'Utilisateurs', 'Types de service', false) }}
-                    </label>
                     <div class="col-12">
-                        <select name="handlingTypes"
-                                class="form-control data w-100"
-                                multiple="multiple"
-                                data-s2="handlingType"
-                                title="{{ trans('Paramétrage', 'Utilisateurs', 'Types de service', false) }}">
-                            {% for type in user.handlingTypes %}
-                                <option value="{{ type.id }}" selected>{{ type.label }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.select('handlingTypes', trans('Paramétrage', 'Utilisateurs', 'Types de service', false), false, {
+                            type: '',
+                            multiple: true,
+                            items: handlingTypes,
+                            tooltip: "Filtre les vues nomades et web - si champs vide, ne filtre pas la vue web",
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Groupes de visibilité</label>
                     <div class="col-12">
-                        <select name="visibility-group"
-                                title="Groupes de visibilité"
-                                class="form-control data w-100"
-                                data-s2="visibilityGroup"
-                                multiple>
-                            {% for visibilityGroup in user.visibilityGroups %}
-                                <option value="{{ visibilityGroup.id }}" selected>{{ visibilityGroup.label }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.select('visibility-group', 'Groupes de visibilité', false, {
+                            type: 'visibilityGroup',
+                            multiple: true,
+                            items: user.visibilityGroups|map((visibilityGroup) => {
+                                label: visibilityGroup.label,
+                                value: visibilityGroup.id,
+                                selected: true,
+                            })
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name">Dropzone</label>
                     <div class="col-12">
-                        <select name="dropzone"
-                                class="form-control w-100 data"
-                                data-s2="location"
-                                data-other-params-add-group="1">
-                            {% if user.locationDropzone %}
-                                <option value="location:{{ user.locationDropzone.id }}" selected>{{ user.locationDropzone.label }}</option>
-                            {% elseif user.locationGroupDropzone %}
-                                <option value="locationGroup:{{ user.locationGroupDropzone.id }}" selected>{{ user.locationGroupDropzone.label }}</option>
-                            {% endif %}
-                        </select>
+                        {{ form.select('dropzone', 'Dropzone', false, {
+                            type: 'location',
+                            attributes: {
+                                'data-other-params-add-group': 1,
+                            },
+                            items: user.locationDropzone ? [{
+                                value: "location:" ~ user.locationDropzone.id,
+                                label: user.locationDropzone.label,
+                                selected: true,
+                            }] : (user.locationGroupDropzone ? [{
+                                value: "location:" ~ user.locationGroupDropzone.id,
+                                label: user.locationGroupDropzone.label,
+                                selected: true,
+                            }] : []),
+                        }) }}
                     </div>
                 </div>
                 <div class="form-group row">

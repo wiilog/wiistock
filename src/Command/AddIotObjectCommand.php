@@ -22,8 +22,7 @@ class AddIotObjectCommand extends Command
     #[Required]
     public EntityManagerInterface $entityManager;
 
-    protected function configure(): void
-    {
+    protected function configure(): void {
         $this
             ->addArgument('type', InputArgument::REQUIRED, 'Type of the object(s)')
             ->addArgument('profile', InputArgument::REQUIRED, 'Profile of the object(s)')

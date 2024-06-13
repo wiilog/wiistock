@@ -14,17 +14,17 @@ class PageRow {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'integer')]
-    private $size;
+    private ?int $size = null;
 
     #[ORM\ManyToOne(targetEntity: Page::class, inversedBy: 'rows')]
     #[ORM\JoinColumn(nullable: false)]
-    private $page;
+    private ?Page $page = null;
 
     #[ORM\OneToMany(targetEntity: Component::class, mappedBy: 'row')]
-    private $components;
+    private Collection $components;
 
     public function __construct() {
         $this->components = new ArrayCollection();
@@ -72,11 +72,9 @@ class PageRow {
     }
 
     public function removeComponent(Component $component): self {
-        if($this->components->removeElement($component)) {
-            // set the owning side to null (unless already changed)
-            if($component->getRow() === $this) {
-                $component->setRow(null);
-            }
+        // set the owning side to null (unless already changed)
+        if($this->components->removeElement($component) && $component->getRow() === $this) {
+            $component->setRow(null);
         }
 
         return $this;

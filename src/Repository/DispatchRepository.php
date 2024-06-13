@@ -40,6 +40,13 @@ class DispatchRepository extends EntityRepository
         $qb = $this->createQueryBuilder('dispatch')
             ->groupBy('dispatch.id');
 
+        if(!empty($user->getDispatchTypeIds())){
+            $qb
+                ->join('dispatch.type', 'join_type')
+                ->andWhere('join_type.id IN (:userDispatchTypeIds)')
+                ->setParameter('userDispatchTypeIds', $user->getDispatchTypeIds());
+        }
+
         $countTotal = QueryBuilderHelper::count($qb, 'dispatch');
 
         $dateChoiceConfig = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')

@@ -373,18 +373,14 @@ class ReferenceArticleController extends AbstractController
 
             $files = $request->files;
             if($files->has('image')) {
-                $attachments = $attachmentService->createAttachments([$files->get('image')]);
-                $entityManager->persist($attachments[0]);
-
-                $refArticle->setImage($attachments[0]);
+                $imageAttachment = $attachmentService->persistAttachment($entityManager, $files->get("image"));
+                $refArticle->setImage($imageAttachment);
                 $request->files->remove('image');
             }
 
             if($files->has('fileSheet')) {
-                $attachments = $attachmentService->createAttachments([$files->get('fileSheet')]);
-                $entityManager->persist($attachments[0]);
-
-                $refArticle->setSheet($attachments[0]);
+                $sheetAttachment = $attachmentService->persistAttachment($entityManager, $files->get("fileSheet"));
+                $refArticle->setSheet($sheetAttachment);
                 $request->files->remove('fileSheet');
             }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
@@ -782,7 +778,7 @@ class ReferenceArticleController extends AbstractController
 
         $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user, $this->getFormatter());
 
         $barcodeConfigs = Stream::from($queryResult['data'])
             ->map(static fn($refArticle) => is_array($refArticle) ? $refArticle[0] : $refArticle)

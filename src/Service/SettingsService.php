@@ -98,6 +98,13 @@ class SettingsService {
             ->toArray();
     }
 
+    public function getOneParamByLabel(string $label ,EntityManagerInterface $entityManager): mixed {
+        return  $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $label, static function () use ($label, $entityManager) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            return $settingRepository->getOneParamByLabel($label);
+        });
+    }
+
     public function getSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
@@ -735,6 +742,15 @@ class SettingsService {
                     }
                 }
 
+                if(isset($data["active"]) && $type->getId()){
+                    $categoryTypeId = $type->getCategory()->getId();
+                    $countActiveTypeByCategoryType = $typeRepository->countActiveTypeByCategoryType($categoryTypeId);
+
+                    if($countActiveTypeByCategoryType <= 1 && !$data["active"]){
+                        throw new RuntimeException("Au moins un type doit être actif pour cette entité.");
+                    }
+                }
+
                 $newLabel = $data["label"] ?? $type->getLabel();
                 $type
                     ->setLabel($newLabel)
@@ -748,6 +764,7 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setReusableStatuses($data["reusableStatuses"] ?? false)
+                    ->setActive($data["active"] ?? true)
                     ->setColor($data["color"] ?? null);
 
                 $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
@@ -769,7 +786,8 @@ class SettingsService {
                 }
 
                 if (isset($files["logo"])) {
-                    $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
+                    $logoAttachment = $this->attachmentService->persistAttachment($entityManager, $files["logo"]);
+                    $type->setLogo($logoAttachment);
                 } else {
                     if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
                         $type->setLogo(null);
@@ -1277,11 +1295,9 @@ class SettingsService {
     private function postSaveTreatment(EntityManagerInterface $entityManager,
                                        array                  $updated): void {
         $this->getTimestamp(true);
-        if (array_intersect($updated, [Setting::FONT_FAMILY])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "font-family");
-        }
-        if (array_intersect($updated, [Setting::APP_CLIENT_LABEL])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::APP_CLIENT_LABEL);
+
+        foreach ($updated as $setting) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, $setting);
         }
 
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {

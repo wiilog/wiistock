@@ -18,6 +18,7 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -34,6 +35,9 @@ class TrackingMovementListener implements EventSubscriber
 
     #[Required]
     public TranslationService $translation;
+
+    #[Required]
+    public RouterInterface $router;
 
     /**
      * @var TrackingMovement[]
@@ -103,6 +107,9 @@ class TrackingMovementListener implements EventSubscriber
                                     'from' => $this->trackingMovementService->getFromColumnData($trackingMovement),
                                     'freeFields' => $freeFields,
                                 ],
+                                "urlSuffix" => $this->router->generate("mvt_traca_index", [
+                                    "pack" => $trackingMovement->getPack()->getCode(),
+                                ]),
                             ],
                             $managers->toArray()
                         );

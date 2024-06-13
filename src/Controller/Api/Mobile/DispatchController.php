@@ -318,12 +318,7 @@ class DispatchController extends AbstractApiController
                                 foreach (['photo1', 'photo2'] as $photoName) {
                                     $photoFile = $request->files->get("{$code}_{$photoName}");
                                     if ($photoFile) {
-                                        $fileName = $attachmentService->saveFile($photoFile);
-                                        $attachments = $attachmentService->createAttachments($fileName);
-                                        foreach ($attachments as $attachment) {
-                                            $entityManager->persist($attachment);
-                                            $dispatch->addAttachment($attachment);
-                                        }
+                                        $attachmentService->persistAttachment($entityManager, $photoFile, ["attachmentContainer" => $dispatch]);
                                     }
                                 }
                             }

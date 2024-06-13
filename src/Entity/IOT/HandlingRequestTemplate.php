@@ -2,6 +2,7 @@
 
 namespace App\Entity\IOT;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\IOT\HandlingRequestTemplateRepository;
@@ -9,7 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HandlingRequestTemplateRepository::class)]
-class HandlingRequestTemplate extends RequestTemplate {
+class HandlingRequestTemplate extends RequestTemplate implements AttachmentContainer {
 
     use AttachmentTrait;
 

@@ -14,14 +14,13 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
-use App\Entity\Setting;
-use App\Entity\Attachment;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
@@ -54,9 +53,9 @@ class TrackingMovementController extends AbstractController
                           TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
+        $currentUser = $this->getUser();
         $packFilter = $request->query->get('pack');
         $article = null;
         $filterArticle = $request->query->get('article');
@@ -66,16 +65,13 @@ class TrackingMovementController extends AbstractController
         }
 
         if (!empty($packFilter)) {
-            /** @var Utilisateur $loggedUser */
-            $loggedUser = $this->getUser();
-            $filtreSupRepository->clearFiltersByUserAndPage($loggedUser, FiltreSup::PAGE_MVT_TRACA);
-            $entityManager->flush();
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $loggedUser);
+            $filtreSupRepository->clearFiltersByUserAndPage($currentUser, FiltreSup::PAGE_MVT_TRACA);
+            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $currentUser);
+
             $entityManager->persist($filter);
             $entityManager->flush();
         }
 
-        $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         $mvtStatuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
@@ -303,7 +299,7 @@ class TrackingMovementController extends AbstractController
             $freeFieldService->manageFreeFields($movement, $post->all(), $entityManager, $this->getUser());
             if (!isset($trackingAttachments)) {
                 // first time we upload attachments
-                $trackingAttachments = $attachmentService->persistAttachments($entityManager, $movement, $request->files);
+                $trackingAttachments = $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $movement]);
             }
             else {
                 // next attachment are already saved, we link them to the movement
@@ -377,22 +373,22 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
-        $mvt = $trackingMovementRepository->find($post->get('id'));
-        $pack = $mvt->getPack();
+        $trackingMovement = $trackingMovementRepository->find($post->get('id'));
+        $pack = $trackingMovement->getPack();
 
         $newDate = $this->formatService->parseDatetime($post->get('date'));
         $newCode = $post->get('pack');
-        $currentDate = clone $mvt->getDatetime();
+        $currentDate = clone $trackingMovement->getDatetime();
         $currentDate = $currentDate->setTime($currentDate->format('H'), $currentDate->format('i'), 0);
 
         $hasChanged = (
-            $mvt->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
+            $trackingMovement->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
             || $currentDate != $newDate // required != comparison
             || $pack->getCode() !== $newCode
         );
 
-        $mainMvt = $mvt->getMainMovement();
-        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $mvt]);
+        $mainMvt = $trackingMovement->getMainMovement();
+        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $trackingMovement]);
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             $response = $trackingMovementService->persistTrackingMovement(
@@ -402,7 +398,7 @@ class TrackingMovementController extends AbstractController
                 $operator,
                 $newDate,
                 true,
-                $mvt->getType(),
+                $trackingMovement->getType(),
                 false,
                 ['disableUngrouping'=> true, 'ignoreProjectChange' => true, 'mainMovement'=>$mainMvt],
                 true,
@@ -410,36 +406,44 @@ class TrackingMovementController extends AbstractController
             if ($response['success']) {
                 /** @var TrackingMovement $new */
                 $new = $response['movement'];
-                $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+                $trackingMovementService->manageLinksForClonedMovement($trackingMovement, $new);
 
                 foreach ($linkedMouvements as $linkedMvt) {
                     $linkedMvt->setMainMovement($new);
                 }
 
                 $entityManager->persist($new);
-                $entityManager->remove($mvt);
+                $entityManager->remove($trackingMovement);
                 $entityManager->flush();
 
                 $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
                 $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
                 $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
 
-                $mvt = $new;
+                $trackingMovement = $new;
             } else {
                 return $this->json($response);
             }
 
         }
-        /** @var TrackingMovement $mvt */
-        $mvt
+        /** @var TrackingMovement $trackingMovement */
+        $trackingMovement
             ->setOperateur($operator)
             ->setQuantity($quantity)
             ->setCommentaire($post->get('commentaire'));
 
-        $attachmentService->removeAttachments($entityManager, $mvt, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $mvt, $request->files, ['addToDispatch' => true]);
+        $attachmentService->removeAttachments($entityManager, $trackingMovement, $post->all('files') ?: []);
+        $attachments = $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $trackingMovement]);
 
-        $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
+        $movementDispatch = $trackingMovement->getDispatch();
+        if ($movementDispatch) {
+            foreach ($attachments as $attachment) {
+                $movementDispatch->addAttachment($attachment);
+            }
+        }
+
+
+        $freeFieldService->manageFreeFields($trackingMovement, $post->all(), $entityManager);
 
         $entityManager->flush();
 
@@ -465,9 +469,9 @@ class TrackingMovementController extends AbstractController
     #[Route("/csv", name: "get_mouvements_traca_csv", options: ["expose" => true], methods: ["GET"])]
     public function getTrackingMovementCSV(Request                 $request,
                                            CSVExportService        $CSVExportService,
+                                           DataExportService       $dataExportService,
                                            TrackingMovementService $trackingMovementService,
                                            FreeFieldService        $freeFieldService,
-                                           TranslationService      $translationService,
                                            EntityManagerInterface  $entityManager): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -475,45 +479,32 @@ class TrackingMovementController extends AbstractController
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+        if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
+            $loggedUser = $this->getUser();
+            $userDateFormat = $this->getUser()->getDateFormat();
 
-            if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
-                $csvHeader = array_merge([
-                    $translationService->translate('Traçabilité', 'Général', 'Date', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
-                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
-                    $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
-                    $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
-                    $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
-                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
-                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence', false),
-                    $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
-                ], $freeFieldsConfig['freeFieldsHeader']);
+            $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-                $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+            $exportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
+            $headers = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['label'] ?? '')
+                ->toArray();
 
-                return $CSVExportService->streamResponse(
-                    function ($output) use ($trackingMovements, $CSVExportService, $trackingMovementService, $freeFieldsConfig) {
-                        foreach ($trackingMovements as $movement) {
-                            $trackingMovementService->putMovementLine(
-                                $output,
-                                $CSVExportService,
-                                $movement,
-                                $freeFieldsConfig
-                            );
-                        }
-                    }, 'Export_Mouvement_Traca.csv',
-                    $csvHeader
-                );
+            // same order than header column
+            $exportableColumnCodes = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['code'] ?? '')
+                ->toArray();
 
-            }
+            return $CSVExportService->streamResponse(
+                function ($output) use ($trackingMovements, $dataExportService, $freeFieldsConfig, $exportableColumnCodes, $loggedUser) {
+                    $dataExportService->exportTrackingMovements($trackingMovements, $output, $exportableColumnCodes, $freeFieldsConfig, $loggedUser);
+                },
+                'Export_Mouvement_Traca.csv',
+                $headers
+            );
         }
 
         throw new BadRequestHttpException();

@@ -155,13 +155,16 @@ function getAppropriateRowCallback({needsColor, classField, color, dataToCheck, 
     }
 }
 
-function overrideSearch($input, table, $table) {
+function overrideSearch($input, $table) {
     $input
         .off()
         .on(`keyup`, function (e) {
             if (e.key === `Enter`) {
                 setPreviousAction($table);
-                table.search(this.value.trim()).draw();
+                const datatable = $table.DataTable();
+                datatable
+                    .search(this.value.trim())
+                    .draw();
             }
         });
 
@@ -339,6 +342,14 @@ export function initDataTable($table, options) {
         .on(`error.dt`, function (e, settings, techNote, message) {
             console.error(`An error has been reported by DataTables: `, message, e, $table.attr(`id`));
         })
+        .on(`preXhr.dt`, function (e, settings, data) {
+            const previousAction = $table.data(`previous-action`);
+            if (previousAction) {
+                data.previousAction = previousAction;
+
+                return data;
+            }
+        })
         .DataTable(Object.assign({
             fixedColumns: {
                 heightMatch: `auto`
@@ -372,7 +383,9 @@ export function initDataTable($table, options) {
             rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
                 const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
-                overrideSearch($searchInput, datatableToReturn, $table);
+
+                overrideSearch($searchInput, $table);
+
                 setTimeout(() => {
                     drawCallback(response);
                 });
@@ -391,15 +404,6 @@ export function initDataTable($table, options) {
     const $datatableContainer = $(datatableToReturn.table().container());
     $datatableContainer.on(`click`, `th.sorting, th.sorting_asc, th.sorting_desc`, () => {
         setPreviousAction($table, ORDER_ACTION);
-    });
-
-    datatableToReturn.on(`preXhr.dt`, function (e, settings, data) {
-        const previousAction = $table.data(`previous-action`);
-        if (previousAction) {
-            data.previousAction = previousAction;
-
-            return data;
-        }
     });
 
     return datatableToReturn;

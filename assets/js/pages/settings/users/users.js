@@ -1,6 +1,8 @@
 import {formatIconSelector} from "@app/form";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
+import {POST} from "@app/ajax";
+import Form from "@app/form";
 
 global.editRowUser = editRowUser;
 
@@ -33,7 +35,10 @@ export function initUserPage($container) {
     });
 
     let $modalNewUser = $("#modalNewUser");
-    InitModal($modalNewUser, $modalNewUser.find('.submit-button'), Routing.generate('user_new', true), {tables: [tableUser]});
+    Form
+        .create($modalNewUser, {clearOnOpen: true})
+        .submitTo(POST, `user_new`, {tables: [tableUser]});
+
     const $languageSelect = $('.utilisateur-language');
     $languageSelect.select2({
         minimumResultsForSearch: -1,
@@ -42,7 +47,8 @@ export function initUserPage($container) {
     })
 
     let $modalEditUser = $("#modalEditUser");
-    InitModal($modalEditUser, $modalEditUser.find('.submit-button'), Routing.generate('user_edit', true), {tables: [tableUser]});
+    Form.create($modalEditUser)
+        .submitTo(POST, `user_edit`, {tables: [tableUser]});
 
     let $modalDeleteUser = $("#modalDeleteUser");
     let $submitDeleteUser = $("#submitDeleteUser");
@@ -72,9 +78,6 @@ function editRowUser(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('[name="deliveryTypes"]').val(data.userDeliveryTypes).select2();
-        modal.find('[name="dispatchTypes"]').val(data.userDispatchTypes).select2();
-        modal.find('[name="handlingTypes"]').val(data.userHandlingTypes).select2();
         Select2Old.location($('#dropzone'));
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);

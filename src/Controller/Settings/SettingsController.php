@@ -975,24 +975,25 @@ class SettingsController extends AbstractController {
      * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
-    public function saveTranslationApi(EntityManagerInterface $manager,
+    public function saveTranslationApi(EntityManagerInterface $entityManager,
                                        Request                $request,
                                        AttachmentService      $attachmentService,
                                        SettingsService        $settingsService,
                                        CacheService           $cacheService): Response {
         $data = $request->request;
         $file = $request->files;
-        $languageRepository = $manager->getRepository(Language::class);
-        $translationRepository = $manager->getRepository(Translation::class);
-        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
+        $translationRepository = $entityManager->getRepository(Translation::class);
+        $translationSourceRepository = $entityManager->getRepository(TranslationSource::class);
 
         $language = $data->get('language');
         if ($language === 'NEW') {
             $language = new Language;
-            $flagCustom = $file->get('flagCustom');
+            $flagCustom = $request->files->get('flagCustom');
             if ($flagCustom) {
-                $flagFile = $attachmentService->createAttachments($file);
-                $languageFile = $flagFile[0]->getFullPath();
+                $flagAttachment = $attachmentService->persistAttachment($entityManager, $file);
+                $languageFile = $flagAttachment->getFullPath();
+//                TODO Adrien pourquoi language n'est pas lié à attachment
             }
             else {
                 $languageFile = $data->get('flagDefault');
@@ -1005,7 +1006,7 @@ class SettingsController extends AbstractController {
                 ->setSelectable(false)
                 ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
                 ->setSelected(false);
-            $manager->persist($language);
+            $entityManager->persist($language);
         } else {
             $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
@@ -1022,7 +1023,7 @@ class SettingsController extends AbstractController {
                    $translation->setTranslation($value);
                }
                else {
-                   $manager->remove($translation);
+                   $entityManager->remove($translation);
                }
            }
            elseif ($value != null or $value != '') {
@@ -1031,11 +1032,11 @@ class SettingsController extends AbstractController {
                    ->setTranslation($value)
                    ->setSource($source)
                    ->setLanguage($language);
-                $manager->persist($translation);
+                $entityManager->persist($translation);
            }
         }
 
-        $manager->flush();
+        $entityManager->flush();
 
         $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
         $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
@@ -1797,6 +1798,24 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "deliveryTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
+                        ->map(static fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray(),
+                    "dispatchTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                        ->map(static fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray(),
+                    "handlingTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
+                        ->map(static fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray(),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
@@ -2359,6 +2378,13 @@ class SettingsController extends AbstractController {
                     "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type ? $type->hasReusableStatuses() : true),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+                $data[] = [
+                    "label" => "Actif",
+                    "value" => $formService->macro("checkbox", "active", '', null, $type ? $type->isActive() : true),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2475,6 +2501,13 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
                     "value" => $this->formatService->bool($type->hasReusableStatuses(), "Non"),
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+                $data[] = [
+                    "label" => "Actif",
+                    "value" => $this->formatService->bool($type->isActive(), "Non"),
                 ];
             }
         }

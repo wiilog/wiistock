@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\Dashboard;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispute;
 use App\Entity\Handling;
 use App\Entity\Dispatch;
 use App\Entity\Language;
@@ -37,6 +38,7 @@ use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
+use App\Exceptions\DashboardException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
@@ -359,15 +361,6 @@ class DashboardService {
             ]
         );
 
-        $listEmergenciesHandlings = $handlingRepository->getEmergenciesHandlingForDashboardRedirect(
-            $nowMorning,
-            $nowEvening,
-            [
-                'handlingStatusesFilter' => $handlingStatusesFilter,
-                'handlingTypesFilter' => $handlingTypesFilter
-            ]
-        );
-
         $config = $component->getConfig();
         $config['selectedDate'] = true;
         $component->setConfig($config);
@@ -520,7 +513,7 @@ class DashboardService {
     public function persistPackToTreatFrom(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component): void {
 
-        $locationClusterMeterRepository = $this->entityManager->getRepository(LocationClusterMeter::class);
+        $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -619,7 +612,9 @@ class DashboardService {
      * @throws NoResultException
      * @throws Exception
      */
-    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component) {
+    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component): void
+    {
+
         $config = $component->getConfig();
 
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -627,6 +622,7 @@ class DashboardService {
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         $packsRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
         $naturesFilter = !empty($config['natures'])
@@ -643,6 +639,8 @@ class DashboardService {
 
         $globalCounter = 0;
 
+        $maxResultPackOnCluster = 1000;
+
         $olderPackLocation = [
             'locationLabel' => null,
             'locationId' => null,
@@ -650,25 +648,14 @@ class DashboardService {
         ];
 
         if (!empty($naturesFilter)) {
-            $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
-            $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+            $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug($entityManager));
+            $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+            $nbPacksOnCluster = $locationClusterRepository->countPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
+            if ($nbPacksOnCluster > $maxResultPackOnCluster) {
+                throw new DashboardException("Nombre de données trop important");
+            }
             $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
-            $packsOnClusterVerif = Stream::from(
-                $packsRepository->getCurrentPackOnLocations(
-                    $locationCluster->getLocations()->toArray(),
-                    [
-                        'natures' => $naturesFilter,
-                        'isCount' => false,
-                        'field' => 'pack.id, emplacement.label'
-                    ]
-                )
-            )->reduce(function(array $carry, array $pack) {
-                if (!isset($carry[$pack['label']])) {
-                    $carry[$pack['label']] = [];
-                }
-                $carry[$pack['label']][] = $pack['id'];
-                return $carry;
-            }, []);
+
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {
                 $countByNatureBase[$this->formatService->nature($wantedNature)] = 0;
@@ -676,9 +663,8 @@ class DashboardService {
             $segments = $config['segments'];
             $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
-            $lastSegmentKey = count($segments);
-            $lastSegment = $segments[$lastSegmentKey - 1];
-            $adminDelay = "$lastSegment:00";
+            $lastSegmentKey = count($segments) - 1;
+            $adminDelay = "$segments[$lastSegmentKey]:00";
 
             $truckArrivalTime = $config['truckArrivalTime'] ?? null;
 
@@ -686,12 +672,9 @@ class DashboardService {
                                                                 use (
                                                                     $workFreeDays,
                                                                     $daysWorked,
-                                                                    $workFreeDaysRepository,
                                                                     $countByNatureBase,
-                                                                    $naturesFilter,
                                                                     &$packsOnCluster,
                                                                     $adminDelay,
-                                                                    $packsOnClusterVerif,
                                                                     &$locationCounters,
                                                                     &$olderPackLocation,
                                                                     &$globalCounter,
@@ -699,93 +682,78 @@ class DashboardService {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    if (isset($packsOnClusterVerif[$pack['currentLocationLabel']]) && in_array(intval($pack['packId']), $packsOnClusterVerif[$pack['currentLocationLabel']])) {
-                        $interval = $this->timeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
-                        $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
-                        $countDownHours = isset($timeInformation['countDownLateTimespan'])
-                            ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
-                            : null;
+                    $interval = $this->timeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
+                    $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
+                    $countDownHours = isset($timeInformation['countDownLateTimespan'])
+                        ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
+                        : null;
 
-                        $countDownHours -= $truckArrivalTime && $pack['truckArrivalDelay']
-                            ? intval($pack['truckArrivalDelay']) / 1000 / 60 / 60
-                            : 0;
+                    $countDownHours -= $truckArrivalTime && $pack['truckArrivalDelay']
+                        ? intval($pack['truckArrivalDelay']) / 1000 / 60 / 60
+                        : 0;
 
-                        if (isset($countDownHours)
-                            && (
-                                ($countDownHours < 0 && $beginSpan === -1) // count late pack
-                                || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
-                            )) {
-                            if (empty($countByNature[$pack['natureLabel']])) {
-                                $countByNature[$pack['natureLabel']] = 0;
-                            }
-                            $countByNature[$pack['natureLabel']]++;
+                    if (isset($countDownHours)
+                        && (
+                            ($countDownHours < 0 && $beginSpan === -1) // count late pack
+                            || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
+                        )) {
 
-                            $currentLocationLabel = $pack['currentLocationLabel'];
-                            $currentLocationId = $pack['currentLocationId'];
-                            $lastTrackingDateTime = $pack['lastTrackingDateTime'];
+                        $this->updateOlderPackLocation($olderPackLocation, $pack);
 
-                            // get older pack
-                            if ((
-                                    empty($olderPackLocation['locationLabel'])
-                                    || empty($olderPackLocation['locationId'])
-                                    || empty($olderPackLocation['packDateTime'])
-                                )
-                                || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)) {
-                                $olderPackLocation['locationLabel'] = $currentLocationLabel;
-                                $olderPackLocation['locationId'] = $currentLocationId;
-                                $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
-                            }
+                        $natureLabel = $pack['natureLabel'];
+                        $countByNature[$natureLabel] = $countByNature[$natureLabel] ?? 0;
+                        $countByNature[$natureLabel]++;
 
-                            // increment counters
-                            if (empty($locationCounters[$currentLocationId])) {
-                                $locationCounters[$currentLocationId] = 0;
-                            }
+                        $currentLocationId = $pack['currentLocationId'];
+                        $locationCounters[$currentLocationId] = $locationCounters[$currentLocationId] ?? 0;
+                        $locationCounters[$currentLocationId]++;
 
-                            $locationCounters[$currentLocationId]++;
-                            $globalCounter++;
-                        } else {
-                            $packUntreated[] = $pack;
-                        }
+                        $globalCounter++;
+                    } else {
+                        $packUntreated[] = $pack;
                     }
                 }
+
                 $packsOnCluster = $packUntreated;
+
                 return $countByNature;
             });
         }
 
         if (empty($graphData)) {
-            $graphData = $this->getObjectForTimeSpan(function () {
-                return 0;
-            });
+            $graphData = $this->getObjectForTimeSpan([], static fn() => 0);
         }
 
-        $totalToDisplay = !empty($olderPackLocation['locationId'])
-            ? $globalCounter
-            : null;
-
-        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
-            ? $olderPackLocation['locationLabel']
-            : null;
+        $totalToDisplay = $olderPackLocation['locationId'] ? $globalCounter : null;
+        $locationToDisplay = $olderPackLocation['locationLabel'] ?: null;
+        $chartColors = Stream::from($naturesFilter)
+            ->filter(fn (Nature $nature) => $nature->getColor())
+            ->keymap(fn(Nature $nature) => [
+                $this->formatService->nature($nature),
+                $nature->getColor()
+            ])
+            ->toArray();
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
 
         $meter
-            ->setChartColors(
-                array_reduce(
-                    $naturesFilter,
-                    function (array $carry, Nature $nature) {
-                        $color = $nature->getColor();
-                        if (!empty($color)) {
-                            $carry[$this->formatService->nature($nature)] = $color;
-                        }
-                        return $carry;
-                    },
-                    []
-                )
-            )
+            ->setChartColors($chartColors)
             ->setData($graphData)
-            ->setTotal(!empty($totalToDisplay) ? $totalToDisplay : '-')
-            ->setLocation(!empty($locationToDisplay) ? $locationToDisplay : '-');
+            ->setTotal($totalToDisplay ?: '-')
+            ->setLocation($locationToDisplay ?: '-');
+    }
+
+    private function updateOlderPackLocation(array &$olderPackLocation, array $pack): void
+    {
+        if (empty($olderPackLocation['locationLabel'])
+            || empty($olderPackLocation['locationId'])
+            || empty($olderPackLocation['packDateTime'])
+            || $olderPackLocation['packDateTime'] > $pack['lastTrackingDateTime'])
+        {
+            $olderPackLocation['locationLabel'] = $pack['currentLocationLabel'];
+            $olderPackLocation['locationId'] = $pack['currentLocationId'];
+            $olderPackLocation['packDateTime'] = $pack['lastTrackingDateTime'];
+        }
     }
 
     /**
@@ -1445,7 +1413,7 @@ class DashboardService {
 
     public function persistEntitiesLatePack(EntityManagerInterface $entityManager) {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
-        $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        $lastLates = $this->enCoursService->getLastEnCoursForLate($entityManager);
         $latePackRepository->clearTable();
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();
@@ -1633,5 +1601,23 @@ class DashboardService {
         if ($chartColors) {
             $meter->setChartColors($chartColors);
         }
+    }
+
+    public function persistDisputesToTreat(EntityManagerInterface $entityManager, Dashboard\Component $component): void
+    {
+        $config = $component->getConfig();
+        $disputeTypes = $config['disputeTypes'];
+        $disputeStatuses = $config['disputeStatuses'];
+        $disputeEmergency = $config['disputeEmergency'] ?? false;
+
+        $disputeRepository = $entityManager->getRepository(Dispute::class);
+        $count = $disputeRepository->countByFilters([
+            'types' => $disputeTypes,
+            'statuses' => $disputeStatuses,
+            'disputeEmergency' => $disputeEmergency,
+        ]);
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter->setCount($count ?? 0);
     }
 }

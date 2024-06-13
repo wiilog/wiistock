@@ -16,6 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -453,9 +454,14 @@ class DemandeCollecteService
         $collecte = new Collecte();
         $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
         $type = $typeRepository->find($data['type']);
+        $utilisateur = $utilisateurRepository->find($data['demandeur']);
+
+        if(!$type->isActive()){
+            throw new FormException("Veuillez rendre ce type actif avant de pouvoir l'utiliser.");
+        }
 
         $collecte
-            ->setDemandeur($utilisateurRepository->find($data['demandeur']))
+            ->setDemandeur($utilisateur)
             ->setNumero($numero)
             ->setDate($date)
             ->setType($type)

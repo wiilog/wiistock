@@ -8,7 +8,6 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -16,11 +15,12 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -61,6 +61,9 @@ class LivraisonsManagerService
     #[Required]
     public MouvementStockService $mouvementStockService;
 
+    #[Required]
+    public RouterInterface $router;
+
     public function createLivraison(DateTime               $dateEnd,
                                     Preparation            $preparation,
                                     EntityManagerInterface $entityManager = null,
@@ -95,8 +98,7 @@ class LivraisonsManagerService
                                     Livraison    $livraison,
                                     DateTime     $dateEnd,
                                     ?Emplacement $nextLocation,
-                                    array        $options = []): void
-    {
+                                    array        $options = []): void {
         $pairings = $livraison->getPreparation()->getPairings();
         $pairingEnd = new DateTime('now');
         foreach ($pairings as $pairing) {
@@ -152,10 +154,15 @@ class LivraisonsManagerService
                 ->toArray();
 
             foreach ($packs as $pack) {
+                $currentPackLocation = $pack->getLastDrop()?->getEmplacement();
+                if (!$currentPackLocation) {
+                    throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles.");
+                }
+
                 $this->trackingMovementService->persistTrackingMovement(
                     $this->entityManager,
                     $pack,
-                    $pack->getLastDrop()->getEmplacement(),
+                    $currentPackLocation,
                     $user,
                     $dateEnd,
                     true,
@@ -263,6 +270,40 @@ class LivraisonsManagerService
                         throw new NegativeQuantityException($reference);
                     }
                 }
+
+                $tracking = $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $reference->getTrackingPack() ?: $reference->getBarCode(),
+                    $preparation->getEndLocation(),
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_PRISE,
+                    false,
+                    [
+                        "refOrArticle" => $reference,
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ],
+                );
+
+                $pickingMovement = $tracking["movement"];
+
+                $this->trackingMovementService->persistTrackingMovement(
+                    $this->entityManager,
+                    $pickingMovement->getPack(),
+                    $nextLocation,
+                    $user,
+                    $dateEnd,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    false,
+                    [
+                        "refOrArticle" => $reference,
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ],
+                );
             }
 
             // on termine les mouvements de livraison
@@ -289,7 +330,10 @@ class LivraisonsManagerService
                         'request' => $demande,
                         'preparation' => $preparation,
                         'title' => $bodyTitle,
-                        'dropLocation' => $nextLocation
+                        'dropLocation' => $nextLocation,
+                        "urlSuffix" => $this->router->generate("demande_show", [
+                            "id" => $demande->getId(),
+                        ]),
                     ]),
                     $to
                 );

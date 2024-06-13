@@ -132,6 +132,13 @@ class DemandeRepository extends EntityRepository
         $qb = $this->createQueryBuilder("delivery_request")
             ->andWhere('delivery_request.manual = false');
 
+        if(!empty($user->getDeliveryTypeIds())){
+            $qb
+                ->join('delivery_request.type', 'join_type')
+                ->andWhere('join_type.id IN (:userDeliveryTypeIds)')
+                ->setParameter('userDeliveryTypeIds', $user->getDeliveryTypeIds());
+        }
+
         $countTotal = QueryBuilderHelper::count($qb, 'delivery_request');
 
         if ($receptionFilter) {
@@ -426,23 +433,6 @@ class DemandeRepository extends EntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    public function getRequestersForReceptionExport() {
-        $qb = $this->createQueryBuilder("request")
-            ->select("requester.username AS username")
-            ->addSelect("reception.id AS reception_id")
-            ->addSelect("article.id AS article_id")
-            ->leftJoin("request.articleLines", "dral")
-            ->leftJoin("request.utilisateur", "requester")
-            ->leftJoin("request.reception", "reception")
-            ->leftJoin("dral.article", "article")
-            ->getQuery()
-            ->getResult();
-
-        return Stream::from($qb)
-            ->keymap(fn(array $data) => [$data["reception_id"] ."-". $data["article_id"], $data["username"]])
-            ->toArray();
     }
 
     public function getDeliveryRequestForSelect(Utilisateur $currentUser) {

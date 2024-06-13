@@ -120,3 +120,109 @@ Cypress.Commands.add('selectInModal', (modalId, name, value, customId = null) =>
     const select = customId ? cy.get(`${customId} select[name=${name}]`) : cy.get(`${modalId} select[name=${name}]`);
     select.select(value, { force: true });
 });
+
+/**
+ * Allows us to fill all types of free fields.
+ * @param freeFields Free fields to fill with the label of the input as key and the value as value.
+ */
+Cypress.Commands.add('fillFreeFields', (freeFields) => {
+    Object.keys(freeFields).forEach((key) => {
+        const value = freeFields[key];
+
+        cy.contains('.free-fields-container label', key).then($label => {
+            const $inputOrSelect = $label.find('input, select, textarea');
+
+            if ($inputOrSelect.length > 0) {
+                const elementType = $inputOrSelect[0].tagName.toLowerCase();
+                switch (elementType) {
+                    case 'input':
+                        fillInputsRadioCheckbox($inputOrSelect, value);
+                        break;
+                    case 'select':
+                        fillSelect($inputOrSelect, value);
+                        break;
+                    case 'textarea':
+                        fillTextarea($inputOrSelect, value);
+                        break;
+                    default:
+                        cy.log(`Type d'élément non supporté: ${elementType}`);
+                }
+            } else {
+                cy.log(`Aucun champ trouvé pour le label: ${key}`);
+            }
+        });
+    });
+});
+
+/**
+ * Fill an input element.
+ * @param $input Input to fill.
+ * @param value Value to put in input.
+ */
+function fillInputsRadioCheckbox($input, value){
+    const type = $input.attr('type');
+    if (type === 'checkbox' || type === 'radio') {
+        cy.wrap($input).each(($input) => {
+            cy.get(`label[for=${$input[0].id}] > span`).then(($inputLabel) => {
+                if ($inputLabel.text().trim() === value) {
+                    cy.wrap($input).check({ force: true });
+                }
+            });
+        });
+    } else {
+        cy.wrap($input).type(value, { force: true });
+    }
+}
+
+/**
+ * Fill a textarea element.
+ * @param $textarea Textarea to fill.
+ * @param value Value to put in the textarea.
+ */
+function fillTextarea($textarea, value){
+    cy.wrap($textarea).type(value, { force: true });
+}
+
+/**
+ * Allows us to fill a comment field.
+ * @param selector Selector of the comments.
+ * @param comment Comment to type in comment field.
+ */
+Cypress.Commands.add('fillComment', (selector, comment) => {
+    cy
+        .get(selector)
+        .click()
+        .clear()
+        .type(comment);
+})
+
+/**
+ * Allows us to fill a file input.
+ * @param path path of the file.
+ */
+Cypress.Commands.add('fillFileInput', (path) => {
+    cy.get('input[type=file]').selectFile(path, {force: true});
+})
+
+/**
+ * Allows us to confirm a modal like the delete modal.
+ */
+Cypress.Commands.add('confirmModal', () => {
+    cy
+        .get("#confirmation-modal")
+        .find("button[name=request]")
+        .click();
+})
+
+/**
+ * Fill a select element.
+ * @param $select Select to fill.
+ * @param value Value to put in the select.
+ */
+function fillSelect($select, value){
+    if ($select.hasClass('list-multiple')) {
+        cy.select2($select.attr('name'), value);
+    } else {
+        cy.select2Ajax($select.attr('name'), value, '', true, '/select/*', true);
+    }
+}

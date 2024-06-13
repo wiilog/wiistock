@@ -239,6 +239,11 @@ class ProductionRequestService
 
             if ($data->has(FixedFieldEnum::type->name)) {
                 $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
+
+                if(!$type->isActive()){
+                    throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+                }
+
                 $productionRequest->setType($type);
             }
         }
@@ -268,7 +273,7 @@ class ProductionRequestService
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
             $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
         } else {
-            $dropLocation = $productionRequest->getType()?->getDropLocation();
+            $dropLocation = $productionRequest->getDropLocation() ?: $productionRequest->getType()?->getDropLocation();
         }
         $productionRequest->setDropLocation($dropLocation);
 
@@ -706,6 +711,8 @@ class ProductionRequestService
 
             if ($type) {
                 $productionRequest->setType($type);
+            } else if(!$type->isActive()) {
+                throw new ImportException("Le type n'est pas actif.");
             } else {
                 throw new ImportException("Le type n'existe pas.");
             }

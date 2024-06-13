@@ -3,6 +3,7 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Attachment;
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\StatusHistory;
@@ -17,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TransportOrderRepository::class)]
-class TransportOrder extends StatusHistoryContainer {
+class TransportOrder extends StatusHistoryContainer implements AttachmentContainer {
 
     use AttachmentTrait;
 

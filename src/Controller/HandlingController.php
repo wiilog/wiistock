@@ -19,6 +19,7 @@ use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
@@ -66,13 +67,16 @@ class HandlingController extends AbstractController {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $user = $this->getUser();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC', [
+            'idsToFind' => $user->getHandlingTypeIds()
+        ]);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
         $filterStatus = $request->query->get('filter');
-        $user = $this->getUser();
         $dateChoice = [
             [
                 'value' => 'creationDate',
@@ -96,14 +100,19 @@ class HandlingController extends AbstractController {
 
         $filterDate = $request->query->get('date');
 
+        $handlingStatuses = $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder');
+        $statuses = Stream::from($handlingStatuses)
+            ->filter(fn(Statut $statut) => empty($user->getHandlingTypeIds()) || in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
+            ->toArray();
+
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
-            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
-			'filterStatus' => $filterStatus,
             'types' => $types,
+            'statuses' => $statuses,
+            'filterStatus' => $filterStatus,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
             'statusStateValues' => Stream::from($statusService->getStatusStatesValues())
@@ -122,6 +131,9 @@ class HandlingController extends AbstractController {
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
+                'handlingTypes' => Stream::from($types)
+                    ->filter(static fn(Type $type) => $type->isActive())
+                    ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                 'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
@@ -193,13 +205,17 @@ class HandlingController extends AbstractController {
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
+        $currentUser = $this->getUser();
+
+        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getHandlingTypeIds())
+            && !empty($currentUser->getDeliveryTypeIds())) {
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+        }
 
         $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $currentUser = $this->getUser();
         $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
-        $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
@@ -242,21 +258,7 @@ class HandlingController extends AbstractController {
         }
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $currentUser);
-
-        if (isset($fileBag)) {
-            $fileNames = [];
-            foreach ($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            $attachments = $attachmentService->createAttachments($fileNames);
-            foreach ($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $handling->addAttachment($attachment);
-            }
-        }
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
 
         $entityManager->persist($handling);
         try {
@@ -357,7 +359,7 @@ class HandlingController extends AbstractController {
             $entityManager->remove($attachment);
         }
 
-        $attachmentService->persistAttachments($entityManager, $handling, $request->files);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
         $entityManager->flush();
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';

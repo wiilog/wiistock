@@ -6,7 +6,8 @@
     {% include 'filters/filtersLitiges.html.twig' with {
         page: 'PAGE_LITIGE_ARR',
         tableSelector: '#tableLitiges',
-        needsDateFormatting: true
+        needsDateFormatting: true,
+        disabled: fromDashboard ? 'disabled' : '',
     } %}
 {% endblock %}
 {% block page_content %}

@@ -29,7 +29,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            {% set uniqueType = types|length == 1 %}
+                            {% set uniqueType = typesForModal|length == 1 %}
                             <div class="form-group">
                                 <label class="wii-field-name" for="type" style="margin-bottom: 5px;">Type*</label>
                                 <select name="type"
@@ -38,14 +38,14 @@
                                         onclick="typeChoice($(this))"
                                         onchange="onDeliveryTypeChange($(this), `create`)"
                                         {{ uniqueType ? 'disabled' }}
-                                        {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
+                                        {{ uniqueType ? ('data-init="' ~ (typesForModal|first).id ~ '"')|raw }}>
                                     {% if not uniqueType %}
                                         <option value="">Type à choisir...</option>
-                                        {% for type in types %}
+                                        {% for type in typesForModal %}
                                             <option value="{{ type.id }}">{{ type.label }}</option>
                                         {% endfor %}
                                     {% else %}
-                                        {% set typeToDisplay = types|first %}
+                                        {% set typeToDisplay = typesForModal|first %}
                                         <option selected value={{ typeToDisplay.id }}>{{ typeToDisplay.label }}</option>
                                     {% endif %}
                                 </select>

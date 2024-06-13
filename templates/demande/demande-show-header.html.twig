@@ -38,7 +38,7 @@
                 icon: "fas fa-external-link-alt",
                 title: "Aller vers les ordres de préparations",
                 dropdownOnly: true,
-                href: path('preparation_index', {'demandId': demande.id }),
+                href: path('preparation_index', {'deliveryRequest': demande.id }),
             },
             {
                 hasRight: demande.preparations|length == 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')),
