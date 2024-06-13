@@ -28,7 +28,6 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
         .should('be.visible', {timeout: 6000})
         .contains(value)
         .should('be.visible')
-        //.first()
         .click({waitForAnimations: false, force: true})
         .then(() => {
             cy.get(getName).find('option:selected').should('have.length', 1);

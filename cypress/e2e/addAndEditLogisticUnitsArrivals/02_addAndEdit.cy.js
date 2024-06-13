@@ -205,9 +205,6 @@ describe('Add and edit logistic units arrivals', () => {
 
         cy.select2Ajax('disputeType',dispute.type, '', true, '/select/*', false);
 
-        // cy.get(`${selectorModalNewLitige} [name=disputeType]`)
-        //     .select(dispute.type);
-
         // remove the reporter if it's already selected
         cy.get(selectorModalNewLitige).then(($modal) => {
             if ($modal.find('[name=disputeReporter]').siblings('.select2').find('.select2-selection__clear').length) {
@@ -275,7 +272,7 @@ describe('Add and edit logistic units arrivals', () => {
             .click().wait('@arrival_dispute_api_edit', {timeout: 8000});
 
         // edit the dispute
-        cy.select2Ajax('disputeType',disputeChanged.type, '', true, '/select/*', false);
+        cy.select2Ajax('disputeType', disputeChanged.type, '', true, '/select/*', false);
         cy.get(`${modalEditLitige} [name=disputeStatus]`)
             .select(disputeChanged.status);
         cy.get(`${modalEditLitige} [name=disputeReporter]`)
