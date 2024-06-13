@@ -418,13 +418,11 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
-     */
-    public function index(RefArticleDataService $refArticleDataService,
-                          SettingsService $settingsService,
-                          EntityManagerInterface $entityManager): Response {
+    #[Route(path: '/', name: 'reference_article_index', methods: [self::GET, self::POST], options: ['expose' => true])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE])]
+    public function index(RefArticleDataService     $refArticleDataService,
+                          SettingsService           $settingsService,
+                          EntityManagerInterface    $entityManager): Response {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);

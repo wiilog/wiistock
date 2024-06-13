@@ -758,9 +758,13 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->toArray();
 
             $conditions = [];
+            $columns = [];
+
             foreach ($searchableFields as $key => $searchableField) {
                 switch ($searchableField) {
                     case "supplierLabel":
+                        $columns[] = "supplierLabel";
+                        break;
                     case "supplierCode":
                         $dbField = match ($searchableField) {
                             "supplierLabel" => "nom",
@@ -771,24 +775,28 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin("ra.articlesFournisseur", "search_supplierArticle_$key")
                             ->leftJoin("search_supplierArticle_$key.fournisseur", "search_supplier_$key");
 
+                        $columns[] = "supplierLabel";
                         $conditions[] = "search_supplier_$key.$dbField LIKE :search_value";
 
                         break;
                     case "referenceSupplierArticle":
                         $queryBuilder->leftJoin("ra.articlesFournisseur", "search_supplierArticle");
 
+                        $columns[] = "referenceSupplierArticle";
                         $conditions[] = "search_supplierArticle.reference LIKE :search_value";
 
                         break;
                     case "managers":
                         $queryBuilder->leftJoin("ra.managers", "search_managers");
 
+                        $columns[] = "managers";
                         $conditions[] = "search_managers.username LIKE :search_value";
 
                         break;
                     case "buyer":
                         $queryBuilder->leftJoin("ra.buyer", "search_buyer");
 
+                        $columns[] = "buyer";
                         $conditions[] = "search_buyer.username LIKE :search_value";
 
                         break;
@@ -798,6 +806,9 @@ class ReferenceArticleRepository extends EntityRepository {
                         $freeField = is_numeric($freeFieldId)
                             ? $freeFieldRepository->find($freeFieldId)
                             : null;
+
+                        $columns[] = $field;
+
                         if ($freeField) {
                             $freeFieldTyping = $freeField->getTypage();
                             if ($freeFieldTyping === FreeField::TYPE_BOOL) {
@@ -833,9 +844,9 @@ class ReferenceArticleRepository extends EntityRepository {
             $orX = $queryBuilder->expr()->orX();
             $searchPartsLength = count($searchParts);
             foreach ($searchParts as $index => $part) {
-                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray());
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray(), false, $columns);
 
-                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true)
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true, $columns)
                     ->join(" + ");
 
                 $queryBuilder
