@@ -1,5 +1,3 @@
-let onFlyFormOpened = {};
-
 $(function () {
     // RECEPTION
     initTableReception();
@@ -49,7 +47,6 @@ $(function () {
 
 function initNewReceptionEditor(modal) {
     let $modal = $(modal);
-    onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
 

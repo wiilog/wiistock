@@ -1,6 +1,5 @@
 $('.select2').select2();
 
-let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
 let arrivalsTable;
@@ -262,7 +261,6 @@ function createArrival(form = null) {
         onTypeChange($modal.find('[name="type"]'));
         initDateTimePicker('.date-cl');
 
-        onFlyFormOpened = {};
         onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
         onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
         onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
