@@ -37,7 +37,7 @@
     {% set supplierFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(supplierFieldCode, 'displayedEdit') %}
         <div class="form-group w-100 col-4">
-            {{ form.select(null, trans('Traçabilité', 'Unités logistiques', 'Divers', "N° d'arrivage UL"), false, {
+            {{ form.select(null, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL'), false, {
                 type: '',
                 multiple: true,
                 disabled: true,
