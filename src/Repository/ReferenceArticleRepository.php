@@ -70,6 +70,11 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
+    private const ADVANCED_SEARCH_COLUMN_WEIGHTING = [
+        "libelle" => 5,
+        // add more columns here with their respective weighting (higher = more relevant)
+    ];
+
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
@@ -758,6 +763,7 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->toArray();
 
             $conditions = [];
+
             foreach ($searchableFields as $key => $searchableField) {
                 switch ($searchableField) {
                     case "supplierLabel":
@@ -771,25 +777,25 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin("ra.articlesFournisseur", "search_supplierArticle_$key")
                             ->leftJoin("search_supplierArticle_$key.fournisseur", "search_supplier_$key");
 
-                        $conditions[] = "search_supplier_$key.$dbField LIKE :search_value";
+                        $conditions[$searchableField] = "search_supplier_$key.$dbField LIKE :search_value";
 
                         break;
                     case "referenceSupplierArticle":
                         $queryBuilder->leftJoin("ra.articlesFournisseur", "search_supplierArticle");
 
-                        $conditions[] = "search_supplierArticle.reference LIKE :search_value";
+                        $conditions[$searchableField] = "search_supplierArticle.reference LIKE :search_value";
 
                         break;
                     case "managers":
                         $queryBuilder->leftJoin("ra.managers", "search_managers");
 
-                        $conditions[] = "search_managers.username LIKE :search_value";
+                        $conditions[$searchableField] = "search_managers.username LIKE :search_value";
 
                         break;
                     case "buyer":
                         $queryBuilder->leftJoin("ra.buyer", "search_buyer");
 
-                        $conditions[] = "search_buyer.username LIKE :search_value";
+                        $conditions[$searchableField] = "search_buyer.username LIKE :search_value";
 
                         break;
                     default:
@@ -798,32 +804,33 @@ class ReferenceArticleRepository extends EntityRepository {
                         $freeField = is_numeric($freeFieldId)
                             ? $freeFieldRepository->find($freeFieldId)
                             : null;
+
                         if ($freeField) {
                             $freeFieldTyping = $freeField->getTypage();
                             if ($freeFieldTyping === FreeField::TYPE_BOOL) {
                                 if (!$searchBooleanValues->isEmpty()) {
-                                    foreach ($searchBooleanValues->toArray() as $booleanValue) {
-                                        $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', '$booleanValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                    foreach ($searchBooleanValues->toArray() as $index => $booleanValue) {
+                                        $conditions["freeField$freeFieldId\_$index"] = "JSON_SEARCH(ra.freeFields, 'one', '$booleanValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                     }
                                 }
                             } elseif (in_array($freeFieldTyping, [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])) {
-                                foreach ($searchDateValues as $dateValue) {
-                                    $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', '$dateValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                foreach ($searchDateValues as $index => $dateValue) {
+                                    $conditions["freeField$freeFieldId\_$index"] = "JSON_SEARCH(ra.freeFields, 'one', '$dateValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                 }
                             } else {
-                                $conditions[] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                $condition["freeField$freeFieldId"] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                             }
                         } else if (property_exists(ReferenceArticle::class, $field)) {
                             if (in_array($field, self::FIELDS_TYPE_DATE)) {
                                 foreach ($searchDateValues as $dateIndex => $dateValue) {
-                                    $conditions[] = "ra.$field BETWEEN :dateMin_{$key}_$dateIndex AND :dateMax_{$key}_$dateIndex";
+                                    $conditions[$field] = "ra.$field BETWEEN :dateMin_{$key}_$dateIndex AND :dateMax_{$key}_$dateIndex";
 
                                     $queryBuilder
                                         ->setParameter("dateMin_{$key}_$dateIndex", "$dateValue 00:00:00")
                                         ->setParameter("dateMax_{$key}_$dateIndex", "$dateValue 23:59:59");
                                 }
                             } else {
-                                $conditions[] = "ra.$field LIKE :search_value";
+                                $conditions[$field] = "ra.$field LIKE :search_value";
                             }
                         }
                         break;
@@ -833,9 +840,9 @@ class ReferenceArticleRepository extends EntityRepository {
             $orX = $queryBuilder->expr()->orX();
             $searchPartsLength = count($searchParts);
             foreach ($searchParts as $index => $part) {
-                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength)->toArray());
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, false, self::ADVANCED_SEARCH_COLUMN_WEIGHTING)->toArray());
 
-                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true)
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true, self::ADVANCED_SEARCH_COLUMN_WEIGHTING)
                     ->join(" + ");
 
                 $queryBuilder

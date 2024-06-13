@@ -24,16 +24,21 @@ class AdvancedSearchHelper {
         "colorClass",
     ];
 
-    public static function bindSearch(array $conditions, int $index, $searchPartsLength, bool $forSelect = false): Stream {
+    private const DEFAULT_WEIGHTING = 1;
+
+    public static function bindSearch(array $conditions, int $index, $searchPartsLength, bool $forSelect = false, array $columnWeighting = []): Stream {
         return Stream::from($conditions)
-            ->map(static function (string $condition) use ($forSelect, $index, $searchPartsLength): string {
+            ->map(static function (string $condition, string $field) use ($forSelect, $index, $searchPartsLength, $columnWeighting): string {
                 // add current index to :search_value parameter
                 $boundCondition = match (true) {
                     str_contains($condition, ":search_value") => str_replace(":search_value", ":search_value_$index", $condition),
                     default => $condition,
                 };
 
-                $relevanceScore = $searchPartsLength - $index;
+                // calculate relevance score based on column weighting and search part position in the search query (closer to the beginning = higher relevance)
+                $columnWeight = $columnWeighting[$field] ?? self::DEFAULT_WEIGHTING;
+                $relevanceScore = ($searchPartsLength - $index) * $columnWeight;
+
                 if ($forSelect) {
                     return "IF($boundCondition, $relevanceScore, 0)";
                 } else {
