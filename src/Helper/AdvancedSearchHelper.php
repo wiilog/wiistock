@@ -13,7 +13,6 @@ class AdvancedSearchHelper {
 
     public const MIN_SEARCH_PART_LENGTH = 2;
 
-
     private const HIGHLIGHT_COLOR = "#FFFF00";
     private const SPAN_ELEMENT_REGEX = "/<span[^>]*>.*?<\/span>/";
 
@@ -24,7 +23,14 @@ class AdvancedSearchHelper {
         "colorClass",
     ];
 
-    public static function bindSearch(array $conditions, int $index, $searchPartsLength, bool $forSelect = false): Stream {
+    private const COLUMN_WEIGHTING = [
+        "ra.libelle" => 5,
+        // add more columns here with their respective weighting (higher = more relevant)
+    ];
+
+    private const DEFAULT_WEIGHTING = 1;
+
+    public static function bindSearch(array $conditions, int $index, $searchPartsLength, bool $forSelect = false, Array $columns = []): Stream {
         return Stream::from($conditions)
             ->map(static function (string $condition) use ($forSelect, $index, $searchPartsLength): string {
                 // add current index to :search_value parameter
@@ -33,7 +39,14 @@ class AdvancedSearchHelper {
                     default => $condition,
                 };
 
-                $relevanceScore = $searchPartsLength - $index;
+                // $condition = "ra.barCode LIKE :search_value" i want to get "ra.barCode"
+                $columnFromCondition = explode(" ", $condition)[0];
+
+                // calculate relevance score based on column weighting and search part position in the search query (closer to the beginning = higher relevance)
+                $relevanceScore = ($searchPartsLength - $index)* array_key_exists($columnFromCondition, self::COLUMN_WEIGHTING)
+                    ? self::COLUMN_WEIGHTING[$columnFromCondition]
+                    : self::DEFAULT_WEIGHTING;
+
                 if ($forSelect) {
                     return "IF($boundCondition, $relevanceScore, 0)";
                 } else {
