@@ -156,6 +156,7 @@ function getAppropriateRowCallback({needsColor, classField, color, dataToCheck, 
 }
 
 function overrideSearch($input, $table) {
+
     $input
         .off()
         .on(`keyup`, function (e) {
@@ -169,6 +170,27 @@ function overrideSearch($input, $table) {
         });
 
     $input.addClass(`form-control`);
+}
+
+function togglePrintButton(datatable) {
+    let $printButton = $(`#printButton`);
+    if($printButton.length > 0) {
+        if (datatable.search() === '' || datatable.rows().count() === 0) {
+            $printButton
+                .addClass(`user-select-none`)
+                .addClass(`disabled`)
+                .addClass(`has-tooltip`)
+                .removeClass(`pointer`);
+            managePrintButtonTooltip(true, $printButton);
+        } else {
+            $printButton
+                .removeClass(`user-select-none`)
+                .removeClass(`disabled`)
+                .removeClass(`has-tooltip`)
+                .addClass(`pointer`);
+            managePrintButtonTooltip(false, $printButton);
+        }
+    }
 }
 
 function datatableDrawCallback({response, callback, table, $table, needsPagingHide, needsSearchHide, hidePaging}) {
@@ -386,6 +408,7 @@ export function initDataTable($table, options) {
 
                 overrideSearch($searchInput, $table);
 
+                togglePrintButton($table.DataTable());
                 setTimeout(() => {
                     drawCallback(response);
                 });

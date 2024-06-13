@@ -27,9 +27,6 @@ const locationsTableConfig = {
     rowConfig: {
         needsRowClickAction: true,
     },
-    drawCallback: () => {
-        togglePrintButton($(`#locationsTable_filter input[type=search]`));
-    },
     columns: [
         {data: 'actions', title: '', className: 'noVis', orderable: false},
         {data: 'pairing', title: '', className: 'pairing-row'},
@@ -107,7 +104,7 @@ let zonesTable;
 
 $(function() {
     $('.select2').select2();
-    managePrintButtonTooltip(true, $('#btnPrint'));
+    managePrintButtonTooltip(true, $('#printButton'));
 
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
@@ -324,41 +321,4 @@ function printLocationsBarCodes($button, event) {
     else {
         event.stopPropagation();
     }
-}
-
-function togglePrintButton($input) {
-    $input
-        .off()
-        .on(`keyup`, function (e) {
-            let $printButton = $(`.printButton`);
-
-            if (e.key === `Enter`) {
-                if ($input.val() === ``) {
-                    $printButton
-                        .addClass(`user-select-none`)
-                        .addClass(`disabled`)
-                        .addClass(`has-tooltip`)
-                        .removeClass(`pointer`);
-                    managePrintButtonTooltip(true, $printButton);
-                } else {
-                    $printButton
-                        .removeClass(`user-select-none`)
-                        .removeClass(`disabled`)
-                        .removeClass(`has-tooltip`)
-                        .addClass(`pointer`);
-                    managePrintButtonTooltip(false, $printButton);
-                }
-
-                $(`#locationsTable`).DataTable().search(this.value).draw();
-            } else if (e.key === `Backspace` && $input.val() === ``) {
-                $printButton
-                    .addClass(`user-select-none`)
-                    .addClass(`disabled`)
-                    .addClass(`has-tooltip`)
-                    .removeClass(`pointer`);
-                managePrintButtonTooltip(true, $printButton);
-            }
-        });
-
-    $input.addClass(`form-control`);
 }

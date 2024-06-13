@@ -19,7 +19,7 @@ $(function () {
         $modal.find('.valueLabel').text('');
     });
 
-    $printTag = $('#printTag');
+    $printTag = $('#printButton');
 
     updateFilters();
 
