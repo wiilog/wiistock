@@ -621,6 +621,11 @@ class ArticleDataService
 
         $separator = ($location && $username) ? ' / ' : '';
 
+        // we replace spaces with non-breaking spaces to avoid cutting the label on the label
+        $labelArticle = str_replace(' ', '&nbsp;', $labelArticle);
+        $refRefArticle = str_replace(' ', '&nbsp;', $refRefArticle);
+        $labelRefArticle = str_replace(' ', '&nbsp;', $labelRefArticle);
+
         $labels = [
             "$username $separator $location",
             "L/R : $labelRefArticle",
