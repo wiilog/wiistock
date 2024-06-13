@@ -818,7 +818,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                     $conditions["freeField$freeFieldId\_$index"] = "JSON_SEARCH(ra.freeFields, 'one', '$dateValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                 }
                             } else {
-                                $condition["freeField$freeFieldId"] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                $conditions["freeField$freeFieldId"] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                             }
                         } else if (property_exists(ReferenceArticle::class, $field)) {
                             if (in_array($field, self::FIELDS_TYPE_DATE)) {
