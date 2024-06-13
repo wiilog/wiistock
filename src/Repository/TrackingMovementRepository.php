@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
@@ -16,6 +17,7 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 
@@ -530,5 +532,17 @@ class TrackingMovementRepository extends EntityRepository
         }
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function countByArticle(Article $article): int {
+        $result = $this->createQueryBuilder("tracking_movement")
+            ->select('COUNT(DISTINCT tracking_movement.id)')
+            ->join("tracking_movement.pack", "join_pack", Join::WITH)
+            ->andWhere("join_pack.article = :article")
+            ->setParameter("article", $article)
+            ->getQuery()
+            ->getSingleResult();
+
+        return $result["count"] ?? 0;
     }
 }

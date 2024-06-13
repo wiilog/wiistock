@@ -128,9 +128,12 @@ class ArticleController extends AbstractController
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+
         $type = $article->getType();
-        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+        $hasMovements = $trackingMovementRepository->countByArticle($article) > 0;
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/show/index.html.twig", [
@@ -721,7 +724,7 @@ class ArticleController extends AbstractController
     public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
         $article = $request->query->get('article');
 
-        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly'=>true]);
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly' => true]);
 
         return $this->json([
             'template' => $this->renderView('article/show/timeline.html.twig', [

@@ -1463,7 +1463,13 @@ class TrackingMovementService extends AbstractController
             }
 
             foreach ($newMovements as $movement) {
-                $movement->setMainMovement($luDrop ?? $drop ?? null);
+                $mainMovement = $luDrop ?? $drop ?? null;
+                if ($mainMovement !== $movement) {
+                    $movement->setMainMovement($mainMovement);
+                }
+                else {
+                    $movement->setMainMovement(null);
+                }
             }
 
             if ($isLocationChanges) {
