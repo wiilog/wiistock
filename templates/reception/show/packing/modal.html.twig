@@ -56,7 +56,7 @@
                     <div class="row">
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Emplacement de stockage*</label>
-                            <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed wii-field-text" id="storage">
+                            <select data-s2="storage" name="storage" class="data form-control ajax-autocomplete-location-edit w-100 needed" id="storage">
                             </select>
                             <input hidden id="storageTransfer"
                                    data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
@@ -64,7 +64,7 @@
                         </div>
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Emplacement d'origine*</label>
-                            <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed wii-field-text" id="origin">
+                            <select data-s2="origin" name="origin" class="data form-control ajax-autocomplete-location-edit w-100 needed" id="origin">
                             </select>
                             <input hidden id="originTransfer"
                                    data-id="{{ reception.location ? reception.location.id }}"
@@ -140,7 +140,7 @@
                             <div class="col-4 form-group6">
                                 <div class="form-group w-100">
                                     <label class="wii-field-name">Projet{{ fieldRequired ? '*' }}</label>
-                                    <select data-s2="project" name="project" class="form-control data d-block {{fieldRequired ? 'needed'}}">
+                                    <select data-s2="project" name="project" class="form-control data d-block {{fieldRequired ? 'needed-save'}}">
                                     </select>
                                 </div>
                             </div>
