@@ -82,7 +82,6 @@ class RequestController extends AbstractController {
 
         return $this->render('transport/request/index.html.twig', [
             'newRequest' => new TransportDeliveryRequest(),
-            'CLB_API_KEY' => $_SERVER['CLB_API_KEY'] ?? null,
             'categories' => [
                 [
                     "category" => CategoryType::DELIVERY_TRANSPORT,

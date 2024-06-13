@@ -271,12 +271,8 @@ function prefillForm($modal) {
 }
 
 function isPrefillInformationGiven() {
-    const CLB_API_KEY = $('#CLB_API_KEY').val();
-    const {'x-api-key': xApiKey, content} = GetRequestQuery() || {};
-
+    const {content} = GetRequestQuery() || {};
     return (
-        CLB_API_KEY
-        && xApiKey === CLB_API_KEY
-        && Object.keys(JSON.parse(content || '')).length > 0
+        Object.keys(JSON.parse(content || '')).length > 0
     );
 }
