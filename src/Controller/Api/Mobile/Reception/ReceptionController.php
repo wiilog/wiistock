@@ -9,20 +9,24 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route("/api/mobile/reception", name: "api_mobile_repection_")]
+#[Route("/api/mobile/reception", name: "api_mobile_reception_")]
 class ReceptionController extends AbstractApiController
 {
     #[Route("/list", methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     #[Wii\RestAuthenticated]
     #[Wii\RestVersionChecked]
     public function list(EntityManagerInterface $entityManager): JsonResponse {
-        $reception = $entityManager
-            ->getRepository(Reception::class)
+        $receptionRepository = $entityManager
+            ->getRepository(Reception::class);
+
+        $reception = $receptionRepository
             ->getMobileReceptions();
 
-        return new JsonResponse([
+        $response = [
             "success" => true,
             "data" => $reception,
-        ]);
+        ];
+
+        return new JsonResponse($response);
     }
 }
