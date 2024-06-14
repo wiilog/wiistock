@@ -23,25 +23,21 @@ class RefArticleQuantityNotifier {
 
     #[Deprecated]
     public function preUpdate(ReferenceArticle $referenceArticle): void {
-        dump("postUpdate -- " . $referenceArticle->getId());
         $this->handleReference($referenceArticle);
     }
 
     #[Deprecated]
     public function prePersist(ReferenceArticle $referenceArticle): void {
-        dump("postPersist -- " . $referenceArticle->getId());
         $this->handleReference($referenceArticle);
     }
 
 
     #[Deprecated]
     public function postFlush(): void {
-        dump("--------- POST FLUSH");
         if (!self::$disableReferenceUpdate
             && $this->entityManager->isOpen()
             && !empty(self::$untreatedReferences)) {
             foreach (self::$untreatedReferences as $referenceArticle) {
-                dump("--------- POST FLUSH INFOREACH");
                 $this->refArticleService->treatAlert($this->entityManager, $referenceArticle);
             }
             self::$untreatedReferences = [];
