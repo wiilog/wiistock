@@ -22,24 +22,27 @@ class RefArticleQuantityNotifier {
     private static array $untreatedReferences = [];
 
     #[Deprecated]
-    public function postUpdate(ReferenceArticle $referenceArticle): void {
+    public function preUpdate(ReferenceArticle $referenceArticle): void {
+        dump("postUpdate -- " . $referenceArticle->getId());
         $this->handleReference($referenceArticle);
     }
 
     #[Deprecated]
-    public function postPersist(ReferenceArticle $referenceArticle): void {
+    public function prePersist(ReferenceArticle $referenceArticle): void {
+        dump("postPersist -- " . $referenceArticle->getId());
         $this->handleReference($referenceArticle);
     }
+
 
     #[Deprecated]
     public function postFlush(): void {
+        dump("--------- POST FLUSH");
         if (!self::$disableReferenceUpdate
             && $this->entityManager->isOpen()
             && !empty(self::$untreatedReferences)) {
             foreach (self::$untreatedReferences as $referenceArticle) {
+                dump("--------- POST FLUSH INFOREACH");
                 $this->refArticleService->treatAlert($this->entityManager, $referenceArticle);
-                $available = ($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
-                $referenceArticle->setQuantiteDisponible($available);
             }
             self::$untreatedReferences = [];
             $this->entityManager->flush();
@@ -50,10 +53,10 @@ class RefArticleQuantityNotifier {
     private function handleReference(ReferenceArticle $referenceArticle): void
     {
         if (!self::$disableReferenceUpdate && $this->entityManager->isOpen()) {
-            $id = $referenceArticle->getId();
-            if ($id) {
-                self::$untreatedReferences[$id] = $referenceArticle;
-            }
+            $barCode = $referenceArticle->getBarCode();
+            $available = ($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
+            $referenceArticle->setQuantiteDisponible($available);
+            self::$untreatedReferences[$barCode] = $referenceArticle;
         }
     }
 
