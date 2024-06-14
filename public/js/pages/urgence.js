@@ -18,7 +18,8 @@ $(function() {
 
 function initPage() {
     const unassociated = new URLSearchParams(window.location.search).get('unassociated');
-    let pathUrgences = Routing.generate('emergency_api',{unassociated}, true);
+    const dateMin = new URLSearchParams(window.location.search).get('dateMin');
+    let pathUrgences = Routing.generate('emergency_api',{unassociated, dateMin}, true);
     let tableUrgenceConfig = {
         processing: true,
         serverSide: true,

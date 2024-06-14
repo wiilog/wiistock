@@ -100,7 +100,8 @@ class DashboardFeedCommand extends Command {
                         $this->dashboardService->persistArrivalsEmergencies(
                             $this->entityManager,
                             $component,
-                            $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES
+                            $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
+                            $meterKey === Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE
                         );
                         break;
                     case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
