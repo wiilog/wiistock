@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\Setting;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\Deprecated;
@@ -24,6 +25,9 @@ class ArticleQuantityNotifier {
     #[Required]
     public AlertService $alertService;
 
+    #[Required]
+    public SettingsService $settingsService;
+
     private static array $referenceArticlesToUpdate = [];
 
     public static bool $referenceArticlesUpdating = false;
@@ -36,8 +40,7 @@ class ArticleQuantityNotifier {
             self::$referenceArticlesUpdating = true;
 
             $cleanedEntityManager = $this->getEntityManager();
-            $expiryDelay = $this->entityManager->getRepository(Setting::class)
-                ->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
+            $expiryDelay = $this->settingsService->getValue($cleanedEntityManager, Setting::STOCK_EXPIRATION_DELAY, 0);
 
             $this->refArticleService->updateRefArticleQuantities(
                 $cleanedEntityManager,
@@ -45,6 +48,7 @@ class ArticleQuantityNotifier {
                     ->map(fn($item) => $item['referenceArticle'])
                     ->toArray()
             );
+
             foreach (self::$referenceArticlesToUpdate as $item) {
                 $referenceArticle = $item['referenceArticle'];
 

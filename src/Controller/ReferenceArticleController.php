@@ -597,11 +597,12 @@ class ReferenceArticleController extends AbstractController
      * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON))
      */
-    public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
-    {
+    public function getQuantityByRefArticleId(Request                $request,
+                                              SettingsService        $settingsService,
+                                              EntityManagerInterface $entityManager) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+
+        $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $quantity = false;
 
         $refArticleId = $request->request->get('refArticleId');
