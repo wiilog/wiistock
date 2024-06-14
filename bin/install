@@ -22,10 +22,11 @@ function main(): void {
     $APP_ENV = getenv("APP_ENV") ?: "prod";
     $APP_CONTEXT = getenv("APP_CONTEXT") ?: "prod";
     $APP_DOMAIN_NAME = getenv("APP_DOMAIN_NAME") ?: "localhost";
+    $DATABASE_SSL_CONFIG = getenv("DATABASE_SSL_CONFIG") ?: null;
     $DATABASE_URL = getenv("DATABASE_URL") ?: null;
     $mode = $argv[1] ?? $APP_ENV;
 
-    $tableCount = countDatabaseTables($DATABASE_URL);
+    $tableCount = countDatabaseTables($DATABASE_URL, $DATABASE_SSL_CONFIG);
 
     $INSTALL_STEP = [
         [
@@ -228,10 +229,11 @@ function downloadZipCache(string $destination,
     }
 }
 
-function countDatabaseTables(string $databaseUrl): int {
+function countDatabaseTables(string $databaseUrl, ?string $databaseSSLConfigJson): int {
     if (!$databaseUrl) {
         throw new Exception("Database url is missing");
     }
+
 
     preg_match("/mysql:\/\/(\w+):(\w+)@((?:\w|-|_|\.)+):(\d+)\/(\w+)/", $databaseUrl, $matches);
 
@@ -244,7 +246,15 @@ function countDatabaseTables(string $databaseUrl): int {
         $database
     ] = $matches;
 
-    $pdo = new PDO("mysql:host=$hostname;dbname=$database;port=$port", $username, $password);
+    $databaseSSLConfig = @json_decode($databaseSSLConfigJson, true);
+
+    $pdo = new PDO(
+        "mysql:host=$hostname;dbname=$database;port=$port",
+        $username,
+        $password,
+        $databaseSSLConfig ?: null
+    );
+
 
     $stmt = $pdo->prepare("SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = :database");
     $stmt->execute([
