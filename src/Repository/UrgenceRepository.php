@@ -134,7 +134,7 @@ class UrgenceRepository extends EntityRepository {
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function countUnsolved(bool $daily = false) {
+    public function countUnsolved(bool $daily = false, bool $active = false) {
         $queryBuilder = $this->createQueryBuilder('urgence')
             ->select('COUNT(urgence)')
             ->where('urgence.dateStart < :now')
@@ -151,6 +151,13 @@ class UrgenceRepository extends EntityRepository {
                 ->andWhere('urgence.dateEnd > :todayMorning')
                 ->setParameter('todayEvening', $todayEvening)
                 ->setParameter('todayMorning', $todayMorning);
+        }
+
+        if ($active) {
+            $today = new DateTime('now');
+            $queryBuilder
+                ->andWhere('urgence.dateEnd >= :todayEvening')
+                ->setParameter('todayEvening', $today);
         }
 
         return $queryBuilder

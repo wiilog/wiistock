@@ -412,12 +412,13 @@ class DashboardService {
      * @throws NonUniqueResultException
      */
     public function persistArrivalsEmergencies(EntityManagerInterface $entityManager,
-                                               Dashboard\Component $component,
-                                               bool $daily): void {
+                                               Dashboard\Component    $component,
+                                               bool                   $daily,
+                                               bool                   $active): void {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
 
         $emergencyRepository = $entityManager->getRepository(Urgence::class);
-        $unsolvedEmergencies = $emergencyRepository->countUnsolved($daily);
+        $unsolvedEmergencies = $emergencyRepository->countUnsolved($daily, $active);
         $meter
             ->setCount($unsolvedEmergencies ?? 0);
     }
