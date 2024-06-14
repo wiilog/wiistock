@@ -44,10 +44,10 @@ class UrgencesController extends AbstractController
     public function api(Request $request, UrgenceService $emergencyService): Response
     {
         $unassociated = $request->query->get('unassociated');
-        $active = $request->query->get('dateMin');
+        $dateMin = $request->query->get('dateMin');
         $filters = [
             ...($unassociated ? [['field' => 'unassociated', 'value' => true]] : []),
-            ...($active ? [['field' => 'dateMin', 'value' => $active]] : []),
+            ...($dateMin ? [['field' => 'dateMin', 'value' => $dateMin]] : []),
         ];
         $data = $emergencyService->getDataForDatatable($request->request, $filters ?: []);
         return new JsonResponse($data);
