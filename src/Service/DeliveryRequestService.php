@@ -103,6 +103,9 @@ class DeliveryRequestService
     #[Required]
     public ArticleDataService $articleDataService;
 
+    #[Required]
+    public SettingsService $settingsService;
+
     private ?array $freeFieldsConfig = null;
 
     private array $cache = [];
@@ -364,13 +367,13 @@ class DeliveryRequestService
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
                                             bool                   $flush = true,
-                                            bool                   $simple = false): array
-    {
+                                            bool                   $simple = false): array {
+
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $settings = $entityManager->getRepository(Setting::class);
-        $settingNeedPlanningValidation = $settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
-        $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+
+        $settingNeedPlanningValidation = $this->settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING, false);
+        $settingMangeDeliveriesWithoutStockQuantity = $this->settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
 
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade);
@@ -492,7 +495,8 @@ class DeliveryRequestService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
 
         $date = new DateTime('now');
 
@@ -540,11 +544,11 @@ class DeliveryRequestService
                 && $demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
                 && $sendNotification
-                && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
+                && !$preparedUponValidationSetting) {
                 $this->notificationService->toTreat($preparation);
             }
         }
-        catch (UniqueConstraintViolationException $e) {
+        catch (UniqueConstraintViolationException) {
             $response['success'] = false;
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
@@ -859,16 +863,15 @@ class DeliveryRequestService
     }
 
     public function treatSetting_preparedUponValidation(EntityManagerInterface $entityManager, Demande $request): bool {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $preparedUponValidationSetting = $settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
-        $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+        $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
+        $defaultLocationReceptionSetting = $this->settingsService->getValue($entityManager, Setting::DEFAULT_LOCATION_RECEPTION);
+        $manageDeliveryWithoutStockQuantitySetting = $this->settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         $defaultLocationReception = $defaultLocationReceptionSetting
             ? $locationRepository->find($defaultLocationReceptionSetting)
             : null;
-        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if($preparedUponValidationSetting) {
             $locations = [];
@@ -914,7 +917,7 @@ class DeliveryRequestService
         $defaultLocationReception = $defaultLocationReceptionSetting
             ? $locationRepository->find($defaultLocationReceptionSetting)
             : null;
-        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $this->settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         $request = $preparation->getDemande();
 

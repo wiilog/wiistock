@@ -65,6 +65,10 @@ class SettingsService {
 
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9_\-\/ ]{1,24}$';
 
+    private const DEFAULT_SETTING_VALUES = [
+        Setting::FONT_FAMILY => Setting::DEFAULT_FONT_FAMILY,
+    ];
+
     #[Required]
     public KernelInterface $kernel;
 
@@ -98,14 +102,18 @@ class SettingsService {
             ->toArray();
     }
 
-    public function getOneParamByLabel(string $label ,EntityManagerInterface $entityManager): mixed {
-        return  $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $label, static function () use ($label, $entityManager) {
+    public function getValue(EntityManagerInterface $entityManager,
+                             string                 $settingLabel,
+                             string|int|null|bool   $default = null): mixed {
+        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $settingLabel, static function () use ($settingLabel, $entityManager, $default) {
             $settingRepository = $entityManager->getRepository(Setting::class);
-            return $settingRepository->getOneParamByLabel($label);
+            return $settingRepository->getOneParamByLabel($settingLabel)
+                ?? self::DEFAULT_SETTING_VALUES[$settingLabel]
+                ?? $default;
         });
     }
 
-    public function getSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
+    public function persistSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
             $settingRepository = $entityManager->getRepository(Setting::class);
@@ -366,7 +374,7 @@ class SettingsService {
                                   array     &$updated,
                                   array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
-            $setting = $this->getSetting($entityManager, $settings, $key);
+            $setting = $this->persistSetting($entityManager, $settings, $key);
             if (isset($setting)
                 && !in_array($key, $updated)
                 && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
@@ -388,7 +396,7 @@ class SettingsService {
      */
     private function saveFiles(EntityManagerInterface $entityManager, Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
         foreach ($request->files->all() as $key => $value) {
-            $setting = $this->getSetting($entityManager, $settings, $key);
+            $setting = $this->persistSetting($entityManager, $settings, $key);
             if (isset($setting)) {
                 $fileName = $this->attachmentService->saveFile($value, $key);
                 $setting->setValue("uploads/attachments/" . $fileName[array_key_first($fileName)]);
@@ -414,7 +422,7 @@ class SettingsService {
 
         foreach ($defaultLogosToSave as [$defaultLogoLabel, $default]) {
             if (in_array($defaultLogoLabel, $allFormSettingNames)) {
-                $setting = $this->getSetting($entityManager, $settings, $defaultLogoLabel);
+                $setting = $this->persistSetting($entityManager, $settings, $defaultLogoLabel);
                 if (!$request->request->getBoolean('keep-' . $defaultLogoLabel)
                     && !isset($files[$defaultLogoLabel])) {
                     $setting->setValue($default);
@@ -427,8 +435,8 @@ class SettingsService {
             if (str_ends_with($key, '_DELETED')) {
                 $defaultLogoLabel = str_replace('_DELETED', '', $key);
                 $linkedLabel = $defaultLogoLabel . '_FILE_NAME';
-                $setting = $this->getSetting($entityManager, $settings, $defaultLogoLabel);
-                $linkedSetting = $this->getSetting($entityManager, $settings, $linkedLabel);
+                $setting = $this->persistSetting($entityManager, $settings, $defaultLogoLabel);
+                $linkedSetting = $this->persistSetting($entityManager, $settings, $linkedLabel);
                 if ($value === "1") {
                     $setting->setValue(null);
                     $linkedSetting->setValue(null);

@@ -31,6 +31,7 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\ArticleDataService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
@@ -568,17 +569,17 @@ class ArticleController extends AbstractController
     }
 
     #[Route("/get-article-demande", name: "demande_article_by_refArticle", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    public function getLivraisonArticlesByRefArticle(
-        Request $request,
-        ArticleDataService $articleDataService,
-        EntityManagerInterface $entityManager ): Response {
+    public function getLivraisonArticlesByRefArticle(Request                $request,
+                                                     ArticleDataService     $articleDataService,
+                                                     SettingsService        $settingsService,
+                                                     EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(Demande::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             $deliveryRequest = $requestRepository->find($data['deliveryRequestId']);
-            $settings = $entityManager->getRepository(Setting::class);
-            $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+
+            $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
 
             if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */
