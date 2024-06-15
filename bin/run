@@ -1,8 +1,12 @@
 #!/usr/bin/env php
 <?php
 
+const CRON_TAB_FILE = "/tmp/crontabwiistock.txt";
+
 echo "Starting cron" . PHP_EOL;
 
 exec("mkdir -p /project/var/log");
-exec("printf '* * * * * echo -e \"%s\\t%s\\n\" 2>> /project/var/log/cron.log\n' '$(date)' '$(php /project/bin/console cron:run)' > /tmp/crontabwiistock.txt && crontab /tmp/crontabwiistock.txt && rm /tmp/crontabwiistock.txt");
+exec("printf '* * * * * echo -e \"%s\\t%s\\n\" 2>> /project/var/log/cron.log\n' '$(date)' '$(php /project/bin/console cron:run)' > " . CRON_TAB_FILE);
+exec("crontab " . CRON_TAB_FILE);
+exec("rm " . CRON_TAB_FILE);
 exec("crond -d 0");
