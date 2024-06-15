@@ -33,12 +33,10 @@ function main(): void {
     echo (
         "---- Deployment information" . PHP_EOL .
         "WIISTOCK_VERSION: " .  json_encode($WIISTOCK_VERSION) . PHP_EOL .
-        "WIISTOCK_VERSION: " .  json_encode($WIISTOCK_VERSION) . PHP_EOL .
         "APP_ENV: " .  json_encode($APP_ENV) . PHP_EOL .
         "APP_CONTEXT: " .  json_encode($APP_CONTEXT) . PHP_EOL .
         "APP_DOMAIN_NAME: " .  json_encode($APP_DOMAIN_NAME) . PHP_EOL .
         "DATABASE_SSL_CONFIG: " .  json_encode($DATABASE_SSL_CONFIG) . PHP_EOL .
-        "DATABASE_URL: " .  json_encode($DATABASE_URL) . PHP_EOL .
         "mode: " .  json_encode($mode) . PHP_EOL .
         "countTable: " .  json_encode($tableCount) . PHP_EOL
     );
