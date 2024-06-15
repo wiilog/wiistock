@@ -200,7 +200,7 @@ function main(): void {
     echo "----" . PHP_EOL;
     echo "Start: " . $start->format(DateTimeInterface::ATOM) . PHP_EOL;
     echo "End: " . $end->format(DateTimeInterface::ATOM) . PHP_EOL;
-    echo "Time: " . $diffInterval->format("%Hh %Mmin %Ss") . PHP_EOL;
+    echo "Time: " . $diffInterval->format("%Hh %Imin %Ss") . PHP_EOL;
 }
 
 
