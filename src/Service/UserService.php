@@ -241,6 +241,7 @@ class UserService
             'handling' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HANDLING, $user),
             'deliveryRequest' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DELIVERY_REQUESTS, $user),
             'receiptAssociation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_RECEIPT_ASSOCIATION, $user),
+            'reception' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_RECEPTION, $user),
         ];
     }
 

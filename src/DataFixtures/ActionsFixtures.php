@@ -408,6 +408,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_MANUAL_TRANSFER,
                 Action::MODULE_ACCESS_INVENTORY,
                 Action::MODULE_ACCESS_ARTICLES_UL_ASSOCIATION,
+                Action::MODULE_ACCESS_RECEPTION,
             ],
             self::SUB_MENU_REQUESTS => [
                 Action::DISPATCH_REQUEST_OFFLINE_MODE,
