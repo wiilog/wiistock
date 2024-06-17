@@ -78,6 +78,8 @@ class ReceptionLineRepository extends EntityRepository {
 
         $queryResult = $queryBuilder->getQuery()->getResult();
 
+        dump($queryResult);
+
         $result = Stream::from($queryResult)
             ->keymap(fn(array $row) => [$row["id"], $row], true)
             ->map(function(array $references, $key) {
@@ -122,6 +124,8 @@ class ReceptionLineRepository extends EntityRepository {
                         ->toArray()
                 ];
             });
+
+        dump($result);
 
         if ($paginationMode === "units") {
             $total = $result->count();

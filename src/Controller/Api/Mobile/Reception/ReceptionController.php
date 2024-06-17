@@ -10,9 +10,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route("/api/mobile/reception", name: "api_mobile_reception_")]
-class ReceptionController extends AbstractApiController
-{
-    #[Route("/list", methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+class ReceptionController extends AbstractApiController {
+    #[Route("/list", name: "list", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestAuthenticated]
     #[Wii\RestVersionChecked]
     public function list(EntityManagerInterface $entityManager): JsonResponse {

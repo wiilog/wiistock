@@ -48,8 +48,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route("/article")]
-class ArticleController extends AbstractController
-{
+class ArticleController extends AbstractController {
     private const ARTICLE_IS_USED_MESSAGES = [
         Article::USED_ASSOC_COLLECTE => "Cet article est lié à une ou plusieurs collectes.",
         Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",

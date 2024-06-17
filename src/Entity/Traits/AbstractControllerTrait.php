@@ -10,6 +10,14 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 trait AbstractControllerTrait {
 
+    protected const GET = "GET";
+    protected const POST = "POST";
+    protected const PUT = "PUT";
+    protected const PATCH = "PATCH";
+    protected const DELETE = "DELETE";
+
+    protected const IS_XML_HTTP_REQUEST = "request.isXmlHttpRequest()";
+
     #[Required]
     public CacheService $cacheService;
 

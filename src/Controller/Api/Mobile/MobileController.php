@@ -2293,9 +2293,9 @@ class MobileController extends AbstractApiController
 
         // livraisons
         $deliveriesExpectedDateColors = [
-            'after' => $settingsService->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER, $entityManager),
-            'DDay' => $settingsService->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY, $entityManager),
-            'before' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE, $entityManager),
+            'after' => $settingsService->getValue($entityManager, Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
+            'DDay' => $settingsService->getValue($entityManager, Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
+            'before' => $settingsService->getValue($entityManager, Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
         ];
         if ($rights['deliveryOrder']) {
             $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))

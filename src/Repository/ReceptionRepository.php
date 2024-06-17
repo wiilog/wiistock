@@ -366,7 +366,8 @@ class ReceptionRepository extends EntityRepository
 
     public function getMobileReceptions(): array {
         $qb = $this->createQueryBuilder("reception")
-            ->select("receptionSupplier.nom AS supplier")
+            ->select("reception.id AS id")
+            ->addSelect("receptionSupplier.nom AS supplier")
             ->addSelect("reception.orderNumber AS orderNumber")
             ->addSelect("reception.commentaire AS comment")
             ->addSelect("reception.dateAttendue AS expectedDate")
@@ -379,12 +380,14 @@ class ReceptionRepository extends EntityRepository
             ->addSelect("reception.number AS number")
             ->addSelect("receptionStatus.nom AS status")
             ->andWhere("receptionStatus.code IN (:states)")
+            ->andWhere("receptionLine.pack is null") // TODO : verif
             ->leftJoin("reception.statut", "receptionStatus")
             ->leftJoin("reception.fournisseur", "receptionCarrier")
             ->leftJoin("reception.utilisateur", "receptionUser")
             ->leftJoin("reception.location", "receptionLocation")
             ->leftJoin("reception.storageLocation", "receptionStorageLocation")
             ->leftJoin("reception.fournisseur", "receptionSupplier")
+            ->leftJoin("reception.lines", "receptionLine")
             ->setParameter("states", [Reception::STATUT_RECEPTION_PARTIELLE, Reception::STATUT_EN_ATTENTE]);
 
         return $qb->getQuery()->getResult();
