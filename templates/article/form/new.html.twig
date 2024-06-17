@@ -18,6 +18,5 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('article-form') }}
-
-    <script src="{{ asset('js/pages/article.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('article') }}
 {% endblock %}

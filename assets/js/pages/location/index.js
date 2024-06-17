@@ -3,6 +3,7 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
+import {togglePrintButton} from "@app/utils";
 
 global.printLocationsBarCodes = printLocationsBarCodes;
 global.editZone = editZone;
@@ -26,6 +27,9 @@ const locationsTableConfig = {
     },
     rowConfig: {
         needsRowClickAction: true,
+    },
+    drawCallback: () => {
+        togglePrintButton($(`#locationsTable`).DataTable(), $('.printButton'));
     },
     columns: [
         {data: 'actions', title: '', className: 'noVis', orderable: false},
@@ -104,7 +108,6 @@ let zonesTable;
 
 $(function() {
     $('.select2').select2();
-    managePrintButtonTooltip(true, $('#printButton'));
 
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);

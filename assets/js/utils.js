@@ -330,3 +330,23 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         }
     }, 'json');
 }
+
+export function togglePrintButton(datatable, $printButton) {
+    const searchValue = datatable.search();
+    const datatableLength = datatable.rows().count();
+    const enablePrintButton = (searchValue == '' || datatableLength === 0);
+
+    $printButton.toggleClass(`user-select-none`, enablePrintButton);
+    $printButton.toggleClass(`disabled`, enablePrintButton);
+    $printButton.toggleClass(`has-tooltip`, enablePrintButton);
+    $printButton.toggleClass(`pointer`, !enablePrintButton);
+
+    managePrintButtonTooltip(enablePrintButton, $printButton);
+}
+function managePrintButtonTooltip(active, $button) {
+    if ($button) {
+        $button.tooltip(
+            active ? undefined : 'dispose'
+        )
+    }
+}

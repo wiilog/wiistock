@@ -1,9 +1,13 @@
+import '@styles/details-page.scss';
+import Routing from '@app/fos-routing';
+import {togglePrintButton} from "@app/utils";
+
 let tableArticle;
 let $printTag ;
+
 $(function () {
     $printTag = $('#printTag');
     initTableArticle();
-    managePrintButtonTooltip(true, $printTag.is('button') ? $printTag.parent() : $printTag);
 });
 
 function initTableArticle() {
@@ -38,6 +42,9 @@ function initTableArticle() {
             columns,
             drawConfig: {
                 needsResize: true
+            },
+            drawCallback: () => {
+                togglePrintButton($(`#tableArticle_id`).DataTable(), $(`.printButton`))
             },
             rowConfig: {
                 needsRowClickAction: true
