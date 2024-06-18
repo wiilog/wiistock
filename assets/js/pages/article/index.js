@@ -1,9 +1,13 @@
 import '@styles/details-page.scss';
 import Routing from '@app/fos-routing';
 import {togglePrintButton} from "@app/utils";
+import AJAX from "@app/ajax";
 
 let tableArticle;
 let $printTag ;
+
+global.displayActifOrInactif = displayActifOrInactif;
+global.printArticlesBarCodes = printArticlesBarCodes;
 
 $(function () {
     $printTag = $('#printTag');
@@ -55,11 +59,6 @@ function initTableArticle() {
     });
 }
 
-function resetNewArticle(element) {
-    element.removeClass('d-block');
-    element.addClass('d-none');
-}
-
 function init() {
     Select2Old.provider($('.ajax-autocomplete-fournisseur'));
     let $modalEditArticle = $("#modalEditArticle");
@@ -79,95 +78,10 @@ function init() {
             }
         });
 
-    let $modalNewArticle = $("#modalNewArticle");
-    let $submitNewArticle = $("#submitNewArticle");
-    let urlNewArticle = Routing.generate('article_new', true);
-    InitModal($modalNewArticle, $submitNewArticle, urlNewArticle, { tables: [tableArticle] });
-
     let $modalDeleteArticle = $("#modalDeleteArticle");
     let $submitDeleteArticle = $("#submitDeleteArticle");
     let urlDeleteArticle = Routing.generate('article_delete', true);
     InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, { tables: [tableArticle] });
-}
-
-function loadAndDisplayInfos(select) {
-    if ($(select).val() !== null) {
-        let path = Routing.generate('demande_reference_by_fournisseur', true);
-        let fournisseur = $(select).val();
-        let params = JSON.stringify(fournisseur);
-
-        $.post(path, params, function (data) {
-            $('#newContent').html(data);
-            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-            Select2Old.location($('.ajax-autocomplete-location'));
-        })
-    }
-}
-
-function getArticleFournisseur() {
-    let $articleFourn = $('#newContent');
-    let modalfooter = $('#modalNewArticle').find('.modal-footer');
-
-    let data = {};
-    $articleFourn.html('');
-    data['referenceArticle'] = $('#referenceCEA').val();
-    data['fournisseur'] = $('#fournisseurID').val();
-    $articleFourn.html('')
-    modalfooter.addClass('d-none')
-
-    let path = Routing.generate('ajax_article_new_content', true)
-    let json = JSON.stringify(data);
-    if (data['referenceArticle'] && data['fournisseur']) {
-        $.post(path, json).then((data) => {
-            if (data.content) {
-                modalfooter.removeClass('d-none')
-                $articleFourn.parent('div').addClass('d-block');
-                $articleFourn.html(data.content);
-                Wiistock.registerNumberInputProtection($articleFourn.find('input[type="number"]'));
-                $('.error-msg').html('')
-                Select2Old.location($('.ajax-autocomplete-location'));
-            } else if (data.error) {
-                $('.error-msg').html(data.error)
-            }
-        });
-    }
-}
-
-function clearNewArticleContent(button) {
-    button.parent().addClass('d-none');
-    let $modal = button.closest('.modal');
-    $modal.find('#fournisseur').addClass('d-none');
-    $modal.find('#referenceCEA').val(null).trigger('change');
-    $('#newContent').html('');
-    $('#reference').html('');
-    clearModal('#' + $modal.attr('id'));
-}
-
-function ajaxGetFournisseurByRefArticle($select) {
-    let refArticleId = $select.val();
-    let json = {};
-    json['refArticle'] = refArticleId;
-
-    if ($select.val()) {
-        let fournisseur = $('#fournisseur');
-        let modalfooter = $('#modalNewArticle').find('.modal-footer');
-
-        let path = Routing.generate('ajax_fournisseur_by_refarticle', true)
-        let params = JSON.stringify(json);
-        $.post(path, params).then((data) => {
-            if (!data) {
-                $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
-            } else {
-                fournisseur.removeClass('d-none');
-                fournisseur.find('select').html(data);
-                $('.error-msg').html('');
-            }
-        });
-
-        $('#newContent').html('');
-        fournisseur.addClass('d-none');
-        modalfooter.addClass('d-none')
-    }
 }
 
 function printArticlesBarCodes($button, event) {

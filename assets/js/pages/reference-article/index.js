@@ -139,23 +139,6 @@ function removeFilter($button, filterId) {
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
                 $filter.parent().remove();
-
-                if ($('#filters').find('.filter').length <= 0) {
-                    $('#noFilters').removeClass('d-none');
-                    if ($('#tableRefArticle_filter input').val() === '') {
-                        if ($printTag.is('button')) {
-                            $printTag
-                                .addClass('btn-disabled')
-                                .removeClass('btn-primary');
-                        } else {
-                            $printTag
-                                .removeClass('pointer')
-                                .addClass('disabled')
-                                .addClass('has-tooltip');
-                        }
-                        $printTag.removeClass('d-none');
-                    }
-                }
             } else if (data.msg) {
                 showBSAlert(data.msg, 'danger');
             }

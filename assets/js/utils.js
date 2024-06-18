@@ -334,19 +334,15 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
 export function togglePrintButton(datatable, $printButton) {
     const searchValue = datatable.search();
     const datatableLength = datatable.rows().count();
-    const enablePrintButton = (searchValue == '' || datatableLength === 0);
+    const disablePrintButton = (!filledFilters() || datatableLength === 0);
 
-    $printButton.toggleClass(`user-select-none`, enablePrintButton);
-    $printButton.toggleClass(`disabled`, enablePrintButton);
-    $printButton.toggleClass(`has-tooltip`, enablePrintButton);
-    $printButton.toggleClass(`pointer`, !enablePrintButton);
+    // for an active print button
+    $printButton.toggleClass(`pointer`, !disablePrintButton);
 
-    managePrintButtonTooltip(enablePrintButton, $printButton);
-}
-function managePrintButtonTooltip(active, $button) {
-    if ($button) {
-        $button.tooltip(
-            active ? undefined : 'dispose'
-        )
-    }
+    // for a disabled print button
+    $printButton
+        .toggleClass(`user-select-none`, disablePrintButton)
+        .toggleClass(`disabled`, disablePrintButton)
+        .toggleClass(`has-tooltip`, disablePrintButton)
+        .tooltip(disablePrintButton ? undefined : 'dispose');
 }

@@ -13,7 +13,7 @@ Encore
     .setPublicPath('/build')
     .addEntry('app', './assets/js/app.js')
     .addEntry('dashboard', './assets/js/dashboard.js')
-    .addEntry('article', './assets/js/pages/article/article.js')
+    .addEntry('article-index', './assets/js/pages/article/index.js')
     .addEntry('reference-article-form', './assets/js/pages/reference-article/form.js')
     .addEntry('article-form', './assets/js/pages/article/form.js')
     .addEntry('reference-article-form-common', './assets/js/pages/reference-article/common.js')

@@ -89,7 +89,6 @@
 
     {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}
-    {% include "article/modalNewArticle.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
 
     {% include "utils/rapid_search.html.twig" with {
@@ -108,5 +107,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('article') }}
+    {{ encore_entry_script_tags('article-index') }}
 {% endblock %}
