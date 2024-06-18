@@ -1002,14 +1002,6 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     $alertModal.modal('show');
 }
 
-function managePrintButtonTooltip(active, $button) {
-    if ($button) {
-        $button.tooltip(
-            active ? undefined : 'dispose'
-        )
-    }
-}
-
 function initOnTheFlyCopies($elems) {
     $elems.each(function () {
         $(this).keyup(function () {

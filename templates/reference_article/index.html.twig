@@ -61,7 +61,6 @@
                              title="Veuillez faire une recherche ou renseigner un filtre pour imprimer.">
                             <button type="button"
                                     class="btn btn-primary split-button printButton d-flex align-items-center"
-                                    id="printTag"
                                     onclick="printReferenceArticleBarCode($(this), event)">
                                 <span class="wii-icon wii-icon-printer-black mr-2"></span>Impression des étiquettes
                             </button>
@@ -77,7 +76,7 @@
                     <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <div class="dropdown-item has-tooltip printButton d-flex align-items-center"
-                                 id="printTag"
+                                 id="printButton"
                                  tabindex="0"
                                  title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
                                  onclick="printReferenceArticleBarCode($(this), event)">
