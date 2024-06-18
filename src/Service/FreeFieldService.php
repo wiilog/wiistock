@@ -2,14 +2,20 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\CategorieCL;
+use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\FreeField;
 use App\Entity\Language;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Exceptions\ImportException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -84,8 +90,105 @@ class FreeFieldService {
             }
         }
 
+        // concat new free fields with existing ones
+        $freeFields = $freeFields + $entity->getFreeFields();
         $entity->setFreeFields($freeFields);
     }
+
+    public function manageImportFreeFields(EntityManagerInterface $entityManager,
+                                           array                  $freeFieldColumns,
+                                           mixed                  $freeFieldEntity,
+                                           bool                   $isNewEntity,
+                                           array                  $row): void
+    {
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $missingFreeFields = [];
+
+        $freeFieldCategory = match (true) {
+            $freeFieldEntity instanceof ReferenceArticle => CategorieCL::REFERENCE_ARTICLE,
+            $freeFieldEntity instanceof Article => CategorieCL::ARTICLE,
+            $freeFieldEntity instanceof Demande => CategorieCL::DEMANDE_LIVRAISON,
+            $freeFieldEntity instanceof Dispatch => CategorieCL::DEMANDE_DISPATCH,
+            default => throw new Exception("Unhandled free field category")
+        };
+
+        if ($freeFieldEntity->getType()?->getId()) {
+            $freeFields = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($freeFieldEntity->getType(), $freeFieldCategory, $isNewEntity);
+        } else {
+            $freeFields = [];
+        }
+
+        $freeFieldIds = array_keys($freeFieldColumns);
+        foreach ($freeFields as $freeField) {
+            if (!in_array($freeField->getId(), $freeFieldIds)) {
+                $missingFreeFields[] = $freeField->getLabel();
+            }
+        }
+
+        if (!empty($missingFreeFields)) {
+            $message = count($missingFreeFields) > 1
+                ? 'Les champs ' . join(', ', $missingFreeFields) . ' sont obligatoires'
+                : 'Le champ ' . $missingFreeFields[0] . ' est obligatoire';
+            $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
+            throw new ImportException($message);
+        }
+
+        $freeFieldsToInsert = $freeFieldEntity->getFreeFields();
+
+        foreach ($freeFieldColumns as $freeFieldId => $column) {
+            $freeField = $champLibreRepository->find($freeFieldId);
+
+            if($freeField->getType()?->getId() === $freeFieldEntity->getType()?->getId()) {
+                $value = match ($freeField->getTypage()) {
+                    FreeField::TYPE_BOOL => in_array($row[$column], ['Oui', 'oui', 1, '1']),
+                    FreeField::TYPE_DATE => $this->checkImportDate($row[$column], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $freeField),
+                    FreeField::TYPE_DATETIME => $this->checkImportDate($row[$column], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $freeField),
+                    FreeField::TYPE_LIST => $this->checkImportList($row[$column], $freeField, false),
+                    FreeField::TYPE_LIST_MULTIPLE => $this->checkImportList($row[$column], $freeField, true),
+                    default => $row[$column],
+                };
+                $freeFieldsToInsert[$freeField->getId()] = strval(is_bool($value) ? intval($value) : $value);
+            }
+        }
+
+        $freeFieldEntity->setFreeFields($freeFieldsToInsert);
+    }
+
+    private function checkImportDate(string $dateString, string $format, string $outputFormat, string $errorFormat, FreeField $champLibre): ?string
+    {
+        $response = null;
+        if ($dateString !== "") {
+            try {
+                $date = DateTime::createFromFormat($format, $dateString);
+                if (!$date) {
+                    throw new Exception('Invalid format');
+                }
+                $response = $date->format($outputFormat);
+            } catch (Exception $ignored) {
+                $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
+                throw new ImportException($message);
+            }
+        }
+        return $response;
+    }
+
+    private function checkImportList(string $element, FreeField $champLibre, bool $isMultiple): ?string
+    {
+        $response = null;
+        if ($element !== "") {
+            $elements = $isMultiple ? explode(";", $element) : [$element];
+            foreach ($elements as $listElement) {
+                if (!in_array($listElement, $champLibre->getElements())) {
+                    throw new ImportException('La ou les valeurs fournies pour le champ "' . $champLibre->getLabel() . '"'
+                        . 'doivent faire partie des valeurs du champ libre ('
+                        . implode(",", $champLibre->getElements()) . ').');
+                }
+            }
+            $response = $element;
+        }
+        return $response;
+    }
+
 
     public function processErrors(FreeField $freeField,
                                   array     $data,

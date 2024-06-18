@@ -34,6 +34,9 @@ class ReserveService
     #[Required]
     public MailerService $mailerService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request): array {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
@@ -90,10 +93,13 @@ class ReserveService
 
     public function sendTruckArrivalMail(TruckArrival $truckArrival, ReserveType $reserveType, array $reserves, array $attachments): void {
         $this->mailerService->sendMail(
-            'FOLLOW GT // Réserve arrivage camion',
+            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réserve arrivage camion',
             $this->templating->render('mails/contents/mailTruckArrival.html.twig', [
-                'truckArrival' => $truckArrival,
-                'reserves' => $reserves,
+                "truckArrival" => $truckArrival,
+                "reserves" => $reserves,
+                "urlSuffix" => $this->router->generate("truck_arrival_show", [
+                    "id" => $truckArrival->getId(),
+                ]),
             ]),
             $reserveType->getNotifiedUsers()->toArray(),
             $attachments

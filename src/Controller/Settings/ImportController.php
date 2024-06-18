@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\StringHelper;
 
@@ -110,14 +110,12 @@ class ImportController extends AbstractController
             throw new FormException('Veuillez charger un ' . ($nbFiles > 1 ? 'seul ' : '') . 'fichier.');
         }
 
-        $file = $request->files->all()['file0'];
+        $file = $request->files->get("file0");
         if ($file->getClientOriginalExtension() !== 'csv') {
             throw new FormException('Veuillez charger un fichier au format .csv.');
         }
 
-        $attachments = $attachmentService->createAttachments([$file]);
-        $csvAttachment = $attachments[0];
-        $entityManager->persist($csvAttachment);
+        $csvAttachment = $attachmentService->persistAttachment($entityManager, $file);
         $import->setCsvFile($csvAttachment);
 
         $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, !$isScheduled);

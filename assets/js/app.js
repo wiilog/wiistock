@@ -23,6 +23,7 @@ import "firebase/messaging";
 import "./flash";
 import "./ajax";
 import "./utils";
+import Camera from "@app/camera"
 
 import BrowserSupport from './support';
 import Wiistock from './general';
@@ -35,6 +36,8 @@ import '../scss/app.scss';
 import './tooltips';
 import './select2';
 import Form from "./form";
+import {extendsDateSort, initDataTable, initSearchDate, initDatatablePlugin} from "@app/datatable";
+import {initVisibleColumn} from "@app/visible-column";
 
 export const $document = $(document);
 
@@ -54,6 +57,9 @@ importChart();
 importLeaflet();
 importIntlTelInput();
 importFirebase();
+importCamera();
+importDatatable();
+importVisibleColumn();
 
 ///////////////// Functions
 
@@ -69,7 +75,24 @@ function importWiistock() {
 }
 
 function importForm() {
+    // TODO remove when all js will be in asset
     global.Form = Form;
+}
+
+function importCamera() {
+    global.Camera = Camera;
+}
+
+function importVisibleColumn() {
+    initVisibleColumn();
+}
+
+function importDatatable() {
+    initDatatablePlugin();
+    // TODO remove when all js will be in asset
+    global.initDataTable = initDataTable;
+    global.extendsDateSort = extendsDateSort;
+    global.initSearchDate = initSearchDate;
 }
 
 function importJquery() {

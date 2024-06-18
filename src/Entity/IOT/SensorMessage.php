@@ -25,7 +25,7 @@ class SensorMessage {
     #[ORM\Column(type: 'datetime')]
     private ?DateTimeInterface $date = null;
 
-    #[ORM\ManyToOne(targetEntity: Sensor::class, inversedBy: 'sensorMessages')]
+    #[ORM\ManyToOne(targetEntity: Sensor::class)]
     private ?Sensor $sensor = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -75,13 +75,7 @@ class SensorMessage {
     }
 
     public function setSensor(?Sensor $sensor): self {
-        if($this->sensor && $this->sensor !== $sensor) {
-            $this->sensor->removeSensorMessage($this);
-        }
         $this->sensor = $sensor;
-        if($sensor) {
-            $sensor->addSensorMessage($this);
-        }
 
         return $this;
     }
@@ -139,7 +133,6 @@ class SensorMessage {
 
     public function setContentType(?int $contentType): self {
         $this->contentType = $contentType;
-
         return $this;
     }
 

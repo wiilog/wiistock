@@ -5,10 +5,10 @@ namespace App\Controller;
 use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Utilisateur;
-use App\Service\CacheService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 
 #[Route("/")]
@@ -31,13 +31,10 @@ class AppController extends AbstractController {
     }
 
     // Called to generate script tag in base.html.twig
-    public function fontCSS(CacheService           $cacheService,
+    public function fontCSS(SettingsService        $settingsService,
                             EntityManagerInterface $entityManager): Response {
-        $fontFamily = $cacheService->get(CacheService::COLLECTION_SETTINGS, "font-family", function() use ($entityManager) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
-            return $settingRepository->getOneParamByLabel(Setting::FONT_FAMILY)
-                ?: Setting::DEFAULT_FONT_FAMILY;
-        });
+
+        $fontFamily = $settingsService->getValue($entityManager, Setting::FONT_FAMILY);
 
         $response = new Response();
         $response->headers->set('Content-Type', 'text/css');

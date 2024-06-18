@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -15,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReceptionRepository::class)]
-class Reception {
+class Reception implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
@@ -32,7 +33,7 @@ class Reception {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'receptions')]
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class,)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Fournisseur $fournisseur = null;
 

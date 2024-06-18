@@ -45,6 +45,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 Sensor::EXTENDER,
                 Sensor::TRACER,
                 Sensor::ZONE,
+                Sensor::GATEWAY
             ],
             CategoryType::REQUEST_TEMPLATE => [
                 Type::LABEL_HANDLING,
@@ -91,6 +92,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                         $type = new Type();
                         $type
                             ->setCategory($this->getReference('type-' . $categoryName))
+                            ->setColor(Type::DEFAULT_COLOR)
                             ->setLabel($typeName);
 
                         if($categoryName === CategoryType::TRANSFER_REQUEST) {

@@ -28,6 +28,8 @@ class MailerService
         "nomail.com",
     ];
 
+    public const OBJECT_SERPARATOR = ' // ';
+
     // visit https://i.stack.imgur.com/dmsiJ.png for the details
     public const EMAIL_SLICING_REGEX = "/^(?<Email>.*@)?(?<Protocol>\w+:\/\/)?(?<SubDomain>(?:[\w-]{2,63}\.){0,127}?)?(?<DomainWithTLD>(?<Domain>[\w-]{2,63})\.(?<TopLevelDomain>[\w-]{2,63}?)(?:\.(?<CountryCode>[a-z]{2}))?)(?:[:](?<Port>\d+))?(?<Path>(?:[\/]\w*)+)?(?<QString>(?<QSParams>(?:[?&=][\w-]*)+)?(?:[#](?<Anchor>\w*))*)?$/";
 
@@ -176,6 +178,7 @@ class MailerService
             foreach ($emails as $email) {
                 // ignore if invalid email
                 // ignore if the domain is in NO_MAIL_DOMAINS
+                $email = strtolower($email);
                 preg_match(self::EMAIL_SLICING_REGEX, $email, $slicedAddress);
                 if (filter_var($email, FILTER_VALIDATE_EMAIL) && !in_array($slicedAddress["DomainWithTLD"] ?? null, self::NO_MAIL_DOMAINS)){
                     if (!isset($contents[$slug])) {
@@ -196,7 +199,7 @@ class MailerService
 
                         $subject = match(true) {
                             is_callable($subject) => $this->translationService->translateIn($slug, ...($subject($slug))),
-                            is_array($subject)    => $this->translationService->translateIn($slug, ...$subject),
+                            is_array($subject)    => $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translateIn($slug, ...$subject),
                             default               => $subject
                         };
 

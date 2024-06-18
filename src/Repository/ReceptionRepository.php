@@ -9,6 +9,7 @@ use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -86,16 +87,9 @@ class ReceptionRepository extends EntityRepository
             ->execute();
     }
 
-    public function getByDates(DateTime $dateMin, DateTime $dateMax): array {
-        $deliveryFeeSubquery = $this->createQueryBuilder("sub_reception")
-            ->select("join_subPurchaseRequest.deliveryFee")
-            ->innerJoin("sub_reception.purchaseRequestLines", "join_subPurchaseRequestLines")
-            ->innerJoin("join_subPurchaseRequestLines.purchaseRequest", "join_subPurchaseRequest")
-            ->andWhere("sub_reception.id = reception.id")
-            ->getQuery()
-            ->getDQL();
-
+    public function iterateByDates(DateTime $dateMin, DateTime $dateMax): iterable {
         return $this->createQueryBuilder("reception")
+            ->distinct()
             ->select("reception.id AS id")
             ->addSelect("article.id AS articleId")
             ->addSelect("referenceArticle.id AS referenceArticleId")
@@ -126,7 +120,6 @@ class ReceptionRepository extends EntityRepository
             ->addSelect("reception.urgentArticles AS referenceEmergency")
             ->addSelect("join_storageLocation.label AS storageLocation")
             ->addSelect("receptionReferenceArticle.unitPrice AS receptionReferenceArticleUnitPrice")
-            ->addSelect("FIRST($deliveryFeeSubquery) AS deliveryFee")
             ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
             ->leftJoin("reception.fournisseur", "provider")
             ->leftJoin("reception.utilisateur", "user")
@@ -146,7 +139,7 @@ class ReceptionRepository extends EntityRepository
                 "dateMax" => $dateMax,
             ])
             ->getQuery()
-            ->getResult();
+            ->toIterable();
     }
 
     public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService)
@@ -189,7 +182,7 @@ class ReceptionRepository extends EntityRepository
                         $qb->andWhere($ors);
                     }
                     break;
-                case 'utilisateurs':
+                case 'receivers':
                     $values = array_map(function ($value) {
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
@@ -211,6 +204,13 @@ class ReceptionRepository extends EntityRepository
                         ->join('reception.fournisseur', 'f')
                         ->andWhere("f.id in (:fournisseur)")
                         ->setParameter('fournisseur', $value);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('reception.utilisateur', 'filter_user')
+                        ->andWhere("filter_user.id in (:reception_user)")
+                        ->setParameter('reception_user', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('reception.date >= :dateMin')
@@ -252,6 +252,7 @@ class ReceptionRepository extends EntityRepository
                         "storageLocation" => "search_storage_location.label LIKE :search_value",
                         "Commentaire" => "reception.commentaire LIKE :search_value",
                         "deliveries" => null,
+                        "user" => "search_user.username LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
@@ -261,6 +262,7 @@ class ReceptionRepository extends EntityRepository
 						->leftJoin('reception.fournisseur', 'search_provider')
                         ->leftJoin('reception.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
+                        ->leftJoin('reception.utilisateur', 'search_user')
                         ->leftJoin('reception.storageLocation', 'search_storage_location');
                 }
             }
@@ -290,6 +292,10 @@ class ReceptionRepository extends EntityRepository
                                 ->leftJoin('reception.purchaseRequestLines', 'purchaseRequestLines')
                                 ->leftJoin('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
                                 ->addOrderBy('purchaseRequestLines_purchaseRequest.deliveryFee', $order);
+                        } else if ($column === 'user') {
+                            $qb
+                                ->leftJoin('reception.utilisateur', 'join_utilisateur')
+                                ->addOrderBy('join_utilisateur.username', $order);
                         } else if (property_exists(Reception::class, $column)) {
                             $qb
                                 ->addOrderBy('reception.' . $column, $order);
@@ -312,6 +318,50 @@ class ReceptionRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function getReceptionDeliveryFees(DateTime $receptionDateMin,
+                                             DateTime $receptionDateMax): array {
+        $result = $this->createQueryBuilder("reception")
+            ->select("reception.id AS reception_id")
+            ->addSelect("MAX(join_purchaseRequest.deliveryFee) AS delivery_fee")
+            ->innerJoin("reception.purchaseRequestLines", "join_purchaseRequestLine")
+            ->innerJoin("join_purchaseRequestLine.purchaseRequest", "join_purchaseRequest", Join::WITH, "join_purchaseRequest.deliveryFee IS NOT NULL")
+            ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
+            ->addGroupBy("reception_id")
+            ->setParameters([
+                "dateMin" => $receptionDateMin,
+                "dateMax" => $receptionDateMax,
+            ])
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($result)
+            ->keymap(static fn(array $data) => [$data["reception_id"], $data["delivery_fee"]])
+            ->toArray();
+    }
+
+    public function getDeliveryRequestersOnReception(DateTime $receptionDateMin,
+                                                     DateTime $receptionDateMax): array {
+        $result = $this->createQueryBuilder("reception")
+            ->select("join_requester.username AS username")
+            ->addSelect("reception.id AS reception_id")
+            ->addSelect("join_article.id AS article_id")
+            ->innerJoin("reception.demandes", "join_request")
+            ->innerJoin("join_request.utilisateur", "join_requester")
+            ->innerJoin("join_request.articleLines", "join_article_line")
+            ->innerJoin("join_article_line.article", "join_article")
+            ->andWhere("reception.date BETWEEN :dateMin AND :dateMax")
+            ->setParameters([
+                "dateMin" => $receptionDateMin,
+                "dateMax" => $receptionDateMax,
+            ])
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($result)
+            ->keymap(fn(array $data) => [$data["reception_id"] . "-" . $data["article_id"], $data["username"]])
+            ->toArray();
     }
 
 }

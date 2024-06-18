@@ -161,14 +161,12 @@ class AppExtension extends AbstractExtension {
     }
 
     public function logo(string $platform, bool $path = false): ?string {
-        $pgr = $this->manager->getRepository(Setting::class);
-
         switch($platform) {
             case "website":
-                $logo = $pgr->getOneParamByLabel(Setting::FILE_WEBSITE_LOGO);
+                $logo = $this->settingsService->getValue($this->manager, Setting::FILE_WEBSITE_LOGO);
                 break;
             case "email":
-                $logo = $pgr->getOneParamByLabel(Setting::FILE_EMAIL_LOGO);
+                $logo = $this->settingsService->getValue($this->manager, Setting::FILE_EMAIL_LOGO);
                 break;
             default:
                 break;
@@ -217,11 +215,9 @@ class AppExtension extends AbstractExtension {
         return constant(Setting::class . "::" . $setting);
     }
 
-    public function settingValue($setting, $class = null) {
-
+    public function settingValue($setting, $class = null): mixed {
         if (!isset($this->settingsCache[$setting])) {
-            $repository = $this->manager->getRepository(Setting::class);
-            $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
+            $this->settingsCache[$setting] = $this->settingsService->getValue($this->manager, $this->setting($setting));
             if ($class && $this->settingsCache[$setting]) {
                 $this->settingsCache[$setting] = $this->manager->find($class, $this->settingsCache[$setting]);
             } else if ($class) {

@@ -15,7 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -89,7 +89,7 @@ class TransporteurController extends AbstractController
         $isRecurrent = $data['is-recurrent'] ?? false;
         /** @var Attachment $logo */
         $logo = $request->files->get('logo')
-            ? $attachmentService->createAttachments([$request->files->get('logo')])[0]
+            ? $attachmentService->createAttachmentsDeprecated([$request->files->get('logo')])[0]
             : null;
 
         $carrierId = $request->query->get('carrier');

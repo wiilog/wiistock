@@ -20,6 +20,7 @@ class Sensor {
     const EXTENDER = 'Extender';
     const ZONE = 'Zone';
     const TRACER = 'Tracer';
+    const GATEWAY = 'Gateway';
 
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
@@ -28,6 +29,7 @@ class Sensor {
         self::HYGROMETRY => 'iot-hygrometry',
         self::TRACER => 'iot-tracer',
         self::ZONE => 'iot-zone',
+        self::GATEWAY => 'Gateway',
     ];
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';
@@ -78,14 +80,10 @@ class Sensor {
     #[ORM\JoinColumn(nullable: true)]
     private ?SensorMessage $lastMessage = null;
 
-    #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorMessage::class)]
-    private Collection $sensorMessages;
-
     #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorWrapper::class)]
     private Collection $sensorWrappers;
 
     public function __construct() {
-        $this->sensorMessages = new ArrayCollection();
         $this->sensorWrappers = new ArrayCollection();
     }
 
@@ -124,42 +122,6 @@ class Sensor {
         $this->profile = $profile;
         if($profile) {
             $profile->addSensor($this);
-        }
-
-        return $this;
-    }
-
-    public function getSensorMessages(): Collection {
-        return $this->sensorMessages;
-    }
-
-    public function addSensorMessage(SensorMessage $sensorMessage): self {
-        if(!$this->sensorMessages->contains($sensorMessage)) {
-            $this->sensorMessages[] = $sensorMessage;
-            $sensorMessage->setSensor($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSensorMessage(SensorMessage $sensorMessage): self {
-        if($this->sensorMessages->removeElement($sensorMessage)) {
-            if($sensorMessage->getSensor() === $this) {
-                $sensorMessage->setSensor(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setSensorMessages(?array $sensorMessages): self {
-        foreach($this->getSensorMessages()->toArray() as $sensorMessage) {
-            $this->removeSensorMessage($sensorMessage);
-        }
-
-        $this->sensorMessages = new ArrayCollection();
-        foreach($sensorMessages as $sensorMessage) {
-            $this->addSensorMessage($sensorMessage);
         }
 
         return $this;

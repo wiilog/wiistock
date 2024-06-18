@@ -32,10 +32,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use WiiCommon\Helper\StringHelper;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -93,11 +93,15 @@ class CollecteController extends AbstractController
 				'champsLibres' => $champsLibres,
 			];
 		}
+        $typesForModal = Stream::from($types)
+            ->filter(static fn(Type $type) => $type->isActive())
+            ->toArray();
 
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
-			'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
+			'types' => $types,
+			'typesForModal' => $typesForModal,
 			'filterStatus' => $filter,
             'restrictResults' => $restrictedResults,
         ]);

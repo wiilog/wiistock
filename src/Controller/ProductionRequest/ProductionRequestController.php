@@ -30,9 +30,7 @@ use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
-use App\Service\TranslationService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -40,7 +38,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -198,11 +196,10 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Accès refusé");
         }
 
-        foreach ($productionRequest->getAttachments() as $attachement) {
-            $attachmentService->removeAndDeleteAttachment($attachement, $productionRequest);
-        }
+        $attachmentService->removeAttachments($entityManager, $productionRequest);
 
         $entityManager->remove($productionRequest);
+
         $entityManager->flush();
 
         return $this->json([
@@ -256,28 +253,6 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/colonne-visible", name: "set_visible_columns", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService,
-                                      TranslationService     $translationService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns('productionRequest', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
-        ]);
-    }
-
     #[Route('/{productionRequest}/edit', name: 'edit', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function edit(EntityManagerInterface   $entityManager,
                          Request                  $request,
@@ -285,12 +260,20 @@ class ProductionRequestController extends AbstractController
                          ProductionRequest        $productionRequest,
                          FixedFieldService        $fieldsParamService): JsonResponse {
 
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
         $productionRequestService->checkRoleForEdition($productionRequest);
 
         $currentUser = $this->getUser();
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
 
         $oldStatus = $productionRequest->getStatus();
+        $newStatus = $data->getInt(FixedFieldEnum::status->name);
+
+        if ($newStatus !== $oldStatus->getId() && $oldStatus->getState() === Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
 
         $entityManager->flush();
@@ -409,7 +392,12 @@ class ProductionRequestController extends AbstractController
         ]);
 
         $oldStatus = $productionRequest->getStatus();
-        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
+
+        if ($oldStatus->getState() === Statut::TREATED) {
+            throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
+        }
+
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
 
         $entityManager->flush();
 

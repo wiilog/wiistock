@@ -13,6 +13,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
@@ -45,13 +46,15 @@ class UrgenceRepository extends EntityRepository {
         $values = [
             'provider' => $arrival->getFournisseur(),
             'carrier' => $arrival->getTransporteur(),
-            'commande' => $numeroCommande,
+            'commande' => $numeroCommande
+                ? Stream::explode(',', $numeroCommande)->filter()->values()
+                : null,
         ];
 
         foreach ($fields as $field) {
             if(!empty($values[$field])) {
                 $queryBuilder
-                    ->andWhere("u.$field = :$field")
+                    ->andWhere("u.$field IN (:$field)")
                     ->setParameter("$field", $values[$field]);
             }
         }
@@ -131,7 +134,7 @@ class UrgenceRepository extends EntityRepository {
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function countUnsolved(bool $daily = false) {
+    public function countUnsolved(bool $daily = false, bool $active = false) {
         $queryBuilder = $this->createQueryBuilder('urgence')
             ->select('COUNT(urgence)')
             ->where('urgence.dateStart < :now')
@@ -148,6 +151,13 @@ class UrgenceRepository extends EntityRepository {
                 ->andWhere('urgence.dateEnd > :todayMorning')
                 ->setParameter('todayEvening', $todayEvening)
                 ->setParameter('todayMorning', $todayMorning);
+        }
+
+        if ($active) {
+            $today = new DateTime('now');
+            $queryBuilder
+                ->andWhere('urgence.dateEnd >= :todayEvening')
+                ->setParameter('todayEvening', $today);
         }
 
         return $queryBuilder

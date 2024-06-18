@@ -1,5 +1,6 @@
 import Flash, {ERROR, INFO, SUCCESS} from "./flash";
 import Routing from '@app/fos-routing';
+import {saveAs} from "file-saver";
 
 export const GET = `GET`;
 export const POST = `POST`;

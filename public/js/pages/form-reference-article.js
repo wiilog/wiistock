@@ -4,12 +4,12 @@ function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, 
     const $quantity = $modal.find('[name="quantite"]');
 
     if (typeQuantite === 'article') {
-        $quantity.addClass('needed');
-        $location.addClass('needed');
-        $modal.find('.type_quantite').val('article');
-    } else {
         $quantity.removeClass('needed');
         $location.removeClass('needed');
+        $modal.find('.type_quantite').val('article');
+    } else {
+        $quantity.addClass('needed');
+        $location.addClass('needed');
         $modal.find('.type_quantite').val('reference');
     }
 }
@@ -39,7 +39,7 @@ function addArticleFournisseurReferenceArticle($plusButton) {
         }).then((response) => {
             $(response).insertBefore($plusButton.parent());
             Select2Old.provider($('.ajax-autocomplete-fournisseur'));
-            Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
+            Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'supplier_find_by_name');
         });
     }
 }

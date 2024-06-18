@@ -72,7 +72,13 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
         $table.DataTable().ajax.reload();
     }
     else {
-        const columns = $table.data('initial-visible');
+        const columns = $table.data('initial-visible').map((column) => {
+            if(column.name === `delay`){
+                column.render = (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type);
+            }
+
+            return column;
+        });
         let routeForApi = Routing.generate('ongoing_pack_api', {fromDashboard});
         let tableConfig = {
             processing: true,
@@ -86,26 +92,15 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                 ...columns,
                 {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
-            hideColumnConfig: {
-                columns,
-                tableFilter: tableId,
-            },
             rowConfig: {
                 needsColor: true,
                 color: 'danger',
                 dataToCheck: 'late',
-                needsRowClickAction: true,
             },
             domConfig: {
                 removeInfo: true,
             },
             order: [["delay", "desc"]],
-            columnDefs: [
-                {
-                    type: "customDate",
-                    targets: `date`,
-                }
-            ],
             page: 'encours',
         };
         initDataTable(tableId, tableConfig);

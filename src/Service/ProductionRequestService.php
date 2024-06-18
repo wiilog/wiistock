@@ -61,9 +61,6 @@ class ProductionRequestService
     public UniqueNumberService $uniqueNumberService;
 
     #[Required]
-    public FixedFieldService $fixedFieldService;
-
-    #[Required]
     public UserService $userService;
 
     #[Required]
@@ -77,6 +74,9 @@ class ProductionRequestService
 
     #[Required]
     public MailerService $mailerService;
+
+    #[Required]
+    public TranslationService $translation;
 
     private ?array $freeFieldsConfig = null;
 
@@ -113,8 +113,32 @@ class ProductionRequestService
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
 
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->security->getUser());
+        $fromDashboard = $request->query->getBoolean('fromDashboard');
+
+        if (!$fromDashboard) {
+            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->userService->getUser());
+        } else {
+            $preFilledStatuses = $request->query->has('filterStatus')
+                ? implode(",", $request->query->all('filterStatus'))
+                : [];
+            $preFilledTypes = $request->query->has('preFilledTypes')
+                ? implode(",", $request->query->all('preFilledTypes'))
+                : [];
+
+            $preFilledFilters = [
+                [
+                    'field' => 'statuses-filter',
+                    'value' => $preFilledStatuses,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
+                    'value' => $preFilledTypes,
+                ],
+            ];
+
+            $filters = $preFilledFilters;
+        }
 
         $queryResult = $productionRepository->findByParamsAndFilters(
             $request->request,
@@ -190,7 +214,8 @@ class ProductionRequestService
                                             ProductionRequest      $productionRequest,
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
-                                            FileBag                $fileBag): ProductionRequest {
+                                            FileBag                $fileBag,
+                                            bool $fromUpdateStatus = false): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -214,6 +239,11 @@ class ProductionRequestService
 
             if ($data->has(FixedFieldEnum::type->name)) {
                 $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
+
+                if(!$type->isActive()){
+                    throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+                }
+
                 $productionRequest->setType($type);
             }
         }
@@ -229,17 +259,11 @@ class ProductionRequestService
             }
         }
 
-        $attachments = $productionRequest->getAttachments()->toArray();
         $alreadySavedFiles = $data->has('files')
             ? $data->all('files')
             : [];
-        foreach($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $alreadySavedFiles)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
-            }
-        }
 
+        $this->attachmentService->removeAttachments($entityManager, $productionRequest, $alreadySavedFiles);
         $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
 
         if ($productionRequest->getAttachments()->isEmpty() && $productionRequest->getStatus()->isRequiredAttachment()) {
@@ -249,7 +273,7 @@ class ProductionRequestService
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
             $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
         } else {
-            $dropLocation = $productionRequest->getType()?->getDropLocation();
+            $dropLocation = $productionRequest->getDropLocation() ?: $productionRequest->getType()?->getDropLocation();
         }
         $productionRequest->setDropLocation($dropLocation);
 
@@ -285,7 +309,9 @@ class ProductionRequestService
             $productionRequest->setComment($data->get(FixedFieldEnum::comment->name));
         }
 
-        $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+        if(!$fromUpdateStatus){
+            $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+        }
 
         $this->persistHistoryRecords(
             $entityManager,
@@ -485,6 +511,17 @@ class ProductionRequestService
             $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$productionRequest->getLineCount()}<br>";
         }
 
+        Stream::from($productionRequest->getFreeFields())
+            ->each(function($freeFieldValue, $freeFieldId) use ($oldValues, $productionRequest, &$message) {
+                $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
+                $freeField = $freeFieldRepository->find($freeFieldId);
+                $freeFieldAdded = (!isset($oldValues[$freeFieldId]) && (!empty($freeFieldValue) || $freeField->getTypage() === FreeField::TYPE_BOOL));
+                $freeFieldEdited = (isset($oldValues[$freeFieldId]) && $oldValues[$freeFieldId] !== $freeFieldValue);
+                if ($freeFieldAdded || $freeFieldEdited){
+                    $message .= "<strong>{$freeField->getLabel()}</strong> : {$this->formatService->freeField($freeFieldValue, $freeField)} <br>";
+                }
+            });
+
         return $message;
     }
 
@@ -588,7 +625,7 @@ class ProductionRequestService
         $isTreatedStatus = $status->isTreated();
         $isNew = $productionRequest->getStatusHistory()->count() === 1;
 
-        $subject = "FOLLOW GT // ";
+        $subject = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR;
         $subject .= $isNew && !$isTreatedStatus
             ? "Notification de création d'une demande de production"
             : (!$isTreatedStatus
@@ -643,8 +680,6 @@ class ProductionRequestService
                                             Utilisateur            $importUser,
                                             ?bool                  &$isCreation): void {
 
-        $updateStats = $updateStats ?? fn() => null;
-
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -676,6 +711,8 @@ class ProductionRequestService
 
             if ($type) {
                 $productionRequest->setType($type);
+            } else if(!$type->isActive()) {
+                throw new ImportException("Le type n'est pas actif.");
             } else {
                 throw new ImportException("Le type n'existe pas.");
             }

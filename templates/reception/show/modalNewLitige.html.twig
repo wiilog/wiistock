@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalNewLitige" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
@@ -95,7 +97,8 @@
                     <div class="form-group col-12">
                         <div>
                             {% include 'attachment/attachment.html.twig' with {
-                                'isNew' : true
+                                'isNew': true,
+                                'addPhotoButton': true,
                             } %}
                         </div>
                     </div>

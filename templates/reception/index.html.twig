@@ -29,7 +29,7 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         <a href="{{ path('purchase_request_show', {'id': purchaseRequest}) }}"
                            class='dropdown-item pointer'>
                             <i class="fas fa-undo-alt"></i>
@@ -55,7 +55,7 @@
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                        <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
                             <div class="dropdown-item" onclick="saveExportFile('get_receptions_csv')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
@@ -82,7 +82,7 @@
                                     aria-expanded="false">
                                 <span class="fa fa-angle-down"></span>
                             </button>
-                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                            <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
                                 <a class="dropdown-item pointer"
                                    data-toggle="modal"
                                    data-target="#modalColumnVisible">
@@ -102,7 +102,7 @@
                                     aria-expanded="false">
                                 <span class="fa fa-angle-down"></span>
                             </button>
-                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                            <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
                                 <a class="dropdown-item pointer"
                                    data-toggle="modal"
                                    data-target="#modalColumnVisible">
@@ -142,9 +142,9 @@
         arrivageToReception: arrivageToReception
     } %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'receptionsTable',
-        'route': 'save_column_visible_for_reception'
+        fields,
+        table: 'tableReception_id',
+        page: 'reception'
     } %}
 {% endblock %}
 

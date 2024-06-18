@@ -15,9 +15,6 @@ let collecteTableConfig = {
     rowConfig: {
         needsRowClickAction: true,
     },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
     columns: [
         {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
         {data: 'pairing', title: '', name: 'Actions', className: 'pairing-row', orderable: false},

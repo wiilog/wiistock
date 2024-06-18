@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Livraison;
+use App\Entity\PurchaseRequest;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
 use WiiCommon\Helper\Stream;

@@ -83,8 +83,6 @@ use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\ReceiptAssociationService;
-use App\Service\ReceptionService;
-use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
@@ -96,14 +94,12 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -644,7 +640,7 @@ class MobileController extends AbstractApiController
                                 if (!empty($photoFile)) {
                                     $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
                                 }
-                                $attachments = $attachmentService->createAttachments($fileNames);
+                                $attachments = $attachmentService->createAttachmentsDeprecated($fileNames);
                                 foreach ($attachments as $attachment) {
                                     $entityManager->persist($attachment);
                                     $packMvt->addAttachment($attachment);
@@ -798,8 +794,7 @@ class MobileController extends AbstractApiController
                                 LivraisonsManagerService   $livraisonsManager,
                                 TrackingMovementService    $trackingMovementService,
                                 PreparationsManagerService $preparationsManager,
-                                EntityManagerInterface     $entityManager)
-    {
+                                EntityManagerInterface     $entityManager) {
         $insertedPrepasIds = [];
         $statusCode = Response::HTTP_OK;
 
@@ -862,7 +857,7 @@ class MobileController extends AbstractApiController
 
                         foreach ($movements as $movement) {
                             if ($movement->getType() === MouvementStock::TYPE_TRANSFER) {
-                                $preparationsManager->createMovementLivraison(
+                                $preparationsManager->persistDeliveryMovement(
                                     $entityManager,
                                     $movement->getQuantity(),
                                     $nomadUser,
@@ -967,10 +962,16 @@ class MobileController extends AbstractApiController
                             throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                         }
 
-                        $entityManager->flush();
+                        $entityManager->flush(); // need to flush before quantity update
+
+                        if ($insertedPreparation
+                            && $insertedPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                            $this->notificationService->toTreat($insertedPreparation);
+                        }
                         if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
                             $this->notificationService->toTreat($livraison);
                         }
+
                         $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                     });
 
@@ -1141,14 +1142,21 @@ class MobileController extends AbstractApiController
 
             $maxNbFilesSubmitted = 10;
             $fileCounter = 1;
+            $addedAttachments = [];
             // upload of photo_1 to photo_10
             do {
                 $photoFile = $request->files->get("photo_$fileCounter");
                 if (!empty($photoFile)) {
-                    $attachments = $attachmentService->createAttachments([$photoFile]);
+                    $attachments = $attachmentService->createAttachmentsDeprecated([$photoFile]);
                     if (!empty($attachments)) {
-                        $handling->addAttachment($attachments[0]);
-                        $entityManager->persist($attachments[0]);
+                        $attachment = $attachments[0];
+                        $handling->addAttachment($attachment);
+                        $entityManager->persist($attachment);
+
+                        $addedAttachments[] = [
+                            "name" => $attachment->getOriginalName(),
+                            "href" => "{$request->getSchemeAndHttpHost()}/uploads/attachments/{$attachment->getFileName()}",
+                        ];
                     }
                 }
                 $fileCounter++;
@@ -1181,6 +1189,7 @@ class MobileController extends AbstractApiController
             $data['success'] = true;
             $data['state'] = $statusService->getStatusStateCode($handling->getStatus()->getState());
             $data['freeFields'] = json_encode($handling->getFreeFields());
+            $data["addedAttachments"] = $addedAttachments;
         } else {
             $data['success'] = false;
             $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
@@ -1433,7 +1442,7 @@ class MobileController extends AbstractApiController
                     }
 
                     foreach ($newMovements as $movement) {
-                        $attachments = $attachmentService->createAttachments($fileNames);
+                        $attachments = $attachmentService->createAttachmentsDeprecated($fileNames);
                         foreach ($attachments as $attachment) {
                             $entityManager->persist($attachment);
                             $movement->addAttachment($attachment);
@@ -1724,7 +1733,7 @@ class MobileController extends AbstractApiController
 
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
-            $outMovement = $preparationsManagerService->createMovementLivraison(
+            $outMovement = $preparationsManagerService->persistDeliveryMovement(
                 $entityManager,
                 $article->getQuantite(),
                 $nomadUser,
@@ -1738,13 +1747,21 @@ class MobileController extends AbstractApiController
             $entityManager->persist($outMovement);
             $mouvementStockService->finishStockMovement($outMovement, $now, $request->getDestination());
         }
-        $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
+
+        $newPreparation = $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
             "entityManager" => $entityManager,
             "changeArticleLocation" => false,
         ]);
-        $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
         $livraisonsManagerService->finishLivraison($nomadUser, $deliveryOrder, $now, $request->getDestination());
+
+        $entityManager->flush(); // need to flush before quantity update
+        $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
         $entityManager->flush();
+
+        if ($newPreparation
+            && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($newPreparation);
+        }
 
         return new JsonResponse([
             'success' => true,
@@ -2245,13 +2262,25 @@ class MobileController extends AbstractApiController
 
         $fieldsParam = array_merge($fieldsParamStandard, $fieldsParamByType);
 
-        $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE]))
+        $userAllowedTypeIds = Stream::from([$user->getDeliveryTypeIds(), $user->getDispatchTypeIds(), $user->getHandlingTypeIds()])
+            ->flatten()
+            ->toArray();
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE,CategoryType::DEMANDE_COLLECTE]);
+
+        $typesInUser = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON], null, [
+            'idsToFind' => $userAllowedTypeIds,
+        ]);
+
+        $mobileTypes = Stream::from(array_merge($types, $typesInUser))
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
                 'category' => $type->getCategory()->getLabel(),
                 'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
                 'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
+                'reusableStatuses' => $type->hasReusableStatuses(),
+                'active' => $type->isActive(),
             ])->toArray();
 
         if ($rights['inventoryManager']) {
@@ -2416,6 +2445,7 @@ class MobileController extends AbstractApiController
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
+                'active' => $type->isActive(),
             ])->toArray();
 
         $users = $userRepository->getAll();
@@ -2464,6 +2494,7 @@ class MobileController extends AbstractApiController
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
+                    'active' => $type->isActive(),
                 ])
                 ->toArray();
 
@@ -2682,6 +2713,7 @@ class MobileController extends AbstractApiController
                                   EntityManagerInterface $entityManager,
                                   InventoryService       $inventoryService,
                                   MailerService          $mailerService,
+                                  TranslationService     $translationService,
                                   FormatService          $formatService,
                                   Twig_Environment       $templating): Response
     {
@@ -2778,7 +2810,7 @@ class MobileController extends AbstractApiController
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
-                "Follow GT // Validation d’une mission d’inventaire",
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Validation d’une mission d’inventaire",
                 $templating->render('mails/contents/mailInventoryMissionValidation.html.twig', [
                     'mission' => $mission,
                 ]),

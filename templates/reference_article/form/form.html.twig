@@ -31,7 +31,7 @@
                         <span>{{ reference.type.label }}</span>
                     </div>
                 {% endif %}
-                <div class="content row mx-0" style="border: {{ reference.id ? '1px solid ' ~ reference.type.color }}">
+                <div class="content row mx-0" style="border: {{ reference.type and reference.type.color ? '1px solid ' ~ reference.type.color }}">
                     <div class="col-md-4 col-12 p-0">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
@@ -384,7 +384,7 @@
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
                                                     Quantité*
                                                 </span>
-                                                <div class="increase-decrease-field">
+                                                <span class="increase-decrease-field">
                                                     <button class="decrease"></button>
                                                     <input type="number"
                                                            data-no-arrow
@@ -394,7 +394,7 @@
                                                            value="{{ hasRightCreateDraft ? 0 : '' }}"
                                                         {{ hasRightCreateDraft ? 'disabled' }}>
                                                     <button class="increase"></button>
-                                                </div>
+                                                </span>
                                             </label>
                                         </div>
                                     {% endif %}

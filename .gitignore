@@ -45,4 +45,10 @@ yarn-error.log
 /certs/
 /config/packages/google_apiclient.yaml
 /rector.php
-/cypress/screenshots/
+
+###> symfony/cypress ###
+/cypress/downloads
+/cypress/videos
+/cypress/screenshots
+/cypress/logs
+/cypress/fixtures/.sql

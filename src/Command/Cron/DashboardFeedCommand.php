@@ -8,6 +8,7 @@ use App\Entity\Dashboard;
 use App\Entity\DaysWorked;
 use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\DashboardException;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
@@ -47,15 +48,14 @@ class DashboardFeedCommand extends Command {
      * @throws Throwable
      */
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $entityManager = $this->getEntityManager();
-        if(!$this->wiilockService->dashboardNeedsFeeding($entityManager)) {
+        if(!$this->wiilockService->dashboardNeedsFeeding($this->entityManager)) {
             $output->writeln("Dashboards are being fed, aborting");
             return 0;
         }
-        $this->wiilockService->toggleFeedingCommand($entityManager, true, Wiilock::DASHBOARD_FED_KEY);
-        $entityManager->flush();
+        $this->wiilockService->toggleFeedingCommand($this->entityManager, true, Wiilock::DASHBOARD_FED_KEY);
+        $this->entityManager->flush();
 
-        $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
+        $dashboardComponentRepository = $this->entityManager->getRepository(Dashboard\Component::class);
         $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
         $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
 
@@ -63,90 +63,114 @@ class DashboardFeedCommand extends Command {
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
+        $latePackComponents = [];
+
         $calculateLatePack = false;
 
         foreach ($components as $component) {
             $componentType = $component->getType();
             $meterKey = $componentType->getMeterKey();
-            switch ($meterKey) {
-                case Dashboard\ComponentType::ONGOING_PACKS:
-                    $this->dashboardService->persistOngoingPack($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
-                    $this->dashboardService->persistDailyHandlingIndicator($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
-                    $this->dashboardService->persistDroppedPacks($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::CARRIER_TRACKING:
-                    $this->dashboardService->persistCarriers($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
-                case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
-                    $this->dashboardService->persistArrivalsAndPacksMeter($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
-                    $this->dashboardService->persistEntriesToHandle($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
-                    $this->dashboardService->persistPackToTreatFrom($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
-                case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
-                    $this->dashboardService->persistArrivalsEmergencies(
-                        $entityManager,
-                        $component,
-                        $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES
-                    );
-                    break;
-                case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
-                    $this->dashboardService->persistActiveReferenceAlerts($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH:
-                    $this->dashboardService->persistMonetaryReliabilityGraph($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
-                    $this->dashboardService->persistMonetaryReliabilityIndicator($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::REFERENCE_RELIABILITY:
-                    $this->dashboardService->persistReferenceReliability($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DAILY_DISPATCHES:
-                    $this->dashboardService->persistDailyDispatches($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DAILY_PRODUCTION:
-                    $this->dashboardService->persistDailyProductions($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DAILY_HANDLING:
-                case Dashboard\ComponentType::DAILY_OPERATIONS:
-                    $this->dashboardService->persistDailyHandlingOrOperations($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::DAILY_DELIVERY_ORDERS:
-                    $this->dashboardService->persistDailyDeliveryOrders($entityManager, $component);
-                    break;
-                case Dashboard\ComponentType::REQUESTS_TO_TREAT:
-                case Dashboard\ComponentType::ORDERS_TO_TREAT:
-                    $this->dashboardService->persistEntitiesToTreat($entityManager, $component, $daysWorked, $freeWorkDays);
-                    break;
-                case Dashboard\ComponentType::LATE_PACKS:
-                    $calculateLatePack = true;
-                    break;
-                case Dashboard\ComponentType::HANDLING_TRACKING:
-                    $this->dashboardService->persistHandlingTracking($entityManager, $component);
-                    break;
-                default:
-                    break;
+            $component->setErrorMessage(null);
+            try {
+                switch ($meterKey) {
+                    case Dashboard\ComponentType::ONGOING_PACKS:
+                        $this->dashboardService->persistOngoingPack($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
+                        $this->dashboardService->persistDailyHandlingIndicator($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
+                        $this->dashboardService->persistDroppedPacks($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::CARRIER_TRACKING:
+                        $this->dashboardService->persistCarriers($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
+                    case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
+                        $this->dashboardService->persistArrivalsAndPacksMeter($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
+                        $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
+                        $this->dashboardService->persistPackToTreatFrom($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
+                    case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
+                        $this->dashboardService->persistArrivalsEmergencies(
+                            $this->entityManager,
+                            $component,
+                            $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
+                            $meterKey === Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE
+                        );
+                        break;
+                    case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                        $this->dashboardService->persistActiveReferenceAlerts($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH:
+                        $this->dashboardService->persistMonetaryReliabilityGraph($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
+                        $this->dashboardService->persistMonetaryReliabilityIndicator($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::REFERENCE_RELIABILITY:
+                        $this->dashboardService->persistReferenceReliability($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DAILY_DISPATCHES:
+                        $this->dashboardService->persistDailyDispatches($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DAILY_PRODUCTION:
+                        $this->dashboardService->persistDailyProductions($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DAILY_HANDLING:
+                    case Dashboard\ComponentType::DAILY_OPERATIONS:
+                        $this->dashboardService->persistDailyHandlingOrOperations($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::DAILY_DELIVERY_ORDERS:
+                        $this->dashboardService->persistDailyDeliveryOrders($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+                    case Dashboard\ComponentType::ORDERS_TO_TREAT:
+                        $this->dashboardService->persistEntitiesToTreat($this->entityManager, $component, $daysWorked, $freeWorkDays);
+                        break;
+                    case Dashboard\ComponentType::DISPUTES_TO_TREAT:
+                        $this->dashboardService->persistDisputesToTreat($this->entityManager, $component);
+                        break;
+                    case Dashboard\ComponentType::LATE_PACKS:
+                        $calculateLatePack = true;
+                        $latePackComponents[] = $component;
+                        break;
+                    case Dashboard\ComponentType::HANDLING_TRACKING:
+                        $this->dashboardService->persistHandlingTracking($this->entityManager, $component);
+                        break;
+                    default:
+                        break;
+                }
+            } catch (Throwable $exception) {
+                if ($exception instanceof DashboardException) {
+                    $component->setErrorMessage($exception->getMessage());
+                } else {
+                    $component->setErrorMessage("Erreur : Impossible de charger le composant");
+                }
+                $this->entityManager = $this->getEntityManager();
             }
         }
 
-        if ($calculateLatePack) {
-            $this->dashboardService->persistEntitiesLatePack($entityManager);
+        try {
+            if ($calculateLatePack) {
+                $this->dashboardService->persistEntitiesLatePack($this->entityManager);
+            }
+        } catch (Throwable $exception) {
+            foreach ($latePackComponents as $latePackComponent) {
+                $latePackComponent->setErrorMessage("Erreur : Impossible de charger le composant");
+            }
+            $this->entityManager = $this->getEntityManager();
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
-        $this->wiilockService->toggleFeedingCommand($entityManager, false, Wiilock::DASHBOARD_FED_KEY);
-        $entityManager->flush();
+        $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
+        $this->entityManager->flush();
 
         return 0;
     }

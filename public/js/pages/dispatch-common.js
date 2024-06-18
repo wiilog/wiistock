@@ -1,3 +1,43 @@
+function initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch) {
+    Form
+        .create($modalNewDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
+            $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
+            $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
+        })
+        .onOpen(() => {
+            initNewDispatchEditor($modalNewDispatch);
+            Modal
+                .load(
+                    'create_from_arrivals_template',
+                    {arrivals: arrivalsToDispatch},
+                    $modalNewDispatch,
+                    $modalNewDispatch.find(`.modal-body`),
+                    {
+                        onOpen: () => {
+                            $modalNewDispatch.find('[name=type]').trigger('change')
+                            Camera
+                                .init(
+                                    $modalNewDispatch.find(`.take-picture-modal-button`),
+                                    $modalNewDispatch.find(`[name="files[]"]`)
+                                );
+                        }
+                    }
+                )
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_new',
+            {
+                success: ({redirect}) => window.location.href = redirect,
+            }
+        )
+}
+
 function initNewDispatchEditor(modal) {
     clearModal(modal);
     const $modal = $(modal);

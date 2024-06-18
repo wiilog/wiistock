@@ -43,7 +43,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -242,7 +242,10 @@ class DemandeController extends AbstractController
         $projectRepository = $entityManager->getRepository(Project::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON], null, [
+            'idsToFind' => $this->getUser()->getDeliveryTypeIds(),
+        ]);
+
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
         $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
@@ -276,6 +279,9 @@ class DemandeController extends AbstractController
             'typeChampsLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
+            'typesForModal' => Stream::from($types)
+                ->filter(static fn(Type $type) => $type->isActive())
+                ->toArray(),
             'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
@@ -337,7 +343,7 @@ class DemandeController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          DeliveryRequestService $deliveryRequestService,
                          Demande                $deliveryRequest,
-                         EntityManagerInterface $manager): Response {
+                         SettingsService        $settingsService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $currentUser = $this->getUser();
@@ -353,11 +359,11 @@ class DemandeController extends AbstractController
             'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE),
             "initial_visible_columns" => json_encode($deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest, true)),
             'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($deliveryRequest),
-            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
-            'manageDeliveriesWithoutStockQuantity' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY),
+            'showTargetLocationPicking' => $settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION),
+            'managePreparationWithPlanning' => $settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
+            'manageDeliveriesWithoutStockQuantity' => $settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY),
             'fields' => $fields,
-            'editatableLineForm' => $deliveryRequestService->editatableLineForm($manager, $deliveryRequest, $currentUser)
+            'editatableLineForm' => $deliveryRequestService->editatableLineForm($entityManager, $deliveryRequest, $currentUser)
         ]);
     }
 
@@ -365,9 +371,13 @@ class DemandeController extends AbstractController
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function logisticUnitsApi(Request                $request,
                                      DeliveryRequestService $deliveryRequestService,
-                                     EntityManagerInterface $manager): Response {
-        $deliveryRequest = $manager->find(Demande::class, $request->query->get('id'));
-        $needsQuantitiesCheck = !$manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+                                     SettingsService        $settingsService,
+                                     EntityManagerInterface $entityManager): Response {
+        $deliveryRequest = $entityManager->find(Demande::class, $request->query->get('id'));
+
+        $managePreparationWithPlanningSetting = $settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $needsQuantitiesCheck = !$managePreparationWithPlanningSetting;
+
         $editable = $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON;
 
         $lines = Stream::from($deliveryRequest->getArticleLines())
@@ -466,7 +476,7 @@ class DemandeController extends AbstractController
         }
         $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
 
-        $columns = $deliveryRequestService->getVisibleColumnsTableArticleConfig($manager, $deliveryRequest);
+        $columns = $deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest);
 
         return $this->json([
             "success" => true,
@@ -1051,31 +1061,6 @@ class DemandeController extends AbstractController
                     ];
                 })
                 ->toArray(),
-        ]);
-    }
-
-    #[Route("/visible-column-show", name: "save_visible_columns_for_delivery_request_show", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function saveVisibleColumnShow(Request                $request,
-                                          EntityManagerInterface $entityManager,
-                                          VisibleColumnService   $visibleColumnService): Response {
-
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-
-        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
-        $deliveryRequest = $deliveryRequestRepository->find($data['id']);
-
-        $deliveryRequest->setVisibleColumns($fields);
-
-        $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns(Demande::VISIBLE_COLUMNS_SHOW_FIELD, $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 }

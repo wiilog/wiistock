@@ -43,7 +43,7 @@
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                        <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                             <a class="dropdown-item pointer" data-toggle="modal" data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
                                 {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
@@ -66,9 +66,9 @@
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableHandlings',
-        'route': 'save_column_visible_for_handling'
+        fields,
+        table: 'tableHandlings',
+        page: 'handling'
     } %}
 {% endblock %}
 

@@ -419,7 +419,7 @@
                         freeFields: type.champsLibres,
                         freeFieldValues: dispatch.freeFields,
                         colType: 'col-md-4 col-12',
-                        requiredType: displayAction,
+                        requiredType: requiredAction,
                         actionType: dispatch.id ? 'edit' :'new',
                         disabledNeeded: false,
                         needsDateFormatting: true
@@ -445,12 +445,13 @@
     {% if displayOnform %}
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
-            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            class="form-group col-lg-5 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {% include 'attachment/attachment.html.twig' with {
                 isNew: dispatch.id is null,
                 required: requiredOnform,
                 override: true,
+                addPhotoButton: true,
             } %}
         </div>
     {% else %}

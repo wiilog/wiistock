@@ -14,12 +14,10 @@ use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\LanguageService;
-use App\Service\TranslationService;
-use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
@@ -105,7 +103,7 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : $natures
         );
-        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, true, $this->getUser(), $useTruckArrivals);
+        $response = $enCoursService->getEnCours($entityManager, [$emplacement->getId()], $natureIds, false, true, $this->getUser(), $useTruckArrivals);
         return new JsonResponse([
             'data' => $response
         ]);
@@ -135,9 +133,10 @@ class EnCoursController extends AbstractController
 
     #[Route("/{emplacement}/csv", name: "ongoing_pack_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
-    public function getOngoingPackCSV(Emplacement      $emplacement,
-                                      CSVExportService $CSVExportService,
-                                      EnCoursService   $encoursService): Response
+    public function getOngoingPackCSV(Emplacement            $emplacement,
+                                      CSVExportService       $CSVExportService,
+                                      EnCoursService         $encoursService,
+                                      EntityManagerInterface $entityManager): Response
     {
         $headers = [
             'Emplacement',
@@ -153,9 +152,10 @@ class EnCoursController extends AbstractController
             function ($output) use ($emplacement,
                                     $CSVExportService,
                                     $encoursService,
-                                    $headers)
+                                    $headers,
+                                    $entityManager)
             {
-                $data = $encoursService->getEnCours([$emplacement->getId()], [], false, true, $this->getUser());
+                $data = $encoursService->getEnCours($entityManager, [$emplacement->getId()], [], false, true, $this->getUser());
                 foreach ($data as $line) {
                     $encoursService->putOngoingPackLine($output, $CSVExportService, $line);
                 }
@@ -172,29 +172,6 @@ class EnCoursController extends AbstractController
             ->every(fn(Emplacement $emplacement) => $emplacement->getDateMaxTime() !== null);
         return new JsonResponse([
             'hasDelayError' => $delayError
-        ]);
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_encours", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      TranslationService     $translationService,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('onGoing', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
 }

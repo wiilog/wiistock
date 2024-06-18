@@ -56,6 +56,7 @@ class RequestTemplateService {
         if ($template instanceof HandlingRequestTemplate) {
             $statusRepository = $this->manager->getRepository(Statut::class);
 
+
             $template->setRequestType($typeRepository->find($data["handlingType"]))
                 ->setSubject($data["subject"])
                 ->setRequestStatus($statusRepository->find($data["status"]))
@@ -64,8 +65,9 @@ class RequestTemplateService {
                 ->setSource($data["source"] ?? null)
                 ->setDestination($data["destination"] ?? null)
                 ->setCarriedOutOperationCount(((int)$data["carriedOutOperationCount"] ?? null) ?: null)
-                ->setComment($data["comment"] ?? null)
-                ->setAttachments($this->attachmentService->createAttachments($files));
+                ->setComment($data["comment"] ?? null);
+
+            $this->attachmentService->persistAttachments($this->manager, $files, ["attachmentContainer" => $template]);
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 

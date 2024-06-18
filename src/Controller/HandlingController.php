@@ -19,6 +19,7 @@ use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
@@ -42,7 +43,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -66,13 +67,16 @@ class HandlingController extends AbstractController {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $user = $this->getUser();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC', [
+            'idsToFind' => $user->getHandlingTypeIds()
+        ]);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
         $fields = $handlingService->getColumnVisibleConfig($entityManager, $this->getUser());
 
         $filterStatus = $request->query->get('filter');
-        $user = $this->getUser();
         $dateChoice = [
             [
                 'value' => 'creationDate',
@@ -96,14 +100,19 @@ class HandlingController extends AbstractController {
 
         $filterDate = $request->query->get('date');
 
+        $handlingStatuses = $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder');
+        $statuses = Stream::from($handlingStatuses)
+            ->filter(fn(Statut $statut) => empty($user->getHandlingTypeIds()) || in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
+            ->toArray();
+
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'selectedDate' => $filterDate ? DateTime::createFromFormat("Y-m-d", $filterDate) : null,
             'dateChoices' => $dateChoice,
-            'statuses' => $statutRepository->findByCategorieName(Handling::CATEGORIE, 'displayOrder'),
-			'filterStatus' => $filterStatus,
             'types' => $types,
+            'statuses' => $statuses,
+            'filterStatus' => $filterStatus,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
             'statusStateValues' => Stream::from($statusService->getStatusStatesValues())
@@ -122,6 +131,9 @@ class HandlingController extends AbstractController {
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
+                'handlingTypes' => Stream::from($types)
+                    ->filter(static fn(Type $type) => $type->isActive())
+                    ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                 'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
@@ -193,13 +205,17 @@ class HandlingController extends AbstractController {
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
+        $currentUser = $this->getUser();
+
+        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getHandlingTypeIds())
+            && !empty($currentUser->getDeliveryTypeIds())) {
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+        }
 
         $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $currentUser = $this->getUser();
         $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
-        $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
@@ -242,21 +258,7 @@ class HandlingController extends AbstractController {
         }
 
         $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $currentUser);
-
-        if (isset($fileBag)) {
-            $fileNames = [];
-            foreach ($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            $attachments = $attachmentService->createAttachments($fileNames);
-            foreach ($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $handling->addAttachment($attachment);
-            }
-        }
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
 
         $entityManager->persist($handling);
         try {
@@ -349,16 +351,15 @@ class HandlingController extends AbstractController {
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];
 
-        $attachments = $handling->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $handling);
-            }
+        $attachmentsToRemove = Stream::from($handling->getAttachments()->toArray())
+            ->filter(static fn(Attachment $attachment) => !in_array($attachment->getId(), $listAttachmentIdToKeep))
+            ->toArray();
+        foreach ($attachmentsToRemove as $attachment) {
+            $handling->removeAttachment($attachment);
+            $entityManager->remove($attachment);
         }
 
-        $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
-
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $handling]);
         $entityManager->flush();
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';
@@ -369,16 +370,6 @@ class HandlingController extends AbstractController {
 
     }
 
-    private function persistAttachments(Handling $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-        $entityManager->flush();
-    }
 
     #[Route("/supprimer", name: "handling_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
@@ -497,28 +488,6 @@ class HandlingController extends AbstractController {
         else {
             throw new BadRequestHttpException();
         }
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_handling", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService,
-                                      TranslationService $translationService): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns("handling", $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            "success" => true,
-            "msg" => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
     }
 
     #[Route("/voir/{id}", name: "handling_show", options: ["expose" => true], methods: ["GET","POST"])]

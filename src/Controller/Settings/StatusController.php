@@ -23,7 +23,7 @@ use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
@@ -124,10 +124,10 @@ class StatusController extends AbstractController
                 $needsMobileSync = (!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
-                $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
                 $displayOnSchedule = $status->isDisplayedOnSchedule() ? "checked" : "";
                 $requiredAttachment = $status->isRequiredAttachment() ? "checked" : "";
                 $preventStatusChangeWithoutDeliveryFees = $status->isPreventStatusChangeWithoutDeliveryFees() ? "checked" : "";
+                $passStatusAtPurchaseOrderGeneration = $status->isPassStatusAtPurchaseOrderGeneration() ? "checked" : "";
                 $notifiedUsers = !$status->getnotifiedUsers()->isEmpty()
                     ? Stream::from($status->getNotifiedUsers())
                         ->map(static fn(Utilisateur $user) => [
@@ -156,9 +156,9 @@ class StatusController extends AbstractController
                             "disabled" => $disabledMobileSyncAndColor
                         ]),
                     "color" => $formService->macro("color", "color", null, false, $color),
-                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSyncAndColor} {$needsMobileSync}/></div>",
+                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
-                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
+                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data' {$automaticReceptionCreation}/></div>",
                     "displayedOnSchedule" => "<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data $displayOnSchedule' $displayOnSchedule/></div>",
                     "notifiedUsers" => $formService->macro("select", "notifiedUsers", null, false, [
                         "type" => "user",
@@ -167,6 +167,7 @@ class StatusController extends AbstractController
                     ]),
                     "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
                     "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
+                    "passStatusAtPurchaseOrderGeneration" => $formService->macro("checkbox", "passStatusAtPurchaseOrderGeneration", null, false, $passStatusAtPurchaseOrderGeneration),
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {
@@ -194,6 +195,7 @@ class StatusController extends AbstractController
                         ->join(", "),
                     "requiredAttachment" => $this->formatService->bool($status->isRequiredAttachment()),
                     "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
+                    "passStatusAtPurchaseOrderGeneration" => $this->formatService->bool($status->isPassStatusAtPurchaseOrderGeneration()),
                     "order" => $status->getDisplayOrder(),
                 ];
             }

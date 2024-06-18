@@ -3,6 +3,7 @@
 namespace App\Helper;
 
 use App\Entity\Language;
+use App\Entity\TrackingMovement;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\Expr\Select;
@@ -123,5 +124,63 @@ class QueryBuilderHelper
             ->each(static fn(string $field) => $queryBuilder->addGroupBy($field));
 
         return $queryBuilder;
+    }
+
+    public static function addTrackingEntities(QueryBuilder $queryBuilder, string $aliasTrackingMovement): QueryBuilder
+    {
+        return $queryBuilder
+            ->addSelect("IF(join_helper_reception.id IS NOT NULL, :helper_reception,
+                                    IF(join_helper_dispatch.id IS NOT NULL, :helper_dispatch,
+                                        IF(join_helper_arrival.id IS NOT NULL, :helper_arrival,
+                                            IF(join_helper_transfer_order.id IS NOT NULL, :helper_transferOrder,
+                                                IF(join_helper_delivery_request.id IS NOT NULL, :helper_deliveryRequest,
+                                                    IF(join_helper_shipping_request.id IS NOT NULL, :helper_shippingRequest,
+                                                        IF(join_helper_delivery_order.id IS NOT NULL, :helper_deliveryOrder,
+                                                            IF(join_helper_preparation.id IS NOT NULL, :helper_preparation, NULL)
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                ) AS entity")
+            ->addSelect("COALESCE(
+                                    join_helper_reception.id,
+                                    join_helper_dispatch.id,
+                                    join_helper_arrival.id,
+                                    join_helper_transfer_order.id,
+                                    join_helper_delivery_request.id,
+                                    join_helper_shipping_request.id,
+                                    join_helper_delivery_order.id,
+                                    join_helper_preparation.id
+                                ) AS entityId")
+            ->addSelect("COALESCE(
+                                    join_helper_reception.number,
+                                    join_helper_dispatch.number,
+                                    join_helper_arrival.numeroArrivage,
+                                    join_helper_transfer_order.number,
+                                    join_helper_delivery_request.numero,
+                                    join_helper_shipping_request.number,
+                                    join_helper_delivery_order.numero,
+                                    join_helper_preparation.numero
+                                ) AS entityNumber")
+            ->leftJoin("$aliasTrackingMovement.pack","join_helper_pack")
+            ->leftJoin("join_helper_pack.arrivage","join_helper_arrival")
+            ->leftJoin("$aliasTrackingMovement.reception","join_helper_reception")
+            ->leftJoin("$aliasTrackingMovement.preparation","join_helper_preparation")
+            ->leftJoin("$aliasTrackingMovement.delivery","join_helper_delivery_order")
+            ->leftJoin("$aliasTrackingMovement.dispatch","join_helper_dispatch")
+            ->leftJoin("$aliasTrackingMovement.mouvementStock", "join_helper_stock_movement")
+            ->leftJoin("join_helper_stock_movement.transferOrder", "join_helper_transfer_order")
+            ->leftJoin("$aliasTrackingMovement.deliveryRequest", "join_helper_delivery_request")
+            ->leftJoin("$aliasTrackingMovement.shippingRequest", "join_helper_shipping_request")
+            ->setParameter("helper_" . TrackingMovement::RECEPTION_ENTITY, TrackingMovement::RECEPTION_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::DISPATCH_ENTITY, TrackingMovement::DISPATCH_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::ARRIVAL_ENTITY, TrackingMovement::ARRIVAL_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::TRANSFER_ORDER_ENTITY, TrackingMovement::TRANSFER_ORDER_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::DELIVERY_REQUEST_ENTITY, TrackingMovement::DELIVERY_REQUEST_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::SHIPPING_REQUEST_ENTITY, TrackingMovement::SHIPPING_REQUEST_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::DELIVERY_ORDER_ENTITY, TrackingMovement::DELIVERY_ORDER_ENTITY)
+            ->setParameter("helper_" . TrackingMovement::PREPARATION_ENTITY, TrackingMovement::PREPARATION_ENTITY);
     }
 }

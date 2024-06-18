@@ -120,10 +120,9 @@ function redirectWithReserve(newArrivalId) {
 }
 
 function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseCreation, isCreation, arrivalsDatatable) {
-    const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
     $.ajax({
         type: 'PATCH',
-        url: patchArrivalUrgentUrl,
+        url: Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId}),
         data: {numeroCommande, postNb, isCreation},
         success: (secondResponse) => {
             arrivageUrgentLoading = false;

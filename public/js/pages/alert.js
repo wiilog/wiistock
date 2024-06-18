@@ -12,7 +12,6 @@ let tableAlerteConfig = {
         }
     },
     drawConfig: {
-        needsSearchOverride: true,
         needsResize: true
     },
     rowConfig: {

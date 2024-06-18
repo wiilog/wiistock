@@ -8,6 +8,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
 use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,15 +16,18 @@ use Twig\Environment;
 
 class AlertService {
 
-    private $mailer;
-    private $templating;
+    #[Required]
+    public TranslationService $translationService;
+
+    private MailerService $mailer;
+    private Environment $templating;
 
     public function __construct(MailerService $mailer, Environment $templating) {
         $this->mailer = $mailer;
         $this->templating = $templating;
     }
 
-    public function generateAlerts(EntityManagerInterface $manager) {
+    public function generateAlerts(EntityManagerInterface $manager): void {
         $now = new DateTime("now");
         $parametrage = $manager->getRepository(Setting::class);
 
@@ -77,7 +81,7 @@ class AlertService {
         $manager->flush();
     }
 
-    public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager) {
+    public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager): void {
         $freeField = $entityManager->getRepository(FreeField::class)
             ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
         $freeFieldValue = $freeField ? $reference->getFreeFieldValue($freeField->getId()) : "";
@@ -95,10 +99,11 @@ class AlertService {
             'machinePDTValue' => $freeFieldValue
         ]);
 
-        $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $reference->getManagers()->toArray());
+        $appName = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR;
+        $this->mailer->sendMail("$appName $type atteint", $content, $reference->getManagers()->toArray());
     }
 
-    public function sendExpiryMails($manager, $articles, $delay) {
+    public function sendExpiryMails($manager, $articles, $delay): void {
         if(!is_array($articles)) {
             $articles = [$articles];
         }
@@ -108,21 +113,21 @@ class AlertService {
             "delay" => $delay,
         ]);
 
-        $this->mailer->sendMail('FOLLOW GT // Seuil de péremption atteint', $content, $manager);
+        $this->mailer->sendMail($this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Seuil de péremption atteint', $content, $manager);
     }
 
     public function putLineAlert(EntityManagerInterface $entityManager,
                                  SpecificService $specificService,
                                  CSVExportService $CSVExportService,
                                  $output,
-                                 Alert $alert) {
+                                 Alert $alert): void {
         $serializedAlert = $alert->serialize();
 
         /** @var ReferenceArticle $reference */
         /** @var Article $article */
         [$reference, $article] = $alert->getLinkedArticles();
 
-        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
             $freeFieldRepository = $entityManager->getRepository(FreeField::class);
             $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
 
@@ -169,8 +174,7 @@ class AlertService {
 
     public function treatArticleAlert(EntityManagerInterface $entityManager,
                                       Article                $article,
-                                      int|null               $expiryDelay): void
-    {
+                                      int|null               $expiryDelay): void {
         if (is_numeric($expiryDelay) && $article->getExpiryDate()) {
             $now = new DateTime("now");
             $expires = clone $now;

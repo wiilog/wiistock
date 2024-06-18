@@ -23,7 +23,7 @@ use App\Service\Transport\TransportService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Exception\RuntimeException;
 use WiiCommon\Helper\Stream;
 

@@ -1,9 +1,4 @@
-///
-/// Ce fichier étant utilisé sur les dashboards et donc possiblement
-/// sur MagicInfo, les opérateurs suivants ne peuvent pas être utilisés
-///  - ?? à remplacer par ||
-///  - ... dans les objets, à remplacer par un ajout "manuel
-///
+import {initDataTable} from "@app/datatable";
 
 let currentChartsFontSize;
 let fontSizeYAxes;
@@ -24,6 +19,7 @@ const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
 const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies'
 const REQUESTS_TO_TREAT = 'requests_to_treat';
+const DISPUTES_TO_TREAT = 'disputes_to_treat';
 const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
 const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
@@ -37,6 +33,7 @@ const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
 const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
+const ERROR_COMPONENT = 'error_component';
 export const ONGOING_PACK = 'ongoing_packs';
 export const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
@@ -117,6 +114,9 @@ const creators = {
     [REQUESTS_TO_TREAT]: {
         callback: createIndicatorElement
     },
+    [DISPUTES_TO_TREAT]: {
+        callback: createIndicatorElement
+    },
     [ORDERS_TO_TREAT]: {
         callback: createIndicatorElement
     },
@@ -148,6 +148,9 @@ const creators = {
     [DAILY_DELIVERY_ORDERS]: {
         callback: createChart
     },
+    [ERROR_COMPONENT]: {
+        callback: createErrorComponent
+    },
 };
 
 /**
@@ -172,16 +175,24 @@ export function renderComponent(component, $container, data) {
             $modal.find(`.component-numbering`).empty();
             displayLegendTranslation(data);
         }
+        let $element;
+        if (component.errorMessage) {
+            const {callback, arguments: callbackArguments} = creators["error_component"];
+            $element = callback(
+                component.errorMessage
+            );
+        } else {
+            const {callback, arguments: callbackArguments} = creators[component.meterKey];
+            $element = callback(
+                data,
+                Object.assign({
+                    meterKey: component.meterKey,
+                    rowSize: $container.closest('.dashboard-row').data('size'),
+                    component: component
+                }, callbackArguments || {})
+            );
+        }
 
-        const {callback, arguments: callbackArguments} = creators[component.meterKey];
-        const $element = callback(
-            data,
-            Object.assign({
-                meterKey: component.meterKey,
-                rowSize: $container.closest('.dashboard-row').data('size'),
-                component: component
-            }, callbackArguments || {})
-        );
 
         if($element) {
             $container.html($element);
@@ -614,7 +625,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     ))  : '-')}</div>`,
                 });
             })(),
-            delay
+            count && count > 0 && delay
                 ? $('<div/>', {
                     class: `text-center title dashboard-stats-delay-title`,
                     html: withStyle(
@@ -626,7 +637,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                     ),
                 })
                 : undefined,
-            delay
+            count && count > 0 && delay
                 ? $('<div/>', {
                     class: `${clickableClass} dashboard-stats dashboard-stats-delay`,
                     html: withStyle(
@@ -667,7 +678,7 @@ function createExternalImage(data, config) {
     if(config.component.config) {
         url = config.component.config.url;
     } else {
-        url = '/img/mobile_logo_header.svg';
+        url = '/img/wiilog.svg';
     }
 
     return $(`
@@ -675,6 +686,22 @@ function createExternalImage(data, config) {
             <img src="${url}" style="width:100%;height:auto;max-height:100%;object-fit: contain;" alt="Composant image">
         </div>
     `);
+}
+
+function createErrorComponent(errorMessage) {
+    return $(`<div class="dashboard-box w-100 d-flex align-items-center justify-content-center flex-row">
+                        <div class="text-center">
+                            <i class="error-msg fas fa-exclamation-triangle mr-2"></i>
+                        </div>
+                        <div class="text-center">
+                            <span class="error-msg font-weight-bold font-size-100">
+                                ${errorMessage}
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <i class="error-msg fas fa-exclamation-triangle mr-2"></i>
+                        </div>
+                    </div>`);
 }
 
 

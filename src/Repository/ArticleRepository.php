@@ -11,6 +11,7 @@ use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
+use App\Entity\Kiosk;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -340,7 +341,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user): array
     {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -824,14 +825,13 @@ class ArticleRepository extends EntityRepository {
 		);
 	}
 
-    public function findOneByReference(string $reference): ?Article {
-        return $this->createQueryBuilder("article")
-            ->innerJoin("article.articleFournisseur", "join_supplierArticle")
-            ->innerJoin("join_supplierArticle.referenceArticle", "join_referenceArticle", Join::WITH, "join_referenceArticle.reference = :reference")
-		    ->setParameter("reference", $reference)
+    public function findOneByReference(?string $reference): ?Article {
+        return $this->createQueryBuilder('article')
+            ->andWhere('article.reference = :reference')
+            ->setParameter('reference', $reference)
             ->getQuery()
             ->getOneOrNullResult();
-	}
+    }
 
     public function countByLocation(Emplacement $location): int {
         return $this->createQueryBuilder('article')
@@ -1083,7 +1083,7 @@ class ArticleRepository extends EntityRepository {
         }
     }
 
-    public function getForSelect(?string $term, string $status = null) {
+    public function getForSelect(?string $term, string $status = null, int $referenceId = null) {
         $qb = $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text");
 
@@ -1091,6 +1091,15 @@ class ArticleRepository extends EntityRepository {
             $qb->join("article.statut", "status")
                 ->andWhere("status.code = :status")
                 ->setParameter("status", $status);
+        }
+
+        if($referenceId !== null) {
+            $qb->addSelect('emplacement.label AS location, article.quantite AS quantity')
+                ->join("article.articleFournisseur", "articleFournisseur")
+                ->join("articleFournisseur.referenceArticle", "referenceArticle")
+                ->leftJoin("article.emplacement", "emplacement")
+                ->where('referenceArticle.id = :idReference')
+                ->setParameter("idReference", $referenceId);
         }
 
         return $qb
@@ -1365,11 +1374,13 @@ class ArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
-    public function getLatestsKioskPrint() {
+    public function getLatestsKioskPrint(Kiosk $kiosk) {
         return $this->createQueryBuilder('article')
             ->andWhere('article.createdOnKioskAt IS NOT null')
+            ->andWhere('article.kiosk = :kiosk')
             ->orderBy('article.createdOnKioskAt', 'DESC')
             ->setMaxResults(3)
+            ->setParameter('kiosk', $kiosk)
             ->getQuery()
             ->getResult();
     }

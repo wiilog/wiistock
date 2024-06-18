@@ -24,7 +24,6 @@ use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
-use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\LanguageService;
 use App\Exceptions\FormException;
@@ -40,19 +39,16 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Google\Service\Keep\User;
-use PHPUnit\Util\Json;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -142,28 +138,6 @@ class ShippingRequestController extends AbstractController {
             'shipping'=> $shippingRequest,
             'detailsTransportConfig' => $shippingRequestService->createHeaderTransportDetailsConfig($shippingRequest),
             'editableExpectedLineForm' => $expectedLineService->editatableLineForm($shippingRequest),
-        ]);
-    }
-
-    #[Route("/colonne-visible", name: "save_column_visible_for_shipping_request", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING], mode: HasPermission::IN_JSON)]
-    public function saveColumnVisible(Request                $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService   $visibleColumnService,
-                                      TranslationService     $translationService): Response {
-        $data = json_decode($request->getContent(), true);
-        $fields = array_keys($data);
-        $fields[] = "actions";
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $visibleColumnService->setVisibleColumns('shippingRequest', $fields, $currentUser);
-
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
 
@@ -438,15 +412,17 @@ class ShippingRequestController extends AbstractController {
                 }
                 $shippingRequestService->deletePacking($entityManager, $shippingRequest);
 
-        // remove ShippingRequesExpectedtLine
-        foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+                // remove ShippingRequesExpectedtLine
+                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
 
-            $entityManager->remove($expectedLine);
-            $shippingRequest->removeExpectedLine($expectedLine);
-        }
+                    $entityManager->remove($expectedLine);
+                    $shippingRequest->removeExpectedLine($expectedLine);
+                }
 
-                foreach ($shippingRequest->getAttachments() as $attachment) {
-                    $attachmentService->removeAndDeleteAttachment($attachment, $shippingRequest);
+//                TODO Adrien remove
+                foreach ($shippingRequest->getAttachments()->toArray() as $attachment) {
+                    $shippingRequest->removeAttachment($attachment);
+                    $entityManager->remove($attachment);
                 }
 
                 $entityManager->remove($shippingRequest);

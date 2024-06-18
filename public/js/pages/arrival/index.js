@@ -1,6 +1,5 @@
 $('.select2').select2();
 
-let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
 let arrivalsTable;
@@ -59,44 +58,12 @@ $(function () {
     });
 
     let $modalNewDispatch = $("#modalNewDispatch");
-    let $checkedCheckboxes = undefined;
-    let arrivalsToDispatch = undefined;
-    Form
-        .create($modalNewDispatch)
-        .on('change', '[name=customerName]', (event) => {
-            const $customers = $(event.target)
-            // pre-filling customer information according to the customer
-            const [customer] = $customers.select2('data');
-            $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
-            $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
-            $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
-        })
-        .onOpen(() => {
-            initNewDispatchEditor('#modalNewDispatch');
-            Modal
-                .load(
-                    'create_from_arrival_template',
-                    {arrivals: arrivalsToDispatch},
-                    $modalNewDispatch,
-                    $modalNewDispatch.find(`.modal-body`),
-                    {
-                        onOpen: () => {
-                            $modalNewDispatch.find('[name=type]').trigger('change')
-                        }
-                    }
-                )
-        })
-        .submitTo(
-            AJAX.POST,
-            'dispatch_new',
-            {
-                success: ({redirect}) => window.location.href = redirect,
-            }
-        )
 
     $dispatchModeContainer.find(`.validate`).on(`click`, function () {
-        $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
-        arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+
+        initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch);
         if (arrivalsToDispatch.length > 0) {
             $modalNewDispatch.modal(`show`);
         }
@@ -156,7 +123,6 @@ function initTableArrival(dispatchMode = false) {
             columns,
             drawConfig: {
                 needsResize: true,
-                needsSearchOverride: true,
                 hidePaging: dispatchMode,
             },
             rowConfig: {
@@ -176,10 +142,6 @@ function initTableArrival(dispatchMode = false) {
                 type: "customDate",
                 targets: "creationDate"
             }],
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'arrivalsTable'
-            },
             lengthMenu: [10, 25, 50, 100],
             page: 'arrival',
             disabledRealtimeReorder: dispatchMode,
@@ -202,12 +164,7 @@ function initTableArrival(dispatchMode = false) {
             extendsDateSort('customDate');
         }
 
-        const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
-        arrivalsTable.on('responsive-resize', function () {
-            resizeTable(arrivalsTable);
-        });
-
-        return arrivalsTable;
+        return initDataTable('arrivalsTable', tableArrivageConfig);
     }
 }
 
@@ -259,10 +216,14 @@ function createArrival(form = null) {
     }
 
     setTimeout(() => {
+        Camera.init(
+            $modal.find(`.take-picture-modal-button`),
+            $modal.find(`[name="files[]"]`)
+        );
+
         onTypeChange($modal.find('[name="type"]'));
         initDateTimePicker('.date-cl');
 
-        onFlyFormOpened = {};
         onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
         onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
         onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);

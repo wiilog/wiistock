@@ -34,6 +34,10 @@ $(function() {
     const $modalNewDispatch = $('#modalNewDispatch');
     $modalNewDispatch.on('show.bs.modal', function () {
         initNewDispatchEditor('#modalNewDispatch');
+        Camera.init(
+            $modalNewDispatch.find(`.take-picture-modal-button`),
+            $modalNewDispatch.find(`[name="files[]"]`)
+        );
     });
 
     const $dispatchsTable = $(`#tableDispatches`);
@@ -202,14 +206,7 @@ function initTableDispatch(groupedSignatureMode = false) {
                 color: 'danger',
                 dataToCheck: 'emergency'
             },
-            drawConfig: {
-                needsSearchOverride: true,
-            },
             columns,
-            hideColumnConfig: {
-                columns,
-                tableFilter: 'tableDispatches'
-            },
             page: 'dispatch',
             disabledRealtimeReorder: groupedSignatureMode,
             createdRow: (row) => {
@@ -223,13 +220,7 @@ function initTableDispatch(groupedSignatureMode = false) {
             extendsDateSort('customDate');
         }
 
-        const dispatchsTable = initDataTable('tableDispatches', tableDispatchConfig);
-        dispatchsTable.on('responsive-resize', function () {
-            resizeTable(dispatchsTable);
-        });
-
-
-        return dispatchsTable;
+        return initDataTable('tableDispatches', tableDispatchConfig);
     }
 }
 

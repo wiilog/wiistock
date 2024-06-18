@@ -23,7 +23,6 @@ function InitPageDatatable() {
         ],
         rowConfig: {
             needsRowClickAction: true,
-            needsSearchOverride: true
         }
     };
     return initDataTable('tableArticleFournisseur', tableArticleFournisseurConfig);

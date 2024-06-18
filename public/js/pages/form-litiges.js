@@ -1,26 +1,5 @@
-function openNewLitigeModal($button) {
-    const modalSelector = $button.data('target');
-    clearModal(modalSelector);
-    Select2Old.articleReception($(modalSelector).find('.select2-autocomplete-articles'), $('#receptionId').val());
-    // we select default litige
-    const $modal = $(modalSelector);
-    const $selectdisputeStatus = $modal.find('[name="disputeStatus"]');
-    const $defaultDisputeStatus = $selectdisputeStatus.siblings('input[type="hidden"][name="default-status"]');
-    fillDemandeurField($modal);
-    if ($defaultDisputeStatus.length > 0) {
-        const idSelected = $defaultDisputeStatus.data('id');
-        $selectdisputeStatus
-            .find(`option:not([value="${idSelected}"]):not([selected])`)
-            .prop('selected', false);
-        $selectdisputeStatus
-            .find(`option[value="${idSelected}"]`)
-            .prop('selected', true);
-    }
-}
-
 function initTableArticleLitige() {
-
-    let pathArticleLitige = Routing.generate('article_dispute_api', {dispute: $('#disputeId').val()}, true);
+    let pathArticleLitige = Routing.generate('dispute_article_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableArticleLitigeConfig = {
         ajax: {
             "url": pathArticleLitige,

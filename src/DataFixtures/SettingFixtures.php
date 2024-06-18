@@ -26,6 +26,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
         Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
         Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
+        Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE,
     ];
 
     public function load(ObjectManager $manager) {
@@ -38,10 +39,13 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MAX_SESSION_TIME => [
                 'default' => 30,
             ],
+            Setting::APP_CLIENT_LABEL => [
+                'default' => SpecificService::DEFAULT_CLIENT_LABEL,
+            ],
             Setting::CREATE_DL_AFTER_RECEPTION => [
                 'default' => false,
-                SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                SpecificService::CLIENT_BOURGUIGNON => true,
+                SpecificService::CLIENT_BARBECUE => true
             ],
             Setting::CREATE_PREPA_AFTER_DL => [
                 'default' => true,
@@ -51,11 +55,11 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DIRECT_DELIVERY => [
                 'default' => false,
-                SpecificService::CLIENT_ARCELOR => true
+                SpecificService::CLIENT_GRATIN_DAUPHINOIS => true
             ],
             Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST => [
                 'default' => false,
-                SpecificService::CLIENT_SAFRAN_ED => true,
+                SpecificService::CLIENT_PETIT_SALE => true,
             ],
             Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION => [
                 'default' => false,
@@ -68,20 +72,20 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
                 'default' => false,
-                SpecificService::CLIENT_SAFRAN_ED => true,
+                SpecificService::CLIENT_PETIT_SALE => true,
             ],
             Setting::INCLUDE_BL_IN_LABEL => [
                 'default' => false,
-                SpecificService::CLIENT_COLLINS_SOA => true,
-                SpecificService::CLIENT_COLLINS_VERNON => true
+                SpecificService::CLIENT_BOURGUIGNON => true,
+                SpecificService::CLIENT_BARBECUE => true
             ],
             Setting::REDIRECT_AFTER_NEW_ARRIVAL => [
                 'default' => true,
-                SpecificService::CLIENT_SAFRAN_ED => false
+                SpecificService::CLIENT_PETIT_SALE => false
             ],
             Setting::SEND_MAIL_AFTER_NEW_ARRIVAL => [
                 'default' => false,
-                SpecificService::CLIENT_SAFRAN_ED => true
+                SpecificService::CLIENT_PETIT_SALE => true
             ],
             Setting::INCLUDE_DZ_LOCATION_IN_LABEL => [
                 'default' => true,
@@ -91,7 +95,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             setting::INCLUDE_BUSINESS_UNIT_IN_LABEL => [
                 'default' => false,
-                SpecificService::CLIENT_INEO_LAV => true,
+                SpecificService::CLIENT_ALIGOT => true,
             ],
             setting::INCLUDE_PROJECT_IN_LABEL => [
                 'default' => false,
@@ -158,23 +162,23 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD => [
                 'default' => false,
-                SpecificService::CLIENT_ARCELOR => true
+                SpecificService::CLIENT_GRATIN_DAUPHINOIS => true
             ],
             Setting::SEND_MAIL_MANAGER_SECURITY_THRESHOLD => [
                 'default' => false,
-                SpecificService::CLIENT_ARCELOR => true
+                SpecificService::CLIENT_GRATIN_DAUPHINOIS => true
             ],
             Setting::STOCK_EXPIRATION_DELAY => [],
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => [
                 "default" => false,
-                SpecificService::CLIENT_AIA_BRETAGNE => implode(",", ["FME", "JAM", "CC", "Autres"])
+                SpecificService::CLIENT_GALETTE_SAUCISSE => implode(",", ["FME", "JAM", "CC", "Autres"])
             ],
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
             Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT => [
                 'default' => true,
-                SpecificService::CLIENT_SAFRAN_ED => false
+                SpecificService::CLIENT_PETIT_SALE => false
             ],
             Setting::DISPLAY_WARNING_WRONG_LOCATION => [
                 'default' => false,
@@ -187,6 +191,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::FONT_FAMILY => [
                 'default' => Setting::DEFAULT_FONT_FAMILY
+            ],
+            Setting::SHOW_LOGIN_LOGO => [
+              'default' => true,
             ],
             Setting::FILE_OVERCONSUMPTION_LOGO => [],
             Setting::FILE_WEBSITE_LOGO => [
@@ -216,11 +223,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE => [
                 'default' => Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE
             ],
+            Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE => [
+                "default" => Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE_VALUE,
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
             Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE => [],
+            Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [
@@ -245,32 +256,32 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FILE_WAYBILL_LOGO => [], // TODO WIIS-8882
             Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
+                SpecificService::CLIENT_TRUFFADE => '#2b78e4'
             ],
             Setting::DISPATCH_EXPECTED_DATE_COLOR_D_DAY => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#009e0f'
+                SpecificService::CLIENT_TRUFFADE => '#009e0f'
             ],
             Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
+                SpecificService::CLIENT_TRUFFADE => '#cf2a27'
             ],
 
             Setting::HANDLING_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
+                SpecificService::CLIENT_TRUFFADE => '#2b78e4'
             ],
             Setting::HANDLING_EXPECTED_DATE_COLOR_D_DAY => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#009e0f'
+                SpecificService::CLIENT_TRUFFADE => '#009e0f'
             ],
             Setting::HANDLING_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => null,
-                SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
+                SpecificService::CLIENT_TRUFFADE => '#cf2a27'
             ],
             Setting::SEND_PACK_DELIVERY_REMIND => [
                 'default' => 0,
-                SpecificService::CLIENT_INEO_LAV => true
+                SpecificService::CLIENT_ALIGOT => true
             ],
             Setting::NON_BUSINESS_HOURS_MESSAGE => [
                 'default' => null,
@@ -299,9 +310,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::STATUT_REFERENCE_CREATE => [
                 'default' => "actif"
             ],
-            Setting::COLLECT_REQUEST_DESTINATION => [
-                'default' => 'stock'
-            ],
             Setting::WELCOME_MESSAGE => [
                 'default' => 'Veuillez scanner l’étiquette pour faire une entrée de stock.'
             ],
@@ -309,7 +317,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.'
             ],
             Setting::SCAN_ARTICLE_LABEL_MESSAGE => [
-                'default' => 'Veuillez scanner l’étiquette de GT Logistics déjà présente sur le lot pour renseigner automatiquement l’article à remettre en stock.'
+                'default' => 'Veuillez scanner l’étiquette déjà présente sur le lot pour renseigner automatiquement l’article à remettre en stock.'
             ],
             Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE => [
                 'default' => 'La nouvelle référence @reference a bien été entrée en stock, une étiquette vient d’être imprimée.'

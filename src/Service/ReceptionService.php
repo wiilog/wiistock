@@ -74,6 +74,9 @@ class ReceptionService
     #[Required]
     public ReceptionLineService $receptionLineService;
 
+    #[Required]
+    public CSVExportService $CSVExportService;
+
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
@@ -297,6 +300,7 @@ class ReceptionService
             "DateFin" => $this->formatService->datetime($reception->getDateFinReception()),
             "Fournisseur" => $this->formatService->supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
+            "user" => $this->formatService->user($reception->getUtilisateur()),
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()
                     ->map(function (Demande $request) {
@@ -340,6 +344,7 @@ class ReceptionService
             ["title" => "Type(s) de " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
             ["title" => "Frais de livraison", "name" => "deliveryFee", 'searchable' => false, 'orderable' => true],
             ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
+            ["title" => "Utilisateur", "name" => "user", "searchable" => true]
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
@@ -371,7 +376,7 @@ class ReceptionService
                     })
                     ->toArray())
         );
-
+        $user = $this->formatService->user($reception->getUtilisateur());
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $reception,
@@ -429,6 +434,11 @@ class ReceptionService
                 'label' => 'Emplacement de stockage',
                 'value' => $storageLocation ?: '',
                 'show' => [ 'fieldName' => 'storageLocation' ]
+            ],
+            [
+                'label' => 'Utilisateur',
+                'value' => $user ?: '',
+                'show' => [ 'fieldName' => 'utilisateur' ]
             ],
         ];
 
@@ -531,5 +541,77 @@ class ReceptionService
                 ? Reception::STATUT_RECEPTION_PARTIELLE
                 : Reception::STATUT_EN_ATTENTE);
         return $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+    }
+
+    public function putLine($handle, array $reception, array &$addedRefs, array $requesters, array $deliveryFees): void {
+        if($reception['articleId'] || $reception['referenceArticleId']) {
+            if($reception['articleId']) {
+                $row = [
+                    ...$this->serializeReception($reception, $deliveryFees),
+                    ...[
+                        $requesters["{$reception['id']}-{$reception['articleId']}"] ?? "",
+                        $reception["articleReference"],
+                        $reception["articleLabel"],
+                        $reception["articleQuantity"],
+                        $reception["articleTypeLabel"],
+                        $reception["articleReferenceArticleBarcode"],
+                        $reception["articleBarcode"],
+                        $reception["currentLogisticUnit"],
+                        $reception["receptionReferenceArticleUnitPrice"],
+                    ],
+                ];
+
+                $this->CSVExportService->putLine($handle, $row);
+            } else {
+                if (!isset($addedRefs[$reception['referenceArticleId']])) {
+                    $addedRefs[$reception['referenceArticleId']] = true;
+
+                    $row = [
+                        ...$this->serializeReception($reception, $deliveryFees),
+                        ...[
+                            "",
+                            $reception["referenceArticleReference"],
+                            $reception["referenceArticleLibelle"],
+                            $reception["referenceArticleQuantiteStock"],
+                            $reception["referenceArticleTypeLabel"],
+                            $reception["referenceArticleBarcode"],
+                            "",
+                            $reception["currentLogisticUnit"],
+                            $reception["receptionReferenceArticleUnitPrice"],
+                        ],
+                    ];
+
+                    $this->CSVExportService->putLine($handle, $row);
+                }
+            }
+        } else {
+            $this->CSVExportService->putLine($handle, $this->serializeReception($reception, $deliveryFees));
+        }
+    }
+
+    private function serializeReception(array $reception, array $deliveryFees): array {
+        return [
+            $reception["number"],
+            $reception["orderNumber"]
+                ? join(", ", $reception["orderNumber"])
+                : "",
+            $reception["providerName"],
+            $reception["userUsername"],
+            $reception["statusName"],
+            $this->formatService->datetime($reception["date"]),
+            $this->formatService->datetime($reception["dateFinReception"]),
+            $reception["commentaire"]
+                ? strip_tags($reception["commentaire"])
+                : "",
+            $reception["receptionRefArticleQuantiteAR"],
+            (!$reception["referenceArticleId"] && !$reception["articleId"]
+                ? ""
+                : ($reception["receptionRefArticleQuantite"]
+                    ?: 0)),
+            $reception["storageLocation"],
+            $this->formatService->bool($reception["receptionEmergency"]),
+            $this->formatService->bool($reception["referenceEmergency"]),
+            $deliveryFees[$reception["id"]] ?? null,
+        ];
     }
 }

@@ -39,9 +39,6 @@ $(function () {
         rowConfig: {
             needsRowClickAction: true
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         columns: [
             {data: 'Actions', title: '', name: 'Actions', className: 'noVis', orderable: false},
             {data: 'pairing', title: '', name: 'Actions', className: 'pairing-row', orderable: false},

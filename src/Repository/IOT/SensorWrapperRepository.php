@@ -97,6 +97,10 @@ class SensorWrapperRepository extends EntityRepository
                                     ->orderBy('sensor_wrapper.' . $column, $order);
                             }
                             break;
+                        case 'inactivityAlertThreshold':
+                            $qb
+                                ->orderBy('sensor_wrapper.inactivityAlertThreshold', $order);
+                            break;
                     }
                 }
             }
@@ -199,5 +203,16 @@ class SensorWrapperRepository extends EntityRepository
         return $qb
             ->getQuery()
             ->getResult();
+    }
+
+    public function findInactives(): mixed {
+        $qb = $this->createQueryBuilder("sensor_wrapper")
+            ->leftJoin('sensor_wrapper.sensor', 'sensor')
+            ->leftJoin('sensor.lastMessage', 'lastMessage')
+            ->andWhere('sensor_wrapper.deleted = 0')
+            ->andWhere('sensor_wrapper.inactivityAlertThreshold > 0')
+            ->andWhere("NOW() > DATE_ADD(lastMessage.date, sensor_wrapper.inactivityAlertThreshold, 'minute')");
+
+        return $qb->getQuery()->getResult();
     }
 }

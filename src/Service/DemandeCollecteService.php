@@ -16,6 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -183,13 +184,14 @@ class DemandeCollecteService
         return array_merge(
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($this->formatService->status($status)) : '' ],
-                ['label' => 'Demandeur', 'value' => FormatHelper::collectRequester($collecte)],
-                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
-                [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
+                [ 'label' => 'Demandeur', 'value' => $this->formatService->collectRequester($collecte) ],
+                [ 'label' => 'Date de la demande', 'value' => $this->formatService->date($date) ],
+                [ 'label' => 'Date de validation', 'value' => $this->formatService->datetime($validationDate) ],
                 [ 'label' => 'Destination', 'value' => $collecte->isStock() ? 'Mise en stock' : 'Destruction' ],
                 [ 'label' => 'Objet', 'value' => $object ],
-                [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
-                [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
+                [ 'label' => 'Point de collecte', 'value' => $this->formatService->location($pointCollecte) ],
+                [ 'label' => 'Type', 'value' => $this->formatService->type($type) ],
+                [ 'label' => 'Provenance', 'value' => $collecte->getKiosk()?->getName() ?: '' ],
             ],
             $freeFieldArray,
             [
@@ -266,7 +268,8 @@ class DemandeCollecteService
                 ->setEmplacement($collecte->getPointCollecte())
                 ->setArticleFournisseur($articleFournisseur)
                 ->setType($referenceArticle->getType())
-                ->setBarCode($this->articleDataService->generateBarcode());
+                ->setBarCode($this->articleDataService->generateBarcode())
+                ->setStockEntryDate($date);
             $this->entityManager->persist($article);
         }
 
@@ -451,9 +454,14 @@ class DemandeCollecteService
         $collecte = new Collecte();
         $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
         $type = $typeRepository->find($data['type']);
+        $utilisateur = $utilisateurRepository->find($data['demandeur']);
+
+        if(!$type->isActive()){
+            throw new FormException("Veuillez rendre ce type actif avant de pouvoir l'utiliser.");
+        }
 
         $collecte
-            ->setDemandeur($utilisateurRepository->find($data['demandeur']))
+            ->setDemandeur($utilisateur)
             ->setNumero($numero)
             ->setDate($date)
             ->setType($type)

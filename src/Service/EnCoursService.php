@@ -4,14 +4,11 @@
 namespace App\Service;
 
 
-use App\Entity\CategorieStatut;
 use App\Entity\Pack;
 use App\Entity\DaysWorked;
-use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
-use App\Helper\FormatHelper;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -39,6 +36,9 @@ class EnCoursService
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TrackingMovementService  $trackingMovementService;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -166,25 +166,27 @@ class EnCoursService
     /**
      * @throws Exception
      */
-    public function getLastEnCoursForLate()
+    public function getLastEnCoursForLate(EntityManagerInterface $entityManager)
     {
-        return $this->getEnCours([], [], true);
+        return $this->getEnCours($entityManager, [], [], true);
     }
 
-    public function getEnCours(array       $locations,
-                               array       $natures = [],
-                               bool        $onlyLate = false,
-                               bool        $fromOnGoing = false,
-                               Utilisateur $user = null,
-                               bool        $useTruckArrivals = false): array
+    public function getEnCours(EntityManagerInterface $entityManager,
+                               array                  $locations,
+                               array                  $natures = [],
+                               bool                   $onlyLate = false,
+                               bool                   $fromOnGoing = false,
+                               Utilisateur            $user = null,
+                               bool                   $useTruckArrivals = false): array
     {
-        $packRepository = $this->entityManager->getRepository(Pack::class);
-        $dropsCounter = 0;
-        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
-        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $emplacementInfo = [];
+        $result = [];
+        $dropsCounter = 0;
 
         $fields = [
             "pack.code AS code",
@@ -193,14 +195,13 @@ class EnCoursService
             "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
             ...$useTruckArrivals
-                ? [
-                    "pack.truckArrivalDelay AS truckArrivalDelay",
-                ] : []
+                ? ["pack.truckArrivalDelay AS truckArrivalDelay",]
+                : []
         ];
 
         $maxQueryResultLength = 200;
         $limitOnlyLate = 100;
-        $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
+        $ongoingOnLocation = $packRepository->getCurrentPackOnLocations(
             $locations,
             [
                 'natures' => $natures,
@@ -217,33 +218,40 @@ class EnCoursService
                     : []),
             ]
         );
-        $oldestDrops = $oldestDrops[0];
-        foreach ($oldestDrops as $oldestDrop) {
-            $dateMvt = $oldestDrop['datetime'];
+        foreach ($ongoingOnLocation as $pack) {
+            $dateMvt = $pack['datetime'];
             $movementAge = $this->timeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
-            $dateMaxTime = $oldestDrop['dateMaxTime'];
-            $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
+            $dateMaxTime = $pack['dateMaxTime'];
+            $truckArrivalDelay = $useTruckArrivals ? intval($pack["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
 
-            if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
-                $emplacementInfo[] = [
-                    'LU' => $oldestDrop['code'],
-                    'delay' => $this->renderMillisecondsToDelay($timeInformation['ageTimespan']),
+            $fromColumnData = $fromOnGoing
+                ? $this->trackingMovementService->getFromColumnData([
+                    "entity" => $pack['entity'],
+                    "entityId" => $pack['entityId'],
+                    "entityNumber" => $pack['entityNumber'],
+                ])
+                : [];
+
+            if(!$onlyLate || ($isLate && count($result) < $limitOnlyLate)){
+                $result[] = [
+                    'LU' => $pack['code'],
+                    'delay' => $timeInformation['ageTimespan'],
                     'delayTimeStamp' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
-                    'emp' => $oldestDrop['label'],
-                    'libelle' => $oldestDrop['reference_label'] ?? null,
-                    'reference' => $oldestDrop['reference_reference'] ?? null,
-                    'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
-                        'arrivalId' => $oldestDrop['arrivalId'],
-                    ]),
+                    'emp' => $pack['label'],
+                    'libelle' => $pack['reference_label'] ?? null,
+                    'reference' => $pack['reference_reference'] ?? null,
+                    ...($fromOnGoing
+                        ? ['origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData)]
+                        : []),
                 ];
             }
         }
 
-        return $emplacementInfo;
+        return $result;
     }
 
 
@@ -292,9 +300,9 @@ class EnCoursService
         $columnsVisible = $currentUser->getVisibleColumns()['onGoing'];
 
         $columns = [
-            ['title' => 'Issu de', 'name' => 'linkedArrival'],
+            ['title' => 'Issu de', 'name' => 'origin'],
             ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU', 'searchable' => true],
-            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date', 'searchable' => true],
+            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date',  'type' => "customDate",'searchable' => true],
             ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay', 'searchable' => true],
             ['title' => 'Référence', 'name' => 'reference', 'searchable' => true],
             ['title' => 'Libellé', 'name' => 'libelle', 'searchable' => true],

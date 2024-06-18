@@ -1,4 +1,8 @@
 import FixedFieldEnum from "@generated/fixed-field-enum";
+import Form from "@app/form";
+import Modal from "@app/modal";
+import {POST, DELETE} from "@app/ajax";
+import {initDataTable} from "@app/datatable";
 
 $(function () {
     $('.select2').select2();
@@ -8,16 +12,16 @@ $(function () {
         processing: true,
         serverSide: true,
         paging: true,
-        order: [['name', 'desc']],
+        order: [[FixedFieldEnum.name.name, 'desc']],
         ajax: {
             "url": pathSupplier,
-            "type": "POST"
+            "type": POST,
         },
         columns: [
             {data: 'Actions', title: '', className: 'noVis', orderable: false},
             {data: FixedFieldEnum.name.name, title: FixedFieldEnum.name.value},
-            {data: 'code', title: 'Code fournisseur'},
-            {data: 'possibleCustoms', title: 'Possible douane'},
+            {data: FixedFieldEnum.code.name, title: FixedFieldEnum.code.value},
+            {data: FixedFieldEnum.possibleCustoms.name, title: FixedFieldEnum.possibleCustoms.value},
             {data: FixedFieldEnum.urgent.name, title: FixedFieldEnum.urgent.value},
             {data: FixedFieldEnum.address.name, title: FixedFieldEnum.address.value},
             {data: FixedFieldEnum.receiver.name, title: FixedFieldEnum.receiver.value},
@@ -27,24 +31,55 @@ $(function () {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true
-        }
     };
-    let supplierTable = initDataTable('supplierTable_id', supplierTableConfig);
+    let supplierTable = initDataTable('supplier-table', supplierTableConfig);
 
     let modalNewSupplier = $("#modalNewFournisseur");
-    let submitNewSupplier = $("#submitNewFournisseur");
-    let urlNewSupplier = Routing.generate('supplier_new', true);
-    InitModal(modalNewSupplier, submitNewSupplier, urlNewSupplier, {tables: [supplierTable], formData: true});
+    const newSupplierForm = Form
+        .create(modalNewSupplier)
+        .submitTo(
+            POST,
+            'supplier_new',
+            {
+                tables: supplierTable,
+                success: function () {
+                    newSupplierForm.clear();
+                }
+            }
+        )
 
-    let modalDeleteSupplier = $("#modalDeleteFournisseur");
-    let submitDeleteSupplier = $("#submitDeleteFournisseur");
-    let urlDeleteSupplier = Routing.generate('supplier_delete', true)
-    InitModal(modalDeleteSupplier, submitDeleteSupplier, urlDeleteSupplier, {tables: [supplierTable]});
+    $(document).on('click', '.delete-supplier', function (event) {
+
+        const supplier = $(event.target).data('id') || $(event.target).parent('.delete-supplier').data('id');
+        Modal.confirm({
+            ajax: {
+                method: DELETE,
+                route: 'supplier_delete',
+                params: { supplier },
+            },
+            message: 'Voulez-vous réellement supprimer ce fournisseur ?',
+            title: 'Supprimer le fournisseur',
+            validateButton: {
+                color: 'danger',
+                label: 'Supprimer'
+            },
+            table: supplierTable,
+        })
+
+    })
 
     let modalEditSupplier = $('#modalEditFournisseur');
-    let submitEditSupplier = $('#submitEditFournisseur');
-    let urlEditSupplier = Routing.generate('supplier_edit', true);
-    InitModal(modalEditSupplier, submitEditSupplier, urlEditSupplier, {tables: [supplierTable]});
+    Form
+        .create(modalEditSupplier)
+        .onOpen(function (event) {
+            const supplier = $(event.relatedTarget).data('id');
+            Modal.load('supplier_api_edit', {supplier}, modalEditSupplier)
+        })
+        .submitTo(
+            POST,
+            'supplier_edit',
+            {
+                tables: supplierTable,
+            }
+        )
 });

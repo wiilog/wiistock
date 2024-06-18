@@ -51,7 +51,7 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a class="dropdown-item pointer"
                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
@@ -106,9 +106,9 @@
 
     {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'arrivalsTable',
-        'route': 'save_column_visible_for_arrivage'
+        fields,
+        table: 'arrivalsTable',
+        page: 'arrival'
     } %}
 
     {% include 'utils/modal/empty-modal.html.twig' with {

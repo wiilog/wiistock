@@ -47,7 +47,6 @@ use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,35 +56,25 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/arrivage")
- */
+
+#[Route('/arrivage')]
 class ArrivageController extends AbstractController {
 
     #[Required]
     public UserService $userService;
 
     #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
     public LanguageService $languageService;
 
-    private ?string $defaultLanguageSlug = null;
-
-    /**
-     * @Route("/", name="arrivage_index")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
-     */
+    #[Route('/', name: 'arrivage_index')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI])]
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
-                          KeptFieldService $keptFieldService,
                           TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
@@ -136,10 +125,8 @@ class ArrivageController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "arrivage_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
     public function api(Request $request, ArrivageService $arrivageService): Response {
         if($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
             $userId = null;
@@ -150,10 +137,8 @@ class ArrivageController extends AbstractController {
         return $this->json($arrivageService->getDataForDatatable($request, $userId));
     }
 
-    /**
-     * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: "arrivage_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         AttachmentService      $attachmentService,
@@ -161,8 +146,7 @@ class ArrivageController extends AbstractController {
                         FreeFieldService       $champLibreService,
                         PackService            $packService,
                         KeptFieldService       $keptFieldService,
-                        TranslationService     $translation): Response
-    {
+                        TranslationService     $translation): Response {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -277,7 +261,7 @@ class ArrivageController extends AbstractController {
                 $arrivage->addAcheteur($userRepository->find($acheteurId));
             }
         }
-        $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $arrivage]);
 
         $natures = Stream::from(isset($data['packs']) ? json_decode($data['packs'], true) : [])
             ->filter()
@@ -315,7 +299,7 @@ class ArrivageController extends AbstractController {
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
         // packs tracking movement are create at the end of the creation of the arrival, after truckArrivalLine reserve modal
-        $packService->persistMultiPacks(
+        $packService->createMultiplePacks(
             $entityManager,
             $arrivage,
             $natures->toArray(),
@@ -323,7 +307,7 @@ class ArrivageController extends AbstractController {
             false,
             $project
         );
-
+        $entityManager->persist($arrivage);
         try {
             $entityManager->flush();
         }
@@ -373,10 +357,8 @@ class ArrivageController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier", name: "arrivage_edit_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
@@ -429,10 +411,8 @@ class ArrivageController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
-     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     */
+    #[Route("/{arrival}/urgent", name: "patch_arrivage_urgent", options: ["expose" => true], methods: [self::PATCH], condition: "request.isXmlHttpRequest()")]
+    #[Entity("arrival", expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
                                        ArrivageService $arrivageDataService,
@@ -468,12 +448,9 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/{arrival}/tracking-movements", name="post_arrival_tracking_movements", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
-     */
+    #[Route("/{arrival}/tracking-movements", name: "post_arrival_tracking_movements", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Entity("arrival", expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
     public function postArrivalTrackingMovements(Arrivage                $arrival,
-                                                 ArrivageService         $arrivageDataService,
                                                  TrackingMovementService $trackingMovementService,
                                                  EntityManagerInterface  $entityManager): Response
     {
@@ -498,15 +475,14 @@ class ArrivageController extends AbstractController {
         return new JsonResponse(['success' => true]);
     }
 
-    /**
-     * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier", name: "arrivage_edit", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          SpecificService        $specificService,
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         AttachmentService      $attachmentService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -519,6 +495,7 @@ class ArrivageController extends AbstractController {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $post = $request->request;
+
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
@@ -629,17 +606,8 @@ class ArrivageController extends AbstractController {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
-
-        $attachments = $arrivage->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $arrivage);
-            }
-        }
-
-        $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
+        $attachmentService->removeAttachments($entityManager, $arrivage, $post->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $arrivage]);
 
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager, $this->getUser());
         $entityManager->flush();
@@ -677,11 +645,10 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/supprimer", name="arrivage_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DELETE_ARRI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "arrivage_delete", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DELETE_ARRI], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
+                           AttachmentService $attachmentService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -709,11 +676,7 @@ class ArrivageController extends AbstractController {
                     $entityManager->remove($pack);
                 }
                 $arrivage->getPacks()->clear();
-                $entityManager->flush();
-
-                foreach ($arrivage->getAttachments() as $attachement) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
-                }
+                $attachmentService->removeAttachments($entityManager, $arrivage);
 
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
@@ -733,9 +696,7 @@ class ArrivageController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/lister-UL", name="arrivage_list_packs_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/lister-UL", name: "arrivage_list_packs_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function listPacksByArrivage(Request $request,
                                         EntityManagerInterface $entityManager)
     {
@@ -754,9 +715,7 @@ class ArrivageController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "get_arrivages_csv", options: ["expose" => true], methods: [self::GET])]
     public function exportArrivals(Request                $request,
                                    EntityManagerInterface $entityManager,
                                    CSVExportService       $csvService,
@@ -796,9 +755,7 @@ class ArrivageController extends AbstractController {
         }, "export-arrivages_$today.csv", $header);
     }
 
-    /**
-     * @Route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-     */
+    #[Route("/voir/{id}", name: "arrivage_show", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
                          PackService            $packService,
@@ -856,18 +813,16 @@ class ArrivageController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/creer-litige", name="dispute_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer-litige", name: "dispute_new", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function newDispute(Request                $request,
                                ArrivageService        $arrivageDataService,
                                DisputeService         $disputeService,
                                EntityManagerInterface $entityManager,
                                UniqueNumberService    $uniqueNumberService,
-                               TranslationService    $translation): Response
-    {
-        $post = $request->request;
+                               TranslationService     $translation,
+                               AttachmentService      $attachmentService): Response {
+        $data = $request->request;
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -880,14 +835,14 @@ class ArrivageController extends AbstractController {
 
         $dispute = new Dispute();
         $dispute
-            ->setReporter($usersRepository->find($post->get('disputeReporter')))
-            ->setStatus($statutRepository->find($post->get('disputeStatus')))
-            ->setType($typeRepository->find($post->get('disputeType')))
+            ->setReporter($usersRepository->find($data->get('disputeReporter')))
+            ->setStatus($statutRepository->find($data->get('disputeStatus')))
+            ->setType($typeRepository->find($data->get('disputeType')))
             ->setCreationDate($now)
             ->setNumber($disputeNumber);
 
         $arrivage = null;
-        if (!empty($packsStr = $post->get('disputePacks'))) {
+        if (!empty($packsStr = $data->get('disputePacks'))) {
             $packIds = explode(',', $packsStr);
             foreach ($packIds as $packId) {
                 $pack = $packRepository->find($packId);
@@ -897,8 +852,8 @@ class ArrivageController extends AbstractController {
                 }
             }
         }
-        if ($post->get('emergency')) {
-            $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
+        if ($data->get('emergency')) {
+            $dispute->setEmergencyTriggered($data->get('emergency') === 'true');
         }
         if ((!$dispute->getStatus() || !$dispute->getStatus()->isTreated()) && $arrivage) {
             $typeStatuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
@@ -922,14 +877,14 @@ class ArrivageController extends AbstractController {
             $dispute,
             $currentUser,
             [
-                $post->get('commentaire'),
+                $data->get('commentaire'),
                 $dispute->getType()->getDescription()
             ]
         );
 
         $entityManager->persist($historyRecord);
 
-        $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
         try {
             $entityManager->flush();
         }
@@ -951,13 +906,10 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/supprimer-litige", name="litige_delete_arrivage", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer-litige", name: "litige_delete_arrivage", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::QUALI, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function deleteDispute(Request $request,
-                                  EntityManagerInterface $entityManager): Response
-    {
+                                  EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $dispute = $disputeRepository->find($data['litige']);
@@ -977,69 +929,66 @@ class ArrivageController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/ajouter-UL", name="arrivage_add_pack", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function addPack(Request $request,
+    #[Route("/ajouter-UL", name: "arrivage_add_pack", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function addPack( Request                $request,
                              EntityManagerInterface $entityManager,
-                             PackService $packService)
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $projectRepository = $entityManager->getRepository(Project::class);
+                             PackService            $packService): JsonResponse {
+        $data = $request->request;
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
-            $arrivage = $arrivageRepository->find($data['arrivageId']);
-            $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
+        $arrivage = $arrivageRepository->find($data->getInt('arrivalId'));
+        if (!$arrivage) {
+            throw new BadRequestHttpException();
+        }
 
-            $natures = json_decode($data['pack'], true);
+        $project = $projectRepository->find($data->getInt('project'));
 
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
 
-            $response = [];
-            $persistedPack = [];
-            if ($reception = $arrivage->getReception()) {
-                $statusCode = $reception->getStatut()->getCode();
-                if ($statusCode === Reception::STATUT_EN_ATTENTE) {
-                    $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
-                    $entityManager->flush();
-                } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
-                    ];
-                }
-            } else {
-                $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
+        $natures = json_decode($data->get('packs'), true);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $response = [];
+        $persistedPack = [];
+        if ($reception = $arrivage->getReception()) {
+            $statusCode = $reception->getStatut()->getCode();
+            if ($statusCode !== Reception::STATUT_RECEPTION_TOTALE) {
+                $persistedPack = $packService->createMultiplePacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
                 $entityManager->flush();
-            }
-
-            if ($response === []) {
+            } else {
                 $response = [
-                    'success' => true,
-                    'packs' => array_map(function (Pack $pack) {
-                        return [
-                            'id' => $pack->getId(),
-                            'code' => $pack->getCode()
-                        ];
-                    }, $persistedPack),
-                    'arrivageId' => $arrivage->getId(),
-                    'arrivage' => $arrivage->getNumeroArrivage()
+                    'success' => false,
+                    'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
                 ];
             }
-
-            return new JsonResponse($response);
+        } else {
+            $persistedPack = $packService->createMultiplePacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
+            $entityManager->flush();
         }
-        throw new BadRequestHttpException();
+
+        if ($response === []) {
+            $response = [
+                'success' => true,
+                'packs' => array_map(function (Pack $pack) {
+                    return [
+                        'id' => $pack->getId(),
+                        'code' => $pack->getCode()
+                    ];
+                }, $persistedPack),
+                'arrivageId' => $arrivage->getId(),
+                'arrivage' => $arrivage->getNumeroArrivage()
+            ];
+        }
+
+        return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/litiges/api/{arrivage}", name: "arrival_diputes_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function apiArrivageLitiges(EntityManagerInterface $entityManager,
-                                       Arrivage $arrivage): Response
-    {
+                                       Arrivage $arrivage): Response {
         $disputeRepository = $entityManager->getRepository(Dispute::class);
         $disputes = $disputeRepository->findByArrivage($arrivage);
         $rows = [];
@@ -1055,7 +1004,7 @@ class ArrivageController extends AbstractController {
                 'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
                     'url' => [
-                        'edit' => $this->generateUrl('litige_api_edit', ['id' => $dispute->getId()])
+                        'edit' => $this->generateUrl('arrival_dispute_api_edit', ['dispute' => $dispute->getId()])
                     ],
                     'disputeId' => $dispute->getId(),
                     'disputeNumber' => $dispute->getNumber()
@@ -1069,92 +1018,79 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function apiEditLitige(Request $request,
-                                  EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $disputeRepository = $entityManager->getRepository(Dispute::class);
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
+    #[Route("/api-modifier-litige/{dispute}", name: "arrival_dispute_api_edit", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function diputeApiEdit(Dispute                   $dispute,
+                                  EntityManagerInterface    $entityManager): Response {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-            $dispute = $disputeRepository->find($data['disputeId']);
-
-            $packCode = [];
-            foreach ($dispute->getPacks() as $pack) {
-                $packCode[] = $pack->getId();
-            }
-
-            $arrivage = $arrivageRepository->find($data['arrivageId']);
-
-            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
-                ->map(fn(Statut $statut) => [
-                    'id' => $statut->getId(),
-                    'type' => $statut->getType(),
-                    'nom' => $this->getFormatter()->status($statut),
-                    'treated' => $statut->isTreated(),
-                ])
-                ->toArray();
-
-            $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
-                'dispute' => $dispute,
-                'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $disputeStatuses,
-                'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-                'packs' => $arrivage->getPacks(),
-            ]);
-
-            return new JsonResponse(['html' => $html, 'packs' => $packCode]);
+        $packCode = [];
+        foreach ($dispute->getPacks() as $pack) {
+            $packCode[] = $pack->getId();
         }
-        throw new BadRequestHttpException();
+
+        $arrivage = $dispute->getPacks()?->first()?->getArrivage();
+
+        $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+                'treated' => $statut->isTreated(),
+            ])
+            ->toArray();
+
+        $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
+            'dispute' => $dispute,
+            'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
+            'disputeStatuses' => $disputeStatuses,
+            'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
+            'packs' => $arrivage->getPacks(),
+        ]);
+
+        return new JsonResponse(['html' => $html, 'packs' => $packCode]);
     }
 
-    /**
-     * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editLitige(Request                $request,
+    #[Route("/modifier-litige", name: "arrival_edit_dispute", options: ["expose" => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editDispute(Request                $request,
                                ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
-                               Twig_Environment       $templating): Response
-    {
-        $post = $request->request;
-
+                               AttachmentService      $attachmentService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $disputeRepository = $entityManager->getRepository(Dispute::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $dispute = $disputeRepository->find($post->get('id'));
-        $typeBefore = $dispute->getType()->getId();
-        $typeAfter = (int)$post->get('disputeType');
-        $statutBefore = $dispute->getStatus()->getId();
-        $statutAfter = (int)$post->get('disputeStatus');
-        $dispute
-            ->setReporter($utilisateurRepository->find($post->get('disputeReporter')))
-            ->setUpdateDate(new DateTime('now'));
-        $this->templating = $templating;
-        $newStatus = $statutRepository->find($statutAfter);
-        $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
+        $data = $request->request;
 
-        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $currentUser);
 
-        if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
-            $dispute->setStatus($newStatus);
-        }
+        $dispute = $disputeRepository->find($data->get('disputeId'));
 
+        $typeBefore = $dispute->getType()->getId();
+        $typeAfter = $data->getInt('disputeType');
         if ($hasRightToTreatLitige) {
             $dispute->setType($typeRepository->find($typeAfter));
         }
 
-        if (!empty($newPack = $post->get('pack'))) {
+        $statutBefore = $dispute->getStatus()->getId();
+        $statutAfter = $data->getInt('disputeStatus');
+        $newStatus = $statutRepository->find($statutAfter);
+        if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
+            $dispute->setStatus($newStatus);
+        }
+
+        $dispute
+            ->setReporter($utilisateurRepository->find($data->getInt('disputeReporter')))
+            ->setUpdateDate(new DateTime('now'));
+
+        if (!empty($newPack = $data->get('disputePacks'))) {
             // on détache les UL existants...
             $existingPacks = $dispute->getPacks();
             foreach ($existingPacks as $existingPack) {
@@ -1169,11 +1105,11 @@ class ArrivageController extends AbstractController {
 
         $entityManager->flush();
 
-        if ($post->get('emergency')) {
-            $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
+        if ($data->has('emergency')) {
+            $dispute->setEmergencyTriggered($data->getBoolean('emergency'));
         }
 
-        $comment = trim($post->get('commentaire', ''));
+        $comment = trim($data->get('commentaire', ''));
         $typeDescription = $dispute->getType()->getDescription();
         if ($statutBefore !== $statutAfter
             || $typeBefore !== $typeAfter
@@ -1189,17 +1125,9 @@ class ArrivageController extends AbstractController {
             $entityManager->flush();
         }
 
-        $listAttachmentIdToKeep = $post->all('files') ?? [];
+        $attachmentService->removeAttachments($entityManager, $dispute, $data->all('files') ?: []);
+        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
 
-        $attachments = $dispute->getAttachments()->toArray();
-        foreach ($attachments as $attachment) {
-            /** @var Attachment $attachment */
-            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, $dispute);
-            }
-        }
-
-        $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBefore !== $statutAfter);
         if ($isStatutChange) {
@@ -1213,11 +1141,8 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/packs/api/{arrivage}", name="packs_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function apiPacks(Arrivage $arrivage): Response
-    {
+    #[Route("/packs/api/{arrivage}", name: "packs_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    public function apiPacks(Arrivage $arrivage): Response {
         $packs = $arrivage->getPacks()->toArray();
         /** @var Utilisateur $user */
         $user = $this->getUser();
@@ -1243,9 +1168,7 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{arrivage}/UL/{pack}/etiquette", name: "print_arrivage_single_pack_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArrivagePackBarCodes(Arrivage               $arrivage,
                                               Request                $request,
                                               EntityManagerInterface $entityManager,
@@ -1386,15 +1309,12 @@ class ArrivageController extends AbstractController {
         );
     }
 
-    /**
-     * @Route("/{arrivage}/etiquettes", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{arrivage}/etiquettes", name: "print_arrivage_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArrivageAlias(Arrivage               $arrivage,
                                        Request                $request,
                                        PackService            $packService,
                                        EntityManagerInterface $entityManager,
-                                       PDFGeneratorService    $PDFGeneratorService)
-    {
+                                       PDFGeneratorService    $PDFGeneratorService): Response {
         $template = $request->query->get('template')
             ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
             : null;
@@ -1418,43 +1338,59 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $projectParam = false,
                                                    ?bool        $showDateAndHourArrivalUl = false,
                                                    ?TagTemplate $tagTemplate = null,
-                                                   bool         $forceTagEmpty = false,
-    ): array {
-        $total = $arrivage->getPacks()->count();
-        $packs = [];
-        foreach($arrivage->getPacks() as $index => $pack) {
-            $position = $index + 1;
-            if (
-                (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
-                (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
-                (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
-            ) {
-                $packs[] = $packService->getBarcodePackConfig(
-                    $pack,
-                    $arrivage->getReceivers()->toArray(),
-                    "$position/$total",
-                    $typeArrivalParamIsDefined,
-                    $usernameParamIsDefined,
-                    $dropzoneParamIsDefined,
-                    $packCountParamIsDefined,
-                    $commandAndProjectNumberIsDefined,
-                    $firstCustomIconConfig,
-                    $secondCustomIconConfig,
-                    $showTypeLogoArrivalUl,
-                    $businessUnitParam,
-                    $projectParam,
-                    $showDateAndHourArrivalUl,
-                );
-            }
-        }
+                                                   bool         $forceTagEmpty = false): array {
+        $packs = Stream::from($arrivage->getPacks());
+        $total = $packs->count();
 
-        return $packs;
+        return $packs
+            ->filterMap(static function (Pack $pack, int $index) use (  $forceTagEmpty,
+                                                                        $packIdsFilter,
+                                                                        $tagTemplate,
+                                                                        $showDateAndHourArrivalUl,
+                                                                        $projectParam,
+                                                                        $businessUnitParam,
+                                                                        $showTypeLogoArrivalUl,
+                                                                        $secondCustomIconConfig,
+                                                                        $firstCustomIconConfig,
+                                                                        $commandAndProjectNumberIsDefined,
+                                                                        $packCountParamIsDefined,
+                                                                        $dropzoneParamIsDefined,
+                                                                        $usernameParamIsDefined,
+                                                                        $typeArrivalParamIsDefined,
+                                                                        $total,
+                                                                        $arrivage,
+                                                                        $packService): ?array {
+                $position = $index + 1;
+                if (
+                    (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
+                    (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
+                    (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
+                ) {
+                    return $packService->getBarcodePackConfig(
+                        $pack,
+                        $arrivage->getReceivers()->toArray(),
+                        "$position/$total",
+                        $typeArrivalParamIsDefined,
+                        $usernameParamIsDefined,
+                        $dropzoneParamIsDefined,
+                        $packCountParamIsDefined,
+                        $commandAndProjectNumberIsDefined,
+                        $firstCustomIconConfig,
+                        $secondCustomIconConfig,
+                        $showTypeLogoArrivalUl,
+                        $businessUnitParam,
+                        $projectParam,
+                        $showDateAndHourArrivalUl,
+                    );
+                }
+                return null;
+            })
+            ->values();
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
                                                ArrivageService        $arrivageDataService,
-                                                                      $reloadArrivageId): ?array
-    {
+                                                                      $reloadArrivageId): ?array {
         $response = null;
         if (isset($reloadArrivageId)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -1473,47 +1409,11 @@ class ArrivageController extends AbstractController {
         return $response;
     }
 
-    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
-        $attachments = $attachmentService->createAttachments($request->files);
-        foreach ($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $entity->addAttachment($attachment);
-        }
-        $entityManager->persist($entity);
-    }
-
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService, TranslationService $translation): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $fields = array_keys($data);
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        $visibleColumnService->setVisibleColumns('arrival', $fields, $user);
-        $entityManager->flush();
-
-        return $this->json([
-            'success' => true,
-            'msg' => $translation->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées')
-        ]);
-    }
-
-    /**
-     * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-columns", name: "arrival_api_columns", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
     public function apiColumns(ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
-                               Request $request): Response
-    {
+                               Request $request): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $dispatchMode = $request->query->getBoolean('dispatchMode');
@@ -1522,10 +1422,8 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    /**
-     * @Route("/new-dispute-template", name="new_dispute_template", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/new-dispute-template", name: "new_dispute_template", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::QUALI, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function newDisputeTemplate(Request $request, EntityManagerInterface $manager): Response {
         $statusRepository = $manager->getRepository(Statut::class);
         $typeRepository = $manager->getRepository(Type::class);
@@ -1543,17 +1441,12 @@ class ArrivageController extends AbstractController {
         $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
         $fixedFields = $manager->getRepository(FixedFieldStandard::class)->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
-        $buyers = Stream::from($arrival->getAcheteurs())->map(fn(Utilisateur $buyer) => $buyer->getUsername())->join(',');
-        $orderNumers = Stream::from($arrival->getNumeroCommandeList())->join(',');
-
         return $this->json([
             'success' => true,
-            'content' => $this->renderView('arrivage/modalNewDisputeContent.html.twig', [
+            'html' => $this->renderView('arrivage/modalNewDisputeContent.html.twig', [
                 'arrivage' => $arrival,
                 'disputeTypes' => $disputeTypes,
                 'disputeStatuses' => $disputeStatuses,
-                'buyers' => $buyers,
-                'orderNumers' => $orderNumers,
                 'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
                 'packs' => $arrival->getPacks(),
                 'fieldsParam' => $fixedFields
@@ -1561,19 +1454,9 @@ class ArrivageController extends AbstractController {
         ]);
     }
 
-    private function getDefaultLanguageSlug(): ?string {
-        if (!isset($this->defaultLanguageSlug)) {
-            $this->defaultLanguageSlug = $this->languageService->getDefaultSlug();
-        }
-        return $this->defaultLanguageSlug;
-    }
-
-    /**
-     * @Route("/list-pack-api-columns", name="arrival_list_packs_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
-    public function listPackApiColumns(PackService $packService): Response
-    {
+    #[Route("/list-pack-api-columns", name: "arrival_list_packs_api_columns", options: ["expose" => true], methods: [self::GET])]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
+    public function listPackApiColumns(PackService $packService): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 

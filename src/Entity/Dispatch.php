@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\DispatchRepository;
 use App\Service\UniqueNumberService;
@@ -15,9 +17,10 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: DispatchRepository::class)]
-class Dispatch extends StatusHistoryContainer {
+class Dispatch extends StatusHistoryContainer implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
+    use AttachmentTrait;
 
     const CATEGORIE = 'acheminements';
     const NUMBER_PREFIX = 'A';

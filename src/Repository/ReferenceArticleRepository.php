@@ -19,13 +19,16 @@ use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
+use App\Service\FormatService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Query\Expr\Select;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -65,6 +68,11 @@ class ReferenceArticleRepository extends EntityRepository {
     private const CART_COLUMNS_ASSOCIATION = [
         "label" => "libelle",
         "availableQuantity" => "quantiteDisponible",
+    ];
+
+    private const ADVANCED_SEARCH_COLUMN_WEIGHTING = [
+        "libelle" => 5,
+        // add more columns here with their respective weighting (higher = more relevant)
     ];
 
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
@@ -192,6 +200,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->addSelect('reference.isUrgent AS urgent')
             ->addSelect('reference.emergencyComment AS emergencyComment')
+            ->addSelect('reference.quantiteDisponible AS quantityDisponible')
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -452,7 +461,10 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams(array $filters, InputBag $params, Utilisateur $user): array
+    public function findByFiltersAndParams(array                 $filters,
+                                           InputBag              $params,
+                                           Utilisateur           $user,
+                                           FormatService         $formatService): array
     {
         $em = $this->getEntityManager();
         $index = 0;
@@ -661,139 +673,6 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        // prise en compte des paramètres issus du datatable
-        $search = isset($user->getSearches()['reference']) ? $user->getSearches()['reference']['value'] : '';
-        if (!empty($search)) {
-            $searchValue = is_string($search) ? $search : $search['value'];
-            if (!empty($searchValue)) {
-                $date = DateTime::createFromFormat('d/m/Y', $searchValue);
-                $date = $date ? $date->format('Y-m-d') : null;
-                $search = "%$searchValue%";
-                $ids = [];
-                $query = [];
-                $freeFieldRepository = $em->getRepository(FreeField::class);
-                foreach ($user->getRecherche() as $key => $searchField) {
-                    $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
-                    switch ($searchField) {
-                        case "supplierLabel":
-                            $subqb = $this->createQueryBuilder('referenceArticle');
-                            $subqb
-                                ->select('referenceArticle.id')
-                                ->leftJoin('referenceArticle.articlesFournisseur', 'afra')
-                                ->leftJoin('afra.fournisseur', 'fra')
-                                ->andWhere('fra.nom LIKE :valueSearch')
-                                ->setParameter('valueSearch', $search);
-
-                            foreach ($subqb->getQuery()->execute() as $idArray) {
-                                $ids[] = $idArray['id'];
-                            }
-                            break;
-                        case "supplierCode":
-                            $subqb = $this->createQueryBuilder('referenceArticle');
-                            $subqb
-                                ->select('referenceArticle.id')
-                                ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
-                                ->innerJoin('articleFournisseur.fournisseur', 'fournisseur')
-                                ->andWhere('fournisseur.codeReference LIKE :valueSearch')
-                                ->setParameter('valueSearch', $search);
-
-                            $res = $subqb->getQuery()->execute();
-
-                            foreach ($res as $idArray) {
-                                $ids[] = $idArray['id'];
-                            }
-                            break;
-                        case "referenceSupplierArticle":
-                            $subqb = $this->createQueryBuilder('referenceArticle');
-                            $subqb
-                                ->select('referenceArticle.id')
-                                ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
-                                ->andWhere('articleFournisseur.reference LIKE :valueSearch')
-                                ->setParameter('valueSearch', $search);
-
-                            $res = $subqb->getQuery()->execute();
-
-                            foreach ($res as $idArray) {
-                                $ids[] = $idArray['id'];
-                            }
-                            break;
-                        case "managers":
-                            $subqb = $this->createQueryBuilder('referenceArticle');
-                            $subqb
-                                ->select('referenceArticle.id')
-                                ->join('referenceArticle.managers', 'managers')
-                                ->andWhere('managers.username LIKE :valueSearch')
-                                ->setParameter('valueSearch', $search);
-
-                            foreach ($subqb->getQuery()->execute() as $idArray) {
-                                $ids[] = $idArray['id'];
-                            }
-                            break;
-                        case "buyer":
-                            $subqb = $this->createQueryBuilder('referenceArticle');
-                            $subqb
-                                ->select('referenceArticle.id')
-                                ->leftJoin('referenceArticle.buyer', 'buyer')
-                                ->andWhere('buyer.username LIKE :username')
-                                ->setParameter('username', $search);
-
-                            foreach ($subqb->getQuery()->execute() as $idArray) {
-                                $ids[] = $idArray['id'];
-                            }
-                            break;
-                        default:
-                            $field = self::DtToDbLabels[$searchField] ?? $searchField;
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                            if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
-                                if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
-                                    $lowerSearchValue = strtolower($searchValue);
-
-                                    if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
-                                        $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                        $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"{$freeFieldId}\"') IS NOT NULL";
-                                        $queryBuilder->setParameter("search", $booleanValue);
-                                    }
-                                }
-                                else {
-                                    $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                    $queryBuilder->setParameter("search", $date ?: strtolower($search));
-                                }
-                            } else if (property_exists(ReferenceArticle::class, $field)) {
-                                if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
-                                    $query[] = "ra.$field BETWEEN :dateMin AND :dateMax";
-                                    $queryBuilder
-                                        ->setParameter("dateMin", "$date 00:00:00")
-                                        ->setParameter("dateMax", "$date 23:59:59");
-                                } else {
-                                    $query[] = "ra.$field LIKE :search";
-                                    $queryBuilder->setParameter('search', $search);
-                                }
-                            }
-                            break;
-                    }
-                }
-
-                $treatedIds = [];
-                foreach ($ids as $id) {
-                    if (!in_array($id, $treatedIds)) {
-                        $query[] = 'ra.id = ' . $id;
-                        $treatedIds[] = $id;
-                    }
-                }
-
-                if (!empty($query)) {
-                    $queryBuilder->andWhere(implode(' OR ', $query));
-                }
-                else {
-                    // false condition because search is corresponding to 0 ra.id
-                    $queryBuilder->andWhere('ra.id = 0');
-                }
-            }
-        }
-
-        // compte éléments filtrés
-        $countQuery = QueryBuilderHelper::count($queryBuilder, "ra");
-
         if (!empty($params) && !empty($params->all('order'))) {
             $order = $params->all('order')[0]['dir'];
             if (!empty($order)) {
@@ -801,56 +680,46 @@ class ReferenceArticleRepository extends EntityRepository {
                 $columnName = $params->all('columns')[$columnIndex]['data'];
                 $column = self::DtToDbLabels[$columnName] ?? $columnName;
 
-                $orderAddSelect = [];
-
                 switch ($column) {
                     case "actions":
                         break;
                     case "supplier":
-                        $orderAddSelect[] = 'order_supplier.nom';
                         $queryBuilder
                             ->leftJoin('ra.articlesFournisseur', 'order_articlesFournisseur')
                             ->leftJoin('order_articlesFournisseur.fournisseur', 'order_supplier')
                             ->orderBy('order_supplier.nom', $order);
                         break;
                     case 'visibilityGroups':
-                        $orderAddSelect[] = 'order_group.label';
                         $queryBuilder
                             ->leftJoin('ra.visibilityGroup', 'order_group')
                             ->orderBy('order_group.label', $order);
                         break;
                     case "type":
-                        $orderAddSelect[] = 'order_type.label';
                         $queryBuilder
                             ->leftJoin('ra.type', 'order_type')
                             ->orderBy('order_type.label', $order);
                         break;
                     case "location":
-                        $orderAddSelect[] = 'order_location.label';
                         $queryBuilder
                             ->leftJoin('ra.emplacement', 'order_location')
                             ->orderBy('order_location.label', $order);
                         break;
                     case "status":
-                        $orderAddSelect[] = 'order_status.nom';
                         $queryBuilder
                             ->leftJoin('ra.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
                         break;
                     case "buyer":
-                        $orderAddSelect[] = 'order_buyer.username';
                         $queryBuilder
                             ->leftJoin('ra.buyer', 'order_buyer')
                             ->orderBy('order_buyer.username', $order);
                         break;
                     case "createdBy":
-                        $orderAddSelect[] = 'order_createdBy.username';
                         $queryBuilder
                             ->leftJoin('ra.createdBy', 'order_createdBy')
                             ->orderBy('order_createdBy.username', $order);
                         break;
                     case "editedBy":
-                        $orderAddSelect[] = 'order_editedBy.username';
                         $queryBuilder
                             ->leftJoin('ra.editedBy', 'order_editedBy')
                             ->orderBy('order_editedBy.username', $order);
@@ -873,20 +742,150 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+        $searchParts = Stream::explode(" ", $params->all("search")["value"] ?? "")
+            ->filter(static fn(string $part) => $part && strlen($part) >= AdvancedSearchHelper::MIN_SEARCH_PART_LENGTH)
+            ->values();
 
-        $queryBuilder
-            ->select('ra')
-            ->distinct();
+        if (!empty($searchParts)) {
+            $freeFieldRepository = $em->getRepository(FreeField::class);
 
-        foreach ($orderAddSelect ?? [] as $addSelect) {
-            $queryBuilder->addSelect($addSelect);
+            $searchableFields = Stream::from($user->getRecherche())
+                ->map(static fn(string $field) => self::DtToDbLabels[$field] ?? $field)
+                ->toArray();
+
+            $searchBooleanValues = Stream::from($searchParts)
+                ->filter(static fn(string $part) => in_array(strtolower($part), ["oui", "non"]))
+                ->map(static fn(string $part) => strtolower($part) === "oui" ? 1 : 0)
+                ->unique();
+
+            $searchDateValues = Stream::from($searchParts)
+                ->filterMap(static fn(string $part) => ($formatService->parseDatetime($part) ?: null)?->format("Y-m-d"))
+                ->toArray();
+
+            $conditions = [];
+
+            foreach ($searchableFields as $key => $searchableField) {
+                switch ($searchableField) {
+                    case "supplierLabel":
+                    case "supplierCode":
+                        $dbField = match ($searchableField) {
+                            "supplierLabel" => "nom",
+                            default => "codeReference",
+                        };
+
+                        $queryBuilder
+                            ->leftJoin("ra.articlesFournisseur", "search_supplierArticle_$key")
+                            ->leftJoin("search_supplierArticle_$key.fournisseur", "search_supplier_$key");
+
+                        $conditions[$searchableField] = "search_supplier_$key.$dbField LIKE :search_value";
+
+                        break;
+                    case "referenceSupplierArticle":
+                        $queryBuilder->leftJoin("ra.articlesFournisseur", "search_supplierArticle");
+
+                        $conditions[$searchableField] = "search_supplierArticle.reference LIKE :search_value";
+
+                        break;
+                    case "managers":
+                        $queryBuilder->leftJoin("ra.managers", "search_managers");
+
+                        $conditions[$searchableField] = "search_managers.username LIKE :search_value";
+
+                        break;
+                    case "buyer":
+                        $queryBuilder->leftJoin("ra.buyer", "search_buyer");
+
+                        $conditions[$searchableField] = "search_buyer.username LIKE :search_value";
+
+                        break;
+                    default:
+                        $field = self::DtToDbLabels[$searchableField] ?? $searchableField;
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                        $freeField = is_numeric($freeFieldId)
+                            ? $freeFieldRepository->find($freeFieldId)
+                            : null;
+
+                        if ($freeField) {
+                            $freeFieldTyping = $freeField->getTypage();
+                            if ($freeFieldTyping === FreeField::TYPE_BOOL) {
+                                if (!$searchBooleanValues->isEmpty()) {
+                                    foreach ($searchBooleanValues->toArray() as $index => $booleanValue) {
+                                        $conditions["freeField$freeFieldId\_$index"] = "JSON_SEARCH(ra.freeFields, 'one', '$booleanValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                    }
+                                }
+                            } elseif (in_array($freeFieldTyping, [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])) {
+                                foreach ($searchDateValues as $index => $dateValue) {
+                                    $conditions["freeField$freeFieldId\_$index"] = "JSON_SEARCH(ra.freeFields, 'one', '$dateValue', NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                }
+                            } else {
+                                $conditions["freeField$freeFieldId"] = "JSON_SEARCH(ra.freeFields, 'one', :search_value, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                            }
+                        } else if (property_exists(ReferenceArticle::class, $field)) {
+                            if (in_array($field, self::FIELDS_TYPE_DATE)) {
+                                foreach ($searchDateValues as $dateIndex => $dateValue) {
+                                    $conditions[$field] = "ra.$field BETWEEN :dateMin_{$key}_$dateIndex AND :dateMax_{$key}_$dateIndex";
+
+                                    $queryBuilder
+                                        ->setParameter("dateMin_{$key}_$dateIndex", "$dateValue 00:00:00")
+                                        ->setParameter("dateMax_{$key}_$dateIndex", "$dateValue 23:59:59");
+                                }
+                            } else {
+                                $conditions[$field] = "ra.$field LIKE :search_value";
+                            }
+                        }
+                        break;
+                }
+            }
+
+            $orX = $queryBuilder->expr()->orX();
+            $searchPartsLength = count($searchParts);
+            foreach ($searchParts as $index => $part) {
+                $orX->addMultiple(AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, false, self::ADVANCED_SEARCH_COLUMN_WEIGHTING)->toArray());
+
+                $selectExpression = AdvancedSearchHelper::bindSearch($conditions, $index, $searchPartsLength, true, self::ADVANCED_SEARCH_COLUMN_WEIGHTING)
+                    ->join(" + ");
+
+                $queryBuilder
+                    ->addSelect("$selectExpression AS HIDDEN search_relevance_$index")
+                    ->setParameter("search_value_$index", "%$part%");
+            }
+
+            if($orX->count() > 0) {
+                $relevances = AdvancedSearchHelper::getRelevances($queryBuilder);
+
+                $previousAction = $params->get("previousAction");
+                if ($previousAction === AdvancedSearchHelper::ORDER_ACTION) {
+                    $queryBuilder->addOrderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
+                } elseif ($previousAction === AdvancedSearchHelper::SEARCH_ACTION) {
+                    $queryBuilder->orderBy("{$relevances->join(" + ")} + 0 + 0", Criteria::DESC);
+                }
+
+                $queryBuilder
+                    ->andWhere($orX)
+                    ->groupBy("ra.id");
+
+                foreach ($relevances as $relevance) {
+                    $queryBuilder->addGroupBy($relevance);
+                }
+            }
         }
 
+        $queryBuilder->addSelect("COUNT_OVER(ra.id) AS __query_count");
+
+        if ($params->getInt('start')) {
+            $queryBuilder->setFirstResult($params->getInt('start'));
+        }
+
+        if ($params->getInt('length')) {
+            $queryBuilder->setMaxResults($params->getInt('length'));
+        }
+
+        $results = $queryBuilder->getQuery()->getResult();
         return [
-            'data' => $queryBuilder->getQuery()->getResult(),
-            'count' => $countQuery
+            "data" => $results,
+            "count" => $results[0]["__query_count"] ?? 0,
+            "searchParts" => $searchParts,
+            "searchableFields" => $user->getRecherche(),
         ];
     }
 

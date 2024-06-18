@@ -40,7 +40,7 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -117,9 +117,8 @@ class LocationController extends AbstractController {
         $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
         $zonesCount = $zoneRepository->count([]);
 
-        if (!$location->getId()
-            && $zonesCount === 1) {
-            $location->setZone($zoneRepository->findOneBy([]));
+        if (!$location->getId() && $zonesCount === 1) {
+            $location->setProperty("zone", $zoneRepository->findOneBy([]));
         }
 
         return $this->json([

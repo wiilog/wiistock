@@ -1,64 +1,60 @@
+{% import 'form.html.twig' as form %}
+
 {% set hasRightTreatDispute = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::TREAT_DISPUTE')) %}
+
+{{ form.hidden('disputeId', dispute.id)}}
 
 <div class="row">
     <div class="form-group col-8">
-        <label class="wii-field-name" for="disputeType">{{ trans('Qualité', 'Litiges', 'Type') }}*</label>
-        <select class="form-control data needed"
-                {{ not hasRightTreatDispute ? 'disabled' }}
-                id="disputeType"
-                name="disputeType">
-            <option value="{{ dispute.type.id }}" selected>{{ dispute.type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
-            {% for type in disputeTypes %}
-                {% if type.id != dispute.type.id %}
-                    <option value="{{ type.id }}">{{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
+        {{ form.select('disputeType', trans('Qualité', 'Litiges', 'Type'), true , {
+            type : '',
+            disabled : not hasRightTreatDispute,
+            items : disputeTypes|map((type) => {
+                value : type.id,
+                label : type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
+                selected: dispute.type.id == type.id,
+            }),
+        } ) }}
     </div>
     <div class="form-group col-4 mt-4">
-        <label class="wii-field-text">{{ trans('Qualité', 'Litiges', 'Urgence ?') }}</label>
-        <label class="switch">
-            <input class="checkbox" type="checkbox" name="emergency" {{ dispute.emergencyTriggered ? 'checked': '' }}>
-            <span class="slider round"></span>
-        </label>
+        {{ form.checkbox('emergency', trans('Qualité', 'Litiges', 'Urgence ?'), false , dispute.emergencyTriggered) }}
     </div>
     <div class="form-group col-12">
-        <label class="wii-field-name">{{ trans('Qualité', 'Litiges', 'Statut') }}*</label>
-        <select class="form-control data needed" name="disputeStatus" title="Statut">
-            {% for statut in disputeStatuses %}
-                {% set selected = (dispute.status.id == statut.id) ? 'selected' : '' %}
-                {% set disabled = hasRightTreatDispute ? '' : (statut.treated and statut.id != dispute.status.id ? 'disabled' : '') %}
-                <option value="{{ statut.id }}" {{ selected }} {{ disabled }}>{{ statut.nom }}</option>
-            {% endfor %}
-        </select>
+        {{ form.select('disputeStatus', trans('Qualité', 'Litiges', 'Statut') , true, {
+            multiple: false,
+            items: disputeStatuses|map((statut) => {
+                value: statut.id,
+                label: statut.nom,
+                disabled: (not hasRightTreatDispute) and statut.treated and statut.id != dispute.status.id,
+                selected: dispute.status.id == statut.id
+            }),
+        }) }}
     </div>
     <div class="form-group w-100 col-12">
-        <label class="wii-field-name" for="disputeReporter">{{ trans('Qualité', 'Litiges', 'Déclarant') }}*</label>
-        <select class="form-control data" name="disputeReporter" data-s2="user">
-            {% if dispute.reporter %}
-                <option value="{{ dispute.reporter.id }}" selected>{{ dispute.reporter.username }}</option>
-            {% endif %}
-        </select>
-        <input hidden
-               name="logged-user"
-               data-username="{{ dispute.reporter ? dispute.reporter.username : '' }}"
-               data-id="{{ dispute.reporter ? dispute.reporter.id : '' }}"/>
+        {{ form.select('disputeReporter', trans('Qualité', 'Litiges', 'Déclarant'), true, {
+            type: 'user',
+            multiple: false,
+            items: [{
+                value: dispute.reporter ? dispute.reporter.id,
+                label: dispute.reporter ? dispute.reporter.username,
+                selected: true,
+            },],
+        }) }}
     </div>
     <div class="form-group w-100 col-12">
-        <label class="wii-field-name" for="packEditLitige">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}*</label>
-        <select class="form-control data select2 needed" name="pack" multiple="multiple"
-                id="packEditLitige">
-            {% for pack in packs %}
-                <option value="{{ pack.id }}">
-                    {{ pack.code }}
-                </option>
-            {% endfor %}
-        </select>
+        {{ form.select('disputePacks', trans('Traçabilité', 'Général', 'Unités logistiques'), true, {
+            type: '',
+            multiple: true,
+            items: packs|map((pack) => {
+                value: pack.id,
+                label:  pack.code,
+                selected: pack in dispute.packs,
+            }),
+        }) }}
     </div>
 
     <div class="form-group col-12 h-fit-content">
         <label class="wii-field-name" for="litige-edit-commentaire">{{ trans('Général', '', 'Modale', 'Commentaire') }}</label>
-
         <div class="d-flex">
             <input type="text" id="litige-edit-commentaire" class="commentaire form-control data" name="commentaire">
             <button type="button" class="btn btn-outline-secondary form-group m-0 ml-2" onclick="getCommentAndAddHisto()">{{ trans('Général', null, 'Modale', 'Ajouter') }}</button>
@@ -67,7 +63,8 @@
     <div class="form-group col-12">
         <div>
             {% include 'attachment/attachment.html.twig' with {
-                'isNew' : false
+                'isNew' : false,
+                addPhotoButton: true,
             } %}
         </div>
     </div>
@@ -78,4 +75,3 @@
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>
 </div>
-<input hidden value="{{ dispute.id }}" id="disputeId" class="data">

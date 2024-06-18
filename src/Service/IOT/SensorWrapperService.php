@@ -40,8 +40,7 @@ class SensorWrapperService
     }
 
     public function dataRowSensorWrapper(SensorWrapper $sensorWrapper): array {
-        /** @var SensorMessage $lastLift */
-        $lastLift = $sensorWrapper->getSensor() ? $sensorWrapper->getSensor()->getLastMessage() : null;
+        $lastLift = $sensorWrapper->getSensor()?->getLastMessage();
 
         $sensor = $sensorWrapper->getSensor();
         return [
@@ -57,6 +56,7 @@ class SensorWrapperService
             'actions' => $this->templating->render('IOT/sensor_wrapper/actions.html.twig', [
                 'sensor_wrapper' => $sensorWrapper,
             ]),
+            'inactivityAlertThreshold' => $sensorWrapper->getInactivityAlertThreshold(),
         ];
     }
 }

@@ -4,9 +4,12 @@ import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
 import Modal from "@app/modal";
+import Form from "@app/form";
+import Camera from "@app/camera";
 import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
+import {initDataTable} from "@app/datatable";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -15,6 +18,7 @@ let tableArticleLitige;
 let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
+let receptionId = undefined;
 
 window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
@@ -30,13 +34,17 @@ window.initEditReception = initEditReception;
 window.updateQuantityToReceive = updateQuantityToReceive;
 
 $(function () {
+    receptionId = $('#receptionId').val();
     $('.select2').select2();
     receptionDisputesDatatable = InitDisputeDataTable();
     initPageModals();
     launchPackListSearching();
     loadReceptionLines();
 
-    $('#modalNewLitige').on('change', 'select[name=disputePacks]', function () {
+    const $modalNewDispute = $('#modalNewLitige');
+
+    Select2Old.articleReception($modalNewDispute.find('.select2-autocomplete-articles'), receptionId);
+    $modalNewDispute.on('change', 'select[name=disputePacks]', function () {
         const data = $(this).select2('data');
         const isUrgent = data.some((article) => article.isUrgent);
         $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
@@ -164,16 +172,34 @@ function initPageModals() {
     let $submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
     InitModal($modalModifyReception, $submitModifyReception, urlModifyReception);
+    $modalModifyReception.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalModifyReception.find(`.take-picture-modal-button`),
+            $modalModifyReception.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalNewLitige = $('#modalNewLitige');
+    let $modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('dispute_new_reception', true);
-    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
+    InitModal($modalNewLitige, submitNewLitige, urlNewLitige, {tables: [receptionDisputesDatatable]});
+    $modalNewLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalNewLitige.find(`.take-picture-modal-button`),
+            $modalNewLitige.find(`[name="files[]"]`)
+        );
+    });
 
-    let modalEditLitige = $('#modalEditLitige');
+    let $modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
+    InitModal($modalEditLitige, submitEditLitige, urlEditLitige, {tables: [receptionDisputesDatatable]});
+    $modalEditLitige.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalEditLitige.find(`.take-picture-modal-button`),
+            $modalEditLitige.find(`[name="files[]"]`)
+        );
+    });
 
     let $modalDeleteLitige = $("#modalDeleteLitige");
     let $submitDeleteLitige = $("#submitDeleteLitige");
@@ -182,7 +208,7 @@ function initPageModals() {
 }
 
 function InitDisputeDataTable() {
-    let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
+    let pathLitigesReception = Routing.generate('litige_reception_api', {reception: receptionId}, true);
 
     let tableLitigeConfig = {
         lengthMenu: [5, 10, 25],
@@ -232,17 +258,16 @@ function initDateTimePickerReception() {
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, disputeId, disputeNumber) {
-    let path = Routing.generate('litige_api_edit_reception', true);
+    let path = Routing.generate('litige_api_edit_reception', {dispute: disputeId});
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
-        disputeId,
         reception: receptionId,
         disputeNumber: disputeNumber
     };
 
-    $.post(path, JSON.stringify(params), function (data) {
+    $.get(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         Select2Old.articleReception(modal.find('.select2-autocomplete-articles'));
@@ -268,7 +293,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
@@ -279,7 +304,7 @@ function getCommentAndAddHisto() {
 }
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             url: pathHistoLitige,
@@ -513,7 +538,7 @@ function initNewLigneReception() {
     Select2Old.init($modalNewLigneReception.find('[name=referenceToReceive]'), '', 0, {
         route: 'get_ref_article_reception',
         param: {
-            reception: $('#receptionId').val()
+            reception: receptionId
         }
     });
     $(`.modal-footer`).find(`.submit`).removeClass(LOADING_CLASS);
@@ -548,7 +573,7 @@ function initNewLigneReception() {
                 Modal.confirm({
                     message: `
                         <p class="mb-2 text-center">L'emplacement de réception est différent de l'emplacement de l'unité logistique.</p>
-                        <p class="text-center">Les articles seront déposés sur l'emplacement de réception puis déplacés sur l'emplacement de l'unité logistique.</p>
+                        <p class="text-center">Les articles seront déposés sur l'emplacement de l'unité logistique.</p>
                     `,
                     validateButton: {
                         color: 'success',
@@ -685,11 +710,9 @@ function onReferenceToReceiveChange() {
                 .append(new Option(pack.code || "&nbsp;", pack.id || `-1`, true, true));
 
             // user can't make a transfer if the article is in a pack
-            if (Object.keys(pack).length) {
-                $('.create-request-container').find('input[value=transfer]').prop('disabled', true);
-            } else {
-                $('.create-request-container').find('input[value=transfer]').prop('disabled', false);
-            }
+            $modal
+                .find('.create-request-container input[value=transfer]')
+                .prop('disabled', Object.keys(pack).length);
         }
         else {
             $selectPack.prop('disabled', false)
@@ -732,9 +755,6 @@ function onReferenceToReceiveChange() {
             .removeAttr('data-other-params-order-number')
             .val(null).select2('data', null);
     }
-
-    $selectArticleFournisseur.trigger('change');
-    $selectPack.trigger('change');
 }
 
 function clearPackingContent($element, hideSubFields = true, hidePackingContainer = true) {
@@ -754,9 +774,8 @@ function clearPackingContent($element, hideSubFields = true, hidePackingContaine
 function loadReceptionLines({start, search} = {}) {
     start = start || 0;
     const $logisticUnitsContainer = $('.logistic-units-container');
-    const reception = $('#receptionId').val();
 
-    const params = {reception, start};
+    const params = {reception: receptionId, start};
     if (search) {
         params.search = search;
     }

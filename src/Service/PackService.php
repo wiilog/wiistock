@@ -163,7 +163,7 @@ class PackService {
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'packOrigin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
@@ -378,13 +378,13 @@ class PackService {
         );
     }
 
-    public function persistMultiPacks(EntityManagerInterface $entityManager,
-                                      Arrivage               $arrivage,
-                                      array                  $packByNatures,
-                                                             $user,
-                                      bool                   $persistTrackingMovements = true,
-                                      Project                $project = null,
-                                      Reception              $reception = null): array
+    public function createMultiplePacks(EntityManagerInterface $entityManager,
+                                        Arrivage               $arrivage,
+                                        array                  $packByNatures,
+                                                               $user,
+                                        bool                   $persistTrackingMovements = true,
+                                        Project                $project = null,
+                                        Reception              $reception = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -421,7 +421,7 @@ class PackService {
                         $arrivage
                     );
                 }
-                $entityManager->persist($pack);
+                // pack persisted by Arrival cascade persist
                 $createdPacks[] = $pack;
             }
         }
@@ -448,7 +448,7 @@ class PackService {
             $lastDrop = $pack->getLastDrop();
 
             $this->mailerService->sendMail(
-                "Follow GT // Unité logistique non récupéré$titleSuffix",
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR. "Unité logistique non récupéré$titleSuffix",
                 $this->templating->render('mails/contents/mailPackDeliveryDone.html.twig', [
                     'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),

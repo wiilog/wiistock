@@ -7,7 +7,6 @@ use App\Annotation\HasPermission;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
-use App\Entity\IOT\SensorProfile;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
@@ -20,9 +19,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use WiiCommon\Helper\Stream;
 
 #[Route("/iot/actionneurs")]
 class TriggerActionController extends AbstractController
@@ -70,6 +68,7 @@ class TriggerActionController extends AbstractController
                     IOTService::INEO_SENS_ACS_TEMP_HYGRO,
                     IOTService::INEO_SENS_ACS_TEMP,
                     IOTService::KOOVEA_TAG,
+                    IOTService::YOKOGAWA_XS550_XS110A,
                 ])) {
                     // temp and temp && hygro
                     $triggerActionConfigs = [

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
@@ -22,7 +23,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
-class ReferenceArticle
+class ReferenceArticle implements AttachmentContainer
 {
 
     use FreeFieldsManagerTrait;
@@ -345,7 +346,7 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|ArticleFournisseur[]
+     * @return Collection<int, ArticleFournisseur>
      */
     public function getArticlesFournisseur(): Collection {
         return $this->articlesFournisseur;

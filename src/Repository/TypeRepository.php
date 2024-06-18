@@ -14,6 +14,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
@@ -32,7 +33,7 @@ class TypeRepository extends EntityRepository {
      * @param string|null $order ("asc" ou "desc")
      * @return Type[]
      */
-    public function findByCategoryLabels(array $categoryLabels, $order = null): array {
+    public function findByCategoryLabels(array $categoryLabels, string $order = null, array $options = []): array {
         if (empty($categoryLabels)) {
             return [];
         }
@@ -42,6 +43,16 @@ class TypeRepository extends EntityRepository {
             ->join('type.category', 'category')
             ->where('category.label IN (:categoryLabels)')
             ->setParameter('categoryLabels', $categoryLabels);
+
+        if(isset($options['onlyActive']) && $options['onlyActive']){
+            $queryBuilder->andWhere('type.active = 1');
+        }
+
+        if(!empty($options['idsToFind'])){
+            $queryBuilder
+                ->andWhere('type.id IN (:idsToFind)')
+                ->setParameter('idsToFind', $options['idsToFind']);
+        }
 
         if ($order) {
             $queryBuilder->orderBy('type.label', $order);
@@ -87,7 +98,6 @@ class TypeRepository extends EntityRepository {
             ->getQuery()
             ->getDQL();
 
-
         $qb = $this->createQueryBuilder("type")
             ->addSelect("type.id AS id")
             ->addSelect("type.label AS text")
@@ -130,6 +140,7 @@ class TypeRepository extends EntityRepository {
 
         return $query
             ->andWhere("type.label LIKE :term")
+            ->andWhere("type.active = 1")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
@@ -137,9 +148,9 @@ class TypeRepository extends EntityRepository {
 
     public function countAvailableForSelect(?string $category, array $options = []): int {
         return $this->createSelectBuilder($category, $options)
-            ->select("COUNT(type)")
+            ->addSelect("COUNT_OVER(type.id) AS __query_count")
             ->getQuery()
-            ->getFirstResult();
+            ->getResult()[0]["__query_count"] ?? 0;
     }
 
     public function getIdAndLabelByCategoryLabel($category) {
@@ -253,6 +264,17 @@ class TypeRepository extends EntityRepository {
         ]);
 
         return $query->getOneOrNullResult();
+    }
+
+    public function countActiveTypeByCategoryType(int $categoryType): int
+    {
+        $queryBuilder = $this->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.id = :category')
+            ->andWhere('type.active = 1')
+            ->setParameter("category", $categoryType);
+
+        return QueryBuilderHelper::count($queryBuilder, 'type');
     }
 
 }

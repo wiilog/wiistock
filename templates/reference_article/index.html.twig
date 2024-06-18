@@ -74,7 +74,7 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <div class="dropdown-item has-tooltip printButton d-flex align-items-center"
                                  id="printTag"
@@ -99,12 +99,11 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <div class="d-flex justify-content-center" id="spinner">
-                    <div class="spinner-border sizeLoader" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
-                <table id="tableRefArticle_id" class="table nowrap w-100">
+                <table id="tableRefArticle" class="table nowrap w-100"
+                   {% if app.user.recherche|length > 0 %}
+                       data-previous-action="search"
+                   {% endif %}
+                >
                 </table>
             </div>
         </div>
@@ -129,12 +128,13 @@
         'searches': searches,
         'table': 'pageTables',
         'route': 'update_user_searches',
+        hints: true,
     } %}
 
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'pageTables',
-        'route': 'save_column_visible',
+        fields,
+        table: 'tableRefArticle',
+        page: 'reference',
     } %}
     <button id="cannotDelete" hidden data-toggle="modal" data-target="#modalCannotDelete"></button>
 {% endblock %}

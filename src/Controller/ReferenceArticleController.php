@@ -16,6 +16,7 @@ use App\Entity\FiltreRef;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
+use App\Entity\Kiosk;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
@@ -26,6 +27,7 @@ use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -45,6 +47,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -59,11 +62,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -117,14 +121,13 @@ class ReferenceArticleController extends AbstractController
         return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
     }
 
-    /**
-     * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     public function new(Request $request,
                         UserService $userService,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
+                        TrackingMovementService $trackingMovementService,
                         RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
@@ -137,6 +140,7 @@ class ReferenceArticleController extends AbstractController
         if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
+            $now = new DateTime('now');
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -204,7 +208,7 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'))
+                ->setCreatedAt($now)
                 ->setNdpCode($data['ndpCode'] ?? null)
                 ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setOnuCode($data['onuCode'] ?? null)
@@ -313,9 +317,9 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
-                $refArticle->getQuantiteStock() > 0 &&
-                $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                && $refArticle->getQuantiteStock() > 0
+                && $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -325,10 +329,26 @@ class ReferenceArticleController extends AbstractController
                 );
                 $mouvementStockService->finishStockMovement(
                     $mvtStock,
-                    new DateTime('now'),
+                    $now,
                     $emplacement
                 );
+                $traceMovement = $trackingMovementService->createTrackingMovement(
+                    $refArticle->getTrackingPack() ?: $refArticle->getBarCode(),
+                    $refArticle->getEmplacement(),
+                    $loggedUser,
+                    $now,
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        "mouvementStock" => $mvtStock,
+                        "quantity" => $refArticle->getQuantiteStock(),
+                        "entityManager" => $entityManager,
+                        "refOrArticle" => $refArticle,
+                    ]
+                );
                 $entityManager->persist($mvtStock);
+                $entityManager->persist($traceMovement);
             }
 
             $entityManager->persist($refArticle);
@@ -353,18 +373,14 @@ class ReferenceArticleController extends AbstractController
 
             $files = $request->files;
             if($files->has('image')) {
-                $attachments = $attachmentService->createAttachments([$files->get('image')]);
-                $entityManager->persist($attachments[0]);
-
-                $refArticle->setImage($attachments[0]);
+                $imageAttachment = $attachmentService->persistAttachment($entityManager, $files->get("image"));
+                $refArticle->setImage($imageAttachment);
                 $request->files->remove('image');
             }
 
             if($files->has('fileSheet')) {
-                $attachments = $attachmentService->createAttachments([$files->get('fileSheet')]);
-                $entityManager->persist($attachments[0]);
-
-                $refArticle->setSheet($attachments[0]);
+                $sheetAttachment = $attachmentService->persistAttachment($entityManager, $files->get("fileSheet"));
+                $refArticle->setSheet($sheetAttachment);
                 $request->files->remove('fileSheet');
             }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
@@ -473,6 +489,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
+                         AttachmentService      $attachmentService,
                          TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
@@ -496,7 +513,7 @@ class ReferenceArticleController extends AbstractController
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $refArticle->removeIfNotIn($data->all()['files'] ?? []);
+                    $attachmentService->removeAttachments($entityManager, $refArticle, $data->all()['files'] ?? []);
                     $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
@@ -580,11 +597,12 @@ class ReferenceArticleController extends AbstractController
      * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON))
      */
-    public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
-    {
+    public function getQuantityByRefArticleId(Request                $request,
+                                              SettingsService        $settingsService,
+                                              EntityManagerInterface $entityManager) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $settings = $entityManager->getRepository(Setting::class);
-        $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+
+        $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $quantity = false;
 
         $refArticleId = $request->request->get('refArticleId');
@@ -603,8 +621,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getRefArticles(Request $request,
-                                   EntityManagerInterface $entityManager)
-    {
+                                   EntityManagerInterface $entityManager): JsonResponse {
         $search = $request->query->get('term');
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -665,29 +682,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
-     */
-    public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $manager,
-                                      VisibleColumnService $visibleColumnService): Response
-    {
-            $data = json_decode($request->getContent(), true);
-            $fields = array_keys($data);
-            /** @var $user Utilisateur */
-            $user  = $this->getUser();
-
-            $visibleColumnService->setVisibleColumns('reference', $fields, $user);
-
-            $manager->flush();
-
-            return $this->json([
-                'success' => true,
-                'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
-            ]);
-    }
-
-    /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON))
      */
@@ -719,14 +713,14 @@ class ReferenceArticleController extends AbstractController
 
     }
 
-    /**
-     * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
-     */
+    #[Route("voir/{id}", name: "reference_article_show_page", options: ["expose" => true])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE])]
     public function showPage(Request                $request,
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
                              EntityManagerInterface $entityManager): Response {
+        $hasIaParams = $_SERVER['STOCK_FORECAST_URL'] ?? false;
+
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -748,15 +742,15 @@ class ReferenceArticleController extends AbstractController
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager)
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'hasIaParams' => $hasIaParams,
         ]);
     }
 
     /**
      * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
-	{
+    public function getQuantityType(Request $request, EntityManagerInterface $entityManager): JsonResponse {
 		if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -785,17 +779,12 @@ class ReferenceArticleController extends AbstractController
 
         $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
-        $refs = $queryResult['data'];
-        $refs = array_map(function($refArticle) {
-            return is_array($refArticle) ? $refArticle[0] : $refArticle;
-        }, $refs);
-        $barcodeConfigs = array_map(
-            function (ReferenceArticle $reference) use ($refArticleDataService) {
-                return $refArticleDataService->getBarcodeConfig($reference);
-            },
-            $refs
-        );
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user, $this->getFormatter());
+
+        $barcodeConfigs = Stream::from($queryResult['data'])
+            ->map(static fn($refArticle) => is_array($refArticle) ? $refArticle[0] : $refArticle)
+            ->map(static fn(ReferenceArticle $reference) => $refArticleDataService->getBarcodeConfig($reference))
+            ->toArray();
 
         $barcodeCounter = count($barcodeConfigs);
 
@@ -909,7 +898,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,
-                                   RefArticleDataService $refArticleDataService) {
+                                   RefArticleDataService $refArticleDataService): JsonResponse {
 
         $refArticleDataService->updateRefArticleQuantities($entityManager, [$referenceArticle], true);
         $entityManager->flush();
@@ -925,7 +914,7 @@ class ReferenceArticleController extends AbstractController
     public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
-                                SettingsService        $settingsService) {
+                                SettingsService        $settingsService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -988,7 +977,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function editTemplate(EntityManagerInterface $entityManager,
                                  RefArticleDataService  $refArticleDataService,
-                                 ReferenceArticle       $reference) {
+                                 ReferenceArticle       $reference): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -1041,50 +1030,58 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
-    public function validateEntryStock(Request $request,
-                                  EntityManagerInterface $entityManager,
-                                  ArticleFournisseurService $articleFournisseurService,
-                                  ArticleDataService $articleDataService,
-                                  RefArticleDataService $refArticleDataService,
-                                  UniqueNumberService   $uniqueNumberService,
-                                  KioskService $kioskService,
-                                  FreeFieldService $freeFieldService,
-                                  NotificationService $notificationService): Response {
+    public function validateEntryStock(Request                   $request,
+                                       EntityManagerInterface    $entityManager,
+                                       ArticleFournisseurService $articleFournisseurService,
+                                       ArticleDataService        $articleDataService,
+                                       RefArticleDataService     $refArticleDataService,
+                                       UniqueNumberService       $uniqueNumberService,
+                                       KioskService              $kioskService,
+                                       FreeFieldService          $freeFieldService,
+                                       NotificationService       $notificationService): JsonResponse {
+        // get data from request
+        $data = $request->query;
+
+        $kioskRepository = $entityManager->getRepository(Kiosk::class);
+        $token = $data->get('token');
+        $kiosk = $kioskRepository->findOneBy(['token' => $token]);
+        if (!$kiosk) {
+            throw new FormException("La borne n'a pas été trouvée. Veuillez réessayer.");
+        }
+
+        // repositories
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $data = $request->query->all();
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
-
-        $applicant = $userRepository->find($data['applicant']);
-        $follower = $userRepository->find($data['follower']);
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
         $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
 
-        $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]);
-        $referenceExist = isset($data['article']) && $reference;
+        $applicant = $userRepository->find($data->get('applicant'));
+        $follower = $userRepository->find($data->get('follower'));
+        $reference = $refArticleRepository->findOneBy(['reference' => $data->get('reference')]);
+        $referenceExist = $data->has('article') && $reference;
 
         if (!$reference) {
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
 
             $reference = (new ReferenceArticle())
-                ->setReference($data['reference'])
-                ->setLibelle($data['label'])
-                ->setCreatedBy($userRepository->getKioskUser())
+                ->setReference($data->get('reference'))
+                ->setLibelle($data->get('label'))
+                ->setCreatedBy($this->getUser())
                 ->setCreatedAt(new DateTime())
                 ->setBarCode($refArticleDataService->generateBarCode())
                 ->setStatut($status)
                 ->setType($type)
-                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);;
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
         }
 
-        $reference->setCommentaire($data['comment']);
+        $reference->setCommentaire($data->get('comment'));
 
         if($applicant){
             $reference->addManager($applicant);
@@ -1117,27 +1114,27 @@ class ReferenceArticleController extends AbstractController
             $reference->addArticleFournisseur($supplierArticle);
         }
 
-        if(!empty($data['freeField'])){
+        if(!empty($data->all('freeField'))) {
             $freeFieldService->manageFreeFields($reference, [
-                $data['freeField'][0] => $data['freeField'][1]
+                $data->all('freeField')[0] => $data->all('freeField')[1]
             ], $entityManager);
         }
         $barcodesToPrint = [];
         try {
             $number = $uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
-            $collecte = new Collecte();
-            $collecte
+            $collecte = (new Collecte())
                 ->setNumero($number)
-                ->setDemandeur($userRepository->getKioskUser())
+                ->setDemandeur($this->getUser())
                 ->setDate(new DateTime())
                 ->setValidationDate(new DateTime())
-                ->setType($typeRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_TYPE)))
+                ->setType($kiosk->getPickingType())
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER))
-                ->setPointCollecte($emplacementRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT)))
-                ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
-                ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
+                ->setPointCollecte($kiosk->getPickingLocation())
+                ->setObjet($kiosk->getSubject())
+                ->setKiosk($kiosk)
+                ->setstockOrDestruct($kiosk->getDestination() === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE);
 
-            $newQuantity = $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?: 1;
+            $newQuantity = $kiosk->getQuantityToPick();
 
             $collecteReference = new CollecteReference();
             $collecteReference
@@ -1157,12 +1154,12 @@ class ReferenceArticleController extends AbstractController
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER))
                 ->setDemandeCollecte($collecte);
 
-            if(!$referenceExist){
+            if (!$referenceExist) {
                 $entityManager->flush();
                 $article = $articleDataService->newArticle($entityManager, [
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
-                    'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
+                    'emplacement' => $kiosk->getPickingLocation(),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
                     'quantite' => $newQuantity,
@@ -1170,12 +1167,14 @@ class ReferenceArticleController extends AbstractController
                 $article
                     ->setReference($reference->getReference())
                     ->setInactiveSince($date)
-                    ->setCreatedOnKioskAt($date);
+                    ->setCreatedOnKioskAt($date)
+                    ->setKiosk($kiosk);
                 $entityManager->persist($article);
             } else {
-                $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
+                $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' =>$data->get('article')]);
                 $article
                     ->setQuantite($newQuantity)
+                    ->setKiosk($kiosk)
                     ->setCreatedOnKioskAt($date);
             }
 
@@ -1203,11 +1202,11 @@ class ReferenceArticleController extends AbstractController
             ->toArray();
 
         if($referenceExist) {
-            $articleSuccessMessage = str_replace('@reference', $data['reference'], str_replace('@codearticle', '<span style="color: #3353D7;">'.$data['article'].'</span>', $articleSuccessMessage));
-            $message = strip_tags(str_replace('@reference', $data['reference'], str_replace('@codearticle', $data['article'], $articleSuccessMessage)));
+            $articleSuccessMessage = str_replace('@reference', $data->get('reference'), str_replace('@codearticle', '<span style="color: #3353D7;">'.$data->get('article').'</span>', $articleSuccessMessage));
+            $message = strip_tags(str_replace('@reference', $data->get('reference'), str_replace('@codearticle', $data->get('article'), $articleSuccessMessage)));
         } else {
-            $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data['reference'].'</span>', $referenceSuccessMessage);
-            $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
+            $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data->get('reference').'</span>', $referenceSuccessMessage);
+            $message = strip_tags(str_replace('@reference', $data->get('reference'), $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
         return new JsonResponse([
@@ -1218,5 +1217,42 @@ class ReferenceArticleController extends AbstractController
                 "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
             ]
         );
+    }
+
+    #[Route("/get-stock-forecast/{referenceArticle}", name: "reference_article_get_stock_forecast", options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
+    public function getStockForecast(Request $request, HttpClientInterface $client, string $referenceArticle, EntityManagerInterface $entityManager): JsonResponse {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $apiURL = $_SERVER['STOCK_FORECAST_URL'];
+
+        if(!$apiURL) {
+            throw new FormException("La configuration de l'instance permettant la prévision de stock est invalide");
+        }
+
+        $formData = new FormDataPart([
+            'Content-Type'=> 'application/json',
+        ]);
+
+        $headers = $formData->getPreparedHeaders()->toArray();
+        try {
+            $apiRequest = $client->request('POST', $apiURL, [
+                "headers" => $headers,
+                "body" => json_encode([
+                    "reference" => $referenceArticle,
+                ]),
+            ]);
+
+            $apiOutput = $apiRequest->getContent();
+        } catch (\Throwable $e) {
+            throw new FormException( $e->getMessage() ?: "Une erreur s'est produite lors de la prévision de stock");
+        }
+
+        $apiOutput = json_decode($apiOutput, true);
+
+        return new JsonResponse([
+            "success" => true,
+            "html" => $apiOutput["html"] ?? "",
+        ]);
     }
 }

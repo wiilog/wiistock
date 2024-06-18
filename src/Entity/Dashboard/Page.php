@@ -15,16 +15,16 @@ class Page {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private $name;
+    private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: PageRow::class, mappedBy: 'page')]
-    private $rows;
+    private Collection $rows;
 
     #[ORM\OneToOne(targetEntity: Action::class, cascade: ['persist', 'remove'], inversedBy: 'dashboard')]
-    private $action;
+    private ?Action $action = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $componentsCount = null;
@@ -81,9 +81,7 @@ class Page {
     }
 
     public function setAction(?Action $action): self {
-        if($this->action != null) {
-            $this->action->setDashboard($this);
-        }
+        $this->action?->setDashboard($this);
 
         $this->action = $action;
         if($action->getDashboard() !== $this) {

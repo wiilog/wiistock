@@ -18,7 +18,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Image externe' => [
             'hint' => 'Image statique',
             'exampleValues' => [
-                'url' => '/img/mobile_logo_header.svg',
+                'url' => '/img/wiilog.svg',
             ],
             'category' => Dashboard\ComponentType::CATEGORY_OTHER,
             'template' => Dashboard\ComponentType::EXTERNAL_IMAGE,
@@ -1057,6 +1057,35 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
             'template' => Dashboard\ComponentType::DAILY_PRODUCTION,
             'meterKey' => Dashboard\ComponentType::DAILY_PRODUCTION,
+        ],
+        'Litiges à traiter' => [
+            'hint' => 'Nombre de litiges pour le(s) type(s) et statut(s) sélectionnés',
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
+            'template' => 'disputes_to_treat',
+            'meterKey' => Dashboard\ComponentType::DISPUTES_TO_TREAT,
+            'exampleValues' => [
+                'title' => 'Litiges à traiter',
+                'count' => 5,
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
+                'textColor-3' => "#3353D7",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
+
+                'textColor-4' => "#000000",
+                'textBold-4' => false,
+                'textItalic-4' => false,
+                'textUnderline-4' => false,
+
+                'textColor-5' => "#3353d7",
+                'textBold-5' => false,
+                'textItalic-5' => false,
+                'textUnderline-5' => false,
+            ]
         ],
     ];
 

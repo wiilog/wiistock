@@ -39,13 +39,14 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_DISPATCH_VISIBLE_COLUMNS = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
     const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "pack", "reference", "label", "quantity", "location", "type", "operateur", "group"];
     const DEFAULT_DISPUTE_VISIBLE_COLUMNS = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
-    const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation", "deliveryFee"];
+    const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation", "deliveryFee", "user"];
     const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "createdAt", "validatedAt", "requester", "number", "status", "type"];
     const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
-    const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["linkedArrival", "LU", "date", "delay", "reference", "libelle"];
+    const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["origin", "LU", "date", "delay", "reference", "libelle"];
+    const DEFAULT_STOCK_MOVEMENT_VISIBLE_COLUMNS = ["date", "from", "barCode", "refArticle", "quantity", "origin", "destination", "type", "operator", "unitPrice", "comment"];
     const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
         FixedFieldEnum::number->name,
         FixedFieldEnum::createdAt->name,
@@ -78,6 +79,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
         'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS,
         'onGoing' => self::DEFAULT_ON_GOING_VISIBLE_COLUMNS,
+        'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -315,12 +317,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: KeptFieldValue::class)]
     private Collection $keptFieldValues;
-
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
-    private ?bool $kioskUser = false;
-
-    #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
-    private ?KioskToken $kioskToken = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
@@ -1893,37 +1889,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
                 $keptFieldValue->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function isKioskUser(): ?bool {
-        return $this->kioskUser;
-    }
-
-    public function setKioskUser(?bool $kioskUser): self {
-        $this->kioskUser = $kioskUser;
-        return $this;
-    }
-
-    public function getKioskToken(): ?KioskToken
-    {
-        return $this->kioskToken;
-    }
-
-    public function setKioskToken(?KioskToken $kioskToken): self
-    {
-        // unset the owning side of the relation if necessary
-        if ($kioskToken === null && $this->kioskToken !== null) {
-            $this->kioskToken->setUser(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($kioskToken !== null && $kioskToken->getUser() !== $this) {
-            $kioskToken->setUser($this);
-        }
-
-        $this->kioskToken = $kioskToken;
 
         return $this;
     }

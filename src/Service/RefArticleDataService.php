@@ -23,6 +23,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
@@ -34,6 +35,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
+use App\Helper\AdvancedSearchHelper;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -42,6 +44,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -153,8 +156,7 @@ class RefArticleDataService
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
     }
 
-    public function getRefArticleDataByParams(InputBag $params = null)
-    {
+    public function getRefArticleDataByParams(InputBag $params = null): array {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         /**
@@ -180,11 +182,14 @@ class RefArticleDataService
         }
         $userId = $currentUser->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $currentUser);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $currentUser, $this->formatService);
         $refs = $queryResult['data'];
+        $searchParts = $queryResult["searchParts"];
+        $searchableFields = $queryResult["searchableFields"];
+
         $rows = [];
         foreach ($refs as $refArticle) {
-            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle);
+            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields);
         }
         return [
             'data' => $rows,
@@ -193,8 +198,7 @@ class RefArticleDataService
         ];
     }
 
-    public function getDataEditForRefArticle($articleRef, $articleRepository)
-    {
+    public function getDataEditForRefArticle($articleRef, $articleRepository): array {
         $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
@@ -214,8 +218,7 @@ class RefArticleDataService
     public function getViewEditRefArticle($refArticle,
                                           $isADemand = false,
                                           $preloadCategories = true,
-                                          $showAttachments = false)
-    {
+                                          $showAttachments = false): string {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -280,7 +283,7 @@ class RefArticleDataService
                                    ReferenceArticle       $refArticle,
                                    ParameterBag           $data,
                                    Utilisateur            $user,
-                                   ?FileBag               $fileBag = null) {
+                                   ?FileBag               $fileBag = null): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -508,10 +511,8 @@ class RefArticleDataService
 
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $attachments = $this->attachmentService->createAttachments([$fileBag->get('image')]);
-                $entityManager->persist($attachments[0]);
-
-                $refArticle->setImage($attachments[0]);
+                $imageAttachment = $this->attachmentService->persistAttachment($entityManager, $fileBag->get('image'));
+                $refArticle->setImage($imageAttachment);
                 $fileBag->remove('image');
             } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getImage();
@@ -523,10 +524,9 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $attachments = $this->attachmentService->createAttachments([$fileBag->get('fileSheet')]);
-                $entityManager->persist($attachments[0]);
+                $sheetAttachment = $this->attachmentService->persistAttachment($entityManager, $fileBag->get('fileSheet'));
+                $refArticle->setSheet($sheetAttachment);
 
-                $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
             } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getSheet();
@@ -560,7 +560,7 @@ class RefArticleDataService
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle): array
+    public function dataRowRefArticle(ReferenceArticle $refArticle, array $searchParts = [], array $searchableFields = []): array
     {
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
@@ -635,6 +635,7 @@ class RefArticleDataService
                 "reference_id" => $refArticle->getId(),
                 "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
+                "hasArticles" => !empty($refArticle->getAssociatedArticles()),
             ]),
             "colorClass" => (
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
@@ -648,7 +649,7 @@ class RefArticleDataService
             $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
-        return $row;
+        return AdvancedSearchHelper::highlight($row, $searchParts, $searchableFields);
     }
 
     public function addReferenceToRequest(array                  $data,
@@ -658,7 +659,7 @@ class RefArticleDataService
                                           EntityManagerInterface $entityManager,
                                           Demande                $demande,
                                                                  $editRef = true,
-                                                                 $fromCart = false) {
+                                                                 $fromCart = false): array {
         $resp = [];
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
@@ -731,8 +732,7 @@ class RefArticleDataService
         return $resp;
     }
 
-    public function generateBarCode($counter = null)
-    {
+    public function generateBarCode($counter = null): string {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         $now = new DateTime('now');
@@ -747,8 +747,7 @@ class RefArticleDataService
         return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
     }
 
-    public function getAlerteDataByParams(InputBag $params, Utilisateur $user)
-    {
+    public function getAlerteDataByParams(InputBag $params, Utilisateur $user): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
         if ($params->has('managers') && !empty($params->get('managers')) ||
@@ -784,8 +783,7 @@ class RefArticleDataService
         ];
     }
 
-    public function dataRowAlerteRef(Alert $alert)
-    {
+    public function dataRowAlerteRef(Alert $alert): array {
         if ($entity = $alert->getReference()) {
             $referenceArticle = $entity;
             $reference = $entity->getReference();
@@ -845,8 +843,7 @@ class RefArticleDataService
         ];
     }
 
-    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array
-    {
+    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array {
         $labels = [
             $referenceArticle->getReference() ? ('L/R : ' . $referenceArticle->getReference()) : '',
             $referenceArticle->getLibelle() ? ('C/R : ' . $referenceArticle->getLibelle()) : ''
@@ -864,8 +861,7 @@ class RefArticleDataService
      */
     public function updateRefArticleQuantities(EntityManagerInterface $entityManager,
                                                array                  $references,
-                                               bool                   $fromCommand = false)
-    {
+                                               bool                   $fromCommand = false): void {
         $this->updateStockQuantities($entityManager, $references);
         $this->updateReservedQuantity($entityManager, $references, $fromCommand);
         foreach($references as $reference) {
@@ -874,8 +870,7 @@ class RefArticleDataService
     }
 
     private function updateStockQuantities(EntityManagerInterface $entityManager,
-                                           array                  $references): void
-    {
+                                           array                  $references): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         $stockQuantities = $referenceArticleRepository->getStockQuantities($references);
@@ -892,8 +887,7 @@ class RefArticleDataService
      */
     private function updateReservedQuantity(EntityManagerInterface $entityManager,
                                             array                  $references,
-                                            bool                   $fromCommand = false): void
-    {
+                                            bool                   $fromCommand = false): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $reservedQuantities = $referenceArticleRepository->getReservedQuantities($references, $fromCommand);
 
@@ -903,8 +897,7 @@ class RefArticleDataService
         }
     }
 
-    public function treatAlert(EntityManagerInterface $entityManager, ReferenceArticle $reference): void
-    {
+    public function treatAlert(EntityManagerInterface $entityManager, ReferenceArticle $reference): void {
         if ($reference->getStatut()?->getCode() === ReferenceArticle::STATUT_INACTIF) {
             foreach ($reference->getAlerts() as $alert) {
                 $entityManager->remove($alert);
@@ -950,15 +943,13 @@ class RefArticleDataService
         }
     }
 
-    private function isDifferentThresholdType($alert, $type)
-    {
+    private function isDifferentThresholdType($alert, $type): bool {
         return $alert->getType() == Alert::WARNING && $type == Alert::SECURITY ||
             $alert->getType() == Alert::SECURITY && $type == Alert::WARNING;
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur            $currentUser): array
-    {
+                                           Utilisateur            $currentUser): array {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
@@ -982,8 +973,7 @@ class RefArticleDataService
         return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $columnVisible);
     }
 
-    public function getFieldTitle(string $fieldName): ?string
-    {
+    public function getFieldTitle(string $fieldName): ?string {
         $title = null;
         foreach (self::REF_ARTICLE_FIELDS as $field) {
             if ($field['name'] === $fieldName) {
@@ -994,10 +984,11 @@ class RefArticleDataService
         return $title;
     }
 
-    public function setStateAccordingToRelations(ReferenceArticle                    $reference,
-                                                 PurchaseRequestLineRepository       $purchaseRequestLineRepository,
-                                                 ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
-    {
+    public function setStateAccordingToRelations(EntityManagerInterface $entityManager,
+                                                 ReferenceArticle       $reference): void {
+        $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
+        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+
         $associatedLines = $receptionReferenceArticleRepository->findByReferenceArticleAndReceptionStatus(
             $reference,
             [Reception::STATUT_EN_ATTENTE, Reception::STATUT_RECEPTION_PARTIELLE],
@@ -1017,15 +1008,14 @@ class RefArticleDataService
         }
     }
 
-    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, $to, bool $state = false)
-    {
+    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, $to, bool $state = false): void {
         $supplierArticles = $refArticle->getArticlesFournisseur();
         $title = $state ?
             "Une nouvelle référence vient d'être créée et attend d'être validée :" :
             "Votre référence vient d'être validée avec les informations suivantes :";
 
         $this->mailerService->sendMail(
-            'FOLLOW GT // ' . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
+            $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
                 [
@@ -1039,12 +1029,11 @@ class RefArticleDataService
         );
     }
 
-    public function sendMailEntryStock(ReferenceArticle $refArticle, $to, $message = '')
-    {
+    public function sendMailEntryStock(ReferenceArticle $refArticle, $to, $message = ''): void {
         $supplierArticles = $refArticle->getArticlesFournisseur();
 
         $this->mailerService->sendMail(
-            'FOLLOW GT // Entrée de stock',
+            $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Entrée de stock',
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
                 [
@@ -1059,8 +1048,7 @@ class RefArticleDataService
         );
     }
 
-    private function extractIncomingPreparationsData(array $quantityByDatesWithEvents, array $preparations, ReferenceArticle $referenceArticle): array
-    {
+    private function extractIncomingPreparationsData(array $quantityByDatesWithEvents, array $preparations, ReferenceArticle $referenceArticle): array {
         foreach ($preparations as $preparation) {
             $reservedQuantity = Stream::from($preparation->getReferenceLines())
                 ->filterMap(function (PreparationOrderReferenceLine $line) use ($referenceArticle) {
@@ -1083,8 +1071,7 @@ class RefArticleDataService
         return $quantityByDatesWithEvents;
     }
 
-    private function extractIncomingReceptionsData(array $quantityByDatesWithEvents, array $receptions, ReferenceArticle $referenceArticle): array
-    {
+    private function extractIncomingReceptionsData(array $quantityByDatesWithEvents, array $receptions, ReferenceArticle $referenceArticle): array {
         foreach ($receptions as $reception) {
             $reservedQuantity = Stream::from($reception->getLines())
                 ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
@@ -1108,8 +1095,7 @@ class RefArticleDataService
         return $quantityByDatesWithEvents;
     }
 
-    private function formatExtractedIncomingData(array $quantityByDatesWithEvents, DateTime $end): array
-    {
+    private function formatExtractedIncomingData(array $quantityByDatesWithEvents, DateTime $end): array {
         $formattedQuantityPredictions = [];
         $lastQuantity = 0;
 
@@ -1159,8 +1145,7 @@ class RefArticleDataService
         return $formattedQuantityPredictions;
     }
 
-    public function getQuantityPredictions(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle, int $period)
-    {
+    public function getQuantityPredictions(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle, int $period): array {
         $preparationRepository = $entityManager->getRepository(Preparation::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
 
@@ -1182,8 +1167,7 @@ class RefArticleDataService
         return $this->formatExtractedIncomingData($quantityByDatesWithEvents, $end);
     }
 
-    public function getDraftDefaultReference(EntityManagerInterface $entityManager): string
-    {
+    public function getDraftDefaultReference(EntityManagerInterface $entityManager): string {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $lastDraftReferenceNumber = $referenceArticleRepository->getLastDraftReferenceNumber();
         return ReferenceArticle::TO_DEFINE_LABEL . ($lastDraftReferenceNumber + 1);
@@ -1191,8 +1175,7 @@ class RefArticleDataService
 
     public function putReferenceLine($handle,
                                      array $reference,
-                                     array $freeFieldsConfig): void
-    {
+                                     array $freeFieldsConfig): void {
         $line = [
             $reference["reference"],
             $reference["libelle"],
@@ -1298,8 +1281,7 @@ class RefArticleDataService
 
     public function updateDescriptionField(EntityManagerInterface $entityManager,
                                            ReferenceArticle       $referenceArticle,
-                                           array                  $data): void
-    {
+                                           array                  $data): void {
         $descriptionConfig = $this->getDescriptionConfig($entityManager);
         $descriptionData = Stream::from($descriptionConfig)
             ->filter(fn(array $config) => $config["persisted"] ?? true)

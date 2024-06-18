@@ -118,7 +118,7 @@ class Action {
     const DISPLAY_ARTI = 'afficher articles';
     const DISPLAY_REFE = 'afficher références';
     const DISPLAY_ARTI_FOUR = 'afficher articles fournisseurs';
-    const DISPLAY_MOUV_STOC = 'afficher mouvements de stock';
+    const DISPLAY_MOV_STOCK = 'afficher mouvements de stock';
     const DISPLAY_INVE = 'afficher inventaires';
     const DISPLAY_ALER = 'afficher alertes';
     const INVENTORY_MANAGER = 'gestionnaire d\'inventaire';
@@ -212,6 +212,7 @@ class Action {
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
     const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
+    const SETTINGS_DISPLAY_PURCHASE_TEMPLATE = "afficher achats";
 
     const SETTINGS_DISPLAY_PRODUCTION = 'afficher production';
 

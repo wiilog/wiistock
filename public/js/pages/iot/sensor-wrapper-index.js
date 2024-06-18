@@ -17,9 +17,6 @@ function initPageDataTable() {
         rowConfig: {
             needsRowClickAction: true,
         },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         columns: [
             {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
             {data: 'type', name: 'type', title: 'Type'},
@@ -30,6 +27,7 @@ function initPageDataTable() {
             {data: 'lastLift', name: 'lastLift', title: 'Dernière remontée'},
             {data: 'battery', name: 'battery', title: 'Niveau de batterie'},
             {data: 'manager', name: 'manager', title: 'Gestionnaire'},
+            {data: 'inactivityAlertThreshold', name: 'inactivityAlertThreshold', title: 'Seuil d\'alerte d\'inactivité (minutes)'}
         ]
     };
 

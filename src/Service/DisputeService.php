@@ -67,12 +67,16 @@ class DisputeService {
         $this->CSVExportService = $CSVExportService;
     }
 
-    public function getDataForDatatable($params = null): array {
+    public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
+        if (!$fromDashboard) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
+        } else {
+            $filters = $preFilledFilters;
+        }
 
         $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->visibleColumnService);
         $disputes = $queryResult['data'];
@@ -185,10 +189,10 @@ class DisputeService {
             );
             $subject = fn(string $slug) => (
                 !$isUpdate
-                    ? ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Litige sur {1}", false, [
+                    ? ["Traçabilité", "Arrivages UL", "Email litige", "Litige sur {1}", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
-                    : ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [
+                    : ["Traçabilité", "Arrivages UL", "Email litige", "Changement de statut d'un litige sur {1}", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
             );
@@ -215,6 +219,7 @@ class DisputeService {
         $columnsVisible = $currentUser->getVisibleColumns()['dispute'];
         return $this->visibleColumnService->getArrayConfig(
             [
+                ["name" => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],
                 ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Type')],
                 ["name" => 'arrivalNumber', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL')],
@@ -316,18 +321,6 @@ class DisputeService {
                 $this->CSVExportService->putLine($handle, $mergedRows);
             }
         }
-    }
-
-    public function createDisputeAttachments(Dispute                $dispute,
-                                             Request                $request,
-                                             EntityManagerInterface $entityManager): void {
-        $attachments = $this->attachmentService->createAttachments($request->files);
-        foreach($attachments as $attachment) {
-            $entityManager->persist($attachment);
-            $dispute->addAttachment($attachment);
-        }
-        $entityManager->persist($dispute);
-        $entityManager->flush();
     }
 
     public function createDisputeHistoryRecord(Dispute     $dispute,

@@ -11,12 +11,14 @@ use App\Entity\TrackingMovement;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -30,6 +32,12 @@ class TrackingMovementListener implements EventSubscriber
 
     #[Required]
     public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public RouterInterface $router;
 
     /**
      * @var TrackingMovement[]
@@ -90,7 +98,7 @@ class TrackingMovementListener implements EventSubscriber
                         );
 
                         $this->mailerService->sendMail(
-                            "FOLLOW GT // Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
+                            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
                             [
                                 'name' => 'mails/contents/mailDropLuOnLocation.html.twig',
                                 'context' => [
@@ -99,6 +107,9 @@ class TrackingMovementListener implements EventSubscriber
                                     'from' => $this->trackingMovementService->getFromColumnData($trackingMovement),
                                     'freeFields' => $freeFields,
                                 ],
+                                "urlSuffix" => $this->router->generate("mvt_traca_index", [
+                                    "pack" => $trackingMovement->getPack()->getCode(),
+                                ]),
                             ],
                             $managers->toArray()
                         );

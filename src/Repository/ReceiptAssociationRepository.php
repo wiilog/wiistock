@@ -95,11 +95,12 @@ class ReceiptAssociationRepository extends EntityRepository
                     $exprBuilder = $qb->expr();
                     $qb
                         ->leftJoin('receipt_association.user', 'search_user')
+                        ->leftJoin('receipt_association.logisticUnits', 'search_logisticUnit')
                         ->andWhere($exprBuilder->orX(
                             "DATE_FORMAT(receipt_association.creationDate, '%d/%m/%Y') LIKE :value",
                             "DATE_FORMAT(receipt_association.creationDate, '%H:%i:%S') LIKE :value",
                             "search_user.username LIKE :value",
-                            "receipt_association.packCode LIKE :value",
+                            "search_logisticUnit.code LIKE :value",
                             "receipt_association.receptionNumber LIKE :value",
                         ))
                         ->setParameter('value', '%' . $search . '%');

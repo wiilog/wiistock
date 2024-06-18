@@ -74,6 +74,9 @@ class OrdreCollecteService
     #[Required]
     public SpecificService $specificService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
                                 MailerService $mailerService,
@@ -99,11 +102,10 @@ class OrdreCollecteService
     }
 
     public function finishCollecte(OrdreCollecte $ordreCollecte,
-                                   Utilisateur $user,
-                                   DateTime $date,
-                                   array $mouvements,
-                                   bool $fromNomade = false)
-	{
+                                   Utilisateur   $user,
+                                   DateTime      $date,
+                                   array         $mouvements,
+                                   bool          $fromNomade = false): ?OrdreCollecte {
 
         $pairings = $ordreCollecte->getPairings();
         $pairingEnd = new DateTime('now');
@@ -118,8 +120,6 @@ class OrdreCollecteService
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
-		$settingRepository = $em->getRepository(Setting::class);
-        $userRepository = $em->getRepository(Utilisateur::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
         $referenceArticleRepository = $em->getRepository(ReferenceArticle::class);
@@ -185,7 +185,6 @@ class OrdreCollecteService
             }
         }
 
-
 		$listArticles = $ordreCollecte->getArticles();
 		foreach ($listArticles as $article) {
 		    $barCode = $article->getBarCode();
@@ -208,7 +207,7 @@ class OrdreCollecteService
             $demandeCollecte->removeArticle($article);
         }
         $this->entityManager->flush();
-        $this->removeArticlesFromCollecte($rowsToRemove, $ordreCollecte, $em);
+        $pickingOrder = $this->removeArticlesFromCollecte($rowsToRemove, $ordreCollecte, $em);
 
 		// on modifie le statut de l'ordre de collecte
 		$ordreCollecte
@@ -289,40 +288,47 @@ class OrdreCollecteService
                 );
             }
         }
+        // case $demandeCollecte is desctruct
+        else {
+            $articles = $ordreCollecte->getArticles();
+            $statutArticle = $statutRepository->findOneByCategorieNameAndStatutCode(
+                CategorieStatut::ARTICLE,
+                Article::STATUT_INACTIF
+            );
+            foreach ($articles as $article) {
+                $article->setStatut($statutArticle);
+            }
+        }
 
 		$this->entityManager->flush();
 
 		$partialCollect = !empty($rowsToRemove);
 
         if($demandeCollecte->getDemandeur()){
-            $kioskUser = $demandeCollecte->getDemandeur()?->isKioskUser();
-            $to = $kioskUser
-                ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
-                : $demandeCollecte->getDemandeur();
-
-            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $to = $demandeCollecte->getKiosk()?->getRequester() ?: $demandeCollecte->getDemandeur();
+            if($demandeCollecte->getKiosk() && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_RATATOUILLE)) {
                 $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
                     ->map(fn(Utilisateur $manager) => $manager->getEmail())
                     ->toArray();
                 $to = array_merge([$to], $managers);
             }
             $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
-                $this->templating->render(
-                    'mails/contents/mailCollecteDone.html.twig',
-                    [
-                        'title' => $partialCollect
-                            ? 'Votre demande de collecte a été partiellement effectuée.'
-                            : 'Votre demande de collecte a bien été effectuée.',
-                        'collecte' => $ordreCollecte,
-                        'demande' => $demandeCollecte,
-                    ]
-                ),
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Collecte effectuée',
+                $this->templating->render('mails/contents/mailCollecteDone.html.twig', [
+                    "title" => $partialCollect
+                        ? "Votre demande de collecte a été partiellement effectuée."
+                        : "Votre demande de collecte a bien été effectuée.",
+                    "collecte" => $ordreCollecte,
+                    "demande" => $demandeCollecte,
+                    "urlSuffix" => $this->router->generate("ordre_collecte_show", [
+                        "id" => $ordreCollecte->getId(),
+                    ]),
+                ]),
                 $to
             );
         }
 
-		return $newCollecte ?? null;
+		return $pickingOrder;
 	}
 
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
@@ -441,22 +447,23 @@ class OrdreCollecteService
     }
 
     public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
-        $demande = $ordreCollecte->getDemandeCollecte();
-        $requester = FormatHelper::collectRequester($demande);
-        $pointCollecte = $demande ? $demande->getPointCollecte() : null;
+        $demandeCollecte = $ordreCollecte->getDemandeCollecte();
+        $requester = $this->formatService->collectRequester($demandeCollecte);
+        $pointCollecte = $demandeCollecte?->getPointCollecte();
         $dateCreation = $ordreCollecte->getDate();
         $dateCollecte = $ordreCollecte->getTreatingDate();
-        $comment = $demande->getCommentaire();
+        $comment = $demandeCollecte->getCommentaire();
 
         return [
             [ 'label' => 'Numéro', 'value' => $ordreCollecte->getNumero() ],
             [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($this->formatService->status($ordreCollecte->getStatut())) : '' ],
-            [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
+            [ 'label' => 'Opérateur', 'value' => $this->formatService->user($ordreCollecte->getUtilisateur()) ],
             [ 'label' => 'Demandeur', 'value' => $requester],
-            [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
-            [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
-            [ 'label' => 'Date de création', 'value' => $dateCreation ? $dateCreation->format('d/m/Y H:i') : '' ],
-            [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
+            [ 'label' => 'Destination', 'value' => $demandeCollecte->isStock() ? 'Mise en stock' : 'Destruction' ],
+            [ 'label' => 'Point de collecte', 'value' => $this->formatService->location($pointCollecte) ],
+            [ 'label' => 'Date de création', 'value' => $this->formatService->datetime($dateCreation) ],
+            [ 'label' => 'Date de collecte', 'value' => $this->formatService->datetime($dateCollecte) ],
+            [ 'label' => 'Provenance', 'value' => $demandeCollecte->getKiosk()?->getName() ?: '' ],
             [
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -470,11 +477,13 @@ class OrdreCollecteService
 
     private function removeArticlesFromCollecte(array $articlesToRemove,
                                                 OrdreCollecte $ordreCollecte,
-                                                EntityManagerInterface $entityManager) {
+                                                EntityManagerInterface $entityManager): ?OrdreCollecte {
         $demandeCollecte = $ordreCollecte->getDemandeCollecte();
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dateNow = new DateTime('now');
         // cas de collecte partielle
+
+        $newCollecte = null;
         if (!empty($articlesToRemove)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
@@ -517,6 +526,8 @@ class OrdreCollecteService
             $demandeCollecte
                 ->setStatut($statutCollecte);
         }
+
+        return $newCollecte;
     }
 
     public function putCollecteLine($handle,

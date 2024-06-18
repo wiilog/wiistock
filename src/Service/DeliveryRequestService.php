@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Controller\VisibleColumnController;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -26,6 +27,7 @@ use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -100,6 +102,9 @@ class DeliveryRequestService
 
     #[Required]
     public ArticleDataService $articleDataService;
+
+    #[Required]
+    public SettingsService $settingsService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -192,7 +197,7 @@ class DeliveryRequestService
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
         if ($requestStatus === Demande::STATUT_A_TRAITER && !$demande->getPreparations()->isEmpty()) {
-            $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
+            $href = $this->router->generate('preparation_index', ['deliveryRequest' => $demande->getId()]);
         } else if (
             (
                 $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
@@ -285,8 +290,15 @@ class DeliveryRequestService
         $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
         $isFastDelivery = $data['isFastDelivery'] ?? false;
 
+        $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
+
+        if ((!$type->isActive() || !in_array($type->getId(), $utilisateur->getDeliveryTypeIds()))
+            && !empty($utilisateur->getDeliveryTypeIds())) {
+            throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+        }
+
         if (!$fromNomade && !$disabledFieldsChecking) {
             $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
@@ -304,7 +316,6 @@ class DeliveryRequestService
                 ];
             }
         }
-        $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
         $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
@@ -319,7 +330,7 @@ class DeliveryRequestService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
-        $visibleColumns = $utilisateur->getVisibleColumns()[Demande::VISIBLE_COLUMNS_SHOW_FIELD] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+        $visibleColumns = $utilisateur->getVisibleColumns()[VisibleColumnController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
 
         $demande = new Demande();
         $demande
@@ -356,13 +367,13 @@ class DeliveryRequestService
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
                                             bool                   $flush = true,
-                                            bool                   $simple = false): array
-    {
+                                            bool                   $simple = false): array {
+
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $settings = $entityManager->getRepository(Setting::class);
-        $settingNeedPlanningValidation = $settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
-        $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+
+        $settingNeedPlanningValidation = $this->settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING, false);
+        $settingMangeDeliveriesWithoutStockQuantity = $this->settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
 
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade);
@@ -484,7 +495,8 @@ class DeliveryRequestService
         $response['success'] = true;
         $response['msg'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
 
         $date = new DateTime('now');
 
@@ -532,11 +544,11 @@ class DeliveryRequestService
                 && $demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
                 && $sendNotification
-                && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
+                && !$preparedUponValidationSetting) {
                 $this->notificationService->toTreat($preparation);
             }
         }
-        catch (UniqueConstraintViolationException $e) {
+        catch (UniqueConstraintViolationException) {
             $response['success'] = false;
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
@@ -556,15 +568,18 @@ class DeliveryRequestService
 
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
-                'FOLLOW GT // Validation d\'une demande vous concernant',
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Validation d\'une demande vous concernant',
                 $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
-                    'demande' => $demande,
-                    'title' => 'La '  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
+                    "demande" => $demande,
+                    "title" => "La "  . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " " . $demande->getNumero() . " de type "
                         . $demande->getType()->getLabel()
-                        . ' a bien été validée le '
-                        . $nowDate->format('d/m/Y \à H:i')
-                        . '.',
-                    'requester' => $options['requester'] ?? null,
+                        . " a bien été validée le "
+                        . $nowDate->format("d/m/Y à H:i")
+                        . ".",
+                    "requester" => $options["requester"] ?? null,
+                    "urlSuffix" => $this->router->generate("demande_show", [
+                        "id" => $demande->getId(),
+                    ]),
                 ]),
                 $to
             );
@@ -604,21 +619,29 @@ class DeliveryRequestService
 
             $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, ['entityManager' => $entityManager]);
+            $newPreparation = $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, ['entityManager' => $entityManager]);
             $this->preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
-            $entityManager->flush();
             $this->preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
+
+            $entityManager->flush(); // need to flush before quantity update
             $this->preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
+            $entityManager->flush();
+
+            if ($newPreparation
+                && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($newPreparation);
+            }
+
+            if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($livraison);
+            }
+
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => false,
                 'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
-            $entityManager->flush();
-            if ($livraison->getDemande()->getType()->isNotificationsEnabled()) {
-                $this->notificationService->toTreat($livraison);
-            }
         }
 
         return $response;
@@ -840,16 +863,15 @@ class DeliveryRequestService
     }
 
     public function treatSetting_preparedUponValidation(EntityManagerInterface $entityManager, Demande $request): bool {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $preparedUponValidationSetting = $settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
-        $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+        $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
+        $defaultLocationReceptionSetting = $this->settingsService->getValue($entityManager, Setting::DEFAULT_LOCATION_RECEPTION);
+        $manageDeliveryWithoutStockQuantitySetting = $this->settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         $defaultLocationReception = $defaultLocationReceptionSetting
             ? $locationRepository->find($defaultLocationReceptionSetting)
             : null;
-        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if($preparedUponValidationSetting) {
             $locations = [];
@@ -895,7 +917,7 @@ class DeliveryRequestService
         $defaultLocationReception = $defaultLocationReceptionSetting
             ? $locationRepository->find($defaultLocationReceptionSetting)
             : null;
-        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+        $manageDeliveryWithoutStockQuantitySetting = $defaultLocationReception && $this->settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         $request = $preparation->getDemande();
 

@@ -10,13 +10,21 @@
 {% set defaultLangage = language_service.defaultLanguage %}
 {% set maxLengthUserLabel = 20 %}
 
+{% set currentPath = app.request.pathinfo %}
+{% set isLoginPageAndShowLogo = (
+    currentPath != path('login')
+    or (currentPath == path('login') and setting_value('SHOW_LOGIN_LOGO'))
+) %}
+
 <div class="main-header">
     <div class="px-lg-3 w-100">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-12 col-lg-auto d-flex align-items-end justify-content-center">
-                <a class="position-relative" href="{{ path('app_index') }}">
-                    <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
-                </a>
+                {% if isLoginPageAndShowLogo %}
+                    <a class="position-relative" href="{{ path('app_index') }}">
+                        <img src="{{ logo('website') }}" alt="Logo de l'application" height="100" class="sizeLogo"/>
+                    </a>
+                {% endif %}
                 <span class="web-version d-none d-lg-inline">
                     {% if app_context is not same as('prod') %}
                         <span class="h3">
@@ -139,7 +147,9 @@
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
                                     <a class="d-flex align-items-center"
-                                       href="{{ path('redirect_before_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('redirect_before_index', {'open-modal': 'new'}) }}"
+                                       title="Livraison"
+                                       data-cy-request-item="delivery">
                                         <span class="wii-icon wii-icon-menu-delivery quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Livraison', 'Livraison') }}</span>
                                     </a>
@@ -149,7 +159,9 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'collecte_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('collecte_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('collecte_index', {'open-modal': 'new'}) }}"
+                                       title="Collecte"
+                                       data-cy-request-item="collecte">
                                         <span class="wii-icon wii-icon-import quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Collecte</span>
                                     </a>
@@ -158,7 +170,9 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'handling_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('handling_index', {'open-modal': 'new'}) }}"
+                                       title="Service"
+                                       data-cy-request-item="handling">
                                         <span class="wii-icon wii-icon-handling quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Services', null, 'Service') }}</span>
                                     </a>
@@ -167,7 +181,9 @@
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'dispatch_index') %}
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('dispatch_index', {'open-modal': 'new'}) }}"
+                                       title="Acheminement"
+                                       data-cy-request-item="dispatch">
                                         <span class="wii-icon wii-icon-way quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Acheminements', 'Général', 'Acheminement') }}</span>
                                     </a>
@@ -177,7 +193,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('transfer_request_index', {'open-modal': 'new'}) }}"
-                                       title="Transfert">
+                                       title="Transfert"
+                                       data-cy-request-item="transfert">
                                         <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transfert</span>
                                     </a>
@@ -187,7 +204,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('purchase_request_index', {'open-modal': 'new'}) }}"
-                                       title="Achat">
+                                       title="Achat"
+                                       data-cy-request-item="purchase">
                                         <span class="wii-icon wii-icon-menu-achat quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Achat</span>
                                     </a>
@@ -197,12 +215,13 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('transport_request_index', {'open-modal': 'new'}) }}"
-                                       title="Transport">
+                                       title="Transport"
+                                       data-cy-request-item="transport">
                                         <span class="wii-icon wii-icon-transport quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transport</span>
                                     </a>
                                 {% endif %}
-                                {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
+                                {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_RATATOUILLE')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
                                     <a class="d-flex align-items-center"
                                        href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u">
                                         <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
@@ -214,7 +233,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('shipping_request_index', {'open-modal': 'new'}) }}"
-                                       title="Achat">
+                                       title="Expédition"
+                                       data-cy-request-item="shipping-request">
                                         <span class="wii-icon wii-icon-menu-expedition quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">{{ trans('Demande', 'Expédition', 'Expédition') }}</span>
                                     </a>
@@ -224,7 +244,8 @@
                                     <a class="d-flex align-items-center"
                                        onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
                                        href="{{ path('production_request_index', {'open-modal': 'new'}) }}"
-                                       title="Production">
+                                       title="Production"
+                                       data-cy-request-item="production">
                                         <span class="wii-icon wii-icon-production quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Production</span>
                                     </a>
@@ -300,7 +321,7 @@
                              aria-expanded="false">
                             <span class="icon-menu"></span>
                         </div>
-                        <div class="dropdown-menu pointer mr-0">
+                        <div data-cypress="menu" class="dropdown-menu pointer mr-0">
                             <h1 class="dropdown-header d-flex d-md-none">
                                 Menu
                                 <button type="button" class="close-menu" aria-label="Close"></button>
@@ -315,6 +336,7 @@
                                              aria-expanded="false">
                                             {% include 'menu/menu-item.html.twig' with {
                                                 label: itemMenu.label,
+                                                id: itemMenu.icon is defined ? itemMenu.icon,
                                                 icon: itemMenu.icon is defined ? itemMenu.icon,
                                                 title: itemMenu.title is defined ? itemMenu.title,
                                                 isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
@@ -325,6 +347,7 @@
                                             {% for itemMenuSub in itemMenu.sub %}
                                                 {% include 'menu/menu-item.html.twig' with {
                                                     label: itemMenuSub.label,
+                                                    id: itemMenu.icon is defined ? itemMenu.icon,
                                                     icon: itemMenuSub.icon is defined ? itemMenuSub.icon,
                                                     title: itemMenuSub.title is defined ? itemMenuSub.title,
                                                     isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
@@ -339,6 +362,7 @@
                                     {% if itemMenu.label != constant('App\\Entity\\Menu::PARAM') | capitalize or (itemMenu.label == constant('App\\Entity\\Menu::PARAM') | capitalize and displaySettings()) %}
                                         {% include 'menu/menu-item.html.twig' with {
                                             label: itemMenu.label,
+                                            id: itemMenu.icon is defined ? itemMenu.icon,
                                             icon: itemMenu.icon is defined ? itemMenu.icon,
                                             isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
                                             url: itemMenu.url is defined ? itemMenu.url : (itemMenu.path is defined ? path(itemMenu.path) : '#'),

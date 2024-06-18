@@ -39,6 +39,7 @@ class Import {
     const ENTITY_PROJECT = 'PROJECT';
     const ENTITY_REF_LOCATION = 'REF_LOCATION';
     const ENTITY_PRODUCTION = 'PRODUCTION';
+    const ENTITY_DISPATCH = 'DISPATCH';
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -52,9 +53,8 @@ class Import {
         self::ENTITY_PROJECT => "Projets",
         self::ENTITY_REF_LOCATION => "Quantité référence par emplacement",
         self::ENTITY_PRODUCTION => "Productions",
+        self::ENTITY_DISPATCH => "Acheminements",
     ];
-
-    CONST LAST_DAY_OF_WEEK = 'last';
 
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
@@ -75,34 +75,34 @@ class Import {
         self::ENTITY_REF => [
             'reference',
             'libelle',
-            'type',
+            FixedFieldEnum::type->name,
             'typeQuantite',
             'emplacement',
         ],
         self::ENTITY_RECEPTION => [
-            'orderNumber',
+            FixedFieldEnum::orderNumber->name,
             'expectedDate',
-            'quantity',
+            FixedFieldEnum::quantity->name,
             'reference',
         ],
         self::ENTITY_USER => [
             'role',
             'username',
-            'email',
-            'status',
+            FixedFieldEnum::email->name,
+            FixedFieldEnum::status->name,
         ],
         self::ENTITY_DELIVERY => [
-            'destination',
-            'type',
-            'status',
+            FixedFieldEnum::destination->name,
+            FixedFieldEnum::type->name,
+            FixedFieldEnum::status->name,
             'articleReference',
             'quantityDelivery',
         ],
         self::ENTITY_LOCATION => [
-            'name',
+            FixedFieldEnum::name->name,
         ],
         self::ENTITY_CUSTOMER => [
-            'name',
+            FixedFieldEnum::name->name,
         ],
         self::ENTITY_PROJECT => [
             'code',
@@ -119,6 +119,12 @@ class Import {
             FixedFieldEnum::type->name,
             FixedFieldEnum::status->name,
         ],
+        self::ENTITY_DISPATCH => [
+            FixedFieldEnum::type->name,
+            FixedFieldEnum::dropLocation->name,
+            FixedFieldEnum::pickLocation->name,
+            FixedFieldEnum::requester->name,
+        ],
     ];
     const FIELD_PK = [
         self::ENTITY_ART_FOU => 'reference',
@@ -133,6 +139,7 @@ class Import {
         self::ENTITY_PROJECT => 'code',
         self::ENTITY_REF_LOCATION => 'reference',
         self::ENTITY_PRODUCTION => null,
+        self::ENTITY_DISPATCH => null,
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
@@ -168,7 +175,6 @@ class Import {
             'typeLabel' => 'type',
             'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
             'emergencyComment' => 'commentaire urgence',
-            'orderNumber' => 'numéro de commande',
             'quantity' => 'quantité',
             'batch' => 'Lot',
             'location' => 'Emplacement',
@@ -186,45 +192,44 @@ class Import {
             "volume" => 'Volume (m3)',
             "weight" => 'Poids (kg)',
             "associatedDocumentTypes" => 'Type de documents associés',
-
+            "supplierName" => "Nom fournisseur",
+            "supplierCode" => "Code fournisseur",
+            "supplierArticleReference" => "Référence article fournisseur",
+            "supplierArticleLabel" => "Libellé article fournisseur",
 
             'role' => 'Rôle',
             'deliverer' => 'Livreur',
             'username' => 'Nom d\'utilisateur',
-            'email' => 'Email',
             'secondaryEmail' => 'Email 2',
             'lastEmail' => 'Email 3',
             'phone' => 'Numéro de téléphone',
             'mobileLoginKey' => 'Clé de connexion nomade',
-            'address' => 'Adresse',
             'deliveryTypes' => 'Types de livraison',
             'dispatchTypes' => 'Types d\'acheminement',
             'handlingTypes' => 'Types de services',
             'dropzone' => 'Dropzone',
             'visibilityGroup' => 'Groupes de visibilité',
-            'status' => 'Statut',
+            FixedFieldEnum::status->name => FixedFieldEnum::status->value,
             'quantityDelivery' => 'Quantité à livrer',
             'articleCode' => 'Code article',
             'articleReference' => 'Référence',
-            'requester' => 'Demandeur',
             'signatoryCode' => 'Code Signataire',
             'recipient' => 'Destinataire',
 
             'targetLocationPicking' => 'Emplacement cible picking',
-            'name' => 'Nom',
-            'description' => 'Description',
+            FixedFieldEnum::name->name => FixedFieldEnum::name->value,
+            FixedFieldEnum::description->name => FixedFieldEnum::description->value,
             'dateMaxTime' => 'Délai traça HH:MM',
             'allowedPackNatures' => "Natures autorisées",
-            'allowedDeliveryTypes' => 'Types de livraisons autorisés',
-            'allowedCollectTypes' => 'Types de collectes autorisés',
+            FixedFieldEnum::allowedDeliveryTypes->name => FixedFieldEnum::allowedDeliveryTypes->value,
+            FixedFieldEnum::allowedCollectTypes->name => FixedFieldEnum::allowedCollectTypes->value,
             'isDeliveryPoint' => 'Point de livraison',
             'isOngoingVisibleOnMobile' => 'Encours visible nomade',
             'isActive' => 'Actif',
             'signatory' => 'Signataire',
-            'signatories' => 'Signataires',
+            FixedFieldEnum::signatories->name => FixedFieldEnum::signatories->value,
 
             'possibleCustoms' => 'Possible douane',
-            'urgent' => 'Urgent',
 
             'fax' => 'Fax',
 
@@ -238,7 +243,6 @@ class Import {
 
             FixedFieldEnum::createdBy->name => FixedFieldEnum::createdBy->value,
             FixedFieldEnum::type->name => FixedFieldEnum::type->value,
-            FixedFieldEnum::status->name => FixedFieldEnum::status->value,
             FixedFieldEnum::expectedAt->name => FixedFieldEnum::expectedAt->value,
             FixedFieldEnum::dropLocation->name => FixedFieldEnum::dropLocation->value,
             FixedFieldEnum::lineCount->name => FixedFieldEnum::lineCount->value,
@@ -248,12 +252,31 @@ class Import {
             FixedFieldEnum::emergency->name => FixedFieldEnum::emergency->value,
             FixedFieldEnum::projectNumber->name => FixedFieldEnum::projectNumber->value,
             FixedFieldEnum::comment->name => FixedFieldEnum::comment->value,
-        ],
+            FixedFieldEnum::receiver->name => FixedFieldEnum::receiver->value,
+            FixedFieldEnum::address->name => FixedFieldEnum::address->value,
+            FixedFieldEnum::phoneNumber->name => FixedFieldEnum::phoneNumber->value,
+            FixedFieldEnum::urgent->name => FixedFieldEnum::urgent->value,
+            FixedFieldEnum::email->name => FixedFieldEnum::email->value,
 
+            FixedFieldEnum::type->name => FixedFieldEnum::type->value,
+            FixedFieldEnum::status->name => FixedFieldEnum::status->value,
+            FixedFieldEnum::pickLocation->name => FixedFieldEnum::pickLocation->value,
+            FixedFieldEnum::orderNumber->name => FixedFieldEnum::orderNumber->value,
+            FixedFieldEnum::destination->name => FixedFieldEnum::destination->value,
+            FixedFieldEnum::carrier->name => FixedFieldEnum::carrier->value,
+            FixedFieldEnum::requester->name => FixedFieldEnum::requester->value,
+            FixedFieldEnum::receivers->name => FixedFieldEnum::receivers->value,
+            FixedFieldEnum::businessUnit->name => FixedFieldEnum::businessUnit->value,
+            FixedFieldEnum::customerName->name => FixedFieldEnum::customerName->value,
+            FixedFieldEnum::customerPhone->name => FixedFieldEnum::customerPhone->value,
+            FixedFieldEnum::customerRecipient->name => FixedFieldEnum::customerRecipient->value,
+            FixedFieldEnum::customerAddress->name => FixedFieldEnum::customerAddress->value,
+            FixedFieldEnum::carrierTrackingNumber->name => FixedFieldEnum::carrierTrackingNumber->value,
+            FixedFieldEnum::emails->name => FixedFieldEnum::emails->value,
+        ],
         self::ENTITY_CUSTOMER => [
             'name' =>  'Client',
         ],
-
         self::ENTITY_REF => [
             'dangerousGoods' =>  'Marchandise dangereuse',
             'onuCode' =>  'Code ONU',

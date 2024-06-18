@@ -24,7 +24,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
-use App\Entity\KioskToken;
+use App\Entity\Kiosk;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
@@ -77,7 +77,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
@@ -637,6 +637,33 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_TEMPLATE_PURCHASE => [
+                    "label" => "Achats",
+                    "right" => Action::SETTINGS_DISPLAY_PURCHASE_TEMPLATE,
+                    "menus" => [
+                        self::MENU_TEMPLATE_PURCHASE_ORDER => [
+                            "label" => "Bon de commande",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                    ],
+                ]
+            ],
+        ],
+        self::CATEGORY_PRATICAL_LINKS => [
+            "label" => "Liens pratiques",
+            "icon" => "links",
+            "menus" => [
+                self::MENU_MOBILE_APP => [
+                    "label" => "Application mobile",
+                    "route" => "mobile_app_link",
+                    "hint" => "Application mobile Android, extension de la version web, dédiée à la mobilité sur site.",
+                ],
+                self::MENU_WIISPOOL => [
+                    "label" => "Wiispool",
+                    "route" => "wiispool_link",
+                    "hint" => "Application Windows d'impression automatique de fichiers PDF.",
+                ],
             ],
         ],
     ];
@@ -653,6 +680,7 @@ class SettingsController extends AbstractController {
     public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
     public const CATEGORY_TEMPLATES = "modeles";
+    public const CATEGORY_PRATICAL_LINKS = "liens pratiques";
 
     public const MENU_SITE_APPEARANCE = "apparence_site";
     public const MENU_WORKING_HOURS = "heures_travaillees";
@@ -729,12 +757,16 @@ class SettingsController extends AbstractController {
     public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
 
     public const MENU_TEMPLATE_DISPATCH = "acheminement";
+    public const MENU_MOBILE_APP = "application_mobile";
+    public const MENU_WIISPOOL = "wiispool";
     public const MENU_TEMPLATE_DELIVERY = "livraison";
     public const MENU_TEMPLATE_SHIPPING = "expedition";
+    public const MENU_TEMPLATE_PURCHASE = "achats";
     public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_DELIVERY_SLIP = "bordereau_de_livraison";
+    public const MENU_TEMPLATE_PURCHASE_ORDER = "bon_de_commande";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
@@ -943,24 +975,25 @@ class SettingsController extends AbstractController {
      * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
-    public function saveTranslationApi(EntityManagerInterface $manager,
+    public function saveTranslationApi(EntityManagerInterface $entityManager,
                                        Request                $request,
                                        AttachmentService      $attachmentService,
                                        SettingsService        $settingsService,
                                        CacheService           $cacheService): Response {
         $data = $request->request;
         $file = $request->files;
-        $languageRepository = $manager->getRepository(Language::class);
-        $translationRepository = $manager->getRepository(Translation::class);
-        $translationSourceRepository = $manager->getRepository(TranslationSource::class);
+        $languageRepository = $entityManager->getRepository(Language::class);
+        $translationRepository = $entityManager->getRepository(Translation::class);
+        $translationSourceRepository = $entityManager->getRepository(TranslationSource::class);
 
         $language = $data->get('language');
         if ($language === 'NEW') {
             $language = new Language;
-            $flagCustom = $file->get('flagCustom');
+            $flagCustom = $request->files->get('flagCustom');
             if ($flagCustom) {
-                $flagFile = $attachmentService->createAttachments($file);
-                $languageFile = $flagFile[0]->getFullPath();
+                $flagAttachment = $attachmentService->persistAttachment($entityManager, $file);
+                $languageFile = $flagAttachment->getFullPath();
+//                TODO Adrien pourquoi language n'est pas lié à attachment
             }
             else {
                 $languageFile = $data->get('flagDefault');
@@ -973,7 +1006,7 @@ class SettingsController extends AbstractController {
                 ->setSelectable(false)
                 ->setSlug(strtolower(str_replace(' ', '_', $languageName)))
                 ->setSelected(false);
-            $manager->persist($language);
+            $entityManager->persist($language);
         } else {
             $language = $languageRepository->findOneBy(['id' => $data->get('language')]);
         }
@@ -990,7 +1023,7 @@ class SettingsController extends AbstractController {
                    $translation->setTranslation($value);
                }
                else {
-                   $manager->remove($translation);
+                   $entityManager->remove($translation);
                }
            }
            elseif ($value != null or $value != '') {
@@ -999,11 +1032,11 @@ class SettingsController extends AbstractController {
                    ->setTranslation($value)
                    ->setSource($source)
                    ->setLanguage($language);
-                $manager->persist($translation);
+                $entityManager->persist($translation);
            }
         }
 
-        $manager->flush();
+        $entityManager->flush();
 
         $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
         $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
@@ -1295,7 +1328,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_TOUCH_TERMINAL => [
                     self::MENU_COLLECT_REQUEST_AND_CREATE_REF => fn() => [
-                        'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                        'alreadyUnlinked' => empty($entityManager->getRepository(Kiosk::class)->findAll()),
                     ],
                     self::MENU_FAST_DELIVERY_REQUEST => fn() => [
                         'filterFields' => Stream::from($entityManager->getRepository(FreeField::class)->findByCategory(CategorieCL::REFERENCE_ARTICLE))
@@ -1765,6 +1798,24 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "deliveryTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
+                        ->map(static fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray(),
+                    "dispatchTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                        ->map(static fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray(),
+                    "handlingTypes" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
+                        ->map(static fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray(),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
@@ -2327,6 +2378,13 @@ class SettingsController extends AbstractController {
                     "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type ? $type->hasReusableStatuses() : true),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+                $data[] = [
+                    "label" => "Actif",
+                    "value" => $formService->macro("checkbox", "active", '', null, $type ? $type->isActive() : true),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2443,6 +2501,13 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
                     "value" => $this->formatService->bool($type->hasReusableStatuses(), "Non"),
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
+                $data[] = [
+                    "label" => "Actif",
+                    "value" => $this->formatService->bool($type->isActive(), "Non"),
                 ];
             }
         }
@@ -3605,5 +3670,19 @@ class SettingsController extends AbstractController {
                 "msg" => "Ce pays d'origine est lié à des articles. Vous ne pouvez pas le supprimer.",
             ]);
         }
+    }
+
+    #[Route("/wiispool-link", name: "wiispool_link")]
+    public function wiispoolLink(): Response {
+        $url = $this->getParameter("wiispool_exe");
+
+        return $this->redirect($url);
+    }
+
+    #[Route("/mobile-app-link", name: "mobile_app_link")]
+    public function mobileAppLink(): Response {
+        $url = $this->getParameter("nomade_apk");
+
+        return $this->redirect($url);
     }
 }

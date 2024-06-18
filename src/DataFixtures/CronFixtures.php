@@ -16,6 +16,7 @@ use App\Command\Cron\MailsLitigesComand;
 use App\Command\Cron\RemindPackDeliveriesCommand;
 use App\Command\Cron\ScheduledExportCommand;
 use App\Command\Cron\ScheduleInventoryMissionCommand;
+use App\Command\InactiveSensorsCommand;
 use App\Command\ScheduledPurchaseRequestCommand;
 use App\Service\SpecificService;
 use Cron\CronBundle\Entity\CronJob;
@@ -49,10 +50,10 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => DashboardFeedCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_COLLINS_VERNON => '* * * * *',
-                SpecificService::CLIENT_SAFRAN_CS => '* * * * *',
-                SpecificService::CLIENT_SAFRAN_MC => '* * * * *',
-                'default' => '*/5 * * * *',
+                SpecificService::CLIENT_BARBECUE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_BARBECUE] .' * * * *',
+                SpecificService::CLIENT_POTEE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_POTEE] . ' * * * *',
+                SpecificService::CLIENT_QUICHE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_QUICHE] . ' * * * *',
+                'default' => '*/' . SpecificService::DEFAULT_DASHBOARD_REFRESH_RATE. ' * * * *',
             ],
             'description' => '',
         ],
@@ -74,8 +75,8 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => MailsLitigesComand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_SAFRAN_CS => '0 8 * * *',
-                SpecificService::CLIENT_SAFRAN_MC => '0 8 * * *',
+                SpecificService::CLIENT_POTEE => '0 8 * * *',
+                SpecificService::CLIENT_QUICHE => '0 8 * * *',
             ],
             'description' => '',
         ],
@@ -107,14 +108,14 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
         [
             'command' => KooveaHubsCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_CLB => '*/1 * * * *'
+                SpecificService::CLIENT_SAUCISSON_BRIOCHE => '*/1 * * * *'
             ],
             'description' => '',
         ],
         [
             'command' => KooveaTagsCommand::COMMAND_NAME,
             'schedule' => [
-                SpecificService::CLIENT_CLB => '*/5 * * * *'
+                SpecificService::CLIENT_SAUCISSON_BRIOCHE => '*/5 * * * *'
             ],
             'description' => '',
         ],
@@ -125,6 +126,11 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'schedule' => '0 0 * * *',
             'description' => '',
         ],
+        [
+            'command' => InactiveSensorsCommand::COMMAND_NAME,
+            'schedule' => '*/1 * * * *',
+            'description' => '',
+        ]
     ];
 
     public function load(ObjectManager $manager): void {

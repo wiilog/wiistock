@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
@@ -20,6 +21,7 @@ use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
 
 use App\Service\TranslationService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,22 +30,22 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use DateTime;
 
-/**
- * @Route("/mouvement-stock")
- */
+#[Route("/mouvement-stock")]
 class MouvementStockController extends AbstractController
 {
 
-    /**
-     * @Route("/", name="mouvement_stock_index")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_MOUV_STOC})
-     */
-    public function index(EntityManagerInterface $entityManager)
+    #[Route("/", name: "mouvement_stock_index")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOV_STOCK])]
+    public function index(EntityManagerInterface $entityManager,
+                          MouvementStockService  $mouvementStockService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
 
         return $this->render('mouvement_stock/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
@@ -51,14 +53,13 @@ class MouvementStockController extends AbstractController
                 MouvementStock::TYPE_ENTREE,
                 MouvementStock::TYPE_SORTIE,
                 MouvementStock::TYPE_TRANSFER,
-            ]
+            ],
+            "fields" => $mouvementStockService->getColumnVisibleConfig($user)
         ]);
     }
 
-    /**
-     * @Route("/api", name="mouvement_stock_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_MOUV_STOC}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "mouvement_stock_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOV_STOCK], mode: HasPermission::IN_JSON)]
     public function api(Request $request, MouvementStockService $mouvementStockService): Response
     {
         /** @var Utilisateur $user */
@@ -68,42 +69,47 @@ class MouvementStockController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/supprimer", name="mvt_stock_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            $movement = $mouvementStockRepository->find($data['mvt']);
-
-            if (!empty($trackingMovementRepository->findBy(['mouvementStock' => $movement]))) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Ce mouvement de stock est lié à des mouvements de traçabilité.'
-                ]);
-            }
-
-            $entityManager->remove($movement);
-            $entityManager->flush();
-            return new JsonResponse();
-        }
-
-        throw new BadRequestHttpException();
+    #[Route("/api-columns", name: "mouvement_stock_api_columns", options: ["expose" => true], methods: [self::GET,self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_MOV_STOCK])]
+    public function apiColumns(MouvementStockService $mouvementStockService, EntityManagerInterface $entityManager): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $columns = $mouvementStockService->getColumnVisibleConfig($currentUser);
+        return new JsonResponse($columns);
     }
 
-    /**
-     * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/delete/{mvtStock}", name: "mvt_stock_delete", options: ["expose" => true], methods: ["GET", "POST", "DELETE"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request $request, EntityManagerInterface $entityManager, MouvementStock $mvtStock): Response
+    {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+
+        if (!empty($trackingMovementRepository->findBy(['mouvementStock' => $mvtStock]))) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Ce mouvement de stock est lié à des mouvements de traçabilité.'
+            ]);
+        }
+
+        $entityManager->remove($mvtStock);
+        $entityManager->flush();
+        return new JsonResponse([
+            'success' => true,
+        ]);
+    }
+
+    #[Route("/nouveau", name: "mvt_stock_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function new(Request                 $request,
                         MouvementStockService   $mouvementStockService,
                         TrackingMovementService $trackingMovementService,
                         EntityManagerInterface  $entityManager,
                         TranslationService      $translation): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        $chosenMvtType = $request->request->get("chosen-type-mvt");
+        $chosenRefQuantity = $request->request->get("chosen-ref-quantity");
+        $chosenRefLabel = $request->request->get("chosen-ref-label");
+
+        if ($chosenMvtType && $chosenRefQuantity!=null && $chosenRefLabel) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -116,16 +122,17 @@ class MouvementStockController extends AbstractController
                 'success' => false,
                 'msg' => 'Mauvais type de mouvement choisi.'
             ];
-            $chosenMvtType = $data["chosen-type-mvt"];
-            $chosenMvtQuantity = $data["chosen-mvt-quantity"];
-            $chosenMvtLocation = $data["chosen-mvt-location"];
-            $movementBarcode = $data["movement-barcode"];
+            $chosenMvtQuantity = $request->request->get("chosen-mvt-quantity");
+            $chosenMvtLocation = $request->request->get("chosen-mvt-location");
+            $movementBarcode = $request->request->get("chosen-ref-barcode")
+                               ?: $request->request->get("chosen-art-barcode");
+            $movementComment = $request->request->get("comment");
             $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
             /** @var Article|ReferenceArticle|null $chosenArticleToMove */
             $chosenArticleToMove = (
                 $referenceArticleRepository->findOneBy(['barCode' => $movementBarcode])
-                ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
+                ?: $articleRepository->findOneBy(['id' => $movementBarcode])
             );
 
             $chosenArticleStatus = $chosenArticleToMove->getStatut();
@@ -147,26 +154,7 @@ class MouvementStockController extends AbstractController
                     ? $chosenArticleToMove->getQuantiteStock()
                     : $chosenArticleToMove->getQuantite();
 
-                if ($chosenMvtType === MouvementStock::TYPE_SORTIE) {
-                    if (intval($quantity) > $chosenArticleToMoveAvailableQuantity) {
-                        $response['msg'] = 'La quantité saisie est superieure à la quantité disponible de la référence.';
-                    } else {
-                        $response['success'] = true;
-                        $response['msg'] = "Mouvement créé avec succès";
-                        $emplacementFrom = $chosenArticleToMove->getEmplacement();
-                        if ($chosenArticleToMove instanceof ReferenceArticle) {
-                            $chosenArticleToMove
-                                ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
-                        } else {
-                            if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
-                                $chosenArticleToMove->setStatut($unavailableArticleStatus);
-                            } else {
-                                $chosenArticleToMove
-                                    ->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
-                            }
-                        }
-                    }
-                } else if ($chosenMvtType === MouvementStock::TYPE_ENTREE) {
+                if ($chosenMvtType === MouvementStock::TYPE_ENTREE) {
                     $response['success'] = true;
                     $response['msg'] = "Mouvement créé avec succès";
                     $emplacementTo = $chosenArticleToMove->getEmplacement();
@@ -177,22 +165,52 @@ class MouvementStockController extends AbstractController
                         $chosenArticleToMove
                             ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
                     }
-                } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
+
+                    $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
+                        $chosenArticleToMove->getTrackingPack() ?: $chosenArticleToMove->getBarCode(),
+                        $emplacementTo,
+                        $loggedUser,
+                        $now,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        ['quantity' => $quantity]
+                    );
+
+                    $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
+                    $entityManager->persist($associatedDropTracaMvt);
+                } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER || $chosenMvtType === MouvementStock::TYPE_SORTIE) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if (($chosenArticleToMove instanceof Article && !in_array($chosenArticleToMove->getStatut()->getCode(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]))
                         || ($chosenArticleToMove instanceof ReferenceArticle && $referenceArticleRepository->isUsedInQuantityChangingProcesses($chosenArticleToMove))) {
                         $response['msg'] = 'La référence saisie est présente dans une demande de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . '/collecte/transfert en cours de traitement, impossible de la transférer.';
+                    } else if (intval($quantity) > $chosenArticleToMoveAvailableQuantity) {
+                        $response['msg'] = 'La quantité saisie est superieure à la quantité disponible de la référence.';
                     } else if (empty($chosenLocation)) {
-                        $response['msg'] = 'L\'emplacement saisi est inconnu.';
+                        $response['msg'] = 'L\'emplacement de dépose est inconnu.';
                     } else {
                         $response['success'] = true;
                         $response['msg'] = "Mouvement créé avec succès";
-                        $quantity = $chosenArticleToMoveAvailableQuantity;
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
-                        $chosenArticleToMove->setEmplacement($emplacementTo);
+                        if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
+                            $quantity = $chosenArticleToMoveAvailableQuantity;
+                            $chosenArticleToMove->setEmplacement($emplacementTo);
+                        }else{
+                            if ($chosenArticleToMove instanceof ReferenceArticle) {
+                                $chosenArticleToMove
+                                    ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
+                            } else {
+                                if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
+                                    $chosenArticleToMove->setStatut($unavailableArticleStatus);
+                                } else {
+                                    $chosenArticleToMove
+                                        ->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
+                                }
+                            }
+                        }
                         $associatedPickTracaMvt = $trackingMovementService->createTrackingMovement(
-                            $chosenArticleToMove->getBarCode(),
+                            $chosenArticleToMove->getTrackingPack() ?: $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
                             $loggedUser,
                             $now,
@@ -236,7 +254,7 @@ class MouvementStockController extends AbstractController
                 }
 
                 if ($response['success']) {
-                    $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
+                    $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType,["comment" => $movementComment]);
                     $mouvementStockService->finishStockMovement($newMvtStock, $now, $emplacementTo);
                     if ($associatedDropTracaMvt && $associatedPickTracaMvt) {
                         $associatedPickTracaMvt->setMouvementStock($newMvtStock);
@@ -253,7 +271,6 @@ class MouvementStockController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="get_stock_movements_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
      * @param EntityManagerInterface $entityManager
@@ -261,6 +278,7 @@ class MouvementStockController extends AbstractController
      * @return StreamedResponse
      * @throws Exception
      */
+    #[Route("/csv", name: "get_stock_movements_csv", options: ["expose" => true], methods: ["GET"])]
     public function getStockMovementsCSV(Request $request,
                                          MouvementStockService $mouvementStockService,
                                          EntityManagerInterface $entityManager,
@@ -285,6 +303,7 @@ class MouvementStockController extends AbstractController
                 'type',
                 'opérateur',
                 "prix unitaire",
+                "commentaire",
             ];
 
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);

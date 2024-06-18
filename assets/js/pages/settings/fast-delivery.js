@@ -1,6 +1,7 @@
 import Form from "@app/form";
 import AJAX from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
 
 let deliveryStationTable;
 let $modalNewDeliveryStationLine = $('#modalNewDeliveryStationLine');

@@ -49,6 +49,7 @@
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button"
                                 data-toggle="modal"
+                                data-cy-name="new-location-button"
                                 data-target="#modalNewLocation"
                                 class="btn btn-primary split-button d-none new-location">
                             <div class="d-flex align-items-center">
@@ -66,7 +67,7 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
 
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right filters-container">
+                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right filters-container">
                         <div tabindex="0"
                              id="btnPrint"
                              class="dropdown-item printButton user-select-none disabled has-tooltip  d-flex align-items-center"

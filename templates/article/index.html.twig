@@ -1,5 +1,7 @@
 {% extends 'layout.html.twig' %}
 
+{% import "form.html.twig" as form %}
+
 {% block title %}Stock | Articles{% endblock %}
 
 {% block page_content %}
@@ -32,7 +34,7 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <div class="dropdown-item user-select-none disabled has-tooltip d-flex align-items-center"
                                  tabindex="0"
@@ -71,20 +73,21 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <div class="d-flex justify-content-center" id="spinner">
-                    <div class="spinner-border sizeLoader" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
                 <table id="tableArticle_id" class="table w-100">
                 </table>
             </div>
         </div>
     </div>
 
-    {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-    <input type="hidden" class='statutVisible' name="statutVisible" value="{{ statutVisible }}">
-    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
+    {{ form.hidden("statutVisible", hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')), {
+        inputClass: "statutVisible",
+    }) }}
+    {{ form.hidden("referenceFilter", referenceFilter) }}
+    {{ form.hidden(null, tag_templates|json_encode, {
+        attributes: {
+            id: "tagTemplates",
+        }
+    }) }}
 
     {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}
@@ -92,16 +95,16 @@
     {% include "article/modalDeleteArticle.html.twig" %}
 
     {% include "utils/rapid_search.html.twig" with {
-        'fields': fields,
-        'searches': searches,
-        'table': 'tableArticle',
-        'route': 'update_user_searches_for_article',
+        fields,
+        searches: searches,
+        table: 'tableArticle',
+        route: 'update_user_searches_for_article',
     } %}
 
     {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableArticle',
-        'route': 'save_column_visible_for_article',
+        fields,
+        table: 'tableArticle_id',
+        page: "article",
     } %}
 {% endblock %}
 

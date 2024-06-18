@@ -19,6 +19,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
@@ -134,6 +135,7 @@ class DashboardSettingsService {
                                         "config" => $config,
                                         "meterKey" => $meterKey,
                                         "initData" => $this->serializeValues($entityManager, $type, $config, $mode, $mode === self::MODE_EDIT, $meter, $user),
+                                        "errorMessage" => $component->getErrorMessage(),
                                     ];
                                 })
                                 ->getValues(),
@@ -245,6 +247,7 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
             case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
             case Dashboard\ComponentType::REFERENCE_RELIABILITY:
+            case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_DISPATCHES:
@@ -1323,7 +1326,8 @@ class DashboardSettingsService {
                         'natures' => implode(',', $natures),
                         'fromDashboard' => true,
                         'useTruckArrivalsFromDashboard' => $config["truckArrivalTime"] ?? false,
-                    ]) : null;
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $redirect = isset($config['redirect']) && $config['redirect'];
@@ -1331,7 +1335,21 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
+                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true, 'dateMin' => (new DateTime('now'))->format('Y-m-d')]) : null;
+                break;
+            case Dashboard\ComponentType::DISPUTES_TO_TREAT:
+                $statuses = $config['disputeStatuses'];
+                $types = $config['disputeTypes'];
+                $emergency = $config['disputeEmergency'];
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect
+                    ? $this->router->generate('dispute_index', [
+                        'statuses' => $statuses,
+                        'types' => $types,
+                        'emergency' => $emergency,
+                        'fromDashboard' => true,
+                    ])
+                    : null;
                 break;
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 $statuses = $config['entityStatuses'];

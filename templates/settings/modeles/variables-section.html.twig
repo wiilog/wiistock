@@ -2,8 +2,13 @@
     <div class="w-100 my-2">
         <div class="wii-field-name">{{ section }}</div>
         {% for variable, description in fields %}
+            {% set variable = variable
+                |split(constant("App\\Entity\\Setting::MULTIPLE_VARIABLES_SEPARATOR"))
+                |map((part) => "${" ~ part ~ "}")
+                |join(" ou ")
+            %}
             <div>
-                <span class="wii-body-text text-primary">{{ '${' ~ variable ~ '}' }}</span>&nbsp;:
+                <span class="wii-body-text text-primary">{{ variable }}</span>&nbsp;:
                 <span class="wii-body-text">{{ description }}</span>
             </div>
         {% endfor %}

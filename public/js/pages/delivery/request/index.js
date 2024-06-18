@@ -43,6 +43,9 @@ function initNewLivraisonEditor(modal) {
     const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
     const $demandeReceiver = $(`#modalNewDemande select[name="demandeReceiver"]`);
 
+    // used to trigger the location select on page load if a default type is set
+    toggleLocationSelect($('#modalNewDemande select[name="type"]'));
+
     if($demandeReceiver){
         $demandeReceiver.append($('input[name=receiverToDisplay]').val());
     }
@@ -98,17 +101,10 @@ function initPageDatatable() {
                         'filterReception': $('#receptionFilter').val()
                     },
                 },
-                drawConfig: {
-                    needsSearchOverride: true,
-                },
                 rowConfig: {
                     needsRowClickAction: true,
                 },
                 columns,
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'table_demande'
-                },
                 columnDefs: [
                     {
                         type: "customDate",

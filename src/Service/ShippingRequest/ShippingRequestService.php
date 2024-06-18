@@ -127,7 +127,7 @@ class ShippingRequestService {
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request): array {
         $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $this->security->getUser());
@@ -155,8 +155,7 @@ class ShippingRequestService {
         ];
     }
 
-    public function dataRowShipping(ShippingRequest $shipping): array
-    {
+    public function dataRowShipping(ShippingRequest $shipping): array {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
@@ -193,14 +192,13 @@ class ShippingRequestService {
         return $row;
     }
 
-    public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest){
+    public function createHeaderTransportDetailsConfig(ShippingRequest $shippingRequest): string {
         return $this->templating->render('shipping_request/show-transport-header.html.twig', [
             'shipping' => $shippingRequest,
         ]);
     }
 
-    public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest)
-    {
+    public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest): void {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $roleRepository = $entityManager->getRepository(Role::class);
@@ -210,7 +208,7 @@ class ShippingRequestService {
         $title = '';
         //Validation
         if($shippingRequest->isToTreat()) {
-            $mailTitle = "FOLLOW GT // Création d'une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
+            $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR .  "Création d'une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
             $title = "Une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " a été créée";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -233,7 +231,7 @@ class ShippingRequestService {
 
         //Planification
         if($shippingRequest->isShipped()) {
-            $mailTitle = "FOLLOW GT // " . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
+            $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
             $title = "Vos produits ont bien été expédiés";
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -250,8 +248,7 @@ class ShippingRequestService {
                     $to,
                     !empty($rolesToSendMail)
                         ? $userRepository->findBy(["role" => $rolesToSendMail])
-                        : [],
-                );
+                        : [],);
             }
         }
 

@@ -65,6 +65,10 @@ class SettingsService {
 
     public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9_\-\/ ]{1,24}$';
 
+    private const DEFAULT_SETTING_VALUES = [
+        Setting::FONT_FAMILY => Setting::DEFAULT_FONT_FAMILY,
+    ];
+
     #[Required]
     public KernelInterface $kernel;
 
@@ -98,7 +102,18 @@ class SettingsService {
             ->toArray();
     }
 
-    public function getSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
+    public function getValue(EntityManagerInterface $entityManager,
+                             string                 $settingLabel,
+                             string|int|null|bool   $default = null): mixed {
+        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $settingLabel, static function () use ($settingLabel, $entityManager, $default) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            return $settingRepository->getOneParamByLabel($settingLabel)
+                ?? self::DEFAULT_SETTING_VALUES[$settingLabel]
+                ?? $default;
+        });
+    }
+
+    public function persistSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
             $settingRepository = $entityManager->getRepository(Setting::class);
@@ -320,7 +335,6 @@ class SettingsService {
             $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
             $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
             $check = $request->request->get('createMvt');
-            $settingRepository = $entityManager->getRepository(Setting::class);
 
             if (!$check) {
                 if ($defaultLocationUL !== null) {
@@ -340,6 +354,15 @@ class SettingsService {
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
         }
+
+        if ($request->request->has("MAILER_PASSWORD")) {
+            $settingMailPassword = $settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
+            $newMailPassword = $request->request->get("MAILER_PASSWORD");
+            if ($settingMailPassword != $newMailPassword && $newMailPassword) {
+                $settingMailPassword->setValue($newMailPassword);
+            }
+            $updated[] = "MAILER_PASSWORD";
+        }
     }
 
     /**
@@ -351,7 +374,7 @@ class SettingsService {
                                   array     &$updated,
                                   array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
-            $setting = $this->getSetting($entityManager, $settings, $key);
+            $setting = $this->persistSetting($entityManager, $settings, $key);
             if (isset($setting)
                 && !in_array($key, $updated)
                 && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
@@ -373,7 +396,7 @@ class SettingsService {
      */
     private function saveFiles(EntityManagerInterface $entityManager, Request $request, array $settings, array $allFormSettingNames, array &$updated): void {
         foreach ($request->files->all() as $key => $value) {
-            $setting = $this->getSetting($entityManager, $settings, $key);
+            $setting = $this->persistSetting($entityManager, $settings, $key);
             if (isset($setting)) {
                 $fileName = $this->attachmentService->saveFile($value, $key);
                 $setting->setValue("uploads/attachments/" . $fileName[array_key_first($fileName)]);
@@ -399,7 +422,7 @@ class SettingsService {
 
         foreach ($defaultLogosToSave as [$defaultLogoLabel, $default]) {
             if (in_array($defaultLogoLabel, $allFormSettingNames)) {
-                $setting = $this->getSetting($entityManager, $settings, $defaultLogoLabel);
+                $setting = $this->persistSetting($entityManager, $settings, $defaultLogoLabel);
                 if (!$request->request->getBoolean('keep-' . $defaultLogoLabel)
                     && !isset($files[$defaultLogoLabel])) {
                     $setting->setValue($default);
@@ -412,8 +435,8 @@ class SettingsService {
             if (str_ends_with($key, '_DELETED')) {
                 $defaultLogoLabel = str_replace('_DELETED', '', $key);
                 $linkedLabel = $defaultLogoLabel . '_FILE_NAME';
-                $setting = $this->getSetting($entityManager, $settings, $defaultLogoLabel);
-                $linkedSetting = $this->getSetting($entityManager, $settings, $linkedLabel);
+                $setting = $this->persistSetting($entityManager, $settings, $defaultLogoLabel);
+                $linkedSetting = $this->persistSetting($entityManager, $settings, $linkedLabel);
                 if ($value === "1") {
                     $setting->setValue(null);
                     $linkedSetting->setValue(null);
@@ -727,6 +750,15 @@ class SettingsService {
                     }
                 }
 
+                if(isset($data["active"]) && $type->getId()){
+                    $categoryTypeId = $type->getCategory()->getId();
+                    $countActiveTypeByCategoryType = $typeRepository->countActiveTypeByCategoryType($categoryTypeId);
+
+                    if($countActiveTypeByCategoryType <= 1 && !$data["active"]){
+                        throw new RuntimeException("Au moins un type doit être actif pour cette entité.");
+                    }
+                }
+
                 $newLabel = $data["label"] ?? $type->getLabel();
                 $type
                     ->setLabel($newLabel)
@@ -740,6 +772,7 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setReusableStatuses($data["reusableStatuses"] ?? false)
+                    ->setActive($data["active"] ?? true)
                     ->setColor($data["color"] ?? null);
 
                 $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
@@ -761,7 +794,8 @@ class SettingsService {
                 }
 
                 if (isset($files["logo"])) {
-                    $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
+                    $logoAttachment = $this->attachmentService->persistAttachment($entityManager, $files["logo"]);
+                    $type->setLogo($logoAttachment);
                 } else {
                     if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
                         $type->setLogo(null);
@@ -1020,7 +1054,22 @@ class SettingsService {
                     throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
                 }
 
+                // check if "passStatusAtPurchaseOrderGeneration" attributes is true only one time
+                $countPassStatusAtPurchaseOrderGeneration = Stream::from($statusesData)
+                    ->filter(fn(array $statusData) => ($statusData['passStatusAtPurchaseOrderGeneration'] ?? null) === "1")
+                    ->count();
+                if ($countPassStatusAtPurchaseOrderGeneration > 1) {
+                    throw new FormException('Un seul statut peut être sélectionné pour le passage du statut à la génération de la commande');
+                }
+
                 foreach ($statusesData as $statusData) {
+                    // check if "passStatusAtPurchaseOrderGeneration" attributes have valid status (only DRAFT and NOT_TREATED)
+                    if($statusData['passStatusAtPurchaseOrderGeneration'] ?? false == "1"){
+                        if(in_array($statusData['state'], [Statut::NOT_TREATED, Statut::DRAFT])){
+                            throw new FormException("Le paramétrage 'Passage au statut à la génération du bon de commande' ne peut être activé que pour les statuts 'Brouillon' ou 'Non traité'");
+                        }
+                    }
+
                     if (!in_array($statusData['state'], [
                         Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE,
                         Statut::PARTIAL,
@@ -1071,7 +1120,8 @@ class SettingsService {
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
                         ->setColor($statusData['color'] ?? null)
-                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false);
+                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false)
+                        ->setPassStatusAtPurchaseOrderGeneration($statusData['passStatusAtPurchaseOrderGeneration'] ?? false);
 
                     if($hasRightGroupedSignature){
                         $status
@@ -1253,9 +1303,11 @@ class SettingsService {
     private function postSaveTreatment(EntityManagerInterface $entityManager,
                                        array                  $updated): void {
         $this->getTimestamp(true);
-        if (array_intersect($updated, [Setting::FONT_FAMILY])) {
-            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "font-family");
+
+        foreach ($updated as $setting) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, $setting);
         }
+
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig($entityManager);
             $this->cacheClear();

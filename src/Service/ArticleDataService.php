@@ -427,7 +427,7 @@ class ArticleDataService
             ]];
         }
 
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
 
@@ -620,6 +620,11 @@ class ArticleDataService
         }
 
         $separator = ($location && $username) ? ' / ' : '';
+
+        // we replace spaces with non-breaking spaces to avoid cutting the label on the label
+        $labelArticle = str_replace(' ', '&nbsp;', $labelArticle);
+        $refRefArticle = str_replace(' ', '&nbsp;', $refRefArticle);
+        $labelRefArticle = str_replace(' ', '&nbsp;', $labelRefArticle);
 
         $labels = [
             "$username $separator $location",

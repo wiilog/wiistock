@@ -36,11 +36,13 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -48,16 +50,13 @@ use Twig\Error\SyntaxError;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/ordre-collecte")
- */
+#[Route("/ordre-collecte")]
 class OrdreCollecteController extends AbstractController
 {
-    /**
-     * @Route("/liste/{demandId}", name="ordre_collecte_index")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
-     */
-    public function index(EntityManagerInterface $entityManager, string $demandId = null)
+
+    #[Route("/liste/{demandId}", name: "ordre_collecte_index")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_COLL])]
+    public function index(EntityManagerInterface $entityManager, string $demandId = null): Response
     {
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -73,11 +72,9 @@ class OrdreCollecteController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="ordre_collecte_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request, OrdreCollecteService $ordreCollecteService): Response
+    #[Route("/api", name: "ordre_collecte_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_COLL], mode: HasPermission::IN_JSON)]
+    public function api(Request $request, OrdreCollecteService $ordreCollecteService): JsonResponse
     {
         // cas d'un filtre par demande de collecte
         $filterDemand = $request->request->get('filterDemand');
@@ -86,14 +83,12 @@ class OrdreCollecteController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/voir/{id}", name="ordre_collecte_show",  methods={"GET","POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
-     */
-    public function show(OrdreCollecte $ordreCollecte,
-                         TagTemplateService $tagTemplateService,
+    #[Route("/voir/{id}", name: "ordre_collecte_show", methods: [self::POST, self::GET])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_COLL])]
+    public function show(OrdreCollecte          $ordreCollecte,
+                         TagTemplateService     $tagTemplateService,
                          EntityManagerInterface $entityManager,
-                         OrdreCollecteService $ordreCollecteService): Response
+                         OrdreCollecteService   $ordreCollecteService): Response
     {
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
@@ -103,13 +98,11 @@ class OrdreCollecteController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/finir/{id}", name="ordre_collecte_finish", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function finish(Request $request,
-                           OrdreCollecte $ordreCollecte,
-                           OrdreCollecteService $ordreCollecteService): Response
+    #[Route("/finir/{id}", name: "ordre_collecte_finish", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function finish(Request              $request,
+                           OrdreCollecte        $ordreCollecte,
+                           OrdreCollecteService $ordreCollecteService): JsonResponse
     {
         $rows = $request->request->all('rows');
         if (!empty($rows) && $ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER) {
@@ -142,11 +135,9 @@ class OrdreCollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-article/{id}", name="ordre_collecte_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL}, mode=HasPermission::IN_JSON)
-     */
-    public function apiArticle(Request $request, OrdreCollecte $ordreCollecte): Response
+    #[Route("/api_article/{id}", name: "ordre_collecte_article_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_COLL], mode: HasPermission::IN_JSON)]
+    public function apiArticle(Request $request, OrdreCollecte $ordreCollecte): JsonResponse
     {
         $rows = [];
         $isDestruct = $ordreCollecte->getDemandeCollecte()->isDestruct();
@@ -198,14 +189,12 @@ class OrdreCollecteController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
-     * @HasPermission({Menu::ORDRE, Action::CREATE})
-     */
+    #[Route("/creer/{id}", name: "ordre_collecte_new", options: ["expose" => true], methods: [self::POST, self::GET])]
+    #[HasPermission([Menu::ORDRE, Action::CREATE])]
     public function new(Collecte               $demandeCollecte,
                         EntityManagerInterface $entityManager,
                         OrdreCollecteService   $ordreCollecteService,
-                        NotificationService    $notificationService): Response
+                        NotificationService    $notificationService): RedirectResponse
     {
         $ordreCollecte = $ordreCollecteService->createCollectOrder($entityManager, $demandeCollecte);
 
@@ -225,11 +214,9 @@ class OrdreCollecteController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function apiEditArticle(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/modifier-article-api", name: "ordre_collecte_edit_api", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function apiEditArticle(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($data = json_decode($request->getContent(), true)) {
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
@@ -248,13 +235,10 @@ class OrdreCollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier-article", name="ordre_collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editArticle(Request $request,
-                                UserService $userService,
-                                EntityManagerInterface $entityManager): Response {
+    #[Route("/modifier-article", name: "ordre_collecte_edit_article", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editArticle(Request                 $request,
+                                EntityManagerInterface  $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
             $ligneArticle = $ordreCollecteReferenceRepository->find($data['ligneArticle']);
@@ -267,13 +251,11 @@ class OrdreCollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/ajouter-article", name="ordre_collecte_add_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function addArticle(Request $request,
-                                DemandeCollecteService $collecteService,
-                                EntityManagerInterface $entityManager): Response {
+    #[Route("/ajouter-article", name: "ordre_collecte_add_article", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function addArticle(Request                  $request,
+                                DemandeCollecteService  $collecteService,
+                                EntityManagerInterface  $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -306,11 +288,9 @@ class OrdreCollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(OrdreCollecte $ordreCollecte, EntityManagerInterface $entityManager): Response
+    #[Route("/supprimer/{id}", name: "ordre_collecte_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(OrdreCollecte $ordreCollecte, EntityManagerInterface $entityManager): JsonResponse
     {
         if ($ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER) {
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -353,17 +333,17 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="get_collect_orders_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param OrdreCollecteService $ordreCollecteService
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
-     * @return Response
+     * @return StreamedResponse
      */
-    public function getCollectOrdersCSV(Request $request,
-                                        OrdreCollecteService $ordreCollecteService,
-                                        EntityManagerInterface $entityManager,
-                                        CSVExportService $CSVExportService): Response {
+    #[Route("/csv", name: "get_collect_orders_csv", options: ["expose" => true], methods: [self::GET])]
+    public function getCollectOrdersCSV(Request                 $request,
+                                        OrdreCollecteService    $ordreCollecteService,
+                                        EntityManagerInterface  $entityManager,
+                                        CSVExportService        $CSVExportService): StreamedResponse {
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -405,7 +385,6 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/{ordreCollecte}/etiquettes", name="collecte_bar_codes_print", options={"expose"=true})
      *
      * @param OrdreCollecte $ordreCollecte
      * @param RefArticleDataService $refArticleDataService
@@ -418,12 +397,13 @@ class OrdreCollecteController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function printCollecteBarCodes(OrdreCollecte $ordreCollecte,
-                                          RefArticleDataService $refArticleDataService,
-                                          ArticleDataService $articleDataService,
-                                          Request $request,
-                                          EntityManagerInterface $entityManager,
-                                          PDFGeneratorService $PDFGeneratorService): Response
+    #[Route("/{ordreCollecte}/etiquettes", name: "collecte_bar_codes_print", options: ["expose" => true], methods: [self::GET])]
+    public function printCollecteBarCodes(OrdreCollecte             $ordreCollecte,
+                                          RefArticleDataService     $refArticleDataService,
+                                          ArticleDataService        $articleDataService,
+                                          Request                   $request,
+                                          EntityManagerInterface    $entityManager,
+                                          PDFGeneratorService       $PDFGeneratorService): PdfResponse | Response
     {
         $forceTagEmpty = $request->query->get('forceTagEmpty', false);
         $tag = $forceTagEmpty
@@ -469,13 +449,11 @@ class OrdreCollecteController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/associer", name="collect_sensor_pairing_new",options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR}, mode=HasPermission::IN_JSON)
-     */
-    public function newCollectSensorPairing(OrdreCollecteService $collecteService,
-                                            EntityManagerInterface $entityManager,
-                                            Request $request): Response
+    #[Route("/associer", name: "collect_sensor_pairing_new", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::PAIR_SENSOR], mode: HasPermission::IN_JSON)]
+    public function newCollectSensorPairing(OrdreCollecteService    $collecteService,
+                                            EntityManagerInterface  $entityManager,
+                                            Request                 $request): JsonResponse
     {
         if($data = json_decode($request->getContent(), true)) {
             if(!$data['sensorWrapper'] && !$data['sensor']) {

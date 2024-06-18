@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown dropright d-none">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
+        <div class="dropdown-menu dropdown-wiilog pointer">
             {% set path = refArticleId is defined ? path('reference_article_show_page', {id: refArticleId}) : path('article_show_page', {id}) %}
             <div class="d-none">
                 <a class="action-on-click" href="{{ path }}" target="_blank"></a>

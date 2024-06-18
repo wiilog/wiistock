@@ -303,22 +303,40 @@ class PreparationRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByTypesAndStatuses(?array $types, ?array $statuses): ?int
+    public function countByTypesAndStatuses(?array $types,
+                                            ?array $statuses,
+                                            $displayDeliveryOrderContentCheckbox,
+                                            $displayDeliveryOrderContent)
     {
         if (!empty($types) && !empty($statuses)) {
             $qb = $this->createQueryBuilder('preparationOrder')
-                ->select('COUNT(preparationOrder)')
+                ->select('COUNT(DISTINCT preparationOrder.id) as count')
                 ->leftJoin('preparationOrder.statut', 'status')
                 ->leftJoin('preparationOrder.demande', 'request')
                 ->leftJoin('request.type', 'type')
-                ->where('status IN (:statuses)')
+                ->andWhere('status IN (:statuses)')
                 ->andWhere('type IN (:types)')
+                ->andWhere('request.manual = 0')
+                ->andWhere('preparationOrder.planned IS NULL OR preparationOrder.planned = 0')
                 ->setParameter('statuses', $statuses)
                 ->setParameter('types', $types);
 
+            if ($displayDeliveryOrderContentCheckbox) {
+                if ($displayDeliveryOrderContent === 'displayLogisticUnitsCount') {
+                    $qb
+                        ->leftJoin('preparationOrder.articleLines', 'article_lines')
+                        ->leftJoin('article_lines.pack', 'pack')
+                        ->addSelect('COUNT(DISTINCT pack.id) as sub');
+                } else if ($displayDeliveryOrderContent === 'displayArticlesCount') {
+                    $qb
+                        ->leftJoin('preparationOrder.articleLines', 'article_lines')
+                        ->addSelect('COUNT(DISTINCT article_lines.id) as sub');
+                }
+            }
+
             return $qb
                 ->getQuery()
-                ->getSingleScalarResult();
+                ->getResult();
         } else {
             return [];
         }

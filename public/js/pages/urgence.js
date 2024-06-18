@@ -18,7 +18,8 @@ $(function() {
 
 function initPage() {
     const unassociated = new URLSearchParams(window.location.search).get('unassociated');
-    let pathUrgences = Routing.generate('emergency_api',{unassociated}, true);
+    const dateMin = new URLSearchParams(window.location.search).get('dateMin');
+    let pathUrgences = Routing.generate('emergency_api',{unassociated, dateMin}, true);
     let tableUrgenceConfig = {
         processing: true,
         serverSide: true,
@@ -44,9 +45,6 @@ function initPage() {
             {"data": 'internalArticleCode', 'name': 'internalArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article interne', false)},
             {"data": 'supplierArticleCode', 'name': 'supplierArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article fournisseur', false)},
         ],
-        drawConfig: {
-            needsSearchOverride: true,
-        },
         rowConfig: {
             needsRowClickAction: true,
         },
@@ -63,7 +61,7 @@ function initPage() {
 
     let $modalNewUrgence = $('#modalNewEmergency');
     Form
-        .create($modalNewUrgence)
+        .create($modalNewUrgence, {clearOnOpen: true})
         .submitTo(AJAX.POST, 'emergency_new', {
             success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
             tables: tableEmergencies

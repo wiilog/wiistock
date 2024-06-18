@@ -1,6 +1,3 @@
-let onFlyFormOpened = {};
-let receptionsTable;
-
 $(function () {
     // RECEPTION
     initTableReception();
@@ -19,7 +16,12 @@ $(function () {
         });
     }
     InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
-
+    $modalReceptionNew.on('shown.bs.modal', function () {
+        Camera.init(
+            $modalReceptionNew.find(`.take-picture-modal-button`),
+            $modalReceptionNew.find(`[name="files[]"]`)
+        );
+    });
     if (query["open-modal"] === "new") {
         delete query['arrivage'];
         initNewReceptionEditor($modalReceptionNew);
@@ -45,7 +47,6 @@ $(function () {
 
 function initNewReceptionEditor(modal) {
     let $modal = $(modal);
-    onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
 
@@ -88,26 +89,14 @@ function initTableReception() {
                     }
                 },
                 columns,
-                drawConfig: {
-                    needsSearchOverride: true,
-                    needsColumnHide: true,
-                },
                 rowConfig: {
                     needsColor: true,
                     color: 'danger',
                     needsRowClickAction: true,
                     dataToCheck: 'emergency'
                 },
-                hideColumnConfig: {
-                    columns,
-                    tableFilter: 'tableReception_id'
-                },
             };
 
-            receptionsTable = initDataTable('tableReception_id', tableReceptionConfig);
-            receptionsTable.on('responsive-resize', function () {
-                resizeTable(receptionsTable);
-            });
-            return receptionsTable;
+            return initDataTable('tableReception_id', tableReceptionConfig);
         });
 }

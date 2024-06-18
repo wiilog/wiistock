@@ -8,6 +8,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -34,7 +35,8 @@ class MouvementStockRepository extends EntityRepository
         'destination' => 'emplacementTo',
         'type' => 'type',
         'operateur' => 'user',
-        'barCode' => 'barCode'
+        'barCode' => 'barCode',
+        'unitPrice' => 'unitPrice',
     ];
 
     public function countByLocation(Emplacement $location): int {
@@ -102,6 +104,7 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect('mouvementStock.type as type')
             ->addSelect('user.username as operator')
             ->addSelect('mouvementStock.unitPrice AS unitPrice')
+            ->addSelect('mouvementStock.comment AS comment')
             ->leftJoin('mouvementStock.preparationOrder','preparation')
             ->leftJoin('mouvementStock.livraisonOrder','livraison')
             ->leftJoin('mouvementStock.collecteOrder','collecte')
@@ -317,9 +320,10 @@ class MouvementStockRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters(InputBag $params,
-                                           array $filters,
-                                           Utilisateur $user)
+    public function findByParamsAndFilters(InputBag             $params,
+                                           array                $filters,
+                                           VisibleColumnService $visibleColumnService,
+                                           Utilisateur          $user,)
     {
         $queryBuilder = $this->createQueryBuilder('stock_movement');
         $exprBuilder = $queryBuilder->expr();
@@ -385,26 +389,29 @@ class MouvementStockRepository extends EntityRepository
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
+                    $conditions = [
+                        "date" => "DATE_FORMAT(stock_movement.date, '%d/%m/%Y') LIKE :search_value",
+                        "from" => null,
+                        "barCode" => "(search_article.barCode LIKE :search_value OR search_reference_article.barCode LIKE :search_value)",
+                        "refArticle" => "(search_reference_article.reference LIKE :search_value OR search_article_reference_article.reference LIKE :search_value)",
+                        "quantity" => null,
+                        "origin" => "search_location_origin.label LIKE :search_value",
+                        "destination" => "search_location_destination.label LIKE :search_value",
+                        "type" => "stock_movement.type LIKE :search_value",
+                        "operator" => "search_operator.username LIKE :search_value",
+                        "unitPrice" => null,
+                        "comment" => null,
+                    ];
+
+                    $visibleColumnService->bindSearchableColumns($conditions, 'stockMovement', $queryBuilder, $user, $search);
                     $queryBuilder
-                        ->leftJoin('stock_movement.refArticle', 'ra3')
-                        ->leftJoin('stock_movement.article', 'a3')
-                        ->leftJoin('a3.articleFournisseur', 'af3')
-                        ->leftJoin('af3.referenceArticle', 'ra4')
-                        ->leftJoin('stock_movement.emplacementFrom', 'ef3')
-                        ->leftJoin('stock_movement.emplacementTo', 'et3')
-                        ->leftJoin('stock_movement.user', 'u3')
-                        ->andWhere("(
-                            ra3.reference LIKE :value OR
-                            ra4.reference LIKE :value OR
-                            ef3.label LIKE :value OR
-                            ra3.barCode LIKE :value OR
-                            a3.barCode LIKE :value OR
-                            et3.label LIKE :value OR
-                            stock_movement.type LIKE :value OR
-                            u3.username LIKE :value OR
-                            DATE_FORMAT(stock_movement.date, '%d/%m/%Y') LIKE :value
-						)")
-                        ->setParameter('value', '%' . $search . '%');
+                        ->leftJoin('stock_movement.refArticle', 'search_reference_article')
+                        ->leftJoin('stock_movement.article', 'search_article')
+                        ->leftJoin('search_article.articleFournisseur', 'search_supplier_article')
+                        ->leftJoin('search_supplier_article.referenceArticle', 'search_article_reference_article')
+                        ->leftJoin('stock_movement.emplacementFrom', 'search_location_origin')
+                        ->leftJoin('stock_movement.emplacementTo', 'search_location_destination')
+                        ->leftJoin('stock_movement.user', 'search_operator');
                 }
             }
             if (!empty($params->all('order'))) {

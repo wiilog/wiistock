@@ -7,6 +7,7 @@ import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
 import moment from "moment";
 import {getUserFiltersByPage} from '@app/utils';
+import {initDataTable} from "@app/datatable";
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;
@@ -18,6 +19,7 @@ const ENTITY_ARRIVALS = "arrivage";
 const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
+const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -227,6 +229,24 @@ function createForm() {
                             dateMax,
                             columnToExport,
                         }));
+                    } else if (content.entityToExport === ENTITY_TRACKING_MOVEMENT) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+                        const columnToExport = $modal.find(`[name=columnToExport]`).val();
+
+                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de mouvements de traçabilité`);
+                            return Promise.resolve();
+                        } else if(columnToExport.length === 0){
+                            Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_tracking_movements`, {
+                            dateMin,
+                            dateMax,
+                            columnToExport,
+                        }));
                     } else if (content.entityToExport === ENTITY_PRODUCTION) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
@@ -330,44 +350,48 @@ function onFormEntityChange() {
             $scheduledArticleDates.removeClass('d-none');
             break;
         case ENTITY_DISPATCH:
+        case ENTITY_ARRIVALS:
+        case ENTITY_TRACKING_MOVEMENT:
             $columnToExportContainer.removeClass('d-none');
             $columnToExport.addClass('needed');
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
 
-            renderExportableColumns($columnToExport, exportableColumns.dispatch, choosenColumnsToExport);
+            renderExportableColumns($columnToExport, exportableColumns[selectedEntity], choosenColumnsToExport);
             break;
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;
-        case ENTITY_ARRIVALS:
-            $dateLimit.removeClass('d-none');
-            $columnToExportContainer.removeClass('d-none');
-            $columnToExport.addClass('needed');
-            $periodInterval.removeClass('d-none');
-
-            renderExportableColumns($columnToExport, exportableColumns.arrivage, choosenColumnsToExport);
-            break;
         default:
             break;
     }
 }
 
+/**
+ * Render the exportable columns in the select element
+ * @param $columnToExport select element
+ * @param entityExportableColumns the columns that can be exported
+ * @param choosenColumnsToExport the columns that are already choosen
+ */
 function renderExportableColumns($columnToExport, entityExportableColumns, choosenColumnsToExport) {
     $columnToExport.empty();
 
-    const columns = Object.entries(entityExportableColumns)
-        // alphanumeric sort
-        .sort(([_1, label1], [_2, label2]) => (label1 > label2) - (label1 < label2))
-        .map(([value, label]) => {
-            const selected = choosenColumnsToExport.includes(value) ? `selected` : ``;
-            return `<option value="${value}" ${selected}>${label}</option>`;
-        })
-        .join(``);
+    // Prepare options for chosen columns
+    const chosenOptions = choosenColumnsToExport.map(key => {
+        const columnLabel = entityExportableColumns[key];
+        return `<option value="${key}" selected>${columnLabel}</option>`;
+    });
 
-    $columnToExport.append(columns);
+    // Prepare options for remaining columns
+    const remainingOptions = Object.entries(entityExportableColumns)
+        .filter(([key]) => !choosenColumnsToExport.includes(key))
+        .map(([key, label]) => `<option value="${key}">${label}</option>`);
+
+    // Concatenate all options and append to select element
+    const allOptions = [...chosenOptions, ...remainingOptions];
+    $columnToExport.append(allOptions.join(''));
 }
 
 function onFormTypeChange(resetFrequency = true) {

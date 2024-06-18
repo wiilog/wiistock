@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestRepository;
@@ -13,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: PurchaseRequestRepository::class)]
-class PurchaseRequest {
+class PurchaseRequest implements AttachmentContainer {
 
     use AttachmentTrait;
 
@@ -275,4 +276,13 @@ class PurchaseRequest {
         return $this;
     }
 
+    public function isPurchaseRequestLinesFilled(): bool
+    {
+        $unfilledLines = Stream::from($this->getPurchaseRequestLines()->toArray())
+            ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
+            ->filterMap(fn (PurchaseRequestLine $line) => $line->getReference()?->getReference())
+            ->values();
+
+        return $this->getPurchaseRequestLines()->count() > 0 && empty($unfilledLines);
+    }
 }
