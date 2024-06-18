@@ -81,17 +81,20 @@ $(function () {
     });
 
     $(`[name=requestType]`).on(`change`, function () {
-        const type = $(this).val();
+        const $type = $(this);
+        const type = $type.val();
+
+        const $createRequestContainer = $type.closest(`.create-request-container`);
 
         switch (type) {
             case 'transfer':
-                toggleForm($('.transfer-form'), $(this));
+                toggleForm($createRequestContainer.find('.transfer-request-form'), $type);
                 break;
             case 'delivery':
-                toggleForm($('.demande-form'), $(this));
+                toggleForm($createRequestContainer.find('.delivery-request-form'), $type);
                 break;
             default:
-                toggleForm($('.transfer-form, .demande-form'), null);
+                toggleForm($createRequestContainer.find('.request-form'));
                 break;
         }
     });
@@ -505,12 +508,12 @@ function clearModalLigneReception(modal) {
         $select2.select2('destroy');
     }
 
-    toggleForm($('.transfer-form, .demande-form'), null, true);
+    toggleForm($modal.find('.request-form'));
     clearPackingContent($modal);
 }
 
 function demandeurChanged($select) {
-    const $container = $select.closest('.demande-form');
+    const $container = $select.closest('.request-form');
     const $locationSelect = $container.find('[name="destination"]');
     const [resultSelected] = $select.select2('data');
 
@@ -589,16 +592,17 @@ function initNewLigneReception() {
             }
         });
 
-    const $select = $modalNewLigneReception.find('.demande-form [name="type"]');
+    const $select = $modalNewLigneReception.find('.delivery-request-form [name="type"]');
     toggleRequiredChampsLibres($select, 'create');
     typeChoice($select);
 }
 
 function onRequestTypeChange($select) {
-    const $freeFieldContainer = $modalNewLigneReception.find('.demande-form .free-fields-container');
+    const $deliveryRequestForm = $modalNewLigneReception.find('.delivery-request-form');
+    const $freeFieldContainer = $deliveryRequestForm.find('.free-fields-container');
     toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
     typeChoice($select, $freeFieldContainer);
-    toggleLocationSelect($select, $select.closest('.demande-form'));
+    toggleLocationSelect($select, $deliveryRequestForm);
 }
 
 function createHandlerAddLigneArticleResponse($modal) {
@@ -642,36 +646,22 @@ function updateQuantityToReceive($input) {
     $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
 
-function toggleForm($content, $input, force = false) {
-    if (force) {
-        $content = $('.transfer-form');
-        $content.addClass('d-none');
-        $content.find('.data').attr('disabled', 'disabled');
-        if ($('input[name="create-demande"]').is(':checked')) {
-            $('.demande-form').removeClass('d-none');
-            $('.demande-form').find('.data').prop('disabled', false);
-        }
-    } else {
-        if ($input && $input.is(':checked')) {
-            $content.removeClass('d-none');
-            $content.find('.data').prop('disabled', false);
+function toggleForm($form, $input) {
+    const $container = $form.closest('.create-request-container');
+    const $requestForms = $container.find('.request-form');
 
-            if ($content.hasClass('transfer-form')) {
-                $('.demande-form').addClass('d-none');
-                $('.demande-form').find('.data').attr('disabled', 'disabled');
-                $('.demande-form').find('.wii-switch').removeClass('needed');
-                $('input[name="create-demande"]').prop('checked', false);
-            } else {
-                $('.transfer-form').addClass('d-none');
-                $('.transfer-form').find('.data').attr('disabled', 'disabled');
-                $('input[name="create-demande-transfert"]').prop('checked', false);
-                $('.demande-header-form select.needed-save').addClass('needed')
+    $requestForms.addClass('d-none');
+    $requestForms.find('.data')
+        .prop('disabled', true)
+        .removeClass('needed');
 
-            }
-        } else {
-            $content.addClass('d-none');
-            $content.find('.data').prop('disabled', true);
-        }
+    if ($input && $input.is(':checked')) {
+        $form.removeClass('d-none');
+        $form.find('.data')
+            .prop('disabled', false);
+
+        $form.find('.data.needed-save')
+            .addClass('needed');
     }
 }
 
@@ -760,7 +750,7 @@ function onReferenceToReceiveChange() {
 function clearPackingContent($element, hideSubFields = true, hidePackingContainer = true) {
     const $modal = $element.is(`.modal`) ? $element : $element.closest(`.modal`);
     $modal.find(`.articles-container, .error-msg`).empty();
-    $modal.find(`.wii-section-title, .create-request-container, .modal-footer, .demande-form, .transfer-form`).addClass(`d-none`);
+    $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).addClass(`d-none`);
     if(hideSubFields) {
         $modal.find(`select[name=articleFournisseurDefault]`).closest(`.form-group`).addClass(`d-none`);
         $modal.find(`select[name=pack]`).closest(`.form-group`).addClass(`d-none`);
@@ -924,7 +914,7 @@ function loadPackingArticlesTemplate($button) {
                     $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
 
                     if (Number($modal.find(`[name=precheckedDelivery]`).val())) {
-                        $modal.find(`.create-request-container`).find(`input[value=delivery]`).trigger(`change`);
+                        $modal.find(`.create-request-container > [name="requestType"][value="delivery"]`).trigger(`click`);
                     }
                 })
         ));
