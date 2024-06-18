@@ -94,7 +94,11 @@ function initTableRefArticle() {
                     needsResize: true
                 },
                 drawCallback: () => {
-                    togglePrintButton($(`#tableRefArticle`).DataTable(), $(`.printButton`))
+                    const datatable = $(`#tableRefArticle`).DataTable();
+                    togglePrintButton(datatable, $(`.printButton`), () => (
+                        datatable.search()
+                        || $(`#filters`).find(`.filter`).length > 0
+                    ));
                 },
                 rowConfig: {
                     classField: 'colorClass',

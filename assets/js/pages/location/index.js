@@ -29,7 +29,8 @@ const locationsTableConfig = {
         needsRowClickAction: true,
     },
     drawCallback: () => {
-        togglePrintButton($(`#locationsTable`).DataTable(), $('.printButton'));
+        const datatable = $(`#locationsTable`).DataTable();
+        togglePrintButton(datatable, $(`.printButton`), () => datatable.search());
     },
     columns: [
         {data: 'actions', title: '', className: 'noVis', orderable: false},
