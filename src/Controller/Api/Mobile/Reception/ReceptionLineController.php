@@ -3,7 +3,10 @@
 namespace App\Controller\Api\Mobile\Reception;
 
 use App\Annotation as Wii;
+use App\Annotation\HasPermission;
 use App\Controller\Api\AbstractApiController;
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,6 +18,7 @@ class ReceptionLineController extends AbstractApiController {
     #[Route("/list/{reception}", name: "list", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestAuthenticated]
     #[Wii\RestVersionChecked]
+    #[HasPermission([Menu::NOMADE, Action::MODULE_ACCESS_RECEPTION])]
     public function list(EntityManagerInterface     $entityManager,
                          Reception                  $reception): JsonResponse {
         $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);

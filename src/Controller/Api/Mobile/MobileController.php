@@ -114,8 +114,7 @@ use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 #[Rest\Route("/api")]
-class MobileController extends AbstractApiController
-{
+class MobileController extends AbstractApiController {
 
     #[Required]
     public NotificationService $notificationService;
@@ -134,9 +133,7 @@ class MobileController extends AbstractApiController
                                UserService                 $userService,
                                SettingsService             $settingsService,
                                SessionHistoryRecordService $sessionHistoryRecordService,
-                               DispatchService             $dispatchService): JsonResponse
-    {
-
+                               DispatchService             $dispatchService): JsonResponse {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $typeRepository = $entityManager->getRepository(Type::class);
