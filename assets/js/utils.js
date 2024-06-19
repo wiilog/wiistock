@@ -330,3 +330,19 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         }
     }, 'json');
 }
+
+export function togglePrintButton(datatable, $printButton) {
+    const searchValue = datatable.search();
+    const datatableLength = datatable.rows().count();
+    const disablePrintButton = (!filledFilters() || datatableLength === 0);
+
+    // for an active print button
+    $printButton.toggleClass(`pointer`, !disablePrintButton);
+
+    // for a disabled print button
+    $printButton
+        .toggleClass(`user-select-none`, disablePrintButton)
+        .toggleClass(`disabled`, disablePrintButton)
+        .toggleClass(`has-tooltip`, disablePrintButton)
+        .tooltip(disablePrintButton ? undefined : 'dispose');
+}

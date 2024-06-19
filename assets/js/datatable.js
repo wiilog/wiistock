@@ -156,6 +156,7 @@ function getAppropriateRowCallback({needsColor, classField, color, dataToCheck, 
 }
 
 function overrideSearch($input, $table) {
+
     $input
         .off()
         .on(`keyup`, function (e) {
@@ -385,7 +386,6 @@ export function initDataTable($table, options) {
                 const $searchInput = $table.parents(`.dataTables_wrapper `).find(`.dataTables_filter input[type=search]`);
 
                 overrideSearch($searchInput, $table);
-
                 setTimeout(() => {
                     drawCallback(response);
                 });

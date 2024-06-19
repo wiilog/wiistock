@@ -21,7 +21,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Robin Personal Access Token available until Jan 1, 2025
-                    ref: dev
+                    ref: main
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
