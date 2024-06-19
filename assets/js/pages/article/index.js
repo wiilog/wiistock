@@ -48,7 +48,8 @@ function initTableArticle() {
                 needsResize: true
             },
             drawCallback: () => {
-                togglePrintButton($(`#tableArticle_id`).DataTable(), $(`.printButton`))
+                const datatable = $(`#tableArticle_id`).DataTable();
+                togglePrintButton(datatable, $(`.printButton`), () => datatable.search());
             },
             rowConfig: {
                 needsRowClickAction: true
