@@ -141,8 +141,8 @@ class AnnotationListener {
     }
 
     private function handleHasPermission(ControllerArgumentsEvent $event, HasPermission $annotation, SymfonyAbstractController $controller): void {
-        $annotation->value[] = $controller->getUser();
-        if (!$this->userService->hasRightFunction(...$annotation->value)) {
+        $parameters =  [...$annotation->value, $controller->getUser()];
+        if (!$this->userService->hasRightFunction(...$parameters)) {
             $event->setController(function() use ($annotation) {
                 if ($annotation->mode == HasPermission::IN_JSON) {
                     return new JsonResponse([
