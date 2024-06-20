@@ -364,4 +364,33 @@ class ReceptionRepository extends EntityRepository
             ->toArray();
     }
 
+    public function getMobileReceptions(): array {
+        $qb = $this->createQueryBuilder("reception")
+            ->select("reception.id AS id")
+            ->addSelect("receptionSupplier.nom AS supplier")
+            ->addSelect("reception.orderNumber AS orderNumber")
+            ->addSelect("reception.commentaire AS comment")
+            ->addSelect("reception.dateAttendue AS expectedDate")
+            ->addSelect("reception.dateCommande AS orderDate")
+            ->addSelect("receptionUser.username AS user")
+            ->addSelect("receptionCarrier.nom AS carrier")
+            ->addSelect("receptionLocation.label AS location")
+            ->addSelect("receptionStorageLocation.label AS storageLocation")
+            ->addSelect("reception.manualUrgent AS emergency")
+            ->addSelect("reception.number AS number")
+            ->addSelect("receptionStatus.nom AS status")
+            ->andWhere("receptionStatus.code IN (:states)")
+            ->andWhere("receptionLine.pack is null") // TODO : verif
+            ->leftJoin("reception.statut", "receptionStatus")
+            ->leftJoin("reception.fournisseur", "receptionCarrier")
+            ->leftJoin("reception.utilisateur", "receptionUser")
+            ->leftJoin("reception.location", "receptionLocation")
+            ->leftJoin("reception.storageLocation", "receptionStorageLocation")
+            ->leftJoin("reception.fournisseur", "receptionSupplier")
+            ->leftJoin("reception.lines", "receptionLine")
+            ->setParameter("states", [Reception::STATUT_RECEPTION_PARTIELLE, Reception::STATUT_EN_ATTENTE]);
+
+        return $qb->getQuery()->getResult();
+    }
+
 }

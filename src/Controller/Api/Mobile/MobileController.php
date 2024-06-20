@@ -37,6 +37,8 @@ use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
+use App\Entity\Reception;
+use App\Entity\ReceptionLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Reserve;
 use App\Entity\ReserveType;
@@ -85,6 +87,7 @@ use App\Service\ProjectHistoryRecordService;
 use App\Service\ReceiptAssociationService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -111,8 +114,7 @@ use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 #[Rest\Route("/api")]
-class MobileController extends AbstractApiController
-{
+class MobileController extends AbstractApiController {
 
     #[Required]
     public NotificationService $notificationService;
@@ -129,12 +131,10 @@ class MobileController extends AbstractApiController
     public function postApiKey(Request                     $request,
                                EntityManagerInterface      $entityManager,
                                UserService                 $userService,
+                               SettingsService             $settingsService,
                                SessionHistoryRecordService $sessionHistoryRecordService,
-                               DispatchService             $dispatchService): JsonResponse
-    {
-
+                               DispatchService             $dispatchService): JsonResponse {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $globalParametersRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $mobileKey = $request->request->get('loginKey');
@@ -153,7 +153,7 @@ class MobileController extends AbstractApiController
                     $entityManager->flush();
 
                     $rights = $userService->getMobileRights($loggedUser);
-                    $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
+                    $parameters = $this->mobileApiService->getMobileParameters($settingsService, $entityManager);
 
                     $channels = Stream::from($rights)
                         ->filter(static fn($val, $key) => $val && in_array($key, ["handling", "collectOrder", "transferOrder", "dispatch", "preparation", "deliveryOrder", "group", "ungroup", "notifications"]))
@@ -2225,8 +2225,9 @@ class MobileController extends AbstractApiController
                                   UserService             $userService,
                                   TrackingMovementService $trackingMovementService,
                                   Request                 $request,
-                                  EntityManagerInterface  $entityManager, KernelInterface $kernel): array
-    {
+                                  SettingsService         $settingsService,
+                                  EntityManagerInterface  $entityManager,
+                                  KernelInterface         $kernel): array {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
@@ -2255,7 +2256,7 @@ class MobileController extends AbstractApiController
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
 
         $rights = $userService->getMobileRights($user);
-        $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
+        $parameters = $this->mobileApiService->getMobileParameters($settingsService, $entityManager);
 
         $status = $statutRepository->getMobileStatus($rights['dispatch'], $rights['handling']);
 
@@ -2296,9 +2297,9 @@ class MobileController extends AbstractApiController
 
         // livraisons
         $deliveriesExpectedDateColors = [
-            'after' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
-            'DDay' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
-            'before' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
+            'after' => $settingsService->getValue($entityManager, Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
+            'DDay' => $settingsService->getValue($entityManager, Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
+            'before' => $settingsService->getValue($entityManager, Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
         ];
         if ($rights['deliveryOrder']) {
             $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))
@@ -2591,13 +2592,12 @@ class MobileController extends AbstractApiController
                             UserService             $userService,
                             TrackingMovementService $trackingMovementService,
                             KernelInterface         $kernel,
-                            EntityManagerInterface  $entityManager)
-    {
+                            SettingsService         $settingsService,
+                            EntityManagerInterface  $entityManager): JsonResponse {
         $nomadUser = $this->getUser();
-
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager, $kernel),
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $settingsService ,$entityManager, $kernel),
         ]);
     }
 
