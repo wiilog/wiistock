@@ -898,32 +898,35 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: "GET")]
+    #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: self::GET)]
     public function redirectBeforeIndex(EntityManagerInterface $entityManager,
                                         SettingsService        $settingsService,
                                         DeliveryRequestService $deliveryRequestService,
-                                        TranslationService     $translation){
+                                        TranslationService     $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
-        $defaultReceiver = '';
+        $defaultReceiverParam = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiver = null;
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
-        $defaultType = null;
-        if(!empty($defaultTypeParam->getElements())){
-            $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
+        $defaultTypeParam = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeIdConfigured = (int)$defaultTypeParam->getElements()[0] ?? null;
+        $userAllowedTypes = Stream::from($this->getUser()->getDeliveryTypes())
+            ->filter(static fn(Type $type) => $type->isActive());
+        if ($defaultTypeIdConfigured && $userAllowedTypes->some(static fn(Type $type) => $type->getId() === $defaultTypeIdConfigured)) {
+            $defaultType = $typeRepository->find($defaultTypeIdConfigured);
+        } else {
+            $defaultType =  $userAllowedTypes->count() === 1 ? $userAllowedTypes->first() : null;
         }
 
-        $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
-        $demandeFieldParamExpectedAt = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);;
-        $demandeFieldParamProject = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $receiverEqualRequester = boolval($settingsService->getValue($entityManager, Setting::RECEIVER_EQUALS_REQUESTER));
+        $demandeFieldParamExpectedAt = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);
+        $demandeFieldParamProject = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];

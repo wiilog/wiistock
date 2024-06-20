@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use JetBrains\PhpStorm\Deprecated;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -15,6 +16,7 @@ use WiiCommon\Helper\Stream;
  */
 class SettingRepository extends EntityRepository
 {
+    #[Deprecated("Use SettingsService::getValue() instead")]
     public function getOneParamByLabel($label) {
         $result = $this->createQueryBuilder('parameter')
             ->select('parameter.value')
