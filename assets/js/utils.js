@@ -331,8 +331,13 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
     }, 'json');
 }
 
-export function togglePrintButton(datatable, $printButton) {
-    const searchValue = datatable.search();
+/**
+ * Manage the given button which is active when the datatable is filled
+ * @param {DataTable.Api} datatable Datatable to test
+ * @param {jQuery} $printButton
+ * @param {function} filledFilters Return boolean, true if search input is filled
+ */
+export function togglePrintButton(datatable, $printButton, filledFilters) {
     const datatableLength = datatable.rows().count();
     const disablePrintButton = (!filledFilters() || datatableLength === 0);
 
