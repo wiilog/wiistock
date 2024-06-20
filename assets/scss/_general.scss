@@ -1486,6 +1486,11 @@ label.required:after {
     border-radius: 4px;
     padding: 10px 15px;
 
+    position: sticky;
+    top: 7px;
+    height: calc(100vh - 16px);
+    overflow-y: auto;
+
     .logistic-unit-tabs {
         display: flex;
         margin-top: 15px;
