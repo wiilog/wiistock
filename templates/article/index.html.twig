@@ -94,7 +94,7 @@
     {% include "utils/rapid_search.html.twig" with {
         fields,
         searches: searches,
-        table: 'tableArticle',
+        table: 'getTableArticle()',
         route: 'update_user_searches_for_article',
     } %}
 

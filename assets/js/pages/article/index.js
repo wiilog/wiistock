@@ -8,11 +8,16 @@ let $printTag ;
 
 global.displayActifOrInactif = displayActifOrInactif;
 global.printArticlesBarCodes = printArticlesBarCodes;
+global.getTableArticle = getTableArticle;
 
 $(function () {
     $printTag = $('#printTag');
     initTableArticle();
 });
+
+function getTableArticle() {
+    return tableArticle;
+}
 
 function initTableArticle() {
     const referenceFilter = $(`[name=referenceFilter]`)
