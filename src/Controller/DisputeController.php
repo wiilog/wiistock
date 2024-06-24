@@ -108,10 +108,10 @@ class DisputeController extends AbstractController
                     'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
                     'value' => $preFilledTypes,
                 ],
-                [
+                ...($disputeEmergency ? [[
                     'field' => FiltreSup::FIELD_EMERGENCY,
                     'value' => $disputeEmergency,
-                ],
+                ]] : []),
             ];
         }
 
