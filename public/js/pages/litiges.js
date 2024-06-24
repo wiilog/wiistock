@@ -42,13 +42,13 @@ function initDatatableLitiges() {
     const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
     const $statutFilter = $filtersContainer.find(`select[name=statut]`);
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
-    const $disputeEmergency = $filtersContainer.find(`input[name=emergency]`);
+    const $disputeEmergency = $filtersContainer.find(`input[name=emergency]:checked`);
 
     let pathLitiges = Routing.generate('dispute_api', {
         fromDashboard,
         preFilledTypes: $typeFilter.val(),
         preFilledStatuses: $statutFilter.val(),
-        disputeEmergency: $disputeEmergency.val() === 'on' ? 1 : 0,
+        disputeEmergency: $disputeEmergency.length > 0 ? 1 : 0,
     }, true);
 
     let tableLitigesConfig = {
