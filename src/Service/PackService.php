@@ -398,7 +398,7 @@ class PackService {
             ? $arrivage->getDropLocation()
             : null;
 
-        $totalPacks = Stream::from($packByNatures)->sum();
+        $totalPacks = Stream::from($packByNatures)->filter()->sum();
         if($totalPacks > 500) {
             throw new FormException("Vous ne pouvez pas ajouter plus de 500 UL");
         }
@@ -414,21 +414,23 @@ class PackService {
         }
 
         foreach ($packByNatures as $natureId => $number) {
-            $nature = $natureRepository->find($natureId);
-            for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
-                if ($persistTrackingMovements && isset($location)) {
-                    $this->trackingMovementService->persistTrackingForArrivalPack(
-                        $entityManager,
-                        $pack,
-                        $location,
-                        $user,
-                        $now,
-                        $arrivage
-                    );
+            if ($number) {
+                $nature = $natureRepository->find($natureId);
+                for ($i = 0; $i < $number; $i++) {
+                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
+                    if ($persistTrackingMovements && isset($location)) {
+                        $this->trackingMovementService->persistTrackingForArrivalPack(
+                            $entityManager,
+                            $pack,
+                            $location,
+                            $user,
+                            $now,
+                            $arrivage
+                        );
+                    }
+                    // pack persisted by Arrival cascade persist
+                    $createdPacks[] = $pack;
                 }
-                // pack persisted by Arrival cascade persist
-                $createdPacks[] = $pack;
             }
         }
         return $createdPacks;
