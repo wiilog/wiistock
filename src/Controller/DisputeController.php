@@ -95,7 +95,9 @@ class DisputeController extends AbstractController
             $preFilledTypes = $request->query->has('preFilledTypes')
                 ? implode(",", $request->query->all('preFilledTypes'))
                 : [];
-            $disputeEmergency = $request->query->getBoolean('disputeEmergency', false);
+            $disputeEmergency = $request->query->has('disputeEmergency')
+                ? $request->query->get('disputeEmergency')
+                : false;
 
             $preFilledFilters = [
                 [
@@ -106,10 +108,10 @@ class DisputeController extends AbstractController
                     'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
                     'value' => $preFilledTypes,
                 ],
-                ...($disputeEmergency ? [[
+                [
                     'field' => FiltreSup::FIELD_EMERGENCY,
                     'value' => $disputeEmergency,
-                ]] : []),
+                ],
             ];
         }
 
