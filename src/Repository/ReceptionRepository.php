@@ -380,7 +380,7 @@ class ReceptionRepository extends EntityRepository
             ->addSelect("reception.number AS number")
             ->addSelect("receptionStatus.nom AS status")
             ->andWhere("receptionStatus.code IN (:states)")
-            ->andWhere("receptionLine.pack is null") // TODO : verif
+            ->andWhere("receptionLine.pack is null")
             ->leftJoin("reception.statut", "receptionStatus")
             ->leftJoin("reception.fournisseur", "receptionCarrier")
             ->leftJoin("reception.utilisateur", "receptionUser")
