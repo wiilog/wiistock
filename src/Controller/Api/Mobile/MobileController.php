@@ -1360,7 +1360,7 @@ class MobileController extends AbstractApiController
                     'nature_id' => $movement['nature_id'],
                     'date' => new DateTime($date ?? 'now'),
                     'type' => $movement['type'],
-                    'freeFields' => $movement['freeFields'],
+                    'freeFields' => $movement['freeFields'] ?? [],
                 ];
             })
             ->toArray();
