@@ -53,10 +53,8 @@ class TrackingMovementRepository extends EntityRepository
         $dateMin = $dateMin->format("Y-m-d H:i:s");
         $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
 
-        $queryBuilder = $this->createQueryBuilder("tracking_movement");
-
-        return QueryBuilderHelper::addTrackingEntities($queryBuilder, "tracking_movement")
-            ->addSelect("tracking_movement.id AS id")
+        $queryBuilder = $this->createQueryBuilder("tracking_movement")
+            ->select("tracking_movement.id AS id")
             ->addSelect("DATE_FORMAT(tracking_movement.datetime, '$dateFormat') AS date")
             ->addSelect("pack.code AS logisticUnit")
             ->addSelect("tracking_movement.quantity AS quantity")
@@ -79,7 +77,9 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin("pack.arrivage", "pack_arrival")
             ->leftJoin("tracking_movement.packParent", "join_packParent")
             ->setParameter("dateMin", $dateMin)
-            ->setParameter("dateMax", $dateMax)
+            ->setParameter("dateMax", $dateMax);
+
+        return QueryBuilderHelper::addTrackingEntities($queryBuilder, "tracking_movement")
             ->getQuery()
             ->getResult();
     }

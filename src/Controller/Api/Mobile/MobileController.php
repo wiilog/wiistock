@@ -1332,6 +1332,7 @@ class MobileController extends AbstractApiController
     #[Wii\RestVersionChecked]
     public function postGroupedTracking(Request                 $request,
                                         AttachmentService       $attachmentService,
+                                        FreeFieldService        $freeFieldService,
                                         EntityManagerInterface  $entityManager,
                                         TrackingMovementService $trackingMovementService,
                                         string                  $trackingMode): JsonResponse
@@ -1359,6 +1360,7 @@ class MobileController extends AbstractApiController
                     'nature_id' => $movement['nature_id'],
                     'date' => new DateTime($date ?? 'now'),
                     'type' => $movement['type'],
+                    'freeFields' => $movement['freeFields'],
                 ];
             })
             ->toArray();
@@ -1447,6 +1449,11 @@ class MobileController extends AbstractApiController
                             $entityManager->persist($attachment);
                             $movement->addAttachment($attachment);
                         }
+                    }
+
+                    $freeFields = json_decode($serializedGroup['freeFields'], true);
+                    if(!empty($freeFields)){
+                        $freeFieldService->manageFreeFields($trackingMovement, $freeFields, $entityManager, $this->getUser());
                     }
 
                     $res['finishedMovements'] = Stream::from($res['finishedMovements'])
