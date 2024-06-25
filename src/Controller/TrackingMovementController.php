@@ -488,22 +488,22 @@ class TrackingMovementController extends AbstractController
 
             $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-            $exportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
-            $headers = Stream::from($exportableColumns)
-                ->map(fn(array $column) => $column['label'] ?? '')
-                ->toArray();
-
-            // same order than header column
-            $exportableColumnCodes = Stream::from($exportableColumns)
-                ->map(fn(array $column) => $column['code'] ?? '')
-                ->toArray();
+            $exportableColumns = Stream::from($trackingMovementService->getTrackingMovementExportableColumns($entityManager))
+                ->reduce(
+                    static function (array $carry, array $column) {
+                        $carry["labels"][] = $column["label"] ?? '';
+                        $carry["codes"][] = $column["code"] ?? '';
+                        return $carry;
+                    },
+                    ["labels" => [], "codes" => []]
+                );
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($trackingMovements, $dataExportService, $freeFieldsConfig, $exportableColumnCodes, $loggedUser) {
-                    $dataExportService->exportTrackingMovements($trackingMovements, $output, $exportableColumnCodes, $freeFieldsConfig, $loggedUser);
+                function ($output) use ($trackingMovements, $dataExportService, $freeFieldsConfig, $exportableColumns, $loggedUser) {
+                    $dataExportService->exportTrackingMovements($trackingMovements, $output, $exportableColumns["codes"], $freeFieldsConfig, $loggedUser);
                 },
                 'Export_Mouvement_Traca.csv',
-                $headers
+                $exportableColumns["labels"]
             );
         }
 
