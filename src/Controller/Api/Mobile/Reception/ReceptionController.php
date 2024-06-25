@@ -19,11 +19,9 @@ class ReceptionController extends AbstractController {
     #[Wii\RestVersionChecked]
     #[HasPermission([Menu::NOMADE, Action::MODULE_ACCESS_RECEPTION])]
     public function list(EntityManagerInterface $entityManager): JsonResponse {
-        $receptionRepository = $entityManager
-            ->getRepository(Reception::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
 
-        $reception = $receptionRepository
-            ->getMobileReceptions();
+        $reception = $receptionRepository->getMobileReceptions();
 
         $response = [
             "success" => true,

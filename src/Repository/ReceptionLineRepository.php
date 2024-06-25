@@ -36,6 +36,7 @@ class ReceptionLineRepository extends EntityRepository {
             ->addSelect('join_nature.color AS packColor')
             ->addSelect('join_receptionReferenceArticle.id AS referenceId')
             ->addSelect('join_referenceArticle.reference AS reference')
+            ->addSelect('join_referenceArticle.libelle AS label')
             ->addSelect('join_referenceArticle.typeQuantite AS quantityType')
             ->addSelect('join_referenceArticle.barCode AS barCode')
             ->addSelect('join_receptionReferenceArticle.commande AS orderNumber')
@@ -116,6 +117,7 @@ class ReceptionLineRepository extends EntityRepository {
                                     "unitPrice" => $reference["unitPrice"],
                                     "quantityType" => $reference["quantityType"],
                                     "barCode" => $reference["barCode"],
+                                    "label" => $reference["label"],
                                 ]
                                 : null
                         ))
