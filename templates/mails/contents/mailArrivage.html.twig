@@ -63,7 +63,7 @@
         </li>
 
         {% if arrival.commentaire %}
-            <li>{{ translateIn(language, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ comment }}</li>
+            <li>{{ translateIn(language, 'Général', null, 'Modale', 'Commentaire', false) }} : {{ comment | raw }}</li>
         {% endif %}
 
         {% for freeField in freeFields %}
