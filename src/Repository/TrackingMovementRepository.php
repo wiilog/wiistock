@@ -21,12 +21,6 @@ use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 
-/**
- * @method TrackingMovement|null find($id, $lockMode = null, $lockVersion = null)
- * @method TrackingMovement|null findOneBy(array $criteria, array $orderBy = null)
- * @method TrackingMovement[]    findAll()
- * @method TrackingMovement[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class TrackingMovementRepository extends EntityRepository
 {
 
