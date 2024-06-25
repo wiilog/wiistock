@@ -24,11 +24,15 @@ $(function () {
     Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`, false));
     Select2Old.init($disputeTypeFilter, Translation.of(`Qualité`, `Litiges`, `Types`, false));
 
+
+    const fromDashboard = $('.filters-container [name="fromDashboard"]').val() === '1';
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
     $.post(path, params, function (data) {
-        displayFiltersSup(data, true);
+        if (!fromDashboard) {
+            displayFiltersSup(data, true);
+        }
     }, 'json');
 
     initDatatableLitiges();
