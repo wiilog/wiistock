@@ -48,7 +48,7 @@ function initDatatableLitiges() {
         fromDashboard,
         preFilledTypes: $typeFilter.val(),
         preFilledStatuses: $statutFilter.val(),
-        disputeEmergency: $disputeEmergency.length > 0 ? 1 : 0,
+        disputeEmergency: $disputeEmergency.length > 0,
     }, true);
 
     let tableLitigesConfig = {
