@@ -1468,7 +1468,7 @@ class MobileController extends AbstractApiController
             $res['tracking'] = $trackingMovementService->getMobileUserPicking($entityManager, $operator);
         } catch (Throwable $throwable) {
             $res['success'] = false;
-            $res['message'] = $throwable->getMessage();
+            $res['message'] = "Une erreur est survenue lors de l'enregistrement d'un mouvement";
         }
 
         return $this->json($res);
