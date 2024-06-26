@@ -128,8 +128,14 @@ class PackService {
 
     public function dataRowPack(Pack $pack)
     {
-        $firstMovement = $pack->getTrackingMovements('ASC')->first();
-        $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+
+        $firstMovements = $trackingMovementRepository->findBy(
+            ["pack" => $pack],
+            ["datetime" => "ASC", "orderIndex" => "ASC", "id" => "ASC"],
+            1
+        );
+        $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
         $user = $this->security->getUser();
         $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         $lastMessage = $pack->getLastMessage();
