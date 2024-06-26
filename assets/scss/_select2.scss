@@ -156,6 +156,10 @@ $select-height: 36px;
     @extend .form-control, :disabled;
 
     .select2-selection {
+        border: 0 !important;
+        position: absolute;
+        right: 0;
+        top: 0;
         background-color: transparent !important;
     }
 }
