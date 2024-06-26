@@ -915,11 +915,12 @@ class DemandeController extends AbstractController
         }
 
         $defaultTypeParam = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
-        $defaultTypeIdConfigured = (int)$defaultTypeParam->getElements()[0] ?? null;
+        $defaultTypeIds = $defaultTypeParam->getElements();
+        $firstDefaultType = (int) ($defaultTypeIds[0] ?? null);
         $userAllowedTypes = Stream::from($this->getUser()->getDeliveryTypes())
             ->filter(static fn(Type $type) => $type->isActive());
-        if ($defaultTypeIdConfigured && $userAllowedTypes->some(static fn(Type $type) => $type->getId() === $defaultTypeIdConfigured)) {
-            $defaultType = $typeRepository->find($defaultTypeIdConfigured);
+        if ($firstDefaultType && $userAllowedTypes->some(static fn(Type $type) => $type->getId() === $firstDefaultType)) {
+            $defaultType = $typeRepository->find($firstDefaultType);
         } else {
             $defaultType =  $userAllowedTypes->count() === 1 ? $userAllowedTypes->first() : null;
         }
