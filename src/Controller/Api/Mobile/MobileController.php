@@ -3612,6 +3612,10 @@ class MobileController extends AbstractApiController {
 
         $reserves = [];
         foreach ($truckArrivalLines as $truckArrivalLine) {
+            if(strlen($truckArrivalLine['number']) > 255) {
+                throw new FormException('Le numéro de tracking transporteur ne doit pas dépasser 255 caractères');
+            }
+
             $line = (new TruckArrivalLine())
                 ->setNumber($truckArrivalLine['number']);
 
