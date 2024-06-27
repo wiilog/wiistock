@@ -95,18 +95,15 @@
                                    data-id="{{ needsCurrentUser ? app.user.id }}"
                                    data-text="{{ needsCurrentUser ? app.user.username }}">
                             <div class="col-4 form-group">
-                                <label class="wii-field-name">Type*</label>
-                                <select class="select2-type data w-100 needed wii-field-text"
-                                        name="type"
-                                        data-s2
-                                        onchange="onRequestTypeChange($(this))"
-                                        disabled>
-                                    <option>&nbsp;</option>
-                                    {% set uniqueType = typeChampsLibres | length == 1  %}
-                                    {% for type in typeChampsLibres %}
-                                        <option value="{{ type.typeId }}" {{ uniqueType ? "selected" }} >{{ type.typeLabel }} </option>
-                                    {% endfor %}
-                                </select>
+                                {% set uniqueType = typeChampsLibres | length == 1  %}
+                                {{  form.select('type', 'Type', true, {
+                                    type: '',
+                                    items: typeChampsLibres | map(type => {
+                                        value: type.typeId,
+                                        label: type.typeLabel,
+                                        selected: uniqueType
+                                    }),
+                                }) }}
                             </div>
                             <div class="col-4 form-group">
                                 <label class="wii-field-name">Destination*</label>
