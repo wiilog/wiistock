@@ -113,7 +113,7 @@ class SettingsService {
         });
     }
 
-    public function persistSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
+    public function persistSetting(EntityManagerInterface $entityManager, array &$settings, string $key): ?Setting {
         if (!isset($settings[$key])
             && in_array($key, $this->settingsConstants)) {
             $settingRepository = $entityManager->getRepository(Setting::class);
@@ -234,7 +234,7 @@ class SettingsService {
      */
     private function saveCustom(EntityManagerInterface $entityManager,
                                 Request                $request,
-                                array                  $settings,
+                                array                  &$settings,
                                 array                  &$updated,
                                 array                  &$result): void {
         $data = $request->request;
@@ -355,19 +355,15 @@ class SettingsService {
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
         }
 
-        if ($request->request->has("MAILER_PASSWORD")) {
-            $newMailPassword = $request->request->get("MAILER_PASSWORD");
-            $settingMailPassword = $settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
-            if (!$settingMailPassword) {
-                $settingMailPassword = new Setting();
-                $settingMailPassword->setLabel(Setting::MAILER_PASSWORD);
-                $entityManager->persist($settingMailPassword);
-                $entityManager->flush();
+        if ($request->request->has(Setting::MAILER_PASSWORD)) {
+            $newMailPassword = $request->request->get(Setting::MAILER_PASSWORD);
+            if ($newMailPassword) {
+                $settingMailPassword = $this->persistSetting($entityManager, $settings, Setting::MAILER_PASSWORD)?->setValue($newMailPassword) ?:$settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
+                if ($settingMailPassword && $settingMailPassword->getValue() != $newMailPassword) {
+                    $settingMailPassword->setValue($newMailPassword);
+                }
             }
-            if ($settingMailPassword->getValue() != $newMailPassword && $newMailPassword) {
-                $settingMailPassword->setValue($newMailPassword);
-            }
-            $updated[] = "MAILER_PASSWORD";
+            $updated[] = Setting::MAILER_PASSWORD;
         }
     }
 
@@ -376,15 +372,15 @@ class SettingsService {
      */
     private function saveStandard(EntityManagerInterface $entityManager,
                                   Request   $request,
-                                  array     $settings,
+                                  array     &$settings,
                                   array     &$updated,
                                   array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
-            $setting = $this->persistSetting($entityManager, $settings, $key);
             if (isset($setting)
                 && !in_array($key, $updated)
                 && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
                 && !in_array($setting->getLabel() . '_DELETED', $allFormSettingNames)) {
+                $setting = $this->persistSetting($entityManager, $settings, $key);
                 if (is_array($value)) {
                     $value = json_encode($value);
                 }

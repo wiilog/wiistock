@@ -558,7 +558,7 @@ class Setting {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $label = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
