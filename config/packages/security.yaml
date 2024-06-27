@@ -24,9 +24,12 @@ security:
             pattern: ^/telecharger/nomade.apk$
             security: false
 
-        api_logos:
-            pattern: ^/api/logos$
-            security: false
+        api:
+            lazy: true
+            pattern: ^/api
+            stateless: true
+            custom_authenticators:
+                - App\Security\ApiKeyAuthenticator
 
         main:
             lazy: true
@@ -75,7 +78,10 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
         - { path: ^/saml/(metadata|login|acs), role: PUBLIC_ACCESS }
-        - { path: ^/api, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/server-images$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/nomade-versions$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/api-key$, role: PUBLIC_ACCESS }
+        - { path: ^/api/ping$, role: PUBLIC_ACCESS }
         - { path: ^/login, role: PUBLIC_ACCESS }
         - { path: ^/register, role: PUBLIC_ACCESS }
         - { path: ^/oubli, role: PUBLIC_ACCESS }

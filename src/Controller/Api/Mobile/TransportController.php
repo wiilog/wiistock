@@ -3,7 +3,7 @@
 namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
-use App\Controller\Api\AbstractApiController;
+use App\Controller\AbstractController;
 use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -44,12 +44,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api")]
-class TransportController extends AbstractApiController
-{
+#[Rest\Route("/api/mobile")]
+class TransportController extends AbstractController {
 
-    #[Rest\Get("/transport-rounds", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/transport-rounds", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function transportRounds(EntityManagerInterface $manager): Response
     {
@@ -64,8 +62,7 @@ class TransportController extends AbstractApiController
         return $this->json($data);
     }
 
-    #[Rest\Get("/fetch-transport", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/fetch-transport")]
     #[Wii\RestVersionChecked]
     public function fetchSingleTransport(Request $request, EntityManagerInterface $manager): Response
     {
@@ -74,8 +71,7 @@ class TransportController extends AbstractApiController
         return $this->json($this->serializeTransport($manager, $transportRequest));
     }
 
-    #[Rest\Get("/fetch-round", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/fetch-round")]
     #[Wii\RestVersionChecked]
     public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response {
         $round = $request->query->get("round") ? $manager->find(TransportRound::class, $request->query->get("round"))
@@ -368,8 +364,7 @@ class TransportController extends AbstractApiController
         ];
     }
 
-    #[Rest\Get("/reject-motives", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/reject-motives")]
     #[Wii\RestVersionChecked]
     public function rejectMotives(EntityManagerInterface $manager): Response
     {
@@ -391,8 +386,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/reject-pack", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/reject-pack")]
     #[Wii\RestVersionChecked]
     public function rejectPack(Request                 $request,
                                EntityManagerInterface  $manager,
@@ -441,8 +435,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/load-packs", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/load-packs")]
     #[Wii\RestVersionChecked]
     public function loadPacks(Request                 $request,
                               EntityManagerInterface  $manager,
@@ -479,8 +472,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/finish-round", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/finish-round")]
     #[Wii\RestVersionChecked]
     public function finishRound(Request                 $request,
                                 EntityManagerInterface  $manager,
@@ -601,8 +593,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/start-round", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/start-round")]
     #[Wii\RestVersionChecked]
     public function startRound(Request                 $request,
                                EntityManagerInterface  $manager,
@@ -725,8 +716,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Get("/has-new-packs", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/has-new-packs")]
     #[Wii\RestVersionChecked]
     public function hasNewPacks(Request $request, EntityManagerInterface $manager): Response
     {
@@ -749,8 +739,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/finish-transport", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/finish-transport")]
     #[Wii\RestVersionChecked]
     public function finishTransport(Request                 $request,
                                     EntityManagerInterface  $manager,
@@ -914,8 +903,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/transport-failure", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/transport-failure")]
     #[Wii\RestVersionChecked]
     public function transportFailure(Request                 $request,
                                      EntityManagerInterface  $manager,
@@ -1140,8 +1128,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/deposit-transport-packs", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/deposit-transport-packs")]
     #[Wii\RestVersionChecked]
     public function depositPacks(Request                 $request,
                                  EntityManagerInterface  $manager,
@@ -1329,8 +1316,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Get("/end-round-locations", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/end-round-locations")]
     #[Wii\RestVersionChecked]
     public function endRoundLocations(EntityManagerInterface $manager): Response
     {
@@ -1345,8 +1331,7 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Get("/packs-return-locations", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/packs-return-locations")]
     #[Wii\RestVersionChecked]
     public function packsReturnLocations(EntityManagerInterface $manager): Response
     {
