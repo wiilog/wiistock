@@ -434,7 +434,7 @@ class MobileController extends AbstractApiController {
                                 []
                             );
                             if (!empty($smartFreeFields)) {
-                                $freeFieldService->manageFreeFields($createdMvt, $smartFreeFields, $entityManager);
+                                $freeFieldService->manageFreeFields($createdMvt, $smartFreeFields, $entityManager, $this->getUser());
                             }
                         }
 
@@ -1164,7 +1164,7 @@ class MobileController extends AbstractApiController {
 
             $freeFieldValuesStr = $request->request->get('freeFields', '{}');
             $freeFieldValuesStr = json_decode($freeFieldValuesStr, true);
-            $freeFieldService->manageFreeFields($handling, $freeFieldValuesStr, $entityManager);
+            $freeFieldService->manageFreeFields($handling, $freeFieldValuesStr, $entityManager, $this->getUser());
 
             if (!$handling->getValidationDate()
                 && $newStatus) {
