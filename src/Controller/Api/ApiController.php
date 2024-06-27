@@ -2,18 +2,17 @@
 
 namespace App\Controller\Api;
 
+use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route("/api", name: "api_")]
-class ApiController extends AbstractApiController {
+class ApiController extends AbstractController {
 
-    #[Route("/ping", name: 'ping', options: ["expose" => true], methods: ['GET'])]
+    #[Route("/ping", name: 'ping', options: ["expose" => true], methods: [self::GET])]
     public function ping(): JsonResponse {
-        $response = new JsonResponse(['success' => true]);
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-        return $response;
+        return $this->json([
+            'success' => true,
+        ]);
     }
 }
