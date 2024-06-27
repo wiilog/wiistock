@@ -356,9 +356,15 @@ class SettingsService {
         }
 
         if ($request->request->has("MAILER_PASSWORD")) {
-            $settingMailPassword = $settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
             $newMailPassword = $request->request->get("MAILER_PASSWORD");
-            if ($settingMailPassword != $newMailPassword && $newMailPassword) {
+            $settingMailPassword = $settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
+            if (!$settingMailPassword) {
+                $settingMailPassword = new Setting();
+                $settingMailPassword->setLabel(Setting::MAILER_PASSWORD);
+                $entityManager->persist($settingMailPassword);
+                $entityManager->flush();
+            }
+            if ($settingMailPassword->getValue() != $newMailPassword && $newMailPassword) {
                 $settingMailPassword->setValue($newMailPassword);
             }
             $updated[] = "MAILER_PASSWORD";
