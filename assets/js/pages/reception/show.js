@@ -23,7 +23,6 @@ let receptionId = undefined;
 window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
 window.finishReception = finishReception;
-window.onRequestTypeChange = onRequestTypeChange;
 window.demandeurChanged = demandeurChanged;
 window.articleChanged = articleChanged;
 window.openModalArticlesFromLigneArticle = openModalArticlesFromLigneArticle;
@@ -61,6 +60,9 @@ $(function () {
         .on(`change`, function () {
             loadPackingArticleForm($modalNewLigneReception);
         });
+    $modalNewLigneReception.on('change', '.delivery-request-form [name="type"]', function () {
+        onRequestTypeChange($(this))
+    });
 
     $(document).on(`click`, `.add-packing-lines`, function (e) {
         e.preventDefault();
@@ -914,8 +916,9 @@ function loadPackingArticlesTemplate($button) {
                     $modal.find(`.wii-section-title, .create-request-container, .modal-footer`).removeClass(`d-none`);
 
                     if (Number($modal.find(`[name=precheckedDelivery]`).val())) {
-                        $modal.find(`.create-request-container > [name="requestType"][value="delivery"]`).trigger(`click`);
+                        $modal.find(`.create-request-container [name="requestType"][value="delivery"]`).prop(`checked`, true);
                     }
+                    $modal.find(`.create-request-container [name="requestType"]:checked`).trigger(`change`);
                 })
         ));
     }
