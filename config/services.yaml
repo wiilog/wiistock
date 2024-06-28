@@ -63,11 +63,13 @@ services:
         arguments:
             $menuConfig: '%menu_config%'
 
-    App\Command\CacheClearCommand:
-        arguments: ['@kernel', '@cache_clearer', '@filesystem']
 
     App\Command\DumpRoutingCommand:
-        arguments: ['@kernel', '@fos_js_routing.extractor', '@serializer']
+        arguments:
+            $routesResponse: '@fos_js_routing.routes_response'
+            $extractor: '@fos_js_routing.extractor'
+            $serializer: '@serializer'
+            $kernel: '@kernel'
 
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:

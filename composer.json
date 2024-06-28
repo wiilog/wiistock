@@ -11,7 +11,6 @@
         "ext-iconv": "*",
         "ext-intl": "*",
         "ext-json": "*",
-        "ext-mysqli": "*",
         "ext-zip": "*",
         "ext-pdo": "*",
         "beberlei/doctrineextensions": "^1.3",
