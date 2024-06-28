@@ -122,7 +122,10 @@ function main(): void {
             STEP_COMMANDS => function() {
                 execCommand("yarn --cwd /project install");
             },
-            STEP_FILTER => fn() => !file_exists("/project/node_modules") || $mode === ENV_DEV,
+            STEP_FILTER => fn() => (
+                (!file_exists("/project/node_modules") && !file_exists("/project/public/build"))
+                || $mode === ENV_DEV
+            ),
         ],
         [
             STEP_DESCRIPTION => "Symfony - dump fos js routing",
