@@ -441,6 +441,7 @@ class PackService {
         $waitingDaysRequested = [7, 15, 30, 42];
         $ongoingPacks = $packRepository->findOngoingPacksOnDeliveryPoints($waitingDaysRequested);
         foreach ($ongoingPacks as $packData) {
+            /** @var Pack $pack */
             $pack = $packData[0];
             $waitingDays = $packData['packWaitingDays'];
 
@@ -466,7 +467,7 @@ class PackService {
                     'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),
-                $arrival->getReceivers()
+                $arrival->getReceivers()->toArray()
             );
         }
     }
