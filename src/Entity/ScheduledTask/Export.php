@@ -50,6 +50,7 @@ class Export {
     const PERIOD_INTERVAL_YEAR = "year";
 
     const PERIOD_CURRENT = "current";
+    const PERIOD_CURRENT_3 = "current_3";
     const PERIOD_PREVIOUS = "previous";
 
     #[ORM\Id]
