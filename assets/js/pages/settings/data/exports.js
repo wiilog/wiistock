@@ -457,6 +457,7 @@ function onPeriodIntervalChange($modal) {
         case 'month':
             $period.html(
                 '<option value="current" selected>en cours (mois M)</option>' +
+                '<option value="current_3" selected>en cours et les 3 précédents (mois M-3 à M)</option>' +
                 '<option value="previous">dernier (mois M-1)</option>'
             );
             break;
