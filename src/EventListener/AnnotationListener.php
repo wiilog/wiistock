@@ -4,7 +4,6 @@ namespace App\EventListener;
 
 use App\Annotation\HasPermission;
 use App\Annotation\HasValidToken;
-use App\Annotation\RestAuthenticated;
 use App\Annotation\RestVersionChecked;
 use App\Controller\AbstractController;
 use App\Entity\Kiosk;
@@ -80,11 +79,6 @@ class AnnotationListener {
             $this->handleRestVersionChecked($event);
         }
 
-        $annotation = $this->getAnnotation($reader, $method, RestAuthenticated::class);
-        if ($annotation instanceof RestAuthenticated) {
-            $this->handleRestAuthenticated($event, $controller);
-        }
-
         $annotation = $this->getAnnotation($reader, $method, HasPermission::class);
 
         if ($annotation instanceof HasPermission) {
@@ -109,27 +103,6 @@ class AnnotationListener {
         }
 
         return null;
-    }
-
-    private function handleRestAuthenticated(ControllerArgumentsEvent $event, SymfonyAbstractController $controller): void {
-        $request = $event->getRequest();
-
-        if (!method_exists($controller, "setUser")) {
-            throw new RuntimeException("Routes annotated with @Authenticated must have a `setUser` method");
-        }
-
-        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-
-        $authorization = $request->headers->get("x-authorization", "");
-        preg_match("/Bearer (\w*)/i", $authorization, $matches);
-
-        $user = $matches ? $userRepository->findOneByApiKey($matches[1]) : null;
-        if ($user) {
-            $controller->setUser($user);
-        }
-        else {
-            throw new UnauthorizedHttpException("no challenge");
-        }
     }
 
     private function handleRestVersionChecked(ControllerArgumentsEvent $event): void {
