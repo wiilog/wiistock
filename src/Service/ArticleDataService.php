@@ -532,9 +532,9 @@ class ArticleDataService
             $newCounter = sprintf('%08u', $highestCounter);
             $generatedBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
         }
-        while(in_array($generatedBarcode, $excludeBarcodes));
+        while(in_array($generatedBarcode, $excludeBarcodes) || $articleRepository->findOneByBarCode($generatedBarcode));
 
-		return $generatedBarcode;
+        return $generatedBarcode;
 	}
 
     public function getBarcodeConfig(Article   $article,

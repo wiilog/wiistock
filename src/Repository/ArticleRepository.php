@@ -1419,4 +1419,12 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findOneByBarCode(string $barCode): ?Article {
+        return $this->createQueryBuilder("article")
+            ->where("article.barCode = :barCode")
+            ->setParameter("barCode", $barCode)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
