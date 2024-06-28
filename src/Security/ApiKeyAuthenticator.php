@@ -53,7 +53,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator {
             throw new CustomUserMessageAuthenticationException('Invalid API token');
         }
 
-        return new SelfValidatingPassport(new UserBadge($userIdentifier));
+        return new SelfValidatingPassport(new UserBadge($userIdentifier->getEmail()));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
