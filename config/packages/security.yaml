@@ -37,12 +37,6 @@ security:
             pattern: ^/
             user_checker: App\Security\UserChecker
 
-            saml:
-                check_path: saml_acs
-                login_path: saml_login
-                persist_user: true
-                user_factory: saml_user_factory
-
             form_login:
                 login_path: login
                 use_forward: false

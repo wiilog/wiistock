@@ -19,6 +19,6 @@ return [
     FOS\JsRoutingBundle\FOSJsRoutingBundle::class => ['all' => true],
     FOS\RestBundle\FOSRestBundle::class => ['all' => true],
     SGK\BarcodeBundle\SGKBarcodeBundle::class => ['all' => true],
-    Nbgrp\OneloginSamlBundle\NbgrpOneloginSamlBundle::class => ['all' => true],
+    Nbgrp\OneloginSamlBundle\NbgrpOneloginSamlBundle::class => ['all' => !empty($_SERVER['APP_SAML_ENABLED'])],
     Cron\CronBundle\CronCronBundle::class => ['all' => true],
 ];

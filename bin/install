@@ -25,6 +25,7 @@ function main(): void {
     $APP_CONTEXT = getenv("APP_CONTEXT") ?: "prod";
     $APP_DOMAIN_NAME = getenv("APP_DOMAIN_NAME") ?: "localhost";
     $DATABASE_SSL_CONFIG = getenv("DATABASE_SSL_CONFIG") ?: null;
+    $APP_SAML_ENABLED = !empty(getenv("APP_SAML_ENABLED") ?: false);
     $DATABASE_URL = getenv("DATABASE_URL") ?: null;
     $mode = $argv[1] ?? $APP_ENV;
 
@@ -32,13 +33,14 @@ function main(): void {
 
     echo (
         "---- Deployment information" . PHP_EOL .
-        "WIISTOCK_VERSION: " .  json_encode($WIISTOCK_VERSION) . PHP_EOL .
-        "APP_ENV: " .  json_encode($APP_ENV) . PHP_EOL .
-        "APP_CONTEXT: " .  json_encode($APP_CONTEXT) . PHP_EOL .
-        "APP_DOMAIN_NAME: " .  json_encode($APP_DOMAIN_NAME) . PHP_EOL .
-        "DATABASE_SSL_CONFIG: " .  json_encode($DATABASE_SSL_CONFIG) . PHP_EOL .
-        "mode: " .  json_encode($mode) . PHP_EOL .
-        "countTable: " .  json_encode($tableCount) . PHP_EOL
+        "WIISTOCK_VERSION:    " . json_encode($WIISTOCK_VERSION) . PHP_EOL .
+        "APP_ENV:             " . json_encode($APP_ENV) . PHP_EOL .
+        "APP_CONTEXT:         " . json_encode($APP_CONTEXT) . PHP_EOL .
+        "APP_DOMAIN_NAME:     " . json_encode($APP_DOMAIN_NAME) . PHP_EOL .
+        "APP_SAML_ENABLED:    " . json_encode($APP_SAML_ENABLED) . PHP_EOL .
+        "DATABASE_SSL_CONFIG: " . json_encode($DATABASE_SSL_CONFIG) . PHP_EOL .
+        "mode:                " . json_encode($mode) . PHP_EOL .
+        "countTable:          " . json_encode($tableCount) . PHP_EOL
     );
 
     $INSTALL_STEP = [
@@ -48,6 +50,13 @@ function main(): void {
                 file_put_contents("/project/config/generated.yaml", "{\"parameters\":{\"session_lifetime\": 1440}}");
             },
             STEP_FILTER => fn () => !file_exists("/project/config/generated.yaml"),
+        ],
+        [
+            STEP_DESCRIPTION => "Enable SAML",
+            STEP_COMMANDS => function() {
+                enableSAMLConfig();
+            },
+            STEP_FILTER => fn() => $APP_SAML_ENABLED,
         ],
         [
             STEP_DESCRIPTION => "Clear directories before install",
@@ -290,6 +299,63 @@ function treatStep(int $index, array $step, string $logPrefix): void {
             $step[STEP_COMMANDS]();
         }
     }
+}
+
+function enableSAMLConfig(): void {
+
+    echo "Edit config/routes.yaml" . PHP_EOL;
+    $routesFilePath = "config/routes.yaml";
+    $routesConfig = yaml_parse_file($routesFilePath) ?: [];
+    $routesConfig["nbgrp_saml"] = [
+        "resource" => "@NbgrpOneloginSamlBundle/Resources/config/routes.php"
+    ];
+    yaml_emit_file($routesFilePath, $routesConfig);
+
+    echo "Edit config/packages/security.yaml" . PHP_EOL;
+    $securityFilePath = "config/packages/security.yaml";
+    $securityConfig = yaml_parse_file($securityFilePath) ?: [];
+    $securityConfig["security"]["firewalls"]["main"]["saml"] = [
+        "check_path" => "saml_acs",
+        "login_path" => "saml_login",
+        "persist_user" => true,
+        "user_factory" => "saml_user_factory",
+    ];
+    yaml_emit_file($securityFilePath, $securityConfig);
+
+    echo "Create config/packages/nbgrp_onelogin_saml.yaml" . PHP_EOL;
+    $oneloginSamlFilePath = "config/packages/nbgrp_onelogin_saml.yaml";
+    yaml_emit_file($oneloginSamlFilePath, [
+        "nbgrp_onelogin_saml" => [
+            "onelogin_settings" => [
+                "default" => [
+                    // Mandatory SAML settings
+                    "idp" => [
+                        "entityId" => "%env(APP_SAML_IDP_ENTITY_ID)%",
+                        "singleSignOnService" => [
+                            "url" => "%env(APP_SAML_IDP_SIGN_ON_URL)%",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                        ],
+                        "singleLogoutService" => [
+                            "url" => "%env(APP_SAML_IDP_LOGOUT_URL)%",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                        ],
+                        "x509cert" => "%env(APP_SAML_IDP_CRT)%",
+                    ],
+                    "sp" => [
+                        "entityId" => "<request_scheme_and_host>/saml/metadata",
+                        "assertionConsumerService" => [
+                            "url" => "<request_scheme_and_host>/saml/acs",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+                        ],
+                        "singleLogoutService" => [
+                            "url" => "<request_scheme_and_host>/saml/logout",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                        ],
+                    ]
+                ]
+            ]
+        ]
+    ]);
 }
 
 
