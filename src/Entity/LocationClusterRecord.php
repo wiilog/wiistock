@@ -15,7 +15,7 @@ class LocationClusterRecord {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     /**
      * @var bool
@@ -28,19 +28,19 @@ class LocationClusterRecord {
      */
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'locationClusterRecords')]
     #[ORM\JoinColumn(nullable: false)]
-    private $pack;
+    private ?Pack $pack;
 
     /**
      * @var TrackingMovement|null
      */
     #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'firstDropRecords')]
-    private $firstDrop;
+    private ?TrackingMovement $firstDrop;
 
     /**
      * @var TrackingMovement|null
      */
     #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'lastTrackingRecords')]
-    private $lastTracking;
+    private ?TrackingMovement $lastTracking;
 
     #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'locationClusterRecords')]
     #[ORM\JoinColumn(nullable: false)]
