@@ -13,7 +13,7 @@ abstract class DeliveryRequestLine
     #[ORM\JoinColumn(nullable: true)]
     private ?Project $project = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true, options: ["charset" => "utf8mb4", "collation" => "utf8mb4_unicode_ci"])]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
     public function getProject(): ?Project
