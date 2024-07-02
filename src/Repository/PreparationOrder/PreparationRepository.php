@@ -123,6 +123,7 @@ class PreparationRepository extends EntityRepository
 
         $countTotal = QueryBuilderHelper::count($qb, 'p');
         $qb
+            ->andWhere('p.planned IS NULL OR p.planned = 0')
             ->join('p.demande', 'request')
             ->andWhere('request.manual = false');
         // filtres sup

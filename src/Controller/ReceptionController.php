@@ -1613,6 +1613,7 @@ class ReceptionController extends AbstractController {
                                    Reception                  $reception,
                                    ArticleDataService         $articleDataService,
                                    TrackingMovementService    $trackingMovementService,
+                                   SettingsService            $settingsService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
@@ -1630,10 +1631,9 @@ class ReceptionController extends AbstractController {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
-        $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
+
+        $createDirectDelivery = $settingsService->getValue($entityManager, Setting::DIRECT_DELIVERY);
+        $needCreatePrepa = $settingsService->getValue($entityManager, Setting::CREATE_PREPA_AFTER_DL);
 
         $transferRequest = null;
         $demande = null;
@@ -1696,63 +1696,71 @@ class ReceptionController extends AbstractController {
             $needCreateTransfer = $data['requestType'] === 'transfer';
 
             if ($needCreateLivraison) {
-                // optionnel : crée l'ordre de prépa
-                $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
-                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
-
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager);
                 if ($demande instanceof Demande) {
                     $entityManager->persist($demande);
 
-                    if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
-                        if ($validateResponse['success']) {
-                            /** @var Preparation $preparation */
-                            $preparation = $demande->getPreparations()->first();
+                    if ($createDirectDelivery || $needCreatePrepa) {
+                        // validate delivery request and create preparation
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck(
+                            $entityManager,
+                            $demande,
+                            false,
+                            $createDirectDelivery,
+                            true,
+                            false,
+                            ['sendNotification' => !$createDirectDelivery]
+                        );
+                    }
 
-                            /** @var Utilisateur $currentUser */
-                            $currentUser = $this->getUser();
-                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+                    $validatedRequest = $validateResponse['success'] ?? false;
+                    if ($createDirectDelivery && $validatedRequest) {
 
-                            $dateEnd = new DateTime('now');
-                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
+                        /** @var Preparation $preparation */
+                        $preparation = $demande->getPreparations()->first();
 
-                            $locationEndPreparation = $demande->getDestination();
+                        /** @var Utilisateur $currentUser */
+                        $currentUser = $this->getUser();
+                        $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                            $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-                            $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
+                        $dateEnd = new DateTime('now');
+                        $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
 
-                            try {
-                                $entityManager->flush();
+                        $locationEndPreparation = $demande->getDestination();
 
-                                if ($newPreparation
-                                    && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $notificationService->toTreat($newPreparation);
-                                }
-                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $this->notificationService->toTreat($delivery);
-                                }
-                            } /** @noinspection PhpRedundantCatchClauseInspection */
-                            catch (UniqueConstraintViolationException $e) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
-                                ]);
+                        $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
+                        $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
+
+                        try {
+                            $entityManager->flush();
+
+                            if ($newPreparation
+                                && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                                $notificationService->toTreat($newPreparation);
                             }
-                            $preparationMovements = $preparation->getMouvements();
-                            foreach ($preparationMovements as $movement) {
-                                $preparationsManagerService->persistDeliveryMovement(
-                                    $entityManager,
-                                    $movement->getQuantity(),
-                                    $currentUser,
-                                    $delivery,
-                                    !empty($movement->getRefArticle()),
-                                    $movement->getRefArticle() ?? $movement->getArticle(),
-                                    $preparation,
-                                    false,
-                                    $locationEndPreparation
-                                );
+                            if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                $this->notificationService->toTreat($delivery);
                             }
+                        } /** @noinspection PhpRedundantCatchClauseInspection */
+                        catch (UniqueConstraintViolationException $e) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
+                            ]);
+                        }
+                        $preparationMovements = $preparation->getMouvements();
+                        foreach ($preparationMovements as $movement) {
+                            $preparationsManagerService->persistDeliveryMovement(
+                                $entityManager,
+                                $movement->getQuantity(),
+                                $currentUser,
+                                $delivery,
+                                !empty($movement->getRefArticle()),
+                                $movement->getRefArticle() ?? $movement->getArticle(),
+                                $preparation,
+                                false,
+                                $locationEndPreparation
+                            );
                         }
                     }
                 }
