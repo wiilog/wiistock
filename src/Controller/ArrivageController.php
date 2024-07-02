@@ -853,7 +853,7 @@ class ArrivageController extends AbstractController {
             }
         }
         if ($data->get('emergency')) {
-            $dispute->setEmergencyTriggered($data->get('emergency') === 'true');
+            $dispute->setEmergencyTriggered($data->getBoolean('emergency'));
         }
         if ((!$dispute->getStatus() || !$dispute->getStatus()->isTreated()) && $arrivage) {
             $typeStatuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType());
