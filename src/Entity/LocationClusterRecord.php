@@ -28,19 +28,19 @@ class LocationClusterRecord {
      */
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'locationClusterRecords')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Pack $pack;
+    private ?Pack $pack = null;
 
     /**
      * @var TrackingMovement|null
      */
     #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'firstDropRecords')]
-    private ?TrackingMovement $firstDrop;
+    private ?TrackingMovement $firstDrop = null;
 
     /**
      * @var TrackingMovement|null
      */
     #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'lastTrackingRecords')]
-    private ?TrackingMovement $lastTracking;
+    private ?TrackingMovement $lastTracking = null;
 
     #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'locationClusterRecords')]
     #[ORM\JoinColumn(nullable: false)]
