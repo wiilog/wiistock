@@ -147,7 +147,8 @@ class SettingsService {
         $afterStart = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START");
         $afterEnd = $request->request->get("TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END");
 
-        if ((!$beforeStart || !$beforeEnd || !$afterStart || !$afterEnd) && ($beforeStart || $beforeEnd || $afterStart || $afterEnd)) {
+        if ((!$beforeStart || !$beforeEnd || !$afterStart || !$afterEnd)
+            && ($beforeStart || $beforeEnd || $afterStart || $afterEnd)) {
             throw new RuntimeException("Tous les champs horaires doivent être renseignés.");
         } else if($beforeStart && $beforeEnd && $afterStart && $afterEnd) {
             $isValid = $this->isTimeBeforeOrEqual($beforeStart, $beforeEnd);
@@ -376,18 +377,19 @@ class SettingsService {
                                   array     &$updated,
                                   array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
-            if (isset($setting)
-                && !in_array($key, $updated)
-                && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
-                && !in_array($setting->getLabel() . '_DELETED', $allFormSettingNames)) {
+            if (!in_array($key, $updated)
+                && !in_array("keep-$key", $allFormSettingNames)
+                && !in_array("$key\_DELETED", $allFormSettingNames)) {
                 $setting = $this->persistSetting($entityManager, $settings, $key);
-                if (is_array($value)) {
-                    $value = json_encode($value);
-                }
+                if ($setting) {
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    }
 
-                if ($value !== $setting->getValue()) {
-                    $setting->setValue($value);
-                    $updated[] = $key;
+                    if ($value !== $setting->getValue()) {
+                        $setting->setValue($value);
+                        $updated[] = $key;
+                    }
                 }
             }
         }
