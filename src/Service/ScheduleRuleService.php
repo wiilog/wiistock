@@ -136,7 +136,9 @@ class ScheduleRuleService
         $day = Stream::from($rule->getMonthDays())
             ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay, $instant, $isTimeEqual, $currentLastDayMonth) {
                 $day = intval($day === ScheduleRule::LAST_DAY_OF_WEEK ? 32 : $day);
-                if ($instant && $isTimeEqual && ($day === $currentDay || ($day === 32 && $currentDay === $currentLastDayMonth))) {
+                if ($instant
+                    && $isTimeEqual
+                    && ($day === $currentDay || ($day === 32 && $currentDay === $currentLastDayMonth))) {
                     return true;
                 } else if ($isTimeEqualOrBefore) {
                     return $day > $currentDay;
@@ -200,7 +202,7 @@ class ScheduleRuleService
 
         $hoursBetweenDates = intval($now->diff($rule->getBegin(), true)->format("%h"));
         if($hoursBetweenDates % $intervalPeriod === 0) {
-            if (intval($rule->getBegin()->format('i')) < intval($now->format('i'))) {
+            if (intval($rule->getBegin()->format('i')) <= intval($now->format('i'))) {
                 $hoursToAdd = $intervalPeriod;
             } else {
                 $hoursToAdd = 0;

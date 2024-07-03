@@ -36,7 +36,7 @@ class ScheduledExportCommand extends Command
         $exportsCache = $this->exportService->getScheduledCache($this->getEntityManager());
         $currentKeyExport = $this->exportService->getScheduleExportKeyCache(new DateTime());
 
-        if (isset($exportsCache[$currentKeyExport])) {
+        if (!empty($exportsCache[$currentKeyExport])) {
             $exports = $exportRepository->findBy(["id" => $exportsCache[$currentKeyExport]]);
 
             foreach ($exports as $export) {
