@@ -20,7 +20,9 @@ class CronReportListener
     private array $flushedErrorCronReports = [];
 
     public function postPersist(CronReport $cronReport): void {
-        $this->flushedErrorCronReports[] = $cronReport;
+        if ($cronReport->getExitCode() != 0) {
+            $this->flushedErrorCronReports[] = $cronReport;
+        }
     }
 
     public function postFlush(): void {
