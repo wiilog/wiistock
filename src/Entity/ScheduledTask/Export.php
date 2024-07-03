@@ -98,7 +98,7 @@ class Export {
     private ?DateTime $stockEntryEndDate = null;
 
     #[ORM\Column(type: "integer", nullable: true)]
-    private ?string $destinationType = null;
+    private ?int $destinationType = null;
 
     #[ORM\Column(type: "json", nullable: true)]
     private ?array $ftpParameters = [];
