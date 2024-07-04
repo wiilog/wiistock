@@ -81,7 +81,7 @@ function main(): void {
             STEP_COMMANDS => function() use ($WIISTOCK_VERSION) {
                 downloadZipCache(
                     "/project",
-                    "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/vendor.zip"
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/vendor.zip"
                 );
             },
             STEP_FILTER => fn () => $mode !== ENV_DEV && $WIISTOCK_VERSION,
@@ -108,7 +108,7 @@ function main(): void {
             STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_CONTEXT, $APP_DOMAIN_NAME) {
                 downloadZipCache(
                     "/project/public",
-                    "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/build-$APP_CONTEXT.zip"
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/build-$APP_CONTEXT.zip"
                 );
                 if (file_exists("/project/public/build")) {
                     execCommand("find public/build -type f -exec sed -i \"s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g\" {} \;");
@@ -121,7 +121,7 @@ function main(): void {
             STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_DOMAIN_NAME) {
                 downloadZipCache(
                     "/project",
-                    "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/node_modules.zip"
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/node_modules.zip"
                 );
             },
             STEP_FILTER => fn() => !file_exists("/project/public/build") && $mode !== ENV_DEV && $WIISTOCK_VERSION,
@@ -253,7 +253,8 @@ function downloadZipCache(string $destination,
     }
 }
 
-function countDatabaseTables(string $databaseUrl, ?string $databaseSSLConfigJson): int {
+function countDatabaseTables(string  $databaseUrl,
+                             ?string $databaseSSLConfigJson): int {
     if (!$databaseUrl) {
         throw new Exception("Database url is missing");
     }
@@ -358,5 +359,9 @@ function enableSAMLConfig(): void {
     ]);
 }
 
+function getReleaseDownloadUrl(string $release): string {
+    $releaseUri = rawurlencode($release);
+    return "https://github.com/wiilog/wiistock/releases/download/$releaseUri";
+}
 
 
