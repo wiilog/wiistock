@@ -242,12 +242,7 @@ function downloadZipCache(string $destination,
         fclose($cacheRelease);
 
         if (file_exists($tmpPath)) {
-            $zip = new ZipArchive();
-            $res = $zip->open($tmpPath);
-            if ($res) {
-                $zip->extractTo($destination);
-                $zip->close();
-            }
+            execCommand("unzip -q $tmpPath -d $destination");
             unlink($tmpPath);
         }
     }
