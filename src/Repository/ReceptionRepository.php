@@ -8,6 +8,7 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -365,32 +366,73 @@ class ReceptionRepository extends EntityRepository
     }
 
     public function getMobileReceptions(): array {
-        $qb = $this->createQueryBuilder("reception")
+        $maxNumberOfReceptions = 100;
+
+        $subQueryBuilder = $this->createQueryBuilder("sub_reception");
+        $subExprBuilder = $subQueryBuilder->expr();
+        $subQueryBuilder
+            ->select("sub_reception.id")
+            ->from(Reception::class, "sub_reception")
+            ->andWhere("join_status.code IN (:states)")
+            ->join("sub_reception.statut", "join_sub_status")
+            ->join("sub_reception.lines", "join_sub_line")
+            ->join("join_sub_line.receptionReferenceArticles", "join_sub_receptionReferenceArticle")
+
+            // without pack
+            ->andWhere("join_sub_line.pack IS NULL")
+
+            // quantity to received > 0
+            ->andWhere($subExprBuilder->andX(
+                "join_sub_receptionReferenceArticle.quantiteAR IS NOT NULL",
+                "join_sub_receptionReferenceArticle.quantiteAR > 0"
+            ))
+
+            // quantity received is not defined OR less than quantity to received
+            ->andWhere($subExprBuilder->orX(
+                "join_sub_receptionReferenceArticle.quantite IS NULL",
+                "join_sub_receptionReferenceArticle.quantite = 0",
+                "join_sub_receptionReferenceArticle.quantiteAR - receptionReferenceArticle.quantite > 0"
+            ))
+            ->groupBy("reception_id")
+            ->setMaxResults($maxNumberOfReceptions);
+
+
+
+        // get reception which can be treated
+        $queryBuilder = $this->createQueryBuilder("reception");
+        $exprBuilder = $queryBuilder->expr();
+
+        return $queryBuilder
             ->select("reception.id AS id")
-            ->addSelect("receptionSupplier.nom AS supplier")
+            ->addSelect("join_supplier.nom AS supplier")
             ->addSelect("reception.orderNumber AS orderNumber")
-            ->addSelect("reception.commentaire AS comment")
             ->addSelect("reception.dateAttendue AS expectedDate")
             ->addSelect("reception.dateCommande AS orderDate")
-            ->addSelect("receptionUser.username AS user")
-            ->addSelect("receptionCarrier.nom AS carrier")
-            ->addSelect("receptionLocation.label AS location")
-            ->addSelect("receptionStorageLocation.label AS storageLocation")
+            ->addSelect("join_user.username AS user")
+            ->addSelect("join_carrier.label AS carrier")
+            ->addSelect("join_location.label AS location")
+            ->addSelect("join_storageLocation.label AS storageLocation")
             ->addSelect("reception.manualUrgent AS emergency")
             ->addSelect("reception.number AS number")
-            ->addSelect("receptionStatus.nom AS status")
-            ->andWhere("receptionStatus.code IN (:states)")
-            ->andWhere("receptionLine.pack is null")
-            ->leftJoin("reception.statut", "receptionStatus")
-            ->leftJoin("reception.fournisseur", "receptionCarrier")
-            ->leftJoin("reception.utilisateur", "receptionUser")
-            ->leftJoin("reception.location", "receptionLocation")
-            ->leftJoin("reception.storageLocation", "receptionStorageLocation")
-            ->leftJoin("reception.fournisseur", "receptionSupplier")
-            ->leftJoin("reception.lines", "receptionLine")
-            ->setParameter("states", [Reception::STATUT_RECEPTION_PARTIELLE, Reception::STATUT_EN_ATTENTE]);
+            ->addSelect("join_status.nom AS status")
 
-        return $qb->getQuery()->getResult();
+            ->join("reception.statut", "join_status")
+            ->leftJoin("reception.storageLocation", "join_storageLocation")
+            ->leftJoin("reception.location", "join_location")
+            ->leftJoin("reception.transporteur", "join_carrier")
+            ->leftJoin("reception.fournisseur", "join_supplier")
+            ->leftJoin("reception.utilisateur", "join_user")
+
+            ->andWhere($exprBuilder->in("reception.id", $subQueryBuilder->getDQL()))
+            ->orderBy("reception.dateAttendue", Order::Descending->value)
+            ->addOrderBy("reception.id", Order::Descending->value)
+
+            ->setParameter("states", [
+                Reception::STATUT_RECEPTION_PARTIELLE,
+                Reception::STATUT_EN_ATTENTE,
+            ])
+            ->getQuery()
+            ->getResult();
     }
 
 }
