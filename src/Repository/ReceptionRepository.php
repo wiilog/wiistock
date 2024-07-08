@@ -372,7 +372,6 @@ class ReceptionRepository extends EntityRepository
         $subExprBuilder = $subQueryBuilder->expr();
         $subQueryBuilder
             ->select("sub_reception.id")
-            ->from(Reception::class, "sub_reception")
             ->andWhere("join_status.code IN (:states)")
             ->join("sub_reception.statut", "join_sub_status")
             ->join("sub_reception.lines", "join_sub_line")
@@ -391,12 +390,10 @@ class ReceptionRepository extends EntityRepository
             ->andWhere($subExprBuilder->orX(
                 "join_sub_receptionReferenceArticle.quantite IS NULL",
                 "join_sub_receptionReferenceArticle.quantite = 0",
-                "join_sub_receptionReferenceArticle.quantiteAR - receptionReferenceArticle.quantite > 0"
+                "join_sub_receptionReferenceArticle.quantiteAR - join_sub_receptionReferenceArticle.quantite > 0"
             ))
-            ->groupBy("reception_id")
+            ->distinct()
             ->setMaxResults($maxNumberOfReceptions);
-
-
 
         // get reception which can be treated
         $queryBuilder = $this->createQueryBuilder("reception");
