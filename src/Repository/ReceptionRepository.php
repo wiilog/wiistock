@@ -368,32 +368,12 @@ class ReceptionRepository extends EntityRepository
     public function getMobileReceptions(): array {
         $maxNumberOfReceptions = 100;
 
-        $subQueryBuilder = $this->createQueryBuilder("sub_reception");
-        $subExprBuilder = $subQueryBuilder->expr();
-        $subQueryBuilder
-            ->select("sub_reception.id")
-            ->andWhere("join_status.code IN (:states)")
-            ->join("sub_reception.statut", "join_sub_status")
+        $countLineWithPackQueryBuilder = $this->createQueryBuilder("sub_reception");
+        $countLineWithPackQueryBuilder
+            ->select("COUNT(join_sub_line.id)")
+            ->andWhere("sub_reception.id = reception.id")
             ->join("sub_reception.lines", "join_sub_line")
-            ->join("join_sub_line.receptionReferenceArticles", "join_sub_receptionReferenceArticle")
-
-            // without pack
-            ->andWhere("join_sub_line.pack IS NULL")
-
-            // quantity to received > 0
-            ->andWhere($subExprBuilder->andX(
-                "join_sub_receptionReferenceArticle.quantiteAR IS NOT NULL",
-                "join_sub_receptionReferenceArticle.quantiteAR > 0"
-            ))
-
-            // quantity received is not defined OR less than quantity to received
-            ->andWhere($subExprBuilder->orX(
-                "join_sub_receptionReferenceArticle.quantite IS NULL",
-                "join_sub_receptionReferenceArticle.quantite = 0",
-                "join_sub_receptionReferenceArticle.quantiteAR - join_sub_receptionReferenceArticle.quantite > 0"
-            ))
-            ->distinct()
-            ->setMaxResults($maxNumberOfReceptions);
+            ->join("join_sub_line.pack", "join_sub_pack");
 
         // get reception which can be treated
         $queryBuilder = $this->createQueryBuilder("reception");
@@ -420,9 +400,32 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin("reception.fournisseur", "join_supplier")
             ->leftJoin("reception.utilisateur", "join_user")
 
-            ->andWhere($exprBuilder->in("reception.id", $subQueryBuilder->getDQL()))
+            ->join("reception.lines", "join_line")
+            ->join("join_line.receptionReferenceArticles", "join_receptionReferenceArticle")
+
+            // quantity to received > 0
+            ->andWhere($exprBuilder->andX(
+                "join_receptionReferenceArticle.quantiteAR IS NOT NULL",
+                "join_receptionReferenceArticle.quantiteAR > 0"
+            ))
+
+            // quantity received is not defined OR less than quantity to received
+            ->andWhere($exprBuilder->orX(
+                "join_receptionReferenceArticle.quantite IS NULL",
+                "join_receptionReferenceArticle.quantite = 0",
+                "join_receptionReferenceArticle.quantiteAR - join_receptionReferenceArticle.quantite > 0"
+            ))
+
+            // Select only reception without packs
+            ->andWhere($exprBuilder->eq(0, "({$countLineWithPackQueryBuilder->getDQL()})"))
+
+            // Select only reception not finished
+            ->andWhere("join_status.code IN (:states)")
+
             ->orderBy("reception.dateAttendue", Order::Descending->value)
             ->addOrderBy("reception.id", Order::Descending->value)
+
+            ->setMaxResults($maxNumberOfReceptions)
 
             ->setParameter("states", [
                 Reception::STATUT_RECEPTION_PARTIELLE,
