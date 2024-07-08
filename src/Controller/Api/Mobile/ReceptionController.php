@@ -12,6 +12,7 @@ use App\Entity\ReceptionLine;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/api/mobile/receptions")]
 class ReceptionController extends AbstractController {
@@ -38,9 +39,27 @@ class ReceptionController extends AbstractController {
     public function getLines(EntityManagerInterface $entityManager,
                              Reception              $reception): JsonResponse {
         $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
-        $linesData = $receptionLineRepository->getByReception($reception, []);
-        $linesData["success"] = true;
+        [
+            "total" => $countTotal,
+            "data" => $results,
+        ] = $receptionLineRepository->getByReception($reception, []);
 
-        return new JsonResponse($linesData);
+        return $this->json([
+            "total" => $countTotal,
+            "success" => true,
+            "data" => Stream::from($results)
+                ->map(fn(array $line) => [
+                    ...$line,
+                    "references" => Stream::from($line["references"])
+                        ->map(fn(array $referenceLine) => [
+                            ...$referenceLine,
+                            "quantityToReceive" => ($referenceLine["quantityToReceive"] ?: 0) - ($referenceLine["receivedQuantity"] ?: 0),
+                            "receivedQuantity" => 0,
+                        ])
+                        ->filter(fn(array $line) => $line["quantityToReceive"] > 0)
+                        ->toArray()
+                ])
+                ->toArray()
+        ]);
     }
 }
