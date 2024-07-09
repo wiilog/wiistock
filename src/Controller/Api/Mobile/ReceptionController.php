@@ -27,7 +27,14 @@ class ReceptionController extends AbstractController {
 
         $response = [
             "success" => true,
-            "data" => $reception,
+            "data" => Stream::from($reception)
+                ->map(static function (array $reception) {
+                    $reception["emergency"] = $reception["emergency_articles"] || $reception["emergency_manual"];
+                    unset($reception["emergency_articles"]);
+                    unset($reception["emergency_manual"]);
+                    return $reception;
+                })
+                ->toArray(),
         ];
 
         return new JsonResponse($response);
@@ -48,15 +55,15 @@ class ReceptionController extends AbstractController {
             "total" => $countTotal,
             "success" => true,
             "data" => Stream::from($results)
-                ->map(fn(array $line) => [
+                ->map(static fn(array $line) => [
                     ...$line,
                     "references" => Stream::from($line["references"])
-                        ->map(fn(array $referenceLine) => [
+                        ->map(static fn(array $referenceLine) => [
                             ...$referenceLine,
                             "quantityToReceive" => ($referenceLine["quantityToReceive"] ?: 0) - ($referenceLine["receivedQuantity"] ?: 0),
                             "receivedQuantity" => 0,
                         ])
-                        ->filter(fn(array $line) => $line["quantityToReceive"] > 0)
+                        ->filter(static fn(array $line) => $line["quantityToReceive"] > 0)
                         ->values()
                 ])
                 ->values()
