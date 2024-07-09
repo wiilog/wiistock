@@ -706,8 +706,7 @@ class PreparationsManagerService
         return $splitArticleLineIds;
     }
 
-    public function getDataForDatatable($params = null, $filterDemande = null)
-    {
+    public function getDataForDatatable($params = null, $filterDemande = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $preparationRepository = $this->entityManager->getRepository(Preparation::class);
 
