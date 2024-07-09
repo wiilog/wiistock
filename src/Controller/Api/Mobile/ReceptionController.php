@@ -57,9 +57,9 @@ class ReceptionController extends AbstractController {
                             "receivedQuantity" => 0,
                         ])
                         ->filter(fn(array $line) => $line["quantityToReceive"] > 0)
-                        ->toArray()
+                        ->values()
                 ])
-                ->toArray()
+                ->values()
         ]);
     }
 }
