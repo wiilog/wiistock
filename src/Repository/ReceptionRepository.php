@@ -389,7 +389,8 @@ class ReceptionRepository extends EntityRepository
             ->addSelect("join_carrier.label AS carrier")
             ->addSelect("join_location.label AS location")
             ->addSelect("join_storageLocation.label AS storageLocation")
-            ->addSelect("reception.manualUrgent AS emergency")
+            ->addSelect("reception.urgentArticles AS emergency_articles")
+            ->addSelect("reception.manualUrgent AS emergency_manual")
             ->addSelect("reception.number AS number")
             ->addSelect("join_status.nom AS status")
 
