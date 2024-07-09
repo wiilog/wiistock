@@ -368,12 +368,17 @@ class ReceptionRepository extends EntityRepository
     public function getMobileReceptions(): array {
         $maxNumberOfReceptions = 100;
 
-        $countLineWithPackQueryBuilder = $this->createQueryBuilder("sub_reception");
-        $countLineWithPackQueryBuilder
-            ->select("COUNT(join_sub_line.id)")
-            ->andWhere("sub_reception.id = reception.id")
-            ->join("sub_reception.lines", "join_sub_line")
-            ->join("join_sub_line.pack", "join_sub_pack");
+        $countLineWithPackQueryBuilder = $this->createQueryBuilder("count_line_with_pack_reception")
+            ->select("COUNT(join_count_line_with_pack_line.id)")
+            ->andWhere("count_line_with_pack_reception.id = reception.id")
+            ->join("count_line_with_pack_reception.lines", "join_count_line_with_pack_line")
+            ->join("join_count_line_with_pack_line.pack", "join_count_line_with_pack_pack");
+
+        $sumReferenceQuantityQueryBuilder = $this->createQueryBuilder("sum_reference_quantity_reception")
+            ->select("SUM(COALESCE(join_sum_reference_quantity_reception_reference_article.quantiteAR, 0) - COALESCE(join_sum_reference_quantity_reception_reference_article.quantite, 0))")
+            ->andWhere("sum_reference_quantity_reception.id = reception.id")
+            ->join("sum_reference_quantity_reception.lines", "join_sum_reference_quantity_line")
+            ->join("join_sum_reference_quantity_line.receptionReferenceArticles", "join_sum_reference_quantity_reception_reference_article");
 
         // get reception which can be treated
         $queryBuilder = $this->createQueryBuilder("reception");
@@ -401,24 +406,11 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin("reception.fournisseur", "join_supplier")
             ->leftJoin("reception.utilisateur", "join_user")
 
-            ->join("reception.lines", "join_line")
-            ->join("join_line.receptionReferenceArticles", "join_receptionReferenceArticle")
-
-            // quantity to received > 0
-            ->andWhere($exprBuilder->andX(
-                "join_receptionReferenceArticle.quantiteAR IS NOT NULL",
-                "join_receptionReferenceArticle.quantiteAR > 0"
-            ))
-
-            // quantity received is not defined OR less than quantity to received
-            ->andWhere($exprBuilder->orX(
-                "join_receptionReferenceArticle.quantite IS NULL",
-                "join_receptionReferenceArticle.quantite = 0",
-                "join_receptionReferenceArticle.quantiteAR - join_receptionReferenceArticle.quantite > 0"
-            ))
-
             // Select only reception without packs
             ->andWhere($exprBuilder->eq(0, "({$countLineWithPackQueryBuilder->getDQL()})"))
+
+            // Select only reception with quantity to receive
+            ->andWhere($exprBuilder->gt("({$sumReferenceQuantityQueryBuilder->getDQL()})", 0))
 
             // Select only reception not finished
             ->andWhere("join_status.code IN (:states)")
