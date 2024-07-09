@@ -148,7 +148,7 @@ class ReceptionControllerService
 
     public function createTrackingAndStockMovementReception(MouvementStockService     $mouvementStockService,
                                                             int                       $quantityReceived,
-                                                            Article                   $article,
+                                                            Article|ReferenceArticle  $article,
                                                             Reception                 $reception,
                                                             Emplacement               $receptionLocation,
                                                             DateTime                  $now,
