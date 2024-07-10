@@ -42,6 +42,7 @@ Encore
     .addEntry('handling-show', './assets/js/pages/handling/show.js')
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
     .addEntry('handling-index', './assets/js/pages/handling/index.js')
+    .addEntry('collect-request-index', './assets/js/pages/collect-request/index.js')
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
