@@ -73,7 +73,9 @@ class ReceptionController extends AbstractController
         $receptionLine = $reception->getLine(null);
         $receptionReferenceArticles = $receptionLine->getReceptionReferenceArticles();
 
-        $receptionReferenceArticles->filter(static fn($receptionReferenceArticle) => $receptionReferenceArticle->getQuantite() > 0);
+        $payload = Stream::from($payload)
+            ->filter(static fn($row) => $row['receivedQuantity'] > 0)
+            ->toArray();
 
         foreach ($payload as $row) {
             $receptionControllerService->processReceptionRow(
