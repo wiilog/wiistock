@@ -120,7 +120,6 @@ class MobileReceptionService
         $supplierArticle = $receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->first() ?: null;
 
         $articleArray = [
-            "receptionReferenceArticle" => $receptionReferenceArticle,
             "refArticle" => $receptionReferenceArticle->getReferenceArticle(),
             "conform" => !$receptionReferenceArticle->getAnomalie(),
             "articleFournisseur" => $supplierArticle?->getId(),
@@ -133,6 +132,8 @@ class MobileReceptionService
         }
 
         $article = $this->articleDataService->newArticle($entityManager, $articleArray);
+
+        $receptionReferenceArticle->addArticle($article);
 
         $this->createTrackingAndStockMovementReception($entityManager, $quantityReceived, $article, $reception, $now, $receptionReferenceArticle);
     }
@@ -162,8 +163,9 @@ class MobileReceptionService
                                                             DateTime                  $now,
                                                             ReceptionReferenceArticle $receptionReferenceArticle): void
     {
+        $currentUser = $this->userService->getUser();
         $stockMovement = $this->mouvementStockService->createMouvementStock(
-            $this->userService->getUser(),
+            $currentUser,
             null,
             $quantityReceived,
             $article,
@@ -174,27 +176,45 @@ class MobileReceptionService
                 "date" => $now,
             ]
         );
+        $entityManager->persist($stockMovement);
 
-        $createdMvt = $this->trackingMovementService->createTrackingMovement(
-            $article->getBarCode(),
-            $reception->getLocation(),
-            $this->userService->getUser(),
-            $now,
-            true,
-            true,
-            TrackingMovement::TYPE_DEPOSE,
-            [
-                'mouvementStock' => $stockMovement,
-                'quantity' => $stockMovement->getQuantity(),
-                'from' => $reception,
-                'receptionReferenceArticle' => $receptionReferenceArticle,
-            ]
-        );
+        if ($article instanceof ReferenceArticle) {
+            $createdMvt = $this->trackingMovementService->createTrackingMovement(
+                $article->getTrackingPack() ?: $article->getBarCode(),
+                $reception->getLocation(),
+                $currentUser,
+                $now,
+                false,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                [
+                    'mouvementStock' => $stockMovement,
+                    'quantity' => $stockMovement->getQuantity(),
+                    'from' => $reception,
+                    'receptionReferenceArticle' => $receptionReferenceArticle,
+                ]
+            );
+            $entityManager->persist($createdMvt);
+        }
+        else { // if ($article instanceof Article)
+            // create drop tracking movements
+            $this->trackingMovementService->persistLogisticUnitMovements(
+                $entityManager,
+                null,
+                $reception->getLocation(),
+                [$article],
+                $currentUser,
+                [
+                    "mouvementStock" => $stockMovement,
+                    "from" => $reception,
+                    "trackingDate" => $now,
+                    "refOrArticle" => $article,
+                    "reception" => true,
+                ]
+            );
+        }
 
         $receptionReferenceArticle->setQuantite($receptionReferenceArticle->getQuantite() + $quantityReceived);
-
-        $entityManager->persist($stockMovement);
-        $entityManager->persist($createdMvt);
     }
 
 }
