@@ -1,6 +1,6 @@
 import Routing from '@app/fos-routing';
 
-window.callbackSaveFilter = callbackSaveFilter;
+global.callbackSaveFilter = callbackSaveFilter;
 
 let tableHandlings = null;
 
