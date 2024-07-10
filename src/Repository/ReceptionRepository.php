@@ -407,7 +407,7 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin("reception.utilisateur", "join_user")
 
             // Select only reception without packs
-            ->andWhere($exprBuilder->eq(0, "({$countLineWithPackQueryBuilder->getDQL()})"))
+            ->andWhere($exprBuilder->eq("({$countLineWithPackQueryBuilder->getDQL()})", 0))
 
             // Select only reception with quantity to receive
             ->andWhere($exprBuilder->gt("({$sumReferenceQuantityQueryBuilder->getDQL()})", 0))
