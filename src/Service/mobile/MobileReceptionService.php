@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\mobile;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -9,77 +9,77 @@ use App\Entity\MouvementStock;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Exceptions\FormException;
+use App\Service\ArticleDataService;
+use App\Service\MouvementStockService;
+use App\Service\TrackingMovementService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
-class ReceptionControllerService
+class MobileReceptionService
 {
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
 
     #[Required]
     public UserService $userService;
 
-    public function validateQuantities(array $payload): void
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public MouvementStockService $mouvementStockService;
+
+    #[Required]
+    public ArticleDataService $articleDataService;
+
+    public function validateQuantities(mixed $receivedQuantity): void
     {
-        foreach ($payload as $line) {
-            if ($line["quantityToReceive"] < 0) {
-                throw new FormException("La quantité reçue doit être positive");
-            }
+        if (!is_int($receivedQuantity) || $receivedQuantity <= 0) {
+            throw new FormException("La quantité reçue doit être positive");
         }
     }
 
-    public function processReceptionRow(Reception               $reception,
-                                        Collection              $receptionReferenceArticles,
-                                        array                   $row,
-                                        Emplacement             $receptionLocation,
-                                        DateTime                $now,
-                                        MouvementStockService   $mouvementStockService,
-                                        TrackingMovementService $trackingMovementService,
-                                        ArticleDataService      $articleDataService): void
+    public function processReceptionRow(EntityManagerInterface $entityManager,
+                                        Reception              $reception,
+                                        Collection             $receptionReferenceArticles,
+                                        array                  $row,
+                                        DateTime               $now): void
     {
         $quantityReceived = $row['receivedQuantity'];
         $receptionReferenceArticle = $receptionReferenceArticles
-            ->filter(fn(ReceptionReferenceArticle $r) => $r->getId() === $row['id'])
+            ->filter(static fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getId() === $row['id'])
             ->first();
 
         if (!$receptionReferenceArticle) {
             throw new FormException("La ligne de réception n'existe pas");
         }
 
+        $this->validateQuantities($quantityReceived);
         $this->checkQuantities($receptionReferenceArticle, $quantityReceived);
-
-        if ($receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->isEmpty()) {
-            throw new FormException("L'article fournisseur n'est pas renseigné");
-        }
 
         $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $this->processReferenceQuantityType(
+                $entityManager,
                 $reception,
                 $receptionReferenceArticle,
-                $receptionLocation,
                 $quantityReceived,
                 $now,
-                $mouvementStockService,
-                $trackingMovementService
             );
-        } else {
+        }
+        else {
             $this->processArticleQuantityType(
+                $entityManager,
                 $reception,
                 $receptionReferenceArticle,
-                $receptionLocation,
                 $quantityReceived,
                 $now,
-                $mouvementStockService,
-                $trackingMovementService,
-                $articleDataService
             );
         }
     }
@@ -92,49 +92,54 @@ class ReceptionControllerService
         }
     }
 
-    public function processReferenceQuantityType(Reception                 $reception,
+    public function processReferenceQuantityType(EntityManagerInterface    $entityManager,
+                                                 Reception                 $reception,
                                                  ReceptionReferenceArticle $receptionReferenceArticle,
-                                                 Emplacement               $receptionLocation,
                                                  int                       $quantityReceived,
-                                                 DateTime                  $now,
-                                                 MouvementStockService     $mouvementStockService,
-                                                 TrackingMovementService   $trackingMovementService): void
+                                                 DateTime                  $now): void
     {
         $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-        $this->createTrackingAndStockMovementReception($mouvementStockService, $quantityReceived, $referenceArticle, $reception, $receptionLocation, $now, $trackingMovementService, $receptionReferenceArticle);
+        $this->createTrackingAndStockMovementReception($entityManager, $quantityReceived, $referenceArticle, $reception, $now, $receptionReferenceArticle);
     }
 
-    public function processArticleQuantityType(Reception                 $reception,
+    public function processArticleQuantityType(EntityManagerInterface    $entityManager,
+                                               Reception                 $reception,
                                                ReceptionReferenceArticle $receptionReferenceArticle,
-                                               Emplacement               $receptionLocation,
                                                int                       $quantityReceived,
-                                               DateTime                  $now,
-                                               MouvementStockService     $mouvementStockService,
-                                               TrackingMovementService   $trackingMovementService,
-                                               ArticleDataService        $articleDataService): void
+                                               DateTime                  $now): void
     {
+        /** @var ReceptionReferenceArticle $receptionReferenceArticle */
+        if ($receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->isEmpty()) {
+            throw new FormException("La référence {$receptionReferenceArticle->getReferenceArticle()->getReference()} ne peut pas être réceptionnée car elle n'est liée à aucun article fournisseur");
+        }
+
+        $supplierArticle = $receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->first() ?: null;
+
         $articleArray = [
             "receptionReferenceArticle" => $receptionReferenceArticle,
             "refArticle" => $receptionReferenceArticle->getReferenceArticle(),
             "conform" => !$receptionReferenceArticle->getAnomalie(),
-            "articleFournisseur" => $receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
+            "articleFournisseur" => $supplierArticle?->getId(),
             "quantite" => $quantityReceived,
-            "emplacement" => $receptionLocation,
+            "emplacement" => $reception->getLocation(),
         ];
 
         if ($receptionReferenceArticle->getUnitPrice() !== null) {
             $articleArray["prix"] = $receptionReferenceArticle->getUnitPrice();
         }
 
-        $article = $articleDataService->newArticle($this->entityManager, $articleArray);
+        $article = $this->articleDataService->newArticle($entityManager, $articleArray);
 
-        $this->createTrackingAndStockMovementReception($mouvementStockService, $quantityReceived, $article, $reception, $receptionLocation, $now, $trackingMovementService, $receptionReferenceArticle);
+        $this->createTrackingAndStockMovementReception($entityManager, $quantityReceived, $article, $reception, $now, $receptionReferenceArticle);
     }
 
-    public function updateReceptionStatus(Reception $reception, $receptionReferenceArticles, EntityRepository $statusRepository): void
+    public function updateReceptionStatus(EntityManagerInterface $entityManager, Reception $reception): void
     {
-        $isReceptionPartial = $receptionReferenceArticles
-                ->filter(fn(ReceptionReferenceArticle $r) => $r->getQuantiteAR() !== $r->getQuantite())
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $receptionReferenceArticles = $reception->getReceptionReferenceArticles();
+
+        $isReceptionPartial = Stream::from($receptionReferenceArticles)
+                ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getQuantiteAR() !== $receptionReferenceArticle->getQuantite())
                 ->count() > 0;
 
         if ($isReceptionPartial) {
@@ -146,16 +151,14 @@ class ReceptionControllerService
         }
     }
 
-    public function createTrackingAndStockMovementReception(MouvementStockService     $mouvementStockService,
+    public function createTrackingAndStockMovementReception(EntityManagerInterface    $entityManager,
                                                             int                       $quantityReceived,
                                                             Article|ReferenceArticle  $article,
                                                             Reception                 $reception,
-                                                            Emplacement               $receptionLocation,
                                                             DateTime                  $now,
-                                                            TrackingMovementService   $trackingMovementService,
                                                             ReceptionReferenceArticle $receptionReferenceArticle): void
     {
-        $stockMovement = $mouvementStockService->createMouvementStock(
+        $stockMovement = $this->mouvementStockService->createMouvementStock(
             $this->userService->getUser(),
             null,
             $quantityReceived,
@@ -163,14 +166,14 @@ class ReceptionControllerService
             MouvementStock::TYPE_ENTREE,
             [
                 "from" => $reception,
-                "locationTo" => $receptionLocation,
+                "locationTo" => $reception->getLocation(),
                 "date" => $now,
             ]
         );
 
-        $createdMvt = $trackingMovementService->createTrackingMovement(
+        $createdMvt = $this->trackingMovementService->createTrackingMovement(
             $article->getBarCode(),
-            $receptionLocation,
+            $reception->getLocation(),
             $this->userService->getUser(),
             $now,
             true,
@@ -186,8 +189,8 @@ class ReceptionControllerService
 
         $receptionReferenceArticle->setQuantite($receptionReferenceArticle->getQuantite() + $quantityReceived);
 
-        $this->entityManager->persist($stockMovement);
-        $this->entityManager->persist($createdMvt);
+        $entityManager->persist($stockMovement);
+        $entityManager->persist($createdMvt);
     }
 
 }
