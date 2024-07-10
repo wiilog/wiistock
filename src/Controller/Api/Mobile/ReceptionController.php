@@ -9,12 +9,8 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
-use App\Entity\Statut;
 use App\Exceptions\FormException;
-use App\Service\ArticleDataService;
 use App\Service\mobile\MobileReceptionService;
-use App\Service\MouvementStockService;
-use App\Service\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -57,7 +53,7 @@ class ReceptionController extends AbstractController
     public function patchReception(EntityManagerInterface $entityManager,
                                    Request                $request,
                                    Reception              $reception,
-                                   MobileReceptionService $receptionControllerService): JsonResponse
+                                   MobileReceptionService $mobileReceptionService): JsonResponse
     {
         $payload = @json_decode($request->request->get('receptionReferenceArticles'), true);
 
@@ -78,7 +74,7 @@ class ReceptionController extends AbstractController
             ->toArray();
 
         foreach ($payload as $row) {
-            $receptionControllerService->processReceptionRow(
+            $mobileReceptionService->processReceptionRow(
                 $entityManager,
                 $reception,
                 $receptionReferenceArticles,
@@ -87,11 +83,13 @@ class ReceptionController extends AbstractController
             );
         }
 
-        $receptionControllerService->updateReceptionStatus($entityManager, $reception);
+        $mobileReceptionService->updateReceptionStatus($entityManager, $reception);
 
         $entityManager->flush();
 
-        return $this->json(['success' => true]);
+        return $this->json([
+            "success" => true,
+        ]);
     }
 
     #[Route("/{reception}/lines", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
