@@ -554,29 +554,35 @@ class ArticleRepository extends EntityRepository {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     switch ($column) {
                         case "type":
-                            $queryBuilder->leftJoin('article.type', 't')
-                                ->orderBy('t.label', $order);
+                            $queryBuilder->leftJoin('article.type', 'type')
+                                ->orderBy('type.label', $order);
                             break;
                         case "supplierReference":
-                            $queryBuilder->leftJoin('article.articleFournisseur', 'af1')
-                                ->orderBy('af1.reference', $order);
+                            $queryBuilder->leftJoin('article.articleFournisseur', 'article_fournisseur_supplier')
+                                ->orderBy('article_fournisseur_supplier.reference', $order);
                             break;
                         case "location":
-                            $queryBuilder->leftJoin('article.emplacement', 'e')
-                                ->orderBy('e.label', $order);
+                            $queryBuilder->leftJoin('article.emplacement', 'emplacement')
+                                ->orderBy('emplacement.label', $order);
+                            break;
+                        case "articleReference":
+                            $queryBuilder
+                                ->leftJoin('article.articleFournisseur', 'article_fournisseur')
+                                ->leftJoin('article_fournisseur.referenceArticle', 'reference_article')
+                                ->orderBy('reference_article.reference', $order);
                             break;
                         case "reference":
-                            $queryBuilder->leftJoin('article.articleFournisseur', 'af2')
-                                ->leftJoin('af2.referenceArticle', 'ra2')
-                                ->orderBy('ra2.reference', $order);
+                            $queryBuilder->leftJoin('article.articleFournisseur', 'article_fournisseur_reference')
+                                ->leftJoin('article_fournisseur_reference.referenceArticle', 'reference_article_reference')
+                                ->orderBy('reference_article_reference.reference', $order);
                             break;
                         case "status":
-                            $queryBuilder->leftJoin('article.statut', 's_sort')
-                                ->orderBy('s_sort.nom', $order);
+                            $queryBuilder->leftJoin('article.statut', 'statut_status')
+                                ->orderBy('statut_status.nom', $order);
                             break;
                         case "pairing":
-                            $queryBuilder->leftJoin('article.pairings', 'order_pairings')
-                                ->orderBy('order_pairings.active', $order);
+                            $queryBuilder->leftJoin('article.pairings', 'pairings')
+                                ->orderBy('pairings.active', $order);
                             break;
                         case "lu":
                             $queryBuilder->orderBy('IF(article.currentLogisticUnit IS NULL, 0, 1)', $order);
