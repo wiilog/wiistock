@@ -3,8 +3,8 @@
 namespace App\Service\mobile;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
-use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
@@ -38,10 +38,14 @@ class MobileReceptionService
     #[Required]
     public ArticleDataService $articleDataService;
 
-    public function validateQuantities(mixed $receivedQuantity): void
+    private function validateQuantities(mixed $receivedQuantity): void
     {
-        if (!is_int($receivedQuantity) || $receivedQuantity <= 0) {
-            throw new FormException("La quantité reçue doit être positive");
+        if (!is_int($receivedQuantity)) {
+            throw new FormException("La quantité reçue doit être sous forme entière");
+        }
+
+        if ($receivedQuantity <= 0) {
+            throw new FormException("La quantité reçue doit être supérieure ou égale à 1");
         }
     }
 
@@ -108,11 +112,11 @@ class MobileReceptionService
                                                int                       $quantityReceived,
                                                DateTime                  $now): void
     {
-        /** @var ReceptionReferenceArticle $receptionReferenceArticle */
         if ($receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->isEmpty()) {
             throw new FormException("La référence {$receptionReferenceArticle->getReferenceArticle()->getReference()} ne peut pas être réceptionnée car elle n'est liée à aucun article fournisseur");
         }
 
+        /** @var ArticleFournisseur $supplierArticle */
         $supplierArticle = $receptionReferenceArticle->getReferenceArticle()->getArticlesFournisseur()->first() ?: null;
 
         $articleArray = [
