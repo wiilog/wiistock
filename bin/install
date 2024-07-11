@@ -255,7 +255,7 @@ function countDatabaseTables(string  $databaseUrl,
     }
 
 
-    preg_match("/mysql:\/\/((?:\w|-)+):(\w+)@((?:\w|-|_|\.)+):(\d+)\/((?:\w|-)+)/", $databaseUrl, $matches);
+    preg_match("/mysql:\/\/((?:\w|-)+):((?:\w|-|_)+)@((?:\w|-|_|\.)+):(\d+)\/((?:\w|-)+)/", $databaseUrl, $matches);
 
     [
         ,
