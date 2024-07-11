@@ -47,8 +47,12 @@ class TemplateDocumentService {
                 }
             }
         }
-
-        return $templateProcessor->save();
+        /* We update phpword lib to 1.2 and save the document does not work anymore (see issue WIIS-11630)
+         * To see the resolution look this issue : https://github.com/PHPOffice/PHPWord/issues/2539
+        */
+        $tplFile = @tempnam(sys_get_temp_dir(), "TemplateDocumentImage");
+        $templateProcessor->saveAs($tplFile);
+        return $tplFile;
     }
 
     private function setTemplateProcessorValue(TemplateProcessor $templateProcessor,
