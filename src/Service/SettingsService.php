@@ -105,12 +105,9 @@ class SettingsService {
     public function getValue(EntityManagerInterface $entityManager,
                              string                 $settingLabel,
                              string|int|null|bool   $default = null): mixed {
-        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $settingLabel, static function () use ($settingLabel, $entityManager, $default) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
-            return $settingRepository->getOneParamByLabel($settingLabel)
-                ?? self::DEFAULT_SETTING_VALUES[$settingLabel]
-                ?? $default;
-        });
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        return $settingRepository->getOneParamByLabel($settingLabel);
     }
 
     public function persistSetting(EntityManagerInterface $entityManager, array $settings, string $key): ?Setting {
