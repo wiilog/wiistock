@@ -57,7 +57,7 @@
                                     items : form_statuses
                                         |filter(status =>
                                             status.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
-                                            or status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight
+                                            or (status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight)
                                         )
                                         |map(status => ({
                                             value: status.id,

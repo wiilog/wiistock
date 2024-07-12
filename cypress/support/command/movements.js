@@ -61,7 +61,7 @@ Cypress.Commands.add('addMovement', (typeNumber, type) => {
     if (type !== 'groupage' && type !== 'passage à vide' && type !== 'dépose dans UL') {
         cy.get('#modalNewMvtTraca input[name=quantity]').clear().type('25');
     }
-    cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
+    cy.get('#modalNewMvtTraca [type="submit"]').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
 
     cy.get('#alert-modal').should('be.visible').then(() => {
         cy.get('#alert-modal button').click();

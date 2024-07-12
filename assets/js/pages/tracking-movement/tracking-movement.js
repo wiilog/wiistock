@@ -1,6 +1,6 @@
 import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from '@app/ajax';
-import Flash from '@app/ajax';
+import Flash from '@app/flash';
 import Modal from '@app/modal';
 import Camera from '@app/camera';
 import moment from 'moment';
@@ -65,7 +65,7 @@ function loadLUQuantity($selector) {
     AJAX.route(GET, `tracking_movement_logistic_unit_quantity`, {code})
         .json()
         .then(response => {
-            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            $modalNewMvtTraca.find(`[type="submit"]`).prop(`disabled`, response.error);
             if (response.error) {
                 Flash.add(`danger`, response.error);
             }
@@ -88,7 +88,7 @@ function loadLULocation($input) {
     AJAX.route(GET, `tracking_movement_logistic_unit_location`, {code})
         .json()
         .then(response => {
-            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            $modalNewMvtTraca.find(`[type="submit"]`).prop(`disabled`, response.error);
             if (response.error) {
                 Flash.add(`danger`, response.error);
             }
@@ -279,14 +279,14 @@ function resetNewModal($modal) {
 
 function switchMvtCreationType($input) {
     let paramsToGetAppropriateHtml = $input.val();
+    const $modal = $input.closest('.modal');
 
     if (paramsToGetAppropriateHtml) {
-        $(`#submitNewMvtTraca`).prop(`disabled`, false);
+        $modal.find(`[type="submit"]`).prop(`disabled`, false);
         AJAX.route(AJAX.POST, "mouvement_traca_get_appropriate_html")
             .json(paramsToGetAppropriateHtml)
             .then((response) => {
                 if (response) {
-                    const $modal = $input.closest('.modal');
                     $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
                     $modal.find('.new-mvt-common-body').removeClass('d-none');
                     $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
