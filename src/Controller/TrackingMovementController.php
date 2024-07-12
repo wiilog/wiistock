@@ -18,6 +18,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
@@ -142,10 +143,7 @@ class TrackingMovementController extends AbstractController
         }
 
         if ($quantity < 1) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'La quantité doit être supérieure à 0.'
-            ]);
+            throw new FormException("La quantité doit être supérieure à 0.");
         }
 
         if($isNow) {
@@ -279,18 +277,11 @@ class TrackingMovementController extends AbstractController
             }
         } catch (Exception $exception) {
             if($exception->getMessage() === Pack::PACK_IS_GROUP) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'unité logistique scannée est un groupe",
-                ]);
+                throw new FormException("L'unité logistique scannée est un groupe");
             } else {
                 // uncomment following line to debug
                 // throw $exception;
-
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Une erreur est survenue lors du traitement de la requête",
-                ]);
+                throw new FormException("Une erreur est survenue lors du traitement de la requête");
             }
         }
 
@@ -310,7 +301,7 @@ class TrackingMovementController extends AbstractController
         $countCreatedMouvements = count($createdMovements);
         $entityManager->flush();
 
-        return new JsonResponse([
+        return $this->json([
             'success' => $countCreatedMouvements > 0,
             'group' => null,
             'trackingMovementsCounter' => $countCreatedMouvements,
