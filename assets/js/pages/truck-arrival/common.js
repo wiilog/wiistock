@@ -3,6 +3,7 @@ import Modal from "@app/modal";
 import Select2 from "../../select2";
 
 global.deleteTruckArrival = deleteTruckArrival;
+global.printTruckArrivalLabel = printTruckArrivalLabel;
 
 export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {
     $trackingNumberSelect.off('change.lengthCheck').on('change.lengthCheck', function () {
@@ -52,4 +53,13 @@ export function deleteTruckArrival($deleteButton) {
             label: `Annuler`,
         },
     });
+}
+
+export function printTruckArrivalLabel($printButton) {
+    AJAX.route(AJAX.GET, 'truck_arrival_print_label', {
+        truckArrivalId: $printButton.data('id'),
+    }).file({
+        success: "Votre étiquette a bien été imprimée.",
+        error: "Erreur lors de l'impression de l'étiquetté",
+    })
 }

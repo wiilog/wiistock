@@ -1389,13 +1389,11 @@ class SettingsService {
 
     #[ArrayShape(["logo" => "mixed", "height" => "mixed", "width" => "mixed", "isCode128" => "mixed"])]
     public function getDimensionAndTypeBarcodeArray(EntityManagerInterface $entityManager): array {
-        $settingRepository = $entityManager->getRepository(Setting::class);
-
         return [
-            "logo" => $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO),
-            "height" => $settingRepository->getOneParamByLabel(Setting::LABEL_HEIGHT) ?? 0,
-            "width" => $settingRepository->getOneParamByLabel(Setting::LABEL_WIDTH) ?? 0,
-            "isCode128" => $settingRepository->getOneParamByLabel(Setting::BARCODE_TYPE_IS_128),
+            "logo" => $this->getValue($entityManager, Setting::LABEL_LOGO),
+            "height" => $this->getValue($entityManager, Setting::LABEL_HEIGHT) ?? 0,
+            "width" => $this->getValue($entityManager, Setting::LABEL_WIDTH) ?? 0,
+            "isCode128" => $this->getValue($entityManager, Setting::BARCODE_TYPE_IS_128),
         ];
     }
 

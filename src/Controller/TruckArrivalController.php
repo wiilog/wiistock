@@ -16,9 +16,9 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
+use App\Service\PDFGeneratorService;
 use App\Service\ReserveService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
@@ -26,6 +26,7 @@ use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -464,5 +465,22 @@ class TruckArrivalController extends AbstractController
             "success" => true,
             "msg" => "Un type de réserve a bien été supprimé",
         ]);
+    }
+
+    #[Route('/imprimer', name: 'print_label', options: ['expose' => true],  methods: self::GET)]
+    public function printTruckArrivalLabel(EntityManagerInterface $entityManager,
+                                           Request                $request,
+                                           PDFGeneratorService    $PDFGeneratorService,
+                                           TruckArrivalService    $truckArrivalService): PdfResponse {
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $truckArrivalId = $request->query->get('truckArrivalId');
+        $truckArrival = $truckArrivalRepository->find($truckArrivalId);
+
+        [$fileName, $barcodeConfig] = $truckArrivalService->getLabelConfig($truckArrival);
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, [$barcodeConfig]),
+            $fileName
+        );
     }
 }
