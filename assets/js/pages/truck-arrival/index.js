@@ -21,6 +21,8 @@ $(function () {
             success: (response) => {
                 if(response.redirect){
                     window.location.href = response.redirect;
+                } else {
+                    printTruckArrivalLabel(null, response.truckArrivalId);
                 }
             },
             tables: () => $('#truckArrivalsTable').DataTable()

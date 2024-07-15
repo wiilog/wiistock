@@ -20,6 +20,7 @@ use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReserveService;
+use App\Service\SettingsService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
@@ -209,12 +210,15 @@ class TruckArrivalController extends AbstractController
                            EntityManagerInterface $entityManager,
                            UniqueNumberService    $uniqueNumberService,
                            AttachmentService      $attachmentService,
+                           SettingsService        $settingsService,
                            TruckArrivalLineService $truckArrivalLineService): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $autoPrintTruckArrivalLabel = $settingsService->getValue($entityManager, Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL);
 
         $now = new DateTime();
         $data = $request->request;
@@ -308,7 +312,7 @@ class TruckArrivalController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'truckArrivalId' => $truckArrival->getId(),
+            'truckArrivalId' => $autoPrintTruckArrivalLabel ? $truckArrival->getId() : null,
             'redirect' => $data->has('goToArrivalButton') && boolval($data->get('goToArrivalButton'))
                             ? $this->generateUrl('arrivage_index', [
                                 'truckArrivalId' => $truckArrival->getId()
