@@ -20,6 +20,7 @@ use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\ReserveService;
+use App\Service\SettingsService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
@@ -64,6 +65,8 @@ class TruckArrivalController extends AbstractController
     public function show(TruckArrival           $truckArrival,
                          EntityManagerInterface $entityManager,
                          TruckArrivalService    $truckArrivalService): Response {
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
         $lineAssociated = $truckArrival->getTrackingLines()
                 ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                 ->count()
@@ -81,6 +84,7 @@ class TruckArrivalController extends AbstractController
             'minTrackingNumber' => $minTrackingNumber,
             'maxTrackingNumber' => $maxTrackingNumber,
             'showDetails' => $truckArrivalService->createHeaderDetailsConfig($truckArrival),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL),
         ]);
     }
 
@@ -294,13 +298,6 @@ class TruckArrivalController extends AbstractController
                 $truckArrival->addTrackingLine($arrivalLine);
                 $entityManager->persist($arrivalLine);
             }
-        }
-
-        if($truckArrival->getTrackingLines()->isEmpty()){
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Impossible d'enregistrer votre action. Veuillez renseigner au moins un n° de tracking transporteur valide."
-            ]);
         }
 
         $entityManager->flush();
