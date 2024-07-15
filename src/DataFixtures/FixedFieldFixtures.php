@@ -80,6 +80,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FixedFieldEnum::carrierTrackingNumber->name, 'label' => FixedFieldEnum::carrierTrackingNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ],
 
             FixedFieldStandard::ENTITY_CODE_ARTICLE => [
