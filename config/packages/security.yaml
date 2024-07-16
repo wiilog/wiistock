@@ -24,6 +24,12 @@ security:
             pattern: ^/telecharger/nomade.apk$
             security: false
 
+        iot:
+            lazy: true
+            pattern: ^/api/iot
+            stateless: true
+            security: false
+
         api:
             lazy: true
             pattern: ^/api
