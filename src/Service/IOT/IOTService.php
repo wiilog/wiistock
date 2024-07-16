@@ -76,9 +76,9 @@ class IOTService
     const MULTITECH_GATEWAY = 'gateway_multitech';
 
     const PROFILE_TO_MAX_TRIGGERS = [
-        self::INEO_SENS_ACS_TEMP => 4,
-        self::INEO_SENS_ACS_HYGRO => 4,
-        self::INEO_SENS_ACS_TEMP_HYGRO => 8,
+        self::INEO_SENS_ACS_TEMP => 8,
+        self::INEO_SENS_ACS_HYGRO => 8,
+        self::INEO_SENS_ACS_TEMP_HYGRO => 18,
         self::INEO_SENS_GPS => 1,
         self::INEO_SENS_ACS_BTN => 1,
         self::SYMES_ACTION_MULTI => 4,
