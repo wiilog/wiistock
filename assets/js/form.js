@@ -230,10 +230,6 @@ export default class Form {
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
 
-            if($input.is('[data-intl-tel-input]')){
-                $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
-            }
-
             const $multipleKey = $input.closest(`[data-multiple-key]`);
             if ($multipleKey.exists()) {
                 const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
@@ -337,7 +333,7 @@ export default class Form {
                     if($elem.attr(`type`) === `checkbox`) {
                         return $elem.is(`:checked`) ? $elem.val() : null;
                     } else {
-                        return $elem.val();
+                        return formatInputValue($elem)
                     }
                 })
                 .filter(val => val !== null));
@@ -632,6 +628,8 @@ function formatInputValue($input) {
         value = $input.is(`:checked`)
             ? $input.val()
             : null;
+    } else if (($input.attr(`type`) === `text` && $input.hasClass(`phone-number`))) {
+        value = window.intlTelInputGlobals.getInstance($input[0]).getNumber()
     } else {
         value = $input.val() || null;
     }
