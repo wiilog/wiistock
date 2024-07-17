@@ -202,4 +202,35 @@ class TruckArrivalRepository extends EntityRepository
             ->execute();
         return $result ? $result[0]['number'] : null;
     }
+
+    public function getForSelect(?string $term, $option = []): array {
+        $qb = $this->createQueryBuilder('truck_arrival');
+
+        $qb ->select("truck_arrival.id AS id")
+            ->addSelect("truck_arrival.number AS text")
+            ->addSelect("truck_arrival.id AS truck_arrival_id")
+            ->addSelect("carrier.id AS carrier_id")
+            ->addSelect("carrier.label AS carrier_label")
+            ->addSelect("carrier.code AS carrier_code")
+            ->andWhere("truck_arrival.number LIKE :term")
+            ->leftJoin('truck_arrival.carrier', 'carrier')
+            ->setParameter('term', "%$term%");
+
+
+        if (isset($option['truckArrivalId'])) {
+            $qb
+                ->andWhere('truck_arrival.id = :truck_arrival_id')
+                ->setParameter('truck_arrival_id', $option['truckArrivalId']);
+        }
+
+        if (isset($option['carrierId'])) {
+            $qb
+                ->andWhere('truck_arrival.carrier = :carrier_id')
+                ->setParameter('carrier_id', $option['carrierId']);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

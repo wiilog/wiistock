@@ -245,7 +245,7 @@ function createArrival(form = null) {
 
         const $carrierSelect = $modal.find("select[name='transporteur']");
         const $noTrackingSelect = $modal.find("select[name='noTracking']");
-        const $noTruckArrivalSelect = $modal.find("input[name='noTruckArrival']");
+        const $noTruckArrivalSelect = $modal.find("select[name='noTruckArrival']");
 
         $carrierSelect.on(`change`, function () {
             $noTrackingSelect
@@ -254,8 +254,24 @@ function createArrival(form = null) {
                 .attr('data-other-params-truck-arrival-id', null);
             $noTrackingSelect.find(`option`).remove();
             $noTrackingSelect.trigger('change');
-            $noTruckArrivalSelect.val(``);
+            $noTruckArrivalSelect.attr('data-other-params-carrier-id', $(this).val());
+            $noTruckArrivalSelect.find(`option:selected`).prop(`selected`, false);
+            $noTruckArrivalSelect.trigger('change');
         }).trigger('change');
+
+        $noTruckArrivalSelect.off('select2:select').on(`select2:select`, function (element) {
+            const data = element.params.data || {};
+            const trackingNumberRequired = Boolean($modal.find(`[name=trackingNumberRequired]`).val());
+            if (data.carrier_id && !trackingNumberRequired){
+                $carrierSelect.append(`<option value="${data.carrier_id}" selected>${data.carrier_label}</option>`);
+                $noTrackingSelect
+                    .prop(`disabled`, !$(this).val())
+                    .attr('data-other-params-carrier-id', $(this).val())
+                    .attr('data-other-params-truck-arrival-id', null);
+                $noTrackingSelect.find(`option`).remove();
+                $noTrackingSelect.trigger('change');
+            }
+        });
 
         const trackingNumberSuccess = function (data) {
             const $driverSelect = $modal.find("select[name='chauffeur']");
@@ -263,7 +279,11 @@ function createArrival(form = null) {
             const $flyFormDirver = $modal.find(`.fly-form.driver`);
 
             $noTrackingSelect.attr('data-other-params-truck-arrival-id', data.truck_arrival_id || null);
-            $noTruckArrivalSelect.val(data.truck_arrival_number);
+            if(data.truck_arrival_id){
+                $noTruckArrivalSelect.append(new Option(data.truck_arrival_number, data.truck_arrival_id, true, true))
+            } else {
+                $noTruckArrivalSelect.attr(`disabled`, false);
+            }
 
             if (data.driver_id !== undefined && data.driver_id != null) {
                 $driverSelect.find(`option`).remove();
