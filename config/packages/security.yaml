@@ -24,6 +24,12 @@ security:
             pattern: ^/telecharger/nomade.apk$
             security: false
 
+        iot:
+            lazy: true
+            pattern: ^/api/iot
+            stateless: true
+            security: false
+
         api:
             lazy: true
             pattern: ^/api
@@ -75,6 +81,9 @@ security:
         - { path: ^/api/mobile/server-images$, role: PUBLIC_ACCESS }
         - { path: ^/api/mobile/nomade-versions$, role: PUBLIC_ACCESS }
         - { path: ^/api/mobile/api-key$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/users/\d+/previous-picking-counter$, role: PUBLIC_ACCESS }
+        - { path: ^/api/server-images$, role: PUBLIC_ACCESS } # TODO WIIS-11587
+        - { path: ^/api/nomade-versions$, role: PUBLIC_ACCESS } # TODO WIIS-11587
         - { path: ^/api/ping$, role: PUBLIC_ACCESS }
         - { path: ^/login, role: PUBLIC_ACCESS }
         - { path: ^/register, role: PUBLIC_ACCESS }
