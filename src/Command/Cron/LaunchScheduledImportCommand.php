@@ -6,12 +6,12 @@ namespace App\Command\Cron;
 
 use App\Entity\CategorieStatut;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Service\CacheService;
 use App\Service\FTPService;
 use App\Service\ImportService;
-use App\Service\ScheduleRuleService;
+use App\Service\ScheduledTaskService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,31 +35,22 @@ class LaunchScheduledImportCommand extends Command {
     public ImportService $importService;
 
     #[Required]
+    public ScheduledTaskService $scheduledTaskService;
+
+    #[Required]
     public FTPService $ftpService;
 
     #[Required]
     public CacheService $cacheService;
 
-    #[Required]
-    public ScheduleRuleService $scheduleRuleService;
-
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $importRepository = $this->getEntityManager()->getRepository(Import::class);
-
-        $importsCache = $this->importService->getScheduledCache($this->getEntityManager());
-        $currentKeyImport = $this->importService->getScheduleImportKeyCache(new DateTime());
-
-        if (isset($importsCache[$currentKeyImport])) {
-            $imports = $importRepository->findBy(["id" => $importsCache[$currentKeyImport]]);
-
-            foreach ($imports as $import) {
+        return $this->scheduledTaskService->launchScheduledTask(
+            $this->getEntityManager(),
+            Import::class,
+            function (Import $import) use ($output) {
                 $this->import($output, $import);
             }
-
-            $this->importService->saveScheduledImportsCache($this->getEntityManager());
-        }
-
-        return 0;
+        );
     }
 
     public function import(OutputInterface $output, Import $import): void {
@@ -78,10 +69,8 @@ class LaunchScheduledImportCommand extends Command {
             $entityManager->flush();
         }
         else {
-            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import
                 ->setForced(false)
-                ->setNextExecutionDate($nextExecutionDate)
                 ->setLastErrorMessage(null);
 
             $entityManager->flush();
@@ -114,14 +103,14 @@ class LaunchScheduledImportCommand extends Command {
         $clones = [];
 
         if ($import->getFTPConfig()) {
-            $filePathMask = $rule->getFilePath();
+            $filePathMask = $import->getFilePath();
             $files = $this->ftpService->glob($import->getFTPConfig(), $filePathMask);
         }
         else {
             /** @var string[] $files */
-            $files = glob($rule->getFilePath()) ?: [];
+            $files = glob($import->getFilePath()) ?: [];
             if (empty($files)) {
-                $filePath = $rule->getFilePath();
+                $filePath = $import->getFilePath();
                 if (file_exists($filePath)) {
                     $files[] = $filePath;
                 }
@@ -129,7 +118,7 @@ class LaunchScheduledImportCommand extends Command {
         }
 
         foreach ($files as $file) {
-            $clonedRule = (new ImportScheduleRule())
+            $clonedRule = (new ScheduleRule())
                 ->setBegin($rule->getBegin())
                 ->setWeekDays($rule->getWeekDays())
                 ->setPeriod($rule->getPeriod())
@@ -137,8 +126,7 @@ class LaunchScheduledImportCommand extends Command {
                 ->setMonthDays($rule->getMonthDays())
                 ->setMonths($rule->getMonths())
                 ->setIntervalTime($rule->getIntervalTime())
-                ->setFrequency($rule->getFrequency())
-                ->setFilePath($file);
+                ->setFrequency($rule->getFrequency());
 
             $clones[] = (new Import())
                 ->setType($import->getType())
@@ -148,6 +136,7 @@ class LaunchScheduledImportCommand extends Command {
                 ->setCsvFile(null)
                 ->setEntity($import->getEntity())
                 ->setUser($import->getUser())
+                ->setFilePath($file)
                 ->setScheduleRule($clonedRule);
         }
 

@@ -13,12 +13,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PurchaseRequestScheduleRuleRepository::class)]
-class PurchaseRequestScheduleRule extends ScheduleRule
-{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+class PurchaseRequestScheduleRule extends ScheduleRule {
 
     #[ORM\ManyToMany(targetEntity: Zone::class)]
     private Collection $zones;
@@ -44,11 +39,6 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     {
         $this->zones = new ArrayCollection();
         $this->suppliers = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     /**

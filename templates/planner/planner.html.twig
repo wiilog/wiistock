@@ -14,10 +14,10 @@
         onChange: 'toggleFrequencyInput($(this))'
     }) }}
     <div class="col-8 frequency-content {{ frequency ? '' : 'd-none' }}">
-        {% include '/planner/frequencies/once.html.twig' with {begin, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::ONCE') } %}
-        {% include '/planner/frequencies/hourly.html.twig' with {begin, intervalPeriod, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::HOURLY')} %}
-        {% include '/planner/frequencies/daily.html.twig' with {begin, period, intervalTime, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::DAILY')} %}
-        {% include '/planner/frequencies/weekly.html.twig' with {begin, period, intervalTime, weekDays, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::WEEKLY')} %}
-        {% include '/planner/frequencies/monthly.html.twig' with {begin, months, monthDays, intervalTime, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::MONTHLY')} %}
+        {% include 'planner/frequencies/once.html.twig' with {begin, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::ONCE') } %}
+        {% include 'planner/frequencies/hourly.html.twig' with {begin, intervalPeriod, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::HOURLY')} %}
+        {% include 'planner/frequencies/daily.html.twig' with {begin, period, intervalTime, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::DAILY')} %}
+        {% include 'planner/frequencies/weekly.html.twig' with {begin, period, intervalTime, weekDays, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::WEEKLY')} %}
+        {% include 'planner/frequencies/monthly.html.twig' with {begin, months, monthDays, intervalTime, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::MONTHLY')} %}
     </div>
 </div>

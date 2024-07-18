@@ -29,11 +29,6 @@ class InventoryMissionRule extends ScheduleRule
         self::DURATION_UNIT_MONTHS => "mois",
     ];
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
-
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $label = null;
 
@@ -78,10 +73,6 @@ class InventoryMissionRule extends ScheduleRule
         return $this->getLabel();
     }
 
-    public function getId(): ?int {
-        return $this->id;
-    }
-
     public function getLabel(): ?string {
         return $this->label;
     }
@@ -121,26 +112,6 @@ class InventoryMissionRule extends ScheduleRule
         foreach($categories ?? [] as $category) {
             $this->addCategory($category);
         }
-
-        return $this;
-    }
-
-    public function getPeriodicity(): ?int {
-        return $this->periodicity;
-    }
-
-    public function setPeriodicity(int $periodicity): self {
-        $this->periodicity = $periodicity;
-
-        return $this;
-    }
-
-    public function getPeriodicityUnit(): ?string {
-        return $this->periodicityUnit;
-    }
-
-    public function setPeriodicityUnit(string $periodicityUnit): self {
-        $this->periodicityUnit = $periodicityUnit;
 
         return $this;
     }

@@ -24,7 +24,6 @@ const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
-global.forceExport = forceExport;
 global.cancelExport = cancelExport;
 
 let tableExport = null;
@@ -129,14 +128,6 @@ function selectHourlyFrequencyIntervalType($select) {
 function destinationExportChange(){
     $('.export-email-destination').toggleClass('d-none');
     $('.export-sftp-destination').toggleClass('d-none');
-}
-
-function forceExport(exportId) {
-    AJAX.route(POST, 'settings_export_force', {export: exportId})
-        .json()
-        .then(() => {
-            tableExport.ajax.reload();
-        });
 }
 
 function handleExportSaving($modal, table) {

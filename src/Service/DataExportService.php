@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
@@ -15,7 +14,6 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
@@ -300,7 +298,6 @@ class DataExportService
         $export->setCreatedAt($from);
         $export->setBeganAt($from);
         $export->setEndedAt($to);
-        $export->setForced(false);
 
         $entityManager->persist($export);
         $entityManager->flush();
@@ -472,17 +469,15 @@ class DataExportService
             }
         }
 
-        if (!$export->getExportScheduleRule()) {
-            $export->setExportScheduleRule(new ExportScheduleRule());
-        }
+        $scheduleRule = $export->getScheduleRule() ?: new ScheduleRule();
 
-        $begin = FormatHelper::parseDatetime($data["startDate"]);
+        $begin = $this->formatService->parseDatetime($data["startDate"]);
 
         if (in_array($data["frequency"], [ScheduleRule::DAILY, ScheduleRule::WEEKLY, ScheduleRule::MONTHLY])) {
             $begin->setTime(0, 0);
         }
 
-        $export->getExportScheduleRule()
+        $scheduleRule
             ->setBegin($begin)
             ->setFrequency($data["frequency"] ?? null)
             ->setPeriod($data["repeatPeriod"] ?? null)
@@ -492,7 +487,6 @@ class DataExportService
             ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
             ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
 
-        $export
-            ->setNextExecution($this->scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
+        $export->setScheduleRule($scheduleRule);
     }
 }

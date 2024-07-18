@@ -31,12 +31,10 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -2469,21 +2467,6 @@ class ImportService
         }
     }
 
-    public function updateScheduleRules(ImportScheduleRule $importScheduleRule,
-                                        ParameterBag       $request): void
-    {
-        $importScheduleRule
-            ->setFilePath($request->get('path-import-file'))
-            ->setFrequency($request->get("frequency"))
-            ->setBegin($this->formatService->parseDatetime($request->get("startDate")))
-            ->setPeriod($request->get("repeatPeriod"))
-            ->setIntervalPeriod($request->get("intervalPeriod"))
-            ->setIntervalTime($request->get("intervalTime"))
-            ->setMonths($request->get("months") ? explode(",", $request->get("months")) : null)
-            ->setMonthDays($request->get("monthDays") ? explode(",", $request->get("monthDays")) : null)
-            ->setWeekDays($request->get("weekDays") ? explode(",", $request->get("weekDays")) : null);
-    }
-
     public function getImportSecondModalConfig(EntityManagerInterface $entityManager,
                                                ParameterBag           $post,
                                                Import                 $import): array
@@ -2602,39 +2585,13 @@ class ImportService
         ];
     }
 
-    private function buildScheduledImportsCache(EntityManagerInterface $entityManager): array
-    {
-        return Stream::from($entityManager->getRepository(Import::class)->findScheduledImports())
-            ->keymap(fn(Import $import) => [$import->getId(), $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule())])
-            ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
-            ->map(fn(DateTime $date) => $this->getScheduleImportKeyCache($date))
-            ->reduce(function ($accumulator, $date, $id) {
-                $accumulator[$date][] = $id;
-                return $accumulator;
-            }, []);
-    }
-
-    public function saveScheduledImportsCache(EntityManagerInterface $entityManager): void
-    {
-        $this->cacheService->set(CacheService::COLLECTION_IMPORTS, "scheduled", $this->buildScheduledImportsCache($entityManager));
-    }
-
-    public function getScheduleImportKeyCache(DateTime $dateTime): string
-    {
-        return $dateTime->format("Y-m-d-H-i");
-    }
-
-    public function getScheduledCache(EntityManagerInterface $entityManager): array {
-        return $this->cacheService->get(CacheService::COLLECTION_IMPORTS, "scheduled", fn() => $this->buildScheduledImportsCache($entityManager));
-    }
-
     /**
      * @return resource|null
      */
     public function fopenImportFile(): mixed {
         $errorMessage = false;
         if ($this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
-            $absoluteFilePath = $this->currentImport->getScheduleRule()->getFilePath();
+            $absoluteFilePath = $this->currentImport->getFilePath();
 
             $FTPConfig = $this->currentImport->getFTPConfig();
 
@@ -2661,7 +2618,7 @@ class ImportService
             }
             else {
                 // file is on an external Symfony server
-                $path = $this->currentImport->getScheduleRule()?->getFilePath();
+                $path = $this->currentImport->getFilePath();
                 $this->scalarCache['importFilePath'] = $path;
             }
         } else {

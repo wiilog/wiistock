@@ -139,7 +139,7 @@ class ImportRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findScheduledImports(): array {
+    public function findScheduled(): array {
         return $this->createQueryBuilder("import")
             ->innerJoin("import.type", "join_type", Join::WITH, "join_type.label = :type")
             ->innerJoin("import.status", "join_status", Join::WITH, "join_status.code = :status")

@@ -2,8 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
-use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use DateTime;
 use RuntimeException;
@@ -31,40 +29,23 @@ class ScheduleRuleService
     #[Required]
     public Environment $templating;
 
-    public function calculateNextExecutionDate(ScheduleRule $rule, bool $instant = false): ?DateTime {
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
+    public function calculateNextExecutionDate(ScheduleRule $rule,
+                                               DateTime     $from): ?DateTime {
+        $from = clone $from;
+        $from->setTime($from->format('H'), $from->format('i'), 0, 0);
 
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-
-        $executionDate = match ($rule->getFrequency()) {
-            ScheduleRule::ONCE => $this->calculateOnce($rule, $now),
-            ScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now, $instant),
-            ScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now, $instant),
-            ScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
-            ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now, $instant),
-            default => throw new RuntimeException('Invalid schedule rule frequency'),
+        return match ($rule->getFrequency()) {
+            ScheduleRule::ONCE    => $this->calculateOnce($rule, $from),
+            ScheduleRule::DAILY   => $this->calculateFromDailyRule($rule, $from),
+            ScheduleRule::WEEKLY  => $this->calculateFromWeeklyRule($rule, $from),
+            ScheduleRule::HOURLY  => $this->calculateFromHourlyRule($rule, $from),
+            ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $from),
+            default               => throw new RuntimeException('Invalid schedule rule frequency'),
         };
-
-        if ($rule instanceof ExportScheduleRule){
-            $export = $rule->getExport();
-            if ($export->isForced()) {
-                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
-                $executionDate = min($now, $executionDate);
-            }
-        } elseif ($rule instanceof ImportScheduleRule) {
-            $import = $rule->getImport();
-            if ($import->isForced()) {
-                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
-                $executionDate = min($now, $executionDate);
-            }
-        }
-
-        return $executionDate;
     }
 
-    public function calculateFromWeeklyRule(ScheduleRule $rule, DateTime $now, bool $instant): ?DateTime {
+    public function calculateFromWeeklyRule(ScheduleRule $rule,
+                                            DateTime     $from): ?DateTime {
         $DAY_LABEL = [
             1 => "monday",
             2 => "tuesday",
@@ -78,38 +59,39 @@ class ScheduleRuleService
         [$hour, $minute] = explode(":", $rule->getIntervalTime());
         $nextOccurrence = clone $rule->getBegin();
 
-        $weeksDifferential = floor($now->diff($rule->getBegin())->days / 7);
+        $weeksDifferential = floor($from->diff($rule->getBegin())->days / 7);
         $add = $weeksDifferential + $weeksDifferential % $rule->getPeriod();
         $nextOccurrence->modify("+$add weeks");
 
         $goToNextWeek = false;
-        if ($now->format("W") != $nextOccurrence->format("W")) {
-            $nextOccurrence = max($now, $nextOccurrence);
+        if ($from->format("W") != $nextOccurrence->format("W")) {
+            $nextOccurrence = max($from, $nextOccurrence);
             $day = $rule->getWeekDays()[0];
             if (intval($day) < intval($nextOccurrence->format('N'))
                 || (intval($day) === intval($nextOccurrence->format('N')) && $this->isTimeBefore($rule->getIntervalTime(), $nextOccurrence))) {
                 $nextOccurrence->modify('+1 week');
             }
         } else {
-            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
-            $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $now);
-            $currentDay = $now->format("N");
+            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $from);
+            $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $from);
+            $currentDay = $from->format("N");
 
-            $day = Stream::from($rule->getWeekDays())
-                ->filter(function($day) use ($isTimeEqual, $isTimeEqualOrBefore, $currentDay, $instant) {
-                    if ($instant && $isTimeEqual && $day === $currentDay) {
+            $availableDays = Stream::from($rule->getWeekDays())
+                ->filter(function($day) use ($isTimeEqual, $isTimeEqualOrBefore, $currentDay) {
+                    if ($isTimeEqual && $day === $currentDay) {
                         return true;
                     } else if ($isTimeEqualOrBefore) {
                         return $day > $currentDay;
                     } else {
                         return $day >= $currentDay;
                     }
-                })
-                ->firstOr(function() use ($rule, &$goToNextWeek) {
-                    $goToNextWeek = true;
-                    return $rule->getWeekDays()[0];
                 });
+
+            $goToNextWeek = $availableDays->isEmpty();
+
+            $day = $availableDays->firstOr(fn() => $rule->getWeekDays()[0] ?? null);
         }
+
         if ($goToNextWeek) {
             $nextOccurrence->modify("+{$rule->getPeriod()} week");
         }
@@ -121,8 +103,9 @@ class ScheduleRuleService
         return $nextOccurrence;
     }
 
-    public function calculateFromMonthlyRule(ScheduleRule $rule, DateTime $now, bool $instant): ?DateTime {
-        $start = ($now > $rule->getBegin()) ? $now : $rule->getBegin();
+    public function calculateFromMonthlyRule(ScheduleRule $rule,
+                                             DateTime     $from): ?DateTime {
+        $start = ($from > $rule->getBegin()) ? $from : $rule->getBegin();
         $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
         $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $start);
 
@@ -134,10 +117,9 @@ class ScheduleRuleService
             ->format("j");
 
         $day = Stream::from($rule->getMonthDays())
-            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay, $instant, $isTimeEqual, $currentLastDayMonth) {
+            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay, $isTimeEqual, $currentLastDayMonth) {
                 $day = intval($day === ScheduleRule::LAST_DAY_OF_WEEK ? 32 : $day);
-                if ($instant
-                    && $isTimeEqual
+                if ($isTimeEqual
                     && ($day === $currentDay || ($day === 32 && $currentDay === $currentLastDayMonth))) {
                     return true;
                 } else if ($isTimeEqualOrBefore) {
@@ -150,7 +132,10 @@ class ScheduleRuleService
         $day = $day !== ScheduleRule::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
         $isDayEqual = $day == $currentDay;
         $isDayBefore = $day < $currentDay;
-        $ignoreCurrentMonth = !($instant && $isDayEqual && $isTimeEqual) && ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore));
+        $ignoreCurrentMonth = (
+            !($isDayEqual && $isTimeEqual)
+            && ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore))
+        );
 
         $month = Stream::from($rule->getMonths())
             ->filter(fn($month) => $ignoreCurrentMonth ? ($month > $currentMonth) : ($month >= $currentMonth))
@@ -162,7 +147,8 @@ class ScheduleRuleService
         return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
     }
 
-    public function calculateFromDailyRule(ScheduleRule $rule, DateTime $now, bool $instant): ?DateTime {
+    public function calculateFromDailyRule(ScheduleRule $rule,
+                                           DateTime     $from): ?DateTime {
         $start = $rule->getBegin();
         // set time to 0
         $start->setTime(0, 0);
@@ -170,39 +156,31 @@ class ScheduleRuleService
         [$hour, $minute] = explode(":", $rule->getIntervalTime());
 
         $nextOccurrence = clone $start;
-        if ($now >= $start) {
-            $daysDifferential = $now->diff($start)->days;
+        if ($from >= $start) {
+            $daysDifferential = $from->diff($start)->days;
 
             $add = $daysDifferential - $daysDifferential % $period;
             if ($add < $daysDifferential) {
                 $add += $period;
             }
             $nextOccurrence->modify("+$add day");
-            $nextOccurrence->setTime($hour, $minute);
-
-            if ($instant && $this->isTimeEqual($rule->getIntervalTime(), $now)) {
-                return $nextOccurrence;
-            }
-
-            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now)) {
-                $nextOccurrence->modify("+1 day");
-            }
-        } else {
-            $nextOccurrence->setTime($hour, $minute);
         }
+
+        $nextOccurrence->setTime($hour, $minute);
 
         return $nextOccurrence;
     }
 
-    public function calculateFromHourlyRule(ScheduleRule $rule, DateTime $now): ?DateTime {
+    public function calculateFromHourlyRule(ScheduleRule $rule,
+                                            DateTime     $from): ?DateTime {
         $intervalPeriod = $rule->getIntervalPeriod();
         if (!$intervalPeriod) {
             return null;
         }
 
-        $hoursBetweenDates = intval($now->diff($rule->getBegin(), true)->format("%h"));
+        $hoursBetweenDates = intval($from->diff($rule->getBegin(), true)->format("%h"));
         if($hoursBetweenDates % $intervalPeriod === 0) {
-            if (intval($rule->getBegin()->format('i')) <= intval($now->format('i'))) {
+            if (intval($rule->getBegin()->format('i')) <= intval($from->format('i'))) {
                 $hoursToAdd = $intervalPeriod;
             } else {
                 $hoursToAdd = 0;
@@ -211,21 +189,28 @@ class ScheduleRuleService
             $hoursToAdd = $hoursBetweenDates % $intervalPeriod;
         }
 
-        $nextOccurrence = clone $now;
-        $nextOccurrence->setTime((int)$now->format("H") + $hoursToAdd, $rule->getBegin()->format("i"));
+        $nextOccurrence = clone $from;
+        $nextOccurrence->setTime((int)$from->format("H") + $hoursToAdd, $rule->getBegin()->format("i"));
 
         return $nextOccurrence;
     }
 
-    public function calculateOnce(ScheduleRule $rule, DateTime $now): ?DateTime {
-        return $rule->getLastRun() === null && $now <= $rule->getBegin()
+    public function calculateOnce(ScheduleRule $rule,
+                                  DateTime     $from): ?DateTime {
+        return $rule->getLastRun() === null && $from <= $rule->getBegin()
             ? $rule->getBegin()
             : null;
     }
 
-    private function isTimeEqualOrBefore(string $time, DateTime $date) {
+    private function isTimeEqualOrBefore(string $time, DateTime $date): bool {
         [$hour, $minute] = explode(":", $time);
-        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
+        return (
+            $date->format('H') > $hour
+            || (
+                $date->format('H') == $hour
+                && $date->format('i') >= $minute
+            )
+        );
     }
 
     private function isTimeBefore(string $time, DateTime $date) {

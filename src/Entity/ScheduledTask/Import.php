@@ -5,7 +5,7 @@ namespace App\Entity\ScheduledTask;
 use App\Entity\Attachment;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\MouvementStock;
-use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -352,11 +352,14 @@ class Import {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $nextExecutionDate = null;
 
-    #[ORM\OneToOne(mappedBy: "import", targetEntity: ImportScheduleRule::class, cascade: ["persist", "remove"])]
-    private ?ImportScheduleRule $scheduleRule = null;
+    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
+    private ?ScheduleRule $scheduleRule = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $FTPConfig = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: false)]
+    private ?string $filePath = null;
 
     public function __construct() {
         $this->createdAt = new WiiDateTime();
@@ -565,30 +568,13 @@ class Import {
         return $this;
     }
 
-    public function getScheduleRule(): ?ImportScheduleRule {
+    public function getScheduleRule(): ?ScheduleRule {
         return $this->scheduleRule;
     }
 
-    public function setScheduleRule(?ImportScheduleRule $scheduleRule): self {
-        if ($this->getScheduleRule() && $this->getScheduleRule() !== $scheduleRule) {
-            $this->getScheduleRule()->setImport(null);
-        }
-
+    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
         $this->scheduleRule = $scheduleRule;
 
-        if($scheduleRule->getImport() !== $this) {
-            $scheduleRule->setImport($this);
-        }
-
-        return $this;
-    }
-
-    public function getNextExecutionDate(): ?DateTime {
-        return $this->nextExecutionDate;
-    }
-
-    public function setNextExecutionDate(?DateTime $nextExecutionDate): self {
-        $this->nextExecutionDate = $nextExecutionDate;
         return $this;
     }
 
@@ -649,5 +635,14 @@ class Import {
             && $this->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
             && $this->getStatus()?->getCode() === Import::STATUS_UPCOMING
         );
+    }
+
+    public function getFilePath(): ?string {
+        return $this->filePath;
+    }
+
+    public function setFilePath(?string $filePath): self {
+        $this->filePath = $filePath;
+        return $this;
     }
 }

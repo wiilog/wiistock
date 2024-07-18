@@ -2,11 +2,13 @@
 
 namespace App\Entity\ScheduledTask\ScheduleRule;
 
+use App\Repository\ScheduledTask\StorageRule\ScheduleRuleRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
-abstract class ScheduleRule {
+#[ORM\Entity(repositoryClass: ScheduleRuleRepository::class)]
+class ScheduleRule {
     public const ONCE = 'once-frequency';
     public const HOURLY = 'hourly-frequency';
     public const DAILY = 'every-day-frequency';
@@ -32,6 +34,11 @@ abstract class ScheduleRule {
 
     public const PERIOD_TYPE_MINUTES = 'minutes';
     public const PERIOD_TYPE_HOURS = 'hours';
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
     #[ORM\Column(type: "datetime")]
     private ?DateTime $begin = null;
@@ -66,6 +73,10 @@ abstract class ScheduleRule {
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $lastRun = null;
+
+    public function getId(): ?int {
+        return $this->id;
+    }
 
     public function getBegin(): ?DateTime {
         return $this->begin;
@@ -146,5 +157,17 @@ abstract class ScheduleRule {
     public function setLastRun(?DateTime $lastRun): self {
         $this->lastRun = $lastRun;
         return $this;
+    }
+
+    public function clone(): self {
+        return (new static())
+            ->setFrequency($this->getFrequency())
+            ->setPeriod($this->getPeriod())
+            ->setIntervalTime($this->getIntervalTime())
+            ->setIntervalPeriod($this->getIntervalPeriod())
+            ->setBegin($this->getBegin())
+            ->setMonths($this->getMonths())
+            ->setMonthDays($this->getMonthDays())
+            ->setWeekDays($this->getWeekDays());
     }
 }

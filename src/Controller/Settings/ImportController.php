@@ -6,7 +6,7 @@ use App\Controller\AbstractController;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\FormException;
@@ -64,9 +64,20 @@ class ImportController extends AbstractController
         if ($isScheduled) {
             $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT);
 
-            $rule = new ImportScheduleRule();
-            $importService->updateScheduleRules($rule, $request->request);
-            $import->setScheduleRule($rule);
+            $rule = new ScheduleRule();
+            $rule
+                ->setFrequency($request->get("frequency"))
+                ->setBegin($this->formatService->parseDatetime($request->get("startDate")))
+                ->setPeriod($request->get("repeatPeriod"))
+                ->setIntervalPeriod($request->get("intervalPeriod"))
+                ->setIntervalTime($request->get("intervalTime"))
+                ->setMonths($request->get("months") ? explode(",", $request->get("months")) : null)
+                ->setMonthDays($request->get("monthDays") ? explode(",", $request->get("monthDays")) : null)
+                ->setWeekDays($request->get("weekDays") ? explode(",", $request->get("weekDays")) : null);
+
+            $import
+                ->setFilePath($request->get('path-import-file'))
+                ->setScheduleRule($rule);
 
             $FTPHost = $post->get("host");
             $FTPPort = $post->get("port");
@@ -83,7 +94,8 @@ class ImportController extends AbstractController
 
                 try {
                     $FTPService->try($FTPConfig);
-                    $import->setFTPConfig($FTPConfig);
+                    $import
+                        ->setFTPConfig($FTPConfig);
                 }
                 catch(FTPException $exception) {
                     throw new FormException($exception->getMessage());
@@ -92,11 +104,6 @@ class ImportController extends AbstractController
                     throw new FormException("Une erreur s'est produite lors de vérification de la connexion avec le serveur FTP");
                 }
             }
-
-            $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
-            $import
-                ->setScheduleRule($rule)
-                ->setNextExecutionDate($nextExecutionDate);
         }
         else {
             $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_UNIQUE_IMPORT);

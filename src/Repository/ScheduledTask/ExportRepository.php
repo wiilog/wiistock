@@ -11,7 +11,10 @@ use Symfony\Component\HttpFoundation\InputBag;
 class ExportRepository extends EntityRepository
 {
 
-    public function findScheduledExports() {
+    /**
+     * @return Export[]
+     */
+    public function findScheduled(): array {
         return $this->createQueryBuilder("export")
             ->join("export.type", "type")
             ->join("export.status", "status")
