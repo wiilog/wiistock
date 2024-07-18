@@ -1,0 +1,9 @@
+{% block warning_mep_message %}
+    {% if setting_value('WARNING_HEADER_MESSAGE') is not empty %}
+        <div class="w-100 p-3 text-center" style="background-color: {{ setting_value('COLOR_WARNING_HEADER_MESSAGE') }}">
+            <span class="text-white bold">
+                {{ setting_value('WARNING_HEADER_MESSAGE') }}
+            </span>
+        </div>
+    {% endif %}
+{% endblock %}
