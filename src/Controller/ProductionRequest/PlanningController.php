@@ -143,7 +143,6 @@ class PlanningController extends AbstractController {
                 ])
                 ->toArray();
 
-
             $cards = Stream::from($productionRequests)
                 ->keymap(function (ProductionRequest $productionRequest) use ($formatService, $fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
                     $fields = Stream::from([
@@ -170,7 +169,6 @@ class PlanningController extends AbstractController {
                         ->filter(static fn(mixed $value) => !in_array($value, [null, ""]))
                         ->toArray();
 
-
                     return [
                         $productionRequest->getExpectedAt()->format('Y-m-d'),
                         $this->renderView('production_request/planning/card.html.twig', [
@@ -185,11 +183,12 @@ class PlanningController extends AbstractController {
                 ->toArray();
 
             $countLinesByDate = [];
-            foreach ($productionRequests as $productionRequest) {
-                $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
-                $countLinesByDate[$expectedAt] =
-                    ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
-            }
+
+            Stream::from($productionRequests)
+                ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
+                    $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
+                    $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
+            });
 
             $planningColumns = Stream::from($planningDays)
                 ->map(function (DateTime $day) use ($countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
