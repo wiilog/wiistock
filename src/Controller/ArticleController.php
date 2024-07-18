@@ -31,6 +31,7 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\ArticleDataService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
@@ -47,8 +48,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route("/article")]
-class ArticleController extends AbstractController
-{
+class ArticleController extends AbstractController {
     private const ARTICLE_IS_USED_MESSAGES = [
         Article::USED_ASSOC_COLLECTE => "Cet article est lié à une ou plusieurs collectes.",
         Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",
@@ -128,9 +128,12 @@ class ArticleController extends AbstractController
     #[HasPermission([Menu::STOCK, Action::DISPLAY_ARTI])]
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+
         $type = $article->getType();
-        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-        $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+        $hasMovements = $trackingMovementRepository->countByArticle($article) > 0;
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/show/index.html.twig", [
@@ -565,17 +568,17 @@ class ArticleController extends AbstractController
     }
 
     #[Route("/get-article-demande", name: "demande_article_by_refArticle", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    public function getLivraisonArticlesByRefArticle(
-        Request $request,
-        ArticleDataService $articleDataService,
-        EntityManagerInterface $entityManager ): Response {
+    public function getLivraisonArticlesByRefArticle(Request                $request,
+                                                     ArticleDataService     $articleDataService,
+                                                     SettingsService        $settingsService,
+                                                     EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(Demande::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             $deliveryRequest = $requestRepository->find($data['deliveryRequestId']);
-            $settings = $entityManager->getRepository(Setting::class);
-            $needsQuantitiesCheck = !$settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+
+            $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
 
             if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */
@@ -588,90 +591,6 @@ class ArticleController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
-
-    #[Route("/get-article-fournisseur", name: "demande_reference_by_fournisseur", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($fournisseur = json_decode($request->getContent(), true)) {
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-
-            $fournisseur = $fournisseurRepository->find($fournisseur);
-
-            if ($fournisseur) {
-                $json = $this->renderView('article/modalNewArticleContent.html.twig', [
-                    'references' => $articleFournisseurRepository->getByFournisseur($fournisseur),
-                    'champsLibres' => [],
-                ]);
-            } else {
-                $json = false; //TODO gérer erreur retour
-            }
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    #[Route("/ajax_article_new_content", name: "ajax_article_new_content", options: ["expose" => true], methods: [self::POST])]
-    public function ajaxArticleNewContent(Request $request,
-                                          EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
-            $articleFournisseur = $articleFournisseurRepository
-                ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
-
-            if (count($articleFournisseur) === 0) {
-                $json = [
-                    'error' => 'Aucune référence fournisseur trouvée.'
-                ];
-            } elseif (count($articleFournisseur) > 0) {
-                $typeArticle = $refArticle->getType();
-
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-                $json = [
-                    'content' => $this->renderView(
-                        'article/modalNewArticleContent.html.twig',
-                        [
-                            'typeArticle' => $typeArticle->getLabel(),
-                            'champsLibres' => $champsLibres,
-                            'references' => $articleFournisseur,
-                        ]
-                    ),
-                ];
-            } else {
-                $json = false;
-            }
-
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    #[Route("/ajax-fournisseur-by-refarticle", name: "ajax_fournisseur_by_refarticle", options: ["expose" => true], methods: [self::POST])]
-    public function ajaxFournisseurByRefArticle(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                $articleFournisseurs = $refArticle->getArticlesFournisseur();
-                $fournisseurs = [];
-                foreach ($articleFournisseurs as $articleFournisseur) {
-                    $fournisseurs[] = $articleFournisseur->getFournisseur();
-                }
-                $fournisseursUnique = array_unique($fournisseurs);
-                $json = $this->renderView('article/optionFournisseurNewArticle.html.twig', [
-                    'fournisseurs' => $fournisseursUnique
-                ]);
-            } else {
-                $json = false; //TODO gérer erreur retour
-            }
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
 
     #[Route("/etiquettes", name: "article_print_bar_codes", options: ["expose" => true], methods: [self::GET])]
     public function printArticlesBarCodes(Request $request,
@@ -721,7 +640,7 @@ class ArticleController extends AbstractController
     public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
         $article = $request->query->get('article');
 
-        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly'=>true]);
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly' => true]);
 
         return $this->json([
             'template' => $this->renderView('article/show/timeline.html.twig', [

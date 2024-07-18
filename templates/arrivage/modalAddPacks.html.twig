@@ -65,12 +65,10 @@
                     } %}
                 {% endif %}
             </div>
-
-            <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
             {% include 'utils/modal/footer.html.twig' with {
                 elements: natures is not empty ? [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                    {id: 'submitAddPacks', classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer')}
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
                 ] : [],
             } %}
         </div>

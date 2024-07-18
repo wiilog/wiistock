@@ -3,13 +3,17 @@
 namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
-use App\Controller\Api\AbstractApiController;
+use App\Controller\AbstractController;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Nature;
+use App\Entity\Pack;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -19,6 +23,7 @@ use App\Service\AttachmentService;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
 use App\Service\MobileApiService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
@@ -32,12 +37,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api")]
-class DispatchController extends AbstractApiController
+#[Rest\Route("/api/mobile")]
+class DispatchController extends AbstractController
 {
 
-    #[Rest\Post("/new-offline-dispatches", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/new-offline-dispatches", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function createNewOfflineDispatchs(Request                $request,
                                               EntityManagerInterface $entityManager,
@@ -242,8 +246,7 @@ class DispatchController extends AbstractApiController
             'errors' => $errors,
         ]);
     }
-    #[Rest\Post("/dispatches", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/dispatches", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function patchDispatches(Request                $request,
                                     AttachmentService      $attachmentService,
@@ -339,8 +342,7 @@ class DispatchController extends AbstractApiController
 
         return new JsonResponse($resData, $statusCode);
     }
-    #[Rest\Get("/dispatch-emergencies", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/dispatch-emergencies", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function dispatchEmergencies(EntityManagerInterface $manager): Response
     {
@@ -354,10 +356,9 @@ class DispatchController extends AbstractApiController
         return $this->json($emergencies);
     }
 
-    #[Rest\Post("/waybill/{dispatch}", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/waybill/{dispatch}", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
-    public function dispatchWaybill(EntityManagerInterface $manager, Dispatch $dispatch, Request $request, DispatchService $dispatchService, KernelInterface $kernel): Response
+    public function dispatchWaybill(EntityManagerInterface $manager, Dispatch $dispatch, Request $request, DispatchService $dispatchService): Response
     {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -373,8 +374,7 @@ class DispatchController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/new-dispatch", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/new-dispatch", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function newDispatch(Request                $request,
                                 EntityManagerInterface $manager,
@@ -460,8 +460,7 @@ class DispatchController extends AbstractApiController
     }
 
 
-    #[Rest\Post("/dispatch-validate", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Post("/dispatch-validate", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function dispatchValidate(Request                $request,
                                      EntityManagerInterface $entityManager,
@@ -505,8 +504,7 @@ class DispatchController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Get("/get-waybill-data/{dispatch}", condition: "request.isXmlHttpRequest()")]
-    #[Wii\RestAuthenticated]
+    #[Rest\Get("/get-waybill-data/{dispatch}", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getWayBillData(EntityManagerInterface $manager, Dispatch $dispatch, DispatchService $dispatchService): Response
     {
@@ -516,7 +514,7 @@ class DispatchController extends AbstractApiController
         ]);
     }
 
-    public function closeAndReopenEntityManager(EntityManagerInterface $entityManager){
+    private function closeAndReopenEntityManager(EntityManagerInterface $entityManager){
         $entityManager->close();
         $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -533,5 +531,139 @@ class DispatchController extends AbstractApiController
             $userRepository,
             $entityManager,
         ];
+    }
+
+
+    #[Rest\Post("/finish-grouped-signature", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Wii\RestVersionChecked]
+    public function finishGroupedSignature(Request                $request,
+                                           EntityManagerInterface $manager,
+                                           DispatchService        $dispatchService): Response
+    {
+
+        $locationData = [
+            'from' => $request->request->get('from') === "null" ? null : $request->request->get('from'),
+            'to' => $request->request->get('to') === "null" ? null : $request->request->get('to'),
+        ];
+        $signatoryTrigramData = $request->request->get("signatoryTrigram");
+        $signatoryPasswordData = $request->request->get("signatoryPassword");
+        $statusData = $request->request->get("status");
+        $commentData = $request->request->get("comment");
+        $dispatchesToSignIds = explode(',', $request->request->get('dispatchesToSign'));
+
+        $response = $dispatchService->finishGroupedSignature(
+            $manager,
+            $locationData,
+            $signatoryTrigramData,
+            $signatoryPasswordData,
+            $statusData,
+            $commentData,
+            $dispatchesToSignIds,
+            true,
+            $this->getUser()
+        );
+
+        $manager->flush();
+
+        return $this->json($response);
+    }
+    #[Rest\Get("/get-associated-ref-intels/{packCode}/{dispatch}", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Wii\RestVersionChecked]
+    public function getAssociatedPackIntels(EntityManagerInterface $manager,
+                                            string $packCode,
+                                            Dispatch $dispatch,
+                                            KernelInterface $kernel): Response
+    {
+
+        $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
+
+        $data = [];
+        /** @var DispatchPack $line */
+        $line = $dispatch
+            ->getDispatchPacks()
+            ->filter(fn(DispatchPack $linePack) => $linePack->getPack()->getId() === $pack->getId())
+            ->first();
+
+        if ($line) {
+            /** @var DispatchReferenceArticle $ref */
+            $ref = $line
+                ->getDispatchReferenceArticles()
+                ->first();
+            if ($ref) {
+                $photos = Stream::from($ref->getAttachments())
+                    ->map(function (Attachment $attachment) use ($kernel) {
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $data = file_get_contents($path);
+
+                        return 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    })->toArray();
+
+                $data = [
+                    'reference' => $ref->getReferenceArticle()->getReference(),
+                    'quantity' => $ref->getQuantity(),
+                    'outFormatEquipment' => $ref->getReferenceArticle()->getDescription()['outFormatEquipment'] ?? null,
+                    'manufacturerCode' => $ref->getReferenceArticle()->getDescription()['manufacturerCode'] ?? null,
+                    'sealingNumber' => $ref->getSealingNumber(),
+                    'serialNumber' => $ref->getSerialNumber(),
+                    'batchNumber' => $ref->getBatchNumber(),
+                    'width' => $ref->getReferenceArticle()->getDescription()['width'] ?? null,
+                    'height' => $ref->getReferenceArticle()->getDescription()['height'] ?? null,
+                    'length' => $ref->getReferenceArticle()->getDescription()['length'] ?? null,
+                    'weight' => $ref->getReferenceArticle()->getDescription()['weight'] ?? null,
+                    'volume' => $ref->getReferenceArticle()->getDescription()['volume'] ?? null,
+                    'adr' => $ref->isADR() ? 'Oui' : 'Non',
+                    'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
+                    'comment' => $ref->getCleanedComment() ?: $ref->getComment(),
+                    'photos' => json_encode($photos)
+                ];
+            }
+        }
+
+        return $this->json($data);
+    }
+    #[Rest\Get("/get-reference", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Wii\RestVersionChecked]
+    public function getReference(Request $request, EntityManagerInterface $manager): Response
+    {
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+
+        $text = $request->query->get("reference");
+        $reference = $referenceArticleRepository->findOneBy(['reference' => $request->query->get("reference")]);
+        if ($reference) {
+            $description = $reference->getDescription();
+            $serializedReference = [
+                'reference' => $reference->getReference(),
+                'outFormatEquipment' => $description['outFormatEquipment'] ?? '',
+                'manufacturerCode' => $description['manufacturerCode'] ?? '',
+                'width' => $description['width'] ?? '',
+                'height' => $description['height'] ?? '',
+                'length' => $description['length'] ?? '',
+                'volume' => $description['volume'] ?? '',
+                'weight' => $description['weight'] ?? '',
+                'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
+                'exists' => true,
+            ];
+        } else {
+            $serializedReference = [
+                'reference' => $text,
+                'exists' => false,
+            ];
+        }
+
+        return $this->json([
+            "success" => true,
+            "reference" => $serializedReference
+        ]);
+    }
+
+    #[Rest\Get("/get-associated-document-type-elements", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Wii\RestVersionChecked]
+    public function getAssociatedDocumentTypeElements(EntityManagerInterface $entityManager,
+                                                      SettingsService        $settingsService): Response
+    {
+        $associatedDocumentTypeElements = $settingsService->getValue($entityManager, Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+
+        return $this->json($associatedDocumentTypeElements);
     }
 }

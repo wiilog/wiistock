@@ -50,6 +50,7 @@ class Export {
     const PERIOD_INTERVAL_YEAR = "year";
 
     const PERIOD_CURRENT = "current";
+    const PERIOD_CURRENT_3 = "current_3";
     const PERIOD_PREVIOUS = "previous";
 
     #[ORM\Id]
@@ -97,7 +98,7 @@ class Export {
     private ?DateTime $stockEntryEndDate = null;
 
     #[ORM\Column(type: "integer", nullable: true)]
-    private ?string $destinationType = null;
+    private ?int $destinationType = null;
 
     #[ORM\Column(type: "json", nullable: true)]
     private ?array $ftpParameters = [];
@@ -126,7 +127,7 @@ class Export {
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
 
-    #[ORM\OneToOne(inversedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
+    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
     private ?ExportScheduleRule $exportScheduleRule = null;
 
     public function __construct() {

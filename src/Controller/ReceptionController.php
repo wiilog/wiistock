@@ -47,13 +47,13 @@ use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\ReceptionService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\ReceptionLineService;
 use App\Service\ReceptionReferenceArticleService;
-use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
@@ -73,7 +73,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
-use Throwable;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
@@ -911,9 +910,7 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/autocomplete-art{reception}", name: "get_article_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     public function getArticles(ArticleDataService $articleDataService,
                                 Reception $reception): JsonResponse {
         $articles = [];
@@ -1170,50 +1167,45 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/api-modifier-litige/{dispute}", name: "litige_api_edit_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Entity("dispute", expr: "repository.find(id)")]
     public function apiEditLitige(EntityManagerInterface $entityManager,
-                                  Request $request): Response {
-        if($data = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $disputeRepository = $entityManager->getRepository(Dispute::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
+                                  Dispute                $dispute): Response  {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-            $dispute = $disputeRepository->find($data['disputeId']);
-            $packsCode = [];
-            $acheteursCode = [];
+        $articles = Stream::from($dispute->getArticles()->toArray())
+            ->map(static fn (Article $article) => [
+                'id' => $article->getId(),
+                'text' => $article->getBarCode(),
+            ])
+            ->toArray();
+        $buyerIds = Stream::from($dispute->getBuyers()->toArray())
+            ->map(static fn (Utilisateur $user) => $user->getId())
+            ->toArray();
 
-            foreach($dispute->getArticles() as $pack) {
-                $packsCode[] = [
-                    'id' => $pack->getId(),
-                    'text' => $pack->getBarCode(),
-                ];
-            }
-            foreach($dispute->getBuyers() as $buyer) {
-                $acheteursCode[] = $buyer->getId();
-            }
+        $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
+            ->map(fn(Statut $statut) => [
+                'id' => $statut->getId(),
+                'type' => $statut->getType(),
+                'nom' => $this->getFormatter()->status($statut),
+                'treated' => $statut->isTreated(),
+            ])
+            ->toArray();
 
-            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
-                ->map(fn(Statut $statut) => [
-                    'id' => $statut->getId(),
-                    'type' => $statut->getType(),
-                    'nom' => $this->getFormatter()->status($statut),
-                    'treated' => $statut->isTreated(),
-                ])
-                ->toArray();
+        $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
+            'dispute' => $dispute,
+            'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
+            'disputeStatuses' => $disputeStatuses,
+            'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
+        ]);
 
-            $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
-                'dispute' => $dispute,
-                'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $disputeStatuses,
-                'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-            ]);
-
-            return new JsonResponse(['html' => $html, 'packs' => $packsCode, 'acheteurs' => $acheteursCode]);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse([
+            'html' => $html,
+            'packs' => $articles,
+            'acheteurs' => $buyerIds
+        ]);
     }
 
     /**
@@ -1620,9 +1612,11 @@ class ReceptionController extends AbstractController {
                                    Reception                  $reception,
                                    ArticleDataService         $articleDataService,
                                    TrackingMovementService    $trackingMovementService,
+                                   SettingsService            $settingsService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
+                                   NotificationService        $notificationService,
                                    TranslationService         $translationService,
                                    ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
@@ -1636,10 +1630,9 @@ class ReceptionController extends AbstractController {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
-        $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
+
+        $createDirectDelivery = $settingsService->getValue($entityManager, Setting::DIRECT_DELIVERY);
+        $needCreatePrepa = $settingsService->getValue($entityManager, Setting::CREATE_PREPA_AFTER_DL);
 
         $transferRequest = null;
         $demande = null;
@@ -1702,63 +1695,71 @@ class ReceptionController extends AbstractController {
             $needCreateTransfer = $data['requestType'] === 'transfer';
 
             if ($needCreateLivraison) {
-                // optionnel : crée l'ordre de prépa
-                $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
-                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
-
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager);
                 if ($demande instanceof Demande) {
                     $entityManager->persist($demande);
 
-                    if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
-                        if ($validateResponse['success']) {
-                            /** @var Preparation $preparation */
-                            $preparation = $demande->getPreparations()->first();
+                    if ($createDirectDelivery || $needCreatePrepa) {
+                        // validate delivery request and create preparation
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck(
+                            $entityManager,
+                            $demande,
+                            false,
+                            $createDirectDelivery,
+                            true,
+                            false,
+                            ['sendNotification' => !$createDirectDelivery]
+                        );
+                    }
 
-                            /** @var Utilisateur $currentUser */
-                            $currentUser = $this->getUser();
-                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+                    $validatedRequest = $validateResponse['success'] ?? false;
+                    if ($createDirectDelivery && $validatedRequest) {
 
-                            $dateEnd = new DateTime('now');
-                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
+                        /** @var Preparation $preparation */
+                        $preparation = $demande->getPreparations()->first();
 
-                            $locationEndPreparation = $demande->getDestination();
+                        /** @var Utilisateur $currentUser */
+                        $currentUser = $this->getUser();
+                        $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                            $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-                            $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
+                        $dateEnd = new DateTime('now');
+                        $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
 
-                            try {
-                                $entityManager->flush();
+                        $locationEndPreparation = $demande->getDestination();
 
-                                if ($newPreparation
-                                    && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $notificationService->toTreat($newPreparation);
-                                }
-                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $this->notificationService->toTreat($delivery);
-                                }
-                            } /** @noinspection PhpRedundantCatchClauseInspection */
-                            catch (UniqueConstraintViolationException $e) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
-                                ]);
+                        $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
+                        $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
+
+                        try {
+                            $entityManager->flush();
+
+                            if ($newPreparation
+                                && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                                $notificationService->toTreat($newPreparation);
                             }
-                            $preparationMovements = $preparation->getMouvements();
-                            foreach ($preparationMovements as $movement) {
-                                $preparationsManagerService->persistDeliveryMovement(
-                                    $entityManager,
-                                    $movement->getQuantity(),
-                                    $currentUser,
-                                    $delivery,
-                                    !empty($movement->getRefArticle()),
-                                    $movement->getRefArticle() ?? $movement->getArticle(),
-                                    $preparation,
-                                    false,
-                                    $locationEndPreparation
-                                );
+                            if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                $this->notificationService->toTreat($delivery);
                             }
+                        } /** @noinspection PhpRedundantCatchClauseInspection */
+                        catch (UniqueConstraintViolationException $e) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
+                            ]);
+                        }
+                        $preparationMovements = $preparation->getMouvements();
+                        foreach ($preparationMovements as $movement) {
+                            $preparationsManagerService->persistDeliveryMovement(
+                                $entityManager,
+                                $movement->getQuantity(),
+                                $currentUser,
+                                $delivery,
+                                !empty($movement->getRefArticle()),
+                                $movement->getRefArticle() ?? $movement->getArticle(),
+                                $preparation,
+                                false,
+                                $locationEndPreparation
+                            );
                         }
                     }
                 }

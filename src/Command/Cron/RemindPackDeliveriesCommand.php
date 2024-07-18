@@ -6,6 +6,7 @@ namespace App\Command\Cron;
 
 use App\Entity\Setting;
 use App\Service\PackService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -27,13 +28,15 @@ class RemindPackDeliveriesCommand extends Command
     #[Required]
     public PackService $packService;
 
+    #[Required]
+    public SettingsService $settingsService;
+
     protected function configure(): void {
         $this->setHelp('This command is supposed to be executed each day at 8 AM');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $sendEmail = $settingRepository->getOneParamByLabel(Setting::SEND_PACK_DELIVERY_REMIND);
+        $sendEmail = $this->settingsService->getValue($this->entityManager, Setting::SEND_PACK_DELIVERY_REMIND);
 
         if ($sendEmail) {
             $this->packService->launchPackDeliveryReminder($this->entityManager);

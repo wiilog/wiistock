@@ -1,3 +1,7 @@
+import Routing from '@app/fos-routing';
+
+global.callbackSaveFilter = callbackSaveFilter;
+
 $('.select2').select2();
 
 let pathCollecte = Routing.generate('collecte_api', true);

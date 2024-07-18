@@ -118,19 +118,12 @@ class PreparationRepository extends EntityRepository
             ->execute();
     }
 
-    /**
-     * @param array|null $params
-     * @param array|null $filters
-     * @return array
-     * @throws Exception
-     */
-    public function findByParamsAndFilters(InputBag $params, $filters)
-    {
+    public function findByParamsAndFilters(InputBag $params, ?array $filters): array {
         $qb = $this->createQueryBuilder("p");
 
         $countTotal = QueryBuilderHelper::count($qb, 'p');
         $qb
-            ->where('p.planned IS NULL OR p.planned = 0')
+            ->andWhere('p.planned IS NULL OR p.planned = 0')
             ->join('p.demande', 'request')
             ->andWhere('request.manual = false');
         // filtres sup

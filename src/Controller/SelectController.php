@@ -52,10 +52,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 class SelectController extends AbstractController {
-
-    /**
-     * @Route("/select/emplacement", name="ajax_select_locations", options={"expose": true})
-     */
+    #[Route("/select/emplacement", name: "ajax_select_locations", options: ["expose" => true])]
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
@@ -105,9 +102,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/roles", name="ajax_select_roles", options={"expose": true})
-     */
+    #[Route("select/roles", name: "ajax_select_roles", options: ["expose" => true])]
     public function roles(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Role::class)->getForSelect(
             $request->query->get("term")
@@ -118,9 +113,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/types/services", name="ajax_select_handling_type", options={"expose": true})
-     */
+    #[Route("/select/types/services", name: "ajax_select_handling_type", options: ["expose" => true])]
     public function handlingType(Request $request, EntityManagerInterface $manager): Response {
         $alreadyDefinedTypes = $request->query->has('alreadyDefinedTypes')
             ? explode(",", $request->query->get('alreadyDefinedTypes'))
@@ -136,9 +129,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/types/dispatches", name="ajax_select_dispatch_type", options={"expose": true})
-     */
+    #[Route("/select/types/dispatches", name: "ajax_select_dispatch_type", options: ["expose" => true])]
     public function dispatchType(Request $request, EntityManagerInterface $manager): JsonResponse {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_DISPATCH,
@@ -150,9 +141,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/types/livraisons", name="ajax_select_delivery_type", options={"expose": true})
-     */
+    #[Route("/select/types/livraisons", name: "ajax_select_delivery_type", options: ["expose" => true])]
     public function deliveryType(Request $request, EntityManagerInterface $manager): Response {
         $alreadyDefinedTypes = [];
         if($request->query->has('alreadyDefinedTypes')) {
@@ -190,9 +179,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/types/collectes", name="ajax_select_collect_type", options={"expose": true})
-     */
+    #[Route("/select/types/collectes", name: "ajax_select_collect_type", options: ["expose" => true])]
     public function collectType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_COLLECTE,
@@ -204,9 +191,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/types/references", name="ajax_select_reference_type", options={"expose": true})
-     */
+    #[Route("/select/types/references", name: "ajax_select_reference_type", options: ["expose" => true])]
     public function referenceType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::ARTICLE,
@@ -218,9 +203,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/types", name="ajax_select_types", options={"expose": true})
-     */
+    #[Route("/select/types", name: "ajax_select_types", options: ["expose" => true])]
     public function types(Request                $request,
                           EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -237,9 +220,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/statuts", name="ajax_select_status", options={"expose": true})
-     */
+    #[Route("/select/statuts", name: "ajax_select_status", options: ["expose" => true])]
     public function status(Request $request, EntityManagerInterface $manager): Response {
         $type = $request->query->get("type") ?? $request->query->get("handlingType") ?? null;
         $results = $manager->getRepository(Statut::class)->getForSelect(
@@ -252,9 +233,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/references", name="ajax_select_references", options={"expose": true})
-     */
+    #[Route("/select/references", name: "ajax_select_references", options: ["expose" => true])]
     public function references(Request $request, EntityManagerInterface $manager): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
@@ -295,20 +274,16 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/unites-logistiques", name="ajax_select_packs", options={"expose": true})
-     */
+    #[Route("/select/unites-logistiques", name: "ajax_select_packs", options: ["expose" => true])]
     public function packs(Request $request, EntityManagerInterface $manager): Response {
-        $limit = $request->query->get('limit') ?: null;
+        $limit = $request->query->get('limit') ?: 250;
         $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"), ['limit' => $limit]);
         return $this->json([
             "results" => $results,
         ]);
     }
 
-    /**
-     * @Route("/select/nature", name="ajax_select_natures", options={"expose": true})
-     */
+    #[Route("/select/nature", name: "ajax_select_natures", options: ["expose" => true])]
     public function natures(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Nature::class)->getForSelect($request->query->get("term"));
         return $this->json([
@@ -317,9 +292,7 @@ class SelectController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/select/capteurs-bruts", name="ajax_select_sensors", options={"expose": true})
-     */
+    #[Route("/select/capteurs-bruts", name: "ajax_select_sensors", options: ["expose" => true])]
     public function sensors(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Sensor::class)->getForSelect($request->query->get("term"));
 
@@ -328,9 +301,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/groupe-de-visibilite", name="ajax_select_visibility_group", options={"expose"=true})
-     */
+    #[Route("/select/groupe-de-visibilite", name: "ajax_select_visibility_group", options: ["expose" => true])]
     public function visibilityGroup(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(VisibilityGroup::class)->getForSelect($request->query->get("term"));
         return $this->json([
@@ -338,9 +309,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/utilisateur", name="ajax_select_user", options={"expose"=true})
-     */
+    #[Route("/select/utilisateur", name: "ajax_select_user", options: ["expose" => true])]
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
         $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
@@ -359,9 +328,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/capteurs", name="ajax_select_sensor_wrappers", options={"expose"=true})
-     */
+    #[Route("/select/capteurs", name: "ajax_select_sensor_wrappers", options: ["expose" => true])]
     public function getSensorWrappers(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(SensorWrapper::class)->getForSelect($request->query->get("term"));
 
@@ -370,9 +337,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/capteurs/sans-action", name="ajax_select_sensor_wrappers_for_pairings", options={"expose"=true})
-     */
+    #[Route("/select/capteurs/sans-action", name: "ajax_select_sensor_wrappers_for_pairings", options: ["expose" => true])]
     public function getSensorWrappersForPairings(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(SensorWrapper::class)
             ->getForSelect($request->query->get("term"), true);
@@ -382,9 +347,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/unites-logistiques-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
-     */
+    #[Route("/select/unites-logistiques-sans-association", name: "ajax_select_packs_without_pairing", options: ["expose" => true])]
     public function packsWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Pack::class)->findWithNoPairing($request->query->get("term"));
 
@@ -393,9 +356,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/articles-sans-association", name="ajax_select_articles_without_pairing", options={"expose"=true})
-     */
+    #[Route("/select/articles-sans-association", name: "ajax_select_articles_without_pairing", options: ["expose" => true])]
     public function articlesWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Article::class)->findWithNoPairing($request->query->get("term"));
 
@@ -404,10 +365,8 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/emplacements-sans-association", name="ajax_select_locations_without_pairing", options={"expose"=true}, methods="GET|POST")
-     */
-    public function locationsWithoutPairing(Request $request, EntityManagerInterface $entityManager){
+    #[Route("/select/emplacements-sans-association", name: "ajax_select_locations_without_pairing", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function locationsWithoutPairing(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithNoAssociationForSelect($request->query->get("term"));
         $locations = $entityManager->getRepository(Emplacement::class)->getWithNoAssociationForSelect($request->query->get("term"));
         $allLocations = array_merge($locations, $locationGroups);
@@ -418,10 +377,8 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/capteurs-sans-association", name="ajax_select_sensors_without_pairing", options={"expose"=true}, methods="GET|POST")
-     */
-    public function sensorsWithoutPairings(Request $request, EntityManagerInterface $entityManager){
+    #[Route("/select/capteurs-sans-association", name: "ajax_select_sensors_without_pairing", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function sensorsWithoutPairings(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"),'name');
         $sensorWrapper = Stream::from($sensorWrapper)
             ->filter(function(SensorWrapper $wrapper) {
@@ -435,10 +392,9 @@ class SelectController extends AbstractController {
             'results' => $sensorWrapper
         ]);
     }
-    /**
-     * @Route("/select/code-capteurs-sans-association", name="ajax_select_sensors_code_without_pairing", options={"expose"=true}, methods="GET|POST")
-     */
-    public function sensorsWithoutPairingsCode(Request $request, EntityManagerInterface $entityManager){
+
+    #[Route("/select/code-capteurs-sans-association", name: "ajax_select_sensors_code_without_pairing", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function sensorsWithoutPairingsCode(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code');
         $sensorWrapper = Stream::from($sensorWrapper)
             ->filter(function(SensorWrapper $wrapper) {
@@ -452,10 +408,9 @@ class SelectController extends AbstractController {
             'results' => $sensorWrapper
         ]);
     }
-    /**
-     * @Route("/select/actionneur-code-capteurs-sans-association", name="ajax_select_trigger_sensors_code_without_pairing", options={"expose"=true}, methods="GET|POST")
-     */
-    public function triggerSensorsCodeWithoutPairings(Request $request, EntityManagerInterface $entityManager){
+
+    #[Route("/select/actionneur-code-capteurs-sans-association", name: "ajax_select_trigger_sensors_code_without_pairing", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function triggerSensorsCodeWithoutPairings(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code',true);
         $sensorWrapper = Stream::from($sensorWrapper)
             ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getSensor()->getCode(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
@@ -465,10 +420,9 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/actionneur-capteurs-sans-association", name="ajax_select_trigger_sensors_without_pairing", options={"expose"=true}, methods="GET|POST")
-     */
-    public function triggerSensorWithoutPairings(Request $request, EntityManagerInterface $entityManager){
+
+    #[Route("/select/actionneur-capteurs-sans-association", name: "ajax_select_trigger_sensors_without_pairing", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function triggerSensorWithoutPairings(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'name', true);
         $sensorWrapper = Stream::from($sensorWrapper)
             ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getName(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
@@ -478,9 +432,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/fournisseur-code", name="ajax_select_supplier_code", options={"expose"=true})
-     */
+    #[Route("/select/fournisseur-code", name: "ajax_select_supplier_code", options: ["expose" => true])]
     public function supplierByCode(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $reference = $request->query->get('refArticle');
@@ -491,11 +443,8 @@ class SelectController extends AbstractController {
         return $this->json(['results' => $fournisseur]);
     }
 
-    /**
-     * @Route("/select/fournisseur-label", name="ajax_select_supplier_label", options={"expose"=true})
-     */
-    public function supplierByLabel(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    #[Route("/select/fournisseur-label", name: "ajax_select_supplier_label", options: ["expose" => true])]
+    public function supplierByLabel(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
@@ -505,11 +454,8 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/articles-collectables", name="ajax_select_collectable_articles", options={"expose"=true})
-     */
-    public function collectableArticles(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    #[Route("/select/articles-collectables", name: "ajax_select_collectable_articles", options: ["expose" => true])]
+    public function collectableArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $reference = $entityManager->find(ReferenceArticle::class, $request->query->get('referenceArticle'));
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -520,9 +466,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/references-par-acheteur", name="ajax_select_references_by_buyer", options={"expose"=true})
-     */
+    #[Route("/select/references-par-acheteur", name: "ajax_select_references_by_buyer", options: ["expose" => true])]
     public function getPurchaseRequestForSelectByBuyer(EntityManagerInterface $entityManager): Response
     {
         $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
@@ -533,9 +477,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/keyboard/pack", name="ajax_select_keyboard_pack", options={"expose"=true})
-     */
+    #[Route("/select/keyboard/pack", name: "ajax_select_keyboard_pack", options: ["expose" => true])]
     public function keyboardPack(Request $request, EntityManagerInterface $manager): Response
     {
         $settingsRepository = $manager->getRepository(Setting::class);
@@ -610,9 +552,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/carrier", name="ajax_select_carrier", options={"expose"=true})
-     */
+    #[Route("/select/carrier", name: "ajax_select_carrier", options: ["expose" => true])]
     public function carrier(Request $request, EntityManagerInterface $entityManager): Response
     {
         $search = $request->query->get('term');
@@ -623,9 +563,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/vehicles", name="ajax_select_vehicles", options={"expose": true})
-     */
+    #[Route("/select/vehicles", name: "ajax_select_vehicles", options: ["expose" => true])]
     public function vehicles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $vehicles = $entityManager->getRepository(Vehicle::class)->getForSelect($search);
@@ -635,9 +573,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/categories-inventaire", name="ajax_select_inventory_categories", options={"expose": true})
-     */
+    #[Route("/select/categories-inventaire", name: "ajax_select_inventory_categories", options: ["expose" => true])]
     public function inventoryCategories(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $vehicles = $entityManager->getRepository(InventoryCategory::class)->getForSelect($search);
@@ -647,9 +583,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/dispatch-packs", name="ajax_select_dispatch_packs", options={"expose"=true})
-     */
+    #[Route("/select/dispatch-packs", name: "ajax_select_dispatch_packs", options: ["expose" => true])]
     public function dispatchPacks(Request $request, EntityManagerInterface $entityManager): Response
     {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -663,10 +597,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-
-    /**
-     * @Route("/select/project", name="ajax_select_project", options={"expose": true})
-     */
+    #[Route("/select/project", name: "ajax_select_project", options: ["expose" => true])]
     public function project(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $projects = $entityManager->getRepository(Project::class)->getForSelect($search);
@@ -676,9 +607,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/zones", name="ajax_select_zones", options={"expose": true})
-     */
+    #[Route("/select/zones", name: "ajax_select_zones", options: ["expose" => true])]
     public function zones(Request $request, EntityManagerInterface $entityManager): Response {
         $zones = $entityManager->getRepository(Zone::class)->getForSelect($request->query->get("term"));
 
@@ -687,9 +616,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/articles", name="ajax_select_articles", options={"expose"=true})
-     */
+    #[Route("/select/articles", name: "ajax_select_articles", options: ["expose" => true])]
     public function articles(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"), null, $request->query->get("reference-new-mvt"));
         return $this->json([
@@ -697,9 +624,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
-     */
+    #[Route("/select/reception-logistic-units", name: "ajax_select_reception_logistic_units", options: ["expose" => true])]
     public function receptionLogisticUnits(Request $request,
                                            EntityManagerInterface $entityManager): Response {
 
@@ -722,9 +647,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/delivery-logistic-units", name="ajax_select_delivery_logistic_units", options={"expose"=true})
-     */
+    #[Route("/select/delivery-logistic-units", name: "ajax_select_delivery_logistic_units", options: ["expose" => true])]
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $projectField = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
@@ -741,9 +664,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/articles-disponibles", name="ajax_select_available_articles", options={"expose"=true})
-     */
+    #[Route("/select/articles-disponibles", name: "ajax_select_available_articles", options: ["expose" => true])]
     public function availableArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"), Article::STATUT_ACTIF);
 
@@ -752,9 +673,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/customers", name="ajax_select_customers", options={"expose": true})
-     */
+    #[Route("/select/customers", name: "ajax_select_customers", options: ["expose" => true])]
     public function customers(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
@@ -768,9 +687,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/nature-or-type", name="ajax_select_nature_or_type", options={"expose": true})
-     */
+    #[Route("/select/nature-or-type", name: "ajax_select_nature_or_type", options: ["expose" => true])]
     public function natureOrType(Request $request, EntityManagerInterface $entityManager): Response {
         $module = $request->query->get("module");
         $term = $request->query->get("term");
@@ -785,12 +702,9 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/provider", name="ajax_select_provider", options={"expose"=true})
-     */
+    #[Route("/select/provider", name: "ajax_select_provider", options: ["expose" => true])]
     public function provider(Request $request,
-                                   EntityManagerInterface $entityManager): Response
-    {
+                                   EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
 
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -799,9 +713,7 @@ class SelectController extends AbstractController {
         return $this->json(['results' => $fournisseur]);
     }
 
-    /**
-     * @Route("/select/native-countries", name="ajax_select_native_countries", options={"expose": true})
-     */
+    #[Route("/select/native-countries", name: "ajax_select_native_countries", options: ["expose" => true])]
     public function nativeCountries(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $nativeCountries = $entityManager->getRepository(NativeCountry::class)->getForSelect($search);
@@ -811,9 +723,7 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/supplier-articles", name="ajax_select_supplier_articles", options={"expose": true})
-     */
+    #[Route("/select/supplier-articles", name: "ajax_select_supplier_articles", options: ["expose" => true])]
     public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $supplier = $request->query->get('fournisseur');

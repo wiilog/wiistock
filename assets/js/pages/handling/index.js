@@ -1,3 +1,7 @@
+import Routing from '@app/fos-routing';
+
+global.callbackSaveFilter = callbackSaveFilter;
+
 let tableHandlings = null;
 
 $(function() {

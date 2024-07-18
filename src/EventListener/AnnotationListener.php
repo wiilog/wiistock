@@ -4,7 +4,6 @@ namespace App\EventListener;
 
 use App\Annotation\HasPermission;
 use App\Annotation\HasValidToken;
-use App\Annotation\RestAuthenticated;
 use App\Annotation\RestVersionChecked;
 use App\Controller\AbstractController;
 use App\Entity\Kiosk;
@@ -80,15 +79,10 @@ class AnnotationListener {
             $this->handleRestVersionChecked($event);
         }
 
-        $annotation = $this->getAnnotation($reader, $method, RestAuthenticated::class);
-        if ($annotation instanceof RestAuthenticated) {
-            $this->handleRestAuthenticated($event, $controller);
-        }
-
         $annotation = $this->getAnnotation($reader, $method, HasPermission::class);
 
         if ($annotation instanceof HasPermission) {
-            $this->handleHasPermission($event, $annotation);
+            $this->handleHasPermission($event, $annotation, $controller);
         }
 
         $annotation = $this->getAnnotation($reader, $method, HasValidToken::class);
@@ -111,28 +105,7 @@ class AnnotationListener {
         return null;
     }
 
-    private function handleRestAuthenticated(ControllerArgumentsEvent $event, SymfonyAbstractController $controller) {
-        $request = $event->getRequest();
-
-        if (!method_exists($controller, "setUser")) {
-            throw new RuntimeException("Routes annotated with @Authenticated must have a `setUser` method");
-        }
-
-        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-
-        $authorization = $request->headers->get("x-authorization", "");
-        preg_match("/Bearer (\w*)/i", $authorization, $matches);
-
-        $user = $matches ? $userRepository->findOneByApiKey($matches[1]) : null;
-        if ($user) {
-            $controller->setUser($user);
-        }
-        else {
-            throw new UnauthorizedHttpException("no challenge");
-        }
-    }
-
-    private function handleRestVersionChecked(ControllerArgumentsEvent $event) {
+    private function handleRestVersionChecked(ControllerArgumentsEvent $event): void {
         $request = $event->getRequest();
         $clientVersion = $request->headers->get("x-app-version", "");
         if (!$clientVersion || !$this->mobileApiService->checkMobileVersion($clientVersion, $this->mobileVersion)) {
@@ -140,8 +113,9 @@ class AnnotationListener {
         }
     }
 
-    private function handleHasPermission(ControllerArgumentsEvent $event, HasPermission $annotation) {
-        if (!$this->userService->hasRightFunction(...$annotation->value)) {
+    private function handleHasPermission(ControllerArgumentsEvent $event, HasPermission $annotation, SymfonyAbstractController $controller): void {
+        $parameters =  [...$annotation->value, $controller->getUser()];
+        if (!$this->userService->hasRightFunction(...$parameters)) {
             $event->setController(function() use ($annotation) {
                 if ($annotation->mode == HasPermission::IN_JSON) {
                     return new JsonResponse([

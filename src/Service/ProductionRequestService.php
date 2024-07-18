@@ -241,7 +241,7 @@ class ProductionRequestService
                 $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
 
                 if(!$type->isActive()){
-                    throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
+                    throw new FormException("Vous avez sélectionné un type inactif.");
                 }
 
                 $productionRequest->setType($type);

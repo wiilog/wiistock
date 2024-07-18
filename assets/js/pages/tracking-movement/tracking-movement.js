@@ -1,6 +1,6 @@
 import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from '@app/ajax';
-import Flash from '@app/ajax';
+import Flash from '@app/flash';
 import Modal from '@app/modal';
 import Camera from '@app/camera';
 import moment from 'moment';
@@ -65,7 +65,7 @@ function loadLUQuantity($selector) {
     AJAX.route(GET, `tracking_movement_logistic_unit_quantity`, {code})
         .json()
         .then(response => {
-            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            $modalNewMvtTraca.find(`[type="submit"]`).prop(`disabled`, response.error);
             if (response.error) {
                 Flash.add(`danger`, response.error);
             }
@@ -88,7 +88,7 @@ function loadLULocation($input) {
     AJAX.route(GET, `tracking_movement_logistic_unit_location`, {code})
         .json()
         .then(response => {
-            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            $modalNewMvtTraca.find(`[type="submit"]`).prop(`disabled`, response.error);
             if (response.error) {
                 Flash.add(`danger`, response.error);
             }
@@ -226,7 +226,8 @@ function submitNewTrackingMovementForm(data, form) {
         () => AJAX
             .route(POST, 'mvt_traca_new', {})
             .json(data)
-            .then(({success, group, trackingMovementsCounter}) => {
+            .then(({success, group, trackingMovementsCounter, ...re}) => {
+                const $modal = form.element;
                 if (success) {
                     [tableMvt].forEach((table) => {
                         if (table instanceof Function) {
@@ -236,15 +237,16 @@ function submitNewTrackingMovementForm(data, form) {
                         }
                     })
                     if (group) {
-                        displayConfirmationModal(group);
+                        displayConfirmationModal($modal, group);
                     } else {
                         displayOnSuccessCreation(success, trackingMovementsCounter);
                         fillDatePickers('.free-field-date');
                         fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
-                    }
-                    form.clear();
-                    if (!Boolean(Number($('[name="CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT"]').val()))) {
-                        form.element.modal('hide');
+
+                        form.clear();
+                        if (!Boolean(Number($('[name="CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT"]').val()))) {
+                            $modal.modal('hide');
+                        }
                     }
                 }
             })
@@ -277,14 +279,14 @@ function resetNewModal($modal) {
 
 function switchMvtCreationType($input) {
     let paramsToGetAppropriateHtml = $input.val();
+    const $modal = $input.closest('.modal');
 
     if (paramsToGetAppropriateHtml) {
-        $(`#submitNewMvtTraca`).prop(`disabled`, false);
+        $modal.find(`[type="submit"]`).prop(`disabled`, false);
         AJAX.route(AJAX.POST, "mouvement_traca_get_appropriate_html")
             .json(paramsToGetAppropriateHtml)
             .then((response) => {
                 if (response) {
-                    const $modal = $input.closest('.modal');
                     $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
                     $modal.find('.new-mvt-common-body').removeClass('d-none');
                     $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
@@ -321,7 +323,7 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
-function displayConfirmationModal(group) {
+function displayConfirmationModal($trackingMovementModal, group) {
     displayAlertModal(
         undefined,
         $('<div/>', {
@@ -333,7 +335,9 @@ function displayConfirmationModal(group) {
                 class: 'btn btn-outline-secondary m-0',
                 text: 'Non',
                 action: ($modal) => {
-                    $('input[name="forced"]').val("0");
+                    $trackingMovementModal
+                        .find('input[name="forced"]')
+                        .val(0);
                     $modal.modal('hide');
                 }
             },
@@ -341,9 +345,16 @@ function displayConfirmationModal(group) {
                 class: 'btn btn-success m-0',
                 text: 'Oui',
                 action: ($modal) => {
-                    $('input[name="forced"]').val(1);
-                    $('#submitNewMvtTraca').click();
+                    $trackingMovementModal
+                        .find('input[name="forced"]')
+                        .val(1);
+
                     $modal.modal('hide');
+
+                    $trackingMovementModal
+                        .find(`button[type="submit"]`)
+                        .trigger(`click`);
+
                 }
             },
         ],

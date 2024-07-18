@@ -1,7 +1,15 @@
+import Routing from '@app/fos-routing';
+
+global.validateCollecte = validateCollecte;
+global.ajaxGetCollecteArticle = ajaxGetCollecteArticle;
+global.deleteRowCollecte = deleteRowCollecte;
+global.ajaxEditArticle = ajaxEditArticle;
+global.initEditModal = initEditModal;
+
 $(function (){
     $('.select2').select2();
 
-    let pathAddArticle = Routing.generate('collecte_article_api', {'id': id}, true);
+    let pathAddArticle = Routing.generate('collecte_article_api', {'id': getRequestId()}, true);
     let tableArticleConfig = {
         ajax: {
             "url": pathAddArticle,
@@ -121,4 +129,8 @@ function initEditModal() {
         });
 
     InitModal($modalEditCollect, $('#submitEditCollecte'), Routing.generate('collecte_edit', true));
+}
+
+function getRequestId() {
+    return $('[name="requestId"]').val();
 }

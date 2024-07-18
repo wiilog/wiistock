@@ -22,7 +22,6 @@
                              title="Veuillez faire une recherche pour imprimer.">
                             <button type="button"
                                     class="btn btn-primary split-button printButton btn-disabled d-flex align-items-center"
-                                    id="printTag"
                                     onclick="printArticlesBarCodes($(this))">
                                 <span class="wii-icon wii-icon-printer-black mr-2"></span>
                                 Impression des étiquettes
@@ -36,9 +35,8 @@
                     </button>
                     <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
-                            <div class="dropdown-item user-select-none disabled has-tooltip d-flex align-items-center"
+                            <div class="dropdown-item printButton user-select-none disabled has-tooltip d-flex align-items-center"
                                  tabindex="0"
-                                 id="printTag"
                                  onclick="printArticlesBarCodes($(this), event)"
                                  title="Veuillez faire une recherche pour imprimer.">
                                 <span class="wii-icon wii-icon-printer-black mr-2"></span>
@@ -91,13 +89,12 @@
 
     {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}
-    {% include "article/modalNewArticle.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
 
     {% include "utils/rapid_search.html.twig" with {
         fields,
         searches: searches,
-        table: 'tableArticle',
+        table: 'getTableArticle()',
         route: 'update_user_searches_for_article',
     } %}
 
@@ -110,5 +107,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/article.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('article-index') }}
 {% endblock %}

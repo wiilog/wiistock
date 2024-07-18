@@ -24,21 +24,24 @@ security:
             pattern: ^/telecharger/nomade.apk$
             security: false
 
-        api_logos:
-            pattern: ^/api/logos$
+        iot:
+            lazy: true
+            pattern: ^/api/iot
+            stateless: true
             security: false
+
+        api:
+            lazy: true
+            pattern: ^/api
+            stateless: true
+            custom_authenticators:
+                - App\Security\ApiKeyAuthenticator
 
         main:
             lazy: true
             provider: db_provider
             pattern: ^/
             user_checker: App\Security\UserChecker
-
-            saml:
-                check_path: saml_acs
-                login_path: saml_login
-                persist_user: true
-                user_factory: saml_user_factory
 
             form_login:
                 login_path: login
@@ -75,7 +78,13 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
         - { path: ^/saml/(metadata|login|acs), role: PUBLIC_ACCESS }
-        - { path: ^/api, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/server-images$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/nomade-versions$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/api-key$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/users/\d+/previous-picking-counter$, role: PUBLIC_ACCESS }
+        - { path: ^/api/server-images$, role: PUBLIC_ACCESS } # TODO WIIS-11587
+        - { path: ^/api/nomade-versions$, role: PUBLIC_ACCESS } # TODO WIIS-11587
+        - { path: ^/api/ping$, role: PUBLIC_ACCESS }
         - { path: ^/login, role: PUBLIC_ACCESS }
         - { path: ^/register, role: PUBLIC_ACCESS }
         - { path: ^/oubli, role: PUBLIC_ACCESS }
@@ -87,7 +96,7 @@ security:
         - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }
         - { path: ^/dashboard/externe, role: PUBLIC_ACCESS }
         - { path: ^/verification-connexion, role: PUBLIC_ACCESS }
-        - { path: ^/borne, role: PUBLIC_ACCESS }
+        - { path: ^/borne/$, role: PUBLIC_ACCESS }
         - { path: ^/caisse-automatique, role: PUBLIC_ACCESS }
         - { path: /reference-article/validate-stock-entry, role: PUBLIC_ACCESS }
         - { path: ^/, role: IS_AUTHENTICATED_FULLY }

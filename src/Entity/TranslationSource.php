@@ -100,7 +100,7 @@ class TranslationSource {
         }
 
         $translation = $this->getTranslations()
-            ->filter(fn(Translation $translation) => $translation->getLanguage()->getSlug() === $in)
+            ->filter(fn(Translation $translation) => $translation->getLanguage()?->getSlug() === $in)
             ->first() ?: null;
 
         if($translation === null && $default) {

@@ -225,7 +225,12 @@ class KioskController extends AbstractController
             $reference = new ReferenceArticle();
         }
 
-        $freeField = $settingsService->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE, $entityManager) ? $freeFieldRepository->find($settingsService->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE, $entityManager)) : '';
+
+        $freeFieldReferenceCreate = $settingsService->getValue($entityManager, Setting::FREE_FIELD_REFERENCE_CREATE);
+
+        $freeField = $freeFieldReferenceCreate
+            ? $freeFieldRepository->find($freeFieldReferenceCreate)
+            : '';
 
         return $this->render('kiosk/form.html.twig', [
             'kiosk' => $kiosk,

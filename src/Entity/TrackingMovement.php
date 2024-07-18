@@ -112,10 +112,10 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $groupIteration = null;
 
-    #[ORM\OneToMany(mappedBy: 'firstDrop', targetEntity: LocationClusterRecord::class)]
+    #[ORM\OneToMany(mappedBy: 'firstDrop', targetEntity: LocationClusterRecord::class, cascade: ["persist"])]
     private Collection $firstDropRecords;
 
-    #[ORM\OneToMany(mappedBy: 'lastTracking', targetEntity: LocationClusterRecord::class)]
+    #[ORM\OneToMany(mappedBy: 'lastTracking', targetEntity: LocationClusterRecord::class, cascade: ["persist"])]
     private Collection $lastTrackingRecords;
 
     #[ORM\ManyToOne(targetEntity: ReceptionReferenceArticle::class, inversedBy: 'trackingMovements')]

@@ -302,8 +302,11 @@ class DispatchController extends AbstractController {
 
         $currentUser = $this->getUser();
         $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
-        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getDispatchTypeIds())
-            && !empty($currentUser->getDeliveryTypeIds())
+        if (!empty($currentUser->getDispatchTypeIds())
+            && (
+                !$type->isActive()
+                || !in_array($type->getId(), $currentUser->getDispatchTypeIds())
+            )
         ) {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
@@ -1079,10 +1082,6 @@ class DispatchController extends AbstractController {
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
 
-                    if($dispatch->getType() &&
-                        ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
-                        $notificationService->toTreat($dispatch);
-                    }
                     $dispatch
                         ->setValidationDate($now);
 
@@ -1117,6 +1116,14 @@ class DispatchController extends AbstractController {
 
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+
+                    if ($dispatch->getStatut()?->getNeedsMobileSync()
+                        && (
+                            $dispatch->getType()?->isNotificationsEnabled()
+                            || $dispatch->getType()?->isNotificationsEmergency($dispatch->getEmergency())
+                        )) {
+                        $notificationService->toTreat($dispatch);
+                    }
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
@@ -1545,7 +1552,7 @@ class DispatchController extends AbstractController {
         return $response;
     }
 
-    #[Route("/create-form-arrival-template", name: "create_from_arrival_template", options: ["expose" => true], methods: "GET")]
+    #[Route("/create-form-arrivals-template", name: "create_from_arrivals_template", options: ["expose" => true], methods: self::GET)]
     public function createFromArrivalTemplate(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService): JsonResponse
@@ -1553,36 +1560,29 @@ class DispatchController extends AbstractController {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $arrivals = [];
-        $arrival = null;
-        if($request->query->has('arrivals')) {
-            $arrivalsIds = $request->query->all('arrivals');
-            $arrivals = $arrivageRepository->findBy(['id' => $arrivalsIds]);
-        } else {
-            $arrival = $arrivageRepository->find($request->query->get('arrival'));
-        }
+        $arrivalsIds = $request->query->all('arrivals');
+        $arrivals = !empty($arrivalsIds)
+            ? $arrivageRepository->findBy(['id' => $arrivalsIds])
+            : [];
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
-        $packs = [];
-        if(!empty($arrivals)) {
-            foreach ($arrivals as $arrival) {
-                $packs = array_merge(Stream::from($arrival->getPacks())->toArray(), $packs);
-            }
-        } else {
-            $packs = $arrival->getPacks()->toArray();
-        }
-
-        Stream::from($packs)
-            ->map(fn(Pack $pack) => $pack->getId())
+        $packs = Stream::from($arrivals)
+            ->flatMap(static fn(Arrivage $arrival) => $arrival->getPacks()->toArray())
             ->toArray();
 
         return $this->json([
             'success' => true,
             'html' => $this->renderView('dispatch/forms/formFromArrival.html.twig',
-                $dispatchService->getNewDispatchConfig($entityManager, $types, $arrival, true, $packs),
+                $dispatchService->getNewDispatchConfig(
+                    $entityManager,
+                    $types,
+                    count($arrivals) === 1 ? $arrivals[0] : null,
+                    true,
+                    $packs
+                ),
             )
         ]);
     }

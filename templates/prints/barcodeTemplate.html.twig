@@ -250,7 +250,7 @@
                           text-anchor="middle"
                           font-size="{{ landscape and loop.index == 1 ? '1.2' : 1 }}"
                           font-weight="{{ landscape and (loop.index == 1 or (loop.index == 2 and separated)) ? '700' }}">
-                        {{ label | trim }}
+                        {{ label | trim | striptags | raw }}
                     </text>
                 {% endfor %}
             </svg>

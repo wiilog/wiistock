@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+const CRONTAB_TMP_FILE = "/tmp/crontabwiistock.txt";
+const CRON_LOG_DIR = "/project/var/log";
+
+// create log dir if not exist
+@mkdir(CRON_LOG_DIR);
+
+// save bin/console cron:run in crontab
+$crontabContent = sprintf("* * * * * echo -e \"%s\\t%s\\n\" 2>> /project/var/log/cron.log\n", "$(date)", "$(php /project/bin/console cron:run)");
+file_put_contents(CRONTAB_TMP_FILE, $crontabContent);
+exec("crontab " . CRONTAB_TMP_FILE);
+@unlink(CRONTAB_TMP_FILE);
+
+// Launch cron daemon
+exec("crond -d 0");
+echo "Starting cron" . PHP_EOL;

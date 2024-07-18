@@ -88,7 +88,7 @@ class MouvementStock {
     private ?TransferOrder $transferOrder = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
-    private ?float $unitPrice = null;
+    private ?string $unitPrice = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -273,11 +273,15 @@ class MouvementStock {
     }
 
     public function getUnitPrice(): ?float {
-        return $this->unitPrice;
+        return isset($this->unitPrice)
+            ? ((float) $this->unitPrice)
+            : null;
     }
 
     public function setUnitPrice(?float $unitPrice): self {
-        $this->unitPrice = $unitPrice;
+        $this->unitPrice = isset($unitPrice)
+            ? ((string) $unitPrice)
+            : null;
 
         return $this;
     }

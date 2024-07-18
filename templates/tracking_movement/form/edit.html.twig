@@ -40,7 +40,7 @@
 
     <div class="form-group col-md-6 col-12">
         {{ form.select('location', trans('Traçabilité', 'Général', 'Emplacement'), true, {
-            type: 'user',
+            type: 'location',
             items: mvt.emplacement
                 ? [{
                     value: mvt.emplacement.id,

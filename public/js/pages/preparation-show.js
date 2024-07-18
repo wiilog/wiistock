@@ -340,14 +340,15 @@ function printPrepaBarCodes() {
             .then(({result}) => {
                 $printButton.data('loading', false);
                 if (result) {
-                    window.location.href = Routing.generate(
-                        'preparation_bar_codes_print',
-                        {
+                    AJAX
+                        .route(AJAX.GET, 'preparation_bar_codes_print', {
                             preparation: $preparationId.val(),
                             forceTagEmpty: true,
-                        },
-                        true
-                    );
+                        })
+                        .file({
+                            success: "Impression des étiquettes terminée.",
+                            error: "Il n'y a aucune étiquette à imprimer."
+                        });
                 } else {
                     showBSAlert("Il n'y a aucune étiquette à imprimer", 'info');
                 }
@@ -391,14 +392,15 @@ function printArticles(preparation) {
                 }))
         ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
     } else {
-        window.location.href = Routing.generate(
-            'preparation_bar_codes_print',
-            {
+        AJAX
+            .route(AJAX.GET, 'preparation_bar_codes_print', {
                 forceTagEmpty: true,
                 ...params,
-            },
-            true
-        );
+            })
+            .file({
+                success: "Impression des étiquettes terminée.",
+                error: "Il n'y a aucune étiquette à imprimer."
+            });
     }
 }
 

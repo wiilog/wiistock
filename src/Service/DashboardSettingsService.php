@@ -19,6 +19,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Entity\Dashboard as Dashboard;
@@ -1334,7 +1335,7 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
+                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true, 'dateMin' => (new DateTime('now'))->format('Y-m-d')]) : null;
                 break;
             case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                 $statuses = $config['disputeStatuses'];

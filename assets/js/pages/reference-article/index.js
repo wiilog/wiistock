@@ -1,5 +1,6 @@
 import Routing from '@app/fos-routing';
 import {initDataTable, extendsDateSort} from "@app/datatable";
+import {togglePrintButton} from "@app/utils";
 
 let $printTag;
 let pageTables;
@@ -19,7 +20,7 @@ $(function () {
         $modal.find('.valueLabel').text('');
     });
 
-    $printTag = $('#printTag');
+    $printTag = $('.printButton');
 
     updateFilters();
 
@@ -30,7 +31,6 @@ $(function () {
     } else {
         activeFilter = false;
     }
-    managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
     initTableRefArticle().then((table) => {
         initPageModals(table);
     });
@@ -94,7 +94,11 @@ function initTableRefArticle() {
                     needsResize: true
                 },
                 drawCallback: () => {
-                    togglePrintButton($(`#tableRefArticle_filter input[type=search]`), $(`.printButton`))
+                    const datatable = $(`#tableRefArticle`).DataTable();
+                    togglePrintButton(datatable, $(`.printButton`), () => (
+                        datatable.search()
+                        || $(`#filters`).find(`.filter`).length > 0
+                    ));
                 },
                 rowConfig: {
                     classField: 'colorClass',
@@ -121,7 +125,6 @@ function displayNewFilter(data) {
         $printTag.removeClass('disabled');
         $printTag.addClass('pointer');
     }
-    managePrintButtonTooltip(false, $printTag.is('button') ? $printTag.parent() : $printTag);
     $('#noFilters').addClass('d-none');
     $printTag.removeClass('has-tooltip');
     $printTag.tooltip('dispose');
@@ -140,25 +143,6 @@ function removeFilter($button, filterId) {
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
                 $filter.parent().remove();
-
-                if ($('#filters').find('.filter').length <= 0) {
-                    $('#noFilters').removeClass('d-none');
-                    if ($('#tableRefArticle_filter input').val() === '') {
-                        if ($printTag.is('button')) {
-                            $printTag
-                                .addClass('btn-disabled')
-                                .removeClass('btn-primary');
-                            managePrintButtonTooltip(true, $printTag.parent());
-                        } else {
-                            $printTag
-                                .removeClass('pointer')
-                                .addClass('disabled')
-                                .addClass('has-tooltip');
-                            managePrintButtonTooltip(true, $printTag);
-                        }
-                        $printTag.removeClass('d-none');
-                    }
-                }
             } else if (data.msg) {
                 showBSAlert(data.msg, 'danger');
             }
@@ -335,37 +319,4 @@ function updateFilters() {
                 });
             }
         });
-}
-
-function togglePrintButton($input, $printButton) {
-    if ($input.val() === `` && $(`#filters`).find(`.filter`).length <= 0) {
-        if ($printButton.is(`button`)) {
-            $printButton
-                .addClass(`btn-disabled`)
-                .removeClass(`btn-primary`);
-            managePrintButtonTooltip(true, $printButton.parent());
-        } else {
-            $printButton
-                .removeClass(`pointer`)
-                .addClass(`disabled`)
-                .addClass(`has-tooltip`);
-            managePrintButtonTooltip(true, $printButton);
-        }
-
-        managePrintButtonTooltip(true, $printButton);
-    } else {
-
-        if ($printButton.is(`button`)) {
-            $printButton
-                .addClass(`btn-primary`)
-                .removeClass(`btn-disabled`);
-            managePrintButtonTooltip(false, $printButton.parent());
-        } else {
-            $printButton
-                .removeClass(`disabled`)
-                .addClass(`pointer`)
-                .removeClass(`has-tooltip`);
-            managePrintButtonTooltip(false, $printButton);
-        }
-    }
 }

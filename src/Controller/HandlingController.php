@@ -207,8 +207,11 @@ class HandlingController extends AbstractController {
         $type = $typeRepository->find($post->get('type'));
         $currentUser = $this->getUser();
 
-        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getHandlingTypeIds())
-            && !empty($currentUser->getDeliveryTypeIds())) {
+        if (!empty($currentUser->getHandlingTypeIds())
+            && (
+                !$type->isActive()
+                || !in_array($type->getId(), $currentUser->getHandlingTypeIds())
+            )) {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 

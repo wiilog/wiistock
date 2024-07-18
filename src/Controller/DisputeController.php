@@ -95,9 +95,7 @@ class DisputeController extends AbstractController
             $preFilledTypes = $request->query->has('preFilledTypes')
                 ? implode(",", $request->query->all('preFilledTypes'))
                 : [];
-            $disputeEmergency = $request->query->has('disputeEmergency')
-                ? $request->query->get('disputeEmergency')
-                : false;
+            $disputeEmergency = $request->query->getBoolean('disputeEmergency', false);
 
             $preFilledFilters = [
                 [
@@ -108,10 +106,10 @@ class DisputeController extends AbstractController
                     'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
                     'value' => $preFilledTypes,
                 ],
-                [
+                ...($disputeEmergency ? [[
                     'field' => FiltreSup::FIELD_EMERGENCY,
                     'value' => $disputeEmergency,
-                ],
+                ]] : []),
             ];
         }
 
@@ -257,7 +255,7 @@ class DisputeController extends AbstractController
         $post = $request->request;
         $isArrivage = $post->get('isArrivage');
 
-        $controllerAndFunction = $isArrivage ? 'App\Controller\ArrivageController::editLitige' : 'App\Controller\ReceptionController::editDispute';
+        $controllerAndFunction = $isArrivage ? 'App\Controller\ArrivageController::editDispute' : 'App\Controller\ReceptionController::editDispute';
 
         return $this->forward($controllerAndFunction, [
             'request' => $request

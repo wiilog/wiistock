@@ -74,6 +74,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/handling.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('handling-index') }}
     {{ encore_entry_script_tags('filters') }}
 {% endblock %}

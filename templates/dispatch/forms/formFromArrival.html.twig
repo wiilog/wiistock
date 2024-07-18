@@ -43,7 +43,7 @@
     <div class="row dispatch-details mb-3"></div>
 {% endif %}
 
-{% include 'dispatch/forms/form.html.twig' %}
+{% include 'dispatch/forms/form.html.twig' with {arrival} %}
 
 {% if packs is defined and packs is not empty %}
     <div class="wii-section-title">{{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Unités logistiques à acheminer') }}</div>

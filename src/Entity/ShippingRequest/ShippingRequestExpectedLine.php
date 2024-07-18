@@ -21,7 +21,7 @@ class ShippingRequestExpectedLine {
     private ?int $quantity = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3)]
-    private ?float $unitPrice = null;
+    private ?string $unitPrice = null;
 
     #[ORM\Column(type: Types::FLOAT)]
     private ?float $unitWeight = null;
@@ -62,11 +62,15 @@ class ShippingRequestExpectedLine {
     }
 
     public function getUnitPrice(): ?float {
-        return $this->unitPrice;
+        return isset($this->unitPrice)
+            ? ((float) $this->unitPrice)
+            : null;
     }
 
     public function setUnitPrice(?float $unitPrice): self {
-        $this->unitPrice = $unitPrice;
+        $this->unitPrice = isset($unitPrice)
+            ? ((string) $unitPrice)
+            : null;
         return $this;
     }
 

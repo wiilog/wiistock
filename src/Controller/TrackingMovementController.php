@@ -18,6 +18,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
@@ -142,10 +143,7 @@ class TrackingMovementController extends AbstractController
         }
 
         if ($quantity < 1) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'La quantité doit être supérieure à 0.'
-            ]);
+            throw new FormException("La quantité doit être supérieure à 0.");
         }
 
         if($isNow) {
@@ -279,18 +277,11 @@ class TrackingMovementController extends AbstractController
             }
         } catch (Exception $exception) {
             if($exception->getMessage() === Pack::PACK_IS_GROUP) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'unité logistique scannée est un groupe",
-                ]);
+                throw new FormException("L'unité logistique scannée est un groupe");
             } else {
                 // uncomment following line to debug
                 // throw $exception;
-
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Une erreur est survenue lors du traitement de la requête",
-                ]);
+                throw new FormException("Une erreur est survenue lors du traitement de la requête");
             }
         }
 
@@ -310,7 +301,7 @@ class TrackingMovementController extends AbstractController
         $countCreatedMouvements = count($createdMovements);
         $entityManager->flush();
 
-        return new JsonResponse([
+        return $this->json([
             'success' => $countCreatedMouvements > 0,
             'group' => null,
             'trackingMovementsCounter' => $countCreatedMouvements,
@@ -391,6 +382,7 @@ class TrackingMovementController extends AbstractController
         $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $trackingMovement]);
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
+            $entityManager->remove($trackingMovement);
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
@@ -413,7 +405,6 @@ class TrackingMovementController extends AbstractController
                 }
 
                 $entityManager->persist($new);
-                $entityManager->remove($trackingMovement);
                 $entityManager->flush();
 
                 $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
@@ -488,22 +479,22 @@ class TrackingMovementController extends AbstractController
 
             $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-            $exportableColumns = $trackingMovementService->getTrackingMovementExportableColumns($entityManager);
-            $headers = Stream::from($exportableColumns)
-                ->map(fn(array $column) => $column['label'] ?? '')
-                ->toArray();
-
-            // same order than header column
-            $exportableColumnCodes = Stream::from($exportableColumns)
-                ->map(fn(array $column) => $column['code'] ?? '')
-                ->toArray();
+            $exportableColumns = Stream::from($trackingMovementService->getTrackingMovementExportableColumns($entityManager))
+                ->reduce(
+                    static function (array $carry, array $column) {
+                        $carry["labels"][] = $column["label"] ?? '';
+                        $carry["codes"][] = $column["code"] ?? '';
+                        return $carry;
+                    },
+                    ["labels" => [], "codes" => []]
+                );
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($trackingMovements, $dataExportService, $freeFieldsConfig, $exportableColumnCodes, $loggedUser) {
-                    $dataExportService->exportTrackingMovements($trackingMovements, $output, $exportableColumnCodes, $freeFieldsConfig, $loggedUser);
+                function ($output) use ($trackingMovements, $dataExportService, $freeFieldsConfig, $exportableColumns, $loggedUser) {
+                    $dataExportService->exportTrackingMovements($trackingMovements, $output, $exportableColumns["codes"], $freeFieldsConfig, $loggedUser);
                 },
                 'Export_Mouvement_Traca.csv',
-                $headers
+                $exportableColumns["labels"]
             );
         }
 

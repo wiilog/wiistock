@@ -22,7 +22,9 @@ use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
+use App\Repository\ArticleRepository;
 use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\SettingRepository;
 use App\Repository\StatutRepository;
 use DateTime;
@@ -704,8 +706,7 @@ class PreparationsManagerService
         return $splitArticleLineIds;
     }
 
-    public function getDataForDatatable($params = null, $filterDemande = null)
-    {
+    public function getDataForDatatable($params = null, $filterDemande = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $preparationRepository = $this->entityManager->getRepository(Preparation::class);
 
@@ -931,5 +932,25 @@ class PreparationsManagerService
             ->setActive(true);
 
         return $pairing;
+    }
+
+    public function getArticlesPrepaArrays(EntityManagerInterface $entityManager,
+                                           array $preparations,
+                                           bool $isIdArray = false): array {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $preparationsIds = !$isIdArray
+            ? array_map(
+                function ($preparationArray) {
+                    return $preparationArray['id'];
+                },
+                $preparations
+            )
+            : $preparations;
+        return array_merge(
+            $articleRepository->getByPreparationsIds($preparationsIds),
+            $referenceArticleRepository->getByPreparationsIds($preparationsIds)
+        );
     }
 }

@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FiltreRefRepository::class)]
 class FiltreRef {
 
-    const FIXED_FIELD_REF_ART_FOURN = 'référence article fournisseur';
+    const FIXED_FIELD_REF_ART_FOURN = 'Référence article fournisseur';
     const FIXED_FIELD_STATUS = 'Statut';
     const FIXED_FIELD_MANAGERS = 'Gestionnaire(s)';
     const FIXED_FIELD_VISIBILITY_GROUP = 'Groupe de visibilité';

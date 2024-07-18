@@ -191,7 +191,7 @@ class FiltreRefController extends AbstractController
 		throw new BadRequestHttpException();
 	}
 
-    #[Route("/pdate-filters", name: "update", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/update-filters", name: "update", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     public function updateFilters(EntityManagerInterface $manager): Response {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();

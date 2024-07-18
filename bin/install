@@ -1,0 +1,362 @@
+#!/usr/bin/env php
+<?php
+
+const ENV_PROD = "prod";
+const ENV_DEV = "dev";
+
+const STEP_DESCRIPTION = "description";
+const STEP_COMMANDS = "commands";
+const STEP_FILTER= "env";
+const TMP_DIRECTORY = "/tmp/wiistock-deploy";
+
+
+
+main();
+
+
+
+
+
+function main(): void {
+    $start = new DateTime();
+
+    $WIISTOCK_VERSION = getenv("WIISTOCK_VERSION") ?: null;
+    $APP_ENV = getenv("APP_ENV") ?: "prod";
+    $APP_CONTEXT = getenv("APP_CONTEXT") ?: "prod";
+    $APP_DOMAIN_NAME = getenv("APP_DOMAIN_NAME") ?: "localhost";
+    $DATABASE_SSL_CONFIG = getenv("DATABASE_SSL_CONFIG") ?: null;
+    $APP_SAML_ENABLED = !empty(getenv("APP_SAML_ENABLED") ?: false);
+    $DATABASE_URL = getenv("DATABASE_URL") ?: null;
+    $mode = $argv[1] ?? $APP_ENV;
+
+    $tableCount = countDatabaseTables($DATABASE_URL, $DATABASE_SSL_CONFIG);
+
+    echo (
+        "---- Deployment information" . PHP_EOL .
+        "WIISTOCK_VERSION:    " . json_encode($WIISTOCK_VERSION) . PHP_EOL .
+        "APP_ENV:             " . json_encode($APP_ENV) . PHP_EOL .
+        "APP_CONTEXT:         " . json_encode($APP_CONTEXT) . PHP_EOL .
+        "APP_DOMAIN_NAME:     " . json_encode($APP_DOMAIN_NAME) . PHP_EOL .
+        "APP_SAML_ENABLED:    " . json_encode($APP_SAML_ENABLED) . PHP_EOL .
+        "DATABASE_SSL_CONFIG: " . json_encode($DATABASE_SSL_CONFIG) . PHP_EOL .
+        "mode:                " . json_encode($mode) . PHP_EOL .
+        "countTable:          " . json_encode($tableCount) . PHP_EOL
+    );
+
+    $INSTALL_STEP = [
+        [
+            STEP_DESCRIPTION => "Initialize generated.yaml",
+            STEP_COMMANDS => function () {
+                file_put_contents("/project/config/generated.yaml", "{\"parameters\":{\"session_lifetime\": 1440}}");
+            },
+            STEP_FILTER => fn () => !file_exists("/project/config/generated.yaml"),
+        ],
+        [
+            STEP_DESCRIPTION => "Enable SAML",
+            STEP_COMMANDS => function() {
+                enableSAMLConfig();
+            },
+            STEP_FILTER => fn() => $APP_SAML_ENABLED,
+        ],
+        [
+            STEP_DESCRIPTION => "Clear directories before install",
+            STEP_COMMANDS => function() {
+                execCommand("rm -rf " . TMP_DIRECTORY);
+                execCommand("rm -rf /project/public/build");
+                execCommand("rm -rf /project/node_modules");
+                execCommand("rm -rf /project/vendor");
+                execCommand("mkdir -p " . TMP_DIRECTORY);
+            },
+            STEP_FILTER => fn () => $mode !== ENV_DEV,
+        ],
+        [
+            STEP_DESCRIPTION => "Clear app cache",
+            STEP_COMMANDS => function() {
+                execCommand("rm -rf /project/cache/*");
+            },
+            STEP_FILTER => fn () => $mode === ENV_DEV,
+        ],
+        [
+            STEP_DESCRIPTION => "Download cached vendor",
+            STEP_COMMANDS => function() use ($WIISTOCK_VERSION) {
+                downloadZipCache(
+                    "/project",
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/vendor.zip"
+                );
+            },
+            STEP_FILTER => fn () => $mode !== ENV_DEV && $WIISTOCK_VERSION,
+        ],
+        [
+            STEP_DESCRIPTION => "Composer install",
+            STEP_COMMANDS => function() use ($mode) {
+                if ($mode === ENV_DEV) {
+                    execCommand("composer install --working-dir /project");
+                }
+                else {
+                    execCommand("composer install"
+                        . " --working-dir /project"
+                        . " --no-dev"
+                        . " --optimize-autoloader"
+                        . " --classmap-authoritative"
+                        . " --no-ansi"
+                    );
+                }
+            },
+        ],
+        [
+            STEP_DESCRIPTION => "Download cached build",
+            STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_CONTEXT, $APP_DOMAIN_NAME) {
+                downloadZipCache(
+                    "/project/public",
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/build-$APP_CONTEXT.zip"
+                );
+                if (file_exists("/project/public/build")) {
+                    execCommand("find public/build -type f -exec sed -i \"s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g\" {} \;");
+                }
+            },
+            STEP_FILTER => fn() => $mode !== ENV_DEV && $WIISTOCK_VERSION,
+        ],
+        [
+            STEP_DESCRIPTION => "Download cached node_modules",
+            STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_DOMAIN_NAME) {
+                downloadZipCache(
+                    "/project",
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/node_modules.zip"
+                );
+            },
+            STEP_FILTER => fn() => !file_exists("/project/public/build") && $mode !== ENV_DEV && $WIISTOCK_VERSION,
+        ],
+        [
+            STEP_DESCRIPTION => "Yarn install",
+            STEP_COMMANDS => function() {
+                execCommand("yarn --cwd /project install");
+            },
+            STEP_FILTER => fn() => (
+                (!file_exists("/project/node_modules") && !file_exists("/project/public/build"))
+                || $mode === ENV_DEV
+            ),
+        ],
+        [
+            STEP_DESCRIPTION => "Symfony - dump fos js routing",
+            STEP_COMMANDS => function() {
+                execCommand("php bin/console fos:js-routing:dump --format=json --target=assets/generated/routes.json");
+            },
+            STEP_FILTER => fn() => !file_exists("/project/public/build") || $mode === ENV_DEV,
+        ],
+        [
+            STEP_DESCRIPTION => "Symfony - update fixed fields",
+            STEP_COMMANDS => function() {
+                execCommand("php bin/console app:update:fixed-fields");
+            },
+            STEP_FILTER => fn() => !file_exists("/project/public/build") || $mode === ENV_DEV,
+        ],
+        [
+            STEP_DESCRIPTION => "Build js dependencies",
+            STEP_COMMANDS => function() use ($mode) {
+                if ($mode === ENV_DEV) {
+                    execCommand("yarn build:only:dev");
+                }
+                else {
+                    execCommand("yarn build:only:production");
+                }
+            },
+            STEP_FILTER => fn() => !file_exists("/project/public/build") || $mode === ENV_DEV,
+        ],
+        [
+            STEP_DESCRIPTION => "Clear directories after install",
+            STEP_COMMANDS => function() {
+                execCommand("rm -rf " . TMP_DIRECTORY);
+            },
+            STEP_FILTER => fn () => $mode !== ENV_DEV,
+        ],
+        [
+            STEP_DESCRIPTION => "New instance, creating database",
+            STEP_COMMANDS => function() {
+                execCommand("php /project/bin/console doctrine:schema:update --force");
+                execCommand("php /project/bin/console doctrine:migrations:sync-metadata-storage");
+                execCommand("php /project/bin/console doctrine:migrations:version --add --all --no-interaction");
+            },
+            STEP_FILTER => fn () => ($tableCount === 0),
+        ],
+        [
+            STEP_DESCRIPTION => "Existing instance, updating database",
+            STEP_COMMANDS => function() {
+                execCommand("php /project/bin/console doctrine:migrations:migrate --no-interaction --dry-run");
+                execCommand("php /project/bin/console doctrine:migrations:migrate --no-interaction");
+                execCommand("php /project/bin/console doctrine:schema:update --force --dump-sql");
+            },
+            STEP_FILTER => fn () => ($tableCount > 0),
+        ],
+        [
+            STEP_DESCRIPTION => "Update Symfony project",
+            STEP_COMMANDS => function() {
+                execCommand("php /project/bin/console doctrine:fixtures:load --append --group types");
+                execCommand("php /project/bin/console doctrine:fixtures:load --append --group fixtures");
+                execCommand("php /project/bin/console app:update:translations");
+                execCommand("php /project/bin/console app:initialize");
+                execCommand("php /project/bin/console cache:clear");
+                execCommand("php /project/bin/console cache:warmup");
+            },
+        ],
+    ];
+
+
+    foreach ($INSTALL_STEP as $index => $step) {
+        treatStep($index + 1, $step, ">>>>> DEPLOYMENT STEP");
+    }
+
+    $end = new DateTime();
+
+    $diffInterval = $end->diff($start);
+
+    echo "----" . PHP_EOL;
+    echo "Start: " . $start->format(DateTimeInterface::ATOM) . PHP_EOL;
+    echo "End: " . $end->format(DateTimeInterface::ATOM) . PHP_EOL;
+    echo "Time: " . $diffInterval->format("%Hh %Imin %Ss") . PHP_EOL;
+}
+
+
+
+function execCommand(string $command): void {
+    echo $command . PHP_EOL;
+    exec($command, $output, $resultCode);
+
+    foreach ($output as $line) {
+        echo $line . PHP_EOL;
+    }
+
+    if ($resultCode !== 0) {
+        throw new Exception("Shell command error with status code $resultCode:  $command");
+    }
+}
+
+function downloadZipCache(string $destination,
+                          string $zipUrl): void {
+    $cacheRelease = fopen($zipUrl, 'r');
+
+    if ($cacheRelease) {
+        echo "Download and unzip $zipUrl" . PHP_EOL;
+        $tmpPath = TMP_DIRECTORY . "/tmpcache.zip";
+
+        @file_put_contents($tmpPath, $cacheRelease);
+        fclose($cacheRelease);
+
+        if (file_exists($tmpPath)) {
+            execCommand("unzip -q $tmpPath -d $destination");
+            unlink($tmpPath);
+        }
+    }
+}
+
+function countDatabaseTables(string  $databaseUrl,
+                             ?string $databaseSSLConfigJson): int {
+    if (!$databaseUrl) {
+        throw new Exception("Database url is missing");
+    }
+
+
+    preg_match("/mysql:\/\/((?:\w|-)+):((?:\w|-|_)+)@((?:\w|-|_|\.)+):(\d+)\/((?:\w|-)+)/", $databaseUrl, $matches);
+
+    [
+        ,
+        $username,
+        $password,
+        $hostname,
+        $port,
+        $database
+    ] = $matches;
+
+    $databaseSSLConfig = @json_decode($databaseSSLConfigJson, true);
+
+    $pdo = new PDO(
+        "mysql:host=$hostname;dbname=$database;port=$port",
+        $username,
+        $password,
+        $databaseSSLConfig ?: null
+    );
+
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = :database");
+    $stmt->execute([
+        "database" => $database,
+    ]);
+
+    return $stmt->fetchColumn();
+}
+
+function treatStep(int $index, array $step, string $logPrefix): void {
+    $stepFilter = $step[STEP_FILTER] ?? null;
+    if (!$stepFilter || $stepFilter()) {
+        $stepPrefix = "$logPrefix $index - ";
+        if ($step[STEP_DESCRIPTION] ?? null) {
+            echo $stepPrefix . $step[STEP_DESCRIPTION] . PHP_EOL;
+        }
+        if ($step[STEP_COMMANDS] ?? null) {
+            $step[STEP_COMMANDS]();
+        }
+    }
+}
+
+function enableSAMLConfig(): void {
+
+    echo "Edit config/routes.yaml" . PHP_EOL;
+    $routesFilePath = "config/routes.yaml";
+    $routesConfig = yaml_parse_file($routesFilePath) ?: [];
+    $routesConfig["nbgrp_saml"] = [
+        "resource" => "@NbgrpOneloginSamlBundle/Resources/config/routes.php"
+    ];
+    yaml_emit_file($routesFilePath, $routesConfig);
+
+    echo "Edit config/packages/security.yaml" . PHP_EOL;
+    $securityFilePath = "config/packages/security.yaml";
+    $securityConfig = yaml_parse_file($securityFilePath) ?: [];
+    $securityConfig["security"]["firewalls"]["main"]["saml"] = [
+        "check_path" => "saml_acs",
+        "login_path" => "saml_login",
+        "persist_user" => true,
+        "user_factory" => "saml_user_factory",
+    ];
+    yaml_emit_file($securityFilePath, $securityConfig);
+
+    echo "Create config/packages/nbgrp_onelogin_saml.yaml" . PHP_EOL;
+    $oneloginSamlFilePath = "config/packages/nbgrp_onelogin_saml.yaml";
+    yaml_emit_file($oneloginSamlFilePath, [
+        "nbgrp_onelogin_saml" => [
+            "onelogin_settings" => [
+                "default" => [
+                    // Mandatory SAML settings
+                    "idp" => [
+                        "entityId" => "%env(APP_SAML_IDP_ENTITY_ID)%",
+                        "singleSignOnService" => [
+                            "url" => "%env(APP_SAML_IDP_SIGN_ON_URL)%",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                        ],
+                        "singleLogoutService" => [
+                            "url" => "%env(APP_SAML_IDP_LOGOUT_URL)%",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                        ],
+                        "x509cert" => "%env(APP_SAML_IDP_CRT)%",
+                    ],
+                    "sp" => [
+                        "entityId" => "<request_scheme_and_host>/saml/metadata",
+                        "assertionConsumerService" => [
+                            "url" => "<request_scheme_and_host>/saml/acs",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+                        ],
+                        "singleLogoutService" => [
+                            "url" => "<request_scheme_and_host>/saml/logout",
+                            "binding" => "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                        ],
+                    ]
+                ]
+            ]
+        ]
+    ]);
+}
+
+function getReleaseDownloadUrl(string $release): string {
+    $releaseUri = rawurlencode($release);
+    return "https://github.com/wiilog/wiistock/releases/download/$releaseUri";
+}
+
+

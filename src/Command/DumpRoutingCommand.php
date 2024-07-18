@@ -4,6 +4,7 @@ namespace App\Command;
 
 use FOS\JsRoutingBundle\Command\DumpCommand;
 use FOS\JsRoutingBundle\Extractor\ExposedRoutesExtractorInterface;
+use FOS\JsRoutingBundle\Response\RoutesResponse;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -11,8 +12,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class DumpRoutingCommand extends DumpCommand {
 
-    public function __construct(KernelInterface $kernel, ExposedRoutesExtractorInterface $extractor, SerializerInterface $serializer) {
-        parent::__construct($extractor, $serializer, $kernel->getProjectDir());
+    public function __construct(RoutesResponse $routesResponse,
+                                ExposedRoutesExtractorInterface $extractor,
+                                SerializerInterface $serializer,
+                                KernelInterface $kernel) {
+        parent::__construct($routesResponse, $extractor, $serializer, $kernel->getProjectDir());
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {

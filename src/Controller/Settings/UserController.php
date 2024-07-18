@@ -616,8 +616,9 @@ class UserController extends AbstractController {
 
         $entityManager->flush();
 
-        return $this->json([
-            "success" => true
+        return new JsonResponse([
+            "success" => true,
+            "msg" => "Recherche rapide sauvegardée avec succès."
         ]);
     }
 

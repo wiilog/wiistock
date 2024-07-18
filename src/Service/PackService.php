@@ -128,8 +128,14 @@ class PackService {
 
     public function dataRowPack(Pack $pack)
     {
-        $firstMovement = $pack->getTrackingMovements('ASC')->first();
-        $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+
+        $firstMovements = $trackingMovementRepository->findBy(
+            ["pack" => $pack],
+            ["datetime" => "ASC", "orderIndex" => "ASC", "id" => "ASC"],
+            1
+        );
+        $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
         $user = $this->security->getUser();
         $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         $lastMessage = $pack->getLastMessage();
@@ -392,7 +398,7 @@ class PackService {
             ? $arrivage->getDropLocation()
             : null;
 
-        $totalPacks = Stream::from($packByNatures)->sum();
+        $totalPacks = Stream::from($packByNatures)->filter()->sum();
         if($totalPacks > 500) {
             throw new FormException("Vous ne pouvez pas ajouter plus de 500 UL");
         }
@@ -408,21 +414,23 @@ class PackService {
         }
 
         foreach ($packByNatures as $natureId => $number) {
-            $nature = $natureRepository->find($natureId);
-            for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
-                if ($persistTrackingMovements && isset($location)) {
-                    $this->trackingMovementService->persistTrackingForArrivalPack(
-                        $entityManager,
-                        $pack,
-                        $location,
-                        $user,
-                        $now,
-                        $arrivage
-                    );
+            if ($number) {
+                $nature = $natureRepository->find($natureId);
+                for ($i = 0; $i < $number; $i++) {
+                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
+                    if ($persistTrackingMovements && isset($location)) {
+                        $this->trackingMovementService->persistTrackingForArrivalPack(
+                            $entityManager,
+                            $pack,
+                            $location,
+                            $user,
+                            $now,
+                            $arrivage
+                        );
+                    }
+                    // pack persisted by Arrival cascade persist
+                    $createdPacks[] = $pack;
                 }
-                // pack persisted by Arrival cascade persist
-                $createdPacks[] = $pack;
             }
         }
         return $createdPacks;
@@ -433,6 +441,7 @@ class PackService {
         $waitingDaysRequested = [7, 15, 30, 42];
         $ongoingPacks = $packRepository->findOngoingPacksOnDeliveryPoints($waitingDaysRequested);
         foreach ($ongoingPacks as $packData) {
+            /** @var Pack $pack */
             $pack = $packData[0];
             $waitingDays = $packData['packWaitingDays'];
 
@@ -458,7 +467,7 @@ class PackService {
                     'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),
-                $arrival->getReceivers()
+                $arrival->getReceivers()->toArray()
             );
         }
     }

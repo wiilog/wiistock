@@ -129,6 +129,7 @@ export default class Form {
                             }
 
                             if(options.tables) {
+
                                 const tables = Array.isArray(options.tables)
                                     ? options.tables
                                     : [options.tables];

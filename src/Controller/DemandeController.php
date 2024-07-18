@@ -343,7 +343,7 @@ class DemandeController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          DeliveryRequestService $deliveryRequestService,
                          Demande                $deliveryRequest,
-                         EntityManagerInterface $manager): Response {
+                         SettingsService        $settingsService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $currentUser = $this->getUser();
@@ -359,11 +359,11 @@ class DemandeController extends AbstractController
             'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE),
             "initial_visible_columns" => json_encode($deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest, true)),
             'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($deliveryRequest),
-            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
-            'manageDeliveriesWithoutStockQuantity' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY),
+            'showTargetLocationPicking' => $settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION),
+            'managePreparationWithPlanning' => $settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
+            'manageDeliveriesWithoutStockQuantity' => $settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY),
             'fields' => $fields,
-            'editatableLineForm' => $deliveryRequestService->editatableLineForm($manager, $deliveryRequest, $currentUser)
+            'editatableLineForm' => $deliveryRequestService->editatableLineForm($entityManager, $deliveryRequest, $currentUser)
         ]);
     }
 
@@ -371,9 +371,13 @@ class DemandeController extends AbstractController
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function logisticUnitsApi(Request                $request,
                                      DeliveryRequestService $deliveryRequestService,
-                                     EntityManagerInterface $manager): Response {
-        $deliveryRequest = $manager->find(Demande::class, $request->query->get('id'));
-        $needsQuantitiesCheck = !$manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+                                     SettingsService        $settingsService,
+                                     EntityManagerInterface $entityManager): Response {
+        $deliveryRequest = $entityManager->find(Demande::class, $request->query->get('id'));
+
+        $managePreparationWithPlanningSetting = $settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $needsQuantitiesCheck = !$managePreparationWithPlanningSetting;
+
         $editable = $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON;
 
         $lines = Stream::from($deliveryRequest->getArticleLines())
@@ -472,7 +476,7 @@ class DemandeController extends AbstractController
         }
         $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
 
-        $columns = $deliveryRequestService->getVisibleColumnsTableArticleConfig($manager, $deliveryRequest);
+        $columns = $deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest);
 
         return $this->json([
             "success" => true,
@@ -894,32 +898,36 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: "GET")]
+    #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: self::GET)]
     public function redirectBeforeIndex(EntityManagerInterface $entityManager,
                                         SettingsService        $settingsService,
                                         DeliveryRequestService $deliveryRequestService,
-                                        TranslationService     $translation){
+                                        TranslationService     $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
-        $defaultReceiver = '';
+        $defaultReceiverParam = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiver = null;
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
-        $defaultType = null;
-        if(!empty($defaultTypeParam->getElements())){
-            $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
+        $defaultTypeParam = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeIds = $defaultTypeParam->getElements();
+        $firstDefaultType = (int) ($defaultTypeIds[0] ?? null);
+        $userAllowedTypes = Stream::from($this->getUser()->getDeliveryTypes())
+            ->filter(static fn(Type $type) => $type->isActive());
+        if ($firstDefaultType && $userAllowedTypes->some(static fn(Type $type) => $type->getId() === $firstDefaultType)) {
+            $defaultType = $typeRepository->find($firstDefaultType);
+        } else {
+            $defaultType =  $userAllowedTypes->count() === 1 ? $userAllowedTypes->first() : null;
         }
 
-        $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
-        $demandeFieldParamExpectedAt = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);;
-        $demandeFieldParamProject = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $receiverEqualRequester = boolval($settingsService->getValue($entityManager, Setting::RECEIVER_EQUALS_REQUESTER));
+        $demandeFieldParamExpectedAt = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);
+        $demandeFieldParamProject = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];

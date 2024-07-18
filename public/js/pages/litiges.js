@@ -24,11 +24,15 @@ $(function () {
     Select2Old.dispute($('.ajax-autocomplete-dispute'), Translation.of(`Qualité`, `Litiges`, `Numéro de litige`, false));
     Select2Old.init($disputeTypeFilter, Translation.of(`Qualité`, `Litiges`, `Types`, false));
 
+
+    const fromDashboard = $('.filters-container [name="fromDashboard"]').val() === '1';
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
     $.post(path, params, function (data) {
-        displayFiltersSup(data, true);
+        if (!fromDashboard) {
+            displayFiltersSup(data, true);
+        }
     }, 'json');
 
     initDatatableLitiges();
@@ -42,13 +46,13 @@ function initDatatableLitiges() {
     const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
     const $statutFilter = $filtersContainer.find(`select[name=statut]`);
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
-    const $disputeEmergency = $filtersContainer.find(`input[name=emergency]`);
+    const $disputeEmergency = $filtersContainer.find(`input[name=emergency]:checked`);
 
     let pathLitiges = Routing.generate('dispute_api', {
         fromDashboard,
         preFilledTypes: $typeFilter.val(),
         preFilledStatuses: $statutFilter.val(),
-        disputeEmergency: $disputeEmergency.val() === 'on' ? 1 : 0,
+        disputeEmergency: $disputeEmergency.length > 0,
     }, true);
 
     let tableLitigesConfig = {
@@ -102,28 +106,22 @@ function initDatatableLitiges() {
 }
 
 function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, disputeId, disputeNumber) {
-    let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
-    let path = Routing.generate(route, true);
+    let route = isArrivage ? 'arrival_dispute_api_edit' : 'litige_api_edit_reception';
+    let path = Routing.generate(route, {dispute: disputeId});
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
-    let params = {
-        disputeId
-    };
-
+    let params = {};
     if (isArrivage) {
         params.arrivageId = arrivageOrReceptionId;
     } else {
         params.reception = arrivageOrReceptionId;
     }
 
-    $.post(path, JSON.stringify(params), function (data) {
+    $.get(path, JSON.stringify(params), function (data) {
         $modal.find('.error-msg').html('');
         $modal.find('.modal-body').html(data.html);
-        if (isArrivage) {
-            $modal.find('#packEditLitige').val(data.packs).select2();
-        } else {
+        if (!isArrivage) {
             Select2Old.articleReception($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
-
             let values = [];
             data.packs.forEach(val => {
                 values.push({
@@ -138,6 +136,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
             });
 
             $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
+            fillDemandeurField($modal);
         }
 
         Camera.init(
@@ -145,7 +144,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
             $modal.find(`[name="files[]"]`)
         );
 
-        fillDemandeurField($modal);
         $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();
 
@@ -157,7 +155,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 
 function openTableHisto() {
 
-    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
@@ -180,7 +178,7 @@ function openTableHisto() {
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 

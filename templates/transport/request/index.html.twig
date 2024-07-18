@@ -18,8 +18,6 @@
 {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 
 {% block page_content %}
-    <input id="CLB_API_KEY" type="hidden" value="{{ CLB_API_KEY }}"/>
-
     <div class="m-0 m-md-4 wii-page-card transport-table">
         <table id="tableTransportRequests" class="table w-100"></table>
     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
@@ -16,15 +17,10 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 
-/**
- * @method TrackingMovement|null find($id, $lockMode = null, $lockVersion = null)
- * @method TrackingMovement|null findOneBy(array $criteria, array $orderBy = null)
- * @method TrackingMovement[]    findAll()
- * @method TrackingMovement[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class TrackingMovementRepository extends EntityRepository
 {
 
@@ -51,10 +47,8 @@ class TrackingMovementRepository extends EntityRepository
         $dateMin = $dateMin->format("Y-m-d H:i:s");
         $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
 
-        $queryBuilder = $this->createQueryBuilder("tracking_movement");
-
-        return QueryBuilderHelper::addTrackingEntities($queryBuilder, "tracking_movement")
-            ->addSelect("tracking_movement.id AS id")
+        $queryBuilder = $this->createQueryBuilder("tracking_movement")
+            ->select("tracking_movement.id AS id")
             ->addSelect("DATE_FORMAT(tracking_movement.datetime, '$dateFormat') AS date")
             ->addSelect("pack.code AS logisticUnit")
             ->addSelect("tracking_movement.quantity AS quantity")
@@ -77,7 +71,9 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin("pack.arrivage", "pack_arrival")
             ->leftJoin("tracking_movement.packParent", "join_packParent")
             ->setParameter("dateMin", $dateMin)
-            ->setParameter("dateMax", $dateMax)
+            ->setParameter("dateMax", $dateMax);
+
+        return QueryBuilderHelper::addTrackingEntities($queryBuilder, "tracking_movement")
             ->getQuery()
             ->getResult();
     }
@@ -530,5 +526,17 @@ class TrackingMovementRepository extends EntityRepository
         }
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function countByArticle(Article $article): int {
+        $result = $this->createQueryBuilder("tracking_movement")
+            ->select('COUNT(DISTINCT tracking_movement.id)')
+            ->join("tracking_movement.pack", "join_pack", Join::WITH)
+            ->andWhere("join_pack.article = :article")
+            ->setParameter("article", $article)
+            ->getQuery()
+            ->getSingleResult();
+
+        return $result["count"] ?? 0;
     }
 }

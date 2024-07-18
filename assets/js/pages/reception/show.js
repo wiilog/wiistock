@@ -18,6 +18,7 @@ let tableArticleLitige;
 let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
+let receptionId = undefined;
 
 window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
@@ -33,13 +34,17 @@ window.initEditReception = initEditReception;
 window.updateQuantityToReceive = updateQuantityToReceive;
 
 $(function () {
+    receptionId = $('#receptionId').val();
     $('.select2').select2();
     receptionDisputesDatatable = InitDisputeDataTable();
     initPageModals();
     launchPackListSearching();
     loadReceptionLines();
 
-    $('#modalNewLitige').on('change', 'select[name=disputePacks]', function () {
+    const $modalNewDispute = $('#modalNewLitige');
+
+    Select2Old.articleReception($modalNewDispute.find('.select2-autocomplete-articles'), receptionId);
+    $modalNewDispute.on('change', 'select[name=disputePacks]', function () {
         const data = $(this).select2('data');
         const isUrgent = data.some((article) => article.isUrgent);
         $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
@@ -203,7 +208,7 @@ function initPageModals() {
 }
 
 function InitDisputeDataTable() {
-    let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
+    let pathLitigesReception = Routing.generate('litige_reception_api', {reception: receptionId}, true);
 
     let tableLitigeConfig = {
         lengthMenu: [5, 10, 25],
@@ -253,17 +258,16 @@ function initDateTimePickerReception() {
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, disputeId, disputeNumber) {
-    let path = Routing.generate('litige_api_edit_reception', true);
+    let path = Routing.generate('litige_api_edit_reception', {dispute: disputeId});
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
-        disputeId,
         reception: receptionId,
         disputeNumber: disputeNumber
     };
 
-    $.post(path, JSON.stringify(params), function (data) {
+    $.get(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         Select2Old.articleReception(modal.find('.select2-autocomplete-articles'));
@@ -289,7 +293,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('#disputeId').val()}, true);
+    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
@@ -300,7 +304,7 @@ function getCommentAndAddHisto() {
 }
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('#disputeId').val()}, true);
+    let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             url: pathHistoLitige,
@@ -534,7 +538,7 @@ function initNewLigneReception() {
     Select2Old.init($modalNewLigneReception.find('[name=referenceToReceive]'), '', 0, {
         route: 'get_ref_article_reception',
         param: {
-            reception: $('#receptionId').val()
+            reception: receptionId
         }
     });
     $(`.modal-footer`).find(`.submit`).removeClass(LOADING_CLASS);
@@ -770,9 +774,8 @@ function clearPackingContent($element, hideSubFields = true, hidePackingContaine
 function loadReceptionLines({start, search} = {}) {
     start = start || 0;
     const $logisticUnitsContainer = $('.logistic-units-container');
-    const reception = $('#receptionId').val();
 
-    const params = {reception, start};
+    const params = {reception: receptionId, start};
     if (search) {
         params.search = search;
     }
