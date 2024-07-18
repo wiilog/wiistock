@@ -2,7 +2,7 @@ import AJAX, {POST, GET} from "@app/ajax";
 import Camera from "@app/camera";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
-import {displayAttachmentRequired} from './form'
+import {displayAttachmentRequired, initDeleteProductionRequest} from './form'
 import {getUserFiltersByPage} from '@app/utils';
 import {initDataTable} from "@app/datatable";
 
@@ -27,7 +27,36 @@ $(function () {
             .submitTo(POST, `production_request_new`, {
                 tables: [tableProduction],
             });
+
+
+        const $modalEditProductionRequest = $(`#modalEditProductionRequest`);
+        Form
+            .create($modalEditProductionRequest, {clearOnOpen: true})
+            .onOpen((event) => {
+                const $button = $(event.relatedTarget);
+                const $formContainer = $modalEditProductionRequest.find('.form-production-request');
+                Modal.load(
+                    'production_request_form_duplicate',
+                    {productionRequest : $button.data('id') },
+                    $modalEditProductionRequest,
+                    $formContainer,
+                    {
+                        $formContainer: $formContainer,
+                        onOpen: () => {
+                            Camera.init(
+                                $modalEditProductionRequest.find(`.take-picture-modal-button`),
+                                $modalEditProductionRequest.find(`[name="files[]"]`)
+                            );
+                        }
+                    }
+                );
+            })
+            .submitTo(POST, `production_request_new`, {
+                tables: [tableProduction],
+            });
     });
+
+    initDeleteProductionRequest();
 
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';

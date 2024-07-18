@@ -273,6 +273,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST,
                 Action::EDIT_TREATED_PRODUCTION_REQUEST,
                 Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST,
+                Action::DUPLICATE_PRODUCTION_REQUEST,
                 Action::DISPLAY_PRODUCTION_REQUEST_PLANNING,
             ],
         ],

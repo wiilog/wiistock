@@ -78,12 +78,12 @@ class AttachmentService {
         }
     }
 
-    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files): array {
+    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files, bool $deleteTmpFile): array {
         $reflect = new ReflectionClass($attachmentEntity);
         $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
         $addedAttachments = [];
         foreach ($files as $file) {
-            $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
+            $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder, $deleteTmpFile);
             $attachmentEntity->addAttachment($attachment);
             $addedAttachments[] = $attachment;
             $entityManager->persist($attachment);
@@ -91,7 +91,7 @@ class AttachmentService {
         return $addedAttachments;
     }
 
-    private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder): Attachment {
+    private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder, bool $deleteTmpFile): Attachment {
         $dedicatedFolder = "$this->attachmentDirectory/$dedicatedSubFolder";
         if (!file_exists($dedicatedFolder)) {
             mkdir($dedicatedFolder, 0777, true);
@@ -110,7 +110,11 @@ class AttachmentService {
             $i++;
         } while (file_exists($fullPath));
 
-        $uploadedFile->move($dedicatedFolder, $filename);
+        if ($deleteTmpFile) {
+            $uploadedFile->move($dedicatedFolder, $filename);
+        } else {
+            copy($uploadedFile->getPathname(), $dedicatedFolder . $filename);
+        }
 
         return $this->createAttachmentDeprecated($filename, $publicPath);
     }
