@@ -1200,6 +1200,7 @@ class ArrivageController extends AbstractController {
         $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
         $showDateAndHourArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
         $showTypeLogoArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_TYPE_LOGO_ON_TAG);
+        $showDateAndHourTruckArrival = $settingRepository->getOneParamByLabel(setting::INCLUDE_DATE_AND_HOUR_TRUCK_ARRIVAL);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1244,6 +1245,7 @@ class ArrivageController extends AbstractController {
                     $businessUnitParam,
                     $projectParam,
                     $showDateAndHourArrivalUl,
+                    $showDateAndHourTruckArrival,
                     $forceTagEmpty ? null : $tagTemplate,
                     $forceTagEmpty
                 );
@@ -1284,6 +1286,7 @@ class ArrivageController extends AbstractController {
                 $businessUnitParam,
                 $projectParam,
                 $showDateAndHourArrivalUl,
+                $showDateAndHourTruckArrival,
             );
         }
 
@@ -1337,6 +1340,7 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $businessUnitParam = false,
                                                    ?bool        $projectParam = false,
                                                    ?bool        $showDateAndHourArrivalUl = false,
+                                                   ?bool        $showDateAndHourTruckArrival = false,
                                                    ?TagTemplate $tagTemplate = null,
                                                    bool         $forceTagEmpty = false): array {
         $packs = Stream::from($arrivage->getPacks());
@@ -1359,6 +1363,7 @@ class ArrivageController extends AbstractController {
                                                                         $typeArrivalParamIsDefined,
                                                                         $total,
                                                                         $arrivage,
+                                                                        $showDateAndHourTruckArrival,
                                                                         $packService): ?array {
                 $position = $index + 1;
                 if (
@@ -1381,6 +1386,7 @@ class ArrivageController extends AbstractController {
                         $businessUnitParam,
                         $projectParam,
                         $showDateAndHourArrivalUl,
+                        $showDateAndHourTruckArrival
                     );
                 }
                 return null;
