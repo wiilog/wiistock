@@ -477,7 +477,7 @@ class TruckArrivalController extends AbstractController
                                            PDFGeneratorService    $PDFGeneratorService,
                                            TruckArrivalService    $truckArrivalService): PdfResponse {
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
-        $truckArrivalId = $request->query->get('truckArrivalId');
+        $truckArrivalId = $request->query->getInt('truckArrivalId');
         $truckArrival = $truckArrivalRepository->find($truckArrivalId);
 
         [$fileName, $barcodeConfig] = $truckArrivalService->getLabelConfig($truckArrival);

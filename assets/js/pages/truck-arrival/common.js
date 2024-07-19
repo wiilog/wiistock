@@ -56,12 +56,14 @@ export function deleteTruckArrival($deleteButton) {
 }
 
 export function printTruckArrivalLabel($printButton = null, truckArrivalId = null) {
-    if($printButton || truckArrivalId){
-        AJAX.route(AJAX.GET, 'truck_arrival_print_label', {
-            truckArrivalId: $printButton ? $printButton.data('id') : truckArrivalId,
-        }).file({
-            success: "Votre étiquette a bien été imprimée.",
-            error: "Erreur lors de l'impression de l'étiquette.",
-        });
+    if(!printButton && !truckArrivalId){
+        return;
     }
+
+    AJAX.route(AJAX.GET, 'truck_arrival_print_label', {
+        truckArrivalId: $printButton ? $printButton.data('id') : truckArrivalId,
+    }).file({
+        success: "Votre étiquette a bien été imprimée.",
+        error: "Erreur lors de l'impression de l'étiquette.",
+    });
 }
