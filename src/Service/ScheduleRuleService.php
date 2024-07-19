@@ -3,8 +3,10 @@
 namespace App\Service;
 
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Exceptions\FormException;
 use DateTime;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -29,16 +31,16 @@ class ScheduleRuleService
     #[Required]
     public Environment $templating;
 
-    public function calculateNextExecutionDate(ScheduleRule $rule,
-                                               DateTime     $from): ?DateTime {
-        $from = clone $from;
-        $from->setTime($from->format('H'), $from->format('i'), 0, 0);
+    #[Required]
+    public FormatService $formatService;
 
+    public function calculateNextExecution(ScheduleRule $rule,
+                                           DateTime     $from): ?DateTime {
         return match ($rule->getFrequency()) {
             ScheduleRule::ONCE    => $this->calculateOnce($rule, $from),
+            ScheduleRule::HOURLY  => $this->calculateFromHourlyRule($rule, $from),
             ScheduleRule::DAILY   => $this->calculateFromDailyRule($rule, $from),
             ScheduleRule::WEEKLY  => $this->calculateFromWeeklyRule($rule, $from),
-            ScheduleRule::HOURLY  => $this->calculateFromHourlyRule($rule, $from),
             ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $from),
             default               => throw new RuntimeException('Invalid schedule rule frequency'),
         };
@@ -46,7 +48,7 @@ class ScheduleRuleService
 
     public function calculateFromWeeklyRule(ScheduleRule $rule,
                                             DateTime     $from): ?DateTime {
-        $DAY_LABEL = [
+        $availableWeekDays = Stream::from([
             1 => "monday",
             2 => "tuesday",
             3 => "wednesday",
@@ -54,51 +56,57 @@ class ScheduleRuleService
             5 => "friday",
             6 => "saturday",
             7 => "sunday",
-        ];
+        ])
+            ->filter(static fn(string $day, string $dayIndex) => in_array($dayIndex, $rule->getWeekDays()))
+            ->toArray();
 
         [$hour, $minute] = explode(":", $rule->getIntervalTime());
-        $nextOccurrence = clone $rule->getBegin();
+        $begin = (clone $rule->getBegin())->setTime($hour, $minute);
 
-        $weeksDifferential = floor($from->diff($rule->getBegin())->days / 7);
-        $add = $weeksDifferential + $weeksDifferential % $rule->getPeriod();
-        $nextOccurrence->modify("+$add weeks");
+        if ($from > $begin) {
+            $sameWeek = (
+                $from->format("W") === $begin->format("W")
+                && $from->format("Y") === $begin->format("Y")
+            );
 
-        $goToNextWeek = false;
-        if ($from->format("W") != $nextOccurrence->format("W")) {
-            $nextOccurrence = max($from, $nextOccurrence);
-            $day = $rule->getWeekDays()[0];
-            if (intval($day) < intval($nextOccurrence->format('N'))
-                || (intval($day) === intval($nextOccurrence->format('N')) && $this->isTimeBefore($rule->getIntervalTime(), $nextOccurrence))) {
-                $nextOccurrence->modify('+1 week');
+            if ($sameWeek) {
+                $availableDayInThisWeek = Stream::from($availableWeekDays)
+                    ->filter(static fn(string $day, int $dayIndex) => $dayIndex > $from->format("N"));
+
+                if (!$availableDayInThisWeek->isEmpty()) {
+                    $nextExecutionDay = $availableDayInThisWeek->first();
+                    $nextOccurrence = clone $from;
+                    $nextOccurrence
+                        ->modify("{$nextExecutionDay} this week")
+                        ->setTime($hour, $minute);
+                }
             }
-        } else {
-            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $from);
-            $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $from);
-            $currentDay = $from->format("N");
 
-            $availableDays = Stream::from($rule->getWeekDays())
-                ->filter(function($day) use ($isTimeEqual, $isTimeEqualOrBefore, $currentDay) {
-                    if ($isTimeEqual && $day === $currentDay) {
-                        return true;
-                    } else if ($isTimeEqualOrBefore) {
-                        return $day > $currentDay;
-                    } else {
-                        return $day >= $currentDay;
-                    }
-                });
+            // if next occurence can't be on the same week of from
+            if (!isset($nextOccurrence)) {
+                $period = $rule->getPeriod();
+                $secondsInWeek = 60 * 60 * 24 * 7;
+                $secondsBetween = ($from->getTimestamp() - $begin->getTimestamp());
+                $weeksBetween = floor($secondsBetween / $secondsInWeek);
+                $periodBetweenCount = floor($weeksBetween / $period);
+                $remainSecondsBetweenDate = ($secondsBetween % $secondsInWeek) + (($weeksBetween % $period) * $secondsInWeek);
 
-            $goToNextWeek = $availableDays->isEmpty();
+                $add = (
+                    $periodBetweenCount * $period
+                    + ($remainSecondsBetweenDate > 0 ? $period : 0)
+                );
 
-            $day = $availableDays->firstOr(fn() => $rule->getWeekDays()[0] ?? null);
+                $firstAvailableDayInAWeek = Stream::from($availableWeekDays)->first();
+
+                $nextOccurrence = (clone $begin)
+                    ->modify("+$add weeks")
+                    ->modify("{$firstAvailableDayInAWeek} this week")
+                    ->setTime($hour, $minute);
+            }
         }
-
-        if ($goToNextWeek) {
-            $nextOccurrence->modify("+{$rule->getPeriod()} week");
+        else {
+            $nextOccurrence = clone $begin;
         }
-
-        $dayAsString = $DAY_LABEL[$day];
-        $nextOccurrence->modify("$dayAsString this week");
-        $nextOccurrence->setTime($hour, $minute);
 
         return $nextOccurrence;
     }
@@ -149,21 +157,25 @@ class ScheduleRuleService
 
     public function calculateFromDailyRule(ScheduleRule $rule,
                                            DateTime     $from): ?DateTime {
-        $start = $rule->getBegin();
-        // set time to 0
-        $start->setTime(0, 0);
         $period = $rule->getPeriod();
         [$hour, $minute] = explode(":", $rule->getIntervalTime());
 
+        $start = clone $rule->getBegin();
+        $start->setTime($hour, $minute);
         $nextOccurrence = clone $start;
-        if ($from >= $start) {
-            $daysDifferential = $from->diff($start)->days;
 
-            $add = $daysDifferential - $daysDifferential % $period;
-            if ($add < $daysDifferential) {
-                $add += $period;
-            }
-            $nextOccurrence->modify("+$add day");
+        if ($from > $start) {
+            $secondsInDay = 60 * 60 * 24;
+            $secondsBetween = ($from->getTimestamp() - $start->getTimestamp());
+            $daysBetween = floor($secondsBetween / $secondsInDay);
+            $periodBetweenCount = floor($daysBetween / $period);
+            $remainSecondsBetweenDate = ($secondsBetween % $secondsInDay) + (($daysBetween % $period) * $secondsInDay);
+
+            $add = (
+                $periodBetweenCount * $period
+                + ($remainSecondsBetweenDate > 0 ? $period : 0)
+            );
+            $nextOccurrence->modify("+$add days");
         }
 
         $nextOccurrence->setTime($hour, $minute);
@@ -178,19 +190,27 @@ class ScheduleRuleService
             return null;
         }
 
-        $hoursBetweenDates = intval($from->diff($rule->getBegin(), true)->format("%h"));
-        if($hoursBetweenDates % $intervalPeriod === 0) {
-            if (intval($rule->getBegin()->format('i')) <= intval($from->format('i'))) {
-                $hoursToAdd = $intervalPeriod;
-            } else {
-                $hoursToAdd = 0;
-            }
-        } else {
-            $hoursToAdd = $hoursBetweenDates % $intervalPeriod;
-        }
+        $begin = $rule->getBegin();
 
-        $nextOccurrence = clone $from;
-        $nextOccurrence->setTime((int)$from->format("H") + $hoursToAdd, $rule->getBegin()->format("i"));
+        $nextOccurrence = clone $begin;
+        if ($from > $begin) {
+            $secondInHour = 60 * 60;
+
+            $secondsBetweenDates = $from->getTimestamp() - $begin->getTimestamp();
+
+            $hoursBetweenDates = floor($secondsBetweenDates / $secondInHour);
+
+            $intervalPeriodBetweenCount = floor($hoursBetweenDates / $intervalPeriod);
+            $intervalPeriodBetween = ($intervalPeriodBetweenCount * $intervalPeriod);
+            $remainSecondsBetweenDate = ($hoursBetweenDates - $intervalPeriodBetween) + ($secondsBetweenDates % $secondInHour);
+
+            $hoursToAdd = (
+                $intervalPeriodBetween
+                + ($remainSecondsBetweenDate > 0 ? $intervalPeriod : 0)
+            );
+
+            $nextOccurrence->modify("+{$hoursToAdd} hours");
+        }
 
         return $nextOccurrence;
     }
@@ -200,6 +220,31 @@ class ScheduleRuleService
         return $rule->getLastRun() === null && $from <= $rule->getBegin()
             ? $rule->getBegin()
             : null;
+    }
+
+    public function updateRule(?ScheduleRule $scheduleRule,
+                               ParameterBag  $data): ScheduleRule {
+
+        $startDate = $data->get("startDate");
+        if(!$startDate){
+            throw new FormException("Veuillez choisir une fréquence pour votre export planifié.");
+        }
+
+        $begin = $this->formatService->parseDatetime($startDate);
+
+        if (in_array($data->get("frequency"), [ScheduleRule::DAILY, ScheduleRule::WEEKLY, ScheduleRule::MONTHLY])) {
+            $begin->setTime(0, 0);
+        }
+
+        return ($scheduleRule ?: new ScheduleRule())
+            ->setBegin($begin)
+            ->setFrequency($data->get("frequency"))
+            ->setPeriod($data->get("repeatPeriod"))
+            ->setIntervalPeriod($data->get("intervalPeriod"))
+            ->setIntervalTime($data->get("intervalTime"))
+            ->setMonths($data->get("months") ? explode(",", $data->get("months")) : null)
+            ->setMonthDays($data->get("monthDays") ? explode(",", $data->get("monthDays")) : null)
+            ->setWeekDays($data->get("weekDays") ? explode(",", $data->get("weekDays")) : null);
     }
 
     private function isTimeEqualOrBefore(string $time, DateTime $date): bool {

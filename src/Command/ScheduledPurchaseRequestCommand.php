@@ -42,7 +42,7 @@ class ScheduledPurchaseRequestCommand extends Command
             $now = new DateTime();
             $now->setTime($now->format('H'), $now->format('i'), 0, 0);
 
-            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($rule, $now);
+            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecution($rule, $now);
 
             // test if we can calculate a next execution date with the rule
             // AND if $now (date + hour + minute) is on same than this calculated execution date

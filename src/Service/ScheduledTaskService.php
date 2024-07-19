@@ -123,7 +123,7 @@ class ScheduledTaskService
         // get only tasks to execute on current minute
         return Stream::from($repository->findScheduled())
             ->keymap(function(ScheduledTask $task) use ($from) {
-                $nextExecutionTime = $this->scheduleRuleService->calculateNextExecutionDate($task->getScheduleRule(), $from);
+                $nextExecutionTime = $this->scheduleRuleService->calculateNextExecution($task->getScheduleRule(), $from);
                 return $nextExecutionTime
                     ? [
                         $this->getCacheDateKey($nextExecutionTime),

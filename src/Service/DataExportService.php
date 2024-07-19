@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -19,6 +18,7 @@ use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -372,10 +372,6 @@ class DataExportService
 
         $entity = $export->getEntity();
 
-        if(!isset($data["startDate"])){
-            throw new FormException("Veuillez choisir une fréquence pour votre export planifié.");
-        }
-
         $export->setDestinationType($data["destinationType"]);
         if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
             $export->setFtpParameters(null);
@@ -469,23 +465,16 @@ class DataExportService
             }
         }
 
-        $scheduleRule = $export->getScheduleRule() ?: new ScheduleRule();
-
-        $begin = $this->formatService->parseDatetime($data["startDate"]);
-
-        if (in_array($data["frequency"], [ScheduleRule::DAILY, ScheduleRule::WEEKLY, ScheduleRule::MONTHLY])) {
-            $begin->setTime(0, 0);
-        }
-
-        $scheduleRule
-            ->setBegin($begin)
-            ->setFrequency($data["frequency"] ?? null)
-            ->setPeriod($data["repeatPeriod"] ?? null)
-            ->setIntervalTime($data["intervalTime"] ?? null)
-            ->setIntervalPeriod($data["intervalPeriod"] ?? null)
-            ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
-            ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
+        $scheduleRule = $this->scheduleRuleService->updateRule($export->getScheduleRule(), new ParameterBag([
+            "startDate" => $data["startDate"] ?? null,
+            "frequency" => $data["frequency"] ?? null,
+            "repeatPeriod" => $data["repeatPeriod"] ?? null,
+            "intervalTime" => $data["intervalTime"] ?? null,
+            "intervalPeriod" => $data["intervalPeriod"] ?? null,
+            "months" => $data["months"] ?? null,
+            "weekDays" => $data["weekDays"] ?? null,
+            "monthDays" => $data["monthDays"] ?? null,
+        ]));
 
         $export->setScheduleRule($scheduleRule);
     }

@@ -118,16 +118,6 @@ class LaunchScheduledImportCommand extends Command {
         }
 
         foreach ($files as $file) {
-            $clonedRule = (new ScheduleRule())
-                ->setBegin($rule->getBegin())
-                ->setWeekDays($rule->getWeekDays())
-                ->setPeriod($rule->getPeriod())
-                ->setWeekDays($rule->getWeekDays())
-                ->setMonthDays($rule->getMonthDays())
-                ->setMonths($rule->getMonths())
-                ->setIntervalTime($rule->getIntervalTime())
-                ->setFrequency($rule->getFrequency());
-
             $clones[] = (new Import())
                 ->setType($import->getType())
                 ->setFTPConfig($import->getFTPConfig())
@@ -137,7 +127,7 @@ class LaunchScheduledImportCommand extends Command {
                 ->setEntity($import->getEntity())
                 ->setUser($import->getUser())
                 ->setFilePath($file)
-                ->setScheduleRule($clonedRule);
+                ->setScheduleRule($rule->clone());
         }
 
         return $clones;

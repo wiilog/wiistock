@@ -64,16 +64,7 @@ class ImportController extends AbstractController
         if ($isScheduled) {
             $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT);
 
-            $rule = new ScheduleRule();
-            $rule
-                ->setFrequency($request->get("frequency"))
-                ->setBegin($this->formatService->parseDatetime($request->get("startDate")))
-                ->setPeriod($request->get("repeatPeriod"))
-                ->setIntervalPeriod($request->get("intervalPeriod"))
-                ->setIntervalTime($request->get("intervalTime"))
-                ->setMonths($request->get("months") ? explode(",", $request->get("months")) : null)
-                ->setMonthDays($request->get("monthDays") ? explode(",", $request->get("monthDays")) : null)
-                ->setWeekDays($request->get("weekDays") ? explode(",", $request->get("weekDays")) : null);
+            $rule = $scheduleRuleService->updateRule(null, $post);
 
             $import
                 ->setFilePath($request->get('path-import-file'))

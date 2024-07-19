@@ -77,7 +77,10 @@ class DataExportController extends AbstractController {
 
         $rows = Stream::from($exports)
             ->map(function(Export $export) use ($scheduleRuleService) {
-                $nextExecution = $scheduleRuleService->calculateNextExecutionDate($export->getScheduleRule(), new DateTime("now"));
+                $scheduleRule = $export->getScheduleRule();
+                $nextExecution = $scheduleRule
+                    ? $scheduleRuleService->calculateNextExecution($scheduleRule, new DateTime("now"))
+                    : null;
                 return [
                     "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
                         "export" => $export,
@@ -87,7 +90,7 @@ class DataExportController extends AbstractController {
                     "beganAt" => $this->getFormatter()->datetime($export->getBeganAt()),
                     "endedAt" => $this->getFormatter()->datetime($export->getEndedAt()),
                     "nextExecution" => $this->getFormatter()->datetime($nextExecution),
-                    "frequency" => match($export->getScheduleRule()?->getFrequency()) {
+                    "frequency" => match($scheduleRule?->getFrequency()) {
                         ScheduleRule::ONCE => "Une fois",
                         ScheduleRule::HOURLY => "Chaque heure",
                         ScheduleRule::DAILY => "Chaque jour",
