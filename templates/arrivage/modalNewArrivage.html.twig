@@ -210,7 +210,7 @@
                                         type: 'truckArrival',
                                         disabled: trackingNumberRequired,
                                         includeParams: 'select[name=noTracking]',
-                                        items: fromTruckArrivalOptions['truckArrivalId'] ? [{
+                                        items: fromTruckArrivalOptions is not empty ? [{
                                             value: fromTruckArrivalOptions['truckArrivalId'],
                                             label: fromTruckArrivalOptions['truckArrivalNumber'],
                                             selected: true,
