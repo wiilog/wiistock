@@ -9,10 +9,13 @@
     } %}
 
 
-    {% include 'filters/filter_item/filterBasicString.html.twig' with {
-        name: 'carrierTrackingNumber',
-        placeholder: 'N° de tracking transporteur',
-    } %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber').name %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterBasicString.html.twig' with {
+            name: 'carrierTrackingNumber',
+            placeholder: 'N° de tracking transporteur',
+        } %}
+    {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}

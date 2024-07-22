@@ -146,23 +146,29 @@
         </div>
     </div>
 {% else %}
-    <div class="wii-section-title my-3 d-flex align-items-center justify-content-between">
-        <span>Numéros de tracking transporteur</span>
-        <span>Total : <span id="totalTrackingNumbers">0</span></span>
-    </div>
-    <div class="row">
-        <div class="col-12 form-group">
-            {{ form.select('trackingNumbers', null, true, {
-                type: null,
-                multiple: true,
-                editable: true,
-            }) }}
-            <div class="warning-message wii-warning-text mt-2" hidden>
-                Les numéros de tracking doivent faire entre <span class="min-length"></span> et <span class="max-length"></span> caractères.
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber').name %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+
+    {% if displayOnform %}
+        {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+
+        <div class="wii-section-title my-3 d-flex align-items-center justify-content-between">
+            <span>Numéros de tracking transporteur {{ requiredOnform ? '*' }}</span>
+            <span>Total : <span id="totalTrackingNumbers">0</span></span>
+        </div>
+        <div class="row">
+            <div class="col-12 form-group">
+                {{ form.select('trackingNumbers', null, requiredOnform, {
+                    type: null,
+                    multiple: true,
+                    editable: true,
+                }) }}
+                <div class="warning-message wii-warning-text mt-2" hidden>
+                    Les numéros de tracking doivent faire entre <span class="min-length"></span> et <span class="max-length"></span> caractères.
+                </div>
             </div>
         </div>
-    </div>
-
+    {% endif %}
 
     <div class="wii-section-title my-3 d-flex align-items-center">
         Réserve sur l’arrivage camion
@@ -171,7 +177,9 @@
     {% include 'truck_arrival/reserve/generalReserveForm.html.twig' with {
         truckArrival,
     } %}
+
     {% include 'truck_arrival/reserve/quantityReserveForm.html.twig' with {
         truckArrival,
     } %}
+
 {% endif %}
