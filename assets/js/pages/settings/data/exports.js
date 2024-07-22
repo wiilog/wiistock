@@ -47,7 +47,7 @@ export function initializeExports() {
             {data: `createdAt`, title: `Date de création`},
             {data: `beganAt`, title: `Date début`},
             {data: `endedAt`, title: `Date fin`},
-            {data: `nextExecution`, title: `Prochaine exécution`},
+            {data: `nextExecution`, title: `Prochaine exécution`, orderable: false},
             {data: `frequency`, title: `Fréquence`},
             {data: `user`, title: `Utilisateur`},
             {data: `type`, title: `Type`},

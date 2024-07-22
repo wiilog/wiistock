@@ -79,7 +79,6 @@ class ExportRepository extends EntityRepository
                             "DATE_FORMAT(export.createdAt, '%d/%m/%Y') LIKE :value",
                             "DATE_FORMAT(export.beganAt, '%d/%m/%Y') LIKE :value",
                             "DATE_FORMAT(export.endedAt, '%d/%m/%Y') LIKE :value",
-                            "DATE_FORMAT(export.nextExecution, '%d/%m/%Y') LIKE :value",
                         ))
                         ->setParameter("value", "%$search%");
                 }

@@ -118,9 +118,6 @@ class Export implements ScheduledTask {
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $endedAt = null;
 
-    #[ORM\Column(type: "datetime", nullable: true)]
-    private ?DateTimeInterface $nextExecution = null;
-
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
 

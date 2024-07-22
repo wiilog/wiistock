@@ -404,6 +404,11 @@ class ImportService
 
         $lastErrorMessage = $import->getLastErrorMessage();
 
+        $scheduleRule = $import->getScheduleRule();
+        $nextExecution = $scheduleRule
+            ? $this->scheduleRuleService->calculateNextExecution($scheduleRule, new DateTime("now"))
+            : null;
+
         return [
             'id' => $import->getId(),
             "information" => $information
@@ -424,7 +429,7 @@ class ImportService
             'createdAt' => $this->formatService->datetime($import->getCreateAt()),
             'startDate' => $this->formatService->datetime($import->getStartDate()),
             'endDate' => $this->formatService->datetime($import->getEndDate()),
-            'frequency' => $frequencyToString[$import->getScheduleRule()?->getFrequency()] ?? '',
+            'frequency' => $frequencyToString[$scheduleRule?->getFrequency()] ?? '',
             'label' => $import->getLabel(),
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
@@ -432,7 +437,7 @@ class ImportService
             'status' => $this->formatService->status($import->getStatus()),
             'user' => $this->formatService->user($import->getUser()),
             'type' => $this->formatService->type($import->getType()),
-            "nextExecutionDate" => $this->formatService->datetime($nextExecutionDate),
+            "nextExecution" => $this->formatService->datetime($nextExecutionDate),
             'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
             'actions' => $this->templating->render('settings/donnees/import/row.html.twig', [
                 'import' => $import,

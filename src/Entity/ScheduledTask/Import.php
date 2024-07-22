@@ -349,9 +349,6 @@ class Import {
     #[ORM\ManyToOne(targetEntity: Type::class)]
     private ?Type $type = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?DateTime $nextExecutionDate = null;
-
     #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
     private ?ScheduleRule $scheduleRule = null;
 
