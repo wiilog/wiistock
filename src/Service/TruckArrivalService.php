@@ -94,6 +94,13 @@ class TruckArrivalService
                             "onclick" => "deleteTruckArrival($(this))"
                         ]
                     ],
+                    [
+                        'title' => 'Créer arrivage UL',
+                        'icon' => 'fa fa-eye',
+                        'attributes' => [
+                            'onclick' => "window.location.href = '{$this->router->generate('arrivage_index', ['truckArrivalId' => $truckArrival->getId()])}'",
+                        ],
+                    ]
                 ],
             ]),
             'id' => $truckArrival->getId(),
