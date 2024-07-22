@@ -21,6 +21,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
@@ -46,6 +47,23 @@ class TruckArrivalController extends AbstractController {
         $truckArrivalLinesNumber = $truckArrivalLineRepository->iterateAll();
 
         return $this->json($truckArrivalLinesNumber);
+    }
+
+    #[Rest\Get("/check-number-validity", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Wii\RestVersionChecked]
+    public function checkTruckArrivalNumberValidity(EntityManagerInterface $entityManager,
+                                                    Request                $request): Response
+    {
+        dump($request);
+
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+//        $truckArrivalLine = $truckArrivalLineRepository->find($data->get('truckArrivalNumber'));
+
+
+        return new JsonResponse([
+            "success" => true,
+            "msg" => "",
+        ]);
     }
 
     #[Rest\Post("/finish-truck-arrival", condition: self::IS_XML_HTTP_REQUEST)]
