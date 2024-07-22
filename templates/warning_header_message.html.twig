@@ -1,6 +1,6 @@
 {% block warning_mep_message %}
     {% if setting_value('WARNING_HEADER_MESSAGE') is not empty %}
-        <div class="d-flex align-items-center p-3 text-center banner-warning-header-message" style="background-color: {{ setting_value('COLOR_WARNING_HEADER_MESSAGE') }}">
+        <div class="d-none align-items-center p-3 text-center banner-warning-header-message" style="background-color: {{ setting_value('COLOR_WARNING_HEADER_MESSAGE') }}">
             <span class="text-white bold w-100">
                 {{ setting_value('WARNING_HEADER_MESSAGE') }}
             </span>

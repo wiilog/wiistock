@@ -9,6 +9,9 @@ $(function () {
     if (userChoice) {
         hideWarningHeaderMessage(btnWarningHeaderMessage, bannerWarningHeaderMessage);
     }
+    else {
+        displayWarningHeaderMessage(btnWarningHeaderMessage, bannerWarningHeaderMessage);
+    }
 
     btnWarningHeaderMessage.addEventListener('click', () => {
         document.cookie = `${cookieName}=true`;
@@ -17,7 +20,10 @@ $(function () {
 });
 
 function hideWarningHeaderMessage(btnWarningHeaderMessage, bannerWarningHeaderMessage) {
-    btnWarningHeaderMessage.style.display = 'none';
     bannerWarningHeaderMessage.style.display = 'none';
-    bannerWarningHeaderMessage.classList.remove('d-flex');
+}
+
+function displayWarningHeaderMessage(btnWarningHeaderMessage, bannerWarningHeaderMessage) {
+    bannerWarningHeaderMessage.style.display = 'flex';
+    bannerWarningHeaderMessage.classList.remove('d-none');
 }
