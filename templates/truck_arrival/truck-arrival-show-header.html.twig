@@ -33,6 +33,11 @@
                     <span class="wii-icon wii-icon-trash-black mr-2"></span>
                     {{ trans('Général', null, 'Modale', 'Supprimer') }}
                 </button>
+                <button data-id='{{ truckArrival.id }}'
+                   class="dropdown-item d-flex align-items-center go-to-arrival-creation">
+                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                    {{ trans('Général', null, 'Modale', 'Créer arrivage UL') }}
+                </button>
             </div>
         {% endif %}
     </div>

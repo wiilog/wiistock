@@ -71,7 +71,7 @@ class ArrivageController extends AbstractController {
     #[Required]
     public LanguageService $languageService;
 
-    #[Route('/', name: 'arrivage_index')]
+    #[Route('/', name: 'arrivage_index', options: ["expose" => true])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI])]
     public function index(Request $request,
                           EntityManagerInterface $entityManager,

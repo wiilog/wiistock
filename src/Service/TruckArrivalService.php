@@ -96,7 +96,7 @@ class TruckArrivalService
                     ],
                     [
                         'title' => 'Créer arrivage UL',
-                        'icon' => 'fa fa-eye',
+                        'icon' => 'fa fa-plus',
                         'attributes' => [
                             'onclick' => "window.location.href = '{$this->router->generate('arrivage_index', ['truckArrivalId' => $truckArrival->getId()])}'",
                         ],

@@ -30,6 +30,11 @@ $(function () {
             }
         });
 
+    $('.go-to-arrival-creation').on('click', function () {
+        const truckArrivalId = $(this).data('id');
+        window.location.href = Routing.generate('arrivage_index', {truckArrivalId});
+    });
+
     const $reserveModals = $('.reserveModal');
     initReserveForm($reserveModals)
 
