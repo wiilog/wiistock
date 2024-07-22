@@ -565,7 +565,7 @@ class Arrivage implements AttachmentContainer {
         return $this->truckArrival;
     }
 
-    public function setTruckArrival(?TruckArrival $truckArrival): static
+    public function setTruckArrival(?TruckArrival $truckArrival): self
     {
         $this->truckArrival = $truckArrival;
 

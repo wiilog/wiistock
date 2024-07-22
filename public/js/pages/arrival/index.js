@@ -259,8 +259,8 @@ function createArrival(form = null) {
             $noTruckArrivalSelect.trigger('change');
         }).trigger('change');
 
-        $noTruckArrivalSelect.off('select2:select').on(`select2:select`, function (element) {
-            const data = element.params.data || {};
+        $noTruckArrivalSelect.off('select2:select').on(`select2:select`, function ($select) {
+            const data = $select.params.data || {};
             const trackingNumberRequired = Boolean($modal.find(`[name=trackingNumberRequired]`).val());
             if (data.carrier_id && !trackingNumberRequired){
                 $carrierSelect.append(`<option value="${data.carrier_id}" selected>${data.carrier_label}</option>`);
