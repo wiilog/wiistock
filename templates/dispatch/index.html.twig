@@ -46,7 +46,7 @@
                     <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisible">
+                           data-target="#modalFieldsModes">
                             <i class="fa fa-cog mr-2"></i>
                             {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes') }}
                         </a>
@@ -61,7 +61,7 @@
                 {% else %}
                     <button class="btn btn-primary"
                        data-toggle="modal"
-                       data-target="#modalColumnVisible">
+                       data-target="#modalFieldsModes">
                         <i class="fa fa-cog mr-2"></i>
                         {{ trans('Général', '', 'Zone liste', 'Gestion des colonnes') }}
                     </button>
@@ -92,11 +92,21 @@
     <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableDispatches',
-        page: 'dispatch'
+        page: 'dispatch',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\VisibleColumnService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
+
 {% endblock %}
 
 {% block javascripts %}

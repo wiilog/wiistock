@@ -12,8 +12,11 @@ use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class VisibleColumnService {
+class VisibleColumnService {  //TODO RENAME
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
+
+    public const FIELD_MODE_VISIBLE = 'fieldVisible';
+    public const FIELD_MODE_VISIBLE_IN_DROPDOWN = 'fieldVisibleInDropdown';
 
     #[Required]
     public TranslationService $translation;
@@ -54,7 +57,7 @@ class VisibleColumnService {
                         'name' => $column['name'],
                         'translated' => $translated,
                         'class' => $column['class'] ?? null,
-                        'isColumnVisible' => $visible,
+                        self::FIELD_MODE_VISIBLE => $visible,
                         "type" => $column['type'] ?? null,
                         "searchable" => $column['searchable'] ?? null,
                         "required" => $column['required'] ?? false,
@@ -72,7 +75,7 @@ class VisibleColumnService {
                         'displayedTitle' => $title,
                         "data" => $freeFieldName,
                         "name" => $freeFieldName,
-                        "isColumnVisible" => $visible,
+                        self::FIELD_MODE_VISIBLE => $visible,
                         "searchable" => true,
                         "type" => $freeField->getTypage(),
                     ];
@@ -94,15 +97,14 @@ class VisibleColumnService {
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;
     }
 
-    public function setVisibleColumns(string $entity, array $fields, Utilisateur $user): void {
-        $visibleColumns = $user->getVisibleColumns();
+    public function setFieldModesByPage(string $entity, array $fields, Utilisateur $user): void {
+        $visibleColumns = $user->getFieldModesByPage();
         $visibleColumns[$entity] = $fields;
 
-        $user->setVisibleColumns($visibleColumns);
+        $user->setFieldModesByPage($visibleColumns);
     }
 
-    public function bindSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user, ?string $search): Orx
-    {
+    public function bindSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user, ?string $search): Orx {
         $condition = $qb->expr()->orX();
         $queryBuilderAlias = $qb->getRootAliases()[0];
         $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);

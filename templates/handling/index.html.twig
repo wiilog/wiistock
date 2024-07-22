@@ -27,7 +27,7 @@
                 {% if not hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
                     <button type="button"
                             class="btn btn-primary ml-auto split-button"
-                            data-toggle="modal" data-target="#modalColumnVisible">
+                            data-toggle="modal" data-target="#modalFieldsModes">
                         <i class="fa fa-cog mr-2"></i>
                         {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                     </button>
@@ -44,7 +44,7 @@
                             <span class="fa fa-angle-down"></span>
                         </button>
                         <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
-                            <a class="dropdown-item pointer" data-toggle="modal" data-target="#modalColumnVisible">
+                            <a class="dropdown-item pointer" data-toggle="modal" data-target="#modalFieldsModes">
                                 <i class="fa fa-cog mr-2"></i>
                                 {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                             </a>
@@ -65,10 +65,19 @@
     {% endif %}
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableHandlings',
-        page: 'handling'
+        page: 'handling',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\VisibleColumnService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 {% endblock %}
 

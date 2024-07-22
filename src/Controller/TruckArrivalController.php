@@ -110,7 +110,7 @@ class TruckArrivalController extends AbstractController
         $fields = array_keys($data);
         $user = $this->getUser();
 
-        $visibleColumnService->setVisibleColumns('truckArrival', $fields, $user);
+        $visibleColumnService->setFieldModesByPage('truckArrival', $fields, $user);
 
         $entityManager->flush();
 

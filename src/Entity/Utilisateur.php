@@ -17,6 +17,7 @@ use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Transport\Vehicle;
 use App\Repository\UtilisateurRepository;
 use App\Service\MailerService;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,59 +28,60 @@ use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use WiiCommon\Helper\Stream;
 
 #[UniqueEntity(fields: "email", message: "Cette adresse email est déjà utilisée.")]
 #[UniqueEntity(fields: "username", message: "Ce nom d'utilisateur est déjà utilisé.")]
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
 class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface {
 
-    const DEFAULT_ARTICLE_VISIBLE_COLUMNS = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
-    const DEFAULT_REFERENCE_VISIBLE_COLUMNS = ["actions", "label", "reference", "type", "availableQuantity", "stockQuantity", "location"];
-    const DEFAULT_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "arrivalNumber", "type", "status", "provider", "carrier", "nbUm", "user"];
-    const DEFAULT_DISPATCH_VISIBLE_COLUMNS = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
-    const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "pack", "reference", "label", "quantity", "location", "type", "operateur", "group"];
-    const DEFAULT_DISPUTE_VISIBLE_COLUMNS = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
-    const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation", "deliveryFee", "user"];
-    const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "createdAt", "validatedAt", "requester", "number", "status", "type"];
-    const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
-    const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
-    const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
-    const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
-    const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["origin", "LU", "date", "delay", "reference", "libelle"];
-    const DEFAULT_STOCK_MOVEMENT_VISIBLE_COLUMNS = ["date", "from", "barCode", "refArticle", "quantity", "origin", "destination", "type", "operator", "unitPrice", "comment"];
-    const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
-        FixedFieldEnum::number->name,
-        FixedFieldEnum::createdAt->name,
-        FixedFieldEnum::createdBy->name,
-        FixedFieldEnum::treatedBy->name,
-        FixedFieldEnum::type->name,
-        FixedFieldEnum::status->name,
-        FixedFieldEnum::expectedAt->name,
-        FixedFieldEnum::dropLocation->name,
-        FixedFieldEnum::lineCount->name,
-        FixedFieldEnum::manufacturingOrderNumber->name,
-        FixedFieldEnum::productArticleCode->name,
-        FixedFieldEnum::quantity->name,
-        FixedFieldEnum::emergency->name,
-        FixedFieldEnum::projectNumber->name,
-        FixedFieldEnum::comment->name,
+    const DEFAULT_ARTICLE_FIELDS_MODES = ["actions" => [VisibleColumnService::FIELD_MODE_VISIBLE], "label" => [VisibleColumnService::FIELD_MODE_VISIBLE], "reference" => [VisibleColumnService::FIELD_MODE_VISIBLE], "articleReference" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "quantity" => [VisibleColumnService::FIELD_MODE_VISIBLE], "location" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_REFERENCE_FIELDS_MODES = ["actions" => [VisibleColumnService::FIELD_MODE_VISIBLE], "label" => [VisibleColumnService::FIELD_MODE_VISIBLE], "reference" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "availableQuantity" => [VisibleColumnService::FIELD_MODE_VISIBLE], "stockQuantity" => [VisibleColumnService::FIELD_MODE_VISIBLE], "location" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_ARRIVAL_FIELDS_MODES = ["creationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "arrivalNumber" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "status" => [VisibleColumnService::FIELD_MODE_VISIBLE], "provider" => [VisibleColumnService::FIELD_MODE_VISIBLE], "carrier" => [VisibleColumnService::FIELD_MODE_VISIBLE], "nbUm" => [VisibleColumnService::FIELD_MODE_VISIBLE], "user" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_DISPATCH_FIELDS_MODES = ["number" => [VisibleColumnService::FIELD_MODE_VISIBLE], "creationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "validationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "treatmentDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "requester" => [VisibleColumnService::FIELD_MODE_VISIBLE], "receiver" => [VisibleColumnService::FIELD_MODE_VISIBLE], "locationFrom" => [VisibleColumnService::FIELD_MODE_VISIBLE], "locationTo" => [VisibleColumnService::FIELD_MODE_VISIBLE], "nbPacks" => [VisibleColumnService::FIELD_MODE_VISIBLE], "status" => [VisibleColumnService::FIELD_MODE_VISIBLE], "emergency" => [VisibleColumnService::FIELD_MODE_VISIBLE], "actions" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_TRACKING_MOVEMENT_FIELDS_MODES = ["origin" => [VisibleColumnService::FIELD_MODE_VISIBLE], "date" => [VisibleColumnService::FIELD_MODE_VISIBLE], "pack" => [VisibleColumnService::FIELD_MODE_VISIBLE], "reference" => [VisibleColumnService::FIELD_MODE_VISIBLE], "label" => [VisibleColumnService::FIELD_MODE_VISIBLE], "quantity" => [VisibleColumnService::FIELD_MODE_VISIBLE], "location" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "operateur" => [VisibleColumnService::FIELD_MODE_VISIBLE], "group"];
+    const DEFAULT_DISPUTE_FIELDS_MODES = ["type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "arrivalNumber" => [VisibleColumnService::FIELD_MODE_VISIBLE], "receptionNumber" => [VisibleColumnService::FIELD_MODE_VISIBLE], "buyers" => [VisibleColumnService::FIELD_MODE_VISIBLE], "numCommandeBl" => [VisibleColumnService::FIELD_MODE_VISIBLE], "command" => [VisibleColumnService::FIELD_MODE_VISIBLE], "provider" => [VisibleColumnService::FIELD_MODE_VISIBLE], "references" => [VisibleColumnService::FIELD_MODE_VISIBLE], "lastHistorique" => [VisibleColumnService::FIELD_MODE_VISIBLE], "creationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "updateDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "status" => [VisibleColumnService::FIELD_MODE_VISIBLE], "actions" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_RECEPTION_FIELDS_MODES = ["actions" => [VisibleColumnService::FIELD_MODE_VISIBLE], "Date" => [VisibleColumnService::FIELD_MODE_VISIBLE], "number" => [VisibleColumnService::FIELD_MODE_VISIBLE], "dateAttendue" => [VisibleColumnService::FIELD_MODE_VISIBLE], "DateFin" => [VisibleColumnService::FIELD_MODE_VISIBLE], "orderNumber" => [VisibleColumnService::FIELD_MODE_VISIBLE], "receiver" => [VisibleColumnService::FIELD_MODE_VISIBLE], "Fournisseur" => [VisibleColumnService::FIELD_MODE_VISIBLE], "Statut" => [VisibleColumnService::FIELD_MODE_VISIBLE], "Commentaire" => [VisibleColumnService::FIELD_MODE_VISIBLE], "deliveries" => [VisibleColumnService::FIELD_MODE_VISIBLE], "storageLocation" => [VisibleColumnService::FIELD_MODE_VISIBLE], "deliveryFee" => [VisibleColumnService::FIELD_MODE_VISIBLE], "user" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_DELIVERY_REQUEST_FIELDS_MODES = ["actions" => [VisibleColumnService::FIELD_MODE_VISIBLE], "pairing" => [VisibleColumnService::FIELD_MODE_VISIBLE], "createdAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "validatedAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "requester" => [VisibleColumnService::FIELD_MODE_VISIBLE], "number" => [VisibleColumnService::FIELD_MODE_VISIBLE], "status" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_HANDLING_FIELDS_MODES = ["actions" => [VisibleColumnService::FIELD_MODE_VISIBLE], "desiredDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "creationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "requester" => [VisibleColumnService::FIELD_MODE_VISIBLE], "validationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "number" => [VisibleColumnService::FIELD_MODE_VISIBLE], "status" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "subject" => [VisibleColumnService::FIELD_MODE_VISIBLE], "treatedBy" => [VisibleColumnService::FIELD_MODE_VISIBLE], "emergency" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_PACK_FIELDS_MODES = ["nature" => [VisibleColumnService::FIELD_MODE_VISIBLE], "code" => [VisibleColumnService::FIELD_MODE_VISIBLE], "lastMvtDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "lastLocation" => [VisibleColumnService::FIELD_MODE_VISIBLE], "operator" => [VisibleColumnService::FIELD_MODE_VISIBLE], "project" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_TRUCK_ARRIVAL_FIELDS_MODES = ["creationDate" => [VisibleColumnService::FIELD_MODE_VISIBLE], "unloadingLocation" => [VisibleColumnService::FIELD_MODE_VISIBLE], "number" => [VisibleColumnService::FIELD_MODE_VISIBLE], "trackingLinesNumber" => [VisibleColumnService::FIELD_MODE_VISIBLE], "countTrackingLines" => [VisibleColumnService::FIELD_MODE_VISIBLE], "operator" => [VisibleColumnService::FIELD_MODE_VISIBLE], "reserves" => [VisibleColumnService::FIELD_MODE_VISIBLE], "carrier" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_SHIPPING_REQUEST_FIELDS_MODES = ["number" => [VisibleColumnService::FIELD_MODE_VISIBLE], "status" => [VisibleColumnService::FIELD_MODE_VISIBLE], "createdAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "requestCaredAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "validatedAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "plannedAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "expectedPickedAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "treatedAt" => [VisibleColumnService::FIELD_MODE_VISIBLE], "requesters" => [VisibleColumnService::FIELD_MODE_VISIBLE], "customerOrderNumber" => [VisibleColumnService::FIELD_MODE_VISIBLE], "customerName" => [VisibleColumnService::FIELD_MODE_VISIBLE], "carrier" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_ON_GOING_FIELDS_MODES = ["origin" => [VisibleColumnService::FIELD_MODE_VISIBLE], "LU" => [VisibleColumnService::FIELD_MODE_VISIBLE], "date" => [VisibleColumnService::FIELD_MODE_VISIBLE], "delay" => [VisibleColumnService::FIELD_MODE_VISIBLE], "reference" => [VisibleColumnService::FIELD_MODE_VISIBLE], "libelle" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_STOCK_MOVEMENT_FIELDS_MODES = ["date" => [VisibleColumnService::FIELD_MODE_VISIBLE], "from" => [VisibleColumnService::FIELD_MODE_VISIBLE], "barCode" => [VisibleColumnService::FIELD_MODE_VISIBLE], "refArticle" => [VisibleColumnService::FIELD_MODE_VISIBLE], "quantity" => [VisibleColumnService::FIELD_MODE_VISIBLE], "origin" => [VisibleColumnService::FIELD_MODE_VISIBLE], "destination" => [VisibleColumnService::FIELD_MODE_VISIBLE], "type" => [VisibleColumnService::FIELD_MODE_VISIBLE], "operator" => [VisibleColumnService::FIELD_MODE_VISIBLE], "unitPrice" => [VisibleColumnService::FIELD_MODE_VISIBLE], "comment" => [VisibleColumnService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_PRODUCTION_REQUEST_FIELDS_MODES = [
+        FixedFieldEnum::number->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::createdAt->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::createdBy->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::treatedBy->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::type->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::status->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::expectedAt->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::dropLocation->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::lineCount->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::manufacturingOrderNumber->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::productArticleCode->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::quantity->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::emergency->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::projectNumber->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::comment->name => [VisibleColumnService::FIELD_MODE_VISIBLE],
     ];
-    const DEFAULT_VISIBLE_COLUMNS = [
-        'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
-        'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
-        'arrival' => self::DEFAULT_ARRIVAL_VISIBLE_COLUMNS,
-        'dispatch' => self::DEFAULT_DISPATCH_VISIBLE_COLUMNS,
-        'dispute' => self::DEFAULT_DISPUTE_VISIBLE_COLUMNS,
-        'trackingMovement' => self::DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS,
-        'reception' => self::DEFAULT_RECEPTION_VISIBLE_COLUMNS,
-        'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
-        'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
-        'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
-        'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
-        'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
-        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS,
-        'onGoing' => self::DEFAULT_ON_GOING_VISIBLE_COLUMNS,
-        'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_VISIBLE_COLUMNS,
+    const DEFAULT_FIELDS_MODES = [
+        'reference' => self::DEFAULT_REFERENCE_FIELDS_MODES,
+        'article' => self::DEFAULT_ARTICLE_FIELDS_MODES,
+        'arrival' => self::DEFAULT_ARRIVAL_FIELDS_MODES,
+        'dispatch' => self::DEFAULT_DISPATCH_FIELDS_MODES,
+        'dispute' => self::DEFAULT_DISPUTE_FIELDS_MODES,
+        'trackingMovement' => self::DEFAULT_TRACKING_MOVEMENT_FIELDS_MODES,
+        'reception' => self::DEFAULT_RECEPTION_FIELDS_MODES,
+        'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_FIELDS_MODES,
+        'handling' => self::DEFAULT_HANDLING_FIELDS_MODES,
+        'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_FIELDS_MODES,
+        'arrivalPack' => self::DEFAULT_PACK_FIELDS_MODES,
+        'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_FIELDS_MODES,
+        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_FIELDS_MODES,
+        'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
+        'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -288,8 +290,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: Types::ARRAY, nullable: true)]
     private ?array $pageIndexes = [];
 
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private ?array $visibleColumns;
+    #[ORM\Column(type: Types::JSON, nullable: false)]
+    private ?array $fieldModesByPage;
 
     #[ORM\OneToOne(mappedBy: 'deliverer', targetEntity: Vehicle::class)]
     private ?Vehicle $vehicle = null;
@@ -374,7 +376,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
-        $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
+        $this->fieldModesByPage = self::DEFAULT_FIELDS_MODES;
         $this->treatedProductionRequests = new ArrayCollection();
         $this->createdProductionRequests = new ArrayCollection();
     }
@@ -1698,11 +1700,26 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     public function getVisibleColumns(): ?array {
-        return $this->visibleColumns;
+        return Stream::from($this->getFieldModesByPage())
+            ->map(static function ($fieldModes) {
+                $visibleColumns = [];
+                foreach( $fieldModes as $field => $modes) {
+                    if(in_array(VisibleColumnService::FIELD_MODE_VISIBLE, $modes)) {
+                        $visibleColumns[] = $field;
+                    }
+                }
+                return $visibleColumns;
+            })
+            ->toArray();
     }
 
-    public function setVisibleColumns(?array $visibleColumns): self {
-        $this->visibleColumns = $visibleColumns;
+    public function getFieldModesByPage(): ?array
+    {
+        return $this->fieldModesByPage;
+    }
+
+    public function setFieldModesByPage(?array $fieldModesByPage): self {
+        $this->fieldModesByPage = $fieldModesByPage;
 
         return $this;
     }

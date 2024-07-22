@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/visible-column", name: "visible_column_")]
 class VisibleColumnController extends AbstractController {
@@ -44,16 +45,23 @@ class VisibleColumnController extends AbstractController {
             throw new FormException("Unknown visible columns page.");
         }
 
-        $displayedColumns = $request->request->keys();
+        $columnsModes = Stream::from($request->request->all())
+            ->filter()
+            ->map(fn(string $value) => explode(",", $value))
+            ->toArray();
 
         $id = $request->request->getInt("id");
         if ($page === self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS && $id) {
             $deliveryRequest = $manager->find(Demande::class, $id);
 
-            $deliveryRequest->setVisibleColumns($displayedColumns);
+            $columnsModes = Stream::from($columnsModes)
+                ->takeKeys()
+                ->toArray();
+
+            $deliveryRequest->setVisibleColumns($columnsModes);
         }
 
-        $visibleColumnService->setVisibleColumns($page, $displayedColumns, $this->getUser());
+        $visibleColumnService->setFieldModesByPage($page, $columnsModes, $this->getUser());
 
         $manager->flush();
 

@@ -29,7 +29,7 @@
                     <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                         <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisible">
+                           data-target="#modalFieldsModes">
                             <span class="fas fa-cog mr-2"></span>
                             {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                         </a>
@@ -54,10 +54,19 @@
 
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig'%}
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableLitiges',
-        page: "dispute"
+        page: 'dispute',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\VisibleColumnService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 {% endblock %}
 

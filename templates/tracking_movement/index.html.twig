@@ -50,7 +50,7 @@
                             icon: "fa fa-cog",
                             attributes: {
                                 "data-toggle": "modal",
-                                "data-target": "#modalColumnVisible",
+                                "data-target": "#modalFieldsModes",
                             },
                         }
                     ]
@@ -113,10 +113,19 @@
         }
     } %}
 
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableMvts',
-        page: 'trackingMovement'
+        page: 'trackingMovement',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\VisibleColumnService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 
 

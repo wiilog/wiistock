@@ -82,10 +82,10 @@ function initActionOnRow(row) {
 }
 
 function onToggleInputRadioOnRow() {
-    const $modal = $(`#modalColumnVisible`);
+    const $modal = $(`#modalFieldsModes`);
     const $checkboxes = $modal.find(`input[type=checkbox]`);
 
-    $checkboxes.closest(`tr`).on(`click`, function () {
+    $checkboxes.closest(`td`).on(`click`, function () {
         const $checkbox = $(this).find(`input[type=checkbox]`);
         $checkbox.toggleClass(`data`);
         $checkbox.prop(`checked`, !$checkbox.is(`:checked`));
@@ -268,8 +268,8 @@ export function initDataTable($table, options) {
             config.order = newOrder;
         }
 
-        if (column.isColumnVisible !== undefined) {
-            column.visible = column.isColumnVisible;
+        if (column.fieldVisible !== undefined) {
+            column.visible = column.fieldVisible;
         }
     });
 

@@ -68,9 +68,9 @@ Cypress.Commands.add('clickOnRowInDatatable', (tableId, label) => {
  * @param {string} dropdownSelector : selector of the dropdown
  * @param {string} modalSelector : selector of the modal
  * @example :
- * cy.checkAllInColumnManagement('.columnManagementButton', '#modalColumnVisible', '#modalColumnVisible');
+ * cy.checkAllInColumnManagement('.columnManagementButton', '#modalFieldsModes', '#modalFieldsModes');
  */
-Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelector = '#modalColumnVisible', modalSelector = '#modalColumnVisible') => {
+Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelector = '#modalFieldsModes', modalSelector = '#modalFieldsModes') => {
     // open the modal
     cy.get(`${buttonSelector} .dropdown-toggle`).click();
     cy.get(`${buttonSelector} [data-target='${dropdownSelector}']`).click();

@@ -17,7 +17,6 @@
     } %}
 {% endblock %}
 
-{# TODO WIIS-10760 #}
 {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT_PRODUCTION_REQUEST')) %}
 
 {% block page_content %}
@@ -37,7 +36,7 @@
                             icon: "fa fa-cog",
                             attributes: {
                             "data-toggle": "modal",
-                            "data-target": "#modalColumnVisible",
+                            "data-target": "#modalFieldsModes",
                         },
                         }
                     ]
@@ -53,10 +52,19 @@
 
     <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
 
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableProductions',
         page: 'productionRequest',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\VisibleColumnService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 
     {% include 'production_request/modal/new.html.twig' with {

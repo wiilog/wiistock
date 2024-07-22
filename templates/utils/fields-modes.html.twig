@@ -1,0 +1,111 @@
+{% import 'form.html.twig' as form %}
+
+{% set tableConfigLabels = [] %}
+{% for column in config.columns %}
+    {% set tableConfigLabels = tableConfigLabels|merge([column.label ?? ""]) %}
+{%  endfor %}
+
+
+<div class="modal fade" id="modalFieldsModes" tabindex="-1" role="dialog" aria-hidden="true"> {# TODO CHANGE MODAL ID  #}
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: config.title ?? trans('Général', null, 'Zone liste', 'Gestion des colonnes'),
+            } %}
+
+            <div class="modal-body">
+                {{ otherFields is defined ? otherFields|raw }}
+                <table class="table" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        {% for label in tableConfigLabels ?? [] %}
+                            <th>{{ label }}</th>
+                        {% endfor %}
+                        {% for data in config.switchBoxes ?? [] %}
+                            <th></th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for field in fields|sort((a,b) => (a.displayedTitle ?? a.title) | capitalize <=> (b.displayedTitle ?? b.title) | capitalize) %}
+                        {% if (field.alwaysVisible is not defined or not field.alwaysVisible)
+                            and (field.hiddenColumn is not defined or not field.hiddenColumn) %}
+                            <tr class="pointer"
+                                data-field-name="{{ field.data }}">
+                                {% set title = (
+                                    (field.title is defined and field.title is not empty) ? field.title :
+                                    ((field.hiddenTitle is defined and field.hiddenTitle is not empty) ? field.hiddenTitle)
+                                    ) %}
+
+                                {% set fieldLabel = ((field.displayedTitle is defined)
+                                    ? field.displayedTitle
+                                    : title) %}
+
+                                <td>
+                                    {{ fieldLabel | raw }}
+                                </td>
+
+                                {% set fieldCount = loop.index0 %}
+                                {% for column in config.columns %}
+                                <td>
+                                    {% if column.type == "checkbox" %}
+                                        {% set name = column.name %}
+                                        <div class="wii-checkbox d-inline-block pointer no-data" style="pointer-events: none;">
+                                            {% set checked = field[name] is defined and field[name] %}
+                                            {# TODO USE FORM #}
+                                            <input type="checkbox"
+                                                   class="form-check-input m-auto {{ checked ? 'data' }}"
+                                                   name="{{ name }}"
+                                                {{ checked ? 'checked' }}
+                                                   data-column="{{ field.data }}" data-name="{{ name }}">
+                                            <label for="cv_{{ name }}_{{ loop.index }}" class="pointer"></label>
+                                        </div>
+                                    {% elseif (column.type == "switch") %}
+
+                                        {% set name = column.items|map((item) => item.value)|join('_') ~ fieldCount %}
+
+                                        {% set items = column.items|map((item) => {
+                                            label: item.label,
+                                            value: item.value,
+                                            checked: field[item.value] is defined and field[item.value],
+                                            default: item.default ?? false,
+                                        }) %}
+
+                                        {% if not  items|filter((item) => item.checked) | length %}
+{#                                            find the item that has default un set chechet at true #}
+                                            {% set defaultItem = items|filter((item) => item.default) %}
+                                            {% if defaultItem|length %}
+                                                {% set items = items|map((item) => {
+                                                    label: item.label,
+                                                    value: item.value,
+                                                    checked: item.value == defaultItem[0].value,
+                                                    default: item.default ?? false,
+                                                }) %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {{ form.switch(name, null, false, items) }}
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+                {{ form.hidden("tables", table, {data: false}) }}
+                {{ form.hidden("reload", reload is defined and reload == "1", {data: false}) }}
+                {{ form.hidden("page", page, {data: false}) }}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Fermer')},
+                    {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: "submit"}
+                ],
+                hideErrorContainer: true,
+            } %}
+        </div>
+    </div>
+</div>

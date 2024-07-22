@@ -827,7 +827,7 @@ class DemandeController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $visibleColumnService->setVisibleColumns('deliveryRequest', $fields, $currentUser);
+        $visibleColumnService->setFieldModesByPage('deliveryRequest', $fields, $currentUser);
 
         $entityManager->flush();
 

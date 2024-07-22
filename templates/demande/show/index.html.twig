@@ -90,7 +90,7 @@
                                                     icon: "fas fa-cog mr-2",
                                                     attributes: {
                                                         "data-toggle": "modal",
-                                                        "data-target": "#modalColumnVisible",
+                                                        "data-target": "#modalFieldsModes",
                                                     }
                                                 },
                                             ]
@@ -127,11 +127,20 @@
         {% include 'demande/modalNewArticle.html.twig' %}
         {% include 'demande/modalEditArticle.html.twig' %}
     {%  else %}
-        {% include "utils/visible_columns.html.twig" with {
+        {% include "utils/fields-modes.html.twig" with {
             fields,
+            otherFields: form.input('id' , null, false, demande.id, {type: 'hidden'}),
             table: 'editableTableArticles',
             page: 'deliveryRequestShow',
-            otherFields: form.input('id' , null, false, demande.id, {type: 'hidden'}),
+            config: {
+                columns: [
+                    {
+                        label: "Visible",
+                        type: "checkbox",
+                        name: constant('App\\Service\\VisibleColumnService::FIELD_MODE_VISIBLE'),
+                    },
+                ],
+            }
         } %}
     {% endif %}
 
