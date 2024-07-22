@@ -44,7 +44,7 @@ class LaunchScheduledImportCommand extends Command {
     public CacheService $cacheService;
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        return $this->scheduledTaskService->launchScheduledTask(
+        return $this->scheduledTaskService->launchScheduledTasks(
             $this->getEntityManager(),
             Import::class,
             function (Import $import) use ($output) {

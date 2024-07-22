@@ -23,9 +23,9 @@ class ScheduledTaskService
     #[Required]
     public CacheService $cacheService;
 
-    public function launchScheduledTask(EntityManagerInterface $entityManager,
-                                        string                 $class,
-                                        callable               $teatTask): int {
+    public function launchScheduledTasks(EntityManagerInterface $entityManager,
+                                         string                 $class,
+                                         callable               $teatTask): int {
 
         $exports = $this->getTasksToExecute($entityManager, $class, new DateTime("now"));
 
