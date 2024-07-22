@@ -405,6 +405,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                     FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
                 ]),
             ],
+            Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL => [
+                'default' => false,
+            ]
         ];
 
         $appClient = $this->specificService->getAppClient();
