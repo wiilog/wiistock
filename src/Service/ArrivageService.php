@@ -157,6 +157,9 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
+        $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
+        $truckArrivalNumber = $arrival->getTruckArrival()?->getNumber() ?: '';
+
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='UL acheminée(s)'></i></td>" : '',
@@ -183,7 +186,9 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
-            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : ($arrival->getTruckArrival()?->getNumber() ?: ''),
+            'truckArrivalNumber' => $arrivalHasLine
+                ? $arrivalHasLine->getTruckArrival()->getNumber()
+                : ($truckArrivalNumber),
             'url' => $url,
         ];
 

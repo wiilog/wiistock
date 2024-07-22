@@ -217,13 +217,13 @@ class TruckArrivalRepository extends EntityRepository
             ->setParameter('term', "%$term%");
 
 
-        if (isset($option['truckArrivalId'])) {
+        if ($option['truckArrivalId']) {
             $qb
                 ->andWhere('truck_arrival.id = :truck_arrival_id')
                 ->setParameter('truck_arrival_id', $option['truckArrivalId']);
         }
 
-        if (isset($option['carrierId'])) {
+        if ($option['carrierId']) {
             $qb
                 ->andWhere('truck_arrival.carrier = :carrier_id')
                 ->setParameter('carrier_id', $option['carrierId']);
