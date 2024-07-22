@@ -1,9 +1,16 @@
 {% block warning_mep_message %}
     {% if setting_value('WARNING_HEADER_MESSAGE') is not empty %}
-        <div class="w-100 p-3 text-center" style="background-color: {{ setting_value('COLOR_WARNING_HEADER_MESSAGE') }}">
-            <span class="text-white bold">
+        <div class="d-flex align-items-center p-3 text-center banner-warning-header-message" style="background-color: {{ setting_value('COLOR_WARNING_HEADER_MESSAGE') }}">
+            <span class="text-white bold w-100">
                 {{ setting_value('WARNING_HEADER_MESSAGE') }}
             </span>
+            <button type="button" class="btn btn-sm btn-outline-dark btn-warning-header-message">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ encore_entry_script_tags('warning-header-message') }}
 {% endblock %}
