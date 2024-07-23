@@ -25,6 +25,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Service\ArrivageService;
@@ -118,6 +119,7 @@ class DataExportController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         Security               $security,
                         ScheduledTaskService   $scheduledTaskService,
+                        ScheduleRuleService    $scheduleRuleService,
                         DataExportService      $dataExportService): Response {
 
         $data = $request->request->all();
@@ -134,7 +136,13 @@ class DataExportController extends AbstractController {
 
         if ($type === self::EXPORT_UNIQUE) {
             //do nothing the export has been done in JS
-        } else {
+        }
+        else {
+            // Check if the user can plan a new export
+            if(!$scheduleRuleService->canPlanExport($entityManager)) {
+                throw new FormException("Vous avez déjà planifié " . ScheduleRule::MAX_SCHEDULED_TASKS . " exports");
+            }
+
             $typeRepository = $entityManager->getRepository(Type::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(

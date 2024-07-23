@@ -65,6 +65,11 @@ class ImportController extends AbstractController
         if ($isScheduled) {
             $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT);
 
+            // Check if the user can plan a new import
+            if(!$scheduleRuleService->canPlanImport($entityManager)) {
+                throw new FormException("Vous avez déjà planifié " . ScheduleRule::MAX_SCHEDULED_TASKS . " imports");
+            }
+
             $rule = $scheduleRuleService->updateRule(null, $post);
 
             $import

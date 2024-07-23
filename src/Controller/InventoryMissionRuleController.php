@@ -13,6 +13,7 @@ use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\MailerService;
+use App\Service\ScheduleRuleService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,6 +57,7 @@ class InventoryMissionRuleController extends AbstractController
     public function save(EntityManagerInterface $entityManager,
                          Request                $request,
                          TranslationService     $translationService,
+                         ScheduleRuleService    $scheduleRuleService,
                          MailerService          $mailerService): JsonResponse
     {
 
@@ -64,6 +66,11 @@ class InventoryMissionRuleController extends AbstractController
         $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+
+        if(!$scheduleRuleService->canPlanInventoryMission($entityManager)){
+            throw new FormException("Vous avez déjà planifié " . ScheduleRule::MAX_SCHEDULED_TASKS . " missions d'inventaire");
+        }
 
         if (isset($data['ruleId'])) {
             $missionRule = $missionRuleRepository->find($data['ruleId']);

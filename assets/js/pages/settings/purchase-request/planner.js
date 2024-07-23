@@ -71,5 +71,5 @@ export function initializePurchaseRequestPlanner($container) {
 function openFormPurchaseRequestPlanner($button){
     const $modal = $('#modalFormPurchaseRequestPlanner');
     const $loaderWrapper = $button.closest('table').length ? $button.closest('table') : $button
-    Modal.load('purchase_request_schedule_form', {id: $button.data('id')}, $modal, $loaderWrapper);
+    Modal.load('purchase_request_schedule_form', {id: $button.data('id') ?? null}, $modal, $loaderWrapper);
 }

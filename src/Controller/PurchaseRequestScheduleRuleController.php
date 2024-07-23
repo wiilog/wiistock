@@ -60,8 +60,8 @@ class PurchaseRequestScheduleRuleController extends AbstractController
     #[Route('/formulaire', name: 'purchase_request_schedule_form', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
     public function getForm(EntityManagerInterface $entityManager,
-                            Request                $request,
-                            FormatService          $formatService): Response {
+                            Request                $request): JsonResponse {
+
         $statusRepository = $entityManager->getRepository(Statut::class);
         $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
 

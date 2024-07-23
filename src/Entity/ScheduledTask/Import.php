@@ -18,7 +18,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ImportRepository::class)]
-class Import {
+class Import implements ScheduledTask {
 
     const STATUS_DRAFT = 'brouillon';
     const STATUS_CANCELLED = 'annulé';

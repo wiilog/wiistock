@@ -35,6 +35,8 @@ class ScheduleRule {
     public const PERIOD_TYPE_MINUTES = 'minutes';
     public const PERIOD_TYPE_HOURS = 'hours';
 
+    public const MAX_SCHEDULED_TASKS = 5;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

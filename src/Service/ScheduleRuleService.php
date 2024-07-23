@@ -2,9 +2,15 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieStatut;
+use App\Entity\Inventory\InventoryMissionRule;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\Statut;
 use App\Exceptions\FormException;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -274,5 +280,39 @@ class ScheduleRuleService
     private function isTimeEqual(string $time, DateTime $date) {
         [$hour, $minute] = explode(":", $time);
         return $date->format('H') == $hour && $date->format('i') == $minute;
+    }
+
+    public function canPlanExport(EntityManagerInterface $entityManager): bool {
+        $exportRepository = $entityManager->getRepository(Export::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $numberOfPlannedTasks = $exportRepository->count(['status' => $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_SCHEDULED)]);
+
+        return $this->canAddTask($numberOfPlannedTasks);
+    }
+
+    public function canPlanImport(EntityManagerInterface $entityManager): bool {
+        $importRepository = $entityManager->getRepository(Import::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $numberOfPlannedTasks = $importRepository->count(['status' => $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED)]);
+
+        return $this->canAddTask($numberOfPlannedTasks);
+    }
+
+    public function canPlanInventoryMission(EntityManagerInterface $entityManager): bool {
+        $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $numberOfPlannedTasks = $missionRuleRepository->count(['active' => true]);
+
+        return $this->canAddTask($numberOfPlannedTasks);
+    }
+
+    public function canPlanPurchaseRequest(EntityManagerInterface $entityManager): bool {
+        $purchaseRequestRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
+        $numberOfPlannedTasks = $purchaseRequestRuleRepository->count(['active' => true]);
+
+        return $this->canAddTask($numberOfPlannedTasks);
+    }
+
+    private function canAddTask(int $numberOfPlannedTasks): bool {
+        return $numberOfPlannedTasks < ScheduleRule::MAX_SCHEDULED_TASKS;
     }
 }
