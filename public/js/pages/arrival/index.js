@@ -269,8 +269,11 @@ function createArrival(form = null) {
                     .attr('data-other-params-carrier-id', $(this).val())
                     .attr('data-other-params-truck-arrival-id', null);
                 $noTrackingSelect.find(`option`).remove();
-                $noTrackingSelect.trigger('change');
             }
+        });
+
+        $noTrackingSelect.on(`select2:unselecting`, function () {
+            $(this).find('option').remove().trigger('change');
         });
 
         const trackingNumberSuccess = function (data) {
