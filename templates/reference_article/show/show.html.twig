@@ -43,7 +43,7 @@
                             background-color: {{ referenceArticle.image ? '#FFFFFF' : "#F5F5F7" }};
                             background-size: {{ referenceArticle.image ? 'cover' : '50%' }}">
                         </div>
-                        <div class="specifications">
+                        <div class="specifications w-100">
                             <div>
                                 <div><strong class="ref text-break">Ref : {{ referenceArticle.reference }}</strong></div>
                                 <div><strong class="text-break">{{ referenceArticle.libelle }}</strong></div>
@@ -74,6 +74,14 @@
                                     </span>
                                 </div>
                             </div>
+                            {% if referenceArticle.statut ? referenceArticle.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') : false %}
+                            <div class="d-flex align-content-around justify-content-end">
+                                <button type="button" class="btn btn-primary btn-sm d-flex align-items-center mt-2" data-reference="{{ referenceArticle.id }}"  title="Ajouter au panier" onclick="addReferenceToCart($(this))">
+                                    <img class="add-cart-btn mr-2" src="{{ asset('svg/cart.svg') }}" alt="Icône ajouter au panier" width="20px">
+                                    Ajouter au panier
+                                </button>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -466,5 +474,6 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/reference-common.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('reference-article-form') }}
 {% endblock %}

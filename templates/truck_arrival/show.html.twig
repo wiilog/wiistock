@@ -40,7 +40,9 @@
                         <span class="wii-field-text"><span class="bold">Nombre de n° de tracking associés :</span> {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
-                        {% if hasRightAddNumTrack %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::carrierTrackingNumber').name %}
+                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+                        {% if hasRightAddNumTrack and displayOnform %}
                             <div style="text-align: right">
                                 {% include "utils/action-buttons/header-buttons.html.twig" with {
                                     actions: [

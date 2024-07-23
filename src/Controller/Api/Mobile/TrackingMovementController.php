@@ -11,7 +11,6 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\EmplacementDataService;
@@ -705,25 +704,6 @@ class TrackingMovementController extends AbstractController {
 
         return $this->json([
             "success" => true,
-        ]);
-    }
-
-    #[Rest\Get("/previous-operator-movements", condition: self::IS_XML_HTTP_REQUEST)]
-    #[Wii\RestVersionChecked]
-    public function getPreviousOperatorMovements(Request $request, EntityManagerInterface $manager)
-    {
-        $userRepository = $manager->getRepository(Utilisateur::class);
-        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
-
-        $user = $userRepository->find($request->query->get("operator"));
-        $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
-            $user,
-            TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT
-        );
-
-        return $this->json([
-            "success" => true,
-            "movements" => $movements,
         ]);
     }
 

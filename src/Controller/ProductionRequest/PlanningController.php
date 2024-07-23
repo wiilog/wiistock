@@ -182,8 +182,16 @@ class PlanningController extends AbstractController {
                 }, true)
                 ->toArray();
 
+            $countLinesByDate = [];
+
+            Stream::from($productionRequests)
+                ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
+                    $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
+                    $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
+            });
+
             $planningColumns = Stream::from($planningDays)
-                ->map(function (DateTime $day) use ($planningStart, $cards, $daysWorked, $workFreeDays) {
+                ->map(function (DateTime $day) use ($countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
                     $dayStr = $day->format('Y-m-d');
                     $count = count($cards[$dayStr] ?? []);
                     $sProduction = $count > 1 ? 's' : '';
@@ -193,6 +201,7 @@ class PlanningController extends AbstractController {
                         "cardSelector" => $dayStr,
                         "columnClass" => "forced",
                         "columnHint" => "<span class='font-weight-bold'>$count demande$sProduction</span>",
+                        "countLines" => $countLinesByDate[$dayStr] ?? 0,
                     ];
                 })
                 ->toArray();

@@ -1082,10 +1082,6 @@ class DispatchController extends AbstractController {
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
 
-                    if($dispatch->getType() &&
-                        ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
-                        $notificationService->toTreat($dispatch);
-                    }
                     $dispatch
                         ->setValidationDate($now);
 
@@ -1120,6 +1116,14 @@ class DispatchController extends AbstractController {
 
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+
+                    if ($dispatch->getStatut()?->getNeedsMobileSync()
+                        && (
+                            $dispatch->getType()?->isNotificationsEnabled()
+                            || $dispatch->getType()?->isNotificationsEmergency($dispatch->getEmergency())
+                        )) {
+                        $notificationService->toTreat($dispatch);
+                    }
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
