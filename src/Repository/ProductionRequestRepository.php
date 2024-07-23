@@ -12,7 +12,7 @@ use App\Entity\Statut;
 use App\Entity\WorkFreeDay;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
@@ -34,7 +34,7 @@ class ProductionRequestRepository extends EntityRepository
     }
 
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array {
+    public function findByParamsAndFilters(InputBag $params, array $filters, FieldModesService $fieldModesService, array $options = []): array {
         $qb = $this->createQueryBuilder('production_request')
             ->groupBy('production_request.id');
 
@@ -151,7 +151,7 @@ class ProductionRequestRepository extends EntityRepository
                         FixedFieldEnum::comment->name => "production_request.comment LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'productionRequest', $qb, $options['user'], $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'productionRequest', $qb, $options['user'], $search);
 
                     $qb
                         ->leftJoin('production_request.status', 'search_status')

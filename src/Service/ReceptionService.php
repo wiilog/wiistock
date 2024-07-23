@@ -66,7 +66,7 @@ class ReceptionService
     public SettingsService $settingsService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FormatService $formatService;
@@ -92,7 +92,7 @@ class ReceptionService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
-        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user, $this->visibleColumnService);
+        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user, $this->fieldModesService);
 
         $receptions = $queryResult['data'];
 
@@ -347,7 +347,7 @@ class ReceptionService
             ["title" => "Utilisateur", "name" => "user", "searchable" => true]
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {

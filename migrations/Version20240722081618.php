@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Utilisateur;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use WiiCommon\Helper\Stream;
@@ -35,7 +35,7 @@ final class Version20240722081618 extends AbstractMigration {
                 foreach ($visibleColumns as $page => $columns) {
                     $fieldModesByPage[$page] = Stream::from($columns)
                         ->keymap(fn($column) => [
-                            $column, [VisibleColumnService::FIELD_MODE_VISIBLE],
+                            $column, [FieldModesService::FIELD_MODE_VISIBLE],
                         ])
                         ->toArray();
                 }

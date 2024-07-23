@@ -60,7 +60,7 @@ class PackService {
     public TranslationService $translation;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FormatService $formatService;
@@ -485,7 +485,7 @@ class PackService {
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
-        return $this->visibleColumnService->getArrayConfig(
+        return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
                 ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],

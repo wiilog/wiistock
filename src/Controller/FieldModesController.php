@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Exceptions\FormException;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route("/visible-column", name: "visible_column_")]
-class VisibleColumnController extends AbstractController {
+class FieldModesController extends AbstractController {
 
     public const DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS = "deliveryRequestShow";
 
@@ -40,7 +40,7 @@ class VisibleColumnController extends AbstractController {
     public function save(string                 $page,
                          Request                $request,
                          EntityManagerInterface $manager,
-                         VisibleColumnService   $visibleColumnService): Response {
+                         FieldModesService      $fieldModesService): Response {
         if (!in_array($page, self::PAGES)) {
             throw new FormException("Unknown visible columns page.");
         }
@@ -61,7 +61,7 @@ class VisibleColumnController extends AbstractController {
             $deliveryRequest->setVisibleColumns($columnsModes);
         }
 
-        $visibleColumnService->setFieldModesByPage($page, $columnsModes, $this->getUser());
+        $fieldModesService->setFieldModesByPage($page, $columnsModes, $this->getUser());
 
         $manager->flush();
 

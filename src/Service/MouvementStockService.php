@@ -42,7 +42,7 @@ class MouvementStockService
     public FormatService $formatService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
@@ -51,7 +51,7 @@ class MouvementStockService
 
 		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $user);
 
-		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters, $this->visibleColumnService, $user);
+		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters, $this->fieldModesService, $user);
 
 		$mouvements = $queryResult['data'];
 
@@ -343,6 +343,6 @@ class MouvementStockService
             ["title" => "Prix Unitaire", "name" => "unitPrice", 'searchable' => true],
             ["title" => "Commentaire", "name" => "comment", "orderable" => false, 'searchable' => true],
         ];
-        return $this->visibleColumnService->getArrayConfig($fieldConfig, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($fieldConfig, [], $columnsVisible);
     }
 }

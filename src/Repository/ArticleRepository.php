@@ -19,7 +19,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -505,7 +505,7 @@ class ArticleRepository extends EntityRepository {
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
-                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                                $freeFieldId = FieldModesService::extractFreeFieldId($field);
                                 if(in_array($field, $user->getVisibleColumns()['article'])){
                                     if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                         if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
@@ -587,7 +587,7 @@ class ArticleRepository extends EntityRepository {
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                            $freeFieldId = FieldModesService::extractFreeFieldId($column);
 
                             if(is_numeric($freeFieldId)) {
                                 /** @var FreeField $freeField */

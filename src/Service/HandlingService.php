@@ -46,7 +46,7 @@ class HandlingService {
     public TokenStorageInterface $tokenStorage;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FreeFieldService $freeFieldService;
@@ -139,7 +139,7 @@ class HandlingService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $user);
         }
@@ -285,7 +285,7 @@ class HandlingService {
             ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function putHandlingLine(EntityManagerInterface $entityManager,

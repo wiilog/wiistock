@@ -23,7 +23,7 @@ use App\Service\ReserveService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -103,14 +103,14 @@ class TruckArrivalController extends AbstractController
     }
 
     #[Route('/save-columns', name: 'save_column_visible', methods: self::POST, condition: 'request.isXmlHttpRequest()')]
-    public function saveColumns(VisibleColumnService    $visibleColumnService,
-                                Request                 $request,
-                                EntityManagerInterface  $entityManager): Response {
+    public function saveColumns(FieldModesService      $fieldModesService,
+                                Request                $request,
+                                EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $user = $this->getUser();
 
-        $visibleColumnService->setFieldModesByPage('truckArrival', $fields, $user);
+        $fieldModesService->setFieldModesByPage('truckArrival', $fields, $user);
 
         $entityManager->flush();
 

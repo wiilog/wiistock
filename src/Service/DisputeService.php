@@ -48,22 +48,22 @@ class DisputeService {
     private $entityManager;
     private $translation;
     private $mailerService;
-    private $visibleColumnService;
+    private $fieldModesService;
     private $CSVExportService;
 
     public function __construct(EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                TranslationService $translation,
-                                MailerService $mailerService,
-                                CSVExportService $CSVExportService,
-                                VisibleColumnService $visibleColumnService,
-                                Security $security) {
+                                Twig_Environment       $templating,
+                                TranslationService     $translation,
+                                MailerService          $mailerService,
+                                CSVExportService       $CSVExportService,
+                                FieldModesService      $fieldModesService,
+                                Security               $security) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->translation = $translation;
         $this->security = $security;
         $this->mailerService = $mailerService;
-        $this->visibleColumnService = $visibleColumnService;
+        $this->fieldModesService = $fieldModesService;
         $this->CSVExportService = $CSVExportService;
     }
 
@@ -78,7 +78,7 @@ class DisputeService {
             $filters = $preFilledFilters;
         }
 
-        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->visibleColumnService);
+        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->fieldModesService);
         $disputes = $queryResult['data'];
 
         $rows = [];
@@ -217,7 +217,7 @@ class DisputeService {
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['dispute'];
-        return $this->visibleColumnService->getArrayConfig(
+        return $this->fieldModesService->getArrayConfig(
             [
                 ["name" => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],

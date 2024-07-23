@@ -34,7 +34,7 @@ class ProductionRequestService
 {
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public Security $security;
@@ -107,7 +107,7 @@ class ProductionRequestService
             ['title' => FixedFieldEnum::comment->value, 'name' => FixedFieldEnum::comment->name],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible, $forExport);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible, $forExport);
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
@@ -143,7 +143,7 @@ class ProductionRequestService
         $queryResult = $productionRepository->findByParamsAndFilters(
             $request->request,
             $filters,
-            $this->visibleColumnService,
+            $this->fieldModesService,
             [
                 'user' => $this->security->getUser(),
             ]
@@ -202,7 +202,7 @@ class ProductionRequestService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $productionRequest->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }

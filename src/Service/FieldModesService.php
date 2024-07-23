@@ -12,7 +12,7 @@ use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class VisibleColumnService {  //TODO RENAME
+class FieldModesService {  //TODO RENAME
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
 
     public const FIELD_MODE_VISIBLE = 'fieldVisible';
@@ -92,7 +92,7 @@ class VisibleColumnService {  //TODO RENAME
             return null;
         }
 
-        preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
+        preg_match("/" . FieldModesService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
         $freeFieldIdStr = $matches[1] ?? null;
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;
     }

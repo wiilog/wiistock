@@ -35,7 +35,7 @@ use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -817,9 +817,9 @@ class DemandeController extends AbstractController
 
     #[Route("/visible_column", name: "save_visible_columns_for_delivery_request", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function saveVisibleColumn(Request $request,
+    public function saveVisibleColumn(Request                $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
+                                      FieldModesService      $fieldModesService): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
@@ -827,7 +827,7 @@ class DemandeController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $visibleColumnService->setFieldModesByPage('deliveryRequest', $fields, $currentUser);
+        $fieldModesService->setFieldModesByPage('deliveryRequest', $fields, $currentUser);
 
         $entityManager->flush();
 

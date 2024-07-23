@@ -4,7 +4,7 @@
 namespace App\Service;
 
 
-use App\Controller\VisibleColumnController;
+use App\Controller\FieldModesController;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -80,7 +80,7 @@ class DeliveryRequestService
     public NotificationService $notificationService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public UniqueNumberService $uniqueNumberService;
@@ -128,7 +128,7 @@ class DeliveryRequestService
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $user);
         }
-        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $user, $this->visibleColumnService);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $user, $this->fieldModesService);
 
         $demandeArray = $queryResult['data'];
 
@@ -180,7 +180,7 @@ class DeliveryRequestService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -333,7 +333,7 @@ class DeliveryRequestService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
-        $visibleColumns = $utilisateur->getVisibleColumns()[VisibleColumnController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+        $visibleColumns = $utilisateur->getVisibleColumns()[FieldModesController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
 
         $demande = new Demande();
         $demande
@@ -774,7 +774,7 @@ class DeliveryRequestService
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function treatSetting_manageDeliveryWithoutStockQuantity(EntityManagerInterface       $entityManager,
@@ -1014,7 +1014,7 @@ class DeliveryRequestService
             })
             ->values();
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function editatableLineForm(EntityManagerInterface                                       $entityManager,
