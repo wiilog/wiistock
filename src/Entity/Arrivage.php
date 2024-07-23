@@ -103,6 +103,9 @@ class Arrivage implements AttachmentContainer {
     #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrivals')]
     private Collection $truckArrivalLines;
 
+    #[ORM\ManyToOne(targetEntity: TruckArrival::class)]
+    private ?TruckArrival $truckArrival = null;
+
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
@@ -553,6 +556,18 @@ class Arrivage implements AttachmentContainer {
         if($this->receivers->removeElement($receiver)) {
             $receiver->removeReceivedArrival($this);
         }
+
+        return $this;
+    }
+
+    public function getTruckArrival(): ?TruckArrival
+    {
+        return $this->truckArrival;
+    }
+
+    public function setTruckArrival(?TruckArrival $truckArrival): self
+    {
+        $this->truckArrival = $truckArrival;
 
         return $this;
     }

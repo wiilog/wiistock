@@ -351,7 +351,6 @@ class TruckArrivalController extends AbstractController
                                       TruckArrivalLineService $truckArrivalLineService): Response
     {
         $data = $request->request->all();
-        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
 
