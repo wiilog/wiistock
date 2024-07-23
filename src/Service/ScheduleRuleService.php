@@ -36,6 +36,14 @@ class ScheduleRuleService
 
     public function calculateNextExecution(ScheduleRule $rule,
                                            DateTime     $from): ?DateTime {
+
+        if ($from->format('s') <= 10) {
+            // ignore delta of 10seconds to calcultate nextExecution dima
+            $from = (clone $from)
+                ->setTime($from->format('H'), $from->format('i'));
+        }
+
+
         return match ($rule->getFrequency()) {
             ScheduleRule::ONCE    => $this->calculateOnce($rule, $from),
             ScheduleRule::HOURLY  => $this->calculateFromHourlyRule($rule, $from),

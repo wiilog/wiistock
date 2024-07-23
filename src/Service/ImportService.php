@@ -390,10 +390,6 @@ class ImportService
             $information = false;
         }
 
-        $nextExecutionDate = ($import->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT && $import->getStatus()?->getCode() === Import::STATUS_SCHEDULED)
-            ? $import->getNextExecutionDate()
-            : null;
-
         $frequencyToString = [
             ScheduleRule::ONCE => 'une fois',
             ScheduleRule::DAILY => 'chaque jour',
@@ -437,7 +433,7 @@ class ImportService
             'status' => $this->formatService->status($import->getStatus()),
             'user' => $this->formatService->user($import->getUser()),
             'type' => $this->formatService->type($import->getType()),
-            "nextExecution" => $this->formatService->datetime($nextExecutionDate),
+            "nextExecution" => $this->formatService->datetime($nextExecution),
             'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
             'actions' => $this->templating->render('settings/donnees/import/row.html.twig', [
                 'import' => $import,

@@ -15,6 +15,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FTPService;
 use App\Service\ImportService;
+use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -134,8 +135,9 @@ class ImportController extends AbstractController
     }
 
     #[Route("/link", name: "import_links", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function defineLinks(Request $request, EntityManagerInterface $entityManager, ImportService $importService): Response
-    {
+    public function defineLinks(Request $request,
+                                ScheduledTaskService $scheduledTaskService,
+                                EntityManagerInterface $entityManager): Response {
         $importRepository = $entityManager->getRepository(Import::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $data = $request->request->all();
@@ -154,7 +156,8 @@ class ImportController extends AbstractController
                 ->setStatus($scheduleStatus);
             $entityManager->flush();
 
-            $importService->saveScheduledImportsCache($entityManager);
+            $scheduledTaskService->deleteCache(Import::class);
+
             return $this->json([
                 "success" => true,
                 "msg" => "L'import planifié a bien été créé."
@@ -228,26 +231,27 @@ class ImportController extends AbstractController
 
     #[Route("/{import}/cancel", name: "import_cancel", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function cancelImport(Import                 $import,
-                                 EntityManagerInterface $manager,
-                                 ImportService          $importService): JsonResponse {
-        $statusRepository = $manager->getRepository(Statut::class);
+                                 EntityManagerInterface $entityManager,
+                                 ScheduledTaskService   $scheduledTaskService): JsonResponse {
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
-        if ($import->isCancellable()) {
-            $cancelledStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED);
-            $import
-                ->setStatus($cancelledStatus);
-            $manager->flush();
-            if ($import->getType()?->getLabel() == Type::LABEL_SCHEDULED_IMPORT) {
-                $importService->saveScheduledImportsCache($manager);
-            }
-
-            return $this->json([
-                "success" => true,
-                "msg" => "L'import a bien été annulé.",
-            ]);
-        } else {
+        if (!$import->isCancellable()) {
             throw new FormException("L'import ne peut pas être annulé.");
         }
+
+        $cancelledStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED);
+        $import
+            ->setStatus($cancelledStatus);
+        $entityManager->flush();
+
+        if ($import->getType()?->getLabel() == Type::LABEL_SCHEDULED_IMPORT) {
+            $scheduledTaskService->deleteCache(Import::class);
+        }
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'import a bien été annulé.",
+        ]);
     }
 
     #[Route("/{import}/delete", name: "import_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
