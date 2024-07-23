@@ -31,26 +31,17 @@
                 selectAllLabel: 'Tous les mois',
             }) }}
 
-            {% set days = [] %}
-            {% for i in 1..31 %}
-                {% set days = days|merge([
-                    {
-                        label: i,
-                        value: i,
-                        selected: (i in monthDays)
-                    }
-                ]) %}
-            {% endfor %}
-            {% set days = days|merge([{
-                label: 'Dernier',
-                value: 'Dernier',
-                selected: ('Dernier' in monthDays)
-            }]) %}
+            {% set lastDayIndex = constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::LAST_DAY_OF_WEEK') %}
             {{ form.select('monthDays', 'Jours', false, {
                 type: null,
-                items: days,
+                items: [1, 15, lastDayIndex] | map((day) => ({
+                    label: day == lastDayIndex ? "Dernier" : day,
+                    value: day,
+                    selected: (day in monthDays)
+                })),
                 multiple: true
             }) }}
+
             <div class="pt-3">
                 Heure d'exécution :
                 <input type="time"

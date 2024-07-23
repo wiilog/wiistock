@@ -243,6 +243,141 @@ class ScheduleRuleServiceTest extends KernelTestCase {
         ],
     ];
 
+    private const MONTHLY_SCHEDULE_RULES_TO_TEST = [
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-08-01",
+                "months" => "8", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-07-22 17:00:00",
+            "expected" => "2024-08-01 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-08-01",
+                "months" => "8", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-08-01 16:00:00",
+            "expected" => "2024-08-01 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-08-01",
+                "months" => "8", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-08-01 17:01:00",
+            "expected" => "2025-08-01 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-08-01",
+                "months" => "8", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1,15', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-08-01 17:01:00",
+            "expected" => "2024-08-15 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-08-01",
+                "months" => "8", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1,15,last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-08-15 17:01:00",
+            "expected" => "2024-08-31 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-08-01",
+                "months" => "8", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '15,last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-08-31 17:01:00",
+            "expected" => "2025-08-15 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-02-01",
+                "months" => "2", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => 'last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-01-25 17:01:00",
+            "expected" => "2024-02-29 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2025-02-01",
+                "months" => "2", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => 'last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2025-01-25 17:01:00",
+            "expected" => "2025-02-28 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-02-01",
+                "months" => "3,4,5", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1,15,last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-01-25 17:01:00",
+            "expected" => "2024-03-01 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-03-05",
+                "months" => "3,4,5", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1,15,last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-01-25 17:01:00",
+            "expected" => "2024-03-15 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-04-05",
+                "months" => "3", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => 'last', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-01-25 17:01:00",
+            "expected" => "2025-03-31 17:00:00",
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::MONTHLY,
+                "startDate" => "2024-03-05",
+                "months" => "3,4", // 1 (January) to 12 (December)
+                "intervalTime" => '17:00',
+                "monthDays" => '1', // 1, 15 or ScheduleRule::LAST_DAY_OF_WEEK
+            ],
+            "from" => "2024-04-05 17:01:00",
+            "expected" => "2025-03-01 17:00:00",
+        ],
+    ];
+
     /** @var ScheduleRuleService  */
     private ScheduleRuleService $scheduleRuleService;
 
@@ -270,15 +405,23 @@ class ScheduleRuleServiceTest extends KernelTestCase {
         $this->testCalculateNextExecutionOnScheduleRules(self::WEEKLY_SCHEDULE_RULES_TO_TEST);
     }
 
+    public function testCalculateNextExecutionMonthly(): void {
+        $this->testCalculateNextExecutionOnScheduleRules(self::MONTHLY_SCHEDULE_RULES_TO_TEST);
+    }
+
     private function testCalculateNextExecutionOnScheduleRules(array $scheduleRules): void {
-        foreach ($scheduleRules as $test) {
+        foreach ($scheduleRules as $testIndex => $test) {
             $from = new DateTime($test["from"]);
             $expected = isset($test["expected"]) ? new DateTime($test["expected"]) : null;
             $scheduleRule = $this->createRule($test["scheduleRule"]);
 
             $calculated = $this->scheduleRuleService->calculateNextExecution($scheduleRule, $from);
 
-            $this->assertEquals($calculated, $expected);
+            $log = [
+                "testNumber" => $testIndex,
+                "config" => $test,
+            ];
+            $this->assertEquals($calculated, $expected, json_encode($log, JSON_PRETTY_PRINT));
         }
     }
 

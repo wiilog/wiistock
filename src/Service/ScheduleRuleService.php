@@ -127,46 +127,73 @@ class ScheduleRuleService
 
     public function calculateFromMonthlyRule(ScheduleRule $rule,
                                              DateTime     $from): ?DateTime {
-        $start = ($from > $rule->getBegin()) ? $from : $rule->getBegin();
-        $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
-        $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $start);
+        [$hour, $minute] = explode(":", $rule->getIntervalTime());
 
-        $year = $start->format("Y");
-        $currentMonth = $start->format("n");
-        $currentDay = (int) $start->format("j");
-        $currentLastDayMonth = (int) (clone $start)
-            ->modify('last day this month')
-            ->format("j");
+        $begin = $rule->getBegin();
 
-        $day = Stream::from($rule->getMonthDays())
-            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay, $isTimeEqual, $currentLastDayMonth) {
-                $day = intval($day === ScheduleRule::LAST_DAY_OF_WEEK ? 32 : $day);
-                if ($isTimeEqual
-                    && ($day === $currentDay || ($day === 32 && $currentDay === $currentLastDayMonth))) {
-                    return true;
-                } else if ($isTimeEqualOrBefore) {
-                    return $day > $currentDay;
-                } else {
-                    return $day >= $currentDay;
-                }
+        $beginCalculation = $begin > $from
+            ? (clone $begin)->setTime($hour, $minute)
+            : (clone $from);
+
+        $beginCalculationMonth = (int) $beginCalculation->format("m");
+        $beginCalculationYear = (int) $beginCalculation->format("Y");
+
+        $availableDays = Stream::from($rule->getMonthDays())
+            ->filterMap(fn(mixed $day) => match ($day) {
+                ScheduleRule::LAST_DAY_OF_WEEK => 32,
+                "1", "15"                      => ((int) $day),
+                default                        => null,
             })
-            ->firstOr(fn() => $rule->getMonthDays()[0]);
-        $day = $day !== ScheduleRule::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
-        $isDayEqual = $day == $currentDay;
-        $isDayBefore = $day < $currentDay;
-        $ignoreCurrentMonth = (
-            !($isDayEqual && $isTimeEqual)
-            && ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore))
-        );
+            ->sort(fn(int $day1, int $day2) => ($day1 <=> $day2));
 
-        $month = Stream::from($rule->getMonths())
-            ->filter(fn($month) => $ignoreCurrentMonth ? ($month > $currentMonth) : ($month >= $currentMonth))
-            ->firstOr(fn() => $rule->getMonths()[0]);
+        $availableMonths = Stream::from($rule->getMonths())
+            ->sort(static fn(int $month1, int $month2) => $month1 <=> $month2);
 
-        if($month < $currentMonth || $month === $currentMonth && $day < $currentDay){
-            $year++;
+        $availableMonthsThisYear = Stream::from($availableMonths)
+            ->filter(static fn(int $month) => $month >= $beginCalculationMonth)
+            ->values();
+
+        $generateOccurrence = function (int $year, int $month, int $day, int $hour, int $minute): DateTime {
+            $initDay = $day > 31 ? 1 : $day;
+
+            $year = str_pad($year, 4, "0", STR_PAD_LEFT);
+            $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+            $initDay = str_pad($initDay, 2, "0", STR_PAD_LEFT);
+            $hour = str_pad($hour, 2, "0", STR_PAD_LEFT);
+            $minute = str_pad($minute, 2, "0", STR_PAD_LEFT);
+
+            $calculatedOccurrence = DateTime::createFromFormat("Y-m-d H:i:s", "{$year}-{$month}-{$initDay} {$hour}:{$minute}:00");
+            if ($day > 31) {
+                $calculatedOccurrence = $calculatedOccurrence->modify("last day of this month");
+            }
+            return $calculatedOccurrence;
+        };
+
+        $firstTryMonth = $availableMonthsThisYear[0] ?? null;
+        $fallbackMonth = $availableMonthsThisYear[1] ?? null;
+        $fallbackYear = $beginCalculationYear;
+
+        if (!isset($availableMonthsThisYear) || !isset($fallbackMonth)) {
+            $fallbackMonth = $availableMonths->first();
+            $fallbackYear++;
         }
-        return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
+
+        if (isset($firstTryMonth)) {
+            foreach ($availableDays as $availableDay) {
+                $calculatedOccurrence = $generateOccurrence($beginCalculationYear, $firstTryMonth, $availableDay, $hour, $minute);
+                if ($calculatedOccurrence >= $beginCalculation) {
+                    $nextOccurrence = $calculatedOccurrence;
+                    break;
+                }
+            }
+        }
+
+        if (!isset($nextOccurrence)) {
+            $fallbackDay = $availableDays->first();
+            $nextOccurrence = $generateOccurrence($fallbackYear, $fallbackMonth, $fallbackDay, $hour, $minute);
+        }
+
+        return $nextOccurrence ?? null;
     }
 
     public function calculateFromDailyRule(ScheduleRule $rule,
