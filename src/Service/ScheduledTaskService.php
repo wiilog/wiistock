@@ -4,17 +4,23 @@ namespace App\Service;
 
 use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduledTask;
+use App\Entity\ScheduledTask\ScheduleRule;
+use App\Repository\ScheduledTask\ScheduledTaskRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use ReflectionClass;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class ScheduledTaskService
 {
 
+    public const MAX_ONGOING_SCHEDULED_TASKS = 5;
     private const CACHE_KEY = "scheduled";
 
     #[Required]
@@ -22,6 +28,21 @@ class ScheduledTaskService
 
     #[Required]
     public CacheService $cacheService;
+
+    public function canSchedule(EntityManagerInterface $entityManager,
+                                string                 $class): bool {
+        $refClass = new ReflectionClass($class);
+        $refScheduledTask = new ReflectionClass(ScheduledTask::class);
+
+        if (!$refClass->isSubclassOf($refScheduledTask)) {
+            throw new Exception("Invalid class. Should implement " . ScheduledTask::class);
+        }
+
+        /** @var ScheduledTaskRepository $scheduledTaskRepository */
+        $scheduledTaskRepository = $entityManager->getRepository($class);
+
+        return count($scheduledTaskRepository->findScheduled()) < self::MAX_ONGOING_SCHEDULED_TASKS;
+    }
 
     public function launchScheduledTasks(EntityManagerInterface $entityManager,
                                          string                 $class,

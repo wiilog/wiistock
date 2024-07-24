@@ -13,6 +13,7 @@ use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\MailerService;
+use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -59,19 +60,13 @@ class InventoryMissionPlanController extends AbstractController
                          Request                $request,
                          TranslationService     $translationService,
                          ScheduleRuleService    $scheduleRuleService,
-                         MailerService          $mailerService): JsonResponse
-    {
-
+                         ScheduledTaskService   $scheduledTaskService,
+                         MailerService          $mailerService): JsonResponse {
         $data = $request->request->all();
 
         $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-
-
-        if(!$scheduleRuleService->canPlanInventoryMission($entityManager)){
-            throw new FormException("Vous avez déjà planifié " . ScheduleRule::MAX_SCHEDULED_TASKS . " missions d'inventaire");
-        }
 
         if (isset($data['ruleId'])) {
             /** @var InventoryMissionPlan $missionPlan */
@@ -82,6 +77,10 @@ class InventoryMissionPlanController extends AbstractController
             }
         }
         else {
+            if(!$scheduledTaskService->canSchedule($entityManager, InventoryMissionPlan::class)){
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " génération de mission d'inventaire");
+            }
+
             $missionPlan = new InventoryMissionPlan();
             $edit = false;
             if (isset($data['missionType']) && in_array($data['missionType'], [InventoryMission::ARTICLE_TYPE, InventoryMission::LOCATION_TYPE])) {

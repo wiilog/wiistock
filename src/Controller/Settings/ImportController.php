@@ -6,7 +6,6 @@ use App\Controller\AbstractController;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\FormException;
@@ -45,6 +44,7 @@ class ImportController extends AbstractController
                         EntityManagerInterface $entityManager,
                         ImportService          $importService,
                         FTPService             $FTPService,
+                        ScheduledTaskService   $scheduledTaskService,
                         ScheduleRuleService    $scheduleRuleService): Response {
         $post = $request->request;
 
@@ -66,8 +66,8 @@ class ImportController extends AbstractController
             $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT);
 
             // Check if the user can plan a new import
-            if(!$scheduleRuleService->canPlanImport($entityManager)) {
-                throw new FormException("Vous avez déjà planifié " . ScheduleRule::MAX_SCHEDULED_TASKS . " imports");
+            if(!$scheduledTaskService->canSchedule($entityManager, Import::class)){
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " imports");
             }
 
             $rule = $scheduleRuleService->updateRule(null, $post);

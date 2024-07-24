@@ -38,7 +38,7 @@ class ScheduledPurchaseRequestCommand extends Command
         $purchaseRequestRuleRepository = $this->em->getRepository(PurchaseRequestPlan::class);
 
         // todo adrien: get from cache
-        $purchaseRequestRules = $purchaseRequestRuleRepository->findAll();
+        $purchaseRequestRules = $purchaseRequestRuleRepository->findScheduled();
         foreach ($purchaseRequestRules as $rule) {
             $now = new DateTime();
             $now->setTime($now->format('H'), $now->format('i'), 0, 0);

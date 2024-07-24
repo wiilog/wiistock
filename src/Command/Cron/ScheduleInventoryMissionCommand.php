@@ -35,10 +35,11 @@ class ScheduleInventoryMissionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // TODO adrien utiliser le cache
         $entityManager = $this->getEntityManager();
         $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
 
-        $rules = $inventoryMissionPlanRepository->findBy(['active' => true]);
+        $rules = $inventoryMissionPlanRepository->findScheduled();
 
         foreach ($rules as $rule) {
             $now = new DateTime();

@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
@@ -14,6 +15,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\FormatService;
+use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
 use App\Service\StorageRuleService;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -98,6 +100,7 @@ class PurchaseRequestPlanController extends AbstractController
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
     public function formSubmit(EntityManagerInterface $entityManager,
                                Request                $request,
+                               ScheduledTaskService   $scheduledTaskService,
                                ScheduleRuleService    $scheduleRuleService): Response {
         $data = $request->request->all();
 
@@ -113,6 +116,10 @@ class PurchaseRequestPlanController extends AbstractController
                 throw new FormException("Une erreur est survenue lors du traitement de votre demande.");
             }
         } else {
+            if(!$scheduledTaskService->canSchedule($entityManager, PurchaseRequestPlan::class)){
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " génération de demande d'achat");
+            }
+
             $purchaseRequestPlan = new PurchaseRequestPlan();
         }
 
