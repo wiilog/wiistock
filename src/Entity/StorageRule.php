@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\ScheduledTask\StorageRule\StorageRuleRepository;
+use App\Repository\StorageRuleRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 

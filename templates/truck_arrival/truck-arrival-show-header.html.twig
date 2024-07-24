@@ -28,11 +28,23 @@
             </button>
             <div class="dropdown-menu dropdown-wiilog dropdown-menu-right pointer">
                 <button data-id='{{ truckArrival.id }}'
+                   class="dropdown-item d-flex align-items-center print-truck-arrival-label">
+                    <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                    {{ trans('Général', null, 'Modale', 'Imprimer') }}
+                </button>
+                <button data-id='{{ truckArrival.id }}'
                    class="dropdown-item d-flex align-items-center"
                    onclick="deleteTruckArrival($(this))">
                     <span class="wii-icon wii-icon-trash-black mr-2"></span>
                     {{ trans('Général', null, 'Modale', 'Supprimer') }}
                 </button>
+                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_ARRIVAL')) %}
+                    <button data-id='{{ truckArrival.id }}'
+                       class="dropdown-item d-flex align-items-center go-to-arrival-creation">
+                        <span class="fa fa-plus mr-2"></span>
+                        {{ trans('Général', null, 'Modale', 'Créer arrivage UL') }}
+                    </button>
+                {% endif %}
             </div>
         {% endif %}
     </div>

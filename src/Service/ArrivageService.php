@@ -157,6 +157,9 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
+        $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
+        $truckArrivalNumber = $arrival->getTruckArrival()?->getNumber() ?: '';
+
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='UL acheminée(s)'></i></td>" : '',
@@ -183,7 +186,9 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
-            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : '',
+            'truckArrivalNumber' => $arrivalHasLine
+                ? $arrivalHasLine->getTruckArrival()->getNumber()
+                : ($truckArrivalNumber),
             'url' => $url,
         ];
 
@@ -543,8 +548,9 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N°Arrivage camion'),
-                'value' => count($truckArrivalLines) > 0 ?
-                    '<a href="/arrivage-camion/voir/'. $truckArrivalLines->first()->getTruckArrival()->getId() . '" title="Détail Arrivage Camion">' . $truckArrivalLines->first()->getTruckArrival()->getNumber() . '</a>' : '',
+                'value' => count($truckArrivalLines) > 0
+                    ? '<a href="/arrivage-camion/voir/'. $truckArrivalLines->first()->getTruckArrival()->getId() . '" title="Détail Arrivage Camion">' . $truckArrivalLines->first()->getTruckArrival()->getNumber() . '</a>'
+                    : '<a href="/arrivage-camion/voir/'. $arrivage->getTruckArrival()?->getId() . '" title="Détail Arrivage Camion">' . $arrivage->getTruckArrival()?->getNumber() . '</a>',
                 'isRaw' => true
             ],
             [

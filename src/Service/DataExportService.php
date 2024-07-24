@@ -7,8 +7,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -16,12 +14,12 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -301,7 +299,6 @@ class DataExportService
         $export->setCreatedAt($from);
         $export->setBeganAt($from);
         $export->setEndedAt($to);
-        $export->setForced(false);
 
         $entityManager->persist($export);
         $entityManager->flush();
@@ -375,10 +372,6 @@ class DataExportService
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $entity = $export->getEntity();
-
-        if(!isset($data["startDate"])){
-            throw new FormException("Veuillez choisir une fréquence pour votre export planifié.");
-        }
 
         $export->setDestinationType($data["destinationType"]);
         if($export->getDestinationType() == Export::DESTINATION_EMAIL) {
@@ -473,27 +466,17 @@ class DataExportService
             }
         }
 
-        if (!$export->getExportScheduleRule()) {
-            $export->setExportScheduleRule(new ExportScheduleRule());
-        }
+        $scheduleRule = $this->scheduleRuleService->updateRule($export->getScheduleRule(), new ParameterBag([
+            "startDate" => $data["startDate"] ?? null,
+            "frequency" => $data["frequency"] ?? null,
+            "repeatPeriod" => $data["repeatPeriod"] ?? null,
+            "intervalTime" => $data["intervalTime"] ?? null,
+            "intervalPeriod" => $data["intervalPeriod"] ?? null,
+            "months" => $data["months"] ?? null,
+            "weekDays" => $data["weekDays"] ?? null,
+            "monthDays" => $data["monthDays"] ?? null,
+        ]));
 
-        $begin = FormatHelper::parseDatetime($data["startDate"]);
-
-        if (in_array($data["frequency"], [ScheduleRule::DAILY, ScheduleRule::WEEKLY, ScheduleRule::MONTHLY])) {
-            $begin->setTime(0, 0);
-        }
-
-        $export->getExportScheduleRule()
-            ->setBegin($begin)
-            ->setFrequency($data["frequency"] ?? null)
-            ->setPeriod($data["repeatPeriod"] ?? null)
-            ->setIntervalTime($data["intervalTime"] ?? null)
-            ->setIntervalPeriod($data["intervalPeriod"] ?? null)
-            ->setMonths(isset($data["months"]) ? explode(",", $data["months"]) : null)
-            ->setWeekDays(isset($data["weekDays"]) ? explode(",", $data["weekDays"]) : null)
-            ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
-
-        $export
-            ->setNextExecution($this->scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
+        $export->setScheduleRule($scheduleRule);
     }
 }

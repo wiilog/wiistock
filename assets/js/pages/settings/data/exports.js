@@ -24,7 +24,6 @@ const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
-global.forceExport = forceExport;
 global.cancelExport = cancelExport;
 
 let tableExport = null;
@@ -48,7 +47,7 @@ export function initializeExports() {
             {data: `createdAt`, title: `Date de création`},
             {data: `beganAt`, title: `Date début`},
             {data: `endedAt`, title: `Date fin`},
-            {data: `nextExecution`, title: `Prochaine exécution`},
+            {data: `nextExecution`, title: `Prochaine exécution`, orderable: false},
             {data: `frequency`, title: `Fréquence`},
             {data: `user`, title: `Utilisateur`},
             {data: `type`, title: `Type`},
@@ -129,14 +128,6 @@ function selectHourlyFrequencyIntervalType($select) {
 function destinationExportChange(){
     $('.export-email-destination').toggleClass('d-none');
     $('.export-sftp-destination').toggleClass('d-none');
-}
-
-function forceExport(exportId) {
-    AJAX.route(POST, 'settings_export_force', {export: exportId})
-        .json()
-        .then(() => {
-            tableExport.ajax.reload();
-        });
 }
 
 function handleExportSaving($modal, table) {

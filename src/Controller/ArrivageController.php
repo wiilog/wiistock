@@ -40,10 +40,12 @@ use App\Service\KeptFieldService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
+use App\Service\TruckArrivalLineService;
 use App\Service\UniqueNumberService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
@@ -71,7 +73,7 @@ class ArrivageController extends AbstractController {
     #[Required]
     public LanguageService $languageService;
 
-    #[Route('/', name: 'arrivage_index')]
+    #[Route('/', name: 'arrivage_index', options: ["expose" => true])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI])]
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
@@ -92,6 +94,8 @@ class ArrivageController extends AbstractController {
             $fromTruckArrivalOptions = [
                 'carrier' => $truckArrival?->getCarrier()?->getId(),
                 'driver' => $truckArrival?->getDriver()?->getId(),
+                'truckArrivalId' => $truckArrival?->getId(),
+                'truckArrivalNumber' => $truckArrival?->getNumber(),
             ];
         }
         $user = $this->getUser();
@@ -139,14 +143,16 @@ class ArrivageController extends AbstractController {
 
     #[Route("/creer", name: "arrivage_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
-    public function new(Request                $request,
-                        EntityManagerInterface $entityManager,
-                        AttachmentService      $attachmentService,
-                        ArrivageService        $arrivalService,
-                        FreeFieldService       $champLibreService,
-                        PackService            $packService,
-                        KeptFieldService       $keptFieldService,
-                        TranslationService     $translation): Response {
+    public function new(Request                       $request,
+                        EntityManagerInterface        $entityManager,
+                        AttachmentService             $attachmentService,
+                        ArrivageService               $arrivalService,
+                        FreeFieldService              $champLibreService,
+                        PackService                   $packService,
+                        SettingsService               $settingsService,
+                        KeptFieldService              $keptFieldService,
+                        TruckArrivalLineService       $truckArrivalLineService,
+                        TranslationService            $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -158,13 +164,15 @@ class ArrivageController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
-        $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
-        $useTruckArrivals = $settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $sendMail = $settingsService->getValue($entityManager, Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $useTruckArrivals = $settingsService->getValue($entityManager, Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
         $suffix = $counter < 10 ? ("0" . $counter) : $counter;
         $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
+        $trackingNumber = $data['noTracking'];
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -219,17 +227,36 @@ class ArrivageController extends AbstractController {
             $arrivage->setChauffeur($chauffeurRepository->find($data['chauffeur']));
         }
 
-        if (!empty($data['noTracking'])) {
-            if ($settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS)) {
-                $truckArrivalLineId = explode(',', $data['noTracking']);
-                foreach ($truckArrivalLineId as $lineId) {
-                    $line = $truckArrivalLineRepository
-                        ->find($lineId)
-                        ->addArrival($arrivage);
-                    $arrivage->addTruckArrivalLine($line);
+        if (!empty($trackingNumber)) {
+            $truckArrival = isset($data["noTruckArrival"]) ? $truckArrivalRepository->find($data["noTruckArrival"]) : null;
+            $emptyTrackingNumber = $trackingNumber !== "null";
+            if($emptyTrackingNumber){
+                if ($useTruckArrivals) {
+                    $truckArrivalLineId = explode(',', $trackingNumber);
+                    foreach ($truckArrivalLineId as $lineId) {
+                        $line = $truckArrivalLineRepository->find($lineId);
+                        if($lineId){
+                            $truckArrivalLineService->checkForInvalidNumber([$lineId], $entityManager);
+
+                            $line = (new TruckArrivalLine())
+                                ->setNumber($lineId);
+
+                            if($truckArrival){
+                                $line->setTruckArrival($truckArrival);
+                            }
+
+                            $entityManager->persist($line);
+                            $entityManager->flush();
+                        }
+
+                        $line->addArrival($arrivage);
+                        $arrivage->addTruckArrivalLine($line);
+                    }
+                } else {
+                    $arrivage->setNoTracking(substr($trackingNumber, 0, 64));
                 }
-            } else {
-                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            } else if($truckArrival) {
+                $arrivage->setTruckArrival($truckArrival);
             }
         }
 
@@ -1174,6 +1201,7 @@ class ArrivageController extends AbstractController {
                                               EntityManagerInterface $entityManager,
                                               PDFGeneratorService    $PDFGeneratorService,
                                               PackService            $packService,
+                                              SettingsService        $settingsService,
                                               Pack                   $pack = null,
                                               array                  $packIdsFilter = [],
                                               TagTemplate            $tagTemplate = null,
@@ -1189,22 +1217,23 @@ class ArrivageController extends AbstractController {
             $tagTemplate = $pack->getNature()?->getTags()?->first() ?: null;
         }
         $barcodeConfigs = [];
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $usernameParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_LABEL);
-        $dropzoneParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DZ_LOCATION_IN_LABEL);
-        $typeArrivalParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
-        $packCountParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PACK_COUNT_IN_LABEL);
-        $commandAndProjectNumberIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
-        $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
-        $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
-        $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
-        $showDateAndHourArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
-        $showTypeLogoArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_TYPE_LOGO_ON_TAG);
+        $usernameParamIsDefined = $settingsService->getValue($entityManager, Setting::INCLUDE_RECIPIENT_IN_LABEL);
+        $dropzoneParamIsDefined = $settingsService->getValue($entityManager, Setting::INCLUDE_DZ_LOCATION_IN_LABEL);
+        $typeArrivalParamIsDefined = $settingsService->getValue($entityManager, Setting::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
+        $packCountParamIsDefined = $settingsService->getValue($entityManager, Setting::INCLUDE_PACK_COUNT_IN_LABEL);
+        $commandAndProjectNumberIsDefined = $settingsService->getValue($entityManager, Setting::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+        $printTwiceIfCustoms = $settingsService->getValue($entityManager, Setting::PRINT_TWICE_CUSTOMS);
+        $businessUnitParam = $settingsService->getValue($entityManager, Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
+        $projectParam = $settingsService->getValue($entityManager, Setting::INCLUDE_PROJECT_IN_LABEL);
+        $showDateAndHourArrivalUl = $settingsService->getValue($entityManager, Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
+        $showTypeLogoArrivalUl = $settingsService->getValue($entityManager, Setting::INCLUDE_TYPE_LOGO_ON_TAG);
+        $showTruckArrivalDateAndHour = $settingsService->getValue($entityManager, Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR);
+        $showTruckArrivalDateAndHourBarcode = $settingsService->getValue($entityManager, Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR_BARCODE);
+        $showPackNature = $settingsService->getValue($entityManager, Setting::INCLUDE_PACK_NATURE);
 
-
-        $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
-        $firstCustomIconName = $settingRepository->getOneParamByLabel(Setting::CUSTOM_ICON);
-        $firstCustomIconText = $settingRepository->getOneParamByLabel(Setting::CUSTOM_TEXT_LABEL);
+        $firstCustomIconInclude = $settingsService->getValue($entityManager, Setting::INCLUDE_CUSTOMS_IN_LABEL);
+        $firstCustomIconName = $settingsService->getValue($entityManager, Setting::CUSTOM_ICON);
+        $firstCustomIconText = $settingsService->getValue($entityManager, Setting::CUSTOM_TEXT_LABEL);
 
         $firstCustomIconConfig = ($firstCustomIconInclude && $firstCustomIconName && $firstCustomIconText)
             ? [
@@ -1213,9 +1242,9 @@ class ArrivageController extends AbstractController {
             ]
             : null;
 
-        $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EMERGENCY_IN_LABEL);
-        $secondCustomIconName = $settingRepository->getOneParamByLabel(Setting::EMERGENCY_ICON);;
-        $secondCustomIconText = $settingRepository->getOneParamByLabel(Setting::EMERGENCY_TEXT_LABEL);
+        $firstCustomIconInclude = $settingsService->getValue($entityManager, Setting::INCLUDE_EMERGENCY_IN_LABEL);
+        $secondCustomIconName = $settingsService->getValue($entityManager, Setting::EMERGENCY_ICON);;
+        $secondCustomIconText = $settingsService->getValue($entityManager, Setting::EMERGENCY_TEXT_LABEL);
 
         $secondCustomIconConfig = ($firstCustomIconInclude && $secondCustomIconName && $secondCustomIconText)
             ? [
@@ -1244,6 +1273,9 @@ class ArrivageController extends AbstractController {
                     $businessUnitParam,
                     $projectParam,
                     $showDateAndHourArrivalUl,
+                    $showTruckArrivalDateAndHour,
+                    $showTruckArrivalDateAndHourBarcode,
+                    $showPackNature,
                     $forceTagEmpty ? null : $tagTemplate,
                     $forceTagEmpty
                 );
@@ -1284,6 +1316,9 @@ class ArrivageController extends AbstractController {
                 $businessUnitParam,
                 $projectParam,
                 $showDateAndHourArrivalUl,
+                $showTruckArrivalDateAndHour,
+                $showTruckArrivalDateAndHourBarcode,
+                $showPackNature,
             );
         }
 
@@ -1313,6 +1348,7 @@ class ArrivageController extends AbstractController {
     public function printArrivageAlias(Arrivage               $arrivage,
                                        Request                $request,
                                        PackService            $packService,
+                                       SettingsService        $settingsService,
                                        EntityManagerInterface $entityManager,
                                        PDFGeneratorService    $PDFGeneratorService): Response {
         $template = $request->query->get('template')
@@ -1320,7 +1356,7 @@ class ArrivageController extends AbstractController {
             : null;
         $packIdsFilter = $request->query->all('packs') ?: [];
         $forceTagEmpty = $request->query->get('forceTagEmpty', false);
-        return $this->printArrivagePackBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter, $template, $forceTagEmpty);
+        return $this->printArrivagePackBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, $settingsService, null, $packIdsFilter, $template, $forceTagEmpty);
     }
 
     private function getBarcodeConfigPrintAllPacks(Arrivage     $arrivage,
@@ -1337,6 +1373,9 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $businessUnitParam = false,
                                                    ?bool        $projectParam = false,
                                                    ?bool        $showDateAndHourArrivalUl = false,
+                                                   ?bool        $showTruckArrivalDateAndHour = false,
+                                                   ?bool        $showTruckArrivalDateAndHourBarcode = false,
+                                                   ?bool        $showPackNature = false,
                                                    ?TagTemplate $tagTemplate = null,
                                                    bool         $forceTagEmpty = false): array {
         $packs = Stream::from($arrivage->getPacks());
@@ -1359,6 +1398,9 @@ class ArrivageController extends AbstractController {
                                                                         $typeArrivalParamIsDefined,
                                                                         $total,
                                                                         $arrivage,
+                                                                        $showTruckArrivalDateAndHour,
+                                                                        $showTruckArrivalDateAndHourBarcode,
+                                                                        $showPackNature,
                                                                         $packService): ?array {
                 $position = $index + 1;
                 if (
@@ -1381,6 +1423,9 @@ class ArrivageController extends AbstractController {
                         $businessUnitParam,
                         $projectParam,
                         $showDateAndHourArrivalUl,
+                        $showTruckArrivalDateAndHour,
+                        $showTruckArrivalDateAndHourBarcode,
+                        $showPackNature,
                     );
                 }
                 return null;

@@ -2,7 +2,6 @@
 
 namespace App\Entity\ScheduledTask;
 
-use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -14,7 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ExportRepository::class)]
-class Export {
+class Export implements ScheduledTask {
 
     const STATUS_FINISHED = "terminé";
     const STATUS_CANCELLED = "annulé";
@@ -42,7 +41,7 @@ class Export {
     ];
 
     const DESTINATION_EMAIL = 1;
-    const DESTINATION_SFTP = 2;
+    const DESTINATION_SFTP = 2; // TODO Adrien
 
     const PERIOD_INTERVAL_DAY = "day";
     const PERIOD_INTERVAL_WEEK = "week";
@@ -68,9 +67,6 @@ class Export {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $creator = null;
-
-    #[ORM\Column(type: "boolean")]
-    private ?bool $forced = null;
 
     #[ORM\Column(type: "datetime")]
     private ?DateTimeInterface $createdAt = null;
@@ -121,21 +117,17 @@ class Export {
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?DateTimeInterface $endedAt = null;
 
-    #[ORM\Column(type: "datetime", nullable: true)]
-    private ?DateTimeInterface $nextExecution = null;
-
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
 
-    #[ORM\OneToOne(mappedBy: 'export', targetEntity: ExportScheduleRule::class, cascade: ["persist"])]
-    private ?ExportScheduleRule $exportScheduleRule = null;
+    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
+    private ?ScheduleRule $scheduleRule = null;
 
     public function __construct() {
         $this->recipientUsers = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -171,18 +163,6 @@ class Export {
     public function setCreator(?Utilisateur $creator): self
     {
         $this->creator = $creator;
-
-        return $this;
-    }
-
-    public function isForced(): ?bool
-    {
-        return $this->forced;
-    }
-
-    public function setForced(?bool $forced): self
-    {
-        $this->forced = $forced;
 
         return $this;
     }
@@ -415,18 +395,6 @@ class Export {
         return $this;
     }
 
-    public function getNextExecution(): ?DateTimeInterface
-    {
-        return $this->nextExecution;
-    }
-
-    public function setNextExecution(?DateTimeInterface $nextExecution): self
-    {
-        $this->nextExecution = $nextExecution;
-
-        return $this;
-    }
-
     public function getError(): ?string
     {
         return $this->error;
@@ -438,21 +406,12 @@ class Export {
         return $this;
     }
 
-    public function getExportScheduleRule(): ?ExportScheduleRule
-    {
-        return $this->exportScheduleRule;
+    public function getScheduleRule(): ?ScheduleRule {
+        return $this->scheduleRule;
     }
 
-    public function setExportScheduleRule(?ExportScheduleRule $exportScheduleRule): self {
-        if($this->exportScheduleRule && $this->exportScheduleRule->getExport() !== $this) {
-            $oldExportScheduleRule = $this->exportScheduleRule;
-            $this->exportScheduleRule = null;
-            $oldExportScheduleRule->setExport(null);
-        }
-        $this->exportScheduleRule = $exportScheduleRule;
-        if($this->exportScheduleRule && $this->exportScheduleRule->getExport() !== $this) {
-            $this->exportScheduleRule->setExport($this);
-        }
+    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
+        $this->scheduleRule = $scheduleRule;
 
         return $this;
     }

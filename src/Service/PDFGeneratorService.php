@@ -76,18 +76,26 @@ class PDFGeneratorService {
         $barcodeConfigsToTwig = array_map(function($config) use ($isCode128, $width) {
             $code = $config['code'];
             $separated = $config['separated'] ?? false;
+            $labelForSecondBarcode = null;
             $labels = array_filter($config['labels'] ?? [], function($label) {
                 return !empty($label);
             });
 
             $longestLabel = array_reduce($labels, function($carry, $label) {
+                if(is_array($label)) {
+                    return $carry;
+                }
                 $currentLen = strlen($label);
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
 
             // use to wrap long label
             foreach ($labels as $key=>$label){
-                $largeLabel = strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
+                $largeLabel = !is_array($label) && strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
+                if(is_array($label)){
+                    $labelForSecondBarcode = $label;
+                }
+
                 if($largeLabel){
                     $lineBreakKey = strpos($label, ' ', self::MAX_LINE_LENGHT_WRAP);
                     if($lineBreakKey){
@@ -100,6 +108,7 @@ class PDFGeneratorService {
                     }
                 }
             }
+
             return [
                 'barcode' => [
                     'code' => $code,
@@ -114,6 +123,7 @@ class PDFGeneratorService {
                 'secondCustomIcon' => $config['secondCustomIcon'] ?? null,
                 'typeLogoArrivalUl' => $config['typeLogoArrivalUl'] ?? null,
                 'businessUnit' => $config['businessUnit'] ?? false,
+                'labelForSecondBarcode' => $labelForSecondBarcode,
             ];
         }, $barcodeConfigs);
 

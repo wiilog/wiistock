@@ -7,6 +7,7 @@ use App\Entity\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -15,7 +16,7 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method Import[]    findAll()
  * @method Import[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ImportRepository extends EntityRepository
+class ImportRepository extends EntityRepository implements ScheduledTaskRepository
 {
 	public function findByParamsAndFilters(InputBag $params, $filters): array
 	{
@@ -139,13 +140,28 @@ class ImportRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findScheduledImports(): array {
+
+    /**
+     * @return Import[]
+     */
+    public function findScheduled(): array {
+        return $this->createScheduledQueryBuilder()
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countScheduled(): int {
+        return $this->createScheduledQueryBuilder()
+            ->select("COUNT(import)")
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createScheduledQueryBuilder(): QueryBuilder {
         return $this->createQueryBuilder("import")
             ->innerJoin("import.type", "join_type", Join::WITH, "join_type.label = :type")
             ->innerJoin("import.status", "join_status", Join::WITH, "join_status.code = :status")
             ->setParameter("type", Type::LABEL_SCHEDULED_IMPORT)
-            ->setParameter("status", Import::STATUS_SCHEDULED)
-            ->getQuery()
-            ->getResult();
+            ->setParameter("status", Import::STATUS_SCHEDULED);
     }
 }

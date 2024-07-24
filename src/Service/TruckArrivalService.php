@@ -42,7 +42,7 @@ class TruckArrivalService
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public FixedFieldService $fieldsParamService;
+    public PDFGeneratorService $PDFGeneratorService;
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request,
@@ -92,6 +92,22 @@ class TruckArrivalService
                         'attributes' => [
                             "data-id" => $truckArrival->getId(),
                             "onclick" => "deleteTruckArrival($(this))"
+                        ]
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::CREATE_ARRIVAL),
+                        'title' => 'Créer arrivage UL',
+                        'icon' => 'fa fa-plus',
+                        'attributes' => [
+                            'onclick' => "window.location.href = '{$this->router->generate('arrivage_index', ['truckArrivalId' => $truckArrival->getId()])}'",
+                        ],
+                    ],
+                    [
+                        "title" => "Imprimer",
+                        "icon" => "wii-icon wii-icon-printer-black",
+                        "attributes" => [
+                            "data-id" => $truckArrival->getId(),
+                            "onclick" => "printTruckArrivalLabel($(this))"
                         ]
                     ],
                 ],
@@ -196,6 +212,28 @@ class TruckArrivalService
                 'isAttachments' => true,
                 'isNeededNotEmpty' => true,
             ],
+        ];
+    }
+
+    public function getLabelConfig(TruckArrival $truckArrival): array
+    {
+        $labels = [
+            "{$truckArrival->getCarrier()->getLabel()}",
+            "{$this->formatService->datetime($truckArrival->getCreationDate())}",
+        ];
+
+        $barCodeConfig = [
+            "code" => $truckArrival->getNumber(),
+            "labels" => array_filter($labels, function (string $label) {
+                return !empty($label);
+            }),
+        ];
+
+        $fileName = $this->PDFGeneratorService->getBarcodeFileName([$barCodeConfig], "arrivage_camion");
+
+        return [
+            $fileName,
+            $barCodeConfig,
         ];
     }
 }

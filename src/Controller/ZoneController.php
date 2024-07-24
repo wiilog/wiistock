@@ -7,7 +7,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\ZoneService;
@@ -86,10 +86,10 @@ class ZoneController extends AbstractController
         if ($zone) {
             if (!$data['active']) {
                 $locationRepository = $manager->getRepository(Emplacement::class);
-                $purchaseRequestScheduleRuleRepository = $manager->getRepository(PurchaseRequestScheduleRule::class);
+                $purchaseRequestPlanRepository = $manager->getRepository(PurchaseRequestPlan::class);
                 $issue = ($locationRepository->isLocationInNotDoneInventoryMission($zone) ? ' une mission d’inventaire en cours, ' : '')
-                    . ($locationRepository->isLocationInZoneInventoryMissionRule($zone) ? ' une planification d’inventaire, ' : '')
-                    . ( $purchaseRequestScheduleRuleRepository->isZoneInPurchaseRequestScheduleRule($zone) ? ' une planification de demande d’achat, ' : '');
+                    . ($locationRepository->isLocationInZoneInventoryMissionPlan($zone) ? ' une planification d’inventaire, ' : '')
+                    . ( $purchaseRequestPlanRepository->isZoneInPurchaseRequestPlan($zone) ? ' une planification de demande d’achat, ' : '');
 
                 if ($issue) {
                     throw new FormException("La zone ou ses emplacements sont contenus dans" . $issue . "vous ne pouvez donc pas la désactiver");
@@ -122,14 +122,14 @@ class ZoneController extends AbstractController
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Zone                   $zone,
                            EntityManagerInterface $entityManager): Response {
-        $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
+        $purchaseRequestPlanRepository = $entityManager->getRepository(PurchaseRequestPlan::class);
 
         if (!$zone->getLocations()->isEmpty()){
             throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est liée à un ou plusieurs emplacements. Vous pouvez la rendre inactive en modifiant la zone.");
         }
 
-        $purchaseRequestCounter = Stream::from($purchaseRequestScheduleRuleRepository->findAll())
-            ->filter(fn(PurchaseRequestScheduleRule $purchaseRequestScheduleRule) => $purchaseRequestScheduleRule->getZones()->contains($zone))
+        $purchaseRequestCounter = Stream::from($purchaseRequestPlanRepository->findAll())
+            ->filter(fn(PurchaseRequestPlan $purchaseRequestPlan) => $purchaseRequestPlan->getZones()->contains($zone))
             ->count();
         if ($purchaseRequestCounter > 0){
             throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est lié à une ou plusieurs planifications de demandes d'achat. Vous pouvez la rendre inactive en modifiant la zone.");

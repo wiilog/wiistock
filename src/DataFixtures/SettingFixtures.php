@@ -405,6 +405,18 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                     FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
                 ]),
             ],
+            Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR => [
+                'default' => false,
+            ],
+            Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR_BARCODE => [
+                'default' => false,
+            ],
+            Setting::INCLUDE_PACK_NATURE => [
+                'default' => false,
+            ],
+            Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

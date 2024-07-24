@@ -16,16 +16,18 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
+use App\Service\PDFGeneratorService;
 use App\Service\ReserveService;
+use App\Service\SettingsService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
 use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -64,6 +66,8 @@ class TruckArrivalController extends AbstractController
     public function show(TruckArrival           $truckArrival,
                          EntityManagerInterface $entityManager,
                          TruckArrivalService    $truckArrivalService): Response {
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
         $lineAssociated = $truckArrival->getTrackingLines()
                 ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                 ->count()
@@ -81,6 +85,7 @@ class TruckArrivalController extends AbstractController
             'minTrackingNumber' => $minTrackingNumber,
             'maxTrackingNumber' => $maxTrackingNumber,
             'showDetails' => $truckArrivalService->createHeaderDetailsConfig($truckArrival),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL),
         ]);
     }
 
@@ -208,12 +213,15 @@ class TruckArrivalController extends AbstractController
                            EntityManagerInterface $entityManager,
                            UniqueNumberService    $uniqueNumberService,
                            AttachmentService      $attachmentService,
+                           SettingsService        $settingsService,
                            TruckArrivalLineService $truckArrivalLineService): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $autoPrintTruckArrivalLabel = $settingsService->getValue($entityManager, Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL);
 
         $now = new DateTime();
         $data = $request->request;
@@ -296,18 +304,11 @@ class TruckArrivalController extends AbstractController
             }
         }
 
-        if($truckArrival->getTrackingLines()->isEmpty()){
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Impossible d'enregistrer votre action. Veuillez renseigner au moins un n° de tracking transporteur valide."
-            ]);
-        }
-
         $entityManager->flush();
 
         return new JsonResponse([
             'success' => true,
-            'truckArrivalId' => $truckArrival->getId(),
+            'truckArrivalId' => $autoPrintTruckArrivalLabel ? $truckArrival->getId() : null,
             'redirect' => $data->has('goToArrivalButton') && boolval($data->get('goToArrivalButton'))
                             ? $this->generateUrl('arrivage_index', [
                                 'truckArrivalId' => $truckArrival->getId()
@@ -350,7 +351,6 @@ class TruckArrivalController extends AbstractController
                                       TruckArrivalLineService $truckArrivalLineService): Response
     {
         $data = $request->request->all();
-        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
 
@@ -464,5 +464,22 @@ class TruckArrivalController extends AbstractController
             "success" => true,
             "msg" => "Un type de réserve a bien été supprimé",
         ]);
+    }
+
+    #[Route('/imprimer', name: 'print_label', options: ['expose' => true],  methods: self::GET)]
+    public function printTruckArrivalLabel(EntityManagerInterface $entityManager,
+                                           Request                $request,
+                                           PDFGeneratorService    $PDFGeneratorService,
+                                           TruckArrivalService    $truckArrivalService): PdfResponse {
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $truckArrivalId = $request->query->getInt('truckArrivalId');
+        $truckArrival = $truckArrivalRepository->find($truckArrivalId);
+
+        [$fileName, $barcodeConfig] = $truckArrivalService->getLabelConfig($truckArrival);
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, [$barcodeConfig]),
+            $fileName
+        );
     }
 }
