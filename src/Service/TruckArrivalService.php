@@ -95,6 +95,7 @@ class TruckArrivalService
                         ]
                     ],
                     [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::CREATE_ARRIVAL),
                         'title' => 'Créer arrivage UL',
                         'icon' => 'fa fa-plus',
                         'attributes' => [

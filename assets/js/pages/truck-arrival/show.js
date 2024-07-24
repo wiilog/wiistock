@@ -32,7 +32,11 @@ $(function () {
 
     $('.go-to-arrival-creation').on('click', function () {
         const truckArrivalId = $(this).data('id');
-        window.location.href = Routing.generate('arrivage_index', {truckArrivalId});
+        if(truckArrivalId) {
+            window.location.href = Routing.generate('arrivage_index', {truckArrivalId});
+        } else {
+            showBSAlert(`Une erreur est survenue lors de la redirection vers la page d'arrivage d'UL.`, 'danger');
+        }
     });
 
     const $reserveModals = $('.reserveModal');
