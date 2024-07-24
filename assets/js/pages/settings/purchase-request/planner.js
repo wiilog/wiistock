@@ -56,7 +56,7 @@ export function initializePurchaseRequestPlanner($container) {
             tables: [tablePurchaseRequestPlanner],
         });
 
-    $tablePurchaseRequestPlanner.on('click', '.delete-purchase-request-schedule-rule', function () {
+    $tablePurchaseRequestPlanner.on('click', '.delete-purchase-request-plan', function () {
         AJAX
             .route(DELETE, 'purchase_request_plan_delete', {
                 purchaseRequestPlan: $(this).data('id')

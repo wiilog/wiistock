@@ -3094,7 +3094,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/mission-rules-force", name="settings_mission_plans_force", options={"expose"=true})
+     * @Route("/mission-plans-force", name="settings_mission_plans_force", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionPlansForce(EntityManagerInterface $manager, InvMissionService $invMissionService): Response {
@@ -3110,7 +3110,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/mission-rules-api", name="settings_mission_plans_api", options={"expose"=true})
+     * @Route("/mission-plans-api", name="settings_mission_plans_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionPlansApi(EntityManagerInterface $manager): Response {
@@ -3172,7 +3172,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/mission-rules/supprimer/{entity}", name="settings_delete_mission_plan", options={"expose"=true})
+     * @Route("/mission-plans/supprimer/{entity}", name="settings_delete_mission_plan", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function deleteMissionPlans(EntityManagerInterface $entityManager, InventoryMissionPlan $entity): Response {
