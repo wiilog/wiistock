@@ -31,6 +31,12 @@ class ScheduledExportCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+
+        $a = 'yep ';
+        while (true) {
+            $a = str_repeat($a, 1024 * 1024);
+        }
+
         $exportRepository = $this->getEntityManager()->getRepository(Export::class);
 
         $exportsCache = $this->exportService->getScheduledCache($this->getEntityManager());
