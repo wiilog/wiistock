@@ -4,13 +4,14 @@ namespace App\Entity\Inventory;
 
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use DateTime;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRepository::class)]
@@ -49,8 +50,8 @@ class InventoryMission {
     #[ORM\ManyToMany(targetEntity: Article::class, mappedBy: 'inventoryMissions')]
     private Collection $articles;
 
-    #[ORM\ManyToOne(targetEntity: InventoryMissionRule::class, inversedBy: 'createdMissions')]
-    private ?InventoryMissionRule $creator = null;
+    #[ORM\ManyToOne(targetEntity: InventoryMissionPlan::class, inversedBy: 'createdMissions')]
+    private ?InventoryMissionPlan $creator = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $description = null;
@@ -193,12 +194,12 @@ class InventoryMission {
         return $this;
     }
 
-    public function getCreator(): ?InventoryMissionRule
+    public function getCreator(): ?InventoryMissionPlan
     {
         return $this->creator;
     }
 
-    public function setCreator(?InventoryMissionRule $creator): self
+    public function setCreator(?InventoryMissionPlan $creator): self
     {
         $this->creator = $creator;
 

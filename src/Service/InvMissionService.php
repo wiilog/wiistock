@@ -3,7 +3,6 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -11,17 +10,15 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
-use App\Entity\Inventory\InventoryMissionRule;
-use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
-use App\Helper\FormatHelper;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -278,41 +275,42 @@ class InvMissionService {
         ];
     }
 
-    public function generateMission(InventoryMissionRule $rule): void
-    {
+    public function generateMission(EntityManagerInterface $entityManager,
+                                    InventoryMissionPlan   $inventoryMissionPlan,
+                                    DateTime               $taskExecution): void {
         $now = new DateTime();
         $now->setTime($now->format('H'), $now->format('i'), 0, 0);
 
-        $mission = new InventoryMission();
-        $mission->setCreator($rule);
-        $mission->setDescription($rule->getDescription());
-        $mission->setName($rule->getLabel());
-        $mission->setCreatedAt($now);
-        $mission->setStartPrevDate(new DateTime("now"));
-        $mission->setEndPrevDate(new DateTime("now +{$rule->getDuration()} {$rule->getDurationUnit()}"));
-        $mission->setRequester($rule->getRequester());
-        $mission->setType($rule->getMissionType());
-        $mission->setDone(false);
+        $inventoryMission = new InventoryMission();
+        $inventoryMission->setCreator($inventoryMissionPlan);
+        $inventoryMission->setDescription($inventoryMissionPlan->getDescription());
+        $inventoryMission->setName($inventoryMissionPlan->getLabel());
+        $inventoryMission->setCreatedAt($now);
+        $inventoryMission->setStartPrevDate(new DateTime("now"));
+        $inventoryMission->setEndPrevDate(new DateTime("now +{$inventoryMissionPlan->getDuration()} {$inventoryMissionPlan->getDurationUnit()}"));
+        $inventoryMission->setRequester($inventoryMissionPlan->getRequester());
+        $inventoryMission->setType($inventoryMissionPlan->getMissionType());
+        $inventoryMission->setDone(false);
 
-        if ($mission->getType() === InventoryMission::LOCATION_TYPE) {
-            foreach ($rule->getLocations() as $location) {
+        if ($inventoryMission->getType() === InventoryMission::LOCATION_TYPE) {
+            foreach ($inventoryMissionPlan->getLocations() as $location) {
                 $missionLocation = new InventoryLocationMission();
                 $missionLocation->setLocation($location);
-                $missionLocation->setInventoryMission($mission);
+                $missionLocation->setInventoryMission($inventoryMission);
                 $missionLocation->setDone(false);
                 $this->entityManager->persist($missionLocation);
             }
         } else {
-            $this->createMissionArticleType($rule, $mission);
+            $this->createMissionArticleType($inventoryMissionPlan, $inventoryMission);
         }
 
-        $rule->addCreatedMission($mission);
-        $rule->setLastRun($now);
-        $this->entityManager->persist($mission);
-        $this->entityManager->flush();
+        $inventoryMissionPlan->addCreatedMission($inventoryMission);
+        $inventoryMissionPlan->getScheduleRule()?->setLastRun($taskExecution);
+        $entityManager->persist($inventoryMission);
+        $entityManager->flush();
     }
 
-    public function createMissionArticleType(InventoryMissionRule $rule, InventoryMission $mission): void
+    public function createMissionArticleType(InventoryMissionPlan $rule, InventoryMission $mission): void
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);

@@ -12,13 +12,13 @@ use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
-use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
@@ -122,9 +122,9 @@ class UserService
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
-        $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
+        $purchaseRequestPlanRepository = $entityManager->getRepository(PurchaseRequestPlan::class);
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
         $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
@@ -141,16 +141,16 @@ class UserService
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
         $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
-        $hasInventoryMissionRules = (
-            $inventoryMissionRuleRepository->count(['creator' => $user])
-            + $inventoryMissionRuleRepository->count(['requester' => $user])
+        $hasInventoryMissionPlans = (
+            $inventoryMissionPlanRepository->count(['creator' => $user])
+            + $inventoryMissionPlanRepository->count(['requester' => $user])
         );
         $hasInventoryMissions = (
             $inventoryMissionRepository->count(['requester' => $user])
             + $inventoryMissionRepository->count(['validator' => $user])
             + $inventoryLocationMissionRepository->count(['operator' => $user])
         );
-        $hasPurchaseRequestScheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
+        $hasPurchasePlanRules = $purchaseRequestPlanRepository->count(['requester' => $user]);
         $hasStatusHistory = $statusHistoryRepository->count(['validatedBy' => $user->getId()]) + $statusHistoryRepository->count(['initiatedBy' => $user->getId()]);
         $hasShippingRequest = $shippingRequestRepository->count(['createdBy' => $user->getId()]) + $shippingRequestRepository->count(['validatedBy' => $user->getId()])
             + $shippingRequestRepository->count(['plannedBy' => $user->getId()]) + $shippingRequestRepository->count(['treatedBy' => $user->getId()])
@@ -169,9 +169,9 @@ class UserService
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
             'emplacement(s)' => $hasSignatoryLocation,
-            "planification(s) d'inventaire" => $hasInventoryMissionRules,
+            "planification(s) d'inventaire" => $hasInventoryMissionPlans,
             "mission(s) d'inventaire" => $hasInventoryMissions,
-            "planification(s) de demande d'achat" => $hasPurchaseRequestScheduleRules,
+            "planification(s) de demande d'achat" => $hasPurchasePlanRules,
             "historique(s) de statut" => $hasStatusHistory,
             "demande(s) d'expédition" => $hasShippingRequest,
             "lien(s) externe" => $hasExternalLinks,

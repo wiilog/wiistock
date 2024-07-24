@@ -1,43 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/6.5/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+         convertErrorsToExceptions="false"
+         convertNoticesToExceptions="false"
+         convertWarningsToExceptions="false"
          backupGlobals="false"
          colors="true"
-         bootstrap="vendor/autoload.php"
->
+         bootstrap="vendor/autoload.php">
+    <coverage>
+        <include>
+            <directory>./src/</directory>
+        </include>
+    </coverage>
     <php>
-        <ini name="error_reporting" value="-1" />
-        <env name="KERNEL_CLASS" value="App\Kernel" />
-        <env name="APP_ENV" value="test" />
-        <env name="APP_DEBUG" value="1" />
-        <env name="APP_SECRET" value="s$cretf0rt3st" />
-        <env name="SHELL_VERBOSITY" value="-1" />
-        <!-- define your env variables for the test env here -->
+        <ini name="error_reporting" value="-1"/>
+        <env name="APP_ENV" value="test" force="true"/>
 
+        <env name="KERNEL_CLASS" value="App\Kernel"/>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="999999"/>
+        <env name="PANTHER_APP_ENV" value="panther"/>
+
+        <env name="APP_DEBUG" value="1"/>
+        <env name="APP_SECRET" value="42e3bb3f05285c5f56e30d4fa11eba45"/>
+        <env name="APP_LOCALE" value="wiilog"/>
+        <env name="APP_CLIENT" value="wiilog"/>
+        <env name="APP_INSTANCE" value="wiilog-test"/>
+        <env name="APP_DASHBOARD_TOKEN" value="42e3bb3f05285c5f56e30d4fa11eba45"/>
+        <env name="APP_PRODUCTION_REQUEST_PLANNING_TOKEN" value="ACHJz3Mqk5MqHQ38vRt38F5d34dh57ec"/>
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="APP_CONTEXT" value="prod"/>
+        <env name="APP_PRODUCTION_REQUEST_PLANNING_TOKEN" value="ACHJz3Mqk5MqHQ38vRt38F5d34dh57ec"/>
+
+        <env name="SHELL_VERBOSITY" value="-1"/>
+        <!-- define your env variables for the test env here -->
         <!-- ###+ nelmio/cors-bundle ### -->
         <env name="CORS_ALLOW_ORIGIN" value="^https?://localhost(:[0-9]+)?$"/>
         <!-- ###- nelmio/cors-bundle ### -->
-
         <!-- ###+ lexik/jwt-authentication-bundle ### -->
         <env name="JWT_SECRET_KEY" value="%kernel.project_dir%/config/jwt/private.pem"/>
         <env name="JWT_PUBLIC_KEY" value="%kernel.project_dir%/config/jwt/public.pem"/>
         <env name="JWT_PASSPHRASE" value="e9d9d5f1d5f28f6fa3b4299e41c502c1"/>
         <!-- ###- lexik/jwt-authentication-bundle ### -->
-
         <!-- ###+ knplabs/knp-snappy-bundle ### -->
         <env name="WKHTMLTOPDF_PATH" value="/usr/local/bin/wkhtmltopdf"/>
         <env name="WKHTMLTOIMAGE_PATH" value="/usr/local/bin/wkhtmltoimage"/>
         <!-- ###- knplabs/knp-snappy-bundle ### -->
-
         <!-- ###+ symfony/framework-bundle ### -->
-        <env name="APP_ENV" value="dev"/>
-        <env name="APP_SECRET" value="454371f4eeb46a79ed02a883f75df8cd"/>
         <!-- env name="TRUSTED_PROXIES" value="127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" -->
         <!-- env name="TRUSTED_HOSTS" value="'^(localhost|example\.com)$'" -->
         <!-- ###- symfony/framework-bundle ### -->
-
         <!-- ###+ doctrine/doctrine-bundle ### -->
         <!-- Format described at https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url -->
         <!-- For an SQLite database, use: "sqlite:///%kernel.project_dir%/var/data.db" -->
@@ -45,7 +57,6 @@
         <!-- IMPORTANT: You MUST configure your server version, either here or in config/packages/doctrine.yaml -->
         <env name="DATABASE_URL" value="mysql://db_user:db_password@127.0.0.1:3306/db_name?serverVersion=5.7"/>
         <!-- ###- doctrine/doctrine-bundle ### -->
-
         <!-- ###+ symfony/swiftmailer-bundle ### -->
         <!-- For Gmail as a transport, use: "gmail://username:password@localhost" -->
         <!-- For a generic SMTP server, use: "smtp://localhost:25?encryption=&auth_mode=" -->
@@ -53,20 +64,12 @@
         <env name="MAILER_URL" value="null://localhost"/>
         <!-- ###- symfony/swiftmailer-bundle ### -->
     </php>
-
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>tests/</directory>
         </testsuite>
     </testsuites>
-
-    <filter>
-        <whitelist>
-            <directory>./src/</directory>
-        </whitelist>
-    </filter>
-
     <listeners>
-        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
     </listeners>
 </phpunit>

@@ -12,14 +12,12 @@ use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
@@ -30,10 +28,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
-class ScheduledExportService
-{
-    #[Required]
-    public CacheService $cacheService;
+class ScheduledExportService {
 
     #[Required]
     public CSVExportService $csvExportService;
@@ -66,43 +61,14 @@ class ScheduledExportService
     public FTPService $ftpService;
 
     #[Required]
-    public ScheduleRuleService $scheduleRuleService;
-
-    #[Required]
     public LanguageService $languageService;
 
     #[Required]
-    public TranslationService $translation;
+    public TranslationService $translationService;
 
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    public function saveScheduledExportsCache(EntityManagerInterface $entityManager): void {
-        $this->cacheService->set(CacheService::COLLECTION_EXPORTS, "scheduled", $this->buildScheduledExportsCache($entityManager));
-    }
-
-    public function getScheduledCache(EntityManagerInterface $entityManager): array {
-        return $this->cacheService->get(CacheService::COLLECTION_EXPORTS, "scheduled", fn() => $this->buildScheduledExportsCache($entityManager));
-    }
-
-    private function buildScheduledExportsCache(EntityManagerInterface $entityManager): array {
-        $exportRepository = $entityManager->getRepository(Export::class);
-
-        return Stream::from($exportRepository->findScheduledExports())
-            ->keymap(fn(Export $export) => [$export->getId(), $this->scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule())])
-            ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
-            ->map(fn(DateTime $date) => $this->getScheduleExportKeyCache($date))
-            ->reduce(function ($accumulator, $date, $id) {
-                $accumulator[$date][] = $id;
-                return $accumulator;
-            }, []);
-    }
-
-    public function getScheduleExportKeyCache(DateTime $dateTime) {
-        return $dateTime->format("Y-m-d-H-i");
-    }
-
-    public function export(EntityManagerInterface $entityManager, Export $export) {
+    public function export(EntityManagerInterface $entityManager,
+                           Export                 $export,
+                           DateTime               $taskExecution): void {
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $start = new DateTime();
@@ -190,8 +156,10 @@ class ScheduledExportService
 
             $freeFieldsById = Stream::from($dispatches)
                 ->keymap(fn($dispatch) => [
-                    $dispatch['id'], $dispatch['freeFields']
-                ])->toArray();
+                    $dispatch['id'],
+                    $dispatch['freeFields']
+                ])
+                ->toArray();
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
             $columnToExport = $exportToRun->getColumnToExport();
 
@@ -223,8 +191,10 @@ class ScheduledExportService
 
             $freeFieldsById = Stream::from($productionRequests)
                 ->keymap(static fn(array $productionRequest) => [
-                    $productionRequest['id'], $productionRequest['freeFields']
-                ])->toArray();
+                    $productionRequest['id'],
+                    $productionRequest['freeFields']
+                ])
+                ->toArray();
 
             $this->csvExportService->putLine($output, $this->dataExportService->createProductionRequestsHeader());
             $this->dataExportService->exportProductionRequest($productionRequests, $output, $freeFieldsConfig, $freeFieldsById);
@@ -241,11 +211,11 @@ class ScheduledExportService
                 $exportToRun->setError("L'export est trop volumineux pour être envoyé par mail (maximum 20MO)");
             } else {
                 $this->mailerService->sendMail(
-                    $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Export des $entity",
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Export des $entity",
                     $this->templating->render("mails/contents/mailExportDone.twig", [
                         "entity" => $entity,
                         "export" => $exportToRun,
-                        "frequency" => match ($exportToRun->getExportScheduleRule()?->getFrequency()) {
+                        "frequency" => match ($exportToRun->getScheduleRule()?->getFrequency()) {
                             ScheduleRule::ONCE => "une fois",
                             ScheduleRule::HOURLY => "chaque heure",
                             ScheduleRule::DAILY => "chaque jour",
@@ -288,22 +258,18 @@ class ScheduledExportService
         }
 
         $exportToRun
-            ->setForced(false)
             ->setBeganAt($start)
             ->setEndedAt(new DateTime());
 
-        $export
-            ->setForced(false)
-            ->setNextExecution($this->scheduleRuleService->calculateNextExecutionDate($exportToRun->getExportScheduleRule()));
-
         $entityManager->persist($exportToRun);
+        $exportToRun->getScheduleRule()?->setLastRun($taskExecution);
         $entityManager->flush();
 
         @unlink($path);
     }
 
     private function getFrequencyDescription(Export $export): string {
-        $rule = $export->getExportScheduleRule();
+        $rule = $export->getScheduleRule();
         if($rule->getFrequency() === ScheduleRule::DAILY) {
             $period = $rule->getPeriod();
             $periodStr = $period && $period > 1
@@ -311,7 +277,7 @@ class ScheduledExportService
                 : "jours";
         } else if($rule->getFrequency() === ScheduleRule::WEEKLY) {
             $days = Stream::from($rule->getWeekDays())
-                ->map(fn(int $weekDay) => FormatHelper::WEEK_DAYS[$weekDay])
+                ->map(fn(int $weekDay) => FormatService::WEEK_DAYS[$weekDay])
                 ->join(", ");
             $period = $rule->getPeriod();
             $periodStr = $period && $period > 1
@@ -320,7 +286,7 @@ class ScheduledExportService
         } else if($rule->getFrequency() === ScheduleRule::MONTHLY) {
             $days = join(", ", $rule->getMonthDays());
             $months = Stream::from($rule->getMonths())
-                ->map(fn(int $month) => FormatHelper::MONTHS[$month])
+                ->map(fn(int $month) => FormatService::MONTHS[$month])
                 ->join(", ");
         }
 
@@ -362,12 +328,12 @@ class ScheduledExportService
         return [$startDate, $endDate];
     }
 
-    private function cloneScheduledExport(Export $export) {
-        if($export->getExportScheduleRule()->getFrequency() === ScheduleRule::ONCE) {
+    private function cloneScheduledExport(Export $export): Export {
+        if($export->getScheduleRule()->getFrequency() === ScheduleRule::ONCE) {
             return $export;
         }
 
-        $rule = $export->getExportScheduleRule() ?? new ExportScheduleRule();
+        $ruleToClone = $export->getScheduleRule() ?? new ScheduleRule();
 
         return (new Export())
             ->setEntity($export->getEntity())
@@ -382,14 +348,6 @@ class ScheduledExportService
             ->setType($export->getType())
             ->setStatus($export->getStatus())
             ->setCreatedAt($export->getCreatedAt())
-            ->setExportScheduleRule((new ExportScheduleRule())
-                ->setFrequency($rule->getFrequency())
-                ->setPeriod($rule->getPeriod())
-                ->setIntervalTime($rule->getIntervalTime())
-                ->setIntervalPeriod($rule->getIntervalPeriod())
-                ->setBegin($rule->getBegin())
-                ->setMonths($rule->getMonths())
-                ->setMonthDays($rule->getMonthDays())
-                ->setWeekDays($rule->getWeekDays()));
+            ->setScheduleRule($ruleToClone->clone());
     }
 }

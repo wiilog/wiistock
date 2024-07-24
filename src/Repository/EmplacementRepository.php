@@ -517,11 +517,11 @@ class EmplacementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function isLocationInZoneInventoryMissionRule(Zone $zone): bool {
+    public function isLocationInZoneInventoryMissionPlan(Zone $zone): bool {
         return $this->createQueryBuilder('location')
             ->select('COUNT(location)')
             ->andWhere('location.zone = :zone')
-            ->andWhere('location.inventoryMissionRules IS NOT EMPTY')
+            ->andWhere('location.inventoryMissionPlans IS NOT EMPTY')
             ->setParameter('zone', $zone)
             ->getQuery()
             ->getSingleScalarResult() > 0;

@@ -21,7 +21,6 @@ use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\Kiosk;
@@ -32,7 +31,8 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -69,7 +69,6 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -84,9 +83,7 @@ use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class SettingsController extends AbstractController {
 
     #[Required]
@@ -803,13 +800,13 @@ class SettingsController extends AbstractController {
         $translationCategoryRepository = $entityManager->getRepository(TranslationCategory::class);
 
         $defaultLanguages = Stream::from($languageRepository->findBy(['selectable' => true]))
-        ->map(fn(Language $language) => [
-            'label' => $language->getLabel(),
-            'value' => $language->getId(),
-            'iconUrl' => $language->getFlag(),
-            'checked' => $language->getSelected(),
-        ])
-        ->toArray();
+            ->map(fn(Language $language) => [
+                'label' => $language->getLabel(),
+                'value' => $language->getId(),
+                'iconUrl' => $language->getFlag(),
+                'checked' => $language->getSelected(),
+            ])
+            ->toArray();
 
         $languages = $languageService->getLanguages();
 
@@ -3097,14 +3094,19 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/mission-rules-force", name="settings_mission_rules_force", options={"expose"=true})
+     * @Route("/mission-plans-force", name="settings_mission_plans_force", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionRulesForce(EntityManagerInterface $manager, InvMissionService $invMissionService): Response {
-        $rules = $manager->getRepository(InventoryMissionRule::class)->findBy(['active' => true]);
+    public function missionPlansForce(EntityManagerInterface $entityManager,
+                                      InvMissionService      $invMissionService): Response {
+        $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
+        $inventoryMissionPlans = $inventoryMissionPlanRepository->findScheduled();
 
-        foreach($rules as $rule) {
-            $invMissionService->generateMission($rule);
+        $taskExecution = new DateTime();
+
+        /** @var InventoryMissionPlan $inventoryMissionPlan */
+        foreach($inventoryMissionPlans as $inventoryMissionPlan) {
+            $invMissionService->generateMission($entityManager, $inventoryMissionPlan, $taskExecution);
         }
 
         return $this->json([
@@ -3113,15 +3115,15 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/mission-rules-api", name="settings_mission_rules_api", options={"expose"=true})
+     * @Route("/mission-plans-api", name="settings_mission_plans_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionRulesApi(EntityManagerInterface $manager): Response {
+    public function missionPlansApi(EntityManagerInterface $manager): Response {
         $data = [];
-        $missionRuleRepository = $manager->getRepository(InventoryMissionRule::class);
+        $missionPlanRepository = $manager->getRepository(InventoryMissionPlan::class);
 
-        /** @var InventoryMissionRule $mission */
-        foreach ($missionRuleRepository->findAll() as $mission) {
+        /** @var InventoryMissionPlan $mission */
+        foreach ($missionPlanRepository->findAll() as $mission) {
             $data[] = [
                 "actions" => $this->renderView("utils/action-buttons/dropdown.html.twig", [
                     "actions" => [
@@ -3130,7 +3132,7 @@ class SettingsController extends AbstractController {
                             "actionOnClick" => true,
                             "attributes" => [
                                 "data-id" => $mission->getId(),
-                                "onclick" => "editMissionRule($(this))",
+                                "onclick" => "editMissionPlan($(this))",
                             ],
                         ],
                         [
@@ -3158,11 +3160,11 @@ class SettingsController extends AbstractController {
                 "categories" => Stream::from($mission->getCategories())
                     ->map(fn(InventoryCategory $category) => $category->getLabel())
                     ->join(", "),
-                "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getFrequency()] ?? null,
-                "duration" => $mission->getDuration() . ' ' . (InventoryMissionRule::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null),
+                "periodicity" => ScheduleRule::FREQUENCIES_LABELS[$mission->getScheduleRule()?->getFrequency()] ?? null,
+                "duration" => $mission->getDuration() . ' ' . (InventoryMissionPlan::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null),
                 "requester" => $this->getFormatter()->user($mission->getRequester()),
                 "creator" => $this->getFormatter()->user($mission->getCreator()),
-                "lastExecution" => $mission->getLastRun() ? $mission->getLastRun()->format('d/m/Y H:i:s') : "",
+                "lastExecution" => $this->getFormatter()->datetime($mission->getScheduleRule()?->getLastRun()),
                 "active" => $this->getFormatter()->bool($mission->isActive()),
             ];
         }
@@ -3175,14 +3177,14 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/mission-rules/supprimer/{entity}", name="settings_delete_mission_rule", options={"expose"=true})
+     * @Route("/mission-plans/supprimer/{entity}", name="settings_delete_mission_plan", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function deleteMissionRules(EntityManagerInterface $entityManager, InventoryMissionRule $entity): Response {
+    public function deleteMissionPlans(EntityManagerInterface $entityManager, InventoryMissionPlan $entity): Response {
 
         if (!empty($entity->getLocations())) {
             foreach ($entity->getLocations() as $location) {
-                $location->removeInventoryMissionRule($entity);
+                $location->removeInventoryMissionPlan($entity);
             }
         }
 
