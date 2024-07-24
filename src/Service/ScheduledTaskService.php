@@ -4,10 +4,7 @@ namespace App\Service;
 
 use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\InventoryMissionPlan;
-use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduledTask;
-use App\Entity\ScheduledTask\ScheduleRule;
 use App\Repository\ScheduledTask\ScheduledTaskRepository;
 use DateTime;
 use DateTimeInterface;
@@ -20,7 +17,7 @@ use WiiCommon\Helper\Stream;
 class ScheduledTaskService
 {
 
-    public const MAX_ONGOING_SCHEDULED_TASKS = 5;
+    public const MAX_ONGOING_SCHEDULED_TASKS = 1;
     private const CACHE_KEY = "scheduled";
 
     #[Required]
@@ -48,13 +45,17 @@ class ScheduledTaskService
                                          string                 $class,
                                          callable               $teatTask): int {
 
-        $exports = $this->getTasksToExecute($entityManager, $class, new DateTime("now"));
+        [
+            "tasks" => $tasks,
+            "cacheExists" => $cacheExists,
+        ] = $this->getTasksToExecute($entityManager, $class, new DateTime("now"));
 
-        if (!empty($exports)) {
+        if (!empty($tasks) || !$cacheExists) {
             // refresh cache for next execution before executing current exports
+            // OR refresh new cache if it does not exist
             $this->saveTasksCache($entityManager, $class, new DateTime("now +1 minute"));
 
-            foreach ($exports as $export) {
+            foreach ($tasks as $export) {
                 $teatTask($export);
             }
         }
@@ -69,7 +70,7 @@ class ScheduledTaskService
     }
 
     /**
-     * @return ScheduledTask[]
+     * @return array{tasks: ScheduledTask[], cacheExists: boolean}
      */
     private function getTasksToExecute(EntityManagerInterface $entityManager,
                                        string                 $class,
@@ -94,7 +95,10 @@ class ScheduledTaskService
             $tasksToExecuteNow = $allTasks[$cacheKey] ?? [];
         }
 
-        return $tasksToExecuteNow;
+        return [
+            "tasks" => $tasksToExecuteNow,
+            "cacheExists" => isset($cache),
+        ];
     }
 
     private function saveTasksCache(EntityManagerInterface $entityManager,
