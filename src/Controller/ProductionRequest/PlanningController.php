@@ -19,7 +19,10 @@ use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
+use App\Repository\ProductionRequestRepository;
+use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
@@ -67,10 +70,11 @@ class PlanningController extends AbstractController {
 
     #[Route('/api', name: 'api', options: ['expose' => true], methods: self::GET)]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
-    public function api(EntityManagerInterface $entityManager,
-                        LanguageService        $languageService,
-                        FormatService          $formatService,
-                        Request                $request): Response {
+    public function api(EntityManagerInterface   $entityManager,
+                        LanguageService          $languageService,
+                        ProductionRequestService $productionRequestService,
+                        FormatService            $formatService,
+                        Request                  $request): Response {
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
@@ -149,39 +153,48 @@ class PlanningController extends AbstractController {
                 ])
                 ->toArray();
 
+            $fieldModes = $user->getFieldModesByPage()[FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING] ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
+            dump($fieldModes);
+
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($formatService, $fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
-                    $fields = Stream::from([
-                        FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
-                        FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-                        FixedFieldEnum::attachments->name => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
-                    ])
-                        ->filter(static function (mixed $_, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
-                            $fixedField = $fixedFields[$fieldCode] ?? null;
-                            return $fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit();
-                        })
-                        ->keymap(static fn(mixed $value, string $field) => [
-                            FixedFieldEnum::fromCase($field) ?: $field,
-                            $value
-                        ])
-                        ->concat( // concat fixedField with freeField
-                            Stream::from($freeFieldsByType[$productionRequest->getType()->getId()] ?? [])
-                                ->keymap(static fn(FreeField $freeField) => [
-                                    $freeField->getLabelIn($userLanguage, $defaultLanguage),
-                                    $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
-                                ])
-                        )
-                        // remove element without values
-                        ->filter(static fn(mixed $value) => !in_array($value, [null, ""]))
-                        ->toArray();
+                ->keymap(function (ProductionRequest $productionRequest) use ($fieldModes, $user, $entityManager, $productionRequestService, $formatService, $fixedFieldRepository, $freeFieldRepository, $defaultLanguage, $external) {
+                    $fields = [
+                        [
+                            "field" => FixedFieldEnum::status,
+                            "type" => "tags",
+                            "getDetails" => function(ProductionRequest $productionRequest) use ($formatService, $external, $productionRequestService) {
+                                return [
+                                    "class" => !$external && $productionRequestService->hasRigthToUpdateStatus($productionRequest) ? "prevent-default open-modal-update-production-request-status" : "",
+                                    "color" => $productionRequest->getStatus()->getColor(),
+                                    "label" => $formatService->status($productionRequest->getStatus()),
+                                ];
+                            },
+                        ],
+                    ];
+
+                    foreach ($fields as $fieldData) {
+                        $field = $fieldData["field"];
+                        $getDetails = $fieldData["getDetails"];
+                        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$field->name] ?? [])) {
+                            $arrayConfigTofill = "detailsData";
+                        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$field->name] ?? [])) {
+                            $arrayConfigTofill = "detailsDropdownData";
+                        } else {
+                            $arrayConfigTofill = null;
+                        }
+                        if($arrayConfigTofill) {
+                            $$arrayConfigTofill[$fieldData["type"]][] = $getDetails($productionRequest);
+                        }
+                    }
 
                     return [
                         $productionRequest->getExpectedAt()->format('Y-m-d'),
                         $this->renderView('production_request/planning/card.html.twig', [
                             "productionRequest" => $productionRequest,
                             "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
+                            "detailsData" => $detailsData ?? [],
+                            "detailsDropdownData" => $detailsDropdownData ?? [],
                             "inPlanning" => true,
-                            "fields" => $fields,
                             "external" => $external,
                         ])
                     ];

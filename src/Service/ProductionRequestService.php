@@ -155,10 +155,10 @@ class ProductionRequestService
             ]
         );
 
-        $shippingRequests = $queryResult['data'];
+        $productionRequests = $queryResult['data'];
 
         $rows = [];
-        foreach ($shippingRequests as $shipping) {
+        foreach ($productionRequests as $shipping) {
             $rows[] = $this->dataRowProduction($entityManager, $shipping);
         }
 
@@ -610,9 +610,15 @@ class ProductionRequestService
      * Checking right in front side in production_request/planning/card.html.twig
      */
     public function checkRoleForEdition(ProductionRequest $productionRequest): void {
+        if (!self::hasRigthToUpdateStatus($productionRequest)) {
+            throw new FormException("Vous n'avez pas les droits pour modifier cette demande de production");
+        }
+    }
+
+    public function hasRigthToUpdateStatus(ProductionRequest $productionRequest):bool {
         $status = $productionRequest->getStatus();
 
-        $hasRightToEdit = (
+        return (
             $status
             && (
                 ($status->isInProgress() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST))
@@ -620,11 +626,8 @@ class ProductionRequestService
                 || ($status->isTreated() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST))
             )
         );
-
-        if (!$hasRightToEdit) {
-            throw new FormException("Vous n'avez pas les droits pour modifier cette demande de production");
-        }
     }
+
 
     public function parseRequestForCard(ProductionRequest $productionRequest): array {
         $requestStatus = $productionRequest->getStatus()?->getCode();
@@ -863,4 +866,6 @@ class ProductionRequestService
         }
         return false;
     }
+
+
 }

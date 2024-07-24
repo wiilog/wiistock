@@ -12,9 +12,11 @@ class VisibleColumnFixtures extends Fixture implements FixtureGroupInterface {
 
     //TODO : modifier le nom et modifier pour que ca passe
     public function load(ObjectManager $manager) {
+
         $users = $manager->getRepository(Utilisateur::class)->iterateAll();
         /** @var Utilisateur $user */
-        foreach ($users as $user) {
+        /*
+        foreach ($users as $user) { DODO
             $visibleColumns = $user->getFieldModesByPage() ?? Utilisateur::DEFAULT_FIELDS_MODES;
             $visibleColumnsIndexes = array_keys($visibleColumns);
             $missingKeys = array_diff(array_keys(Utilisateur::DEFAULT_FIELDS_MODES), $visibleColumnsIndexes);
@@ -29,6 +31,7 @@ class VisibleColumnFixtures extends Fixture implements FixtureGroupInterface {
             $manager->flush();
             $manager->clear();
         }
+        */
 
         $manager->flush();
     }
