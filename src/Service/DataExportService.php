@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -200,7 +201,7 @@ class DataExportService
     }
 
     public function createProductionRequestsHeader(): array {
-        return Stream::from($this->productionRequestService->getVisibleColumnsConfig($this->entityManager, $this->security->getUser(), true))
+        return Stream::from($this->productionRequestService->getVisibleColumnsConfig($this->entityManager, $this->security->getUser(), FieldModesController::PAGE_PRODUCTION_REQUEST_LIST, true))
             ->map(static fn(array $column) => $column["title"])
             ->toArray();
     }

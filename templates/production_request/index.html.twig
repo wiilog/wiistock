@@ -35,9 +35,9 @@
                             title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
                             icon: "fa fa-cog",
                             attributes: {
-                            "data-toggle": "modal",
-                            "data-target": "#modalFieldsModes",
-                        },
+                                "data-toggle": "modal",
+                                "data-target": "#modalFieldsModes",
+                            },
                         }
                     ]
                 } %}
@@ -55,7 +55,7 @@
     {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableProductions',
-        page: 'productionRequest',
+        page: constant('App\\Controller\\FieldModesController::PAGE_PRODUCTION_REQUEST_LIST'),
         config: {
             columns: [
                 {

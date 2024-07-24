@@ -38,7 +38,7 @@
     {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableProductions',
-        page: 'productionRequest',
+        page: constant('App\\Controller\\FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING'),
         config: {
             title: 'Gestion des champs affichés',
             columns: [

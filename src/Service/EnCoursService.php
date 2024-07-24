@@ -297,7 +297,7 @@ class EnCoursService
     }
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['onGoing'];
+        $columnsVisible = $currentUser->getFieldModesByPage()['onGoing'];
 
         $columns = [
             ['title' => 'Issu de', 'name' => 'origin'],

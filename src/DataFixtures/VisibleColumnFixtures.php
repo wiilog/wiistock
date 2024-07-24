@@ -15,7 +15,7 @@ class VisibleColumnFixtures extends Fixture implements FixtureGroupInterface {
         $users = $manager->getRepository(Utilisateur::class)->iterateAll();
         /** @var Utilisateur $user */
         foreach ($users as $user) {
-            $visibleColumns = $user->getVisibleColumns() ?? Utilisateur::DEFAULT_FIELDS_MODES;
+            $visibleColumns = $user->getFieldModesByPage() ?? Utilisateur::DEFAULT_FIELDS_MODES;
             $visibleColumnsIndexes = array_keys($visibleColumns);
             $missingKeys = array_diff(array_keys(Utilisateur::DEFAULT_FIELDS_MODES), $visibleColumnsIndexes);
 

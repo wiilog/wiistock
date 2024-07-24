@@ -467,7 +467,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "nativeCountry":
-                                if(in_array('nativeCountry', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $user->getFieldModesByPage()['article']['nativeCountry'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->leftJoin('article.nativeCountry', 'country_search')
@@ -480,7 +480,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "deliveryNoteLine":
-                                if(in_array('deliveryNoteLine', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $user->getFieldModesByPage()['article']['deliveryNoteLine'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.deliveryNote LIKE :search')
@@ -492,7 +492,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "purchaseOrderLine":
-                                if(in_array('purchaseOrderLine', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $user->getFieldModesByPage()['article']['purchaseOrderLine'])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.purchaseOrder LIKE :search')
@@ -506,7 +506,7 @@ class ArticleRepository extends EntityRepository {
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = FieldModesService::extractFreeFieldId($field);
-                                if(in_array($field, $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $user->getFieldModesByPage()['article'][$field] ?? [])){
                                     if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                         if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -80,15 +81,22 @@ class ProductionRequestService
 
     private ?array $freeFieldsConfig = null;
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, bool $forExport = false): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, string $page, bool $forExport = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
-        $columnsVisible = $currentUser ? $currentUser->getVisibleColumns()['productionRequest'] : [];
+        $fieldsModes = $currentUser ? $currentUser->getFieldModesByPage()[$page] ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
         $columns = [
             ...!$forExport
-                ? [['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']]
+                ? [
+                    ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']
+                ]
+                : [],
+            ...$page === FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING
+                ? [
+                    ['title' => FixedFieldEnum::attachments->value, 'name' => FixedFieldEnum::attachments->name],
+                ]
                 : [],
             ['title' => FixedFieldEnum::number->value, 'name' => FixedFieldEnum::number->name],
             ['title' => FixedFieldEnum::createdAt->value, 'name' => FixedFieldEnum::createdAt->name],
@@ -107,7 +115,7 @@ class ProductionRequestService
             ['title' => FixedFieldEnum::comment->value, 'name' => FixedFieldEnum::comment->name],
         ];
 
-        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible, $forExport);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes, $forExport);
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{

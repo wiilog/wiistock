@@ -11,8 +11,9 @@ use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
+use function Sodium\add;
 
-class FieldModesService {  //TODO RENAME
+class FieldModesService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
 
     public const FIELD_MODE_VISIBLE = 'fieldVisible';
@@ -32,19 +33,18 @@ class FieldModesService {  //TODO RENAME
 
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
-                                   array $columnsVisible = [],
+                                   array $fieldsModes = [],
                                    bool  $forExport = false): array {
         $user = $this->userService->getUser();
         $defaultLanguage = $this->languageService->getDefaultLanguage();
         $userLanguage = $user?->getLanguage() ?: $defaultLanguage;
-
         return Stream::from(
             Stream::from($fields)
-                ->map(static function(array $column) use ($columnsVisible, $forExport) {
-                    $alwaysVisible = $column['alwaysVisible'] ?? empty($columnsVisible);
+                ->map(static function(array $column) use ($fieldsModes, $forExport) {
+                    $alwaysVisible = $column['alwaysVisible'] ?? false;
                     $visible = isset($column['forceHidden'])
                         ? false
-                        : ($column['visible'] ?? ($forExport || ($alwaysVisible || in_array($column['name'], $columnsVisible))));
+                        : ($column['visible'] ?? ($forExport || ($alwaysVisible || in_array(self::FIELD_MODE_VISIBLE, $fieldsModes[$column['name']] ?? []))));
                     $translated = $column['translated'] ?? false;
                     $title = $column['title'] ?? '';
                     return [
@@ -61,13 +61,14 @@ class FieldModesService {  //TODO RENAME
                         "type" => $column['type'] ?? null,
                         "searchable" => $column['searchable'] ?? null,
                         "required" => $column['required'] ?? false,
+                        ...in_array(self::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldsModes[$column['name']] ?? []) ? [self::FIELD_MODE_VISIBLE_IN_DROPDOWN => true] : [],
                     ];
                 }),
             Stream::from($freeFields)
-                ->map(function (FreeField $freeField) use ($columnsVisible, $userLanguage, $defaultLanguage, $forExport) {
+                ->map(function (FreeField $freeField) use ($fieldsModes, $userLanguage, $defaultLanguage, $forExport) {
                     $freeFieldName = $this->getFreeFieldName($freeField->getId());
                     $alwaysVisible = $column['alwaysVisible'] ?? null;
-                    $visible = $forExport || ($alwaysVisible || in_array($freeFieldName, $columnsVisible));
+                    $visible = $forExport || ($alwaysVisible || in_array(self::FIELD_MODE_VISIBLE, $fieldsModes[$freeFieldName] ?? []));
                     $dirtyLabel = $freeField->getLabelIn($userLanguage, $defaultLanguage) ?: $freeField->getLabel();
                     $title = ucfirst(mb_strtolower($dirtyLabel));
                     return [
@@ -78,6 +79,7 @@ class FieldModesService {  //TODO RENAME
                         self::FIELD_MODE_VISIBLE => $visible,
                         "searchable" => true,
                         "type" => $freeField->getTypage(),
+                        ...in_array(self::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldsModes[$freeFieldName] ?? []) ? [self::FIELD_MODE_VISIBLE_IN_DROPDOWN => true] : [],
                     ];
                 })
         )->toArray();
@@ -109,8 +111,8 @@ class FieldModesService {  //TODO RENAME
         $queryBuilderAlias = $qb->getRootAliases()[0];
         $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
 
-        foreach($user->getVisibleColumns()[$entity] as $column) {
-            if(str_starts_with($column, "free_field_")) {
+        foreach($user->getFieldModesByPage()[$entity] as $column => $modes) {
+            if(str_starts_with($column, "free_field_") && in_array(self::FIELD_MODE_VISIBLE, $modes)) {
                 $id = str_replace("free_field_", "", $column);
                 $freeField = $freeFieldRepository->find($id);
                 if ($freeField?->getTypage() === FreeField::TYPE_BOOL) {

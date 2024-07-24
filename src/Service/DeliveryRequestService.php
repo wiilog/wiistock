@@ -31,6 +31,7 @@ use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Dataflow\Straggler;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
@@ -333,7 +334,7 @@ class DeliveryRequestService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
-        $visibleColumns = $utilisateur->getVisibleColumns()[FieldModesController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+        $visibleColumns = $utilisateur->getFieldModesByPage()[FieldModesController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
 
         $demande = new Demande();
         $demande
@@ -754,7 +755,7 @@ class DeliveryRequestService
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $manager, Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['deliveryRequest'];
+        $columnsVisible = $currentUser->getFieldModesByPage()['deliveryRequest'];
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, CategorieCL::DEMANDE_LIVRAISON);
 

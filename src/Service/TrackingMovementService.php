@@ -694,7 +694,7 @@ class TrackingMovementService extends AbstractController
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['trackingMovement'];
+        $columnsVisible = $currentUser->getFieldModesByPage()['trackingMovement'];
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, CategorieCL::MVT_TRACA);
 
         $columns = [

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Controller\FieldModesController;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
@@ -49,7 +50,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_SHIPPING_REQUEST_FIELDS_MODES = ["number" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "createdAt" => [FieldModesService::FIELD_MODE_VISIBLE], "requestCaredAt" => [FieldModesService::FIELD_MODE_VISIBLE], "validatedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "plannedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "expectedPickedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "treatedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "requesters" => [FieldModesService::FIELD_MODE_VISIBLE], "customerOrderNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "customerName" => [FieldModesService::FIELD_MODE_VISIBLE], "carrier" => [FieldModesService::FIELD_MODE_VISIBLE]];
     const DEFAULT_ON_GOING_FIELDS_MODES = ["origin" => [FieldModesService::FIELD_MODE_VISIBLE], "LU" => [FieldModesService::FIELD_MODE_VISIBLE], "date" => [FieldModesService::FIELD_MODE_VISIBLE], "delay" => [FieldModesService::FIELD_MODE_VISIBLE], "reference" => [FieldModesService::FIELD_MODE_VISIBLE], "libelle" => [FieldModesService::FIELD_MODE_VISIBLE]];
     const DEFAULT_STOCK_MOVEMENT_FIELDS_MODES = ["date" => [FieldModesService::FIELD_MODE_VISIBLE], "from" => [FieldModesService::FIELD_MODE_VISIBLE], "barCode" => [FieldModesService::FIELD_MODE_VISIBLE], "refArticle" => [FieldModesService::FIELD_MODE_VISIBLE], "quantity" => [FieldModesService::FIELD_MODE_VISIBLE], "origin" => [FieldModesService::FIELD_MODE_VISIBLE], "destination" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "operator" => [FieldModesService::FIELD_MODE_VISIBLE], "unitPrice" => [FieldModesService::FIELD_MODE_VISIBLE], "comment" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_PRODUCTION_REQUEST_FIELDS_MODES = [
+    const DEFAULT_PRODUCTION_REQUEST_LIST_FIELDS_MODES = [
         FixedFieldEnum::number->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::createdAt->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::createdBy->name => [FieldModesService::FIELD_MODE_VISIBLE],
@@ -66,6 +67,26 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         FixedFieldEnum::projectNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::comment->name => [FieldModesService::FIELD_MODE_VISIBLE],
     ];
+
+    const DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES = [
+        FixedFieldEnum::number->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::createdAt->name => [],
+        FixedFieldEnum::createdBy->name => [],
+        FixedFieldEnum::treatedBy->name => [],
+        FixedFieldEnum::status->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::type->name => [],
+        FixedFieldEnum::expectedAt->name => [],
+        FixedFieldEnum::dropLocation->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::lineCount->name => [],
+        FixedFieldEnum::manufacturingOrderNumber->name => [],
+        FixedFieldEnum::productArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::quantity->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
+        FixedFieldEnum::emergency->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::projectNumber->name => [],
+        FixedFieldEnum::comment->name => [],
+        FixedFieldEnum::attachments->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
+    ];
+
     const DEFAULT_FIELDS_MODES = [
         'reference' => self::DEFAULT_REFERENCE_FIELDS_MODES,
         'article' => self::DEFAULT_ARTICLE_FIELDS_MODES,
@@ -79,7 +100,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_FIELDS_MODES,
         'arrivalPack' => self::DEFAULT_PACK_FIELDS_MODES,
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_FIELDS_MODES,
-        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_FIELDS_MODES,
+        FieldModesController::PAGE_PRODUCTION_REQUEST_LIST => self::DEFAULT_PRODUCTION_REQUEST_LIST_FIELDS_MODES,
+        FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING=> self::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES,
         'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
         'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
     ];
@@ -1697,20 +1719,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->pageIndexes = $pagesIndexes;
 
         return $this;
-    }
-
-    public function getVisibleColumns(): ?array {
-        return Stream::from($this->getFieldModesByPage())
-            ->map(static function ($fieldModes) {
-                $visibleColumns = [];
-                foreach( $fieldModes as $field => $modes) {
-                    if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $modes)) {
-                        $visibleColumns[] = $field;
-                    }
-                }
-                return $visibleColumns;
-            })
-            ->toArray();
     }
 
     public function getFieldModesByPage(): ?array

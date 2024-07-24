@@ -471,7 +471,6 @@ class ReferenceArticleController extends AbstractController
             "fields" => $fields,
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
             'defaultLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,

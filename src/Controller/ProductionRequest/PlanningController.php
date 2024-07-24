@@ -4,6 +4,7 @@ namespace App\Controller\ProductionRequest;
 
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
+use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -22,6 +23,7 @@ use App\Entity\WorkFreeDay;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
+use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,11 +37,14 @@ class PlanningController extends AbstractController {
 
     #[Route('/index', name: 'index', methods: self::GET)]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING])]
-    public function index(EntityManagerInterface $entityManager, StatusService $statusService): Response {
+    public function index(EntityManagerInterface $entityManager, StatusService $statusService, ProductionRequestService $productionRequestService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $currentUser = $this->getUser();
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
+
+        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING);
 
         return $this->render('production_request/planning/index.html.twig', [
             "types" => Stream::from($types)
@@ -49,6 +54,7 @@ class PlanningController extends AbstractController {
                 ])
                 ->toArray(),
             "statuses" => $statusRepository->findByCategorieName(CategorieStatut::PRODUCTION),
+            "fields" => $fields,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
                 ->keymap(static fn(array $status) => [
                     $status['id'],

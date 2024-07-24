@@ -15,6 +15,8 @@ use WiiCommon\Helper\Stream;
 class FieldModesController extends AbstractController {
 
     public const DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS = "deliveryRequestShow";
+    public const PAGE_PRODUCTION_REQUEST_LIST = "productionRequest";
+    public const PAGE_PRODUCTION_REQUEST_PLANNING = "productionRequestPlanning";
 
     private const PAGES = [
         "reference",
@@ -32,7 +34,8 @@ class FieldModesController extends AbstractController {
         "reference",
         "trackingMovement",
         "truckArrival",
-        "productionRequest",
+        self::PAGE_PRODUCTION_REQUEST_LIST,
+        self::PAGE_PRODUCTION_REQUEST_PLANNING,
         "shippingRequest",
     ];
 
@@ -53,11 +56,6 @@ class FieldModesController extends AbstractController {
         $id = $request->request->getInt("id");
         if ($page === self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS && $id) {
             $deliveryRequest = $manager->find(Demande::class, $id);
-
-            $columnsModes = Stream::from($columnsModes)
-                ->takeKeys()
-                ->toArray();
-
             $deliveryRequest->setVisibleColumns($columnsModes);
         }
 

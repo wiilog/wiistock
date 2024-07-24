@@ -953,7 +953,7 @@ class RefArticleDataService
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnVisible = $currentUser->getVisibleColumns()['reference'];
+        $columnVisible = $currentUser->getFieldModesByPage()['reference'];
         $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::REFERENCE_ARTICLE);
 
         $fields = self::REF_ARTICLE_FIELDS;

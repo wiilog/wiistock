@@ -484,7 +484,7 @@ class PackService {
     }
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
+        $columnsVisible = $currentUser->getFieldModesByPage()['arrivalPack'];
         return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],

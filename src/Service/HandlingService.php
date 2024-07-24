@@ -266,7 +266,7 @@ class HandlingService {
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['handling'];
+        $columnsVisible = $currentUser->getFieldModesByPage()['handling'];
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING,
             CategorieCL::DEMANDE_HANDLING);
 
