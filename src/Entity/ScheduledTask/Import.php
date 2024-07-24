@@ -354,7 +354,7 @@ class Import implements ScheduledTask {
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $FTPConfig = null;
 
-    #[ORM\Column(type: Types::STRING, nullable: false)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $filePath = null;
 
     public function __construct() {
