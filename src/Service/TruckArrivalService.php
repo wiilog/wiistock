@@ -95,6 +95,14 @@ class TruckArrivalService
                         ]
                     ],
                     [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::CREATE_ARRIVAL),
+                        'title' => 'Créer arrivage UL',
+                        'icon' => 'fa fa-plus',
+                        'attributes' => [
+                            'onclick' => "window.location.href = '{$this->router->generate('arrivage_index', ['truckArrivalId' => $truckArrival->getId()])}'",
+                        ],
+                    ],
+                    [
                         "title" => "Imprimer",
                         "icon" => "wii-icon wii-icon-printer-black",
                         "attributes" => [
