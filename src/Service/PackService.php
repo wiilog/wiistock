@@ -543,7 +543,7 @@ class PackService {
 
         $truckArrivalLine = $arrival->getTruckArrivalLines()->first();
         $truckArrivalDateAndHour = $truckArrivalLine
-            ? $this->formatService->datetime($truckArrivalLine->getTruckArrival()->getCreationDate())
+            ? $this->formatService->datetime($truckArrivalLine->getTruckArrival()?->getCreationDate())
             : ($this->formatService->datetime($arrival->getTruckArrival()?->getCreationDate()) ?: '');
 
         $businessUnit = $businessUnitParam
@@ -661,7 +661,7 @@ class PackService {
         }
 
         if($showPackNature){
-            $labels[] = $pack->getNature()->getLabel();
+            $labels[] = $pack->getNature() ? $pack->getNature()->getLabel() : '';
         }
 
         if ($packLabel) {

@@ -76,7 +76,7 @@ class PDFGeneratorService {
         $barcodeConfigsToTwig = array_map(function($config) use ($isCode128, $width) {
             $code = $config['code'];
             $separated = $config['separated'] ?? false;
-            $needsSecondBarcode = false;
+            $labelForSecondBarcode = null;
             $labels = array_filter($config['labels'] ?? [], function($label) {
                 return !empty($label);
             });
@@ -93,7 +93,7 @@ class PDFGeneratorService {
             foreach ($labels as $key=>$label){
                 $largeLabel = !is_array($label) && strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
                 if(is_array($label)){
-                    $needsSecondBarcode = $label;
+                    $labelForSecondBarcode = $label;
                 }
 
                 if($largeLabel){
@@ -123,7 +123,7 @@ class PDFGeneratorService {
                 'secondCustomIcon' => $config['secondCustomIcon'] ?? null,
                 'typeLogoArrivalUl' => $config['typeLogoArrivalUl'] ?? null,
                 'businessUnit' => $config['businessUnit'] ?? false,
-                'needsSecondBarcode' => $needsSecondBarcode,
+                'labelForSecondBarcode' => $labelForSecondBarcode,
             ];
         }, $barcodeConfigs);
 
