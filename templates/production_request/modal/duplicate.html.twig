@@ -12,8 +12,13 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                {{ form.number('quantityToGenerate', 'Nombre de demande à générer', true, null, {
+                {{ form.number('quantityToGenerate', 'Nombre de demande à générer', true, 1, {
                     min: 1,
+                    inputClass: 'needs-default',
+                    additionalAttributes: [{
+                        name: 'data-init',
+                        value: 1,
+                    }],
                     max: 10,
                     step: 1,
                 }) }}

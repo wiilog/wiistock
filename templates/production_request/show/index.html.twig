@@ -28,7 +28,7 @@
                                                 },
                                             },
                                             {
-                                                hasRight: hasRightDelete,
+                                                hasRight: hasRightDeleteProductionRequest,
                                                 title: trans('Général', '', 'Modale', 'Supprimer'),
                                                 icon: "wii-icon wii-icon-trash-black",
                                                 class: "delete-production-request",
@@ -159,11 +159,13 @@
         </div>
     </div>
 
-    {% include 'production_request/modal/edit.html.twig' with {
-        productionRequest,
-        fieldsParam,
-        emergencies,
-    }%}
+    {% if hasRightEditProductionRequest %}
+        {% include 'production_request/modal/edit.html.twig' with {
+            productionRequest,
+            fieldsParam,
+            emergencies,
+        }%}
+    {% endif %}
 
     {%  include 'production_request/modal/updateStatus.html.twig' %}
 {% endblock %}

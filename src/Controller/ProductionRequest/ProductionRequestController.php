@@ -155,7 +155,7 @@ class ProductionRequestController extends AbstractController
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
             "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::emergency->name),
             "productionRequest" => $productionRequest,
-            "hasRightDelete" => $productionRequestService->hasRightToDelete($productionRequest),
+            "hasRightDeleteProductionRequest" => $productionRequestService->hasRightToDelete($productionRequest),
             "hasRightEditProductionRequest" => $productionRequestService->hasRightToEdit($productionRequest),
             "detailsConfig" => $productionRequestService->createHeaderDetailsConfig($productionRequest),
             "attachments" => $productionRequest->getAttachments(),
@@ -174,20 +174,22 @@ class ProductionRequestController extends AbstractController
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
 
         $quantityToGenerate = $data->getInt('quantityToGenerate');
-        if ($quantityToGenerate !== 1 && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST)){
+        if ($quantityToGenerate !== 1 && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST)) {
             throw new FormException("Vous n'avez pas les droits pour générer plusieurs demandes de production.");
         }
 
+
         if ($quantityToGenerate < 1) {
             throw new FormException("La quantité à générer doit être supérieure à 0.");
-        } if ($quantityToGenerate > 10) {
-            throw new FormException("La quantité à générer ne peut pas dépasser 10.");
         }
-
+        $limitQuantity = 10;
+        if ($quantityToGenerate > $limitQuantity) {
+            throw new FormException("La quantité à générer ne peut pas dépasser $limitQuantity.");
+        }
 
         $productionRequests = [];
         for ($i = 0; $i < $quantityToGenerate; $i++) {
-            $isEndOfTheLoop = $i === $quantityToGenerate - 1;
+            $isEndOfTheLoop = $i === ($quantityToGenerate - 1);
             $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files, false, $isEndOfTheLoop);
             $productionRequests[] = $productionRequest;
             $entityManager->persist($productionRequest);

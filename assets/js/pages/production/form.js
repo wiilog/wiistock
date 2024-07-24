@@ -62,3 +62,12 @@ export function initDeleteProductionRequest(){
         })
     });
 }
+
+export function initModalNewProductionRequest($modal, tables, onOpen) {
+    Form
+        .create($modal, {clearOnOpen: true})
+        .onOpen(onOpen)
+        .submitTo(POST, `production_request_new`, {
+            tables: tables,
+        });
+}

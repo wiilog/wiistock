@@ -2,7 +2,7 @@ import AJAX, {POST, GET} from "@app/ajax";
 import Camera from "@app/camera";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
-import {displayAttachmentRequired, initDeleteProductionRequest} from './form'
+import {displayAttachmentRequired, initDeleteProductionRequest, initModalNewProductionRequest} from './form'
 import {getUserFiltersByPage} from '@app/utils';
 import {initDataTable} from "@app/datatable";
 
@@ -15,45 +15,8 @@ $(function () {
     initProductionRequestsTable().then((table) => {
         tableProduction = table;
 
-        const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
-        Form
-            .create($modalNewProductionRequest, {clearOnOpen: true})
-            .onOpen(() => {
-                Camera.init(
-                    $modalNewProductionRequest.find(`.take-picture-modal-button`),
-                    $modalNewProductionRequest.find(`[name="files[]"]`)
-                );
-            })
-            .submitTo(POST, `production_request_new`, {
-                tables: [tableProduction],
-            });
-
-
-        const $modalEditProductionRequest = $(`#modalEditProductionRequest`);
-        Form
-            .create($modalEditProductionRequest, {clearOnOpen: true})
-            .onOpen((event) => {
-                const $button = $(event.relatedTarget);
-                const $formContainer = $modalEditProductionRequest.find('.form-production-request');
-                Modal.load(
-                    'production_request_form_duplicate',
-                    {productionRequest : $button.data('id') },
-                    $modalEditProductionRequest,
-                    $formContainer,
-                    {
-                        $formContainer: $formContainer,
-                        onOpen: () => {
-                            Camera.init(
-                                $modalEditProductionRequest.find(`.take-picture-modal-button`),
-                                $modalEditProductionRequest.find(`[name="files[]"]`)
-                            );
-                        }
-                    }
-                );
-            })
-            .submitTo(POST, `production_request_new`, {
-                tables: [tableProduction],
-            });
+        initNewProductionRequest();
+        initDuplicateProductionRequest();
     });
 
     initDeleteProductionRequest();
@@ -162,4 +125,44 @@ function onProductionRequestTypeChange($select){
         $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
     }
     $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
+}
+
+function initNewProductionRequest() {
+    const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
+    initModalNewProductionRequest(
+        $modalNewProductionRequest,
+        [tableProduction],
+        (event) => {
+            Camera.init(
+                $modalNewProductionRequest.find(`.take-picture-modal-button`),
+                $modalNewProductionRequest.find(`[name="files[]"]`)
+            );
+        }
+    );
+}
+function initDuplicateProductionRequest() {
+    const $modalEditProductionRequest = $(`#modalEditProductionRequest`);
+    initModalNewProductionRequest(
+        $modalEditProductionRequest,
+        [tableProduction],
+        (event) => {
+            const $button = $(event.relatedTarget);
+            const $formContainer = $modalEditProductionRequest.find('.form-production-request');
+            Modal.load(
+                'production_request_form_duplicate',
+                {productionRequest : $button.data('id') },
+                $modalEditProductionRequest,
+                $formContainer,
+                {
+                    $formContainer: $formContainer,
+                    onOpen: () => {
+                        Camera.init(
+                            $modalEditProductionRequest.find(`.take-picture-modal-button`),
+                            $modalEditProductionRequest.find(`[name="files[]"]`)
+                        );
+                    }
+                }
+            );
+        }
+    )
 }
