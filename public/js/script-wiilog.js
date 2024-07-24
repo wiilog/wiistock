@@ -154,10 +154,9 @@ function openQueryModal(query = null, event) {
         event.preventDefault();
     }
     query = query || GetRequestQuery();
-    const openModalNew = 'new';
-    const openModalEdit = 'edit';
-
     if (query["open-modal"]) {
+        const openModalNew = 'new';
+        const openModalEdit = 'edit';
         if (query["open-modal"] === openModalNew) {
             const $modal = $('[data-modal-type="new"]').first();
             if (query["clear-modal"] !== '0') {

@@ -17,7 +17,6 @@
     } %}
 {% endblock %}
 
-{# TODO WIIS-10760 #}
 {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT_PRODUCTION_REQUEST')) %}
 
 {% block page_content %}
@@ -35,10 +34,10 @@
                         {
                             title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
                             icon: "fa fa-cog",
-                            attributes: {
-                            "data-toggle": "modal",
-                            "data-target": "#modalColumnVisible",
-                        },
+                                attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalColumnVisible",
+                            },
                         }
                     ]
                 } %}
@@ -64,6 +63,9 @@
         fieldsParam,
         emergencies,
     }%}
+
+    {% include 'production_request/modal/duplicate.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}

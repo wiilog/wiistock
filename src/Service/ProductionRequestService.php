@@ -21,9 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use App\Entity\Attachment;
 use App\Entity\Emplacement;
-use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Statut;
 use App\Entity\Type;
 use DateTime;
@@ -153,7 +151,7 @@ class ProductionRequestService
 
         $rows = [];
         foreach ($shippingRequests as $shipping) {
-            $rows[] = $this->dataRowProduction($shipping);
+            $rows[] = $this->dataRowProduction($entityManager, $shipping);
         }
 
         return [
@@ -163,7 +161,7 @@ class ProductionRequestService
         ];
     }
 
-    public function dataRowProduction(ProductionRequest $productionRequest): array
+    public function dataRowProduction(EntityManagerInterface $entityManager, ProductionRequest $productionRequest): array
     {
         $typeColor = $productionRequest->getType()->getColor();
 
@@ -171,13 +169,54 @@ class ProductionRequestService
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::PRODUCTION_REQUEST, CategoryType::PRODUCTION);
         }
 
-        $url = $this->router->generate('production_request_show', [
-            "id" => $productionRequest->getId()
+        $productionRequestId = $productionRequest->getId();
+        $showRouteName = 'production_request_show';
+        $urlShow = $this->router->generate($showRouteName, [
+            "id" => $productionRequestId,
+        ]);
+
+        $urlEdit = $this->router->generate($showRouteName, [
+            "id" => $productionRequestId,
+            "open-modal" => "edit",
         ]);
 
         $row = [
-            "actions" => $this->templating->render('production_request/actions.html.twig', [
-                'url' => $url,
+            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                'actions' => [
+                    [
+                        'title' => 'Détails',
+                        'icon' => 'fa fa-eye',
+                        'actionOnClick' => true,
+                        'href' => $urlShow,
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST),
+                        'title' => 'Dupliquer',
+                        'icon' => 'fa fa-copy',
+                        'class' => 'duplicate-production-request',
+                        'attributes' => [
+                            'data-target' => '#modalEditProductionRequest',
+                            'data-toggle' => 'modal',
+                            'data-id' => $productionRequestId,
+                        ],
+                    ],
+                    [
+                        'hasRight' => $this->hasRightToDelete($productionRequest),
+                        'title' => 'Supprimer',
+                        'icon' => 'fa fa-trash',
+                        'class' => 'delete-production-request',
+                        'attributes' => [
+                            'data-id' => $productionRequestId,
+                        ],
+                    ],
+                    [
+                        'hasRight' => $this->hasRightToEdit($productionRequest),
+                        'title' => 'Modifier',
+                        'icon' => 'fa fa-pen',
+                        'href' => $urlEdit,
+                    ],
+
+                ],
             ]),
             FixedFieldEnum::number->name => $productionRequest->getNumber() ?? '',
             FixedFieldEnum::createdAt->name => $this->formatService->datetime($productionRequest->getCreatedAt()),
@@ -215,7 +254,8 @@ class ProductionRequestService
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
                                             FileBag                $fileBag,
-                                            bool $fromUpdateStatus = false): ProductionRequest {
+                                            bool $fromUpdateStatus = false,
+                                            bool $deleteTmpFile = true): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -786,5 +826,33 @@ class ProductionRequestService
         $entityManager->persist($productionRequest);
 
         $isCreation = true; // increment new entity counter
+    }
+
+    public function hasRightToDelete(ProductionRequest $productionRequest): bool {
+        $status = $productionRequest->getStatus();
+        if ($status->isNotTreated()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TO_TREAT_PRODUCTION_REQUEST);
+        }
+        if ($status->isInProgress()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST);
+        }
+        if ($status->isTreated()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TREATED_PRODUCTION_REQUEST);
+        }
+        return false;
+    }
+
+    public function hasRightToEdit(ProductionRequest $productionRequest): bool {
+        $status = $productionRequest->getStatus();
+        if ($status->isNotTreated()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TO_TREAT_PRODUCTION_REQUEST);
+        }
+        if ($status->isInProgress()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST);
+        }
+        if ($status->isTreated()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST);
+        }
+        return false;
     }
 }

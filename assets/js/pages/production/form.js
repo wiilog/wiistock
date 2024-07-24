@@ -1,4 +1,4 @@
-import {POST} from "@app/ajax";
+import {DELETE, POST} from "@app/ajax";
 import Form from "@app/form";
 import Camera from "@app/camera";
 import Modal from "@app/modal";
@@ -42,4 +42,32 @@ export function openModalUpdateProductionRequestStatus($container, $modalUpdateP
         });
 
     $modalUpdateProductionRequestStatus.modal(`show`);
+}
+
+export function initDeleteProductionRequest(){
+    $(document).on('click', '.delete-production-request', function(){
+        const id = $(this).data('id');
+        Modal.confirm({
+            ajax: {
+                method: DELETE,
+                route: `production_request_delete`,
+                params: {productionRequest: id},
+            },
+            message: `Voulez-vous réellement supprimer cette demande de production ?`,
+            title: `Supprimer la demande de production`,
+            validateButton: {
+                color: `danger`,
+                label: `Supprimer`,
+            },
+        })
+    });
+}
+
+export function initModalNewProductionRequest($modal, tables, onOpen) {
+    Form
+        .create($modal, {clearOnOpen: true})
+        .onOpen(onOpen)
+        .submitTo(POST, `production_request_new`, {
+            tables: tables,
+        });
 }
