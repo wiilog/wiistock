@@ -80,6 +80,9 @@ class PackService {
     #[Required]
     public TimeService $timeService;
 
+    #[Required]
+    public SettingsService $settingsService;
+
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
@@ -526,6 +529,9 @@ class PackService {
                                          ?bool                  $businessUnitParam = false,
                                          ?bool                  $projectParam = false,
                                          ?bool                  $showDateAndHourArrivalUl = false,
+                                         ?bool                  $showTruckArrivalDateAndHour = false,
+                                         ?bool                  $showTruckArrivalDateAndHourBarcode = false,
+                                         ?bool                  $showPackNature = false,
     ): array
     {
 
@@ -534,6 +540,11 @@ class PackService {
         $dateAndHour = $arrival->getDate()
             ? $arrival->getDate()->format('d/m/Y H:i')
             : '';
+
+        $truckArrivalLine = $arrival->getTruckArrivalLines()->first();
+        $truckArrivalDateAndHour = $truckArrivalLine
+            ? $this->formatService->datetime($truckArrivalLine->getTruckArrival()->getCreationDate())
+            : ($this->formatService->datetime($arrival->getTruckArrival()?->getCreationDate()) ?: '');
 
         $businessUnit = $businessUnitParam
             ? $arrival->getBusinessUnit()
@@ -632,6 +643,25 @@ class PackService {
 
         if($showDateAndHourArrivalUl) {
             $labels[] = $dateAndHour;
+        }
+
+        if($showTruckArrivalDateAndHourBarcode && $truckArrivalDateAndHour) {
+            $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray($this->entityManager);
+            $isCode128 = $barcodeConfig["isCode128"];
+            $labels[] = [
+                "barcode" => [
+                    "code" => $truckArrivalDateAndHour,
+                    "height" => 48,
+                    "width" => $isCode128 ? 1 : 48,
+                    "type" => $isCode128 ? 'c128' : 'qrcode',
+                ],
+            ];
+        } else if($showTruckArrivalDateAndHour) {
+            $labels[] = $truckArrivalDateAndHour;
+        }
+
+        if($showPackNature){
+            $labels[] = $pack->getNature()->getLabel();
         }
 
         if ($packLabel) {

@@ -141,12 +141,14 @@
     {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined or typeLogoArrivalUl %}
 
     {% set labelsLength = config.labels|length %}
-    {% set barcodeHeight = (labelsLength == 0 or landscape
-        ? (hasHeader ? "80%" : "100%")
-        : (labelsLength < 3
-            ? (hasHeader ? "55%" : "75%")
-            : (hasHeader ? "45%" : "65%")
-        )
+    {% set barcodeHeight = config.needsSecondBarcode
+        ? "20%"
+        : (labelsLength == 0 or landscape
+            ? (hasHeader ? "80%" : "100%")
+            : (labelsLength < 3
+                ? (hasHeader ? "55%" : "75%")
+                : (hasHeader ? "45%" : "65%")
+            )
     ) %}
     {% set labelsStyle = (labelsLength == 0
         ? "display: none;"
@@ -245,16 +247,44 @@
                     {% if loop.index == 1 %}
                         {% set previous = label %}
                     {% endif %}
-                    <text y="{{ loop.index * heightFontScale }}"
-                          x="50%"
-                          text-anchor="middle"
-                          font-size="{{ landscape and loop.index == 1 ? '1.2' : 1 }}"
-                          font-weight="{{ landscape and (loop.index == 1 or (loop.index == 2 and separated)) ? '700' }}">
-                        {{ label | trim | striptags | raw }}
-                    </text>
+                    {% if label is not iterable %}
+                        <text y="{{ loop.index * heightFontScale }}"
+                              x="50%"
+                              text-anchor="middle"
+                              font-size="{{ landscape and loop.index == 1 ? '1.2' : 1 }}"
+                              font-weight="{{ landscape and (loop.index == 1 or (loop.index == 2 and separated)) ? '700' }}">
+                            {{ label | trim | striptags | raw }}
+                        </text>
+                    {% endif %}
                 {% endfor %}
             </svg>
         </div>
+
+        {% if config.needsSecondBarcode %}
+            <div class="barcode {{ landscape ? 'landscape' }}" style="height: {{ barcodeHeight }}">
+                <div class="barcode-wrapper">
+                    {{ printBarcode({
+                        code: config.needsSecondBarcode.barcode.code,
+                        type: config.needsSecondBarcode.barcode.type,
+                        format: 'svg',
+                        height: config.needsSecondBarcode.barcode.height,
+                        width: config.needsSecondBarcode.barcode.width
+                    })|raw }}
+                </div>
+
+                <div class="barcode-code">
+                    <svg viewBox="0 0 {{ config.needsSecondBarcode.barcode.code|length }} 2"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <text y="1"
+                              x="50%"
+                              text-anchor="middle"
+                              font-size="{{ landscape ? 1.2 : 1}}">
+                            {{ config.needsSecondBarcode.barcode.code }}
+                        </text>
+                    </svg>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endfor %}
 </body>
