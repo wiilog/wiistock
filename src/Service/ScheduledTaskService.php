@@ -84,7 +84,7 @@ class ScheduledTaskService
         // ExportRepository or ImportRepository
         $repository = $entityManager->getRepository($class);
 
-        $cacheKey = $this->getCacheDateKey($class, $dateToExecute);
+        $cacheKey = $this->getCacheDateKey($dateToExecute);
 
         if (isset($cache)) {
             $taskIds = $cache[$cacheKey] ?? [];
@@ -126,13 +126,8 @@ class ScheduledTaskService
         $this->cacheService->set($cacheCollection, self::CACHE_KEY, $serializedTasks);
     }
 
-    private function getCacheDateKey(string            $class,
-                                     DateTimeInterface $dateTime): string {
-        return match ($class) {
-            Import::class, Export::class                            => $dateTime->format("Y-m-d-H-i"),
-            PurchaseRequestPlan::class, InventoryMissionPlan::class => "now",
-            default                                                 => throw new Exception("Not implemented yet")
-        };
+    private function getCacheDateKey(DateTimeInterface $dateTime): string {
+        return $dateTime->format("Y-m-d-H-i");
     }
 
     private function getCacheCollection(string $class): string {
@@ -160,7 +155,7 @@ class ScheduledTaskService
                 $nextExecutionTime = $this->scheduleRuleService->calculateNextExecution($task->getScheduleRule(), $from);
                 return $nextExecutionTime
                     ? [
-                        $this->getCacheDateKey($class, $nextExecutionTime),
+                        $this->getCacheDateKey($nextExecutionTime),
                         $task
                     ]
                     : null;

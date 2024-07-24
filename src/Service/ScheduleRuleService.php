@@ -50,7 +50,6 @@ class ScheduleRuleService
                 ->setTime($from->format('H'), $from->format('i'));
         }
 
-
         return match ($rule->getFrequency()) {
             ScheduleRule::ONCE    => $this->calculateOnce($rule, $from),
             ScheduleRule::HOURLY  => $this->calculateFromHourlyRule($rule, $from),
