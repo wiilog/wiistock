@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade"
      id="modalNewProductionRequest"
      role="dialog"
@@ -10,6 +12,7 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
+                {{ form.hidden('quantityToGenerate', 1) }}
                 {% include 'production_request/modal/form.html.twig' with {
                     productionRequest,
                     fieldsParam,

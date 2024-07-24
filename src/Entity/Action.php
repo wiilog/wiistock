@@ -151,6 +151,7 @@ class Action {
     const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
     const EDIT_TREATED_PRODUCTION_REQUEST = 'modifier demandes de production au statut traité';
     const EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST = "modification du champ date attendue d'une demande de production";
+    const DUPLICATE_PRODUCTION_REQUEST = "dupliquer une  demandes de production";
     const DISPLAY_PRODUCTION_REQUEST_PLANNING = "afficher Production - Planning";
 
     // menu paramétrage
