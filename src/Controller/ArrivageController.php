@@ -40,10 +40,12 @@ use App\Service\KeptFieldService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
+use App\Service\TruckArrivalLineService;
 use App\Service\UniqueNumberService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
@@ -92,6 +94,8 @@ class ArrivageController extends AbstractController {
             $fromTruckArrivalOptions = [
                 'carrier' => $truckArrival?->getCarrier()?->getId(),
                 'driver' => $truckArrival?->getDriver()?->getId(),
+                'truckArrivalId' => $truckArrival?->getId(),
+                'truckArrivalNumber' => $truckArrival?->getNumber(),
             ];
         }
         $user = $this->getUser();
@@ -139,14 +143,16 @@ class ArrivageController extends AbstractController {
 
     #[Route("/creer", name: "arrivage_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
-    public function new(Request                $request,
-                        EntityManagerInterface $entityManager,
-                        AttachmentService      $attachmentService,
-                        ArrivageService        $arrivalService,
-                        FreeFieldService       $champLibreService,
-                        PackService            $packService,
-                        KeptFieldService       $keptFieldService,
-                        TranslationService     $translation): Response {
+    public function new(Request                       $request,
+                        EntityManagerInterface        $entityManager,
+                        AttachmentService             $attachmentService,
+                        ArrivageService               $arrivalService,
+                        FreeFieldService              $champLibreService,
+                        PackService                   $packService,
+                        SettingsService               $settingsService,
+                        KeptFieldService              $keptFieldService,
+                        TruckArrivalLineService       $truckArrivalLineService,
+                        TranslationService            $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -158,13 +164,15 @@ class ArrivageController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
-        $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
-        $useTruckArrivals = $settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS);
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $sendMail = $settingsService->getValue($entityManager, Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $useTruckArrivals = $settingsService->getValue($entityManager, Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
         $suffix = $counter < 10 ? ("0" . $counter) : $counter;
         $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
+        $trackingNumber = $data['noTracking'];
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -219,17 +227,36 @@ class ArrivageController extends AbstractController {
             $arrivage->setChauffeur($chauffeurRepository->find($data['chauffeur']));
         }
 
-        if (!empty($data['noTracking'])) {
-            if ($settingRepository->getOneParamByLabel(Setting::USE_TRUCK_ARRIVALS)) {
-                $truckArrivalLineId = explode(',', $data['noTracking']);
-                foreach ($truckArrivalLineId as $lineId) {
-                    $line = $truckArrivalLineRepository
-                        ->find($lineId)
-                        ->addArrival($arrivage);
-                    $arrivage->addTruckArrivalLine($line);
+        if (!empty($trackingNumber)) {
+            $truckArrival = isset($data["noTruckArrival"]) ? $truckArrivalRepository->find($data["noTruckArrival"]) : null;
+            $emptyTrackingNumber = $trackingNumber !== "null";
+            if($emptyTrackingNumber){
+                if ($useTruckArrivals) {
+                    $truckArrivalLineId = explode(',', $trackingNumber);
+                    foreach ($truckArrivalLineId as $lineId) {
+                        $line = $truckArrivalLineRepository->find($lineId);
+                        if($lineId){
+                            $truckArrivalLineService->checkForInvalidNumber([$lineId], $entityManager);
+
+                            $line = (new TruckArrivalLine())
+                                ->setNumber($lineId);
+
+                            if($truckArrival){
+                                $line->setTruckArrival($truckArrival);
+                            }
+
+                            $entityManager->persist($line);
+                            $entityManager->flush();
+                        }
+
+                        $line->addArrival($arrivage);
+                        $arrivage->addTruckArrivalLine($line);
+                    }
+                } else {
+                    $arrivage->setNoTracking(substr($trackingNumber, 0, 64));
                 }
-            } else {
-                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            } else if($truckArrival) {
+                $arrivage->setTruckArrival($truckArrival);
             }
         }
 

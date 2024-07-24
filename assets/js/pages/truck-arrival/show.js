@@ -55,6 +55,11 @@ $(function () {
     $('.new-quality-reserve-button').off('click').on('click', function(){
         openModalQualityReserveContent($modalReserveQuality);
     });
+
+    $('.print-truck-arrival-label').on('click', function () {
+        const truckArrivalId = $(this).data('id');
+        printTruckArrivalLabel(truckArrivalId);
+    });
 });
 
 function openModalQualityReserveContent($modalReserveQuality, reserveId = null){
