@@ -7,6 +7,7 @@ namespace App\Command\Cron;
 use App\Entity\ScheduledTask\Export;
 use App\Service\ScheduledExportService;
 use App\Service\ScheduledTaskService;
+use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -38,8 +39,8 @@ class ScheduledExportCommand extends Command
         return $this->scheduledTaskService->launchScheduledTasks(
             $this->getEntityManager(),
             Export::class,
-            function (Export $export) {
-                $this->exportService->export($this->getEntityManager(), $export);
+            function (Export $export, DateTime $taskExecution) {
+                $this->exportService->export($this->getEntityManager(), $export, $taskExecution);
             }
         );
     }

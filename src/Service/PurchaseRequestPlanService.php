@@ -7,6 +7,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\StorageRule;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -33,12 +34,13 @@ class PurchaseRequestPlanService
     public MailerService $mailerService;
 
     public function treatRequestPlan(EntityManagerInterface $entityManager,
-                                     PurchaseRequestPlan    $requestPlan): void
-    {
+                                     PurchaseRequestPlan    $purchaseRequestPlan,
+                                     DateTime               $taskExecution): void {
+
         $storageRuleRepository = $this->em->getRepository(StorageRule::class);
 
         // getting storage rules by the purchase rule, quantity rule applied here
-        $storageRules = $storageRuleRepository->findByPlanWithStockQuantity($requestPlan);
+        $storageRules = $storageRuleRepository->findByPlanWithStockQuantity($purchaseRequestPlan);
         $purchaseRequests = [];
         $suppliersByRefArticle = [];
 
@@ -51,7 +53,7 @@ class PurchaseRequestPlanService
                 $suppliersByRefArticle[$refArticleId] = Stream::from($refArticle->getArticlesFournisseur())
                         ->map(fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur())
                         ->unique()
-                        ->filter(fn(Fournisseur $supplier) => $requestPlan->getSuppliers()->contains($supplier))
+                        ->filter(fn(Fournisseur $supplier) => $purchaseRequestPlan->getSuppliers()->contains($supplier))
                         ->toArray();
             }
 
@@ -65,7 +67,7 @@ class PurchaseRequestPlanService
                 if (isset($purchaseRequests[$supplierId])) {
                     $purchaseRequest = $purchaseRequests[$supplierId];
                 } else {
-                    $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($requestPlan->getStatus(), $requestPlan->getRequester(), ["supplier" => $supplier]);
+                    $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($purchaseRequestPlan->getStatus(), $purchaseRequestPlan->getRequester(), ["supplier" => $supplier]);
                     $purchaseRequests[$supplierId] = $purchaseRequest;
                 }
 
@@ -77,9 +79,11 @@ class PurchaseRequestPlanService
             $entityManager->flush();
         }
 
+        $purchaseRequestPlan->getScheduleRule()?->setLastRun($taskExecution);
 
+        $entityManager->flush();
         foreach ($purchaseRequests as $purchaseRequest) {
-            $this->purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest, ["customSubject" => $requestPlan->getEmailSubject()]);
+            $this->purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest, ["customSubject" => $purchaseRequestPlan->getEmailSubject()]);
         }
     }
 }

@@ -3097,11 +3097,16 @@ class SettingsController extends AbstractController {
      * @Route("/mission-plans-force", name="settings_mission_plans_force", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
-    public function missionPlansForce(EntityManagerInterface $manager, InvMissionService $invMissionService): Response {
-        $rules = $manager->getRepository(InventoryMissionPlan::class)->findBy(['active' => true]);
+    public function missionPlansForce(EntityManagerInterface $entityManager,
+                                      InvMissionService      $invMissionService): Response {
+        $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
+        $inventoryMissionPlans = $inventoryMissionPlanRepository->findScheduled();
 
-        foreach($rules as $rule) {
-            $invMissionService->generateMission($rule);
+        $taskExecution = new DateTime();
+
+        /** @var InventoryMissionPlan $inventoryMissionPlan */
+        foreach($inventoryMissionPlans as $inventoryMissionPlan) {
+            $invMissionService->generateMission($entityManager, $inventoryMissionPlan, $taskExecution);
         }
 
         return $this->json([

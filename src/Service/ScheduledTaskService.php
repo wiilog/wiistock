@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduledTask;
 use App\Repository\ScheduledTask\ScheduledTaskRepository;
 use DateTime;
@@ -82,7 +84,7 @@ class ScheduledTaskService
         // ExportRepository or ImportRepository
         $repository = $entityManager->getRepository($class);
 
-        $cacheKey = $this->getCacheDateKey($dateToExecute);
+        $cacheKey = $this->getCacheDateKey($class, $dateToExecute);
 
         if (isset($cache)) {
             $taskIds = $cache[$cacheKey] ?? [];
@@ -124,15 +126,22 @@ class ScheduledTaskService
         $this->cacheService->set($cacheCollection, self::CACHE_KEY, $serializedTasks);
     }
 
-    private function getCacheDateKey(DateTimeInterface $dateTime): string {
-        return $dateTime->format("Y-m-d-H-i");
+    private function getCacheDateKey(string            $class,
+                                     DateTimeInterface $dateTime): string {
+        return match ($class) {
+            Import::class, Export::class                            => $dateTime->format("Y-m-d-H-i"),
+            PurchaseRequestPlan::class, InventoryMissionPlan::class => "now",
+            default                                                 => throw new Exception("Not implemented yet")
+        };
     }
 
     private function getCacheCollection(string $class): string {
         return match ($class) {
-            Import::class => CacheService::COLLECTION_IMPORTS,
-            Export::class => CacheService::COLLECTION_EXPORTS,
-            default => throw new Exception("Not implemented yet")
+            Import::class               => CacheService::COLLECTION_IMPORTS,
+            Export::class               => CacheService::COLLECTION_EXPORTS,
+            PurchaseRequestPlan::class  => CacheService::COLLECTION_PURCHASE_REQUEST_PLANS,
+            InventoryMissionPlan::class => CacheService::COLLECTION_INVENTORY_MISSION_PLANS,
+            default                     => throw new Exception("Not implemented yet")
         };
     }
 
@@ -142,16 +151,16 @@ class ScheduledTaskService
     private function getTasksGroupedByCacheDateKey(EntityManagerInterface $entityManager,
                                                    string                 $class,
                                                    DateTime               $from): array {
-        // ExportRepository or ImportRepository
+        /** @var ScheduledTaskRepository $repository */
         $repository = $entityManager->getRepository($class);
 
         // get only tasks to execute on current minute
         return Stream::from($repository->findScheduled())
-            ->keymap(function(ScheduledTask $task) use ($from) {
+            ->keymap(function(ScheduledTask $task) use ($from, $class) {
                 $nextExecutionTime = $this->scheduleRuleService->calculateNextExecution($task->getScheduleRule(), $from);
                 return $nextExecutionTime
                     ? [
-                        $this->getCacheDateKey($nextExecutionTime),
+                        $this->getCacheDateKey($class, $nextExecutionTime),
                         $task
                     ]
                     : null;

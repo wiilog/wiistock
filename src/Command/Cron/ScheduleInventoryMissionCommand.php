@@ -6,7 +6,7 @@ namespace App\Command\Cron;
 
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Service\InvMissionService;
-use App\Service\ScheduleRuleService;
+use App\Service\ScheduledTaskService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,36 +28,22 @@ class ScheduleInventoryMissionCommand extends Command
     public EntityManagerInterface $em;
 
     #[Required]
-    public ScheduleRuleService $scheduleRuleService;
+    public ScheduledTaskService $scheduledTaskService;
 
     #[Required]
     public InvMissionService $invMissionService;
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        // TODO adrien utiliser le cache
-        $entityManager = $this->getEntityManager();
-        $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
-
-        $rules = $inventoryMissionPlanRepository->findScheduled();
-
-        foreach ($rules as $rule) {
-            $now = new DateTime();
-            $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-
-            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecution($rule, $now);
-
-            // test if we can calculate a next execution date with the rule
-            // AND if $now (date + hour + minute) is on same than this calculated execution date
-            if (isset($nextExecutionDate) && $now >= $nextExecutionDate) {
-                $this->invMissionService->generateMission($rule);
+    protected function execute(InputInterface $input, OutputInterface $output): int {
+        return $this->scheduledTaskService->launchScheduledTasks(
+            $this->getEntityManager(),
+            InventoryMissionPlan::class,
+            function (InventoryMissionPlan $inventoryMissionPlan, DateTime $taskExecution) {
+                $this->invMissionService->generateMission($this->getEntityManager(), $inventoryMissionPlan, $taskExecution);
             }
-        }
-        return 0;
+        );
     }
 
-    private function getEntityManager(): EntityManagerInterface
-    {
+    private function getEntityManager(): EntityManagerInterface {
         return $this->em->isOpen()
             ? $this->em
             : new EntityManager($this->em->getConnection(), $this->em->getConfiguration());

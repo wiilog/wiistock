@@ -66,7 +66,9 @@ class ScheduledExportService {
     #[Required]
     public TranslationService $translationService;
 
-    public function export(EntityManagerInterface $entityManager, Export $export) {
+    public function export(EntityManagerInterface $entityManager,
+                           Export                 $export,
+                           DateTime               $taskExecution): void {
         $statusRepository = $entityManager->getRepository(Statut::class);
 
         $start = new DateTime();
@@ -154,8 +156,10 @@ class ScheduledExportService {
 
             $freeFieldsById = Stream::from($dispatches)
                 ->keymap(fn($dispatch) => [
-                    $dispatch['id'], $dispatch['freeFields']
-                ])->toArray();
+                    $dispatch['id'],
+                    $dispatch['freeFields']
+                ])
+                ->toArray();
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
             $columnToExport = $exportToRun->getColumnToExport();
 
@@ -187,8 +191,10 @@ class ScheduledExportService {
 
             $freeFieldsById = Stream::from($productionRequests)
                 ->keymap(static fn(array $productionRequest) => [
-                    $productionRequest['id'], $productionRequest['freeFields']
-                ])->toArray();
+                    $productionRequest['id'],
+                    $productionRequest['freeFields']
+                ])
+                ->toArray();
 
             $this->csvExportService->putLine($output, $this->dataExportService->createProductionRequestsHeader());
             $this->dataExportService->exportProductionRequest($productionRequests, $output, $freeFieldsConfig, $freeFieldsById);
@@ -256,6 +262,7 @@ class ScheduledExportService {
             ->setEndedAt(new DateTime());
 
         $entityManager->persist($exportToRun);
+        $exportToRun->getScheduleRule()?->setLastRun($taskExecution);
         $entityManager->flush();
 
         @unlink($path);

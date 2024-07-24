@@ -164,6 +164,8 @@ class InventoryMissionPlanController extends AbstractController
 
         $entityManager->flush();
 
+        $scheduledTaskService->deleteCache(InventoryMissionPlan::class);
+
         $subject = $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . (
             $edit
                 ? 'Modification planification mission d’inventaire'
@@ -203,12 +205,16 @@ class InventoryMissionPlanController extends AbstractController
     #[Route('/{mission}/delete', name: 'mission_plans_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
+                           ScheduledTaskService   $scheduledTaskService,
                            InventoryMissionPlan   $mission): JsonResponse {
         if(!$mission->getCreatedMissions()->isEmpty()) {
             throw new FormException("Vous ne pouvez pas supprimer cette planification d'inventaire car des missions d'inventaires ont déjà été créées à partir de celle-ci");
         } else {
             $entityManager->remove($mission);
             $entityManager->flush();
+
+            $scheduledTaskService->deleteCache(InventoryMissionPlan::class);
+
             return $this->json([
                 'success' => true,
                 'msg' => "La planification de mission d'inventaire a été supprimée avec succès"
@@ -219,9 +225,12 @@ class InventoryMissionPlanController extends AbstractController
     #[Route('/{mission}/cancel', name: 'mission_plans_cancel', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function cancel(EntityManagerInterface $entityManager,
+                           ScheduledTaskService   $scheduledTaskService,
                            InventoryMissionPlan   $mission): JsonResponse {
         $mission->setActive(false);
         $entityManager->flush();
+
+        $scheduledTaskService->deleteCache(InventoryMissionPlan::class);
 
         return $this->json([
             'success' => true,

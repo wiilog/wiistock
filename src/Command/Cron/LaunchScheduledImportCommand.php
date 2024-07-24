@@ -46,13 +46,15 @@ class LaunchScheduledImportCommand extends Command {
         return $this->scheduledTaskService->launchScheduledTasks(
             $this->getEntityManager(),
             Import::class,
-            function (Import $import) use ($output) {
-                $this->import($output, $import);
+            function (Import $import, DateTime $taskExecution) use ($output) {
+                $this->import($output, $import, $taskExecution);
             }
         );
     }
 
-    public function import(OutputInterface $output, Import $import): void {
+    public function import(OutputInterface $output,
+                           Import          $import,
+                           DateTime        $taskExecution): void {
         $entityManager = $this->getEntityManager();
         $statusRepository = $entityManager->getRepository(Statut::class);
         $importRepository = $entityManager->getRepository(Import::class);
@@ -92,6 +94,9 @@ class LaunchScheduledImportCommand extends Command {
                 $endDateStr = $endDate ? $endDate->format('d/m/Y H:i:s') : '';
                 $output->writeln("Finished import {$import->getId()} at $endDateStr");
             }
+
+            $import->getScheduleRule()?->setLastRun($taskExecution);
+            $entityManager->flush();
         }
     }
 

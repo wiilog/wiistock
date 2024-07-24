@@ -7,17 +7,14 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
-use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
-use App\Service\FormatService;
 use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
-use App\Service\StorageRuleService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -163,6 +160,8 @@ class PurchaseRequestPlanController extends AbstractController
         $entityManager->persist($purchaseRequestPlan);
         $entityManager->flush();
 
+        $scheduledTaskService->deleteCache(PurchaseRequestPlan::class);
+
         return $this->json([
             'success' => true,
             'msg' => 'Planification créée avec succès'
@@ -172,9 +171,12 @@ class PurchaseRequestPlanController extends AbstractController
     #[Route('/{purchaseRequestPlan}/delete', name: 'purchase_request_plan_delete', options: ['expose' => true], methods: ['DELETE'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
+                           ScheduledTaskService   $scheduledTaskService,
                            PurchaseRequestPlan    $purchaseRequestPlan): Response {
         $entityManager->remove($purchaseRequestPlan);
         $entityManager->flush();
+
+        $scheduledTaskService->deleteCache(PurchaseRequestPlan::class);
 
         return new JsonResponse([
             'success' => true,

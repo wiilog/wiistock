@@ -6,8 +6,9 @@ namespace App\Command\Cron;
 
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Service\PurchaseRequestPlanService;
-use App\Service\ScheduleRuleService;
+use App\Service\ScheduledTaskService;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -19,42 +20,32 @@ use Symfony\Contracts\Service\Attribute\Required;
     name: ScheduledPurchaseRequestCommand::COMMAND_NAME,
     description: 'This command executes scheduled purchase resquests.'
 )]
-class ScheduledPurchaseRequestCommand extends Command
-{
+class ScheduledPurchaseRequestCommand extends Command {
 
     public const COMMAND_NAME = "app:launch:scheduled-purchase-request";
 
     #[Required]
-    public EntityManagerInterface $em;
+    public EntityManagerInterface $entityManager;
 
     #[Required]
     public PurchaseRequestPlanService $purchaseRequestPlanService;
 
     #[Required]
-    public ScheduleRuleService $scheduleRuleService;
+    public ScheduledTaskService $scheduledTaskService;
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $purchaseRequestRuleRepository = $this->em->getRepository(PurchaseRequestPlan::class);
-
-        // todo adrien: get from cache
-        $purchaseRequestRules = $purchaseRequestRuleRepository->findScheduled();
-        foreach ($purchaseRequestRules as $rule) {
-            $now = new DateTime();
-            $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-
-            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecution($rule, $now);
-
-            // test if we can calculate a next execution date with the rule
-            // AND if $now (date + hour + minute) is on same than this calculated execution date
-            if (isset($nextExecutionDate) && $now >= $nextExecutionDate) {
-                $this->purchaseRequestPlanService->treatRequestPlan($this->em, $rule);
-
-                $rule->setLastRun($nextExecutionDate);
+    protected function execute(InputInterface $input, OutputInterface $output): int {
+        return $this->scheduledTaskService->launchScheduledTasks(
+            $this->getEntityManager(),
+            PurchaseRequestPlan::class,
+            function (PurchaseRequestPlan $purchaseRequestPlan, DateTime $taskExecution) {
+                $this->purchaseRequestPlanService->treatRequestPlan($this->getEntityManager(), $purchaseRequestPlan, $taskExecution);
             }
-        }
-        $this->em->flush();
+        );
+    }
 
-        return 0;
+    private function getEntityManager(): EntityManagerInterface {
+        return $this->entityManager->isOpen()
+            ? $this->entityManager
+            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 }

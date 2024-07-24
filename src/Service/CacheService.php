@@ -17,6 +17,8 @@ class CacheService
     public const COLLECTION_LANGUAGES = "languages";
     public const COLLECTION_EXPORTS = "exports";
     public const COLLECTION_IMPORTS = "imports";
+    public const COLLECTION_PURCHASE_REQUEST_PLANS = "purchase-request-plans";
+    public const COLLECTION_INVENTORY_MISSION_PLANS = "inventory-mission-plans";
     public const COLLECTION_SETTINGS = "settings";
 
     private FileSystem $filesystem;
