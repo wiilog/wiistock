@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Attachment;
 use App\Entity\Interfaces\AttachmentContainer;
-use App\Entity\TrackingMovement;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -78,12 +77,12 @@ class AttachmentService {
         }
     }
 
-    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files, bool $deleteTmpFile): array {
+    public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files): array {
         $reflect = new ReflectionClass($attachmentEntity);
         $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
         $addedAttachments = [];
         foreach ($files as $file) {
-            $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder, $deleteTmpFile);
+            $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
             $attachmentEntity->addAttachment($attachment);
             $addedAttachments[] = $attachment;
             $entityManager->persist($attachment);
@@ -91,7 +90,7 @@ class AttachmentService {
         return $addedAttachments;
     }
 
-    private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder, bool $deleteTmpFile): Attachment {
+    private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder): Attachment {
         $dedicatedFolder = "$this->attachmentDirectory/$dedicatedSubFolder";
         if (!file_exists($dedicatedFolder)) {
             mkdir($dedicatedFolder, 0777, true);
@@ -109,12 +108,7 @@ class AttachmentService {
             $publicPath = Attachment::MAIN_PATH . "/$dedicatedSubFolder/$filename";
             $i++;
         } while (file_exists($fullPath));
-
-        if ($deleteTmpFile) {
-            $uploadedFile->move($dedicatedFolder, $filename);
-        } else {
-            copy($uploadedFile->getPathname(), $dedicatedFolder . $filename);
-        }
+        copy($uploadedFile->getPathname(), $dedicatedFolder . $filename);
 
         return $this->createAttachmentDeprecated($filename, $publicPath);
     }

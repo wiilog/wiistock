@@ -304,7 +304,7 @@ class ProductionRequestService
             : [];
 
         $this->attachmentService->removeAttachments($entityManager, $productionRequest, $alreadySavedFiles);
-        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag, $deleteTmpFile);
+        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
 
         if ($productionRequest->getAttachments()->isEmpty() && $productionRequest->getStatus()->isRequiredAttachment()) {
             throw new FormException("Vous devez ajouter une pièce jointe pour passer à ce statut");

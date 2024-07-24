@@ -189,8 +189,7 @@ class ProductionRequestController extends AbstractController
 
         $productionRequests = [];
         for ($i = 0; $i < $quantityToGenerate; $i++) {
-            $isEndOfTheLoop = $i === ($quantityToGenerate - 1);
-            $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files, false, $isEndOfTheLoop);
+            $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files, false);
             $productionRequests[] = $productionRequest;
             $entityManager->persist($productionRequest);
         }
