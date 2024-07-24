@@ -5,13 +5,13 @@ namespace App\Service;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
-use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\StorageRule;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class PurchaseRequestRuleService
+class PurchaseRequestPlanService
 {
 
     #[Required]
@@ -32,12 +32,13 @@ class PurchaseRequestRuleService
     #[Required]
     public MailerService $mailerService;
 
-    public function treatRequestRule(PurchaseRequestScheduleRule $purchaseRequestRule): void
+    public function treatRequestPlan(EntityManagerInterface $entityManager,
+                                     PurchaseRequestPlan    $requestPlan): void
     {
         $storageRuleRepository = $this->em->getRepository(StorageRule::class);
 
         // getting storage rules by the purchase rule, quantity rule applied here
-        $storageRules = $storageRuleRepository->findByPurchaseRequestRuleWithStockQuantity($purchaseRequestRule);
+        $storageRules = $storageRuleRepository->findByPlanWithStockQuantity($requestPlan);
         $purchaseRequests = [];
         $suppliersByRefArticle = [];
 
@@ -50,7 +51,7 @@ class PurchaseRequestRuleService
                 $suppliersByRefArticle[$refArticleId] = Stream::from($refArticle->getArticlesFournisseur())
                         ->map(fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur())
                         ->unique()
-                        ->filter(fn(Fournisseur $supplier) => $purchaseRequestRule->getSuppliers()->contains($supplier))
+                        ->filter(fn(Fournisseur $supplier) => $requestPlan->getSuppliers()->contains($supplier))
                         ->toArray();
             }
 
@@ -64,21 +65,21 @@ class PurchaseRequestRuleService
                 if (isset($purchaseRequests[$supplierId])) {
                     $purchaseRequest = $purchaseRequests[$supplierId];
                 } else {
-                    $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($purchaseRequestRule->getStatus(), $purchaseRequestRule->getRequester(), ["supplier" => $supplier]);
+                    $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($requestPlan->getStatus(), $requestPlan->getRequester(), ["supplier" => $supplier]);
                     $purchaseRequests[$supplierId] = $purchaseRequest;
                 }
 
                 $purchaseRequest->addPurchaseRequestLine($purchaseRequestLine);
-                $this->em->persist($purchaseRequestLine);
-                $this->em->persist($purchaseRequest);
+                $entityManager->persist($purchaseRequestLine);
+                $entityManager->persist($purchaseRequest);
             }
 
-            $this->em->flush();
+            $entityManager->flush();
         }
 
 
         foreach ($purchaseRequests as $purchaseRequest) {
-            $this->purchaseRequestService->sendMailsAccordingToStatus($this->em, $purchaseRequest, ["customSubject" => $purchaseRequestRule->getEmailSubject()]);
+            $this->purchaseRequestService->sendMailsAccordingToStatus($entityManager, $purchaseRequest, ["customSubject" => $requestPlan->getEmailSubject()]);
         }
     }
 }

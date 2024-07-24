@@ -2,10 +2,10 @@
 // At every minute
 // * * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
-use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
-use App\Service\PurchaseRequestRuleService;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
+use App\Service\PurchaseRequestPlanService;
 use App\Service\ScheduleRuleService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,16 +28,16 @@ class ScheduledPurchaseRequestCommand extends Command
     public EntityManagerInterface $em;
 
     #[Required]
-    public PurchaseRequestRuleService $purchaseRequestRuleService;
+    public PurchaseRequestPlanService $purchaseRequestPlanService;
 
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $purchaseRequestRuleRepository = $this->em->getRepository(PurchaseRequestScheduleRule::class);
+        $purchaseRequestRuleRepository = $this->em->getRepository(PurchaseRequestPlan::class);
 
-        // todo: get from cache
+        // todo adrien: get from cache
         $purchaseRequestRules = $purchaseRequestRuleRepository->findAll();
         foreach ($purchaseRequestRules as $rule) {
             $now = new DateTime();
@@ -48,7 +48,7 @@ class ScheduledPurchaseRequestCommand extends Command
             // test if we can calculate a next execution date with the rule
             // AND if $now (date + hour + minute) is on same than this calculated execution date
             if (isset($nextExecutionDate) && $now >= $nextExecutionDate) {
-                $this->purchaseRequestRuleService->treatRequestRule($rule);
+                $this->purchaseRequestPlanService->treatRequestPlan($this->em, $rule);
 
                 $rule->setLastRun($nextExecutionDate);
             }

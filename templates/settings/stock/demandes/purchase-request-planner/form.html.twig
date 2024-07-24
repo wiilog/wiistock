@@ -1,9 +1,9 @@
 {% import 'form.html.twig' as form %}
 
 <div class="row">
-    {% if purchaseRequestScheduleRule.id  %}
+    {% if purchaseRequestPlan.id  %}
         <div class="d-none">
-            {{ form.input('id', 'id', true, purchaseRequestScheduleRule.id , {
+            {{ form.input('id', 'id', true, purchaseRequestPlan.id , {
                 type: 'hidden',
             }) }}
         </div>
@@ -12,18 +12,18 @@
         {{ form.select('zones', 'Zone', true, {
             type: 'zones',
             multiple: true,
-            items: purchaseRequestScheduleRule.zones|map((zone) => {value: zone.id, label: zone.name, selected: true}),
+            items: purchaseRequestPlan.zones|map((zone) => {value: zone.id, label: zone.name, selected: true}),
         } ) }}
     </div>
     <div class="col-6">
         {{ form.select('suppliers', 'Fournisseur', true, {
             type: 'provider',
             multiple: true,
-            items: purchaseRequestScheduleRule.suppliers|map((supplier) => {value: supplier.id, label: supplier.nom, selected: true}),
+            items: purchaseRequestPlan.suppliers|map((supplier) => {value: supplier.id, label: supplier.nom, selected: true}),
         } ) }}
     </div>
     <div class="col-6">
-        {% set requester = purchaseRequestScheduleRule.requester ?? app.user %}
+        {% set requester = purchaseRequestPlan.requester ?? app.user %}
         {{ form.select('requester', 'Demandeur', true, {
             type: 'user',
             multiple: false,
@@ -35,25 +35,25 @@
     <div class="col-6">
         {{ form.select('status', 'Statut', true, {
             type: null,
-            items : status,
+            items : statuses,
             search: false,
         } ) }}
     </div>
     <div class="col-6">
-        {{ form.input('mailSubject', 'Objet du mail', true, purchaseRequestScheduleRule.emailSubject ) }}
+        {{ form.input('mailSubject', 'Objet du mail', true, purchaseRequestPlan.emailSubject ) }}
     </div>
 </div>
 <div class="row">
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
-            frequency: purchaseRequestScheduleRule.frequency,
-            begin: purchaseRequestScheduleRule.begin,
-            intervalPeriod: purchaseRequestScheduleRule.intervalPeriod,
-            intervalTime: purchaseRequestScheduleRule.intervalTime,
-            period: purchaseRequestScheduleRule.period,
-            weekDays: purchaseRequestScheduleRule.weekDays,
-            months: purchaseRequestScheduleRule.months,
-            monthDays: purchaseRequestScheduleRule.monthDays,
+            frequency: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.frequency,
+            begin: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.begin,
+            intervalPeriod: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.intervalPeriod,
+            intervalTime: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.intervalTime,
+            period: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.period,
+            weekDays: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.weekDays,
+            months: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.months,
+            monthDays: purchaseRequestPlan.scheduleRule ? purchaseRequestPlan.scheduleRule.monthDays,
             required: true,
         } %}
     </div>

@@ -5,7 +5,6 @@ namespace App\Entity\ScheduledTask;
 use App\Entity\Attachment;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\MouvementStock;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;

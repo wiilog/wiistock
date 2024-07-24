@@ -9,7 +9,7 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Menu;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\MailerService;

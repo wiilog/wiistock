@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Entity\ScheduledTask\ScheduleRule;
+namespace App\Entity\ScheduledTask;
 
-use App\Repository\ScheduledTask\StorageRule\ScheduleRuleRepository;
+use App\Repository\ScheduledTask\ScheduleRuleRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\MappedSuperclass()]
 #[ORM\Entity(repositoryClass: ScheduleRuleRepository::class)]
 class ScheduleRule {
     public const ONCE = 'once-frequency';

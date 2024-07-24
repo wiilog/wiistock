@@ -2,7 +2,7 @@
 
 namespace App\Tests\Service;
 
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Service\ScheduleRuleService;
 use DateTime;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;

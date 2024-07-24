@@ -31,7 +31,7 @@
                 selectAllLabel: 'Tous les mois',
             }) }}
 
-            {% set lastDayIndex = constant('App\\Entity\\ScheduledTask\\ScheduleRule\\ScheduleRule::LAST_DAY_OF_WEEK') %}
+            {% set lastDayIndex = constant('App\\Entity\\ScheduledTask\\ScheduleRule::LAST_DAY_OF_WEEK') %}
             {{ form.select('monthDays', 'Jours', false, {
                 type: null,
                 items: [1, 15, lastDayIndex] | map((day) => ({

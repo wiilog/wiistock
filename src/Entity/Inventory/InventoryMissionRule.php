@@ -3,7 +3,7 @@
 namespace App\Entity\Inventory;
 
 use App\Entity\Emplacement;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRuleRepository;
 use Doctrine\Common\Collections\ArrayCollection;

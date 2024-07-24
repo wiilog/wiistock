@@ -6,7 +6,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\PurchaseRequestPlan;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Exceptions\FormException;
 use DateTime;
@@ -333,8 +334,8 @@ class ScheduleRuleService
     }
 
     public function canPlanPurchaseRequest(EntityManagerInterface $entityManager): bool {
-        $purchaseRequestRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
-        $numberOfPlannedTasks = $purchaseRequestRuleRepository->count(['active' => true]);
+        $purchaseRequestPlanRepository = $entityManager->getRepository(PurchaseRequestPlan::class);
+        $numberOfPlannedTasks = $purchaseRequestPlanRepository->count(['active' => true]);
 
         return $this->canAddTask($numberOfPlannedTasks);
     }

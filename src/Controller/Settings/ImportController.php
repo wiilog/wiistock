@@ -6,7 +6,7 @@ use App\Controller\AbstractController;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\FormException;

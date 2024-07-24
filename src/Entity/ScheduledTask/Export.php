@@ -2,7 +2,6 @@
 
 namespace App\Entity\ScheduledTask;
 
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -42,7 +41,7 @@ class Export implements ScheduledTask {
     ];
 
     const DESTINATION_EMAIL = 1;
-    const DESTINATION_SFTP = 2;
+    const DESTINATION_SFTP = 2; // TODO Adrien
 
     const PERIOD_INTERVAL_DAY = "day";
     const PERIOD_INTERVAL_WEEK = "week";

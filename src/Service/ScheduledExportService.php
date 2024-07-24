@@ -12,7 +12,7 @@ use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\TrackingMovement;

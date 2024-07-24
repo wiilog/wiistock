@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository\ScheduledTask\StorageRule;
+namespace App\Repository\ScheduledTask;
 
 use Doctrine\ORM\EntityRepository;
 

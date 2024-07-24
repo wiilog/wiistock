@@ -6,7 +6,6 @@ namespace App\Command\Cron;
 
 use App\Entity\CategorieStatut;
 use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Service\CacheService;
 use App\Service\FTPService;
