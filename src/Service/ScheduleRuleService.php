@@ -3,9 +3,9 @@
 namespace App\Service;
 
 use App\Entity\CategorieStatut;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
@@ -327,8 +327,8 @@ class ScheduleRuleService
     }
 
     public function canPlanInventoryMission(EntityManagerInterface $entityManager): bool {
-        $missionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
-        $numberOfPlannedTasks = $missionRuleRepository->count(['active' => true]);
+        $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
+        $numberOfPlannedTasks = $inventoryMissionPlanRepository->count(['active' => true]);
 
         return $this->canAddTask($numberOfPlannedTasks);
     }

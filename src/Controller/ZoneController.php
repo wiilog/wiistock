@@ -88,7 +88,7 @@ class ZoneController extends AbstractController
                 $locationRepository = $manager->getRepository(Emplacement::class);
                 $purchaseRequestPlanRepository = $manager->getRepository(PurchaseRequestPlan::class);
                 $issue = ($locationRepository->isLocationInNotDoneInventoryMission($zone) ? ' une mission d’inventaire en cours, ' : '')
-                    . ($locationRepository->isLocationInZoneInventoryMissionRule($zone) ? ' une planification d’inventaire, ' : '')
+                    . ($locationRepository->isLocationInZoneInventoryMissionPlan($zone) ? ' une planification d’inventaire, ' : '')
                     . ( $purchaseRequestPlanRepository->isZoneInPurchaseRequestPlan($zone) ? ' une planification de demande d’achat, ' : '');
 
                 if ($issue) {

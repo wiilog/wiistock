@@ -7,15 +7,15 @@ import {initDataTable} from "@app/datatable";
 
 let tableInventoryPanning;
 
-global.editMissionRule = editMissionRule;
+global.editMissionPlan = editMissionPlan;
 global.deleteInventoryMission = deleteInventoryMission;
 global.cancelInventoryMission = cancelInventoryMission;
 
 export function initializeInventoryPlanificatorTable($container) {
-    const $missionRulesTable = $container.find('table#missionRulesTable');
+    const $missionPlansTable = $container.find('table#missionPlansTable');
     const tableInventoryPannerConfig = {
         ajax: {
-            "url": Routing.generate('settings_mission_rules_api', true),
+            "url": Routing.generate('settings_mission_plans_api', true),
             "type": GET
         },
         order: [[1, "asc"]],
@@ -34,7 +34,7 @@ export function initializeInventoryPlanificatorTable($container) {
             needsRowClickAction: true,
         },
     };
-    tableInventoryPanning = initDataTable($missionRulesTable, tableInventoryPannerConfig);
+    tableInventoryPanning = initDataTable($missionPlansTable, tableInventoryPannerConfig);
 
     const $modalFormInventoryPlanner = $('#modalFormInventoryPlanner');
     Form
@@ -67,7 +67,7 @@ export function initializeInventoryPlanificatorTable($container) {
         .onSubmit((data, form) => {
             form.loading(() => {
                 return AJAX
-                    .route(`POST`, `mission_rules_form`, {})
+                    .route(`POST`, `mission_plans_form`, {})
                     .json(
                         data
                     )
@@ -81,17 +81,17 @@ export function initializeInventoryPlanificatorTable($container) {
         });
 }
 
-function editMissionRule($button) {
+function editMissionPlan($button) {
     const $modalEditInventoryPanner = $('#modalFormInventoryPlanner');
 
-    const missionRule = $button.data('id');
-    const $wrapperLoader = missionRule ? $button.closest('#missionRulesTable_wrapper') : $button;
+    const missionPlan = $button.data('id');
+    const $wrapperLoader = missionPlan ? $button.closest('#missionPlansTable_wrapper') : $button;
 
-    const params = missionRule ? {missionRule} : {};
+    const params = missionPlan ? {missionPlan} : {};
 
     wrapLoadingOnActionButton($wrapperLoader, () => (
         AJAX
-            .route(GET, 'mission_rules_form_template', params)
+            .route(GET, 'mission_plans_form_template', params)
             .json()
             .then(({html}) => {
                 $modalEditInventoryPanner.find('.modal-body').html(html);
@@ -134,7 +134,7 @@ function cancelInventoryMission($button) {
         table: tableInventoryPanning,
         ajax: {
             method: DELETE,
-            route: 'mission_rules_cancel',
+            route: 'mission_plans_cancel',
             params: { mission },
         },
         validateButton: {
@@ -151,7 +151,7 @@ function deleteInventoryMission($button) {
         table: tableInventoryPanning,
         ajax: {
             method: DELETE,
-            route: 'mission_rules_delete',
+            route: 'mission_plans_delete',
             params: { mission },
         },
         validateButton: {

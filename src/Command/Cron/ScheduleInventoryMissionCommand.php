@@ -4,7 +4,7 @@
 
 namespace App\Command\Cron;
 
-use App\Entity\Inventory\InventoryMissionRule;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Service\InvMissionService;
 use App\Service\ScheduleRuleService;
 use DateTime;
@@ -35,9 +35,10 @@ class ScheduleInventoryMissionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $invMissionRuleRepository = $this->getEntityManager()->getRepository(InventoryMissionRule::class);
+        $entityManager = $this->getEntityManager();
+        $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
 
-        $rules = $invMissionRuleRepository->findBy(['active' => true]);
+        $rules = $inventoryMissionPlanRepository->findBy(['active' => true]);
 
         foreach ($rules as $rule) {
             $now = new DateTime();

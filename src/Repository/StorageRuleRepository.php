@@ -1,15 +1,12 @@
 <?php
 
-namespace App\Repository\ScheduledTask\StorageRule;
+namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Fournisseur;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\StorageRule;
-use App\Entity\Zone;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
-use WiiCommon\Helper\Stream;
 
 /**
  * @extends EntityRepository<StorageRule>
