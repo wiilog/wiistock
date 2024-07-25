@@ -258,7 +258,7 @@ class ScheduleRuleService
 
     public function calculateOnce(ScheduleRule $rule,
                                   DateTime     $from): ?DateTime {
-        return $rule->getLastRun() === null && $from <= $rule->getBegin()
+        return $from <= $rule->getBegin()
             ? $rule->getBegin()
             : null;
     }

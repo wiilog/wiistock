@@ -51,7 +51,7 @@ class PurchaseRequestPlanController extends AbstractController
                         ScheduleRule::MONTHLY => "Chaque mois",
                         default => null,
                     },
-                    "lastExecution" => $this->getFormatter()->date($scheduleRule?->getlastRun()),
+                    "lastExecution" => $this->getFormatter()->datetime($purchaseRequestPlan->getlastRun()),
                 ];
             })
             ->toArray();

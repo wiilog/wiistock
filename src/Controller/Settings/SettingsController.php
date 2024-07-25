@@ -3164,7 +3164,7 @@ class SettingsController extends AbstractController {
                 "duration" => $mission->getDuration() . ' ' . (InventoryMissionPlan::DURATION_UNITS_LABELS[$mission->getDurationUnit()] ?? null),
                 "requester" => $this->getFormatter()->user($mission->getRequester()),
                 "creator" => $this->getFormatter()->user($mission->getCreator()),
-                "lastExecution" => $this->getFormatter()->datetime($mission->getScheduleRule()?->getLastRun()),
+                "lastExecution" => $this->getFormatter()->datetime($mission->getLastRun()),
                 "active" => $this->getFormatter()->bool($mission->isActive()),
             ];
         }

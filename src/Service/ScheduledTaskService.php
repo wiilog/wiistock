@@ -7,12 +7,15 @@ use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduledTask;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Repository\ScheduledTask\ScheduledTaskRepository;
+use App\Repository\ScheduledTask\ScheduleRuleRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use ReflectionClass;
+use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -152,7 +155,7 @@ class ScheduledTaskService
         // get only tasks to execute on current minute
         return Stream::from($repository->findScheduled())
             ->keymap(function(ScheduledTask $task) use ($from, $class) {
-                $nextExecutionTime = $this->scheduleRuleService->calculateNextExecution($task->getScheduleRule(), $from);
+                $nextExecutionTime = $this->calculateTaskNextExecution($task, $from);
                 return $nextExecutionTime
                     ? [
                         $this->getCacheDateKey($nextExecutionTime),
@@ -161,6 +164,25 @@ class ScheduledTaskService
                     : null;
             }, true)
             ->toArray();
+    }
+
+
+
+    public function calculateTaskNextExecution(ScheduledTask $scheduledTask,
+                                               DateTime      $from): ?DateTime {
+
+        $rule = $scheduledTask->getScheduleRule();
+
+        if (!$rule) {
+            return null;
+        }
+
+        if ($rule->getFrequency() === ScheduleRule::ONCE
+            && !$scheduledTask->getLastRun()) {
+            return null;
+        }
+
+        return $this->scheduleRuleService->calculateNextExecution($rule, $from);
     }
 
 }

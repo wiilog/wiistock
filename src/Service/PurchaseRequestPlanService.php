@@ -79,7 +79,7 @@ class PurchaseRequestPlanService
             $entityManager->flush();
         }
 
-        $purchaseRequestPlan->getScheduleRule()?->setLastRun($taskExecution);
+        $purchaseRequestPlan->setLastRun($taskExecution);
 
         $entityManager->flush();
         foreach ($purchaseRequests as $purchaseRequest) {

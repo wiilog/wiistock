@@ -305,7 +305,8 @@ class InvMissionService {
         }
 
         $inventoryMissionPlan->addCreatedMission($inventoryMission);
-        $inventoryMissionPlan->getScheduleRule()?->setLastRun($taskExecution);
+        $inventoryMissionPlan->setLastRun($taskExecution);
+
         $entityManager->persist($inventoryMission);
         $entityManager->flush();
     }

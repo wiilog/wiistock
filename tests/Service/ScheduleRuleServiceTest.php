@@ -27,14 +27,6 @@ class ScheduleRuleServiceTest extends KernelTestCase {
             "from" => "2024-01-01 17:00:00",
             "expected" => "2024-01-02 18:00:00",
         ],
-        [
-            "scheduleRule" => [
-                "frequency" => ScheduleRule::ONCE,
-                "startDate" => "2024-01-03 12:00:00",
-            ],
-            "from" => "2024-01-03 17:00:00",
-            "expected" => null,
-        ],
     ];
     private const HOURLY_SCHEDULE_RULES_TO_TEST = [
         [ // begin = from

@@ -70,9 +70,6 @@ class ScheduleRule {
     //Only for the "month" scheduled import
     private ?array $months = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $lastRun = null;
-
     public function getId(): ?int {
         return $this->id;
     }
@@ -146,15 +143,6 @@ class ScheduleRule {
 
     public function setMonths(?array $months): self {
         $this->months = $months;
-        return $this;
-    }
-
-    public function getLastRun(): ?DateTime {
-        return $this->lastRun;
-    }
-
-    public function setLastRun(?DateTime $lastRun): self {
-        $this->lastRun = $lastRun;
         return $this;
     }
 
