@@ -172,7 +172,6 @@ class ArrivageController extends AbstractController {
         $counter = $arrivageRepository->countByDate($date) + 1;
         $suffix = $counter < 10 ? ("0" . $counter) : $counter;
         $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
-        $trackingNumber = $data['noTracking'];
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -227,7 +226,8 @@ class ArrivageController extends AbstractController {
             $arrivage->setChauffeur($chauffeurRepository->find($data['chauffeur']));
         }
 
-        if (!empty($trackingNumber)) {
+        if (!empty($data['noTracking'])) {
+            $trackingNumber = $data['noTracking'];
             $truckArrival = isset($data["noTruckArrival"]) ? $truckArrivalRepository->find($data["noTruckArrival"]) : null;
             $emptyTrackingNumber = $trackingNumber !== "null";
             if($emptyTrackingNumber){
@@ -258,6 +258,9 @@ class ArrivageController extends AbstractController {
             } else if($truckArrival) {
                 $arrivage->setTruckArrival($truckArrival);
             }
+        } else if(!empty($data["noTruckArrival"])) {
+            $truckArrival = $truckArrivalRepository->find($data["noTruckArrival"]);
+            $arrivage->setTruckArrival($truckArrival);
         }
 
         $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
