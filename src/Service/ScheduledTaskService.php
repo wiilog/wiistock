@@ -22,7 +22,7 @@ use WiiCommon\Helper\Stream;
 class ScheduledTaskService
 {
 
-    public const MAX_ONGOING_SCHEDULED_TASKS = 1;
+    public const MAX_ONGOING_SCHEDULED_TASKS = 10;
     private const CACHE_KEY = "scheduled";
 
     #[Required]

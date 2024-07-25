@@ -59,11 +59,11 @@ class DataExportController extends AbstractController {
     public const EXPORT_UNIQUE = "unique";
     public const EXPORT_SCHEDULED = "scheduled";
 
-    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
+    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: self::POST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function api(Request                $request,
                         ScheduledTaskService   $scheduledTaskService,
-                        EntityManagerInterface $entityManager): Response {
+                        EntityManagerInterface $entityManager): JsonResponse {
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
@@ -114,8 +114,7 @@ class DataExportController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         Security               $security,
                         ScheduledTaskService   $scheduledTaskService,
-                        ScheduleRuleService    $scheduleRuleService,
-                        DataExportService      $dataExportService): Response {
+                        DataExportService      $dataExportService): JsonResponse {
 
         $data = $request->request->all();
 
