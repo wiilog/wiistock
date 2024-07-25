@@ -19,7 +19,7 @@ class PurchaseRequestPlan extends ScheduledTask {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToMany(targetEntity: Zone::class)]

@@ -525,7 +525,7 @@ class DataExportController extends AbstractController {
         ]));
     }
 
-    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: [self::PATCH], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function cancel(Export                 $export,
                            EntityManagerInterface $entityManager,
@@ -535,8 +535,11 @@ class DataExportController extends AbstractController {
 
         $exportType = $export->getType();
         $exportStatus = $export->getStatus();
-        if ($exportType?->getLabel() == Type::LABEL_SCHEDULED_EXPORT
-            && $exportStatus?->getNom() == Export::STATUS_SCHEDULED) {
+        $canCancel = (
+            $exportType?->getLabel() === Type::LABEL_SCHEDULED_EXPORT
+            && $exportStatus?->getNom() === Export::STATUS_SCHEDULED
+        );
+        if ($canCancel) {
             $statusCancelled = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED);
             $export->setStatus($statusCancelled);
             $entityManager->flush();

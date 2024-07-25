@@ -139,10 +139,10 @@ class ImportController extends AbstractController
         }
     }
 
-    #[Route("/link", name: "import_links", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function defineLinks(Request $request,
-                                ScheduledTaskService $scheduledTaskService,
-                                EntityManagerInterface $entityManager): Response {
+    #[Route("/link", name: "import_links", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function defineLinks(Request                $request,
+                                ScheduledTaskService   $scheduledTaskService,
+                                EntityManagerInterface $entityManager): JsonResponse {
         $importRepository = $entityManager->getRepository(Import::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $data = $request->request->all();

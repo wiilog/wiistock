@@ -221,7 +221,7 @@ class InventoryMissionPlanController extends AbstractController
         }
     }
 
-    #[Route('/{mission}/cancel', name: 'mission_plan_cancel', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[Route('/{mission}/cancel', name: 'mission_plan_cancel', options: ["expose" => true], methods: [self::PATCH], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function cancel(EntityManagerInterface $entityManager,
                            ScheduledTaskService   $scheduledTaskService,

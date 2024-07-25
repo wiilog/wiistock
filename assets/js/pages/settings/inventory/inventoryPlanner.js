@@ -1,4 +1,4 @@
-import AJAX, {DELETE, GET, POST} from "@app/ajax";
+import AJAX, {DELETE, GET, PATCH, POST} from "@app/ajax";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
 import {initFormAddInventoryLocations} from "@app/pages/inventory-mission/form-add-inventory-locations";
@@ -133,7 +133,7 @@ function cancelInventoryMission($button) {
         message: "Confirmez-vous l'annulation cette planification de missions d'inventaire ?",
         table: tableInventoryPanning,
         ajax: {
-            method: DELETE,
+            method: PATCH,
             route: 'mission_plan_cancel',
             params: { mission },
         },
