@@ -133,6 +133,8 @@ class PlanningController extends AbstractController {
                     $productionRequest->getType()
                 ])
                 ->values();
+
+
             $freeFieldsByType = $allTypes
                 ? Stream::from($freeFieldRepository->findByTypeAndCategorieCLLabel($allTypes, CategorieCL::PRODUCTION_REQUEST))
                     ->keymap(static fn(FreeField $freeField) => [
@@ -141,20 +143,8 @@ class PlanningController extends AbstractController {
                     ], true)
                     ->toArray()
                 : [];
-            $fixedFields = Stream::from($fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [
-                FixedFieldEnum::lineCount->name,
-                FixedFieldEnum::projectNumber->name,
-                FixedFieldEnum::comment->name,
-                FixedFieldEnum::attachments->name
-            ]))
-                ->keymap(static fn(FixedField $fixedField) => [
-                    $fixedField->getFieldCode(),
-                    $fixedField
-                ])
-                ->toArray();
 
             $fieldModes = $user->getFieldModesByPage()[FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING] ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
-            dump($fieldModes);
 
             $cards = Stream::from($productionRequests)
                 ->keymap(function (ProductionRequest $productionRequest) use ($fieldModes, $user, $entityManager, $productionRequestService, $formatService, $fixedFieldRepository, $freeFieldRepository, $defaultLanguage, $external) {
@@ -170,20 +160,183 @@ class PlanningController extends AbstractController {
                                 ];
                             },
                         ],
+                        [
+                            "field" => FixedFieldEnum::productArticleCode,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $productionRequest->getProductArticleCode(),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::manufacturingOrderNumber,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $productionRequest->getManufacturingOrderNumber(),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::dropLocation,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $formatService->location($productionRequest->getDropLocation()),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::quantity,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" =>$productionRequest->getQuantity(),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::emergency,
+                            "type" => "icons",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                $emergency = $productionRequest->getEmergency();
+
+                                return $emergency
+                                    ? [
+                                        "path" => "svg/urgence.svg",
+                                        "alt" => "icon $field->value",
+                                        "title" => "Une urgence est en cours sur cette demande : $emergency",
+                                    ]
+                                    : null;
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::comment,
+                            "type" => "icons",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                $comment = strip_tags($productionRequest->getComment());
+                                return $comment
+                                    ? [
+                                        "path" => "svg/comment-dots-regular.svg",
+                                        "alt" => "icon $field->value",
+                                        "title" => "Un commentaire est présent sur cette demande : $comment",
+                                    ]
+                                    : null;
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::lineCount,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" =>$productionRequest->getLineCount(),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::projectNumber,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" =>$productionRequest->getProjectNumber(),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::attachments,
+                            "type" => "icons",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                $attachmentsCount = $productionRequest->getAttachments()->count();
+                                return $attachmentsCount
+                                    ? [
+                                        "path" => "svg/paperclip.svg",
+                                        "alt" => "icon $field->value",
+                                        "title" => "$attachmentsCount pièce(s) jointe(s) est/sont présente(s) sur cette demande",
+                                    ]
+                                    : null;
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::createdBy,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $formatService->user($productionRequest->getCreatedBy()),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::type,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $formatService->type($productionRequest->getType()),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::treatedBy,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $formatService->user($productionRequest->getTreatedBy()),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::expectedAt,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $formatService->datetime($productionRequest->getExpectedAt()),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::createdAt,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $formatService->datetime($productionRequest->getCreatedAt()),
+                                ];
+                            },
+                        ],
+                        [
+                            "field" => FixedFieldEnum::number,
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                                return [
+                                    "label" => $field->value,
+                                    "value" => $productionRequest->getNumber(),
+                                ];
+                            },
+                        ],
                     ];
 
                     foreach ($fields as $fieldData) {
                         $field = $fieldData["field"];
                         $getDetails = $fieldData["getDetails"];
                         if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$field->name] ?? [])) {
-                            $arrayConfigTofill = "detailsData";
+                            $fieldLocation = "header";
                         } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$field->name] ?? [])) {
-                            $arrayConfigTofill = "detailsDropdownData";
+                            $fieldLocation = "dropdown";
                         } else {
-                            $arrayConfigTofill = null;
+                            $fieldLocation = null;
                         }
-                        if($arrayConfigTofill) {
-                            $$arrayConfigTofill[$fieldData["type"]][] = $getDetails($productionRequest);
+                        if($fieldLocation) {
+                            $cardContent[$fieldLocation][$fieldData["type"]][] = $getDetails($productionRequest, $field);
                         }
                     }
 
@@ -192,8 +345,7 @@ class PlanningController extends AbstractController {
                         $this->renderView('production_request/planning/card.html.twig', [
                             "productionRequest" => $productionRequest,
                             "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
-                            "detailsData" => $detailsData ?? [],
-                            "detailsDropdownData" => $detailsDropdownData ?? [],
+                            "cardContent" => $cardContent ?? [],
                             "inPlanning" => true,
                             "external" => $external,
                         ])

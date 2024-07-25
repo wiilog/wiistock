@@ -3,31 +3,37 @@
         {% if tags is not empty %}
             <div class="d-flex flex-wrap">
                 {% for tag in tags %}
+                    {% if not tag is empty %}
                     <div class="rounded px-2 py-1 mr-1 mb-1 {{ tag.class}}"
                          style="background-color: {{ tag.color ?? 'white' }}">
                         <span class="text-color-auto">
                             {{ tag.label }}
                         </span>
                     </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
         {% for row in rows %}
-            <div class="mt-1" data-field-label="{{ row.label }}">
-                {{ row.label }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ row.value ?? "-" }}</span>
-            </div>
+            {% if not row is empty %}
+                <div class="mt-1" data-field-label="{{ row.label }}">
+                    {{ row.label }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ row.value ?? "-" }}</span>
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% if icons is not empty %}
         <div class="pr-3 pl-3 w-min-content">
             <div class="text-center d-flex flex-column align-items-center">
                 {% for icon in icons %}
-                    <img src="{{ icon.path }}"
+                    {% if not icon is empty %}
+                    <img src="{{ asset(icon.path) }}"
                          class="has-tooltip mb-1"
                          width="30"
                          alt="{{ icon.alt }}"
                          title="{{ icon.title }}"
                     >
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -52,40 +58,12 @@
     <div class="planning-card-wrapper"
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
-            {{ macros.detail(detailsData.tags ?? [], detailsData.rows ?? [], detailsData.icons ?? []) }}
-
-{#            {{ macros.detail(#}
-{#                [#}
-{#                    {#}
-{#                        class: "prevent-default open-modal-update-production-request-status",#}
-{#                        color: "pink",#}
-{#                        label: "ouiiiiiiiiiiiiiiiiiiiii",#}
-{#                    },{#}
-{#                        class: "prevent-default open-modal-update-production-request-status",#}
-{#                        color: "pink",#}
-{#                        label: "ouuhiuhi",#}
-{#                    }#}
-{#                ],#}
-{#                [#}
-{#                    { label: "Référence", value: 'irriojoij'},#}
-{#                    { label: "rgfdg", value: 'fjkff'},#}
-{#                ],#}
-{#                [#}
-{#                    {#}
-{#                        path: asset('svg/urgence.svg'),#}
-{#                        alt: "Icône urgence",#}
-{#                        title: "Une urgence est en cours sur cette demande : {{ emergency }}",#}
-{#                    },{#}
-{#                        path: asset('svg/urgence.svg'),#}
-{#                        alt: "Icône urgence",#}
-{#                        title: "Une urgence est en cours sur cette demande : {{ emergency }}",#}
-{#                    },#}
-{#                ]#}
-{#            ) }}#}
-
+            {% set detailsHeaderData =  cardContent.header %}
+            {{ macros.detail(detailsHeaderData.tags ?? [], detailsHeaderData.rows ?? [], detailsHeaderData.icons ?? []) }}
         </div>
         {% set id = "cardCollapse-" ~ random() %}
         <div class="row collapse" id="{{ id }}">
+            {% set detailsDropdownData =  cardContent.dropdown %}
             {{ macros.detail(detailsDropdownData.tags ?? [], detailsDropdownData.rows ?? [], detailsDropdownData.icons ?? []) }}
         </div>
         <div class="row">
