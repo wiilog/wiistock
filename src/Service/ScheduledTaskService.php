@@ -178,7 +178,7 @@ class ScheduledTaskService {
         }
 
         if ($rule->getFrequency() === ScheduleRule::ONCE
-            && !$scheduledTask->getLastRun()) {
+            && $scheduledTask->getLastRun()) {
             return null;
         }
 
