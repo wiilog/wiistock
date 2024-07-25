@@ -134,7 +134,7 @@ function cancelInventoryMission($button) {
         table: tableInventoryPanning,
         ajax: {
             method: DELETE,
-            route: 'mission_plans_cancel',
+            route: 'mission_plan_cancel',
             params: { mission },
         },
         validateButton: {
@@ -151,7 +151,7 @@ function deleteInventoryMission($button) {
         table: tableInventoryPanning,
         ajax: {
             method: DELETE,
-            route: 'mission_plans_delete',
+            route: 'mission_plan_delete',
             params: { mission },
         },
         validateButton: {

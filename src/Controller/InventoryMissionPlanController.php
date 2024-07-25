@@ -34,7 +34,7 @@ class InventoryMissionPlanController extends AbstractController
                                         Request                $request): JsonResponse {
         $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
 
-        $missionPlanId = $request->query->get('missionPlan');
+        $missionPlanId = $request->query->getInt('missionPlan');
         $missionPlan = $missionPlanId ? $inventoryMissionPlanRepository->find($missionPlanId) : new InventoryMissionPlan();
 
         $initialLocations = Stream::from($missionPlan?->getLocations() ?? [])
@@ -54,7 +54,7 @@ class InventoryMissionPlanController extends AbstractController
         ]);
     }
 
-    #[Route('/save', name: 'mission_plans_form', options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route('/save', name: 'mission_plans_form', options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function save(EntityManagerInterface $entityManager,
                          Request                $request,
@@ -202,7 +202,7 @@ class InventoryMissionPlanController extends AbstractController
         ]);
     }
 
-    #[Route('/{mission}/delete', name: 'mission_plans_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[Route('/{mission}/delete', name: 'mission_plan_delete', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
                            ScheduledTaskService   $scheduledTaskService,
@@ -222,7 +222,7 @@ class InventoryMissionPlanController extends AbstractController
         }
     }
 
-    #[Route('/{mission}/cancel', name: 'mission_plans_cancel', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[Route('/{mission}/cancel', name: 'mission_plan_cancel', options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function cancel(EntityManagerInterface $entityManager,
                            ScheduledTaskService   $scheduledTaskService,
