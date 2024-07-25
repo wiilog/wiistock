@@ -580,20 +580,16 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($json);
     }
 
-    #[Route('/quantite', name: 'get_quantity_ref_article', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/quantite/{id}", name: "get_quantity_ref_article", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function getQuantityByRefArticleId(Request                $request,
-                                              SettingsService        $settingsService,
-                                              EntityManagerInterface $entityManager) {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
+    public function getQuantityByRefArticleId(SettingsService        $settingsService,
+                                              EntityManagerInterface $entityManager,
+                                              ReferenceArticle       $refArticle): JsonResponse
+    {
         $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $quantity = false;
 
-        $refArticleId = $request->request->get('refArticleId');
-        $refArticle = $referenceArticleRepository->find($refArticleId);
-
-        if ($refArticle && $needsQuantitiesCheck) {
+        if ($needsQuantitiesCheck) {
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantity = $refArticle->getQuantiteDisponible();
             }

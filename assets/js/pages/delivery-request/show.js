@@ -1,6 +1,7 @@
 import AJAX, {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
+import {getQuantityRefArticle} from "@app/pages/stock-movement";
 
 let tables = [];
 let editableTableArticles = null;
@@ -147,16 +148,11 @@ function ajaxGetAndFillArticle($select) {
     }
 }
 
-function setMaxQuantity(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        if (data) {
-            let modalBody = select.closest(".modal-body");
-            modalBody.find('#quantity-to-deliver').attr('max', data);
-        }
-    }, 'json');
+async function setMaxQuantity(select) {
+    const refArticleQte = await getQuantityRefArticle(select.val());
+
+    let modalBody = select.closest(".modal-body");
+    modalBody.find('#quantity-to-deliver').attr('max', refArticleQte);
 }
 
 function deleteRowDemande($button) {
