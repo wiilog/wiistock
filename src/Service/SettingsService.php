@@ -366,6 +366,25 @@ class SettingsService {
             }
             $updated[] = Setting::MAILER_PASSWORD;
         }
+
+        if ($request->request->has(Setting::MAX_SESSION_TIME)) {
+            $value = $request->request->get(Setting::MAX_SESSION_TIME);
+
+            $valueContainsOnlyDigits = preg_match('/^\d+$/i', $value);
+            $valueInt = ((int) $value);
+            $maxValue = 1440; // 24h
+
+            if (!$valueContainsOnlyDigits
+                || !$valueInt
+                || $valueInt > $maxValue) {
+                throw new RuntimeException("Le temps de session doit être un entier compris entre 1 et 1440");
+            }
+
+            $settingMaxSessionTime = $this->persistSetting($entityManager, $settings, Setting::MAX_SESSION_TIME);
+            $settingMaxSessionTime->setValue($valueInt);
+
+            $updated[] = Setting::MAX_SESSION_TIME;
+        }
     }
 
     /**
