@@ -735,8 +735,17 @@ class SettingsService {
                     $entityManager->persist($type);
 
                     $result['type'] = $type;
-                } else {
+                } else if(is_numeric($data["entity"])){
                     $type = $entityManager->find(Type::class, $data["entity"]);
+
+                    $alreadyCreatedType = $typeRepository->findOneBy([
+                        'label' => $data["label"],
+                        'category' => $type->getCategory(),
+                    ]);
+
+                    if($alreadyCreatedType && $alreadyCreatedType->getId() != $data["entity"]) {
+                        throw new RuntimeException("Le type existe déjà pour cette categorie");
+                    }
                 }
 
                 if (!isset($type)) {
