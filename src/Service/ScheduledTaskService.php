@@ -31,7 +31,11 @@ class ScheduledTaskService {
     public function canSchedule(EntityManagerInterface $entityManager,
                                 string                 $class): bool {
         $this->validateClass($class);
-        return $this->countNextTasksToExecute($entityManager, $class) < self::MAX_ONGOING_SCHEDULED_TASKS;
+
+        /** @var ScheduledTaskRepository $scheduledTaskRepository */
+        $scheduledTaskRepository = $entityManager->getRepository($class);
+
+        return count($scheduledTaskRepository->findScheduled()) < self::MAX_ONGOING_SCHEDULED_TASKS;
     }
 
     public function launchScheduledTasks(EntityManagerInterface $entityManager,
@@ -183,20 +187,6 @@ class ScheduledTaskService {
         }
 
         return $this->scheduleRuleService->calculateNextExecution($rule, $from);
-    }
-
-    private function countNextTasksToExecute(EntityManagerInterface $entityManager,
-                                             string                 $class): int {
-        $this->validateClass($class);
-
-        /** @var ScheduledTaskRepository $scheduledTaskRepository */
-        $scheduledTaskRepository = $entityManager->getRepository($class);
-
-        $now = new DateTime();
-
-        return Stream::from($scheduledTaskRepository->findScheduled())
-            ->filter(fn(ScheduledTask $scheduledTask) => $this->calculateTaskNextExecution($scheduledTask, $now))
-            ->count();
     }
 
     private function validateClass(string $class): void {

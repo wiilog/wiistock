@@ -115,7 +115,7 @@ class PurchaseRequestPlanController extends AbstractController
             }
         } else {
             if(!$scheduledTaskService->canSchedule($entityManager, PurchaseRequestPlan::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " génération de demande d'achat");
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
             }
 
             $purchaseRequestPlan = new PurchaseRequestPlan();

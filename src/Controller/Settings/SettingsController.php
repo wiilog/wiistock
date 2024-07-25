@@ -3098,7 +3098,7 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
      */
     public function missionPlansForce(EntityManagerInterface $entityManager,
-                                      InvMissionService      $invMissionService): Response {
+                                      InvMissionService      $invMissionService): JsonResponse {
         $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
         $inventoryMissionPlans = $inventoryMissionPlanRepository->findScheduled();
 
