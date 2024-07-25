@@ -233,7 +233,7 @@ class ScheduledExportService {
                     [$path],
                 );
             }
-        } else { // ftp export
+        } else if($exportToRun->getDestinationType() == Export::DESTINATION_SFTP) {
             try {
                 $FTPParameters = $exportToRun->getFtpParameters();
                 $this->ftpService->send([
@@ -261,8 +261,9 @@ class ScheduledExportService {
             ->setBeganAt($start)
             ->setEndedAt(new DateTime());
 
+        $exportToRun->setLastRun($taskExecution);
+
         $entityManager->persist($exportToRun);
-        $exportToRun->getScheduleRule()?->setLastRun($taskExecution);
         $entityManager->flush();
 
         @unlink($path);

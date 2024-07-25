@@ -95,7 +95,7 @@ class LaunchScheduledImportCommand extends Command {
                 $output->writeln("Finished import {$import->getId()} at $endDateStr");
             }
 
-            $import->getScheduleRule()?->setLastRun($taskExecution);
+            $import->setLastRun($taskExecution);
             $entityManager->flush();
         }
     }

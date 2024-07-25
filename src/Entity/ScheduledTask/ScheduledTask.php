@@ -3,9 +3,35 @@
 namespace App\Entity\ScheduledTask;
 
 
-interface ScheduledTask {
+use DateTime;
+use Doctrine\ORM\Mapping as ORM;
 
-    public function getScheduleRule(): ?ScheduleRule;
 
-    public function setScheduleRule(?ScheduleRule $scheduleRule): self;
+#[ORM\MappedSuperclass()]
+abstract class ScheduledTask {
+
+    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
+    private ?ScheduleRule $scheduleRule = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $lastRun = null;
+
+    public function getScheduleRule(): ?ScheduleRule {
+        return $this->scheduleRule;
+    }
+
+    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
+        $this->scheduleRule = $scheduleRule;
+
+        return $this;
+    }
+
+    public function getLastRun(): ?DateTime {
+        return $this->lastRun;
+    }
+
+    public function setLastRun(?DateTime $lastRun): self {
+        $this->lastRun = $lastRun;
+        return $this;
+    }
 }

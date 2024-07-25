@@ -62,7 +62,7 @@ class DataExportController extends AbstractController {
     #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function api(Request                $request,
-                        ScheduleRuleService    $scheduleRuleService,
+                        ScheduledTaskService   $scheduledTaskService,
                         EntityManagerInterface $entityManager): Response {
         /** @var Utilisateur $user */
         $user = $this->getUser();
@@ -75,11 +75,8 @@ class DataExportController extends AbstractController {
         $exports = $queryResult["data"];
 
         $rows = Stream::from($exports)
-            ->map(function(Export $export) use ($scheduleRuleService) {
-                $scheduleRule = $export->getScheduleRule();
-                $nextExecution = $scheduleRule
-                    ? $scheduleRuleService->calculateNextExecution($scheduleRule, new DateTime("now"))
-                    : null;
+            ->map(function(Export $export) use ($scheduledTaskService) {
+                $nextExecution = $scheduledTaskService->calculateTaskNextExecution($export, new DateTime("now"));
                 return [
                     "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
                         "export" => $export,
@@ -89,7 +86,7 @@ class DataExportController extends AbstractController {
                     "beganAt" => $this->getFormatter()->datetime($export->getBeganAt()),
                     "endedAt" => $this->getFormatter()->datetime($export->getEndedAt()),
                     "nextExecution" => $this->getFormatter()->datetime($nextExecution),
-                    "frequency" => match($scheduleRule?->getFrequency()) {
+                    "frequency" => match($export->getScheduleRule()?->getFrequency()) {
                         ScheduleRule::ONCE => "Une fois",
                         ScheduleRule::HOURLY => "Chaque heure",
                         ScheduleRule::DAILY => "Chaque jour",
