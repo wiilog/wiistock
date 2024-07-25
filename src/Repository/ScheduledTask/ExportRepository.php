@@ -6,7 +6,6 @@ use App\Entity\ScheduledTask\Export;
 use App\Entity\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
 class ExportRepository extends EntityRepository implements ScheduledTaskRepository {
@@ -117,30 +116,18 @@ class ExportRepository extends EntityRepository implements ScheduledTaskReposito
         ];
     }
 
-    public function countScheduled(): int {
-        return $this->createScheduledQueryBuilder()
-            ->select("COUNT(export)")
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     /**
      * @return Export[]
      */
     public function findScheduled(): array {
-        return $this->createScheduledQueryBuilder()
-            ->getQuery()
-            ->getResult();
-    }
-
-
-    private function createScheduledQueryBuilder(): QueryBuilder {
         return $this->createQueryBuilder("export")
             ->join("export.type", "type")
             ->join("export.status", "status")
             ->andWhere("type.label = :type")
             ->andWhere("status.code = :status")
             ->setParameter("type", Type::LABEL_SCHEDULED_EXPORT)
-            ->setParameter("status", Export::STATUS_SCHEDULED);
+            ->setParameter("status", Export::STATUS_SCHEDULED)
+            ->getQuery()
+            ->getResult();
     }
 }

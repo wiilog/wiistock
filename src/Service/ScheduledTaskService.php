@@ -9,18 +9,15 @@ use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduledTask;
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Repository\ScheduledTask\ScheduledTaskRepository;
-use App\Repository\ScheduledTask\ScheduleRuleRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use ReflectionClass;
-use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class ScheduledTaskService
-{
+class ScheduledTaskService {
 
     public const MAX_ONGOING_SCHEDULED_TASKS = 10;
     private const CACHE_KEY = "scheduled";
@@ -33,22 +30,15 @@ class ScheduledTaskService
 
     public function canSchedule(EntityManagerInterface $entityManager,
                                 string                 $class): bool {
-        $refClass = new ReflectionClass($class);
-        $refScheduledTask = new ReflectionClass(ScheduledTask::class);
-
-        if (!$refClass->isSubclassOf($refScheduledTask)) {
-            throw new Exception("Invalid class. Should implement " . ScheduledTask::class);
-        }
-
-        /** @var ScheduledTaskRepository $scheduledTaskRepository */
-        $scheduledTaskRepository = $entityManager->getRepository($class);
-
-        return count($scheduledTaskRepository->findScheduled()) < self::MAX_ONGOING_SCHEDULED_TASKS;
+        $this->validateClass($class);
+        return $this->countNextTasksToExecute($entityManager, $class) < self::MAX_ONGOING_SCHEDULED_TASKS;
     }
 
     public function launchScheduledTasks(EntityManagerInterface $entityManager,
                                          string                 $class,
                                          callable               $teatTask): int {
+
+        $this->validateClass($class);
 
         [
             "tasks" => $tasks,
@@ -69,6 +59,8 @@ class ScheduledTaskService
     }
 
     public function deleteCache(string $class): void {
+        $this->validateClass($class);
+
         $cacheCollectionKey = $this->getCacheCollection($class);
 
         $this->cacheService->delete($cacheCollectionKey, self::CACHE_KEY);
@@ -80,6 +72,8 @@ class ScheduledTaskService
     private function getTasksToExecute(EntityManagerInterface $entityManager,
                                        string                 $class,
                                        DateTime               $dateToExecute): array {
+        $this->validateClass($class);
+
         $cacheCollectionKey = $this->getCacheCollection($class);
 
         $cache = $this->cacheService->get($cacheCollectionKey, self::CACHE_KEY);
@@ -109,6 +103,7 @@ class ScheduledTaskService
     private function saveTasksCache(EntityManagerInterface $entityManager,
                                     string                 $class,
                                     DateTime               $from): void {
+        $this->validateClass($class);
 
         $cacheCollection = $this->getCacheCollection($class);
 
@@ -134,6 +129,8 @@ class ScheduledTaskService
     }
 
     private function getCacheCollection(string $class): string {
+        $this->validateClass($class);
+
         return match ($class) {
             Import::class               => CacheService::COLLECTION_IMPORTS,
             Export::class               => CacheService::COLLECTION_EXPORTS,
@@ -149,6 +146,9 @@ class ScheduledTaskService
     private function getTasksGroupedByCacheDateKey(EntityManagerInterface $entityManager,
                                                    string                 $class,
                                                    DateTime               $from): array {
+
+        $this->validateClass($class);
+
         /** @var ScheduledTaskRepository $repository */
         $repository = $entityManager->getRepository($class);
 
@@ -166,8 +166,6 @@ class ScheduledTaskService
             ->toArray();
     }
 
-
-
     public function calculateTaskNextExecution(ScheduledTask $scheduledTask,
                                                DateTime      $from): ?DateTime {
 
@@ -183,6 +181,29 @@ class ScheduledTaskService
         }
 
         return $this->scheduleRuleService->calculateNextExecution($rule, $from);
+    }
+
+    private function countNextTasksToExecute(EntityManagerInterface $entityManager,
+                                             string                 $class): int {
+        $this->validateClass($class);
+
+        /** @var ScheduledTaskRepository $scheduledTaskRepository */
+        $scheduledTaskRepository = $entityManager->getRepository($class);
+
+        $now = new DateTime();
+
+        return Stream::from($scheduledTaskRepository->findScheduled())
+            ->filter(fn(ScheduledTask $scheduledTask) => $this->calculateTaskNextExecution($scheduledTask, $now))
+            ->count();
+    }
+
+    private function validateClass(string $class): void {
+        $refClass = new ReflectionClass($class);
+        $refScheduledTask = new ReflectionClass(ScheduledTask::class);
+
+        if (!$refClass->isSubclassOf($refScheduledTask)) {
+            throw new Exception("Invalid class. Should implement " . ScheduledTask::class);
+        }
     }
 
 }
