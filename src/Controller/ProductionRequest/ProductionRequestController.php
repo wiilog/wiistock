@@ -449,6 +449,8 @@ class ProductionRequestController extends AbstractController
             "success" => true,
             "html" => $this->renderView("production_request/modal/form.html.twig", [
                 "productionRequest" => $productionRequest,
+                "displayAction" => "displayedCreate",
+                "requiredAction" => "requiredCreate",
                 "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
                 "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             ]),

@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
-{% set displayAction = productionRequest.id ? 'displayedEdit' : 'displayedCreate' %}
-{% set requiredAction = productionRequest.id ? 'requiredEdit' : 'requiredCreate' %}
+{% set displayAction = displayAction ?? (productionRequest.id ? 'displayedEdit' : 'displayedCreate') %}
+{% set requiredAction = requiredAction ?? (productionRequest.id ? 'requiredEdit' : 'requiredCreate') %}
 
 {{ form.input('id', null, false, productionRequest.id, {
     type: 'hidden',
@@ -193,7 +193,7 @@
                         freeFieldValues: productionRequest.freeFields,
                         colType: 'col-md-4 col-12',
                         requiredType: requiredAction,
-                        actionType: productionRequest.id ? 'edit' : 'new',
+                        actionType: requiredAction ==  "requiredCreate" ? 'new' : 'edit',
                         disabledNeeded: false,
                         needsDateFormatting: true
                     } %}
