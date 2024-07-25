@@ -58,12 +58,12 @@
     <div class="planning-card-wrapper"
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
-            {% set detailsHeaderData =  cardContent.header %}
+            {% set detailsHeaderData =  cardContent.header ?? [] %}
             {{ macros.detail(detailsHeaderData.tags ?? [], detailsHeaderData.rows ?? [], detailsHeaderData.icons ?? []) }}
         </div>
         {% set id = "cardCollapse-" ~ random() %}
         <div class="row collapse" id="{{ id }}">
-            {% set detailsDropdownData =  cardContent.dropdown %}
+            {% set detailsDropdownData =  cardContent.dropdown ?? [] %}
             {{ macros.detail(detailsDropdownData.tags ?? [], detailsDropdownData.rows ?? [], detailsDropdownData.icons ?? []) }}
         </div>
         <div class="row">

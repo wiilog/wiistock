@@ -13,15 +13,16 @@ export function initFiledModes() {
         .val()
         .split(`;`)
         .filter(id => id);
+
+    const planning = $modal
+        .find(`[name=planning]`)
+        .val();
+
     const reload = Boolean($modal.find(`[name=reload]`).val());
     const page = $modal.find(`[name=page]`).val();
     const id = $modal.find(`[name=id]`).val();
 
     $(`[data-target="#modalFieldsModes"]`).on(`click`, function() {
-        if(tables.length === 0) {
-            return;
-        }
-
         let success;
         if (reload) {
             success = () => {
@@ -33,7 +34,7 @@ export function initFiledModes() {
                     const $check = $(check);
                     let columnName = $check.closest('tr').data('field-name');
 
-                    tables.forEach((table) => {
+                    tables?.forEach((table) => {
                         const $table = $(`#${table}`);
 
                         if ($table.exists()) {
@@ -45,7 +46,7 @@ export function initFiledModes() {
                     });
                 });
 
-                tables.forEach((table) => {
+                tables?.forEach((table) => {
                     const $table = $(`#${table}`);
 
                     if ($table.exists()) {

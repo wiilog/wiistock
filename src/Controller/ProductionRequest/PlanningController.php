@@ -108,6 +108,8 @@ class PlanningController extends AbstractController {
             })
             ->toArray();
 
+        $fieldModes = $user->getFieldModesByPage()[FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING] ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
+
         if (!empty($planningDays)) {
             $filters = [];
             if(!$external) {
@@ -134,7 +136,6 @@ class PlanningController extends AbstractController {
                 ])
                 ->values();
 
-
             $freeFieldsByType = $allTypes
                 ? Stream::from($freeFieldRepository->findByTypeAndCategorieCLLabel($allTypes, CategorieCL::PRODUCTION_REQUEST))
                     ->keymap(static fn(FreeField $freeField) => [
@@ -144,10 +145,8 @@ class PlanningController extends AbstractController {
                     ->toArray()
                 : [];
 
-            $fieldModes = $user->getFieldModesByPage()[FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING] ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
-
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($fieldModes, $user, $entityManager, $productionRequestService, $formatService, $fixedFieldRepository, $freeFieldRepository, $defaultLanguage, $external) {
+                ->keymap(function (ProductionRequest $productionRequest) use ($freeFieldsByType, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $freeFieldRepository, $defaultLanguage, $external) {
                     $fields = [
                         [
                             "field" => FixedFieldEnum::status,
@@ -325,12 +324,26 @@ class PlanningController extends AbstractController {
                         ],
                     ];
 
+                    foreach ($freeFieldsByType[$productionRequest->getType()->getId()] ?? [] as $freeField) {
+                        $fields[] = [
+                            "field" => "free_field_" . $freeField->getId(),
+                            "type" => "rows",
+                            "getDetails" => function(ProductionRequest $productionRequest) use ($userLanguage, $freeField, $formatService, $defaultLanguage) {
+                                return [
+                                    "label" => $freeField->getLabelIn($userLanguage, $defaultLanguage),
+                                    "value" => $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
+                                ];
+                            },
+                        ];
+                    }
+
                     foreach ($fields as $fieldData) {
                         $field = $fieldData["field"];
+                        $fieldName = $field instanceof FixedFieldEnum ? $field->name : $field;
                         $getDetails = $fieldData["getDetails"];
-                        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$field->name] ?? [])) {
+                        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$fieldName] ?? [])) {
                             $fieldLocation = "header";
-                        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$field->name] ?? [])) {
+                        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$fieldName] ?? [])) {
                             $fieldLocation = "dropdown";
                         } else {
                             $fieldLocation = null;
@@ -353,16 +366,20 @@ class PlanningController extends AbstractController {
                 }, true)
                 ->toArray();
 
-            $countLinesByDate = [];
+            $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
+                || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
 
-            Stream::from($productionRequests)
-                ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
-                    $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
-                    $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
-            });
+            $countLinesByDate = [];
+            if ($displayCountLines) {
+                Stream::from($productionRequests)
+                    ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
+                        $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
+                        $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
+                    });
+            }
 
             $planningColumns = Stream::from($planningDays)
-                ->map(function (DateTime $day) use ($countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
+                ->map(function (DateTime $day) use ($displayCountLines, $countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
                     $dayStr = $day->format('Y-m-d');
                     $count = count($cards[$dayStr] ?? []);
                     $sProduction = $count > 1 ? 's' : '';
@@ -372,11 +389,13 @@ class PlanningController extends AbstractController {
                         "cardSelector" => $dayStr,
                         "columnClass" => "forced",
                         "columnHint" => "<span class='font-weight-bold'>$count demande$sProduction</span>",
+                        "displayCountLines" => $displayCountLines,
                         "countLines" => $countLinesByDate[$dayStr] ?? 0,
                     ];
                 })
                 ->toArray();
         }
+
         return $this->json([
             "success" => true,
             "template" => $this->renderView('production_request/planning/content.html.twig', [

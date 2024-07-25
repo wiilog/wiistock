@@ -95,7 +95,7 @@
                     </tbody>
                 </table>
 
-                {{ form.hidden("tables", table, {data: false}) }}
+                {{ form.hidden("tables", table ?? "", {data: false}) }}
                 {{ form.hidden("reload", reload is defined and reload == "1", {data: false}) }}
                 {{ form.hidden("page", page, {data: false}) }}
             </div>
