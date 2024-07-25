@@ -78,8 +78,7 @@ class InventoryMissionPlanController extends AbstractController
         }
         else {
             if(!$scheduledTaskService->canSchedule($entityManager, InventoryMissionPlan::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " génération de mission d'inventaire");
-            }
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");            }
 
             $missionPlan = new InventoryMissionPlan();
             $edit = false;

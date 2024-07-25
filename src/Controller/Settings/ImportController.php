@@ -67,7 +67,7 @@ class ImportController extends AbstractController
 
             // Check if the user can plan a new import
             if(!$scheduledTaskService->canSchedule($entityManager, Import::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " imports");
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
             }
 
             $rule = $scheduleRuleService->updateRule(null, $post);

@@ -134,7 +134,7 @@ class DataExportController extends AbstractController {
         else {
             // Check if the user can plan a new export
             if(!$scheduledTaskService->canSchedule($entityManager, Export::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " exports");
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
