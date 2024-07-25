@@ -56,7 +56,7 @@ export function deleteTruckArrival($deleteButton) {
 }
 
 export function printTruckArrivalLabel($printButton = null, truckArrivalId = null) {
-    if(!printButton && !truckArrivalId){
+    if(!$printButton && !truckArrivalId){
         return;
     }
 
