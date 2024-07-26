@@ -723,9 +723,7 @@ class RequestController extends AbstractController {
             "{$transportRequest->getNumber()}-bon-transport.pdf"
         );
     }
-    /**
-     * @Route("/csv", name="transport_requests_export", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route('/csv', name: 'transport_requests_export', options: ['expose' => true], methods: ['GET'])]
     public function getDeliveryRequestCSV(Request                $request,
                                           FreeFieldService       $freeFieldService,
                                           CSVExportService       $CSVExportService,

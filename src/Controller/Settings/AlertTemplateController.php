@@ -13,15 +13,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class AlertTemplateController extends AbstractController
 {
 
-    /**
-     * @Route("/modele-alerte/header/{template}", name="settings_alert_template_header", options={"expose"=true})
-     */
+    #[Route('/modele-alerte/header/{template}', name: 'settings_alert_template_header', options: ['expose' => true])]
     public function alertTemplateHeader(Request        $request,
                                         ?AlertTemplate $template = null): Response {
 
@@ -275,11 +271,8 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/verification/{alertTemplate}", name="settings_alert_template_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public
-    function checkAlertTemplateCanBeDeleted(AlertTemplate $alertTemplate): Response
+    #[Route('/verification/{alertTemplate}', name: 'settings_alert_template_check_delete', methods: ['GET'], options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    public function checkAlertTemplateCanBeDeleted(AlertTemplate $alertTemplate): Response
     {
         if ($alertTemplate->getTriggers()->isEmpty()) {
             $success = true;
@@ -296,10 +289,8 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modele-alerte/supprimer/{alertTemplate}", name="settings_alert_template_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route('/modele-alerte/supprimer/{alertTemplate}', name: 'settings_alert_template_delete', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteAlertTemplate(EntityManagerInterface $manager,
                                    AlertTemplate        $alertTemplate): JsonResponse
     {
@@ -325,9 +316,7 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/toggle-template", name="alert_template_toggle_template", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route('/toggle-template', name: 'alert_template_toggle_template', options: ['expose' => true], methods: ['GET'])]
     public function toggleTemplate(Request $request) {
         $query = $request->query;
         $type = $query->has('type') ? $query->get('type') : '';
