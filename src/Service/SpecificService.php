@@ -34,9 +34,9 @@ class SpecificService
 
     public const SPECIFIC_DASHBOARD_REFRESH_RATE = [
         self::CLIENT_QUICHE => 1,
-        self::CLIENT_BARBECUE=> 1,
-        self::CLIENT_POTEE=> 1,
-        self::CLIENT_BOURGUIGNON=> 1,
+        self::CLIENT_BARBECUE => 1,
+        self::CLIENT_POTEE => 1,
+        self::CLIENT_BOURGUIGNON => 1,
     ];
 
     public const DEFAULT_DASHBOARD_REFRESH_RATE = 5;
