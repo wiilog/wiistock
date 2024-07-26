@@ -113,9 +113,6 @@ final class Version20240715132831 extends AbstractMigration
                 "last_run" => $rule["last_run"],
             ]);
         }
-
-        $this->addSql('DROP TABLE import_schedule_rule');
-        $this->addSql('DROP TABLE export_schedule_rule');
     }
 
     public function down(Schema $schema): void
