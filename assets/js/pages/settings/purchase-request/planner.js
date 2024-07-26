@@ -11,7 +11,7 @@ export function initializePurchaseRequestPlanner($container) {
     const tablePurchaseRequestPlannerConfig = {
         processing: true,
         ajax: {
-            "url": Routing.generate('purchase_request_schedule_rule_api', true),
+            "url": Routing.generate('purchase_request_plan_api', true),
             "type": GET
         },
         order: [['createdAt', "desc"]],
@@ -56,9 +56,11 @@ export function initializePurchaseRequestPlanner($container) {
             tables: [tablePurchaseRequestPlanner],
         });
 
-    $tablePurchaseRequestPlanner.on('click', '.delete-purchase-request-schedule-rule', function () {
+    $tablePurchaseRequestPlanner.on('click', '.delete-purchase-request-plan', function () {
         AJAX
-            .route(DELETE, 'purchase_request_schedule_rule_delete', {id: $(this).data('id')})
+            .route(DELETE, 'purchase_request_plan_delete', {
+                purchaseRequestPlan: $(this).data('id')
+            })
             .json()
             .then((data) => {
                 if (data.success) {
@@ -71,5 +73,5 @@ export function initializePurchaseRequestPlanner($container) {
 function openFormPurchaseRequestPlanner($button){
     const $modal = $('#modalFormPurchaseRequestPlanner');
     const $loaderWrapper = $button.closest('table').length ? $button.closest('table') : $button
-    Modal.load('purchase_request_schedule_form', {id: $button.data('id')}, $modal, $loaderWrapper);
+    Modal.load('purchase_request_schedule_form', {id: $button.data('id') ?? null}, $modal, $loaderWrapper);
 }

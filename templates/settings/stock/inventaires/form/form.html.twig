@@ -2,14 +2,14 @@
 
 {% set articleType = constant('App\\Entity\\Inventory\\InventoryMission::ARTICLE_TYPE') %}
 {% set locationType = constant('App\\Entity\\Inventory\\InventoryMission::LOCATION_TYPE') %}
-{% set isMissionArticleType = missionRule.id ? missionRule.missionType == articleType : false %}
-{% set isMissionLocationType = missionRule.id ? missionRule.missionType == locationType : false %}
+{% set isMissionArticleType = missionPlan.id ? missionPlan.missionType == articleType : false %}
+{% set isMissionLocationType = missionPlan.id ? missionPlan.missionType == locationType : false %}
 
 
 <div class="row">
-    {% if missionRule.id %}
-        <input type="hidden" class="data" value="{{ missionRule.id }}" name="ruleId"/>
-        <input type="hidden" class="data" value="{{ missionRule.missionType }}" name="missionType"/>
+    {% if missionPlan.id %}
+        <input type="hidden" class="data" value="{{ missionPlan.id }}" name="ruleId"/>
+        <input type="hidden" class="data" value="{{ missionPlan.missionType }}" name="missionType"/>
         <div class="col-12">
             <div class="wii-field-name">Type de mission</div>
             <div class="wii-body-text">
@@ -25,12 +25,12 @@
         </div>
     {% endif %}
     <div class="col-6 mt-3">
-        {{ form.input('label', 'Libellé de la tache', true, missionRule.label, {
+        {{ form.input('label', 'Libellé de la tache', true, missionPlan.label, {
             type: 'text',
         }) }}
     </div>
     <div class="col-6 mt-3">
-        {{ form.input('description', 'Description', true, missionRule.description, {
+        {{ form.input('description', 'Description', true, missionPlan.description, {
             type: 'text',
         }) }}
     </div>
@@ -41,7 +41,7 @@
             </span>
             <div class="d-flex no-gutters">
                 <div class="col-4 pr-2">
-                    {{ form.input('duration', null, true, missionRule.duration, {
+                    {{ form.input('duration', null, true, missionPlan.duration, {
                         type: 'number',
                         min: 0,
                         max: 999,
@@ -50,8 +50,8 @@
                 </div>
                 <div class="col-8">
                     {{ form.select('durationUnit', null ,true, {
-                        items: constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNITS_LABELS'),
-                        value: missionRule.durationUnit
+                        items: constant('App\\Entity\\ScheduledTask\\InventoryMissionPlan::DURATION_UNITS_LABELS'),
+                        value: missionPlan.durationUnit
                     }) }}
                 </div>
             </div>
@@ -61,20 +61,20 @@
         {{ form.select('requester', 'Demandeur', true, {
             type: 'user',
             items: {
-                (missionRule.requester.id ?? app.user.id): (missionRule.requester.username ?? app.user.username),
+                (missionPlan.requester.id ?? app.user.id): (missionPlan.requester.username ?? app.user.username),
             }
         }) }}
     </div>
     <div class="col-12">
         {% include 'planner/planner.html.twig' with {
-            frequency: missionRule.frequency,
-            begin: missionRule.begin,
-            intervalPeriod: missionRule.intervalPeriod,
-            intervalTime: missionRule.intervalTime,
-            period: missionRule.period,
-            weekDays: missionRule.weekDays,
-            months: missionRule.months,
-            monthDays: missionRule.monthDays,
+            frequency: missionPlan.scheduleRule ? missionPlan.scheduleRule.frequency,
+            begin: missionPlan.scheduleRule ? missionPlan.scheduleRule.begin,
+            intervalPeriod: missionPlan.scheduleRule ? missionPlan.scheduleRule.intervalPeriod,
+            intervalTime: missionPlan.scheduleRule ? missionPlan.scheduleRule.intervalTime,
+            period: missionPlan.scheduleRule ? missionPlan.scheduleRule.period,
+            weekDays: missionPlan.scheduleRule ? missionPlan.scheduleRule.weekDays,
+            months: missionPlan.scheduleRule ? missionPlan.scheduleRule.months,
+            monthDays: missionPlan.scheduleRule ? missionPlan.scheduleRule.monthDays,
             required: true,
         } %}
     </div>
@@ -94,7 +94,7 @@
         {{ form.select('categories', 'Catégorie(s)', true, {
             multiple: true,
             type: 'inventoryCategories',
-            items: missionRule.categories|map((categorie) => {value: categorie.id, label: categorie.label, selected: true}),
+            items: missionPlan.categories|map((categorie) => {value: categorie.id, label: categorie.label, selected: true}),
         }) }}
     </div>
 </div>

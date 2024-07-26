@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Entity\Inventory;
+namespace App\Entity\ScheduledTask;
 
 use App\Entity\Emplacement;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\Inventory\InventoryCategory;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\Utilisateur;
-use App\Repository\Inventory\InventoryMissionRuleRepository;
+use App\Repository\ScheduledTask\InventoryMissionPlanRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: InventoryMissionRuleRepository::class)]
-class InventoryMissionRule extends ScheduleRule
-{
+#[ORM\Entity(repositoryClass: InventoryMissionPlanRepository::class)]
+class InventoryMissionPlan extends ScheduledTask {
     public const DURATION_UNIT_DAYS = "days";
     public const DURATION_UNIT_WEEKS = "weeks";
     public const DURATION_UNIT_MONTHS = "months";
@@ -38,7 +38,7 @@ class InventoryMissionRule extends ScheduleRule
     private ?string $label = null;
 
     #[ORM\ManyToMany(targetEntity: InventoryCategory::class)]
-    #[ORM\JoinTable(name: 'inventory_mission_rule_inventory_category')]
+    #[ORM\JoinTable(name: 'inventory_mission_plan_inventory_category')]
     private Collection $categories;
 
     #[ORM\Column(type: 'integer')]
@@ -56,7 +56,7 @@ class InventoryMissionRule extends ScheduleRule
     #[ORM\Column(type: "text")]
     private ?string $description = null;
 
-    #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'inventoryMissionRules')]
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'inventoryMissionPlans')]
     private Collection $locations;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -78,7 +78,7 @@ class InventoryMissionRule extends ScheduleRule
         return $this->getLabel();
     }
 
-    public function getId(): ?int {
+    public function getId(): ?string {
         return $this->id;
     }
 
@@ -121,26 +121,6 @@ class InventoryMissionRule extends ScheduleRule
         foreach($categories ?? [] as $category) {
             $this->addCategory($category);
         }
-
-        return $this;
-    }
-
-    public function getPeriodicity(): ?int {
-        return $this->periodicity;
-    }
-
-    public function setPeriodicity(int $periodicity): self {
-        $this->periodicity = $periodicity;
-
-        return $this;
-    }
-
-    public function getPeriodicityUnit(): ?string {
-        return $this->periodicityUnit;
-    }
-
-    public function setPeriodicityUnit(string $periodicityUnit): self {
-        $this->periodicityUnit = $periodicityUnit;
 
         return $this;
     }
@@ -231,6 +211,9 @@ class InventoryMissionRule extends ScheduleRule
         return $this;
     }
 
+    /**
+     * @return Collection<Emplacement>
+     */
     public function getLocations(): Collection {
         return $this->locations;
     }
@@ -238,7 +221,7 @@ class InventoryMissionRule extends ScheduleRule
     public function addLocation(Emplacement $location): self {
         if (!$this->locations->contains($location)) {
             $this->locations[] = $location;
-            $location->addInventoryMissionRule($this);
+            $location->addInventoryMissionPlan($this);
         }
 
         return $this;
@@ -246,7 +229,7 @@ class InventoryMissionRule extends ScheduleRule
 
     public function removeLocation(Emplacement $location): self {
         if ($this->locations->removeElement($location)) {
-            $location->removeInventoryMissionRule($this);
+            $location->removeInventoryMissionPlan($this);
         }
 
         return $this;
@@ -312,5 +295,4 @@ class InventoryMissionRule extends ScheduleRule
 
         return $this;
     }
-
 }

@@ -18,24 +18,24 @@ use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
+use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
-use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DispatchService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\RefArticleDataService;
+use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
 use App\Service\TrackingMovementService;
 use App\Service\Transport\TransportRoundService;
@@ -59,44 +59,47 @@ class DataExportController extends AbstractController {
     public const EXPORT_UNIQUE = "unique";
     public const EXPORT_SCHEDULED = "scheduled";
 
-    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
+    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: self::POST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function api(Request $request, EntityManagerInterface $manager): Response {
+    public function api(Request                $request,
+                        ScheduledTaskService   $scheduledTaskService,
+                        EntityManagerInterface $entityManager): JsonResponse {
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $exportRepository = $manager->getRepository(Export::class);
-        $filtreSupRepository = $manager->getRepository(FiltreSup::class);
+        $exportRepository = $entityManager->getRepository(Export::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_EXPORT, $user);
         $queryResult = $exportRepository->findByParamsAndFilters($request->request, $filters);
         $exports = $queryResult["data"];
 
-        $rows = [];
-        /** @var Export $export */
-        foreach ($exports as $export) {
-            $rows[] = [
-                "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
-                    "export" => $export,
-                ]),
-                "status" => $export->getStatus()->getNom(),
-                "createdAt" => $export->getCreatedAt()->format("d/m/Y H:i"),
-                "beganAt" => $export->getBeganAt()?->format("d/m/Y H:i"),
-                "endedAt" => $export->getEndedAt()?->format("d/m/Y H:i"),
-                "nextExecution" => $export->getNextExecution()?->format("d/m/Y H:i"),
-                "frequency" => match($export->getExportScheduleRule()?->getFrequency()) {
-                    ScheduleRule::ONCE => "Une fois",
-                    ScheduleRule::HOURLY => "Chaque heure",
-                    ScheduleRule::DAILY => "Chaque jour",
-                    ScheduleRule::WEEKLY => "Chaque semaine",
-                    ScheduleRule::MONTHLY => "Chaque mois",
-                    default => null,
-                },
-                "user" => FormatHelper::user($export->getCreator()),
-                "type" => FormatHelper::type($export->getType()),
-                "entity" => Export::ENTITY_LABELS[$export->getEntity()],
-            ];
-        }
+        $rows = Stream::from($exports)
+            ->map(function(Export $export) use ($scheduledTaskService) {
+                $nextExecution = $scheduledTaskService->calculateTaskNextExecution($export, new DateTime("now"));
+                return [
+                    "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
+                        "export" => $export,
+                    ]),
+                    "status" => $this->getFormatter()->status($export->getStatus()),
+                    "createdAt" => $this->getFormatter()->datetime($export->getCreatedAt()),
+                    "beganAt" => $this->getFormatter()->datetime($export->getBeganAt()),
+                    "endedAt" => $this->getFormatter()->datetime($export->getEndedAt()),
+                    "nextExecution" => $this->getFormatter()->datetime($nextExecution),
+                    "frequency" => match($export->getScheduleRule()?->getFrequency()) {
+                        ScheduleRule::ONCE => "Une fois",
+                        ScheduleRule::HOURLY => "Chaque heure",
+                        ScheduleRule::DAILY => "Chaque jour",
+                        ScheduleRule::WEEKLY => "Chaque semaine",
+                        ScheduleRule::MONTHLY => "Chaque mois",
+                        default => null,
+                    },
+                    "user" => $this->getFormatter()->user($export->getCreator()),
+                    "type" => $this->getFormatter()->type($export->getType()),
+                    "entity" => Export::ENTITY_LABELS[$export->getEntity()],
+                ];
+            })
+            ->toArray();
 
         return $this->json([
             "data" => $rows,
@@ -110,8 +113,8 @@ class DataExportController extends AbstractController {
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         Security               $security,
-                        CacheService           $cacheService,
-                        DataExportService      $dataExportService): Response {
+                        ScheduledTaskService   $scheduledTaskService,
+                        DataExportService      $dataExportService): JsonResponse {
 
         $data = $request->request->all();
 
@@ -125,9 +128,15 @@ class DataExportController extends AbstractController {
         $type = $data["type"];
         $entity = $data["entityToExport"];
 
-        if($type === self::EXPORT_UNIQUE) {
+        if ($type === self::EXPORT_UNIQUE) {
             //do nothing the export has been done in JS
-        } else {
+        }
+        else {
+            // Check if the user can plan a new export
+            if(!$scheduledTaskService->canSchedule($entityManager, Export::class)){
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
+            }
+
             $typeRepository = $entityManager->getRepository(Type::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(
@@ -146,14 +155,14 @@ class DataExportController extends AbstractController {
                 ->setType($type)
                 ->setStatus($status)
                 ->setCreator($security->getUser())
-                ->setCreatedAt(new DateTime())
-                ->setForced(false);
+                ->setCreatedAt(new DateTime());
 
             $dataExportService->updateExport($entityManager, $export, $data);
-            $cacheService->delete(CacheService::COLLECTION_EXPORTS);
 
             $entityManager->persist($export);
             $entityManager->flush();
+
+            $scheduledTaskService->deleteCache(Export::class);
 
             return $this->json([
                 "success" => true,
@@ -171,7 +180,7 @@ class DataExportController extends AbstractController {
     public function editExport(Request                $request,
                                EntityManagerInterface $entityManager,
                                DataExportService      $dataExportService,
-                               CacheService           $cacheService,
+                               ScheduledTaskService   $scheduledTaskService,
                                Export                 $export): Response {
 
         $data = $request->request->all();
@@ -181,9 +190,10 @@ class DataExportController extends AbstractController {
         }
 
         $dataExportService->updateExport($entityManager, $export, $data);
-        $cacheService->delete(CacheService::COLLECTION_EXPORTS);
 
         $entityManager->flush();
+
+        $scheduledTaskService->deleteCache(Export::class);
 
         return $this->json([
             "success" => true,
@@ -515,39 +525,30 @@ class DataExportController extends AbstractController {
         ]));
     }
 
-    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: [self::PATCH], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function cancel(Export $export,
-                           EntityManagerInterface $manager,
-                           CacheService $cacheService): JsonResponse {
-        $statusRepository = $manager->getRepository(Statut::class);
+    public function cancel(Export                 $export,
+                           EntityManagerInterface $entityManager,
+                           ScheduledTaskService   $scheduledTaskService): JsonResponse
+    {
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         $exportType = $export->getType();
         $exportStatus = $export->getStatus();
-        if ($exportStatus && $exportType && $exportType->getLabel() == Type::LABEL_SCHEDULED_EXPORT && $exportStatus->getNom() == Export::STATUS_SCHEDULED) {
-            $export->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED));
-            $manager->flush();
+        $canCancel = (
+            $exportType?->getLabel() === Type::LABEL_SCHEDULED_EXPORT
+            && $exportStatus?->getNom() === Export::STATUS_SCHEDULED
+        );
+        if ($canCancel) {
+            $statusCancelled = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED);
+            $export->setStatus($statusCancelled);
+            $entityManager->flush();
 
-            $cacheService->delete(CacheService::COLLECTION_EXPORTS);
+            $scheduledTaskService->deleteCache(Export::class);
         }
 
         return $this->json([
             'success' => true,
-        ]);
-    }
-
-    #[Route("/export/plannifie/{export}/force", name: "settings_export_force", options: ["expose" => true], methods: "GET|POST", condition:"request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function force(EntityManagerInterface $manager, ScheduleRuleService $scheduleRuleService, CacheService $cacheService, Export $export): JsonResponse {
-        $export->setForced(true);
-        $export->setNextExecution($scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
-        $manager->flush();
-
-        $cacheService->delete(CacheService::COLLECTION_EXPORTS);
-
-        return $this->json([
-            "success" => true,
-            "msg" => "L'export a bien été forcé",
         ]);
     }
 }

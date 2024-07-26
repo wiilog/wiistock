@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Helper\FileSystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Throwable;
 
 class CacheService
 {
@@ -16,6 +17,8 @@ class CacheService
     public const COLLECTION_LANGUAGES = "languages";
     public const COLLECTION_EXPORTS = "exports";
     public const COLLECTION_IMPORTS = "imports";
+    public const COLLECTION_PURCHASE_REQUEST_PLANS = "purchase-request-plans";
+    public const COLLECTION_INVENTORY_MISSION_PLANS = "inventory-mission-plans";
     public const COLLECTION_SETTINGS = "settings";
 
     private FileSystem $filesystem;
@@ -29,11 +32,27 @@ class CacheService
 
     public function get(string $namespace, string $key, ?callable $callback = null): mixed
     {
-        if ($callback && !$this->filesystem->exists("$namespace/$key")) {
-            $this->set($namespace, $key, $callback());
+        $cacheExists = $this->filesystem->exists("$namespace/$key");
+
+        if ($cacheExists || $callback) {
+            if (!$cacheExists) {
+                $this->set($namespace, $key, $callback());
+            }
+
+            try {
+                $result = unserialize($this->filesystem->getContent("$namespace/$key"));
+            }
+            catch(Throwable) {
+                $result = null;
+            }
+
+        }
+        else {
+            $result = null;
         }
 
-        return unserialize($this->filesystem->getContent("$namespace/$key"));
+        return $result;
+
     }
 
     public function set(string $namespace, string $key, mixed $value = null): void

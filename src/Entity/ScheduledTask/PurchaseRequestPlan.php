@@ -1,23 +1,25 @@
 <?php
 
-namespace App\Entity\ScheduledTask\ScheduleRule;
+namespace App\Entity\ScheduledTask;
 
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
-use App\Repository\ScheduledTask\StorageRule\PurchaseRequestScheduleRuleRepository;
+use App\Repository\ScheduledTask\PurchaseRequestPlanRepository;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: PurchaseRequestScheduleRuleRepository::class)]
-class PurchaseRequestScheduleRule extends ScheduleRule
-{
+
+#[ORM\Entity(repositoryClass: PurchaseRequestPlanRepository::class)]
+class PurchaseRequestPlan extends ScheduledTask {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToMany(targetEntity: Zone::class)]
@@ -30,24 +32,22 @@ class PurchaseRequestScheduleRule extends ScheduleRule
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $requester = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
-    private ?string $emailSubject = null;
-
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
+    private ?string $emailSubject = null;
 
-    public function __construct()
-    {
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTimeInterface $createdAt = null;
+
+    public function __construct() {
         $this->zones = new ArrayCollection();
         $this->suppliers = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -149,15 +149,14 @@ class PurchaseRequestScheduleRule extends ScheduleRule
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
+    public function getCreatedAt(): ?DateTimeInterface {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): self
-    {
+    public function setCreatedAt(DateTimeInterface $createdAt): self {
         $this->createdAt = $createdAt;
 
         return $this;
     }
+
 }
