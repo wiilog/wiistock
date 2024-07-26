@@ -47,9 +47,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/services")
- */
+#[Route('/services')]
 class HandlingController extends AbstractController {
 
     #[Route("/", name: "handling_index", options: ["expose" => true], methods: "GET")]

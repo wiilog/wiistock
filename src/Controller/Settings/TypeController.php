@@ -23,15 +23,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/parametrage/type")
- */
+#[Route('/parametrage/type')]
 class TypeController extends AbstractController {
 
-    /**
-     * @Route("/type-api/{type}/edit/translate", name="settings_edit_type_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route('/type-api/{type}/edit/translate', name: 'settings_edit_type_translations_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function apiEditTranslations(EntityManagerInterface $manager,
                                         TranslationService $translationService,
                                         ?Type $type = null): JsonResponse
@@ -78,10 +74,8 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/type/edit/translate", name="settings_edit_type_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/type/edit/translate', name: 'settings_edit_type_translations', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editTranslations(Request                $request,
                                      EntityManagerInterface $manager,
                                      TranslationService     $translationService): JsonResponse {
@@ -167,9 +161,7 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/verification/{type}", name="settings_types_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/verification/{type}', name: 'settings_types_check_delete', methods: ['GET'], options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
     public function checkTypeCanBeDeleted(Type $type,
                                           EntityManagerInterface $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -199,9 +191,7 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer/{type}", name="settings_types_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/supprimer/{type}', name: 'settings_types_delete', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function delete(Type $type,
                            EntityManagerInterface $entityManager): Response
     {
@@ -224,9 +214,7 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/champs-libres/{type}", name="free_fields_by_type", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/champs-libres/{type}', name: 'free_fields_by_type', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager): Response
     {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);

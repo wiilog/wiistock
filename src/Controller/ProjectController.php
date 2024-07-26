@@ -21,9 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Annotation\HasPermission;
 
-/**
- * @Route("/project")
- */
+#[Route('/project')]
 class ProjectController extends AbstractController
 {
 

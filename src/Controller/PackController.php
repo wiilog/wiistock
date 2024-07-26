@@ -142,10 +142,8 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/pack-intel/{packCode}", name="get_pack_intel", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     */
     #[Route("/pack-intel/{packcode}", name: "get_pack_intel", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route('/pack-intel/{packCode}', name: 'get_pack_intel', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
     public function getPackIntel(EntityManagerInterface $entityManager,
                                  string                 $packCode): JsonResponse
     {

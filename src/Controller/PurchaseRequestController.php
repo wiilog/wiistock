@@ -37,15 +37,11 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/achat/demande")
- */
+#[Route('/achat/demande')]
 class PurchaseRequestController extends AbstractController
 {
-    /**
-     * @Route("/liste", name="purchase_request_index")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
-     */
+    #[Route('/liste', name: 'purchase_request_index')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -56,20 +52,16 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="purchase_request_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'purchase_request_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function api(Request                    $request,
                         PurchaseRequestService     $purchaseRequestService): Response {
         $data = $purchaseRequestService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/voir/{id}", name="purchase_request_show", options={"expose"=true}, methods={"GET"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
-     */
+    #[Route('/voir/{id}', name: 'purchase_request_show', options: ['expose' => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS])]
     public function show(PurchaseRequest            $request,
                          PurchaseRequestService     $purchaseRequestService,
                          EntityManagerInterface     $entityManager): Response {
@@ -95,9 +87,7 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/csv", name="purchase_request_export",options={"expose"=true}, methods="GET|POST")
-     */
+    #[Route('/csv', name: 'purchase_request_export', options: ['expose' => true], methods: 'GET|POST')]
     public function export(Request                    $request,
                            EntityManagerInterface     $entityManager,
                            PurchaseRequestService     $purchaseRequestService,
@@ -168,10 +158,8 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="purchase_request_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'purchase_request_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                $request,
                            UserService            $userService,
                            RefArticleDataService  $refArticleDataService,
@@ -216,10 +204,8 @@ class PurchaseRequestController extends AbstractController
 
     }
 
-    /**
-     * @Route("/{purchaseRequest}/line/api", name="purchase_request_lines_api", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/{purchaseRequest}/line/api', name: 'purchase_request_lines_api', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest, EntityManagerInterface $entityManager): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
         $requestLines = $purchaseRequest->getPurchaseRequestLines();
@@ -260,10 +246,8 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{purchaseRequest}/ajouter-ligne", name="purchase_request_add_line", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/{purchaseRequest}/ajouter-ligne', name: 'purchase_request_add_line', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function addPurchaseRequestLine(Request                $request,
                                            PurchaseRequestService $purchaseRequestService,
                                            EntityManagerInterface $entityManager,
@@ -332,10 +316,8 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/creer", name="purchase_request_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::CREATE_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'purchase_request_new', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::CREATE_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         Request                $request,
                         AttachmentService      $attachmentService,
@@ -373,9 +355,7 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/ligne/api-modifier", name="purchase_request_line_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/ligne/api-modifier', name: 'purchase_request_line_edit_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function editLineApi(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 UserService            $userService): Response
@@ -440,10 +420,8 @@ class PurchaseRequestController extends AbstractController
         }
         return new JsonResponse($response);
     }
-    /**
-     * @Route("/api-modifier", name="purchase_request_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'purchase_request_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST], mode: HasPermission::IN_JSON)]
     public function editApi(Request                $request,
                             EntityManagerInterface $entityManager): Response
     {
@@ -470,10 +448,8 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="purchase_request_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier', name: 'purchase_request_edit', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface     $entityManager,
                          Request                    $request,
                          PurchaseRequestService     $purchaseRequestService,
@@ -531,10 +507,8 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/line/remove-line", name="purchase_request_line_remove_line", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/line/remove-line', name: 'purchase_request_line_remove_line', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeLine(Request                $request,
                                EntityManagerInterface $entityManager) {
         if($data = json_decode($request->getContent())) {
@@ -680,10 +654,8 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-references", options={"expose"=true}, name="purchase_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-references', options: ['expose' => true], name: 'purchase_api_references', methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function apiReferences(Request                $request,
                                   PurchaseRequestService $service): Response {
 

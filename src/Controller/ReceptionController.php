@@ -76,9 +76,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @Route("/reception")
- */
+#[Route('/reception')]
 class ReceptionController extends AbstractController {
 
     #[Required]
@@ -87,10 +85,8 @@ class ReceptionController extends AbstractController {
     #[Required]
     public FreeFieldService $freeFieldService;
 
-    /**
-     * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/new', name: 'reception_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
                         ReceptionService $receptionService,
@@ -129,10 +125,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier', name: 'reception_edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
@@ -224,10 +218,8 @@ class ReceptionController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'api_reception_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEdit(EntityManagerInterface $entityManager,
                             Request $request): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -293,10 +285,8 @@ class ReceptionController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/api-columns", name="reception_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-columns', name: 'reception_api_columns', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function apiColumns(ReceptionService $receptionService): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -304,10 +294,8 @@ class ReceptionController extends AbstractController {
         return $this->json($columns);
     }
 
-    /**
-     * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
-     */
+    #[Route('/liste/{purchaseRequest}', name: 'reception_index', methods: ['GET', 'POST'], options: ['expose' => true])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE])]
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
@@ -368,10 +356,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'reception_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response {
@@ -419,10 +405,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/annuler', name: 'reception_cancel', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function cancel(Request $request,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -445,10 +429,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/remove-reception-reference-article", name="reception_reference_article_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/remove-reception-reference-article', name: 'reception_reference_article_remove', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                     ReceptionService       $receptionService,
                                                     MouvementStockService  $mouvementStockService,
@@ -543,10 +525,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/new-reception-reference-article", name="reception_reference_article_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/new-reception-reference-article', name: 'reception_reference_article_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function newReceptionReferenceArticle(EntityManagerInterface           $entityManager,
                                                  ReceptionService                 $receptionService,
                                                  ReceptionLineService             $receptionLineService,
@@ -660,10 +640,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-edit-reception-reference-article", name="reception_reference_article_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-edit-reception-reference-article', name: 'reception_reference_article_edit_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEditReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                      Request                $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
@@ -935,9 +913,7 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/autocomplete-ref-art/{reception}', name: 'get_ref_article_reception', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     public function getRefTypeQtyArticle(Reception                        $reception,
                                          ReceptionReferenceArticleService $receptionReferenceArticleService) {
 
@@ -966,10 +942,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier-litige', name: 'litige_edit_reception', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editDispute(EntityManagerInterface $entityManager,
                                 ArticleDataService     $articleDataService,
                                 DisputeService         $disputeService,
@@ -1080,10 +1054,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/creer-litige", name="dispute_new_reception", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer-litige', name: 'dispute_new_reception', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function newLitige(EntityManagerInterface $entityManager,
                               DisputeService         $disputeService,
                               AttachmentService      $attachmentService,
@@ -1208,10 +1180,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer-litige', name: 'litige_delete_reception', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function deleteDispute(Request $request,
                                  EntityManagerInterface $entityManager, TranslationService $translation): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -1248,9 +1218,7 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/litiges/api/{reception}", name="litige_reception_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/litiges/api/{reception}', name: 'litige_reception_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function apiReceptionLitiges(EntityManagerInterface $entityManager,
                                         Reception $reception): Response {
 
@@ -1292,10 +1260,8 @@ class ReceptionController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/finir', name: 'reception_finish', methods: ['GET', 'POST'], options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function finish(Request $request,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -1347,9 +1313,7 @@ class ReceptionController extends AbstractController {
         $entityManager->flush();
     }
 
-    /**
-     * @Route("/verif-avant-suppression", name="reception_reference_article_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/verif-avant-suppression', name: 'reception_reference_article_check_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     public function checkBeforeReceptionReferenceArticleDelete(EntityManagerInterface $entityManager,
                                                                TranslationService     $translationService,
                                                                Request                $request) {
@@ -1393,9 +1357,7 @@ class ReceptionController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
-     */
+    #[Route('/{reception}/etiquettes', name: 'reception_bar_codes_print', options: ['expose' => true])]
     public function getReceptionBarCodes(Request $request,
                                          Reception $reception,
                                          EntityManagerInterface $entityManager,
@@ -1464,9 +1426,7 @@ class ReceptionController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/{reception}/ligne-article/{receptionReferenceArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
-     */
+    #[Route('/{reception}/ligne-article/{receptionReferenceArticle}/etiquette', name: 'reception_ligne_article_bar_code_print', options: ['expose' => true])]
     public function getReceptionLigneArticleBarCode(Reception                 $reception,
                                                     ReceptionReferenceArticle $receptionReferenceArticle,
                                                     RefArticleDataService     $refArticleDataService,
@@ -1486,10 +1446,8 @@ class ReceptionController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/apiArticle', name: 'article_by_reception_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function apiArticle(EntityManagerInterface $entityManager,
                                ArticleDataService $articleDataService,
                                Request $request): Response {
@@ -1503,10 +1461,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="reception_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/verification', name: 'reception_check_delete', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function checkReceptionCanBeDeleted(EntityManagerInterface $entityManager,
                                                TranslationService $translationService,
                                                Request $request): Response {
@@ -2099,9 +2055,7 @@ class ReceptionController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/{reception}/etiquette/{article}", name="reception_article_single_bar_code_print", options={"expose"=true})
-     */
+    #[Route('/{reception}/etiquette/{article}', name: 'reception_article_single_bar_code_print', options: ['expose' => true])]
     public function getSingleReceptionArticleBarCode(Article $article,
                                                     Reception $reception,
                                                     ArticleDataService $articleDataService,

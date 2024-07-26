@@ -768,19 +768,15 @@ class SettingsController extends AbstractController {
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
 
-    /**
-     * @Route("/", name="settings_index")
-     */
+    #[Route('/', name: 'settings_index')]
     public function index(): Response {
         return $this->render("settings/list.html.twig", [
             "settings" => self::SETTINGS,
         ]);
     }
 
-    /**
-     * @Route("/utilisateurs/langues", name="settings_language")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
+    #[Route('/utilisateurs/langues', name: 'settings_language')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO])]
     public function language(EntityManagerInterface $manager): Response {
         $translationRepository = $manager->getRepository(Translation::class);
 
@@ -790,10 +786,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/langues", name="settings_language_index")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
+    #[Route('/langues', name: 'settings_language_index')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO])]
     public function languageIndex(EntityManagerInterface $entityManager,
                                   LanguageService        $languageService): Response {
         $languageRepository = $entityManager->getRepository(Language::class);
@@ -834,10 +828,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/langues/api", name="settings_language_api" , methods={"GET"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
+    #[Route('/langues/api', name: 'settings_language_api', methods: ['GET'], options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO])]
     public function languageApi( Request $request, EntityManagerInterface $manager): Response {
         $data = $request->query;
         $languageRepository = $manager->getRepository(Language::class);
@@ -891,10 +883,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/langues/api/default", name="settings_default_language_api" , methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
+    #[Route('/langues/api/default', name: 'settings_default_language_api', methods: ['POST'], options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO])]
     public function defaultLanguageApi(Request $request, EntityManagerInterface $manager, CacheService $cacheService): Response {
         $data = $request->request;
 
@@ -924,10 +914,8 @@ class SettingsController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/langues/api/delete", name="settings_language_delete" , methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
+    #[Route('/langues/api/delete', name: 'settings_language_delete', methods: ['POST'], options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO])]
     public function deleteLanguageApi(EntityManagerInterface $manager,
                                       Request $request,
                                       CacheService $cacheService ): Response
@@ -968,10 +956,8 @@ class SettingsController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/langues/api/save", name="settings_language_save_api" , methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
-     */
+    #[Route('/langues/api/save', name: 'settings_language_save_api', methods: ['POST'], options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO])]
     public function saveTranslationApi(EntityManagerInterface $entityManager,
                                        Request                $request,
                                        AttachmentService      $attachmentService,
@@ -1046,9 +1032,7 @@ class SettingsController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
-     */
+    #[Route('/afficher/{category}/{menu}/{submenu}', name: 'settings_item', options: ['expose' => true])]
     public function item(EntityManagerInterface $entityManager,
                          string $category,
                          ?string $menu = null,
@@ -1822,10 +1806,8 @@ class SettingsController extends AbstractController {
         ];
     }
 
-    /**
-     * @Route("/enregistrer", name="settings_save", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/enregistrer', name: 'settings_save', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function save(Request $request,
                          EntityManagerInterface $entityManager,
                          SettingsService $settingsService): Response {
@@ -1933,10 +1915,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/heures-travaillees-api", name="settings_working_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS})
-     */
+    #[Route('/heures-travaillees-api', name: 'settings_working_hours_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS])]
     public function workingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
@@ -1968,10 +1948,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/creneaux-horaires-api", name="settings_hour_shift_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS})
-     */
+    #[Route('/creneaux-horaires-api', name: 'settings_hour_shift_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS])]
     public function timeSlotsApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
@@ -2021,10 +1999,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/heures-depart-api", name="settings_starting_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROUND})
-     */
+    #[Route('/heures-depart-api', name: 'settings_starting_hours_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROUND])]
     public function startingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
@@ -2083,10 +2059,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/jours-non-travailles-api", name="settings_off_days_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS})
-     */
+    #[Route('/jours-non-travailles-api', name: 'settings_off_days_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS])]
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
@@ -2113,10 +2087,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/jours-non-travailles/supprimer/{entity}", name="settings_off_days_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route('/jours-non-travailles/supprimer/{entity}', name: 'settings_off_days_delete', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteOffDay(EntityManagerInterface $manager, WorkFreeDay $entity) {
         $manager->remove($entity);
         $manager->flush();
@@ -2127,9 +2099,7 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
-     */
+    #[Route('/champs-libres/header/{type}', name: 'settings_type_header', options: ['expose' => true])]
     public function typeHeader(Request $request,
                                FormService $formService,
                                ?Type $type = null): Response {
@@ -2515,9 +2485,7 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/champs-libres/api/{type}", name="settings_free_field_api", options={"expose"=true})
-     */
+    #[Route('/champs-libres/api/{type}', name: 'settings_free_field_api', options: ['expose' => true])]
     public function freeFieldApi(Request $request, EntityManagerInterface $manager, UserService $userService, ?Type $type = null): Response {
         $edit = $request->query->getBoolean("edit");
         $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
@@ -2696,10 +2664,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/champ-libre/supprimer/{entity}", name="settings_free_field_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route('/champ-libre/supprimer/{entity}', name: 'settings_free_field_delete', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteFreeField(EntityManagerInterface $manager, FreeField $entity): Response {
         if(!$entity->getFilters()->isEmpty()) {
             $filter = $manager->getRepository(FiltreRef::class)->findOneBy(['champLibre' => $entity]);
@@ -2738,9 +2704,7 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/champ-fixe/sous-lignes/{entity}', name: 'settings_sublines_fixed_field_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity, FormService $formService): Response
     {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
@@ -2924,10 +2888,8 @@ class SettingsController extends AbstractController {
         return $this->userService->hasRightFunction(Menu::PARAM, Action::DELETE);
     }
 
-    /**
-     * @Route("/frequences-api", name="settings_frequencies_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/frequences-api', name: 'settings_frequencies_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function frequenciesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
@@ -2970,10 +2932,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/frequences/supprimer/{entity}", name="settings_delete_frequency", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/frequences/supprimer/{entity}', name: 'settings_delete_frequency', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function deleteFrequency(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
         if ($entity->getCategories()->isEmpty()) {
             $entityManager->remove($entity);
@@ -2991,10 +2951,8 @@ class SettingsController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/categories-api", name="settings_categories_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/categories-api', name: 'settings_categories_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function categoriesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
@@ -3061,10 +3019,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/categories/supprimer/{entity}', name: 'settings_delete_category', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function deleteCategory(EntityManagerInterface $entityManager,
                                    InventoryCategory $entity): Response {
 
@@ -3093,10 +3049,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/mission-plans-force", name="settings_mission_plans_force", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/mission-plans-force', name: 'settings_mission_plans_force', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function missionPlansForce(EntityManagerInterface $entityManager,
                                       InvMissionService      $invMissionService): JsonResponse {
         $inventoryMissionPlanRepository = $entityManager->getRepository(InventoryMissionPlan::class);
@@ -3114,10 +3068,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/mission-plans-api", name="settings_mission_plans_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/mission-plans-api', name: 'settings_mission_plans_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function missionPlansApi(EntityManagerInterface $manager): Response {
         $data = [];
         $missionPlanRepository = $manager->getRepository(InventoryMissionPlan::class);
@@ -3176,10 +3128,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/mission-plans/supprimer/{entity}", name="settings_delete_mission_plan", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/mission-plans/supprimer/{entity}', name: 'settings_delete_mission_plan', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function deleteMissionPlans(EntityManagerInterface $entityManager, InventoryMissionPlan $entity): Response {
 
         if (!empty($entity->getLocations())) {
@@ -3203,10 +3153,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/types-litige-api", name="types_litige_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/types-litige-api', name: 'types_litige_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP], mode: HasPermission::IN_JSON)]
     public function typesLitigeApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
@@ -3249,10 +3197,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/types_litige/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/types_litige/supprimer/{entity}', name: 'settings_delete_type_litige', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP], mode: HasPermission::IN_JSON)]
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
         if ($entity->getDisputes()->isEmpty()) {
             $entityManager->remove($entity);
@@ -3269,10 +3215,8 @@ class SettingsController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/types_litige_api/edit/translate", name="settings_edit_types_litige_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route('/types_litige_api/edit/translate', name: 'settings_edit_types_litige_translations_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function apiEditTranslationsTypeLitige(EntityManagerInterface $manager,
                                                   TranslationService     $translationService): JsonResponse {
         $typeRepository = $manager->getRepository(Type::class);
@@ -3295,10 +3239,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/types_litige/edit/translate", name="settings_edit_types_litige_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/types_litige/edit/translate', name: 'settings_edit_types_litige_translations', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editTranslations(Request                $request,
                                      EntityManagerInterface $manager,
                                      TranslationService     $translationService): JsonResponse {
@@ -3355,10 +3297,8 @@ class SettingsController extends AbstractController {
         ];
     }
 
-    /**
-     * @Route("/groupes_visibilite-api", name="settings_visibility_group_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS})
-     */
+    #[Route('/groupes_visibilite-api', name: 'settings_visibility_group_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS])]
     public function visibiliteGroupApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
@@ -3397,10 +3337,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/groupes_visibilite/supprimer/{entity}", name="settings_visibility_group_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route('/groupes_visibilite/supprimer/{entity}', name: 'settings_visibility_group_delete', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteVisibilityGroup(EntityManagerInterface $manager, VisibilityGroup $entity) {
         $visibilityGroup = $manager->getRepository(VisibilityGroup::class)->find($entity);
         if ($visibilityGroup->getArticleReferences()->isEmpty()) {
@@ -3418,10 +3356,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/tag-template-api", name="settings_tag_template_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_BILL}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/tag-template-api', name: 'settings_tag_template_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_BILL], mode: HasPermission::IN_JSON)]
     public function tagTemplateApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
@@ -3536,10 +3472,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/tag-template/supprimer/{entity}", name="settings_delete_tag_template", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/tag-template/supprimer/{entity}', name: 'settings_delete_tag_template', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_INVENTORIES], mode: HasPermission::IN_JSON)]
     public function deleteTagTemplate(EntityManagerInterface $entityManager,
                                    TagTemplate $entity): Response {
 
@@ -3574,9 +3508,7 @@ class SettingsController extends AbstractController {
         return $this->json($response);
     }
 
-    /**
-     * @Route("/delete-row/{type}/{id}", name="settings_delete_row", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/delete-row/{type}/{id}', name: 'settings_delete_row', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function deleteRow(EntityManagerInterface $manager, SettingsService $service, string $type, int $id): Response {
         try {
             switch ($type) {
@@ -3604,10 +3536,8 @@ class SettingsController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/native-countries-api", name="settings_native_countries_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/native-countries-api', name: 'settings_native_countries_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
     public function nativeCountriesApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
@@ -3652,10 +3582,8 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/native-countries/supprimer/{entity}", name="settings_delete_native_country", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/native-countries/supprimer/{entity}', name: 'settings_delete_native_country', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
     public function deleteNativeCountry(EntityManagerInterface $entityManager, NativeCountry $entity): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
         if (!$articleRepository->findOneBy(["nativeCountry" => $entity])) {
