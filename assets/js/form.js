@@ -333,7 +333,7 @@ export default class Form {
                     if($elem.attr(`type`) === `checkbox`) {
                         return $elem.is(`:checked`) ? $elem.val() : null;
                     } else {
-                        return formatInputValue($elem)
+                        return formatInputValue($elem);
                     }
                 })
                 .filter(val => val !== null));
@@ -629,7 +629,7 @@ function formatInputValue($input) {
             ? $input.val()
             : null;
     } else if (($input.attr(`type`) === `text` && $input.hasClass(`phone-number`))) {
-        value = window.intlTelInputGlobals.getInstance($input[0]).getNumber()
+        value = window.intlTelInputGlobals.getInstance($input[0])?.getNumber() || null;
     } else {
         value = $input.val() || null;
     }
