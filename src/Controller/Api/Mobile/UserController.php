@@ -8,13 +8,13 @@ use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Repository\TrackingMovementRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class UserController extends AbstractController {
 
-    #[Rest\Get("/users/{user}/previous-picking-counter", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/users/{user}/previous-picking-counter", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getPreviousPickingCounter(EntityManagerInterface $entityManager,
                                               Utilisateur            $user): JsonResponse {

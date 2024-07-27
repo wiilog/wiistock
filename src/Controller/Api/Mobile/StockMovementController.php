@@ -23,17 +23,17 @@ use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class StockMovementController extends AbstractController {
 
-    #[Rest\Post("/stock-movements", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/stock-movements", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postStockMovements(Request                     $request,
                                        EmplacementDataService      $locationDataService,

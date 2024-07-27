@@ -19,16 +19,16 @@ use App\Service\TrackingMovementService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation as Wii;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class DeliveryRequestController extends AbstractController {
 
-    #[Rest\Post("/valider-manual-dl", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/valider-manual-dl", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function validateManualDL(Request                    $request,
                                      EntityManagerInterface     $entityManager,
@@ -159,7 +159,7 @@ class DeliveryRequestController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/valider-dl", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/valider-dl", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function checkAndValidateDL(Request                $request,
                                        EntityManagerInterface $entityManager,
@@ -193,7 +193,7 @@ class DeliveryRequestController extends AbstractController {
         return new JsonResponse($responseAfterQuantitiesCheck);
     }
 
-    #[Rest\Get("/demande-livraison-data", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/demande-livraison-data", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getDemandeLivraisonData(UserService $userService, EntityManagerInterface $entityManager): Response
     {

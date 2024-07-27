@@ -22,18 +22,18 @@ use App\Service\SettingsService;
 use App\Service\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class ArticleController extends AbstractController {
 
-    #[Rest\Post("/create-article", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/create-article", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postArticle(Request                 $request,
                                 EntityManagerInterface  $entityManager,
@@ -220,7 +220,7 @@ class ArticleController extends AbstractController {
         ]);
     }
 
-    #[Rest\Get("/logistic-unit/articles", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/logistic-unit/articles", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getLogisticUnitArticles(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -249,7 +249,7 @@ class ArticleController extends AbstractController {
         return $this->json($articles);
     }
 
-    #[Rest\Get("/articles", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/articles", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getArticles(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -340,7 +340,7 @@ class ArticleController extends AbstractController {
         return new JsonResponse($resData, $statusCode);
     }
 
-    #[Rest\Get("/article-by-rfid-tag/{rfid}", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/article-by-rfid-tag/{rfid}", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getArticleByRFIDTag(EntityManagerInterface $entityManager, string $rfid): Response
     {
@@ -353,7 +353,7 @@ class ArticleController extends AbstractController {
         ]);
     }
 
-    #[Rest\Get("/default-article-values", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/default-article-values", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getDefaultArticleValues(EntityManagerInterface $entityManager,
                                             SettingsService        $settingsService): Response

@@ -13,15 +13,15 @@ use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Annotation as Wii;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class HandlingController extends AbstractController {
 
-    #[Rest\Post("/handlings", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/handlings", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postHandlings(Request                $request,
                                   AttachmentService      $attachmentService,

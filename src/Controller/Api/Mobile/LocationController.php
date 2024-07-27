@@ -7,16 +7,16 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Service\EmplacementDataService;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use App\Annotation as Wii;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class LocationController extends AbstractController {
 
-    #[Rest\Post("/emplacement", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/emplacement", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function addEmplacement(Request $request,
                                    EntityManagerInterface $entityManager,
