@@ -25,7 +25,6 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.10",
         "friendsofsymfony/jsrouting-bundle": "^3.1",
-        "friendsofsymfony/rest-bundle": "^3.3",
         "google/apiclient": "^2.12",
         "jetbrains/phpstorm-attributes": "^1.0",
         "knplabs/knp-snappy-bundle": "^1.9",

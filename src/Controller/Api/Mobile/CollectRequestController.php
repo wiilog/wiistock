@@ -15,17 +15,17 @@ use App\Service\OrdreCollecteService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Annotation as Wii;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class CollectRequestController extends AbstractController {
 
-    #[Rest\Get("/check-manual-collect-scan", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/check-manual-collect-scan", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function checkManualCollectScan(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -57,7 +57,7 @@ class CollectRequestController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/finish-manual-collect", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/finish-manual-collect", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishManualCollect(Request                   $request,
                                         EntityManagerInterface    $entityManager,

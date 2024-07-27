@@ -16,19 +16,19 @@ use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class DeliveryOrderController extends AbstractController {
 
 
-    #[Rest\Post("/beginLivraison", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/beginLivraison", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function beginLivraison(Request                $request,
                                    EntityManagerInterface $entityManager,
@@ -58,7 +58,7 @@ class DeliveryOrderController extends AbstractController {
 
         return new JsonResponse($data);
     }
-    #[Rest\Post("/finishLivraison", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/finishLivraison", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishLivraison(Request                  $request,
                                     ExceptionLoggerService   $exceptionLoggerService,
@@ -131,7 +131,7 @@ class DeliveryOrderController extends AbstractController {
         return new JsonResponse($resData, $statusCode);
     }
 
-    #[Rest\Get("/check-delivery-logistic-unit-content", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/check-delivery-logistic-unit-content", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function checkDeliveryLogisticUnitContent(Request                $request,
                                                      EntityManagerInterface $entityManager): Response
@@ -150,7 +150,7 @@ class DeliveryOrderController extends AbstractController {
     }
 
 
-    #[Rest\Get("/check-logistic-unit-content", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/check-logistic-unit-content", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function checkLogisticUnitContent(Request                $request,
                                              EntityManagerInterface $entityManager): Response
