@@ -45,20 +45,20 @@ use App\Service\TrackingMovementService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class MobileController extends AbstractController {
 
-    #[Rest\Post("/api-key", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/api-key", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postApiKey(Request                     $request,
                                EntityManagerInterface      $entityManager,
@@ -153,7 +153,7 @@ class MobileController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Rest\Post("/logout", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/logout", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function logout(EntityManagerInterface      $entityManager,
                            SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
@@ -533,7 +533,7 @@ class MobileController extends AbstractController {
         ];
     }
 
-    #[Rest\Post("/getData", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/getData", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getData(Request                    $request,
                             UserService                $userService,
@@ -567,7 +567,7 @@ class MobileController extends AbstractController {
         return md5(microtime() . rand());
     }
 
-    #[Rest\Get("/nomade-versions", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/nomade-versions", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function checkNomadeVersion(Request $request,
                                        MobileApiService $mobileApiService,
                                        ParameterBagInterface $parameterBag): JsonResponse {
@@ -577,7 +577,7 @@ class MobileController extends AbstractController {
         ]);
     }
 
-    #[Rest\Get("/server-images", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/server-images", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function getLogos(EntityManagerInterface $entityManager,
                              SettingsService        $settingsService,
                              KernelInterface        $kernel,

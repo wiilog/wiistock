@@ -16,18 +16,18 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Annotation as Wii;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class CollectOrderController extends AbstractController {
 
-    #[Rest\Post("/beginCollecte", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/beginCollecte", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function beginCollecte(Request                $request,
                                   EntityManagerInterface $entityManager)
@@ -56,7 +56,8 @@ class CollectOrderController extends AbstractController {
 
         return new JsonResponse($data);
     }
-    #[Rest\Post("/finishCollecte", condition: self::IS_XML_HTTP_REQUEST)]
+
+    #[Route("/finishCollecte", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishCollecte(Request                $request,
                                    ExceptionLoggerService $exceptionLoggerService,
@@ -222,7 +223,7 @@ class CollectOrderController extends AbstractController {
         return new JsonResponse($resData, $statusCode);
     }
 
-    #[Rest\Get("/collectable-articles", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/collectable-articles", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getCollectableArticles(Request                $request,
                                            EntityManagerInterface $entityManager): Response

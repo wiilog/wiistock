@@ -6,15 +6,15 @@ use App\Controller\AbstractController;
 use App\Exceptions\FormException;
 use App\Service\ReceiptAssociationService;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Annotation as Wii;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class ReceiptAssociationController extends AbstractController {
 
-    #[Rest\Post("/receipt-association", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/receipt-association", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postReceiptAssociation(Request                   $request,
                                            EntityManagerInterface    $entityManager,

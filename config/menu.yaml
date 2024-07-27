@@ -1,282 +1,282 @@
 parameters:
-    menu_config:
-        -   label: [ 'Général', null, 'Header', 'Accueil']
-            icon: 'accueil'
-            path: 'app_index'
+  menu_config:
+    - label: [ 'Général', null, 'Header', 'Accueil' ]
+      icon: 'accueil'
+      path: 'app_index'
 
-        -   label: [ 'Traçabilité', 'Général', 'Traçabilité' ]
-            icon: 'traca'
-            sub:
-                -   label: [ 'Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques' ]
-                    path: 'arrivage_index'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_ARRI
-                -   label: 'Arrivages camion'
-                    path: 'truck_arrival_index'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_TRUCK_ARRIVALS
-                -   label: [ 'Traçabilité', 'Mouvements', 'Mouvements' ]
-                    path: 'mvt_traca_index'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_MOUV
-                -   label: [ 'Traçabilité', 'Général', 'Unités logistiques' ]
-                    path: 'pack_index'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_PACK
-                -   label: [ 'Traçabilité', 'Association BR', 'Association BR' ]
-                    path: 'receipt_association_index'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_ASSO
-                -   label: [ 'Traçabilité', 'Encours', 'Encours' ]
-                    path: 'en_cours'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_ENCO
-                -   label: [ 'Traçabilité', 'Urgences', 'Urgences' ]
-                    path: 'emergency_index'
-                    rights:
-                        menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_URGE
+    - label: [ 'Traçabilité', 'Général', 'Traçabilité' ]
+      icon: 'traca'
+      sub:
+        - label: [ 'Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques' ]
+          path: 'arrivage_index'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_ARRI
+        - label: 'Arrivages camion'
+          path: 'truck_arrival_index'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_TRUCK_ARRIVALS
+        - label: [ 'Traçabilité', 'Mouvements', 'Mouvements' ]
+          path: 'mvt_traca_index'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_MOUV
+        - label: [ 'Traçabilité', 'Général', 'Unités logistiques' ]
+          path: 'pack_index'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_PACK
+        - label: [ 'Traçabilité', 'Association BR', 'Association BR' ]
+          path: 'receipt_association_index'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_ASSO
+        - label: [ 'Traçabilité', 'Encours', 'Encours' ]
+          path: 'en_cours'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_ENCO
+        - label: [ 'Traçabilité', 'Urgences', 'Urgences' ]
+          path: 'emergency_index'
+          rights:
+            menu: App\Entity\Menu::TRACA
+            action: App\Entity\Action::DISPLAY_URGE
 
-        -   label: [ 'Qualité', 'Litiges', 'Qualité' ]
-            icon: 'qualite'
-            sub:
-                -   label: [ 'Qualité', 'Litiges', 'Litiges' ]
-                    path: 'dispute_index'
-                    rights:
-                        menu: App\Entity\Menu::QUALI
-                        action: App\Entity\Action::DISPLAY_LITI
+    - label: [ 'Qualité', 'Litiges', 'Qualité' ]
+      icon: 'qualite'
+      sub:
+        - label: [ 'Qualité', 'Litiges', 'Litiges' ]
+          path: 'dispute_index'
+          rights:
+            menu: App\Entity\Menu::QUALI
+            action: App\Entity\Action::DISPLAY_LITI
 
-        -   label: 'Production'
-            icon: 'menu-production'
-            path: 'production_request_index'
-            rights:
-                menu: App\Entity\Menu::PRODUCTION
-                action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
-            sub:
-                -   label: 'Liste des OF'
-                    path: 'production_request_index'
-                    rights:
-                        menu: App\Entity\Menu::PRODUCTION
-                        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
-                -   label: 'Planning - Modulaire'
-                    path: 'production_request_planning_index'
-                    rights:
-                        menu: App\Entity\Menu::PRODUCTION
-                        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST_PLANNING
+    - label: 'Production'
+      icon: 'menu-production'
+      path: 'production_request_index'
+      rights:
+        menu: App\Entity\Menu::PRODUCTION
+        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
+      sub:
+        - label: 'Liste des OF'
+          path: 'production_request_index'
+          rights:
+            menu: App\Entity\Menu::PRODUCTION
+            action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
+        - label: 'Planning - Modulaire'
+          path: 'production_request_planning_index'
+          rights:
+            menu: App\Entity\Menu::PRODUCTION
+            action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST_PLANNING
 
-        -   label: [ 'Demande', 'Général', 'Demande' ]
-            icon: 'demande'
-            sub:
-                -   label: 'Collecte'
-                    path: 'collecte_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_DEM_COLL
-                -   label: [ 'Demande', 'Livraison', 'Livraison' ]
-                    path: 'demande_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_DEM_LIVR
-                -   label: [ 'Demande', 'Services', null, 'Service' ]
-                    path: 'handling_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_HAND
-                -   label: [ 'Demande', 'Acheminements', 'Général', 'Acheminement' ]
-                    path: 'dispatch_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_ACHE
-                -   label: 'Transfert'
-                    path: 'transfer_request_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_TRANSFER_REQ
-                -   label: 'Achat'
-                    path: 'purchase_request_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_PURCHASE_REQUESTS
-                -   label: 'Transport'
-                    path: 'transport_request_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_TRANSPORT
-                -   label: [ 'Demande', 'Expédition', 'Expédition' ]
-                    path: 'shipping_request_index'
-                    rights:
-                        menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_SHIPPING
+    - label: [ 'Demande', 'Général', 'Demande' ]
+      icon: 'demande'
+      sub:
+        - label: 'Collecte'
+          path: 'collecte_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_DEM_COLL
+        - label: [ 'Demande', 'Livraison', 'Livraison' ]
+          path: 'demande_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_DEM_LIVR
+        - label: [ 'Demande', 'Services', null, 'Service' ]
+          path: 'handling_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_HAND
+        - label: [ 'Demande', 'Acheminements', 'Général', 'Acheminement' ]
+          path: 'dispatch_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_ACHE
+        - label: 'Transfert'
+          path: 'transfer_request_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_TRANSFER_REQ
+        - label: 'Achat'
+          path: 'purchase_request_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_PURCHASE_REQUESTS
+        - label: 'Transport'
+          path: 'transport_request_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_TRANSPORT
+        - label: [ 'Demande', 'Expédition', 'Expédition' ]
+          path: 'shipping_request_index'
+          rights:
+            menu: App\Entity\Menu::DEM
+            action: App\Entity\Action::DISPLAY_SHIPPING
 
-        -   label: 'Ordre'
-            icon: 'ordre'
-            sub:
-                -   label: 'Collecte'
-                    path: 'ordre_collecte_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_ORDRE_COLL
-                -   label: [ 'Ordre', 'Livraison', 'Livraison' ]
-                    path: 'livraison_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_ORDRE_LIVR
-                -   label: 'Préparation'
-                    path: 'preparation_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_PREPA
-                -   label: 'Préparation - Planning'
-                    path: 'preparation_planning_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_PREPA_PLANNING
-                -   label: 'Transfert'
-                    path: 'transfer_order_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_ORDRE_TRANS
-                -   label: [ 'Ordre', 'Réceptions', 'Réception' ]
-                    path: 'reception_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_RECE
-                -   label: 'Transport'
-                    path: 'transport_order_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_TRANSPORT
-                -   label: 'Planning'
-                    path: 'transport_planning_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_TRANSPORT_PLANNING
-                -   label: 'Tournée'
-                    path: 'transport_round_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_TRANSPORT_ROUND
-                -   label: 'Sous-traitance'
-                    path: 'transport_subcontract_index'
-                    rights:
-                        menu: App\Entity\Menu::ORDRE
-                        action: App\Entity\Action::DISPLAY_TRANSPORT_SUBCONTRACT
+    - label: 'Ordre'
+      icon: 'ordre'
+      sub:
+        - label: 'Collecte'
+          path: 'ordre_collecte_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_ORDRE_COLL
+        - label: [ 'Ordre', 'Livraison', 'Livraison' ]
+          path: 'livraison_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_ORDRE_LIVR
+        - label: 'Préparation'
+          path: 'preparation_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_PREPA
+        - label: 'Préparation - Planning'
+          path: 'preparation_planning_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_PREPA_PLANNING
+        - label: 'Transfert'
+          path: 'transfer_order_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_ORDRE_TRANS
+        - label: [ 'Ordre', 'Réceptions', 'Réception' ]
+          path: 'reception_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_RECE
+        - label: 'Transport'
+          path: 'transport_order_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_TRANSPORT
+        - label: 'Planning'
+          path: 'transport_planning_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_TRANSPORT_PLANNING
+        - label: 'Tournée'
+          path: 'transport_round_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_TRANSPORT_ROUND
+        - label: 'Sous-traitance'
+          path: 'transport_subcontract_index'
+          rights:
+            menu: App\Entity\Menu::ORDRE
+            action: App\Entity\Action::DISPLAY_TRANSPORT_SUBCONTRACT
 
-        -   label: 'Stock'
-            icon: 'stock'
-            sub:
-                -   label: 'Articles'
-                    path: 'article_index'
-                    rights:
-                        menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_ARTI
-                -   label: [ 'Stock', 'Références', 'Référence' ]
-                    path: 'reference_article_index'
-                    rights:
-                        menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_REFE
-                -   label: 'Articles fournisseurs'
-                    path: 'article_fournisseur_index'
-                    rights:
-                        menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_ARTI_FOUR
-                -   label: 'Mouvements de stock'
-                    path: 'mouvement_stock_index'
-                    rights:
-                        menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_MOV_STOCK
-                -   label: 'Inventaire'
-                    path: 'inventory_mission_index'
-                    rights:
-                        menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_INVE
-                -   label: 'Alertes'
-                    path: 'alerte_index'
-                    rights:
-                        menu: App\Entity\Menu::STOCK
-                        action: App\Entity\Action::DISPLAY_ALER
+    - label: 'Stock'
+      icon: 'stock'
+      sub:
+        - label: 'Articles'
+          path: 'article_index'
+          rights:
+            menu: App\Entity\Menu::STOCK
+            action: App\Entity\Action::DISPLAY_ARTI
+        - label: [ 'Stock', 'Références', 'Référence' ]
+          path: 'reference_article_index'
+          rights:
+            menu: App\Entity\Menu::STOCK
+            action: App\Entity\Action::DISPLAY_REFE
+        - label: 'Articles fournisseurs'
+          path: 'article_fournisseur_index'
+          rights:
+            menu: App\Entity\Menu::STOCK
+            action: App\Entity\Action::DISPLAY_ARTI_FOUR
+        - label: 'Mouvements de stock'
+          path: 'mouvement_stock_index'
+          rights:
+            menu: App\Entity\Menu::STOCK
+            action: App\Entity\Action::DISPLAY_MOV_STOCK
+        - label: 'Inventaire'
+          path: 'inventory_mission_index'
+          rights:
+            menu: App\Entity\Menu::STOCK
+            action: App\Entity\Action::DISPLAY_INVE
+        - label: 'Alertes'
+          path: 'alerte_index'
+          rights:
+            menu: App\Entity\Menu::STOCK
+            action: App\Entity\Action::DISPLAY_ALER
 
-        -   label: 'Référentiel'
-            icon: 'referentiel'
-            sub:
-                -   label: 'Fournisseurs'
-                    path: 'supplier_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_FOUR
-                -   label: 'Emplacements'
-                    path: 'emplacement_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_LOCATION
-                -   label: 'Chauffeurs'
-                    path: 'chauffeur_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_CHAU
-                -   label: 'Transporteurs'
-                    path: 'transporteur_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_TRAN
-                -   label: 'Nature'
-                    path: 'nature_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_PACK_NATURE
-                -   label: 'Véhicules'
-                    path: 'vehicle_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_VEHICLE
-                -   label: ['Référentiel', 'Projet', "Projet"] 's'
-                    path: 'project_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_PROJECTS
-                -   label: 'Clients'
-                    path: 'customer_index'
-                    rights:
-                        menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_CUSTOMER
+    - label: 'Référentiel'
+      icon: 'referentiel'
+      sub:
+        - label: 'Fournisseurs'
+          path: 'supplier_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_FOUR
+        - label: 'Emplacements'
+          path: 'emplacement_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_LOCATION
+        - label: 'Chauffeurs'
+          path: 'chauffeur_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_CHAU
+        - label: 'Transporteurs'
+          path: 'transporteur_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_TRAN
+        - label: 'Nature'
+          path: 'nature_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_PACK_NATURE
+        - label: 'Véhicules'
+          path: 'vehicle_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_VEHICLE
+        - label: [ 'Référentiel', 'Projet', "Projet" ] 's'
+          path: 'project_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_PROJECTS
+        - label: 'Clients'
+          path: 'customer_index'
+          rights:
+            menu: App\Entity\Menu::REFERENTIEL
+            action: App\Entity\Action::DISPLAY_CUSTOMER
 
-        -   label: [ 'IoT', null, 'IoT' ]
-            icon: 'iot'
-            sub:
-                -   label: 'Capteurs'
-                    path: 'sensor_wrapper_index'
-                    rights:
-                        menu: App\Entity\Menu::IOT
-                        action: App\Entity\Action::DISPLAY_SENSOR
-                -   label: 'Actionneurs'
-                    path: 'trigger_action_index'
-                    rights:
-                        menu: App\Entity\Menu::IOT
-                        action: App\Entity\Action::DISPLAY_TRIGGER
-                -   label: 'Associations'
-                    path: 'pairing_index'
-                    rights:
-                        menu: App\Entity\Menu::IOT
-                        action: App\Entity\Action::DISPLAY_PAIRING
+    - label: [ 'IoT', null, 'IoT' ]
+      icon: 'iot'
+      sub:
+        - label: 'Capteurs'
+          path: 'sensor_wrapper_index'
+          rights:
+            menu: App\Entity\Menu::IOT
+            action: App\Entity\Action::DISPLAY_SENSOR
+        - label: 'Actionneurs'
+          path: 'trigger_action_index'
+          rights:
+            menu: App\Entity\Menu::IOT
+            action: App\Entity\Action::DISPLAY_TRIGGER
+        - label: 'Associations'
+          path: 'pairing_index'
+          rights:
+            menu: App\Entity\Menu::IOT
+            action: App\Entity\Action::DISPLAY_PAIRING
 
-        -   label: 'Paramétrage'
-            icon: 'parametre'
-            path: 'settings_index'
+    - label: 'Paramétrage'
+      icon: 'parametre'
+      path: 'settings_index'
 
-        -   label: 'Documentation'
-            icon: 'documentation'
-            url: 'https://wiilog.gitbook.io/docs/'
+    - label: 'Documentation'
+      icon: 'documentation'
+      url: 'https://wiilog.gitbook.io/docs/'
 
-        -   label: 'Support'
-            icon: 'phone'
-            url: 'https://wiilog.freshdesk.com/support/home'
+    - label: 'Support'
+      icon: 'phone'
+      url: 'https://wiilog.freshdesk.com/support/home'
 
-        -   label: 'Déconnexion'
-            icon: 'deco'
-            path: 'logout'
+    - label: 'Déconnexion'
+      icon: 'deco'
+      path: 'logout'

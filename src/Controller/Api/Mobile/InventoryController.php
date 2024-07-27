@@ -25,18 +25,18 @@ use App\Service\SettingsService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class InventoryController extends AbstractController {
 
-    #[Rest\Post("/addInventoryEntries", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/addInventoryEntries", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function addInventoryEntries(Request $request, EntityManagerInterface $entityManager)
     {
@@ -126,7 +126,7 @@ class InventoryController extends AbstractController {
         return $this->json($data);
     }
 
-    #[Rest\Post("/treatAnomalies", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/treatAnomalies", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function treatAnomalies(Request                $request,
                                    InventoryService       $inventoryService,
@@ -177,7 +177,7 @@ class InventoryController extends AbstractController {
     }
 
 
-    #[Rest\Post("/finish-mission", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/finish-mission", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishMission(Request                $request,
                                   EntityManagerInterface $entityManager,
@@ -293,7 +293,7 @@ class InventoryController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/inventory-missions/{inventoryMission}/summary/{zone}", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/inventory-missions/{inventoryMission}/summary/{zone}", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function rfidSummary(Request                $request,
                                 InventoryMission       $inventoryMission,

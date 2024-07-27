@@ -26,18 +26,18 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class TrackingMovementController extends AbstractController {
 
-    #[Rest\Post("/tracking-movements", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/tracking-movements", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postTrackingMovements(Request                 $request,
                                           MailerService           $mailerService,
@@ -287,7 +287,7 @@ class TrackingMovementController extends AbstractController {
     }
 
 
-    #[Rest\Post("/group-trackings/{trackingMode}", requirements: ["trackingMode" => "picking|drop"], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/group-trackings/{trackingMode}", requirements: ["trackingMode" => "picking|drop"], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postGroupedTracking(Request                 $request,
                                         AttachmentService       $attachmentService,
@@ -433,7 +433,7 @@ class TrackingMovementController extends AbstractController {
         return $this->json($res);
     }
 
-    #[Rest\Get("/tracking-drops", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/tracking-drops", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getTrackingDropsOnLocation(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -478,7 +478,7 @@ class TrackingMovementController extends AbstractController {
         return new JsonResponse($resData, Response::HTTP_OK);
     }
 
-    #[Rest\Get("/packs", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/packs", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getPackData(Request                $request,
                                 EntityManagerInterface $entityManager,
@@ -532,7 +532,7 @@ class TrackingMovementController extends AbstractController {
         return $this->json($res);
     }
 
-    #[Rest\Get("/pack-groups", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/pack-groups", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -564,7 +564,7 @@ class TrackingMovementController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/group", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/group", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function group(Request                 $request,
                           PackService             $packService,
@@ -649,7 +649,7 @@ class TrackingMovementController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/ungroup", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/ungroup", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function ungroup(Request $request, EntityManagerInterface $manager, GroupService $groupService): Response
     {
@@ -669,7 +669,7 @@ class TrackingMovementController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/empty-round", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/empty-round", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function emptyRound(Request $request, TrackingMovementService $trackingMovementService, EntityManagerInterface $manager): JsonResponse
     {
@@ -712,7 +712,7 @@ class TrackingMovementController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/drop-in-lu", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/drop-in-lu", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postDropInLu(Request $request, EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response
     {
