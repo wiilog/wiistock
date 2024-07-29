@@ -16,10 +16,10 @@ class MigrationVersions
     #[ORM\Column(type: Types::STRING, length: 191)]
     private ?string $version = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $executedAt = null;
 
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?string $executionTime = null;
 
 }
