@@ -6,6 +6,19 @@ import {initDataTable} from "@app/datatable";
 
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
+
+export function getQuantityRefArticle(refArticleId) {
+    return AJAX
+        .route(
+            GET,
+            "get_quantity_ref_article",
+            {
+                referenceArticle: refArticleId,
+            }
+        )
+        .json()
+}
+
 $(function() {
     initDateTimePicker();
     $('.select2').select2();
@@ -148,20 +161,6 @@ async function newMvtStockReferenceChosen($select) {
 
     $modalNewMvtStock.find('.is-hidden-by-ref').removeClass('d-none');
     $typeMvt.addClass('needed');
-}
-
-export function getQuantityRefArticle(refArticleId) {
-    return AJAX.route(
-        GET,
-        "get_quantity_ref_article",
-        {
-            id: refArticleId,
-        }
-    )
-        .json()
-        .then(( qteDisponible ) => {
-            return qteDisponible;
-        })
 }
 
 function resetNewModal($modal) {
