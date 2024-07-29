@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Controller\IOT;
+namespace App\Controller\Api\IOT;
 
 
 use App\Controller\AbstractController;
@@ -14,8 +14,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route("/api")]
-class IOTController extends AbstractController
-{
+class IOTController extends AbstractController {
 
     #[Route("/iot/{loRaWANServer}", methods: [self::POST])]
     #[Route("/iot", methods: [self::POST])]

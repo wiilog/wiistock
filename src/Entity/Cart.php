@@ -15,8 +15,7 @@ class Cart {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'cart', targetEntity: Utilisateur::class, cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\OneToOne(mappedBy: 'cart', targetEntity: Utilisateur::class, cascade: ['persist', 'remove'])]
     private ?Utilisateur $user = null;
 
     #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, inversedBy: 'carts')]
