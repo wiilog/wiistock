@@ -77,7 +77,9 @@ Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelec
     cy.get(modalSelector).should('be.visible');
 
     // check all input with checkbox types in the modal
-    cy.get(`${modalSelector} input[type='checkbox']`).check({force: true, multiple: true});
+    cy.get(`${modalSelector} input[type='checkbox']:not(:checked)`).each(($checkbox) => {
+        cy.get('label[for=' + $checkbox.attr('id') + ']').click({force: true});
+    });
     cy.get(`${modalSelector} input[type='checkbox']`).should('be.checked');
 
     // submit the modal & close it

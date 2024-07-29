@@ -217,7 +217,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     ];
 
     const DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES = [
-        FixedFieldEnum::number->name => [FieldModesService::FIELD_MODE_VISIBLE],
+        FixedFieldEnum::number->name => [],
         FixedFieldEnum::createdAt->name => [],
         FixedFieldEnum::createdBy->name => [],
         FixedFieldEnum::treatedBy->name => [],
@@ -225,12 +225,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         FixedFieldEnum::type->name => [],
         FixedFieldEnum::expectedAt->name => [],
         FixedFieldEnum::dropLocation->name => [FieldModesService::FIELD_MODE_VISIBLE],
-        FixedFieldEnum::lineCount->name => [],
-        FixedFieldEnum::manufacturingOrderNumber->name => [],
+        FixedFieldEnum::lineCount->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
+        FixedFieldEnum::manufacturingOrderNumber->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::productArticleCode->name => [FieldModesService::FIELD_MODE_VISIBLE],
-        FixedFieldEnum::quantity->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
+        FixedFieldEnum::quantity->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::emergency->name => [FieldModesService::FIELD_MODE_VISIBLE],
-        FixedFieldEnum::projectNumber->name => [],
+        FixedFieldEnum::projectNumber->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
         FixedFieldEnum::comment->name => [],
         FixedFieldEnum::attachments->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
     ];

@@ -35,8 +35,6 @@ describe('Test of the production request', () => {
             'Quantité': '5',
             'Nombre de lignes': '1',
             'Numéro projet': '1',
-            // Utilisation d'un string et non d'un booleen car la carte contient un string pour indiquer s'il y a une pièce jointe où non.
-            'Pièces jointes': 'Oui',
             // Utilisation d'un string et non d'un booleen car la valeur peut avoir plus de deux valeurs possible.
             'yesNo': 'Non',
         };
