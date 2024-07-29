@@ -13,10 +13,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:set-warning-header-message',
-    description: 'This command toggles the warning header message. It can be used to hide the warning header message.'
+    name: 'app:warning-message-set',
+    description: 'This command sets the warning header message. It can be used to hide the warning header message.'
 )]
-class ToggleWarningHeaderMessageCommand extends Command
+class WarningMessageSetCommand extends Command
 {
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -25,11 +25,6 @@ class ToggleWarningHeaderMessageCommand extends Command
     public CacheService $cacheService;
 
     private const DEFAULT_COLOR = '#d9534f';
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     protected function configure(): void
     {
@@ -45,23 +40,26 @@ class ToggleWarningHeaderMessageCommand extends Command
         $message = $input->getOption('message');
         $color = $input->getOption('color');
 
-        $settingMessage = $settingRepository->findOneBy(['label' => Setting::WARNING_HEADER_MESSAGE]);
-        $settingMessage->setValue($message);
+        if ($message) {
+            $output->writeln('Updated warning header message to ' . $message);
+        }
+        else {
+            $output->writeln('No message provided, clearing warning header message');
+        }
 
-        $settingColor = $settingRepository->findOneBy(['label' => Setting::COLOR_WARNING_HEADER_MESSAGE]);
-        $settingColor->setValue($color ?? self::DEFAULT_COLOR);
+        $warningHeader = json_encode(
+            [
+                "color" => $color ?? self::DEFAULT_COLOR,
+                "message" => $message
+            ]
+        );
+
+        $settingMessage = $settingRepository->findOneBy(['label' => Setting::WARNING_HEADER]);
+        $settingMessage->setValue($warningHeader);
 
         $this->entityManager->flush();
 
-        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::WARNING_HEADER_MESSAGE);
-        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::COLOR_WARNING_HEADER_MESSAGE);
-
-
-        if ($message) {
-            $output->writeln('Updated warning header message to ' . $message);
-        } else {
-            $output->writeln('No message provided, clearing warning header message');
-        }
+        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::WARNING_HEADER);
 
         return Command::SUCCESS;
     }
