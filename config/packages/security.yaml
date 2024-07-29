@@ -20,12 +20,10 @@ security:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
 
-# TODO REMOVE
     nomade_apk:
       pattern: ^/telecharger/nomade.apk$
       security: false
 
-# TODO secure
     iot:
       lazy: true
       pattern: ^/api/iot
