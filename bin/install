@@ -184,6 +184,7 @@ function main(): void {
 //                execCommand("php /project/bin/console doctrine:migrations:migrate --no-interaction --dry-run");
 //                execCommand("php /project/bin/console doctrine:migrations:migrate --no-interaction");
 
+                execCommand("php /project/bin/console doctrine:migrations:sync-metadata-storage");
                 execCommand("php /project/bin/console doctrine:migrations:version --add --all --no-interaction");
                 execCommand("php /project/bin/console doctrine:schema:update --force --dump-sql --complete");
             },
