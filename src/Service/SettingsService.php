@@ -366,6 +366,25 @@ class SettingsService {
             }
             $updated[] = Setting::MAILER_PASSWORD;
         }
+
+        if ($request->request->has(Setting::MAX_SESSION_TIME)) {
+            $value = $request->request->get(Setting::MAX_SESSION_TIME);
+
+            $valueContainsOnlyDigits = preg_match('/^\d+$/i', $value);
+            $valueInt = ((int) $value);
+            $maxValue = 1440; // 24h
+
+            if (!$valueContainsOnlyDigits
+                || !$valueInt
+                || $valueInt > $maxValue) {
+                throw new RuntimeException("Le temps de session doit être un entier compris entre 1 et 1440");
+            }
+
+            $settingMaxSessionTime = $this->persistSetting($entityManager, $settings, Setting::MAX_SESSION_TIME);
+            $settingMaxSessionTime->setValue($valueInt);
+
+            $updated[] = Setting::MAX_SESSION_TIME;
+        }
     }
 
     /**
@@ -716,8 +735,17 @@ class SettingsService {
                     $entityManager->persist($type);
 
                     $result['type'] = $type;
-                } else {
+                } else if(is_numeric($data["entity"])){
                     $type = $entityManager->find(Type::class, $data["entity"]);
+
+                    $alreadyCreatedType = $typeRepository->findOneBy([
+                        'label' => $data["label"],
+                        'category' => $type->getCategory(),
+                    ]);
+
+                    if($alreadyCreatedType && $alreadyCreatedType->getId() != $data["entity"]) {
+                        throw new RuntimeException("Le type existe déjà pour cette categorie");
+                    }
                 }
 
                 if (!isset($type)) {

@@ -319,6 +319,8 @@ class ImportService
 
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
+    #[Required]
+    public ScheduledTaskService $scheduledTaskService;
 
     #[Required]
     public StatusHistoryService $statusHistoryService;
@@ -397,11 +399,9 @@ class ImportService
         ];
 
         $lastErrorMessage = $import->getLastErrorMessage();
-
         $scheduleRule = $import->getScheduleRule();
-        $nextExecution = $scheduleRule
-            ? $this->scheduleRuleService->calculateNextExecution($scheduleRule, new DateTime("now"))
-            : null;
+
+        $nextExecution = $this->scheduledTaskService->calculateTaskNextExecution($import, new DateTime("now"));
 
         return [
             'id' => $import->getId(),

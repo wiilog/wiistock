@@ -758,7 +758,7 @@ class SelectController extends AbstractController {
     public function truckArrivalLineNumber(Request $request, EntityManagerInterface $manager): Response {
         $term = $request->query->get("term");
         $carrierId = $request->query->get("carrier-id") ?? $request->query->get("transporteur");
-        $truckArrivalId = $request->query->get("truck-arrival-id");
+        $truckArrivalId = $request->query->get("truck-arrival-id") ?? $request->query->get("noTruckArrival");
         $newItem = $request->query->get("new-item");
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
 

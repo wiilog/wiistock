@@ -12,7 +12,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryMissionPlanRepository::class)]
-class InventoryMissionPlan implements ScheduledTask {
+class InventoryMissionPlan extends ScheduledTask {
     public const DURATION_UNIT_DAYS = "days";
     public const DURATION_UNIT_WEEKS = "weeks";
     public const DURATION_UNIT_MONTHS = "months";
@@ -67,9 +67,6 @@ class InventoryMissionPlan implements ScheduledTask {
 
     #[ORM\Column(type: "boolean", nullable: false, options: ["default" => true])]
     private ?bool $active = true;
-
-    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
-    private ?ScheduleRule $scheduleRule = null;
 
     public function __construct() {
         $this->categories = new ArrayCollection();
@@ -296,15 +293,6 @@ class InventoryMissionPlan implements ScheduledTask {
     public function setActive(?bool $active): self {
         $this->active = $active;
 
-        return $this;
-    }
-
-    public function getScheduleRule(): ?ScheduleRule {
-        return $this->scheduleRule;
-    }
-
-    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
-        $this->scheduleRule = $scheduleRule;
         return $this;
     }
 }

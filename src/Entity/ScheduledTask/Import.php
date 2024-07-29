@@ -17,7 +17,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ImportRepository::class)]
-class Import implements ScheduledTask {
+class Import extends ScheduledTask {
 
     const STATUS_DRAFT = 'brouillon';
     const STATUS_CANCELLED = 'annulé';
@@ -348,9 +348,6 @@ class Import implements ScheduledTask {
     #[ORM\ManyToOne(targetEntity: Type::class)]
     private ?Type $type = null;
 
-    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
-    private ?ScheduleRule $scheduleRule = null;
-
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $FTPConfig = null;
 
@@ -561,16 +558,6 @@ class Import implements ScheduledTask {
 
     public function setRecipient(?string $recipient): self {
         $this->recipient = $recipient;
-        return $this;
-    }
-
-    public function getScheduleRule(): ?ScheduleRule {
-        return $this->scheduleRule;
-    }
-
-    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
-        $this->scheduleRule = $scheduleRule;
-
         return $this;
     }
 

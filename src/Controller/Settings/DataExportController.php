@@ -59,11 +59,11 @@ class DataExportController extends AbstractController {
     public const EXPORT_UNIQUE = "unique";
     public const EXPORT_SCHEDULED = "scheduled";
 
-    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: "POST")]
+    #[Route("/export/api", name: "settings_export_api", options: ["expose" => true], methods: self::POST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function api(Request                $request,
-                        ScheduleRuleService    $scheduleRuleService,
-                        EntityManagerInterface $entityManager): Response {
+                        ScheduledTaskService   $scheduledTaskService,
+                        EntityManagerInterface $entityManager): JsonResponse {
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
@@ -75,11 +75,8 @@ class DataExportController extends AbstractController {
         $exports = $queryResult["data"];
 
         $rows = Stream::from($exports)
-            ->map(function(Export $export) use ($scheduleRuleService) {
-                $scheduleRule = $export->getScheduleRule();
-                $nextExecution = $scheduleRule
-                    ? $scheduleRuleService->calculateNextExecution($scheduleRule, new DateTime("now"))
-                    : null;
+            ->map(function(Export $export) use ($scheduledTaskService) {
+                $nextExecution = $scheduledTaskService->calculateTaskNextExecution($export, new DateTime("now"));
                 return [
                     "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
                         "export" => $export,
@@ -89,7 +86,7 @@ class DataExportController extends AbstractController {
                     "beganAt" => $this->getFormatter()->datetime($export->getBeganAt()),
                     "endedAt" => $this->getFormatter()->datetime($export->getEndedAt()),
                     "nextExecution" => $this->getFormatter()->datetime($nextExecution),
-                    "frequency" => match($scheduleRule?->getFrequency()) {
+                    "frequency" => match($export->getScheduleRule()?->getFrequency()) {
                         ScheduleRule::ONCE => "Une fois",
                         ScheduleRule::HOURLY => "Chaque heure",
                         ScheduleRule::DAILY => "Chaque jour",
@@ -117,8 +114,7 @@ class DataExportController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         Security               $security,
                         ScheduledTaskService   $scheduledTaskService,
-                        ScheduleRuleService    $scheduleRuleService,
-                        DataExportService      $dataExportService): Response {
+                        DataExportService      $dataExportService): JsonResponse {
 
         $data = $request->request->all();
 
@@ -138,7 +134,7 @@ class DataExportController extends AbstractController {
         else {
             // Check if the user can plan a new export
             if(!$scheduledTaskService->canSchedule($entityManager, Export::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " exports");
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -529,7 +525,7 @@ class DataExportController extends AbstractController {
         ]));
     }
 
-    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export/plannifie/{export}/annuler", name: "settings_export_cancel", options: ["expose" => true], methods: [self::PATCH], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function cancel(Export                 $export,
                            EntityManagerInterface $entityManager,
@@ -539,8 +535,11 @@ class DataExportController extends AbstractController {
 
         $exportType = $export->getType();
         $exportStatus = $export->getStatus();
-        if ($exportType?->getLabel() == Type::LABEL_SCHEDULED_EXPORT
-            && $exportStatus?->getNom() == Export::STATUS_SCHEDULED) {
+        $canCancel = (
+            $exportType?->getLabel() === Type::LABEL_SCHEDULED_EXPORT
+            && $exportStatus?->getNom() === Export::STATUS_SCHEDULED
+        );
+        if ($canCancel) {
             $statusCancelled = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED);
             $export->setStatus($statusCancelled);
             $entityManager->flush();

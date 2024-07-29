@@ -29,15 +29,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/iot/capteur")
- */
+#[Route('/iot/capteur')]
 class SensorWrapperController extends AbstractController
 {
-    /**
-     * @Route("/liste", name="sensor_wrapper_index")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route('/liste', name: 'sensor_wrapper_index')]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function index(EntityManagerInterface $entityManager): Response {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
@@ -64,10 +60,8 @@ class SensorWrapperController extends AbstractController
         return $this->json($data);
     }
 
-    /**
-     * @Route("/supprimer", name="sensor_wrapper_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DELETE})
-     */
+    #[Route('/supprimer', name: 'sensor_wrapper_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::IOT, Action::DELETE])]
     public function delete(Request $request, EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
@@ -211,10 +205,8 @@ class SensorWrapperController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{id}/elements-associes", name="sensors_pairing_index", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route('/{id}/elements-associes', name: 'sensors_pairing_index', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function sensorPairingIndex($id, EntityManagerInterface $entityManager): Response
     {
         $sensor = $entityManager->getRepository(SensorWrapper::class)->find($id);
@@ -223,10 +215,8 @@ class SensorWrapperController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/elements-associes/api", name="sensors_pairing_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route('/elements-associes/api', name: 'sensors_pairing_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function sensorPairingApi(Request $request,
                                      PairingService $pairingService,
                                      EntityManagerInterface $entityManager): Response {

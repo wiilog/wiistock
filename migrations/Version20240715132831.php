@@ -31,12 +31,16 @@ final class Version20240715132831 extends AbstractMigration
                 week_days JSON DEFAULT NULL,
                 month_days JSON DEFAULT NULL,
                 months JSON DEFAULT NULL,
-                last_run DATETIME DEFAULT NULL,
                 PRIMARY KEY(id)
             ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
         ');
-        $this->addSql('ALTER TABLE export ADD schedule_rule_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE import ADD schedule_rule_id INT DEFAULT NULL, ADD file_path VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE export
+                                ADD schedule_rule_id INT DEFAULT NULL,
+                                ADD last_run DATETIME DEFAULT NULL');
+        $this->addSql('ALTER TABLE import
+                                ADD schedule_rule_id INT DEFAULT NULL,
+                                ADD last_run DATETIME DEFAULT NULL,
+                                ADD file_path VARCHAR(255) NOT NULL');
 
         $exportScheduleRules = $this->connection
             ->executeQuery("
@@ -49,9 +53,9 @@ final class Version20240715132831 extends AbstractMigration
         foreach ($exportScheduleRules as $rule) {
             $this->addSql("
                 INSERT INTO schedule_rule
-                    (begin, frequency, period, interval_time, interval_period, week_days, month_days, months, last_run)
+                    (begin, frequency, period, interval_time, interval_period, week_days, month_days, months)
                 VALUES
-                    (:begin, :frequency, :period, :interval_time, :interval_period, :week_days, :month_days, :months, :last_run)
+                    (:begin, :frequency, :period, :interval_time, :interval_period, :week_days, :month_days, :months)
             ", [
                 "begin" => $rule["begin"],
                 "frequency" => $rule["frequency"],
@@ -61,14 +65,15 @@ final class Version20240715132831 extends AbstractMigration
                 "week_days" => $rule["week_days"],
                 "month_days" => $rule["month_days"],
                 "months" => $rule["months"],
-                "last_run" => $rule["last_run"],
             ]);
             $this->addSql("
                 UPDATE export
-                SET schedule_rule_id = LAST_INSERT_ID()
+                SET schedule_rule_id = LAST_INSERT_ID(),
+                    last_run = :last_run
                 WHERE export.id = :id
             ", [
                 "id" => $rule["export_id"],
+                "last_run" => $rule["last_run"],
             ]);
         }
 
@@ -83,9 +88,9 @@ final class Version20240715132831 extends AbstractMigration
         foreach ($importScheduleRules as $rule) {
             $this->addSql("
                 INSERT INTO schedule_rule
-                    (begin, frequency, period, interval_time, interval_period, week_days, month_days, months, last_run)
+                    (begin, frequency, period, interval_time, interval_period, week_days, month_days, months)
                 VALUES
-                    (:begin, :frequency, :period, :interval_time, :interval_period, :week_days, :month_days, :months, :last_run)
+                    (:begin, :frequency, :period, :interval_time, :interval_period, :week_days, :month_days, :months)
             ", [
                 "begin" => $rule["begin"],
                 "frequency" => $rule["frequency"],
@@ -95,21 +100,19 @@ final class Version20240715132831 extends AbstractMigration
                 "week_days" => $rule["week_days"],
                 "month_days" => $rule["month_days"],
                 "months" => $rule["months"],
-                "last_run" => $rule["last_run"],
             ]);
             $this->addSql("
                 UPDATE import
                 SET schedule_rule_id = LAST_INSERT_ID(),
+                    last_run = :last_run,
                     file_path = :file_path
                 WHERE import.id = :id
             ", [
                 "id" => $rule["import_id"],
                 "file_path" => $rule["file_path"],
+                "last_run" => $rule["last_run"],
             ]);
         }
-
-        $this->addSql('DROP TABLE import_schedule_rule');
-        $this->addSql('DROP TABLE export_schedule_rule');
     }
 
     public function down(Schema $schema): void

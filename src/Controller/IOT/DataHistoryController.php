@@ -30,15 +30,11 @@ use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 use DateTime;
 
-/**
- * @Route("/iot/historique")
- */
+#[Route('/iot/historique')]
 class DataHistoryController extends AbstractController {
 
-    /**
-     * @Route("/voir", name="show_data_history", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route('/voir', name: 'show_data_history', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
                          DataMonitoringService $dataMonitoringService,
@@ -65,9 +61,7 @@ class DataHistoryController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/chart-data-history", name="chart_data_history", options={"expose"=true})
-     */
+    #[Route('/chart-data-history', name: 'chart_data_history', options: ['expose' => true])]
     public function getChartDataHistory(Request $request,
                                         EntityManagerInterface $entityManager,
                                         DataMonitoringService $dataMonitoringService,
@@ -92,9 +86,7 @@ class DataHistoryController extends AbstractController {
 
         return new JsonResponse($data);
     }
-    /**
-     * @Route("/map-data-history", name="map_data_history", options={"expose"=true})
-     */
+    #[Route('/map-data-history', name: 'map_data_history', options: ['expose' => true])]
     public function getMapDataHistory(Request $request,
                                       EntityManagerInterface $entityManager,
                                       GeoService $geoService,
@@ -167,9 +159,7 @@ class DataHistoryController extends AbstractController {
         ];
     }
 
-    /**
-     * @Route("/{type}/{id}/timeline", name="get_data_history_timeline_api", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/{type}/{id}/timeline', name: 'get_data_history_timeline_api', condition: 'request.isXmlHttpRequest()')]
     public function getPairingTimelineApi(DataMonitoringService $dataMonitoringService,
                                           RouterInterface $router,
                                           EntityManagerInterface $entityManager,

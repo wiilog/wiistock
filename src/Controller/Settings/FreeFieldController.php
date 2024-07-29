@@ -12,14 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class FreeFieldController extends AbstractController {
 
-    /**
-     * @Route("/display-require-champ", name="display_required_champs_libres", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/display-require-champ', name: 'display_required_champs_libres', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function displayRequiredChampsLibres(Request $request,
                                                 EntityManagerInterface $entityManager): Response
     {

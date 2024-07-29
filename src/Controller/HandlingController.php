@@ -47,9 +47,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/services")
- */
+#[Route('/services')]
 class HandlingController extends AbstractController {
 
     #[Route("/", name: "handling_index", options: ["expose" => true], methods: "GET")]
@@ -340,7 +338,7 @@ class HandlingController extends AbstractController {
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment'))
-            ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
+            ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(
                 (is_numeric($carriedOutOperationCount)
                     ? $carriedOutOperationCount

@@ -15,11 +15,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 #[ORM\Entity(repositoryClass: PurchaseRequestPlanRepository::class)]
-class PurchaseRequestPlan implements ScheduledTask {
+class PurchaseRequestPlan extends ScheduledTask {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToMany(targetEntity: Zone::class)]
@@ -35,10 +35,6 @@ class PurchaseRequestPlan implements ScheduledTask {
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $status = null;
-
-    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
-    private ?ScheduleRule $scheduleRule = null;
-
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $emailSubject = null;
@@ -163,12 +159,4 @@ class PurchaseRequestPlan implements ScheduledTask {
         return $this;
     }
 
-    public function getScheduleRule(): ?ScheduleRule {
-        return $this->scheduleRule;
-    }
-
-    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
-        $this->scheduleRule = $scheduleRule;
-        return $this;
-    }
 }

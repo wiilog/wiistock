@@ -85,13 +85,11 @@ class TruckArrivalService
                         ]
                     ],
                     [
-                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS),
-                        'title' => 'Supprimer',
-                        'icon' => 'fa fa-trash',
-                        'class' => 'truck-arrival-delete',
-                        'attributes' => [
+                        "title" => "Imprimer",
+                        "icon" => "wii-icon wii-icon-printer-black",
+                        "attributes" => [
                             "data-id" => $truckArrival->getId(),
-                            "onclick" => "deleteTruckArrival($(this))"
+                            "onclick" => "printTruckArrivalLabel($(this))"
                         ]
                     ],
                     [
@@ -103,11 +101,13 @@ class TruckArrivalService
                         ],
                     ],
                     [
-                        "title" => "Imprimer",
-                        "icon" => "wii-icon wii-icon-printer-black",
-                        "attributes" => [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS),
+                        'title' => 'Supprimer',
+                        'icon' => 'fa fa-trash',
+                        'class' => 'truck-arrival-delete',
+                        'attributes' => [
                             "data-id" => $truckArrival->getId(),
-                            "onclick" => "printTruckArrivalLabel($(this))"
+                            "onclick" => "deleteTruckArrival($(this))"
                         ]
                     ],
                 ],

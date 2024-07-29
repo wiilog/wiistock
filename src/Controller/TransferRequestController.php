@@ -29,15 +29,11 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-/**
- * @Route("/transfert/demande")
- */
+#[Route('/transfert/demande')]
 class TransferRequestController extends AbstractController {
 
-    /**
-     * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
-     */
+    #[Route('/liste', name: 'transfer_request_index', options: ['expose' => true], methods: ['GET', 'POST'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSFER_REQ])]
     public function index(EntityManagerInterface $entityManager): Response {
 
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -47,10 +43,8 @@ class TransferRequestController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api", name="transfer_request_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'transfer_request_api', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSFER_REQ], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         TransferRequestService $transferRequestService): Response {
 
@@ -59,10 +53,8 @@ class TransferRequestController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'transfer_request_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         TransferRequestService $transferRequestService,
                         EntityManagerInterface $entityManager): Response {
@@ -100,10 +92,8 @@ class TransferRequestController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/voir/{id}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
-     */
+    #[Route('/voir/{id}', name: 'transfer_request_show', options: ['expose' => true], methods: ['GET', 'POST'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSFER_REQ])]
     public function show(TransferRequest $transfer,
                          TransferRequestService $transferRequestService): Response {
 
@@ -114,10 +104,8 @@ class TransferRequestController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="transfer_request_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'transfer_request_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
@@ -133,10 +121,8 @@ class TransferRequestController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="transfer_request_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier', name: 'transfer_request_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          TransferRequestService $service,
                          EntityManagerInterface $entityManager): Response {
@@ -169,10 +155,8 @@ class TransferRequestController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/article/api/{transfer}", name="transfer_request_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/article/api/{transfer}', name: 'transfer_request_article_api', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSFER_REQ], mode: HasPermission::IN_JSON)]
     public function articleApi(TransferRequest $transfer): Response {
 
         $articles = $transfer->getArticles();
@@ -215,10 +199,8 @@ class TransferRequestController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/ajouter-article/{transfer}', name: 'transfer_request_add_article', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function addArticle(Request $request, EntityManagerInterface $manager,
                                TransferRequest $transfer): Response {
 
@@ -283,10 +265,8 @@ class TransferRequestController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/retirer-article", name="transfer_request_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/retirer-article', name: 'transfer_request_remove_article', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeArticle(Request $request, EntityManagerInterface $manager) {
 
         if($data = json_decode($request->getContent(), true)) {
@@ -310,10 +290,8 @@ class TransferRequestController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="transfer_request_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'transfer_request_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request, EntityManagerInterface $entityManager): Response {
 
         if(!$data = json_decode($request->getContent())) {
@@ -331,9 +309,7 @@ class TransferRequestController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/non-vide/{id}", name="transfer_request_has_articles", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/non-vide/{id}', name: 'transfer_request_has_articles', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     public function hasArticles(TransferRequest $transferRequest,
                                 EntityManagerInterface $entityManager): Response {
 
@@ -364,13 +340,13 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/csv", name="transfer_request_export",options={"expose"=true}, methods="GET|POST" )
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
      * @throws Exception
      */
+    #[Route('/csv', name: 'transfer_request_export', options: ['expose' => true], methods: 'GET|POST')]
     public function export(Request $request,
                            EntityManagerInterface $entityManager,
                            CSVExportService $CSVExportService): Response {

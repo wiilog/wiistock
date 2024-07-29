@@ -16,9 +16,6 @@ class PurchaseRequestPlanService
 {
 
     #[Required]
-    public EntityManagerInterface $em;
-
-    #[Required]
     public FormatService $formatService;
 
     #[Required]
@@ -37,7 +34,7 @@ class PurchaseRequestPlanService
                                      PurchaseRequestPlan    $purchaseRequestPlan,
                                      DateTime               $taskExecution): void {
 
-        $storageRuleRepository = $this->em->getRepository(StorageRule::class);
+        $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
         // getting storage rules by the purchase rule, quantity rule applied here
         $storageRules = $storageRuleRepository->findByPlanWithStockQuantity($purchaseRequestPlan);
@@ -79,7 +76,7 @@ class PurchaseRequestPlanService
             $entityManager->flush();
         }
 
-        $purchaseRequestPlan->getScheduleRule()?->setLastRun($taskExecution);
+        $purchaseRequestPlan->setLastRun($taskExecution);
 
         $entityManager->flush();
         foreach ($purchaseRequests as $purchaseRequest) {

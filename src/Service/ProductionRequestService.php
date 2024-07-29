@@ -209,6 +209,12 @@ class ProductionRequestService
                         ],
                     ],
                     [
+                        'hasRight' => $this->hasRightToEdit($productionRequest),
+                        'title' => 'Modifier',
+                        'icon' => 'fa fa-pen',
+                        'href' => $urlEdit,
+                    ],
+                    [
                         'hasRight' => $this->hasRightToDelete($productionRequest),
                         'title' => 'Supprimer',
                         'icon' => 'fa fa-trash',
@@ -217,13 +223,6 @@ class ProductionRequestService
                             'data-id' => $productionRequestId,
                         ],
                     ],
-                    [
-                        'hasRight' => $this->hasRightToEdit($productionRequest),
-                        'title' => 'Modifier',
-                        'icon' => 'fa fa-pen',
-                        'href' => $urlEdit,
-                    ],
-
                 ],
             ]),
             FixedFieldEnum::number->name => $productionRequest->getNumber() ?? '',

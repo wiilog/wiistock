@@ -11,9 +11,4 @@ interface ScheduledTaskRepository {
      */
     public function findScheduled(): array;
 
-    /**
-     * @return int
-     */
-    public function countScheduled(): int;
-
 }

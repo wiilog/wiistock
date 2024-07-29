@@ -13,7 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ExportRepository::class)]
-class Export implements ScheduledTask {
+class Export extends ScheduledTask {
 
     const STATUS_FINISHED = "terminé";
     const STATUS_CANCELLED = "annulé";
@@ -41,7 +41,7 @@ class Export implements ScheduledTask {
     ];
 
     const DESTINATION_EMAIL = 1;
-    const DESTINATION_SFTP = 2; // TODO Adrien
+    const DESTINATION_SFTP = 2;
 
     const PERIOD_INTERVAL_DAY = "day";
     const PERIOD_INTERVAL_WEEK = "week";
@@ -119,9 +119,6 @@ class Export implements ScheduledTask {
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
-
-    #[ORM\OneToOne(targetEntity: ScheduleRule::class, cascade: ["persist", "remove"])]
-    private ?ScheduleRule $scheduleRule = null;
 
     public function __construct() {
         $this->recipientUsers = new ArrayCollection();
@@ -403,16 +400,6 @@ class Export implements ScheduledTask {
     public function setError(?string $error): self
     {
         $this->error = $error;
-        return $this;
-    }
-
-    public function getScheduleRule(): ?ScheduleRule {
-        return $this->scheduleRule;
-    }
-
-    public function setScheduleRule(?ScheduleRule $scheduleRule): self {
-        $this->scheduleRule = $scheduleRule;
-
         return $this;
     }
 

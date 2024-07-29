@@ -15,6 +15,7 @@ use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,9 +28,9 @@ use WiiCommon\Helper\Stream;
 #[Route('achat/planification')]
 class PurchaseRequestPlanController extends AbstractController
 {
-    #[Route('/api', name: 'purchase_request_plan_api', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api', name: 'purchase_request_plan_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
-    public function purchaseRequestPlanApi(EntityManagerInterface $entityManager): Response {
+    public function purchaseRequestPlanApi(EntityManagerInterface $entityManager): JsonResponse {
         $purchaseRequestPlanRepository = $entityManager->getRepository(PurchaseRequestPlan::class);
         $data = Stream::from($purchaseRequestPlanRepository->findAll())
             ->map(function (PurchaseRequestPlan $purchaseRequestPlan) {
@@ -51,7 +52,7 @@ class PurchaseRequestPlanController extends AbstractController
                         ScheduleRule::MONTHLY => "Chaque mois",
                         default => null,
                     },
-                    "lastExecution" => $this->getFormatter()->date($scheduleRule?->getlastRun()),
+                    "lastExecution" => $this->getFormatter()->datetime($purchaseRequestPlan->getlastRun()),
                 ];
             })
             ->toArray();
@@ -63,7 +64,7 @@ class PurchaseRequestPlanController extends AbstractController
         ]);
     }
 
-    #[Route('/formulaire', name: 'purchase_request_schedule_form', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/formulaire', name: 'purchase_request_schedule_form', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
     public function getForm(EntityManagerInterface $entityManager,
                             Request                $request): JsonResponse {
@@ -71,7 +72,7 @@ class PurchaseRequestPlanController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $purchaseRequestPlanRepository = $entityManager->getRepository(PurchaseRequestPlan::class);
 
-        $ruleId = $request->query->get('id');
+        $ruleId = $request->query->getInt('id');
         $plan = ($ruleId ? $purchaseRequestPlanRepository->find($ruleId) : null) ?? new PurchaseRequestPlan();
 
         $statuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST))
@@ -93,12 +94,12 @@ class PurchaseRequestPlanController extends AbstractController
         ]);
     }
 
-    #[Route('/creer-modifier', name: 'purchase_request_schedule_form_submit', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/creer-modifier', name: 'purchase_request_schedule_form_submit', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
     public function formSubmit(EntityManagerInterface $entityManager,
                                Request                $request,
                                ScheduledTaskService   $scheduledTaskService,
-                               ScheduleRuleService    $scheduleRuleService): Response {
+                               ScheduleRuleService    $scheduleRuleService): JsonResponse {
         $data = $request->request->all();
 
         $purchaseRequestPlanRepository = $entityManager->getRepository(PurchaseRequestPlan::class);
@@ -114,7 +115,7 @@ class PurchaseRequestPlanController extends AbstractController
             }
         } else {
             if(!$scheduledTaskService->canSchedule($entityManager, PurchaseRequestPlan::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " génération de demande d'achat");
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
             }
 
             $purchaseRequestPlan = new PurchaseRequestPlan();
@@ -143,7 +144,7 @@ class PurchaseRequestPlanController extends AbstractController
             ->setRequester($userRepository->find($data['requester']))
             ->setStatus($statusRepository->find($data['status']))
             ->setEmailSubject($data['mailSubject'])
-            ->setCreatedAt(new \DateTime('now'));
+            ->setCreatedAt(new DateTime('now'));
 
         $scheduleRule = $scheduleRuleService->updateRule($purchaseRequestPlan->getScheduleRule(), new ParameterBag([
             "startDate" => $data["startDate"] ?? null,
@@ -168,7 +169,7 @@ class PurchaseRequestPlanController extends AbstractController
         ]);
     }
 
-    #[Route('/{purchaseRequestPlan}/delete', name: 'purchase_request_plan_delete', options: ['expose' => true], methods: ['DELETE'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/{purchaseRequestPlan}/delete', name: 'purchase_request_plan_delete', options: ['expose' => true], methods: [self::DELETE], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE], mode: HasPermission::IN_JSON)]
     public function delete(EntityManagerInterface $entityManager,
                            ScheduledTaskService   $scheduledTaskService,

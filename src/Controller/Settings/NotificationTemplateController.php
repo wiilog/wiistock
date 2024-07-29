@@ -19,15 +19,11 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 
-/**
- * @Route("/parametrage/modele-notification")
- */
+#[Route('/parametrage/modele-notification')]
 class NotificationTemplateController extends AbstractController
 {
 
-    /**
-     * @Route("/liste", name="notification_template_index")
-     */
+    #[Route('/liste', name: 'notification_template_index')]
     public function index(): Response
     {
         return $this->render('settings/notifications/index.html.twig', [
@@ -35,9 +31,7 @@ class NotificationTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="notification_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/api', name: 'notification_template_api', options: ['expose' => true], methods: ['POST|GET'], condition: 'request.isXmlHttpRequest()')]
     public function api(Request $request, EntityManagerInterface $manager): Response
     {
         $notificationTemplateRepository = $manager->getRepository(NotificationTemplate::class);
@@ -64,10 +58,8 @@ class NotificationTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="notification_template_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route('/api-modifier', name: 'notification_template_edit_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -82,10 +74,8 @@ class NotificationTemplateController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="notification_template_edit", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route('/modifier', name: 'notification_template_edit', options: ['expose' => true], methods: ['GET', 'POST'])]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function edit(EntityManagerInterface $entityManager, Request $request): Response
     {
         $post = json_decode($request->getContent(), true);

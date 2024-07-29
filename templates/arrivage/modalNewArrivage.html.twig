@@ -186,49 +186,54 @@
                 {% endif %}
                 <div class="row">
                     {% set trackingNumberFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(trackingNumberFieldCode, 'displayedCreate') %}
-                        {% set trackingNumberRequired = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'requiredCreate') %}
-                        <div class="form-group col-lg-4 col-md-6 col-12 noTrackingSection">
-                            {% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
-                            {% if useTruckArrival %}
+                    {% set displayTrackingNumber = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'displayedCreate') %}
+                    {% set trackingNumberRequired = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'requiredCreate') %}
+                    {% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
+
+                    {% if useTruckArrival %}
+                        {% if displayTrackingNumber %}
+                            <div class="form-group col-lg-4 col-md-6 col-12 noTrackingSection">
                                 {{ form.hidden('trackingNumberRequired', trackingNumberRequired) }}
-                                    {{ form.select('noTracking', trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
-                                        type: 'truckArrivalLine',
-                                        disabled: trackingNumberRequired,
-                                        inputClass: 'form-control input-sm data',
-                                        includeParams: 'select[name=transporteur], select[name=noTruckArrival]',
-                                        minLength: 0,
-                                        autoSelect: true,
-                                        additionalAttributes : [
-                                            {name: 'data-other-params'},
-                                            {name: 'data-other-params-new-item', value: true}
-                                        ],
-                                    }) }}
-                                </div>
-                                <div class="form-group col-4">
-                                    {{ form.select('noTruckArrival', 'N° arrivage camion', false, {
-                                        type: 'truckArrival',
-                                        disabled: trackingNumberRequired,
-                                        includeParams: 'select[name=noTracking]',
-                                        items: fromTruckArrivalOptions is not empty ? [{
-                                            value: fromTruckArrivalOptions['truckArrivalId'],
-                                            label: fromTruckArrivalOptions['truckArrivalNumber'],
-                                            selected: true,
-                                        }]: [],
-                                        autoSelect: true,
-                                    }) }}
-                            {% else %}
-                                <label class="wii-field-name" for="noTracking" style="margin-bottom: 5px">
-                                    {{  trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
-                                </label>
-                                <input type="text"
-                                       class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
-                                       value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
-                                       name="noTracking"
-                                       maxlength="64">
-                            {% endif %}
+                                {{ form.select('noTracking', trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
+                                    type: 'truckArrivalLine',
+                                    disabled: trackingNumberRequired,
+                                    inputClass: 'form-control input-sm data',
+                                    includeParams: 'select[name=transporteur], select[name=noTruckArrival]',
+                                    minLength: 0,
+                                    autoSelect: true,
+                                    additionalAttributes : [
+                                        {name: 'data-other-params'},
+                                        {name: 'data-other-params-new-item', value: true}
+                                    ],
+                                }) }}
+                            </div>
+                        {% endif %}
+                        <div class="form-group col-4">
+                            {{ form.select('noTruckArrival', 'N° arrivage camion', false, {
+                                type: 'truckArrival',
+                                disabled: trackingNumberRequired,
+                                includeParams: 'select[name=noTracking]',
+                                items: fromTruckArrivalOptions is not empty ? [{
+                                    value: fromTruckArrivalOptions['truckArrivalId'],
+                                    label: fromTruckArrivalOptions['truckArrivalNumber'],
+                                    selected: true,
+                                }]: [],
+                                autoSelect: true,
+                            }) }}
+                        </div>
+                    {% elseif displayTrackingNumber %}
+                        <div class="form-group col-lg-4 col-md-6 col-12 noTrackingSection">
+                            <label class="wii-field-name" for="noTracking" style="margin-bottom: 5px">
+                                {{  trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
+                            </label>
+                            <input type="text"
+                                   class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
+                                   value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
+                                   name="noTracking"
+                                   maxlength="64">
                         </div>
                     {% endif %}
+
                     {% set orderNumberFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(orderNumberFieldCode, 'displayedCreate') %}
                         {% set orderNumberRequired = fieldsParam|isFieldRequired(orderNumberFieldCode, 'requiredCreate') %}

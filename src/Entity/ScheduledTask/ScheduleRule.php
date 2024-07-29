@@ -4,6 +4,7 @@ namespace App\Entity\ScheduledTask;
 
 use App\Repository\ScheduledTask\ScheduleRuleRepository;
 use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ScheduleRuleRepository::class)]
@@ -13,7 +14,16 @@ class ScheduleRule {
     public const DAILY = 'every-day-frequency';
     public const WEEKLY = 'every-week-frequency';
     public const MONTHLY = 'every-month-frequency';
-    public const LAST_DAY_OF_WEEK = 'last';
+
+    public const FIRST_DAY_OF_MONTH = 1;
+    public const MIDDLE_DAY_OF_MONTH = 15;
+    public const LAST_DAY_OF_MONTH = 'last';
+
+    public const MONTHLY_AVAILABLE_DAYS = [
+        self::FIRST_DAY_OF_MONTH,
+        self::MIDDLE_DAY_OF_MONTH,
+        self::LAST_DAY_OF_MONTH
+    ];
 
     public const FREQUENCIES = [
         self::ONCE,
@@ -36,42 +46,39 @@ class ScheduleRule {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTime $begin = null;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     //For the "daily" and "weekly" scheduled imports
     private ?string $frequency = null;
 
-    #[ORM\Column(type: "integer", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     //For the "daily" and "weekly" scheduled imports
     private ?int $period = null;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     //For the "hourly" frequency when the hours or minutes were chosen
     private ?string $intervalTime = null;
 
-    #[ORM\Column(type: "integer", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     //For the "hourly" frequency when the hours or minutes were chosen
     private ?int $intervalPeriod = null;
 
-    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     //Only for the "weekly" scheduled import
     private ?array $weekDays = null;
 
-    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     //Only for the "month" scheduled import
     private ?array $monthDays = null;
 
-    #[ORM\Column(type: "json", length: 255, nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     //Only for the "month" scheduled import
     private ?array $months = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $lastRun = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -146,15 +153,6 @@ class ScheduleRule {
 
     public function setMonths(?array $months): self {
         $this->months = $months;
-        return $this;
-    }
-
-    public function getLastRun(): ?DateTime {
-        return $this->lastRun;
-    }
-
-    public function setLastRun(?DateTime $lastRun): self {
-        $this->lastRun = $lastRun;
         return $this;
     }
 
