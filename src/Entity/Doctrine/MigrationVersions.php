@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Declare migration_versions table to prevent bin/console d:s:u -f --complete to remove it
  */
 #[ORM\Entity()]
-class DoctrineMigrationVersions
+class MigrationVersions
 {
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 191)]
