@@ -52,8 +52,7 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastTracking = null;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class)]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class, cascade: ['remove'])]
     #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
     private Collection $trackingMovements;
 

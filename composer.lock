@@ -273,28 +273,40 @@
         },
         {
             "name": "cron/cron-bundle",
-            "version": "2.10.5",
+            "version": "3.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Cron/Symfony-Bundle.git",
-                "reference": "5363d033d1d94e4d36e65eb9082f2ab47f8432b3"
+                "reference": "cbb83120bee54fc5c7d3c1184418a654bfd80106"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Cron/Symfony-Bundle/zipball/5363d033d1d94e4d36e65eb9082f2ab47f8432b3",
-                "reference": "5363d033d1d94e4d36e65eb9082f2ab47f8432b3",
+                "url": "https://api.github.com/repos/Cron/Symfony-Bundle/zipball/cbb83120bee54fc5c7d3c1184418a654bfd80106",
+                "reference": "cbb83120bee54fc5c7d3c1184418a654bfd80106",
                 "shasum": ""
             },
             "require": {
                 "cron/cron": "^1.0.1",
-                "doctrine/doctrine-bundle": "~1.4|~2.0",
-                "doctrine/orm": "~2.4,>=2.4.5",
-                "php": ">=7.2",
-                "symfony/framework-bundle": "^3.4|^4.4|^5.0|^6.0"
+                "doctrine/collections": "*",
+                "doctrine/dbal": "*",
+                "doctrine/orm": ">=2.4.5",
+                "doctrine/persistence": "*",
+                "ext-pcntl": "*",
+                "ext-posix": "*",
+                "php": ">=8.1",
+                "symfony/config": "^5.0|^6.0|^7.0",
+                "symfony/console": "^5.0|^6.0|^7.0",
+                "symfony/dependency-injection": "^5.0|^6.0|^7.0",
+                "symfony/http-kernel": "^5.0|^6.0|^7.0",
+                "symfony/process": "^5.0|^6.0|^7.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^8.0",
-                "symfony/symfony": "^3.0|^4.0|^5.0"
+                "doctrine/doctrine-bundle": "*",
+                "phpunit/phpunit": "^10",
+                "symfony/framework-bundle": "^5.0|^6.0|^7.0",
+                "symfony/security-csrf": "^5.0|^6.0|^7.0",
+                "symfony/translation": "^5.0|^6.0|^7.0",
+                "symfony/yaml": "^5.0|^6.0|^7.0"
             },
             "type": "symfony-bundle",
             "extra": {
@@ -323,9 +335,9 @@
             "description": "Symfony cron",
             "support": {
                 "issues": "https://github.com/Cron/Symfony-Bundle/issues",
-                "source": "https://github.com/Cron/Symfony-Bundle/tree/2.10.5"
+                "source": "https://github.com/Cron/Symfony-Bundle/tree/3.1.0"
             },
-            "time": "2023-11-04T19:26:00+00:00"
+            "time": "2024-03-03T16:03:23+00:00"
         },
         {
             "name": "doctrine/annotations",
