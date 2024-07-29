@@ -83,7 +83,7 @@ class ProductionRequestService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
-        $fieldsModes = $currentUser ? $currentUser->getFieldModesByPage()[$page] ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
+        $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
         $columns = [
             ...!$forExport
@@ -610,12 +610,12 @@ class ProductionRequestService
      * Checking right in front side in production_request/planning/card.html.twig
      */
     public function checkRoleForEdition(ProductionRequest $productionRequest): void {
-        if (!self::hasRigthToUpdateStatus($productionRequest)) {
+        if (!self::hasRightToUpdateStatus($productionRequest)) {
             throw new FormException("Vous n'avez pas les droits pour modifier cette demande de production");
         }
     }
 
-    public function hasRigthToUpdateStatus(ProductionRequest $productionRequest):bool {
+    public function hasRightToUpdateStatus(ProductionRequest $productionRequest):bool {
         $status = $productionRequest->getStatus();
 
         return (
@@ -866,4 +866,181 @@ class ProductionRequestService
         }
         return false;
     }
+
+    public function getDisplayedFieldsConfig(bool $external, array $fieldModes): array {
+
+        $fields = [
+            [
+                "field" => FixedFieldEnum::status,
+                "type" => "tags",
+                "getDetails" => fn(ProductionRequest $productionRequest) => [
+                    "class" => !$external && $this->hasRightToUpdateStatus($productionRequest) ? "prevent-default open-modal-update-production-request-status" : "",
+                    "color" => $productionRequest->getStatus()->getColor(),
+                    "label" => $this->formatService->status($productionRequest->getStatus()),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::productArticleCode,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $productionRequest->getProductArticleCode(),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::manufacturingOrderNumber,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $productionRequest->getManufacturingOrderNumber(),
+                ],
+
+            ],
+            [
+                "field" => FixedFieldEnum::dropLocation,
+                "type" => "rows",
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $this->formatService->location($productionRequest->getDropLocation()),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::quantity,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" =>$productionRequest->getQuantity(),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::emergency,
+                "type" => "icons",
+                "getDetails" => static function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                    $emergency = $productionRequest->getEmergency();
+                    return $emergency
+                        ? [
+                            "path" => "svg/urgence.svg",
+                            "alt" => "icon $field->value",
+                            "title" => "Une urgence est en cours sur cette demande : $emergency",
+                        ]
+                        : null;
+                },
+            ],
+            [
+                "field" => FixedFieldEnum::comment,
+                "type" => "icons",
+                "getDetails" => static function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                    $comment = strip_tags($productionRequest->getComment());
+                    return $comment
+                        ? [
+                            "path" => "svg/comment-dots-regular.svg",
+                            "alt" => "icon $field->value",
+                            "title" => "Un commentaire est présent sur cette demande : $comment",
+                        ]
+                        : null;
+                },
+            ],
+            [
+                "field" => FixedFieldEnum::lineCount,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" =>$productionRequest->getLineCount(),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::projectNumber,
+                "type" => "rows",
+                "getDetails" =>  static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" =>$productionRequest->getProjectNumber(),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::attachments,
+                "type" => "icons",
+                "getDetails" => static function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
+                    $attachmentsCount = $productionRequest->getAttachments()->count();
+                    return $attachmentsCount
+                        ? [
+                            "path" => "svg/paperclip.svg",
+                            "alt" => "icon $field->value",
+                            "title" => "$attachmentsCount pièce(s) jointe(s) est/sont présente(s) sur cette demande",
+                        ]
+                        : null;
+                },
+            ],
+            [
+                "field" => FixedFieldEnum::createdBy,
+                "type" => "rows",
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $this->formatService->user($productionRequest->getCreatedBy()),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::type,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $this->formatService->type($productionRequest->getType()),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::treatedBy,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                        "label" => $field->value,
+                        "value" => $this->formatService->user($productionRequest->getTreatedBy()),
+                    ],
+            ],
+            [
+                "field" => FixedFieldEnum::expectedAt,
+                "type" => "rows",
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                        "label" => $field->value,
+                        "value" => $this->formatService->datetime($productionRequest->getExpectedAt()),
+                    ],
+            ],
+            [
+                "field" => FixedFieldEnum::createdAt,
+                "type" => "rows",
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $this->formatService->datetime($productionRequest->getCreatedAt()),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::number,
+                "type" => "rows",
+                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $productionRequest->getNumber(),
+                ],
+            ],
+        ];
+
+        $displayedFieldsConfig = [];
+        foreach ($fields as $fieldData) {
+            $fieldLocation = $this->getFieldDisplayConfig($fieldData["field"]->name, $fieldModes);
+            if($fieldLocation) {
+                $displayedFieldsConfig[$fieldLocation][$fieldData["type"]][] = $fieldData;
+            }
+        }
+
+        return $displayedFieldsConfig;
+    }
+
+    public function getFieldDisplayConfig(string $fieldName, $fieldModes): ?string {
+        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$fieldName] ?? [])) {
+            $fieldLocation = "header";
+        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$fieldName] ?? [])) {
+            $fieldLocation = "dropdown";
+        } else {
+            $fieldLocation = null;
+        }
+        return $fieldLocation;
+    }
+
+
 }

@@ -144,7 +144,7 @@ class TruckArrivalService
     }
 
     public function getVisibleColumns(Utilisateur $user): array {
-        $columnsVisible = $user->getFieldModesByPage()['truckArrival'];
+        $columnsVisible = $user->getFieldModes('truckArrival');
         $columns = [
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'Date de création', 'name' => 'creationDate'],

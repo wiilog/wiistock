@@ -34,8 +34,9 @@ final class Version20240722081618 extends AbstractMigration {
                 $visibleColumns = json_decode($visibleColumns, true);
                 foreach ($visibleColumns as $page => $columns) {
                     $fieldModesByPage[$page] = Stream::from($columns)
-                        ->keymap(fn($column) => [
-                            $column, [FieldModesService::FIELD_MODE_VISIBLE],
+                        ->keymap(static fn($column) => [
+                            $column,
+                            [FieldModesService::FIELD_MODE_VISIBLE],
                         ])
                         ->toArray();
                 }
@@ -45,8 +46,6 @@ final class Version20240722081618 extends AbstractMigration {
                 'id' => $user['id'],
             ]);
         }
-
-        $this->addSql('ALTER TABLE utilisateur DROP visible_columns');
     }
 
     public function down(Schema $schema): void {}

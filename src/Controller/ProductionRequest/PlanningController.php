@@ -30,6 +30,7 @@ use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -40,7 +41,9 @@ class PlanningController extends AbstractController {
 
     #[Route('/index', name: 'index', methods: self::GET)]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING])]
-    public function index(EntityManagerInterface $entityManager, StatusService $statusService, ProductionRequestService $productionRequestService): Response {
+    public function index(EntityManagerInterface   $entityManager,
+                          StatusService            $statusService,
+                          ProductionRequestService $productionRequestService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $currentUser = $this->getUser();
@@ -80,7 +83,6 @@ class PlanningController extends AbstractController {
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
         $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $external = $request->query->getBoolean("external");
@@ -108,7 +110,7 @@ class PlanningController extends AbstractController {
             })
             ->toArray();
 
-        $fieldModes = $user->getFieldModesByPage()[FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING] ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
+        $fieldModes = $user->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
 
         if (!empty($planningDays)) {
             $filters = [];
@@ -145,213 +147,39 @@ class PlanningController extends AbstractController {
                     ->toArray()
                 : [];
 
-            $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($freeFieldsByType, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $freeFieldRepository, $defaultLanguage, $external) {
-                    $fields = [
-                        [
-                            "field" => FixedFieldEnum::status,
-                            "type" => "tags",
-                            "getDetails" => function(ProductionRequest $productionRequest) use ($formatService, $external, $productionRequestService) {
-                                return [
-                                    "class" => !$external && $productionRequestService->hasRigthToUpdateStatus($productionRequest) ? "prevent-default open-modal-update-production-request-status" : "",
-                                    "color" => $productionRequest->getStatus()->getColor(),
-                                    "label" => $formatService->status($productionRequest->getStatus()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::productArticleCode,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $productionRequest->getProductArticleCode(),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::manufacturingOrderNumber,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $productionRequest->getManufacturingOrderNumber(),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::dropLocation,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $formatService->location($productionRequest->getDropLocation()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::quantity,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" =>$productionRequest->getQuantity(),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::emergency,
-                            "type" => "icons",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                $emergency = $productionRequest->getEmergency();
+            $displayedFieldsConfig = $productionRequestService->getDisplayedFieldsConfig($external, $fieldModes);
 
-                                return $emergency
-                                    ? [
-                                        "path" => "svg/urgence.svg",
-                                        "alt" => "icon $field->value",
-                                        "title" => "Une urgence est en cours sur cette demande : $emergency",
-                                    ]
-                                    : null;
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::comment,
-                            "type" => "icons",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                $comment = strip_tags($productionRequest->getComment());
-                                return $comment
-                                    ? [
-                                        "path" => "svg/comment-dots-regular.svg",
-                                        "alt" => "icon $field->value",
-                                        "title" => "Un commentaire est présent sur cette demande : $comment",
-                                    ]
-                                    : null;
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::lineCount,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" =>$productionRequest->getLineCount(),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::projectNumber,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" =>$productionRequest->getProjectNumber(),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::attachments,
-                            "type" => "icons",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                $attachmentsCount = $productionRequest->getAttachments()->count();
-                                return $attachmentsCount
-                                    ? [
-                                        "path" => "svg/paperclip.svg",
-                                        "alt" => "icon $field->value",
-                                        "title" => "$attachmentsCount pièce(s) jointe(s) est/sont présente(s) sur cette demande",
-                                    ]
-                                    : null;
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::createdBy,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $formatService->user($productionRequest->getCreatedBy()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::type,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $formatService->type($productionRequest->getType()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::treatedBy,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $formatService->user($productionRequest->getTreatedBy()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::expectedAt,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $formatService->datetime($productionRequest->getExpectedAt()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::createdAt,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) use ($formatService) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $formatService->datetime($productionRequest->getCreatedAt()),
-                                ];
-                            },
-                        ],
-                        [
-                            "field" => FixedFieldEnum::number,
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest, FixedFieldEnum $field) {
-                                return [
-                                    "label" => $field->value,
-                                    "value" => $productionRequest->getNumber(),
-                                ];
-                            },
-                        ],
-                    ];
+            $cards = Stream::from($productionRequests)
+                ->keymap(function (ProductionRequest $productionRequest) use ($displayedFieldsConfig, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $defaultLanguage, $external, $freeFieldsByType) {
+                    $cardContent = $displayedFieldsConfig;
 
                     foreach ($freeFieldsByType[$productionRequest->getType()->getId()] ?? [] as $freeField) {
-                        $fields[] = [
-                            "field" => "free_field_" . $freeField->getId(),
-                            "type" => "rows",
-                            "getDetails" => function(ProductionRequest $productionRequest) use ($userLanguage, $freeField, $formatService, $defaultLanguage) {
-                                return [
+                        $fieldName = "free_field_" . $freeField->getId();
+                        $fieldDisplayConfig = $productionRequestService->getFieldDisplayConfig($fieldName, $fieldModes);
+                        if ($fieldDisplayConfig) {
+                            $cardContent[$fieldDisplayConfig]["rows"][] = [
+                                "field" => $freeField,
+                                "getDetails" => static fn(ProductionRequest $productionRequest, FreeField $freeField) => [
                                     "label" => $freeField->getLabelIn($userLanguage, $defaultLanguage),
                                     "value" => $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
-                                ];
-                            },
-                        ];
+                                ]
+                            ];
+                        }
                     }
 
-                    foreach ($fields as $fieldData) {
-                        $field = $fieldData["field"];
-                        $fieldName = $field instanceof FixedFieldEnum ? $field->name : $field;
-                        $getDetails = $fieldData["getDetails"];
-                        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$fieldName] ?? [])) {
-                            $fieldLocation = "header";
-                        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$fieldName] ?? [])) {
-                            $fieldLocation = "dropdown";
-                        } else {
-                            $fieldLocation = null;
-                        }
-                        if($fieldLocation) {
-                            $cardContent[$fieldLocation][$fieldData["type"]][] = $getDetails($productionRequest, $field);
-                        }
-                    }
+                    $cardContent = Stream::from($cardContent)
+                        ->map(static function(array $location) use ($productionRequest) {
+                            return Stream::from($location)
+                                ->map(static function(array $type) use ($productionRequest) {
+                                    return Stream::from($type)
+                                        ->map(static function(array $fieldConfig) use ($productionRequest) {
+                                            return $fieldConfig["getDetails"]($productionRequest, $fieldConfig["field"]);
+                                        })
+                                        ->toArray();
+                                })
+                                ->toArray();
+                        })
+                        ->toArray();
 
                     return [
                         $productionRequest->getExpectedAt()->format('Y-m-d'),
@@ -378,14 +206,15 @@ class PlanningController extends AbstractController {
                     });
             }
 
+            $formatter = $this->getFormatter();
             $planningColumns = Stream::from($planningDays)
-                ->map(function (DateTime $day) use ($displayCountLines, $countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
+                ->map(static function (DateTime $day) use ($displayCountLines, $countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays, $formatter) {
                     $dayStr = $day->format('Y-m-d');
                     $count = count($cards[$dayStr] ?? []);
                     $sProduction = $count > 1 ? 's' : '';
 
                     return [
-                        "label" => $this->getFormatter()->longDate($day, ["short" => true, "year" => false]),
+                        "label" => $formatter->longDate($day, ["short" => true, "year" => false]),
                         "cardSelector" => $dayStr,
                         "columnClass" => "forced",
                         "columnHint" => "<span class='font-weight-bold'>$count demande$sProduction</span>",

@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-#[Route("/visible-column", name: "visible_column_")]
+#[Route("/field-modes", name: "field_modes_")]
 class FieldModesController extends AbstractController {
 
     public const DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS = "deliveryRequestShow";
@@ -49,8 +49,7 @@ class FieldModesController extends AbstractController {
         }
 
         $columnsModes = Stream::from($request->request->all())
-            ->filter()
-            ->map(fn(string $value) => explode(",", $value))
+            ->filterMap(static fn(?string $value) => $value ? explode(",", $value): null)
             ->toArray();
 
         $id = $request->request->getInt("id");

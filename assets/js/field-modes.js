@@ -1,8 +1,8 @@
 import {POST} from "@app/ajax";
 import Form from "@app/form";
 
-export function initFiledModes() {
-    const $modal = $(`#modalFieldsModes`);
+export function initFieldModes() {
+    const $modal = $(`#modalFieldModes`);
 
     if (!$modal.exists()) {
         return;
@@ -22,7 +22,7 @@ export function initFiledModes() {
     const page = $modal.find(`[name=page]`).val();
     const id = $modal.find(`[name=id]`).val();
 
-    $(`[data-target="#modalFieldsModes"]`).on(`click`, function() {
+    $(`[data-target="#modalFieldModes"]`).on(`click`, function() {
         let success;
         if (reload) {
             success = () => {
@@ -33,7 +33,6 @@ export function initFiledModes() {
                 $modal.find(`input[type=checkbox]`).each((_, check) => {
                     const $check = $(check);
                     let columnName = $check.closest('tr').data('field-name');
-
                     tables?.forEach((table) => {
                         const $table = $(`#${table}`);
 
@@ -41,7 +40,7 @@ export function initFiledModes() {
                             $table
                                 .DataTable()
                                 .column(`${columnName}:name`)
-                                .visible($check.hasClass(`data`));
+                                .visible($check.prop('checked'));
                         }
                     });
                 });
@@ -84,7 +83,7 @@ export function initFiledModes() {
                     data.append($ligne.data('field-name'), fieldData.join(','));
                 })
             })
-            .submitTo(POST, `visible_column_save`, {
+            .submitTo(POST, `field_modes_save`, {
                 routeParams: {page, id},
                 success: () => {
                     success();

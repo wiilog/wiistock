@@ -37,7 +37,7 @@ import './tooltips';
 import './select2';
 import Form from "./form";
 import {extendsDateSort, initDataTable, initSearchDate, initDatatablePlugin} from "@app/datatable";
-import {initFiledModes} from "@app/field-modes";
+import {initFieldModes} from "@app/field-modes";
 
 export const $document = $(document);
 
@@ -84,7 +84,7 @@ function importCamera() {
 }
 
 function importFieldModes() {
-    initFiledModes();
+    initFieldModes();
 }
 
 function importDatatable() {

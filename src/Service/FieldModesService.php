@@ -11,7 +11,6 @@ use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use function Sodium\add;
 
 class FieldModesService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
@@ -111,7 +110,7 @@ class FieldModesService {
         $queryBuilderAlias = $qb->getRootAliases()[0];
         $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
 
-        foreach($user->getFieldModesByPage()[$entity] as $column => $modes) {
+        foreach($user->getFieldModes($entity) as $column => $modes) {
             if(str_starts_with($column, "free_field_") && in_array(self::FIELD_MODE_VISIBLE, $modes)) {
                 $id = str_replace("free_field_", "", $column);
                 $freeField = $freeFieldRepository->find($id);

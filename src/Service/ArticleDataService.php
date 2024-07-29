@@ -707,7 +707,7 @@ class ArticleDataService
             ["title" => "Pays d'origine", "name" => "nativeCountry", 'searchable' => true],
         ];
 
-        return $this->fieldModesService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getFieldModesByPage()['article']);
+        return $this->fieldModesService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getFieldModes('article'));
     }
 
     public function putArticleLine($handle,

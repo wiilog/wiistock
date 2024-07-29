@@ -328,7 +328,7 @@ class ReceptionService
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
 
-        $columnsVisible = $currentUser->getFieldModesByPage()['reception'];
+        $columnsVisible = $currentUser->getFieldModes('reception');
         $columns = [
             ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "Date création", "name" => "Date", 'searchable' => true],

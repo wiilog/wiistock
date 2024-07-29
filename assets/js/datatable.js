@@ -82,12 +82,11 @@ function initActionOnRow(row) {
 }
 
 function onToggleInputRadioOnRow() {
-    const $modal = $(`#modalFieldsModes`);
+    const $modal = $(`#modalFieldModes`);
     const $checkboxes = $modal.find(`input[type=checkbox]`);
 
     $checkboxes.closest(`td`).on(`click`, function () {
         const $checkbox = $(this).find(`input[type=checkbox]`);
-        $checkbox.toggleClass(`data`);
         $checkbox.prop(`checked`, !$checkbox.is(`:checked`));
     });
 }

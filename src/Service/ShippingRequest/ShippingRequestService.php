@@ -97,7 +97,7 @@ class ShippingRequestService {
     public MouvementStockService $mouvementStockService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getFieldModesByPage()['shippingRequest'];
+        $columnsVisible = $currentUser->getFieldModes('shippingRequest');
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro', 'name' => 'number'],

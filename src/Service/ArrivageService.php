@@ -644,7 +644,7 @@ class ArrivageService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $columnsVisible = $currentUser->getFieldModesByPage()['arrival'];
+        $columnsVisible = $currentUser->getFieldModes('arrival');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
         $columns = [

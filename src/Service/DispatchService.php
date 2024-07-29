@@ -678,7 +678,7 @@ class DispatchService {
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $groupedSignatureMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getFieldModesByPage()['dispatch'];
+        $columnsVisible = $currentUser->getFieldModes('dispatch');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, CategorieCL::DEMANDE_DISPATCH);
 
         $columns = [

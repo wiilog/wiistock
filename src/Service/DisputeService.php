@@ -216,7 +216,7 @@ class DisputeService {
     }
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getFieldModesByPage()['dispute'];
+        $columnsVisible = $currentUser->getFieldModes('dispute');
         return $this->fieldModesService->getArrayConfig(
             [
                 ["name" => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],

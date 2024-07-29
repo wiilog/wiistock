@@ -36,20 +36,168 @@ use WiiCommon\Helper\Stream;
 #[ORM\Entity(repositoryClass: UtilisateurRepository::class)]
 class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface {
 
-    const DEFAULT_ARTICLE_FIELDS_MODES = ["actions" => [FieldModesService::FIELD_MODE_VISIBLE], "label" => [FieldModesService::FIELD_MODE_VISIBLE], "reference" => [FieldModesService::FIELD_MODE_VISIBLE], "articleReference" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "quantity" => [FieldModesService::FIELD_MODE_VISIBLE], "location" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_REFERENCE_FIELDS_MODES = ["actions" => [FieldModesService::FIELD_MODE_VISIBLE], "label" => [FieldModesService::FIELD_MODE_VISIBLE], "reference" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "availableQuantity" => [FieldModesService::FIELD_MODE_VISIBLE], "stockQuantity" => [FieldModesService::FIELD_MODE_VISIBLE], "location" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_ARRIVAL_FIELDS_MODES = ["creationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "arrivalNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "provider" => [FieldModesService::FIELD_MODE_VISIBLE], "carrier" => [FieldModesService::FIELD_MODE_VISIBLE], "nbUm" => [FieldModesService::FIELD_MODE_VISIBLE], "user" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_DISPATCH_FIELDS_MODES = ["number" => [FieldModesService::FIELD_MODE_VISIBLE], "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "validationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "treatmentDate" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "requester" => [FieldModesService::FIELD_MODE_VISIBLE], "receiver" => [FieldModesService::FIELD_MODE_VISIBLE], "locationFrom" => [FieldModesService::FIELD_MODE_VISIBLE], "locationTo" => [FieldModesService::FIELD_MODE_VISIBLE], "nbPacks" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "emergency" => [FieldModesService::FIELD_MODE_VISIBLE], "actions" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_TRACKING_MOVEMENT_FIELDS_MODES = ["origin" => [FieldModesService::FIELD_MODE_VISIBLE], "date" => [FieldModesService::FIELD_MODE_VISIBLE], "pack" => [FieldModesService::FIELD_MODE_VISIBLE], "reference" => [FieldModesService::FIELD_MODE_VISIBLE], "label" => [FieldModesService::FIELD_MODE_VISIBLE], "quantity" => [FieldModesService::FIELD_MODE_VISIBLE], "location" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "operateur" => [FieldModesService::FIELD_MODE_VISIBLE], "group"];
-    const DEFAULT_DISPUTE_FIELDS_MODES = ["type" => [FieldModesService::FIELD_MODE_VISIBLE], "arrivalNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "receptionNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "buyers" => [FieldModesService::FIELD_MODE_VISIBLE], "numCommandeBl" => [FieldModesService::FIELD_MODE_VISIBLE], "command" => [FieldModesService::FIELD_MODE_VISIBLE], "provider" => [FieldModesService::FIELD_MODE_VISIBLE], "references" => [FieldModesService::FIELD_MODE_VISIBLE], "lastHistorique" => [FieldModesService::FIELD_MODE_VISIBLE], "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "updateDate" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "actions" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_RECEPTION_FIELDS_MODES = ["actions" => [FieldModesService::FIELD_MODE_VISIBLE], "Date" => [FieldModesService::FIELD_MODE_VISIBLE], "number" => [FieldModesService::FIELD_MODE_VISIBLE], "dateAttendue" => [FieldModesService::FIELD_MODE_VISIBLE], "DateFin" => [FieldModesService::FIELD_MODE_VISIBLE], "orderNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "receiver" => [FieldModesService::FIELD_MODE_VISIBLE], "Fournisseur" => [FieldModesService::FIELD_MODE_VISIBLE], "Statut" => [FieldModesService::FIELD_MODE_VISIBLE], "Commentaire" => [FieldModesService::FIELD_MODE_VISIBLE], "deliveries" => [FieldModesService::FIELD_MODE_VISIBLE], "storageLocation" => [FieldModesService::FIELD_MODE_VISIBLE], "deliveryFee" => [FieldModesService::FIELD_MODE_VISIBLE], "user" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_DELIVERY_REQUEST_FIELDS_MODES = ["actions" => [FieldModesService::FIELD_MODE_VISIBLE], "pairing" => [FieldModesService::FIELD_MODE_VISIBLE], "createdAt" => [FieldModesService::FIELD_MODE_VISIBLE], "validatedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "requester" => [FieldModesService::FIELD_MODE_VISIBLE], "number" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_HANDLING_FIELDS_MODES = ["actions" => [FieldModesService::FIELD_MODE_VISIBLE], "desiredDate" => [FieldModesService::FIELD_MODE_VISIBLE], "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "requester" => [FieldModesService::FIELD_MODE_VISIBLE], "validationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "number" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "subject" => [FieldModesService::FIELD_MODE_VISIBLE], "treatedBy" => [FieldModesService::FIELD_MODE_VISIBLE], "emergency" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_PACK_FIELDS_MODES = ["nature" => [FieldModesService::FIELD_MODE_VISIBLE], "code" => [FieldModesService::FIELD_MODE_VISIBLE], "lastMvtDate" => [FieldModesService::FIELD_MODE_VISIBLE], "lastLocation" => [FieldModesService::FIELD_MODE_VISIBLE], "operator" => [FieldModesService::FIELD_MODE_VISIBLE], "project" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_TRUCK_ARRIVAL_FIELDS_MODES = ["creationDate" => [FieldModesService::FIELD_MODE_VISIBLE], "unloadingLocation" => [FieldModesService::FIELD_MODE_VISIBLE], "number" => [FieldModesService::FIELD_MODE_VISIBLE], "trackingLinesNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "countTrackingLines" => [FieldModesService::FIELD_MODE_VISIBLE], "operator" => [FieldModesService::FIELD_MODE_VISIBLE], "reserves" => [FieldModesService::FIELD_MODE_VISIBLE], "carrier" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_SHIPPING_REQUEST_FIELDS_MODES = ["number" => [FieldModesService::FIELD_MODE_VISIBLE], "status" => [FieldModesService::FIELD_MODE_VISIBLE], "createdAt" => [FieldModesService::FIELD_MODE_VISIBLE], "requestCaredAt" => [FieldModesService::FIELD_MODE_VISIBLE], "validatedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "plannedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "expectedPickedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "treatedAt" => [FieldModesService::FIELD_MODE_VISIBLE], "requesters" => [FieldModesService::FIELD_MODE_VISIBLE], "customerOrderNumber" => [FieldModesService::FIELD_MODE_VISIBLE], "customerName" => [FieldModesService::FIELD_MODE_VISIBLE], "carrier" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_ON_GOING_FIELDS_MODES = ["origin" => [FieldModesService::FIELD_MODE_VISIBLE], "LU" => [FieldModesService::FIELD_MODE_VISIBLE], "date" => [FieldModesService::FIELD_MODE_VISIBLE], "delay" => [FieldModesService::FIELD_MODE_VISIBLE], "reference" => [FieldModesService::FIELD_MODE_VISIBLE], "libelle" => [FieldModesService::FIELD_MODE_VISIBLE]];
-    const DEFAULT_STOCK_MOVEMENT_FIELDS_MODES = ["date" => [FieldModesService::FIELD_MODE_VISIBLE], "from" => [FieldModesService::FIELD_MODE_VISIBLE], "barCode" => [FieldModesService::FIELD_MODE_VISIBLE], "refArticle" => [FieldModesService::FIELD_MODE_VISIBLE], "quantity" => [FieldModesService::FIELD_MODE_VISIBLE], "origin" => [FieldModesService::FIELD_MODE_VISIBLE], "destination" => [FieldModesService::FIELD_MODE_VISIBLE], "type" => [FieldModesService::FIELD_MODE_VISIBLE], "operator" => [FieldModesService::FIELD_MODE_VISIBLE], "unitPrice" => [FieldModesService::FIELD_MODE_VISIBLE], "comment" => [FieldModesService::FIELD_MODE_VISIBLE]];
+    const DEFAULT_ARTICLE_FIELDS_MODES = [
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "label" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "reference" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "articleReference" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "quantity" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "location" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_REFERENCE_FIELDS_MODES = [
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "label" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "reference" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "availableQuantity" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "stockQuantity" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "location" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_ARRIVAL_FIELDS_MODES = [
+        "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "arrivalNumber" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "provider" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "carrier" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "nbUm" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "user" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_DISPATCH_FIELDS_MODES = [
+        "number" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "validationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "treatmentDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "requester" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "receiver" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "locationFrom" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "locationTo" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "nbPacks" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "emergency" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_TRACKING_MOVEMENT_FIELDS_MODES = [
+        "origin" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "date" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "pack" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "reference" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "label" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "quantity" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "location" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "operateur" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "group",
+    ];
+    const DEFAULT_DISPUTE_FIELDS_MODES = [
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "arrivalNumber" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "receptionNumber" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "buyers" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "numCommandeBl" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "command" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "provider" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "references" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "lastHistorique" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "updateDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_RECEPTION_FIELDS_MODES = [
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "Date" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "number" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "dateAttendue" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "DateFin" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "orderNumber" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "receiver" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "Fournisseur" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "Statut" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "Commentaire" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "deliveries" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "storageLocation" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "deliveryFee" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "user" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_DELIVERY_REQUEST_FIELDS_MODES = [
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "pairing" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "createdAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "validatedAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "requester" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "number" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_HANDLING_FIELDS_MODES = [
+        "actions" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "desiredDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "requester" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "validationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "number" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "subject" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "treatedBy" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "emergency" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_PACK_FIELDS_MODES = [
+        "nature" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "code" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "lastMvtDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "lastLocation" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "operator" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "project" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_TRUCK_ARRIVAL_FIELDS_MODES = [
+        "creationDate" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "unloadingLocation" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "number" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "trackingLinesNumber" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "countTrackingLines" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "operator" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "reserves" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "carrier" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_SHIPPING_REQUEST_FIELDS_MODES = [
+        "number" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "status" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "createdAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "requestCaredAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "validatedAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "plannedAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "expectedPickedAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "treatedAt" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "requesters" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "customerOrderNumber" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "customerName" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "carrier" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_ON_GOING_FIELDS_MODES = [
+        "origin" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "LU" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "date" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "delay" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "reference" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "libelle" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+    const DEFAULT_STOCK_MOVEMENT_FIELDS_MODES = [
+        "date" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "from" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "barCode" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "refArticle" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "quantity" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "origin" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "destination" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "type" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "operator" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "unitPrice" => [FieldModesService::FIELD_MODE_VISIBLE],
+        "comment" => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
     const DEFAULT_PRODUCTION_REQUEST_LIST_FIELDS_MODES = [
         FixedFieldEnum::number->name => [FieldModesService::FIELD_MODE_VISIBLE],
         FixedFieldEnum::createdAt->name => [FieldModesService::FIELD_MODE_VISIBLE],
@@ -101,7 +249,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'arrivalPack' => self::DEFAULT_PACK_FIELDS_MODES,
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_FIELDS_MODES,
         FieldModesController::PAGE_PRODUCTION_REQUEST_LIST => self::DEFAULT_PRODUCTION_REQUEST_LIST_FIELDS_MODES,
-        FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING=> self::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES,
+        FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING => self::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES,
         'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
         'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
     ];
@@ -1721,9 +1869,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getFieldModesByPage(): ?array
-    {
+    public function getFieldModesByPage(): ?array {
         return $this->fieldModesByPage;
+    }
+
+
+    public function getFieldModes(string $page): array {
+        return $this->fieldModesByPage[$page] ?? [];
     }
 
     public function setFieldModesByPage(?array $fieldModesByPage): self {

@@ -334,7 +334,7 @@ class DeliveryRequestService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
-        $visibleColumns = $utilisateur->getFieldModesByPage()[FieldModesController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+        $visibleColumns = $utilisateur->getFieldModes(FieldModesController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS) ?? Demande::DEFAULT_VISIBLE_COLUMNS;
 
         $demande = new Demande();
         $demande
@@ -755,7 +755,7 @@ class DeliveryRequestService
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $manager, Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getFieldModesByPage()['deliveryRequest'];
+        $columnsVisible = $currentUser->getFieldModes('deliveryRequest');
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, CategorieCL::DEMANDE_LIVRAISON);
 
