@@ -388,11 +388,13 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES => [
                 'default' => null,
             ],
-            Setting::WARNING_HEADER_MESSAGE => [
-                'default' => null,
-            ],
-            Setting::COLOR_WARNING_HEADER_MESSAGE => [
-                'default' => '#d9534f',
+            Setting::WARNING_HEADER => [
+                "default" => json_encode(
+                    [
+                        "color" => "#d9534f",
+                        "message" => ""
+                    ]
+                ),
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [
                 'default' => join(',', [
