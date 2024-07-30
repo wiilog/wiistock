@@ -77,8 +77,6 @@ jobs:
       - name: Create database
         run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
 
-      - name: Install php
-        run: docker exec wiistock-cypress_php apt-get install -y php-cli
 
       - name: Run phpunit
-        run: projects/wiistock/php bin/phpunit
+        run: cd projects && php bin/phpunit
