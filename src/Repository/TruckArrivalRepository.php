@@ -160,6 +160,7 @@ class TruckArrivalRepository extends EntityRepository
                                 "filter_reserveType.disableTrackingNumber IS NULL",
                                 "filter_reserveType.disableTrackingNumber = 0"
                             ))
+                            ->andWhere('truckArrival.trackingLines IS NOT EMPTY')
                             ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
                             ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned')
                             ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
