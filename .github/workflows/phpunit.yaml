@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cypress-run:
+  phpunit-run:
     runs-on: ubuntu-latest
     container:
       image: docker:latest
@@ -77,17 +77,8 @@ jobs:
       - name: Create database
         run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
 
-      - name: Create routing
-        run: docker exec wiistock-cypress_php php bin/console fos:js-routing:dump
-
-      - name: Convert enums
-        run: docker exec wiistock-cypress_php php bin/console app:update:fixed-fields
-
-      - name: Install yarn dependencies in app
-        run: docker exec wiistock-cypress_php yarn
-
-      - name: Build assets in app
-        run: docker exec wiistock-cypress_php yarn build:only:production
+      - name: Install php
+        run: docker exec wiistock-cypress_php apt-get update && docker exec wiistock-cypress_php apt-get install -y php-cli
 
       - name: Run phpunit
         run: projects/wiistock/php bin/phpunit
