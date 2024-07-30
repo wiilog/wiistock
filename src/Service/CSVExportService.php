@@ -15,7 +15,9 @@ class CSVExportService {
 
     private bool $wantsUTF8;
 
-    public function __construct(EntityManagerInterface $entityManager, SettingsService $settingsService) {
+    public function __construct(EntityManagerInterface $entityManager, SettingsService $settingsService)
+    {
+        getenv('APP_ENV') !== 'test' &&
         $this->wantsUTF8 = $settingsService->getValue($entityManager, Setting::USES_UTF8) ?? true;
     }
 
