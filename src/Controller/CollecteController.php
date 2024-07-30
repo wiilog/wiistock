@@ -4,37 +4,33 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\Collecte;
-use App\Entity\Emplacement;
-use App\Entity\Menu;
-use App\Entity\Setting;
-use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
+use App\Entity\Emplacement;
+use App\Entity\FreeField\FreeField;
+use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
-use App\Entity\Article;
 use App\Helper\FormatHelper;
-use App\Service\MouvementStockService;
-use DateTime;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
+use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-
-use App\Service\FreeFieldService;
+use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 

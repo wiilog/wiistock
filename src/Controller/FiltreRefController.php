@@ -4,9 +4,9 @@ namespace App\Controller;
 
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\FreeField\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;

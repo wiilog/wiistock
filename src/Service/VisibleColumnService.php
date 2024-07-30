@@ -4,7 +4,7 @@
 namespace App\Service;
 
 
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Orx;

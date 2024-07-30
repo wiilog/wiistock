@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;

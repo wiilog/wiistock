@@ -3,20 +3,20 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
+use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Type;
-use App\Entity\Menu;
-use App\Entity\Action;
 use App\Exceptions\FormException;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,7 +47,8 @@ class TypeController extends AbstractController {
             $translationService->setDefaultTranslation($manager, $type, $type->getLabel());
         }
 
-        foreach ($type->getChampsLibres() as $freeField) {
+        /*
+        foreach ($type->getChampsLibres() as $freeField) { //TODO
             if ($freeField->getLabelTranslation() === null) {
                 $translationService->setDefaultTranslation($manager, $freeField, $freeField->getLabel());
             }
@@ -62,6 +63,7 @@ class TypeController extends AbstractController {
                 }
             }
         }
+        */
 
         $manager->flush();
 
@@ -176,10 +178,8 @@ class TypeController extends AbstractController {
             $message = 'Voulez-vous réellement supprimer ce type ?';
         }
         else if (!$canDelete) {
-            $hasNoFreeFields = $type->getChampsLibres()->isEmpty();
-            $message = $hasNoFreeFields
-                ? 'Ce type est utilisé, vous ne pouvez pas le supprimer.'
-                : 'Des champs libres sont liés à ce type, veuillez les supprimer avant de procéder à la suppression du type';
+
+            $message =  'Ce type est utilisé, vous ne pouvez pas le supprimer.';
         }
         else {
             $message = 'Ce type est lié à des statuts, veuillez les supprimer avant de procéder à la suppression du type';

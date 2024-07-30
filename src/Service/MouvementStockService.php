@@ -4,12 +4,9 @@ namespace App\Service;
 
 use App\Controller\Settings\SettingsController;
 use App\Entity\Article;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;

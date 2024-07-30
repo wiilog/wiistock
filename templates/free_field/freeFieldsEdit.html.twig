@@ -5,24 +5,25 @@
 {% set containerClasses = containerClasses is defined and containerClasses ? containerClasses : 'row' %}
 {% set labelSmallText = labelSmallText is defined and labelSmallText ? labelSmallText : '' %}
 
-{% if freeFields|length > 0 %}
+{% if freeFieldManagementRules|length > 0 %}
     <div class="{{ containerClasses }}">
-        {% for freeField in freeFields %}
-            {% set needed = not disabledNeeded and attribute(freeField, requiredType) %}
+        {% for freeFieldManagementRule in freeFieldManagementRules %}
+            {% set freeField = freeFieldManagementRule.freeField %}
+            {% set needed = not disabledNeeded and attribute(freeFieldManagementRule, requiredType) %}
             {% set entityValue = freeFieldValues[freeField.id] is defined
                 ? freeFieldValues[freeField.id]
                 : (freeField.defaultValue is defined
                     ? freeField.defaultValue
                     : '') %}
-            {% if (actionType == 'new' and freeField.displayedCreate)
-                  or (actionType == 'edit' and freeField.displayedEdit) %}
+            {% if (actionType == 'new' and freeFieldManagementRule.displayedCreate)
+                or (actionType == 'edit' and freeFieldManagementRule.displayedEdit) %}
                 <div class="{{ colType is defined ? colType }} {% if showLabels ?? true %}my-2{% endif %}">
                     <div class="row form-group free-field mb-0 ">
                         <div class="col-12">
                             {% set label = kiosk is defined and kiosk ? '' : freeField.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
                                 ?: freeField.label %}
                             {% set displayedLabel = (showLabels ?? true) ? label : '' %}
-                            {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
+                            {% if freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_BOOL') %}
                                 {% if freeFieldValues[freeField.id] is defined %}
                                     {% set entityValue = freeFieldValues[freeField.id] %}
                                 {% elseif freeField.defaultValue is defined %}
@@ -45,7 +46,7 @@
                                         smallText: labelSmallText
                                     }
                                 }) }}
-                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_NUMBER') %}
                                 {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                     type: 'number',
                                     additionalAttributes: [{
@@ -58,7 +59,7 @@
                                         smallText: labelSmallText
                                     }
                                 }) }}
-                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_LIST') %}
                                 {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
                                     ?: freeField.elements %}
                                 {% set selectedValue = entityValue|transFreeFieldElements(freeField)
@@ -77,7 +78,7 @@
                                         smallText: labelSmallText
                                     }
                                 }) }}
-                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_LIST_MULTIPLE') %}
                                 {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
                                     ?: freeField.elements %}
                                 {% set entityValuesArray = freeFieldValues[freeField.id] is defined
@@ -96,7 +97,7 @@
                                         smallText: labelSmallText
                                     }
                                 }) }}
-                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_TEXT') %}
                                 {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                     inputClass: 'needs-default',
                                     attributes: {
@@ -115,8 +116,8 @@
                                     labelOptions: {
                                         smallText: labelSmallText
                                     }
-                                }) }}
-                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
+                                    }) }}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_DATETIME') %}
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
                                     {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
@@ -144,7 +145,7 @@
                                         }
                                     }) }}
                                 {% endif %}
-                            {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
+                            {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_DATE') %}
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
                                     {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">

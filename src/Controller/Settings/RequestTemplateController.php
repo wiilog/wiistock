@@ -7,7 +7,7 @@ use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;

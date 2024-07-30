@@ -1,10 +1,14 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\FreeField;
 
+use App\Entity\CategorieCL;
+use App\Entity\FiltreRef;
 use App\Entity\Interfaces\Serializable;
+use App\Entity\Language;
+use App\Entity\TranslationSource;
 use App\Helper\LanguageHelper;
-use App\Repository\FreeFieldRepository;
+use App\Repository\FreeField\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -36,9 +40,6 @@ class FreeField implements Serializable {
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
     private ?string $label = null;
 
-    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'champsLibres')]
-    private ?Type $type = null;
-
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $typage = null;
 
@@ -53,18 +54,6 @@ class FreeField implements Serializable {
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $elements = [];
-
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
-    private ?bool $requiredCreate = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
-    private ?bool $requiredEdit = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
-    private ?bool $displayedCreate = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
-    private ?bool $displayedEdit = null;
 
     #[ORM\ManyToOne(targetEntity: CategorieCL::class)]
     private ?CategorieCL $categorieCL = null;
@@ -84,9 +73,16 @@ class FreeField implements Serializable {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $minCharactersLength = null;
 
+    /**
+     * @var Collection<int, FreeFieldManagementRule>
+     */
+    #[ORM\OneToMany(mappedBy: 'freeField', targetEntity: FreeFieldManagementRule::class, orphanRemoval: true)]
+    private Collection $freeFieldManagementRules;
+
     public function __construct() {
         $this->filters = new ArrayCollection();
         $this->elementsTranslations = new ArrayCollection();
+        $this->freeFieldManagementRules = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -114,16 +110,6 @@ class FreeField implements Serializable {
 
     public function setLabel(?string $label): self {
         $this->label = $label;
-
-        return $this;
-    }
-
-    public function getType(): ?Type {
-        return $this->type;
-    }
-
-    public function setType(?Type $type): self {
-        $this->type = $type;
 
         return $this;
     }
@@ -200,46 +186,6 @@ class FreeField implements Serializable {
 
     public function setElements(?array $elements): self {
         $this->elements = $elements;
-
-        return $this;
-    }
-
-    public function isRequiredCreate(): ?bool {
-        return $this->requiredCreate;
-    }
-
-    public function setRequiredCreate(?bool $requiredCreate): self {
-        $this->requiredCreate = $requiredCreate;
-
-        return $this;
-    }
-
-    public function isRequiredEdit(): ?bool {
-        return $this->requiredEdit;
-    }
-
-    public function setRequiredEdit(?bool $requiredEdit): self {
-        $this->requiredEdit = $requiredEdit;
-
-        return $this;
-    }
-
-    public function getDisplayedCreate(): ?bool {
-        return $this->displayedCreate;
-    }
-
-    public function setDisplayedCreate(?bool $displayedCreate): self {
-        $this->displayedCreate = $displayedCreate;
-        return $this;
-    }
-
-    public function getDisplayedEdit(): ?bool
-    {
-        return $this->displayedEdit;
-    }
-
-    public function setDisplayedEdit(?bool $displayedEdit): self {
-        $this->displayedEdit = $displayedEdit;
 
         return $this;
     }
@@ -356,19 +302,43 @@ class FreeField implements Serializable {
     }
 
     public function serialize(): array {
-        $type = $this->getType();
-        $categoryType = $type?->getCategory();
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
             'elements' => $this->getElements(),
             'typing' => $this->getTypage(),
             'defaultValue' => $this->getDefaultValue(),
-            'requiredCreate' => $this->isRequiredCreate(),
-            'requiredEdit' => $this->isRequiredEdit(),
-            'typeId' => $this->getType()?->getId(),
-            'categoryType' => $categoryType?->getLabel(),
         ];
+    }
+
+    /**
+     * @return Collection<int, FreeFieldManagementRule>
+     */
+    public function getFreeFieldManagementRules(): Collection
+    {
+        return $this->freeFieldManagementRules;
+    }
+
+    public function addFreeFieldManagementRule(FreeFieldManagementRule $freeFieldManagementRule): static
+    {
+        if (!$this->freeFieldManagementRules->contains($freeFieldManagementRule)) {
+            $this->freeFieldManagementRules->add($freeFieldManagementRule);
+            $freeFieldManagementRule->setFreeField($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFreeFieldManagementRule(FreeFieldManagementRule $freeFieldManagementRule): static
+    {
+        if ($this->freeFieldManagementRules->removeElement($freeFieldManagementRule)) {
+            // set the owning side to null (unless already changed)
+            if ($freeFieldManagementRule->getFreeField() === $this) {
+                $freeFieldManagementRule->setFreeField(null);
+            }
+        }
+
+        return $this;
     }
 
 }

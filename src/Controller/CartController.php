@@ -10,7 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PurchaseRequest;
@@ -164,7 +164,7 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
+                'freeFields' => $type ? $type->getFreeFieldManagementRule() : [], // TODO ADAPTER LE TWIG
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
@@ -181,7 +181,7 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
+                'freeFields' => $type ? $type->getFreeFieldManagementRule() : [], // TODO ADAPTER LE TWIG
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])

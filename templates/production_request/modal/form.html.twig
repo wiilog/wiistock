@@ -11,18 +11,25 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::type').value %}
     <div class="col-6 mb-2">
         {{ form.select(fieldCode, fieldLabel, true, {
-            type: 'productionRequestType',
+            type: types is defined ? '' : 'productionRequestType',
             placeholder: 'Sélectionnez un type',
             disabled: productionRequest.id ? true : false,
             search: true,
             value: productionRequest.type ? productionRequest.type.id : null,
-            items: productionRequest.type ? {
-                0: {
-                    'value': productionRequest.type.id,
-                    'label':  productionRequest.type.label,
-                    'selected': true
-                }
-            } : null,
+            items:productionRequest.type
+                ? [
+                    {
+                        'value': productionRequest.type.id,
+                        'label':  productionRequest.type.label,
+                        'selected': true
+                    }
+                ]
+                : types is defined
+                    ? types|map(item => ({
+                        'value': item.id,
+                        'label': item.label,
+                    }))
+                    : [],
             additionalAttributes: productionRequest.type ? [] : [
                 { name: 'onChange', value: 'onProductionRequestTypeChange($(this))' },
                 { name: 'data-other-params'},
@@ -178,19 +185,18 @@
     {% endif %}
 
     <!-- CHAMPS LIBRES -->
-    {% set typeFreeFields = typeFreeFields ?? (productionRequest.type ? [{
-        typeId: productionRequest.type.id,
-        champsLibres: productionRequest.type.champsLibres,
-    }] : []) %}
     <div class="col-12">
         <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
         <div class="collapsible expanded free-fields-container mb-2">
-            {% for type in typeFreeFields %}
-                <div class="{{ typeFreeFields|length > 1 ? ' d-none' }}"
-                     data-type="{{ type.typeId }}">
+            {% set types = productionRequest.id
+                ? [productionRequest.type]
+                : types
+            %}
+            {% for type in types %}
+                <div class="{{ types|length > 1 ? ' d-none' }}"
+                     data-type="{{ type.id }}">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                        freeFields: type.champsLibres,
-                        freeFieldValues: productionRequest.freeFields,
+                        freeFieldManagementRules: type.freeFieldManagementRules,
                         colType: 'col-md-4 col-12',
                         requiredType: requiredAction,
                         actionType: requiredAction ==  "requiredCreate" ? 'new' : 'edit',

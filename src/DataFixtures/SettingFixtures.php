@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Setting;
 use App\Service\SpecificService;
 use App\Service\UniqueNumberService;
@@ -13,7 +13,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 class SettingFixtures extends Fixture implements FixtureGroupInterface {
 

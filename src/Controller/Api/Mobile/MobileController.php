@@ -13,7 +13,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;

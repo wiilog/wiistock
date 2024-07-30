@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\FreeField;
 
 use App\Entity\CategorieCL;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -22,7 +22,7 @@ class FreeFieldRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\FreeField c
+            FROM App\Entity\FreeField\FreeField c
             WHERE c.type = :type AND c.requiredCreate = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -32,7 +32,7 @@ class FreeFieldRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\FreeField c
+            FROM App\Entity\FreeField\FreeField c
             WHERE c.type = :type AND c.requiredEdit = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -58,7 +58,8 @@ class FreeFieldRepository extends EntityRepository {
      */
     public function findByCategoryTypeAndCategoryCL(string $typeCategory, string $freeFieldCategory): array {
         return $this->createQueryBuilder("free_field")
-            ->join("free_field.type", "join_type")
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->join("free_field_management_rules.type", "join_type")
             ->join("join_type.category", "join_type_category")
             ->join("free_field.categorieCL", "join_free_field_category")
             ->andWhere("join_type_category.label = :type")
@@ -74,11 +75,11 @@ class FreeFieldRepository extends EntityRepository {
      * @return FreeField|null
      * @throws NonUniqueResultException
      */
-    public function findOneByLabel($label) {
+    public function findOneByLabel($label): ?FreeField {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl
-            FROM App\Entity\FreeField cl
+            FROM App\Entity\FreeField\FreeField cl
             WHERE cl.label LIKE :label
             "
         )->setParameter('label', $label);
@@ -89,7 +90,7 @@ class FreeFieldRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
-            FROM App\Entity\FreeField cl
+            FROM App\Entity\FreeField\FreeField cl
             WHERE cl.type = :typeId
            "
         )->setParameter('typeId', $typeId);
@@ -101,7 +102,7 @@ class FreeFieldRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
-            FROM App\Entity\FreeField cl
+            FROM App\Entity\FreeField\FreeField cl
             WHERE cl.label LIKE :label
            "
         )->setParameter('label', $label);
@@ -114,8 +115,9 @@ class FreeFieldRepository extends EntityRepository {
         $typeIds = Stream::from($types)->map(fn(Type $type) => $type->getId())->toArray();
 
         return $this->createQueryBuilder('free_field')
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->join("free_field_management_rules.type", "type")
             ->join('free_field.categorieCL', 'free_field_category')
-            ->join('free_field.type', 'type')
             ->where('type.id IN (:types)')
             ->andWhere('free_field_category.label = :freeFieldCategoryLabel')
             ->orderBy('free_field.label', 'ASC')
@@ -131,7 +133,7 @@ class FreeFieldRepository extends EntityRepository {
      * @param bool $creation
      * @return FreeField[]
      */
-    public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true) {
+    public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true): array {
         $qb = $this->createQueryBuilder('c')
             ->join('c.categorieCL', 'ccl')
             ->where('c.type = :type AND ccl.label = :categorieCLLabel')
@@ -157,7 +159,7 @@ class FreeFieldRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
-            FROM App\Entity\FreeField c
+            FROM App\Entity\FreeField\FreeField c
             WHERE c.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -168,9 +170,10 @@ class FreeFieldRepository extends EntityRepository {
      * @param string[] $categoryTypeLabels
      * @return FreeField[]
      */
-    public function findByCategoryTypeLabels(array $categoryTypeLabels) {
+    public function findByCategoryTypeLabels(array $categoryTypeLabels): array {
         return $this->createQueryBuilder('free_field')
-            ->join('free_field.type', 'type')
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->join('free_field_management_rules.type', 'type')
             ->join('type.category', 'category')
             ->where('category.label IN (:categoryTypeLabels)')
             ->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY)
@@ -182,7 +185,7 @@ class FreeFieldRepository extends EntityRepository {
      * @param string[] $categoryCLLabels
      * @return FreeField[]
      */
-    public function findByFreeFieldCategoryLabels(array $categoryCLLabels, ?array $typeCategories = []) {
+    public function findByFreeFieldCategoryLabels(array $categoryCLLabels, ?array $typeCategories = []): array {
         $queryBuilder = $this->createQueryBuilder('freeField')
             ->join('freeField.categorieCL', 'categorieCL')
             ->where('categorieCL.label IN (:categoryCLLabels)')
@@ -205,12 +208,12 @@ class FreeFieldRepository extends EntityRepository {
      * @param string $categoryCL
      * @return array
      */
-    public function getLabelAndIdByCategory($categoryCL) {
+    public function getLabelAndIdByCategory($categoryCL): array {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */
             "SELECT cl.label as value, cl.id as id
-			FROM App\Entity\FreeField cl
+			FROM App\Entity\FreeField\FreeField cl
 			JOIN cl.categorieCL cat
 			WHERE cat.label = :categoryCL")
             ->setParameter('categoryCL', $categoryCL);

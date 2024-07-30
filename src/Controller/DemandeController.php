@@ -13,7 +13,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;

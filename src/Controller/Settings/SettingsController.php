@@ -17,7 +17,7 @@ use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -2498,7 +2498,7 @@ class SettingsController extends AbstractController {
             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
         ]);
         $rows = [];
-        $freeFields = $type ? $type->getChampsLibres() : [];
+        $freeFields = $type ? $type->getChampsLibres() : []; // TODO
         foreach ($freeFields as $freeField) {
             if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";

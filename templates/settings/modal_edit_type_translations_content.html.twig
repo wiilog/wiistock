@@ -56,7 +56,7 @@
                     {% endfor %}
                 </div>
             </div>
-            {% if freeField.typage in [constant('App\\Entity\\Freefield::TYPE_LIST'), constant('App\\Entity\\Freefield::TYPE_LIST_MULTIPLE')] %}
+            {% if freeField.typage in [constant('App\\Entity\\FreeField\\Freefield::TYPE_LIST'), constant('App\\Entity\\FreeField\\Freefield::TYPE_LIST_MULTIPLE')] %}
                 <div class="col-12 col-md-6">
                     <div class="translation">
                         <label class="wii-field-name mb-1">
@@ -83,7 +83,7 @@
                         {% endfor %}
                     </div>
                 </div>
-            {% elseif freeField.typage in [constant('App\\Entity\\FreeField::TYPE_TEXT')] %}
+            {% elseif freeField.typage in [constant('App\\Entity\\FreeField\\FreeField::TYPE_TEXT')] %}
                 <div class="col-12 col-md-6">
                     <div class="translation">
                         <label class="wii-field-name mb-1">Valeur par défaut</label>
