@@ -90,4 +90,4 @@ jobs:
         run: docker exec wiistock-cypress_php yarn build:only:production
 
       - name: Run phpunit
-        run: php bin/phpunit
+        run: projects/wiistock/php bin/phpunit
