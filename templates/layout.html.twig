@@ -5,7 +5,7 @@
     <div class="wrapper {% block wrapperClass '' %}">
         <div class="header-container {{ app_context }}">
 
-            {% include 'warning_header_message.html.twig' %}
+            {% include 'warning-header.html.twig' %}
 
             {% include 'header.html.twig' with {
                 title: block('title') is defined ? block('title'),

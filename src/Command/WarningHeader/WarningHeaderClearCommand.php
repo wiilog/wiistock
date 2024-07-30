@@ -1,33 +1,35 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\WarningHeader;
 
 use App\Entity\Setting;
 use App\Service\CacheService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:warning-message-clear',
+    name: 'app:warning-header:clear',
     description: 'This command clears the warning header message. It can be used to hide the warning header message.'
 )]
-class WarningMessageClearCommand extends Command
+class WarningHeaderClearCommand extends Command
 {
-    #[Required]
-    public EntityManagerInterface $entityManager;
 
-    #[Required]
-    public CacheService $cacheService;
+    public function __construct(private readonly EntityManagerInterface  $entityManager,
+                                private readonly SettingsService         $settingsService,
+                                private readonly CacheService            $cacheService)
+    {
+        parent::__construct();
+    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $settings = [Setting::WARNING_HEADER];
 
-        $settingMessage = $settingRepository->findOneBy(['label' => Setting::WARNING_HEADER]);
+        $settingMessage = $this->settingsService->persistSetting($this->entityManager, $settings, Setting::WARNING_HEADER);
         $settingMessage->setValue(null);
 
         $this->entityManager->flush();
