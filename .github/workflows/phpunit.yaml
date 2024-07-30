@@ -1,4 +1,4 @@
-name: run-php-unit-tests
+name: run-phpunit
 
 on:
   pull_request:
@@ -6,86 +6,38 @@ on:
       - "*"
 
 concurrency:
-  group: ${{ github.head_ref }}-php-unit-tests
+  group: ${{ github.head_ref }}-phpunit
   cancel-in-progress: true
 
 jobs:
   phpunit-run:
     runs-on: ubuntu-latest
     container:
-      image: docker:latest
+      image: wiilog/wiistock-builder:v1.0.5
+      credentials:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PULL_TOKEN }}
+      env:
+        APP_ENV: test
+        APP_DEBUG: 0
       options: --user root
     steps:
-      - name: Checkout wiistock-docker
-        uses: actions/checkout@v4
-        with:
-          repository: wiilog/wiistock-docker
-          token: ${{ secrets.WIISTOCK_DOCKER_PAT }} # Robin Personal Access Token available until Jan 1, 2025
-          ref: main
-
-      - name: Setup environment wiistock-docker
-        run: cp .env.example .env
+      - name: Go to project
+        run: cd /project
 
       - name: Checkout wiistock
         uses: actions/checkout@v4
-        with:
-          repository: wiilog/wiistock
-          ref: ${{ github.event.pull_request.head.sha }}
-          path: projects/wiistock
-
-      - name: Login to docker hub
-        run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}
-
-      - name: Copy .env to .env.local
-        run: cp projects/wiistock/.env projects/wiistock/.env.local
-
-      - name: Create phpunit.xml
-        run: cp projects/wiistock/phpunit.xml.dist projects/wiistock/phpunit.xml
-
-      - name: Change db string URL .env.local
-        run: sed -i 's/root@127\.0\.0\.1:3306/root:example@mysql:3306/g' projects/wiistock/.env.local
-
-      - name: Change APP_ENV= to APP_ENV=test
-        run: sed -i 's/APP_ENV=.*/APP_ENV=test/g' projects/wiistock/.env.local
-
-      - name: Change APP_URL= to APP_URL=http://wiistock-nginx:80
-        run: sed -i 's|APP_URL=http://localhost|APP_URL=http://wiistock-nginx|' projects/wiistock/.env.local
 
       - name: Add generated.yaml to wiistock
         run: |
-          touch projects/wiistock/config/generated.yaml &&
-          echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
+          touch config/generated.yaml &&
+          echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
 
-      - name: Give all right to wiistock
-        run: chmod -R 777 projects/wiistock/
+      - name: Create phpunit.xml
+        run: cp phpunit.xml.dist phpunit.xml
 
-      - name: Build containers
-        run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up wiistock-php --build --no-start -d
-
-      - name: volume mount does not work on docker in docker so we manually copy the wiistoock
-        run: docker cp projects/wiistock/. wiistock-cypress_php:/project
-
-      - name: Start containers
-        run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress start wiistock-php
-
-      - name: Give right to www-data user
-        run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
-
-      - name: Install composer dependencies in app
-        run: docker exec wiistock-cypress_php composer install
-
-      - name: Create database
-        run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
-
-      - name: Run doctrine migrations
-        run: docker exec wiistock-cypress_php php bin/console doctrine:migrations:migrate --no-interaction
-
-      - name: Run doctrine schema update
-        run: docker exec wiistock-cypress_php php bin/console doctrine:schema:update --force --no-interaction
-
-      - name: Run doctrine fixtures
-        run: docker exec wiistock-cypress_php php bin/console doctrine:fixtures:load --append --group=types --no-interaction
-          | docker exec wiistock-cypress_php php bin/console doctrine:fixtures:load --append --group=fixtures --no-interaction
+      - name: Install php dependencies
+        run: composer install
 
       - name: Run phpunit
-        run: docker exec wiistock-cypress_php php bin/phpunit
+        run: php bin/phpunit
