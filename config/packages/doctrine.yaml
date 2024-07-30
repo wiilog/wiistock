@@ -1,55 +1,83 @@
-parameters:
-    # Adds a fallback DATABASE_URL if the env var is not set.
-    # This allows you to run cache:warmup even if your
-    # environment variables are not available yet.
-    # You should not need to change this value.
-    env(DATABASE_URL): ''
-
 doctrine:
-    dbal:
-        # configure these for your database server
-        driver: 'pdo_mysql'
-        server_version: '8.0.31'
-        charset: utf8mb4
-        default_table_options:
-            charset: utf8mb4
-            collate: utf8mb4_unicode_ci
+  dbal:
+    # configure these for your database server
+    driver: 'pdo_mysql'
+    server_version: '8.0.31'
+    charset: utf8mb4
+    default_table_options:
+      charset: utf8mb4
+      collate: utf8mb4_unicode_ci
 
-        url: '%env(resolve:DATABASE_URL)%'
+    url: '%env(resolve:DATABASE_URL)%'
+
+    profiling_collect_backtrace: '%kernel.debug%'
+    use_savepoints: true
+
+    options:
+      !php/const PDO::MYSQL_ATTR_SSL_CA: '/etc/ca-certificates/cert.pem'
+      !php/const PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: false
+
+  orm:
+    auto_generate_proxy_classes: true
+    enable_lazy_ghost_objects: true
+    report_fields_where_declared: true
+    validate_xml_mapping: true
+    naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+    auto_mapping: true
+    controller_resolver:
+      auto_mapping: true
+    mappings:
+      App:
+        type: attribute
+        is_bundle: false
+        dir: '%kernel.project_dir%/src/Entity'
+        prefix: 'App\Entity'
+        alias: App
+    dql:
+      string_functions:
+        JSON_SEARCH: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSearch
+        JSON_EXTRACT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
+        JSON_UNQUOTE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
+        JSON_REMOVE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
+        JSON_CONTAINS: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
+        REPLACE: DoctrineExtensions\Query\Mysql\Replace
+        CAST: DoctrineExtensions\Query\Mysql\Cast
+        DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
+        UNIX_TIMESTAMP: DoctrineExtensions\Query\Mysql\UnixTimestamp
+        TIMESTAMPDIFF: DoctrineExtensions\Query\Mysql\TimestampDiff
+        FIELD: DoctrineExtensions\Query\Mysql\Field
+        GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat
+        REGEXP: DoctrineExtensions\Query\Mysql\Regexp
+        IFNULL: DoctrineExtensions\Query\Mysql\IfNull
+        NOW: DoctrineExtensions\Query\Mysql\Now
+        STR_TO_DATE: DoctrineExtensions\Query\Mysql\StrToDate
+        IF: DoctrineExtensions\Query\Mysql\IfElse
+        DATEDIFF: DoctrineExtensions\Query\Mysql\DateDiff
+        CONCAT_WS: DoctrineExtensions\Query\Mysql\ConcatWs
+        DAYNAME: DoctrineExtensions\Query\Mysql\DayName
+
+        # Custom DQL functions
+        FIRST: App\DQL\Functions\First
+        COUNT_OVER: App\DQL\Functions\CountOver
+
+when@prod: &doctrine_prod
+  doctrine:
     orm:
-        auto_generate_proxy_classes: '%kernel.debug%'
-        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
-        auto_mapping: true
-        mappings:
-            App:
-                is_bundle: false
-                type: attribute
-                dir: '%kernel.project_dir%/src/Entity'
-                prefix: 'App\Entity'
-                alias: App
-        dql:
-            string_functions:
-                JSON_SEARCH: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSearch
-                JSON_EXTRACT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
-                JSON_UNQUOTE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonUnquote
-                JSON_REMOVE: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonRemove
-                JSON_CONTAINS: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonContains
-                REPLACE: DoctrineExtensions\Query\Mysql\Replace
-                CAST: DoctrineExtensions\Query\Mysql\Cast
-                DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
-                UNIX_TIMESTAMP: DoctrineExtensions\Query\Mysql\UnixTimestamp
-                TIMESTAMPDIFF: DoctrineExtensions\Query\Mysql\TimestampDiff
-                FIELD: DoctrineExtensions\Query\Mysql\Field
-                GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat
-                REGEXP: DoctrineExtensions\Query\Mysql\Regexp
-                IFNULL: DoctrineExtensions\Query\Mysql\IfNull
-                NOW: DoctrineExtensions\Query\Mysql\Now
-                STR_TO_DATE: DoctrineExtensions\Query\Mysql\StrToDate
-                IF: DoctrineExtensions\Query\Mysql\IfElse
-                DATEDIFF: DoctrineExtensions\Query\Mysql\DateDiff
-                CONCAT_WS: DoctrineExtensions\Query\Mysql\ConcatWs
-                DAYNAME: DoctrineExtensions\Query\Mysql\DayName
+      auto_generate_proxy_classes: false
+      proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
+      query_cache_driver:
+        type: pool
+        pool: doctrine.system_cache_pool
+      result_cache_driver:
+        type: pool
+        pool: doctrine.result_cache_pool
 
-                # Custom DQL functions
-                FIRST: App\DQL\Functions\First
-                COUNT_OVER: App\DQL\Functions\CountOver
+  framework:
+    cache:
+      pools:
+        doctrine.result_cache_pool:
+          adapter: cache.app
+        doctrine.system_cache_pool:
+          adapter: cache.system
+
+when@preprod: *doctrine_prod

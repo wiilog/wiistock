@@ -220,7 +220,7 @@ class ArticleRepository extends EntityRepository {
                                         $field = 'reference',
                                         $referenceArticleReference = null,
                                         $activeReferenceOnly = false,
-                                        Utilisateur $user)
+                                        Utilisateur $user = null)
 	{
         $statusNames = [
             Article::STATUT_ACTIF,

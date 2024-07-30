@@ -16,7 +16,6 @@ return [
     Symfony\WebpackEncoreBundle\WebpackEncoreBundle::class => ['all' => true],
     Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['all' => true],
     FOS\JsRoutingBundle\FOSJsRoutingBundle::class => ['all' => true],
-    FOS\RestBundle\FOSRestBundle::class => ['all' => true],
     SGK\BarcodeBundle\SGKBarcodeBundle::class => ['all' => true],
     Nbgrp\OneloginSamlBundle\NbgrpOneloginSamlBundle::class => ['all' => !empty($_SERVER['APP_SAML_ENABLED'])],
     Cron\CronBundle\CronCronBundle::class => ['all' => true],

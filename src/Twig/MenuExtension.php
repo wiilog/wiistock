@@ -5,9 +5,7 @@ namespace App\Twig;
 use App\Entity\Menu;
 use App\Service\CacheService;
 use App\Service\RoleService;
-use App\Service\SpecificService;
 use App\Service\UserService;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use WiiCommon\Helper\Stream;
@@ -16,27 +14,16 @@ use WiiCommon\Helper\StringHelper;
 class MenuExtension extends AbstractExtension
 {
 
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public RoleService $roleService;
-
-    #[Required]
-    public SpecificService $specificService;
-
-    #[Required]
-    public CacheService $cache;
-
     private array $menuConfig;
 
-    public function __construct(array $menuConfig)
-    {
+    public function __construct(array                         $menuConfig,
+                                private readonly CacheService $cache,
+                                private readonly RoleService  $roleService,
+                                private readonly UserService  $userService) {
         $this->menuConfig = $menuConfig;
     }
 
-    public function getFunctions()
-    {
+    public function getFunctions(): array {
         return [
             new TwigFunction('getMenuConfig', [$this, 'getMenuConfigFunction']),
             new TwigFunction('displaySettings', [$this, 'displaySettings']),

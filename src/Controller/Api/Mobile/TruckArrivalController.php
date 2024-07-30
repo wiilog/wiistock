@@ -20,15 +20,15 @@ use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class TruckArrivalController extends AbstractController {
 
-    #[Rest\Get("/get-truck-arrival-default-unloading-location", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/get-truck-arrival-default-unloading-location", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager): Response
     {
@@ -38,7 +38,7 @@ class TruckArrivalController extends AbstractController {
         return $this->json($truckArrivalDefaultUnloadingLocation);
     }
 
-    #[Rest\Get("/get-truck-arrival-lines-number", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/get-truck-arrival-lines-number", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getTruckArrivalLinesNumber(EntityManagerInterface $manager): Response
     {
@@ -48,7 +48,7 @@ class TruckArrivalController extends AbstractController {
         return $this->json($truckArrivalLinesNumber);
     }
 
-    #[Rest\Post("/finish-truck-arrival", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/finish-truck-arrival", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishTruckArrival(Request                $request,
                                        EntityManagerInterface $entityManager,

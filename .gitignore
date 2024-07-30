@@ -32,8 +32,6 @@ yarn-error.log
 /desktop.ini
 ###< wiilog/wiistock ###
 
-/local-php-security-checker.exe
-/local-php-security-checker
 /cache
 
 ###> phpunit/phpunit ###

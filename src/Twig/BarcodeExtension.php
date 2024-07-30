@@ -7,19 +7,13 @@ use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 
-class BarcodeExtension extends AbstractExtension
-{
+class BarcodeExtension extends AbstractExtension {
 
-    private BarcodeGenerator $barcodeGenerator;
+    public function __construct(private readonly BarcodeGenerator $barcodeGenerator) {}
 
-    public function __construct(BarcodeGenerator $barcodeGenerator) {
-        $this->barcodeGenerator = $barcodeGenerator;
-    }
-
-    public function getFunctions()
-    {
+    public function getFunctions(): array {
         return [
-            new TwigFunction('printBarcode', [$this, 'printBarcodeFunction'])
+            new TwigFunction('printBarcode', $this->printBarcodeFunction(...))
         ];
     }
 
@@ -39,7 +33,7 @@ class BarcodeExtension extends AbstractExtension
         return $crawler->html();
     }
 
-    private function removeXmlTag($dom): string {
+    private function removeXmlTag(string $dom): string {
         $matches = [];
         preg_match('/.*(<svg)([\s\S]*)/', $dom, $matches);
         return count($matches) === 3 ? ($matches[1] . $matches[2]) : $dom;

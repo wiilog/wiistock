@@ -7,17 +7,17 @@ use App\Entity\Emplacement;
 use App\Entity\TransferOrder;
 use App\Service\TransferOrderService;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Annotation as Wii;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class TransferOrderController extends AbstractController {
 
-    #[Rest\Post("/transfer/finish", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/transfer/finish", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishTransfers(Request                $request,
                                     TransferOrderService   $transferOrderService,
