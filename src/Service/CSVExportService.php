@@ -13,7 +13,7 @@ use WiiCommon\Helper\Stream;
 
 class CSVExportService {
 
-    private bool $wantsUTF8 = true;
+    private bool|null $wantsUTF8 = null;
 
     public function __construct(private readonly EntityManagerInterface $entityManager,
                                 private readonly SettingsService        $settingsService){}
@@ -79,9 +79,9 @@ class CSVExportService {
     }
 
     public function putLine($handle, array $row): void {
-        $wantsUTF8 = $this->wantsUTF8 ?? ($this->settingsService->getValue($this->entityManager, Setting::USES_UTF8));
+        $this->wantsUTF8 = $this->wantsUTF8 !== null ? $this->wantsUTF8 : ($this->settingsService->getValue($this->entityManager, Setting::USES_UTF8) ?? true);
 
-        $encodedRow = !$wantsUTF8
+        $encodedRow = !$this->wantsUTF8
             ? Stream::from($row)
                 ->map(static fn(?string $value) => (
                     $value !== null && $value !== "" && mb_check_encoding($value, "UTF-8")
