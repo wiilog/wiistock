@@ -77,6 +77,15 @@ jobs:
       - name: Create database
         run: docker exec wiistock-cypress_php php bin/console doctrine:database:create --if-not-exists
 
+      - name: Run doctrine migrations
+        run: docker exec wiistock-cypress_php php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run doctrine schema update
+        run: docker exec wiistock-cypress_php php bin/console doctrine:schema:update --force --no-interaction
+
+      - name: Run doctrine fixtures
+        run: docker exec wiistock-cypress_php php bin/console doctrine:fixtures:load --append --group=types --no-interaction
+          | docker exec wiistock-cypress_php php bin/console doctrine:fixtures:load --append --group=fixtures --no-interaction
 
       - name: Run phpunit
         run: docker exec wiistock-cypress_php php bin/phpunit
