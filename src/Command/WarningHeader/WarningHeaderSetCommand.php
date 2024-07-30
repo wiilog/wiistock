@@ -1,30 +1,32 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\WarningHeader;
 
 use App\Entity\Setting;
 use App\Service\CacheService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:warning-message-set',
+    name: 'app:warning-header:set',
     description: 'This command sets the warning header message. It can be used to hide the warning header message.'
 )]
-class WarningMessageSetCommand extends Command
+class WarningHeaderSetCommand extends Command
 {
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public CacheService $cacheService;
-
     private const DEFAULT_COLOR = '#d9534f';
+
+    public function __construct(private readonly EntityManagerInterface  $entityManager,
+                                private readonly SettingsService         $settingsService,
+                                private readonly CacheService            $cacheService)
+    {
+        parent::__construct();
+    }
 
     protected function configure(): void
     {
@@ -35,26 +37,28 @@ class WarningMessageSetCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-
         $message = $input->getOption('message');
         $color = $input->getOption('color');
 
+        $messageHash = hash('sha256', $message);
+
         if ($message) {
             $output->writeln('Updated warning header message to ' . $message);
-        }
-        else {
-            $output->writeln('No message provided, clearing warning header message');
+        } else {
+            throw new RuntimeCommandException('No message provided, clearing warning header message');
         }
 
         $warningHeader = json_encode(
             [
                 "color" => $color ?? self::DEFAULT_COLOR,
-                "message" => $message
+                "message" => $message,
+                "messageHash" => $messageHash
             ]
         );
 
-        $settingMessage = $settingRepository->findOneBy(['label' => Setting::WARNING_HEADER]);
+        $settings = [Setting::WARNING_HEADER];
+
+        $settingMessage = $this->settingsService->persistSetting($this->entityManager, $settings, Setting::WARNING_HEADER);
         $settingMessage->setValue($warningHeader);
 
         $this->entityManager->flush();

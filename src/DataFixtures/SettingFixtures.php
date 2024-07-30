@@ -389,12 +389,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => null,
             ],
             Setting::WARNING_HEADER => [
-                "default" => json_encode(
-                    [
-                        "color" => "#d9534f",
-                        "message" => ""
-                    ]
-                ),
+                "default" => null,
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [
                 'default' => join(',', [
