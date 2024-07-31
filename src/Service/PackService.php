@@ -12,6 +12,7 @@ use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Project;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -146,6 +147,9 @@ class PackService {
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
             ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName()
             : null;
+        $receptionAssociationFormatted = Stream::from($pack?->getReceiptAssociations())
+            ->map(fn(ReceiptAssociation $receptionAssociation) => $receptionAssociation->getReceptionNumber())
+            ->join(', ');
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -177,7 +181,11 @@ class PackService {
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
-                : ''
+                : '',
+            'receiptAssociation' => $receptionAssociationFormatted,
+            'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
+                'truckArrival' => $pack->getArrivage()
+            ]),
         ];
     }
 
