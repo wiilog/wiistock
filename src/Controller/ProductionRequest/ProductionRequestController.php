@@ -29,7 +29,7 @@ use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequestService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\UserService;
 use DateTime;

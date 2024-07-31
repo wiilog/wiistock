@@ -26,30 +26,17 @@ class DisputeService {
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
 
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
-
-    private $security;
-
-    private $entityManager;
-    private $translation;
-    private $mailerService;
-    private $fieldModesService;
-    private $CSVExportService;
+    private readonly AttachmentService $attachmentService;
+    private readonly RouterInterface $router;
+    private readonly FormatService $formatService;
+    private readonly LanguageService $languageService;
+    private readonly Twig_Environment $templating;
+    private readonly Security $security;
+    private readonly EntityManagerInterface $entityManager;
+    private readonly TranslationService $translation;
+    private readonly MailerService $mailerService;
+    private readonly FieldModesService $fieldModesService;
+    private readonly CSVExportService $CSVExportService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment       $templating,
@@ -57,6 +44,10 @@ class DisputeService {
                                 MailerService          $mailerService,
                                 CSVExportService       $CSVExportService,
                                 FieldModesService      $fieldModesService,
+                                LanguageService        $languageService,
+                                FormatService          $formatService,
+                                RouterInterface        $router,
+                                AttachmentService      $attachmentService,
                                 Security               $security) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
@@ -65,6 +56,10 @@ class DisputeService {
         $this->mailerService = $mailerService;
         $this->fieldModesService = $fieldModesService;
         $this->CSVExportService = $CSVExportService;
+        $this->languageService = $languageService;
+        $this->formatService = $formatService;
+        $this->router = $router;
+        $this->attachmentService = $attachmentService;
     }
 
     public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {

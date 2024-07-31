@@ -68,8 +68,9 @@
                     </thead>
                     <tbody>
                     {% for field in fields %}
-                        {% if (field.alwaysVisible is not defined or not field.alwaysVisible)
+                        {% set displayfield = (field.alwaysVisible is not defined or not field.alwaysVisible)
                             and (field.hiddenColumn is not defined or not field.hiddenColumn) %}
+                        {% if displayfield %}
                             <tr class="pointer"
                                 data-field-name="{{ field.data }}">
                                 {% set title = (
@@ -115,7 +116,7 @@
                                             default: item.default ?? false,
                                         }) %}
 
-                                        {% if not  items|filter((item) => item.checked) | length %}
+                                        {% if not items|filter((item) => item.checked) | length %}
                                             {% set defaultItem = items|filter((item) => item.default) %}
                                             {% if defaultItem|length %}
                                                 {% set items = items|map((item) => {

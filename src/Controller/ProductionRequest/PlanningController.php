@@ -10,9 +10,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
@@ -21,16 +19,15 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
-use App\Repository\ProductionRequestRepository;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequestService;
+use App\Service\ProductionRequest\PlanningService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -75,6 +72,7 @@ class PlanningController extends AbstractController {
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface   $entityManager,
                         LanguageService          $languageService,
+                        PlanningService          $planningService,
                         ProductionRequestService $productionRequestService,
                         FormatService            $formatService,
                         Request                  $request): Response {
@@ -150,37 +148,8 @@ class PlanningController extends AbstractController {
             $displayedFieldsConfig = $productionRequestService->getDisplayedFieldsConfig($external, $fieldModes);
 
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($displayedFieldsConfig, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $defaultLanguage, $external, $freeFieldsByType) {
-                    $cardContent = $displayedFieldsConfig;
-
-                    foreach ($freeFieldsByType[$productionRequest->getType()->getId()] ?? [] as $freeField) {
-                        $fieldName = "free_field_" . $freeField->getId();
-                        $fieldDisplayConfig = $productionRequestService->getFieldDisplayConfig($fieldName, $fieldModes);
-                        if ($fieldDisplayConfig) {
-                            $cardContent[$fieldDisplayConfig]["rows"][] = [
-                                "field" => $freeField,
-                                "getDetails" => static fn(ProductionRequest $productionRequest, FreeField $freeField) => [
-                                    "label" => $freeField->getLabelIn($userLanguage, $defaultLanguage),
-                                    "value" => $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
-                                ]
-                            ];
-                        }
-                    }
-
-                    $cardContent = Stream::from($cardContent)
-                        ->map(static function(array $location) use ($productionRequest) {
-                            return Stream::from($location)
-                                ->map(static function(array $type) use ($productionRequest) {
-                                    return Stream::from($type)
-                                        ->map(static function(array $fieldConfig) use ($productionRequest) {
-                                            return $fieldConfig["getDetails"]($productionRequest, $fieldConfig["field"]);
-                                        })
-                                        ->toArray();
-                                })
-                                ->toArray();
-                        })
-                        ->toArray();
-
+                ->keymap(function (ProductionRequest $productionRequest) use ($planningService, $displayedFieldsConfig, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $defaultLanguage, $external) {
+                    $cardContent = $planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage, $defaultLanguage);
                     return [
                         $productionRequest->getExpectedAt()->format('Y-m-d'),
                         $this->renderView('production_request/planning/card.html.twig', [

@@ -1,32 +1,43 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\ProductionRequest;
 
 use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Setting;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
+use App\Service\AttachmentService;
+use App\Service\CSVExportService;
+use App\Service\FieldModesService;
+use App\Service\FormatService;
+use App\Service\FreeFieldService;
+use App\Service\MailerService;
+use App\Service\OperationHistoryService;
+use App\Service\StatusHistoryService;
+use App\Service\TranslationService;
+use App\Service\UniqueNumberService;
+use App\Service\UserService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use App\Entity\Emplacement;
-use App\Entity\Statut;
-use App\Entity\Type;
-use DateTime;
-use Symfony\Component\HttpFoundation\FileBag;
 use WiiCommon\Helper\Stream;
 
 class ProductionRequestService
@@ -115,9 +126,6 @@ class ProductionRequestService
             ['title' => FixedFieldEnum::projectNumber->value, 'name' => FixedFieldEnum::projectNumber->name],
             ['title' => FixedFieldEnum::comment->value, 'name' => FixedFieldEnum::comment->name],
         ]);
-
-
-        dump($columns);
 
         return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes, $forExport);
     }
