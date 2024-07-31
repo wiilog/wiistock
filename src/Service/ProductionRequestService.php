@@ -85,17 +85,20 @@ class ProductionRequestService
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
         $fieldsModes = $currentUser ? $currentUser->getFieldModes($page) ?? Utilisateur::DEFAULT_FIELDS_MODES[$page] : [];
 
-        $columns = [
-            ...!$forExport
-                ? [
-                    ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']
-                ]
-                : [],
-            ...$page === FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING
-                ? [
-                    ['title' => FixedFieldEnum::attachments->value, 'name' => FixedFieldEnum::attachments->name],
-                ]
-                : [],
+        $columns = [];
+
+        if (!$forExport) {
+            $columns[] = ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+        }
+
+        if ($page === FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) {
+            $columns[] = [
+                'title' => FixedFieldEnum::attachments->value,
+                'name' => FixedFieldEnum::attachments->name,
+            ];
+        }
+
+        $columns = array_merge($columns, [
             ['title' => FixedFieldEnum::number->value, 'name' => FixedFieldEnum::number->name],
             ['title' => FixedFieldEnum::createdAt->value, 'name' => FixedFieldEnum::createdAt->name],
             ['title' => FixedFieldEnum::createdBy->value, 'name' => FixedFieldEnum::createdBy->name],
@@ -111,7 +114,10 @@ class ProductionRequestService
             ['title' => FixedFieldEnum::emergency->value, 'name' => FixedFieldEnum::emergency->name],
             ['title' => FixedFieldEnum::projectNumber->value, 'name' => FixedFieldEnum::projectNumber->name],
             ['title' => FixedFieldEnum::comment->value, 'name' => FixedFieldEnum::comment->name],
-        ];
+        ]);
+
+
+        dump($columns);
 
         return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes, $forExport);
     }
@@ -980,7 +986,7 @@ class ProductionRequestService
             [
                 "field" => FixedFieldEnum::type,
                 "type" => "rows",
-                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
                     "label" => $field->value,
                     "value" => $this->formatService->type($productionRequest->getType()),
                 ],
@@ -988,7 +994,7 @@ class ProductionRequestService
             [
                 "field" => FixedFieldEnum::treatedBy,
                 "type" => "rows",
-                "getDetails" => static fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
                         "label" => $field->value,
                         "value" => $this->formatService->user($productionRequest->getTreatedBy()),
                     ],
