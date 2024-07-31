@@ -26,41 +26,19 @@ class DisputeService {
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
 
-    private readonly AttachmentService $attachmentService;
-    private readonly RouterInterface $router;
-    private readonly FormatService $formatService;
-    private readonly LanguageService $languageService;
-    private readonly Twig_Environment $templating;
-    private readonly Security $security;
-    private readonly EntityManagerInterface $entityManager;
-    private readonly TranslationService $translation;
-    private readonly MailerService $mailerService;
-    private readonly FieldModesService $fieldModesService;
-    private readonly CSVExportService $CSVExportService;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                Twig_Environment       $templating,
-                                TranslationService     $translation,
-                                MailerService          $mailerService,
-                                CSVExportService       $CSVExportService,
-                                FieldModesService      $fieldModesService,
-                                LanguageService        $languageService,
-                                FormatService          $formatService,
-                                RouterInterface        $router,
-                                AttachmentService      $attachmentService,
-                                Security               $security) {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->translation = $translation;
-        $this->security = $security;
-        $this->mailerService = $mailerService;
-        $this->fieldModesService = $fieldModesService;
-        $this->CSVExportService = $CSVExportService;
-        $this->languageService = $languageService;
-        $this->formatService = $formatService;
-        $this->router = $router;
-        $this->attachmentService = $attachmentService;
-    }
+    public function __construct(
+        private readonly AttachmentService      $attachmentService,
+        private readonly RouterInterface        $router,
+        private readonly FormatService          $formatService,
+        private readonly LanguageService        $languageService,
+        private readonly Twig_Environment       $templating,
+        private readonly Security               $security,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly TranslationService     $translation,
+        private readonly MailerService          $mailerService,
+        private readonly FieldModesService      $fieldModesService,
+        private readonly CSVExportService       $CSVExportService
+    ) {}
 
     public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {
 

@@ -10,14 +10,9 @@ use App\Service\FormatService;
 use WiiCommon\Helper\Stream;
 
 class PlanningService {
-    private readonly ProductionRequestService $productionRequestService;
-
-    private readonly FormatService $formatService;
-    public function __construct(ProductionRequestService    $productionRequestService,
-                                FormatService               $formatService) {
-        $this->productionRequestService = $productionRequestService;
-        $this->formatService = $formatService;
-    }
+    public function __construct(
+        private readonly ProductionRequestService $productionRequestService,
+        private readonly FormatService $formatService) {}
 
     public function createCardConfig(array $displayedFieldsConfig, ProductionRequest $productionRequest, array $fieldModes,Language|string $userLanguage, Language|string|null $defaultLanguage): array {
         $cardContent = $displayedFieldsConfig;
