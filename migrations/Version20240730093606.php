@@ -23,7 +23,8 @@ final class Version20240730093606 extends AbstractMigration
         $this->addSql('
             CREATE TABLE free_field_management_rule (
                 id INT AUTO_INCREMENT NOT NULL,
-                type_id INT NOT NULL, free_field_id INT NOT NULL,
+                type_id INT NOT NULL,
+                free_field_id INT NOT NULL,
                 required_create TINYINT(1) NOT NULL,
                 required_edit TINYINT(1) NOT NULL,
                 displayed_create TINYINT(1) NOT NULL,
@@ -34,34 +35,36 @@ final class Version20240730093606 extends AbstractMigration
         //get all free fields
         $freeFields = $this->connection->fetchAllAssociative('SELECT * FROM free_field');
         foreach ($freeFields as $freeField) {
-            $this->addSql(
-                '
-                INSERT INTO free_field_management_rule (
-                        type_id,
-                        free_field_id,
-                        required_create,
-                        required_edit,
-                        displayed_create,
-                        displayed_edit
+            if (isset($freeField['type_id']) && isset($freeField['id'])) {
+                $this->addSql(
+                    '
+                    INSERT INTO free_field_management_rule (
+                            type_id,
+                            free_field_id,
+                            required_create,
+                            required_edit,
+                            displayed_create,
+                            displayed_edit
                         )
-                    VALUES (
-                        :type_id,
-                        :free_field_id,
-                        :required_create,
-                        :required_edit,
-                        :displayed_create,
-                        :displayed_edit
-                    )
-                ',
-                [
-                    "type_id" => $freeField['type_id'] ?? false,
-                    "free_field_id" => $freeField['id'] ?? false,
-                    "required_create" => $freeField['required_create'] ?? false,
-                    "required_edit" => $freeField['required_edit'] ?? false,
-                    "displayed_create" => $freeField['displayed_create'] ?? false,
-                    "displayed_edit" => $freeField['displayed_edit'] ?? false,
-                ]
-            );
+                        VALUES (
+                            :type_id,
+                            :free_field_id,
+                            :required_create,
+                            :required_edit,
+                            :displayed_create,
+                            :displayed_edit
+                        )
+                    ',
+                    [
+                        "type_id" => $freeField['type_id'],
+                        "free_field_id" => $freeField['id'],
+                        "required_create" => $freeField['required_create'] ?? false,
+                        "required_edit" => $freeField['required_edit'] ?? false,
+                        "displayed_create" => $freeField['displayed_create'] ?? false,
+                        "displayed_edit" => $freeField['displayed_edit'] ?? false,
+                    ]
+                );
+            }
         }
     }
 
