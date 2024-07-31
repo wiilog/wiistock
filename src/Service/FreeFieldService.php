@@ -7,6 +7,7 @@ use App\Entity\CategorieCL;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Language;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
@@ -292,8 +293,6 @@ class FreeFieldService {
                                             Utilisateur            $user = null) {
         $defaultLanguage = $this->languageService->getDefaultSlug();
         $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultSlug();
-
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
 
         /** @var Type $type */
@@ -309,15 +308,9 @@ class FreeFieldService {
             throw new RuntimeException('Invalid options');
         }
 
-        $freeFieldCriteria = [];
-        if (isset($type)) {
-            $freeFieldCriteria['type'] = $type;
-        }
-        if (isset($freeFieldCategory)) {
-            $freeFieldCriteria['categorieCL'] = $freeFieldCategory;
-        }
-
-        $freeFields = $freeFieldsRepository->findBy($freeFieldCriteria);
+        $freeFields = Stream::from($type->getfreeFieldManagementRules())
+            ->map(fn(FreeFieldManagementRule $rule) => $rule->getFreeField())
+            ->toArray();
 
         $freeFieldValues = $entity->getFreeFields();
         return Stream::from($freeFields ?? [])

@@ -18,24 +18,29 @@ use WiiCommon\Helper\Stream;
  */
 class FreeFieldRepository extends EntityRepository {
 
-    public function getByTypeAndRequiredCreate($type) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label, c.id
-            FROM App\Entity\FreeField\FreeField c
-            WHERE c.type = :type AND c.requiredCreate = TRUE"
-        )->setParameter('type', $type);;
-        return $query->getResult();
+    public function getByTypeAndRequiredCreate(Type $type) {
+        $queryBuilder = $this->createQueryBuilder('free_field');
+        return $queryBuilder
+            ->select('free_field.label, free_field.id')
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->andWhere($queryBuilder->expr()->eq('free_field_management_rules.type', ':type'))
+            ->andWhere($queryBuilder->expr()->eq('free_field_management_rules.requiredCreate', true))
+            ->setParameter('type', $type)
+            ->getQuery()
+            ->getResult();
+
     }
 
     public function getByTypeAndRequiredEdit($type) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label, c.id
-            FROM App\Entity\FreeField\FreeField c
-            WHERE c.type = :type AND c.requiredEdit = TRUE"
-        )->setParameter('type', $type);;
-        return $query->getResult();
+        $queryBuilder = $this->createQueryBuilder('free_field');
+        return $queryBuilder
+            ->select('free_field.label, free_field.id')
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->andWhere($queryBuilder->expr()->eq('free_field_management_rules.type', ':type'))
+            ->andWhere($queryBuilder->expr()->eq('free_field_management_rules.requiredEdit', true))
+            ->setParameter('type', $type)
+            ->getQuery()
+            ->getResult();
     }
 
     public function getByCategoryTypeAndCategoryCL(string $typeCategory, CategorieCL $ffCategory): array {
