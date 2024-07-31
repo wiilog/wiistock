@@ -32,8 +32,6 @@ export default class Cookie {
                 path: "/",
             }
         );
-
-        console.log(document.cookie)
     }
 
     /**
@@ -51,7 +49,6 @@ export default class Cookie {
                 domain: window.location.host.toString(),
             }
         );
-        console.log(document.cookie)
     }
 
 }
