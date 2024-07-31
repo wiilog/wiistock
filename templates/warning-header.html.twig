@@ -8,13 +8,19 @@
 {% set message_warning_header = warning_header and warning_header.message is not empty ? warning_header.message : false %}
 
 {% if color_warning_header and message_warning_header %}
-    <div class="d-none align-items-center p-3 text-center banner-warning-header" style="background-color: {{ color_warning_header }}">
-            <span class="text-white bold w-100">
-                {{ message_warning_header }}
-            </span>
-        <button type="button" class="btn btn-sm btn-outline-dark btn-warning-header">
-            <i class="fas fa-times"></i>
-        </button>
+    <div class="row justify-content-center align-items-center banner-warning-header d-none"
+         style="background-color: {{ color_warning_header }}">
+        <div class="col text-center">
+            <div class="text-white bold p-2">{{ message_warning_header }}</div>
+        </div>
+        <div class="col-auto">
+            <button type="button"
+                    class="close btn-warning-header px-2"
+                    data-dismiss="alert"
+                    aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
 
     {{ form.hidden('warning-header-hash', warning_header.messageHash) }}
