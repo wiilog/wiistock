@@ -12,7 +12,8 @@ use WiiCommon\Helper\Stream;
 class PlanningService {
     public function __construct(
         private readonly ProductionRequestService $productionRequestService,
-        private readonly FormatService $formatService) {}
+        private readonly FormatService $formatService
+    ) {}
 
     public function createCardConfig(array $displayedFieldsConfig, ProductionRequest $productionRequest, array $fieldModes,Language|string $userLanguage, Language|string|null $defaultLanguage): array {
         $cardContent = $displayedFieldsConfig;
