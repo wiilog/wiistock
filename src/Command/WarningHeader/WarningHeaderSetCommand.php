@@ -43,7 +43,7 @@ class WarningHeaderSetCommand extends Command
         $messageHash = hash('sha256', $message);
 
         if ($message) {
-            $output->writeln('Updated warning header message to ' . $message);
+            $output->writeln("Updated warning header message to \"$messageHash\"");
         } else {
             throw new RuntimeCommandException('No message provided, clearing warning header message');
         }
