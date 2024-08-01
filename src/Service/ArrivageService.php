@@ -76,7 +76,7 @@ class ArrivageService {
     public FixedFieldService $fieldsParamService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FormatService $formatService;
@@ -110,7 +110,7 @@ class ArrivageService {
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
-            $this->visibleColumnService,
+            $this->fieldModesService,
             [
                 'userIdArrivalFilter' => $userIdArrivalFilter,
                 'user' => $this->security->getUser(),
@@ -199,7 +199,7 @@ class ArrivageService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $this->security->getUser());
         }
@@ -643,7 +643,7 @@ class ArrivageService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['arrival'];
+        $columnsVisible = $currentUser->getFieldModes('arrival');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
         $columns = [
@@ -690,7 +690,7 @@ class ArrivageService {
             $columns[] = ['title' =>  $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose'), 'name' => 'dropLocation'];
         }
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function sendMailForDeliveredPack(Emplacement            $location,

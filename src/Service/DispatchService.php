@@ -81,7 +81,7 @@ class DispatchService {
     public FixedFieldService $fieldsParamService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public ArrivageService $arrivalService;
@@ -144,7 +144,7 @@ class DispatchService {
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->visibleColumnService,  [
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->fieldModesService,  [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
             'fromDashboard' => $fromDashboard,
@@ -228,7 +228,7 @@ class DispatchService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $dispatch->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -677,7 +677,7 @@ class DispatchService {
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $groupedSignatureMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['dispatch'];
+        $columnsVisible = $currentUser->getFieldModes('dispatch');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, CategorieCL::DEMANDE_DISPATCH);
 
         $columns = [
@@ -719,7 +719,7 @@ class DispatchService {
             array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']);
         }
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function parseRequestForCard(Dispatch $dispatch,
@@ -2055,7 +2055,7 @@ class DispatchService {
             })
             ->values();
 
-        return $this->visibleColumnService->getArrayConfig($columns);
+        return $this->fieldModesService->getArrayConfig($columns);
     }
 
     public function getDispatchLabelData(Dispatch $dispatch, EntityManagerInterface $entityManager): array {

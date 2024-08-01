@@ -120,7 +120,7 @@ class RefArticleDataService
     public AlertService $alertService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public AttachmentService $attachmentService;
@@ -637,7 +637,7 @@ class RefArticleDataService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $refArticle->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
@@ -946,7 +946,7 @@ class RefArticleDataService
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnVisible = $currentUser->getVisibleColumns()['reference'];
+        $columnVisible = $currentUser->getFieldModes('reference');
         $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::REFERENCE_ARTICLE);
 
         $fields = self::REF_ARTICLE_FIELDS;
@@ -963,7 +963,7 @@ class RefArticleDataService
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $columnVisible);
+        return $this->fieldModesService->getArrayConfig($fields, $freeFields, $columnVisible);
     }
 
     public function getFieldTitle(string $fieldName): ?string {

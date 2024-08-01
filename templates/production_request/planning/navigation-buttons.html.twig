@@ -25,13 +25,26 @@
 
     {% if not external %}
         <div class="col-auto ml-auto">
-            <button class="btn btn-primary ml-auto launch-preparation-button" tabindex="0">
-            <span class=" d-flex align-items-center">
-                <i class="mr-2 fas fa-external-link-alt"></i>
-                <a href="{{ path('production_request_planning_external', {token}) }}" target="_blank">Lien externe</a>
-            </span>
-            </button>
+            {% include "utils/action-buttons/header-buttons.html.twig" with {
+                actions: [
+                    {
+                        hasRight: not external,
+                        title: "Lien externe",
+                        icon: "fas fa-external-link-alt",
+                        href: path('production_request_planning_external', {token}),
+                    },
+                    {
+                        title: "Gestion des champs",
+                        icon: "fa fa-cog",
+                        attributes: {
+                        "data-toggle": "modal",
+                        "data-target": "#modalFieldModes",
+                    },
+                    }
+                ]
+            } %}
         </div>
+
     {% endif %}
 {% endmacro %}
 

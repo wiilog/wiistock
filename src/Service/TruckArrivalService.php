@@ -21,7 +21,7 @@ class TruckArrivalService
 {
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public TruckArrivalLineService $truckArrivalLineService;
@@ -51,7 +51,7 @@ class TruckArrivalService
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
-        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->visibleColumnService);
+        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->fieldModesService);
         $truckArrivals = Stream::from($queryResult['data'])
             ->map(function (TruckArrival $truckArrival) use ($entityManager) {
                 return $this->dataRowTruckArrival($truckArrival, $entityManager);
@@ -144,7 +144,7 @@ class TruckArrivalService
     }
 
     public function getVisibleColumns(Utilisateur $user): array {
-        $columnsVisible = $user->getVisibleColumns()['truckArrival'];
+        $columnsVisible = $user->getFieldModes('truckArrival');
         $columns = [
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'Date de création', 'name' => 'creationDate'],
@@ -158,7 +158,7 @@ class TruckArrivalService
             ['title' => 'Réserve sur n° tracking', 'name' => 'trackingLinesReserves', 'orderable' => false,],
             ['title' => 'Transporteur', 'name' => 'carrier'],
         ];
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function createHeaderDetailsConfig(TruckArrival $truckArrival): array {

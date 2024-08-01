@@ -29,7 +29,7 @@ class EnCoursService
     public TimeService $timeService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public TranslationService $translationService;
@@ -297,7 +297,7 @@ class EnCoursService
     }
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['onGoing'];
+        $columnsVisible = $currentUser->getFieldModes('onGoing');
 
         $columns = [
             ['title' => 'Issu de', 'name' => 'origin'],
@@ -308,6 +308,6 @@ class EnCoursService
             ['title' => 'Libellé', 'name' => 'libelle', 'searchable' => true],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 }

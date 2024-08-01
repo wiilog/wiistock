@@ -13,7 +13,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Service\RefArticleDataService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,10 +28,10 @@ class FiltreRefController extends AbstractController
 {
 
     #[Route("/creer", name: "new", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
-    public function new(Request                 $request,
-                        VisibleColumnService    $visibleColumnService,
-                        RefArticleDataService   $refArticleDataService,
-                        EntityManagerInterface  $entityManager): Response {
+    public function new(Request                $request,
+                        FieldModesService      $fieldModesService,
+                        RefArticleDataService  $refArticleDataService,
+                        EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
@@ -51,7 +51,7 @@ class FiltreRefController extends AbstractController
 				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
-                    $freeFieldId = $visibleColumnService->extractFreeFieldId($field);
+                    $freeFieldId = $fieldModesService->extractFreeFieldId($field);
                     if (!empty($freeFieldId)) {
                         $champLibre = $champLibreRepository->find($freeFieldId);
                         $filter->setChampLibre($champLibre);
@@ -135,8 +135,8 @@ class FiltreRefController extends AbstractController
     }
 
     #[Route("/affiche-liste", name: "display_field_elements", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
-	public function displayFieldElements(Request $request,
-                                         VisibleColumnService $visibleColumnService,
+	public function displayFieldElements(Request                $request,
+                                         FieldModesService      $fieldModesService,
                                          EntityManagerInterface $entityManager): JsonResponse {
 		if ($data = json_decode($request->getContent(), true)) {
 			$value = $data['value'];
@@ -173,7 +173,7 @@ class FiltreRefController extends AbstractController
 				}
 			} else {
                 $champLibreRepository = $entityManager->getRepository(FreeField::class);
-                $freeFieldId = $visibleColumnService->extractFreeFieldId($value);
+                $freeFieldId = $fieldModesService->extractFreeFieldId($value);
                 if (!empty($freeFieldId)) {
                     /** @var $cl FreeField */
                     $cl = $champLibreRepository->find($freeFieldId);

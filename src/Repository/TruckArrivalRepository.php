@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -36,7 +36,7 @@ class TruckArrivalRepository extends EntityRepository
         }
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array {
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, FieldModesService $fieldModesService): array {
         $qb = $this->createQueryBuilder('truckArrival');
         $countTotal =  QueryBuilderHelper::count($qb, 'truckArrival');
 
@@ -55,7 +55,7 @@ class TruckArrivalRepository extends EntityRepository
                         "trackingLinesNumber" => "order_trackingLines.number LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'truckArrival', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'truckArrival', $qb, $user, $search);
 
                     $qb
                         ->leftJoin('truckArrival.driver', 'search_driver')

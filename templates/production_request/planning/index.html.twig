@@ -35,6 +35,35 @@
 
     {% include 'production_request/modal/updateStatus.html.twig' %}
 
+    {% include "utils/fields-modes.html.twig" with {
+        fields,
+        reload: true,
+        page: constant('App\\Controller\\FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING'),
+        config: {
+            title: 'Gestion des champs affichés',
+            columns: [
+                {
+                    type: "switch",
+                    items: [
+                        {
+                            label: "masqué",
+                            value: "",
+                            default: true,
+                        },
+                        {
+                            label: "visible",
+                            value: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                        },
+                        {
+                            label: "visible en dépliant",
+                            value: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN'),
+                        },
+                    ],
+                },
+            ],
+        }
+    } %}
+
 {% endblock %}
 
 {% block javascripts %}

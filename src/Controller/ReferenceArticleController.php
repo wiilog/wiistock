@@ -51,6 +51,7 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -462,7 +463,6 @@ class ReferenceArticleController extends AbstractController
             "fields" => $fields,
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
             'defaultLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,

@@ -22,7 +22,7 @@ use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FormatService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -724,7 +724,7 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->orderBy('order_editedBy.username', $order);
                         break;
                     default:
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
@@ -799,7 +799,7 @@ class ReferenceArticleRepository extends EntityRepository {
                         break;
                     default:
                         $field = self::DtToDbLabels[$searchableField] ?? $searchableField;
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($field);
                         $freeField = is_numeric($freeFieldId)
                             ? $freeFieldRepository->find($freeFieldId)
                             : null;
