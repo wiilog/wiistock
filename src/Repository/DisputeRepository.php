@@ -6,7 +6,7 @@ use App\Entity\Dispute;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
@@ -169,7 +169,7 @@ class DisputeRepository extends EntityRepository
         return $qb->getQuery()->execute();
     }
 
-	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user, FieldModesService $fieldModesService): array
 	{
         $qb = $this->createQueryBuilder('dispute');
 
@@ -301,7 +301,7 @@ class DisputeRepository extends EntityRepository
                         'status' => "s.nom LIKE :search_value"
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'dispute', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'dispute', $qb, $user, $search);
 				}
 			}
 

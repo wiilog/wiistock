@@ -5,7 +5,7 @@ namespace App\Repository\ShippingRequest;
 use App\Entity\Statut;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 
 class ShippingRequestRepository extends EntityRepository {
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
+    public function findByParamsAndFilters(InputBag $params, array $filters, FieldModesService $fieldModesService, array $options = []): array
     {
         $qb = $this->createQueryBuilder("shipping_request");
 
@@ -93,7 +93,7 @@ class ShippingRequestRepository extends EntityRepository {
                         "grossWeight" => "shipping_request.grossWeight LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'shippingRequest', $qb, $options['user'], $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'shippingRequest', $qb, $options['user'], $search);
 
                     $qb
                         ->leftJoin('shipping_request.status', 'search_status')

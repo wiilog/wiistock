@@ -61,7 +61,7 @@ class TrackingMovementService extends AbstractController
     public LoggerInterface $logger;
 
     private $locationClusterService;
-    private $visibleColumnService;
+    private $fieldModesService;
     private $groupService;
 
     #[Required]
@@ -92,18 +92,18 @@ class TrackingMovementService extends AbstractController
 
     public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
-                                Twig_Environment $templating,
-                                Security $security,
-                                GroupService $groupService,
-                                VisibleColumnService $visibleColumnService,
-                                AttachmentService $attachmentService)
+                                Twig_Environment       $templating,
+                                Security               $security,
+                                GroupService           $groupService,
+                                FieldModesService      $fieldModesService,
+                                AttachmentService      $attachmentService)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
-        $this->visibleColumnService = $visibleColumnService;
+        $this->fieldModesService = $fieldModesService;
         $this->groupService = $groupService;
     }
 
@@ -115,7 +115,7 @@ class TrackingMovementService extends AbstractController
         $user = $this->security->getUser();
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
 
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->fieldModesService);
 
         $mouvements = $queryResult['data'];
 
@@ -279,7 +279,7 @@ class TrackingMovementService extends AbstractController
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -694,7 +694,7 @@ class TrackingMovementService extends AbstractController
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['trackingMovement'];
+        $columnsVisible = $currentUser->getFieldModes('trackingMovement');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, CategorieCL::MVT_TRACA);
 
         $columns = [
@@ -712,7 +712,7 @@ class TrackingMovementService extends AbstractController
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur', false), 'name' => 'operator'],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function persistTrackingForArrivalPack(EntityManagerInterface $entityManager,

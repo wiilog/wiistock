@@ -19,7 +19,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -346,6 +346,7 @@ class ArticleRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $queryBuilder = $this->createQueryBuilder("article");
+        $articlePageFieldModes = $user->getFieldModes('article');
 
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -467,7 +468,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "nativeCountry":
-                                if(in_array('nativeCountry', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['nativeCountry'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->leftJoin('article.nativeCountry', 'country_search')
@@ -480,7 +481,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "deliveryNoteLine":
-                                if(in_array('deliveryNoteLine', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['deliveryNoteLine'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.deliveryNote LIKE :search')
@@ -492,7 +493,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "purchaseOrderLine":
-                                if(in_array('purchaseOrderLine', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['purchaseOrderLine'])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.purchaseOrder LIKE :search')
@@ -505,8 +506,8 @@ class ArticleRepository extends EntityRepository {
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
-                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                                if(in_array($field, $user->getVisibleColumns()['article'])){
+                                $freeFieldId = FieldModesService::extractFreeFieldId($field);
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes[$field] ?? [])){
                                     if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                         if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 
@@ -587,7 +588,7 @@ class ArticleRepository extends EntityRepository {
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                            $freeFieldId = FieldModesService::extractFreeFieldId($column);
 
                             if(is_numeric($freeFieldId)) {
                                 /** @var FreeField $freeField */
