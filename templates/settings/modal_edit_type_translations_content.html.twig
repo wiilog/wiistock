@@ -28,11 +28,12 @@
         </div>
     {% endif %}
 
-{% if type.champsLibres is not empty %}
-    <div class="wii-section-title mx-0">Champs libres</div>
-{% endif %}
+    {% set freeFields = type.freeFieldManagementRules|map((freeFieldManagementRule) => freeFieldManagementRule.freeField ) %}
+    {% if freeFields is not empty %}
+        <div class="wii-section-title mx-0">Champs libres</div>
+    {% endif %}
 
-    {% for freeField in type.champsLibres %}
+    {% for freeField in freeFields %}
         <div class="row p-2 px-3">
             <div class="col-12 col-md-6">
                 <div class="translation">

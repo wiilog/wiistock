@@ -202,7 +202,6 @@ class TypeRepository extends EntityRepository {
 
         $tableConfig = [
             ['class' => Article::class, 'where' => 'item.type = :id'],
-            ['class' => FreeField::class, 'where' => 'item.type = :id'],
             ['class' => Collecte::class, 'where' => 'item.type = :id'],
             ['class' => Demande::class, 'where' => 'item.type = :id'],
             ['class' => Dispute::class, 'where' => 'item.type = :id'],

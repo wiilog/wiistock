@@ -235,4 +235,17 @@ class FreeFieldRepository extends EntityRepository {
             ->getResult();
 	}
 
+    public function getForSelect(string $term, string $category): array {
+        return $this->createQueryBuilder("free_field")
+            ->select("free_field.id AS id")
+            ->addSelect("free_field.label AS text")
+            ->join("free_field.categorieCL", "category")
+            ->andWhere("free_field.label LIKE :term")
+            ->andWhere("category.label = :category")
+            ->setParameter("term", "%$term%")
+            ->setParameter("category", $category)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

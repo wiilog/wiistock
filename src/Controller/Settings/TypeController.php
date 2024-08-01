@@ -163,9 +163,9 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    #[Route('/verification/{type}', name: 'settings_types_check_delete', methods: ['GET'], options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
-    public function checkTypeCanBeDeleted(Type $type,
-                                          EntityManagerInterface $entityManager): Response {
+    #[Route('/verification/{type}', name: 'settings_types_check_delete', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    public function checkTypeCanBeDeleted(Type                      $type,
+                                          EntityManagerInterface    $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 

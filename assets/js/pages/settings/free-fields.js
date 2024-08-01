@@ -71,6 +71,13 @@ function generateFreeFieldForm() {
                 <select name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"></select>
             `;
         },
+    };
+}
+
+function generateFreeFieldManagementRuleForm(category) {
+    return {
+        actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+        freeField: `<label class="w-100"><select class="form-control data w-100 needed" required data-s2="freeField" data-min-length="0" data-other-params-categoryFF="${category}" name="freeField"></select></label>`,
         displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
         requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
         displayedEdit: `<input type="checkbox" name="displayedEdit" class="form-control data" data-global-error="Affiché à la modification"/>`,
@@ -88,6 +95,13 @@ function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
         {data: `minCharactersLength`, title: `Nb caractères<br><div class='wii-small-text'>(Min)</div>`, width: `10%`},
         {data: `maxCharactersLength`, title: `Nb caractères<br><div class='wii-small-text'>(Max)</div>`, width: `10%`},
         {data: `defaultValue`, title: `<div class='small-column'>Valeur par défaut</div>`, width: `8%`},
+    ];
+}
+
+function generateFreeFieldManagementRulesColumns(canEdit = true, appliesTo = false) {
+    return [
+        ...(canEdit ? [{data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false, width: `2%`}] : []),
+        {data: `freeField`, title: `<div class='small-column'>Champ Libre</div>`, width: `8%`},
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
         {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},
         {data: `displayedEdit`, title: `<div class='small-column'>Affiché à la modification</div>`, width: `8%`},
@@ -172,11 +186,11 @@ export function createProductionFreeFieldsPage($container, canEdit) {
 }
 
 export function createFreeFieldsPage($container, canEdit, mode) {
-    const category = $container.find('.management-body').data('category');
+    const category = $container.find('[name="category"]').val();
     const table = createManagementPage($container, {
-        name: `freeFields`,
         mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
+        category: category,
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit, category}, true),
             delete: {
@@ -186,11 +200,19 @@ export function createFreeFieldsPage($container, canEdit, mode) {
                 modalTitle: 'Supprimer le type',
             },
         },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
+        tableFreeFields: {
+            name: `freeFields`,
+            route: (category) => Routing.generate('settings_free_field_api', {category}, true),
             deleteRoute: `settings_free_field_delete`,
             columns: generateFreeFieldColumns(canEdit),
             form: generateFreeFieldForm(),
+        },
+        tableFreeFieldManagementRules: {
+            name: `freeFieldManagementRules`,
+            route: (type) => Routing.generate('settings_free_field_management_rule_api', {type}, true),
+            deleteRoute: `settings_free_field_management_rule_delete`,
+            columns: generateFreeFieldManagementRulesColumns(canEdit),
+            form: generateFreeFieldManagementRuleForm(category),
         },
         ...createFreeFieldsListeners($container, canEdit, mode),
     });
@@ -237,7 +259,6 @@ function createFreeFieldsListeners($container, canEdit, mode) {
     const $pageBody = $container.find('.page-body');
     const $addRow = $container.find(`.add-row`);
     const $translateLabels = $container.find('.translate-labels');
-    const tableSelector = `#${mode}-statuses-table`;
     const $modalEditTranslations = $container.find(".edit-translation-modal");
 
     if(mode) {

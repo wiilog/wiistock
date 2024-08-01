@@ -21,39 +21,69 @@ export function createManagementPage($container, config) {
         selectedEntity = $selectedEntity.attr(`value`);
     }
 
-    const $table = $container.find(`.subentities-table`);
-    const $editButton = $container.find(`.edit-button`);
+    const $tableFreeFields = $container.find(`.free-field-table`);
+    const $tableFreeFieldManagementRules = $container.find(`.free-field-management-rules-table`);
+    const $editFreeFieldButton = $container.find(`.edit-free-fields-button`);
     const $addButton = $container.find(`.add-entity`);
-    const $pageHeader = $container.find(`.management-header`);
-    const $pageBody = $container.find(`.management-body`);
+    const $boxEditFreeFields = $container.find('.box-edit-free-fields');
+    const $typeSelection = $container.find('.type-selection');
+    const $editTypeButton = $container.find('.edit-type-button');
+    const $typeIdHidden =  $container.find("[name='typeId']");
+
+    $typeIdHidden.val($container.find(`[name=entity]:checked`).val());
 
     $managementButtons.addClass('d-none');
-    $editButton.removeClass('d-none');
-    $table.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
+    $editFreeFieldButton.removeClass('d-none');
+    $tableFreeFields.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
+    $tableFreeFieldManagementRules.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
 
     loadItems($container, config, selectedEntity);
-    const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
-        name: config.name,
+    const tableFreeFields = EditableDatatable.create(`#${$tableFreeFields.attr(`id`)}`, {
+        name: config.tableFreeFields.name,
         mode: config.mode,
         save: SAVE_MANUALLY,
-        route: config.table.route(selectedEntity),
-        deleteRoute: config.table.deleteRoute,
-        form: config.table.form,
+        route: config.tableFreeFields.route(config.category),
+        deleteRoute: config.tableFreeFields.deleteRoute,
+        form: config.tableFreeFields.form,
         ordering: true,
         search: true,
         paging: true,
-        columns: config.table.columns,
-        minimumRows: config.table.minimumRows,
+        columns: config.tableFreeFields.columns,
+        minimumRows: config.tableFreeFields.minimumRows,
         onEditStart: () => {
-            $editButton.addClass('d-none');
-            $addButton.addClass('d-none');
+            $editFreeFieldButton.addClass('d-none');
             $managementButtons.removeClass('d-none');
+            $('.box-edit-type').addClass('d-none');
+        },
+        onEditStop: (apiResult) => {
+            $managementButtons.addClass('d-none');
+            $editFreeFieldButton.removeClass('d-none');
+            $('.box-edit-type').removeClass('d-none');
+        },
+    });
 
+    const tableFreeFieldManagementRules = EditableDatatable.create(`#${$tableFreeFieldManagementRules.attr(`id`)}`, {
+        name: config.tableFreeFieldManagementRules.name,
+        mode: config.mode,
+        save: SAVE_MANUALLY,
+        route: config.tableFreeFieldManagementRules.route(selectedEntity),
+        deleteRoute: config.tableFreeFieldManagementRules.deleteRoute,
+        form: config.tableFreeFieldManagementRules.form,
+        ordering: true,
+        search: true,
+        paging: true,
+        columns: config.tableFreeFieldManagementRules.columns,
+        minimumRows: config.tableFreeFieldManagementRules.minimumRows,
+        onEditStart: () => {
+            $boxEditFreeFields.addClass('d-none');
+            $managementButtons.removeClass('d-none');
+            $editTypeButton.addClass('d-none');
+            $typeSelection.addClass('d-none');
             const $itemContainer = $container.find(`.main-entity-content`);
 
             if (!$itemContainer.hasClass('main-entity-content-form')) {
                 loadItems($container, config, selectedEntity, true).then(() => {
-                    toggleCreationForm($pageHeader, $itemContainer, $itemContainer.hasClass('creation-mode'));
+                    toggleCreationForm(undefined, $itemContainer, $itemContainer.hasClass('creation-mode'));
                 });
             }
 
@@ -62,75 +92,45 @@ export function createManagementPage($container, config) {
             }
         },
         onEditStop: (apiResult) => {
+            $boxEditFreeFields.removeClass('d-none');
             $managementButtons.addClass('d-none');
-            $editButton.removeClass('d-none');
-            $addButton.removeClass(`d-none`);
+            $editTypeButton.removeClass('d-none');
+            $typeSelection.removeClass('d-none');
 
-            toggleCreationForm($pageHeader, $container.find(`.main-entity-content`), false);
-            $pageBody.find('.header').remove();
-
-            if (apiResult) { // if type was created in edit mode
-                const entity = apiResult.entity;
-                if (selectedEntity !== entity.id) {
-                    selectedEntity = entity.id;
-                    addNewEntity($container, entity);
-                    table.setURL(config.table.route(selectedEntity), true);
-                }
-            }
-
-            loadItems($container, config, selectedEntity);
-
-            $container.find(`.delete-main-entity`).removeClass(`d-none`);
-
-            if(config.onEditStop) {
+            if(config.onEditStart) {
                 config.onEditStop();
             }
         },
     });
 
-    if (config.table.hidden) {
-        const id = $table.attr(`id`);
-        $('#' + id).addClass('d-none');
-    }
-
     $container.find(`[name=entity]`).on(`change`, function () {
         selectedEntity = $(this).val();
-        loadItems($container, config, selectedEntity, table.state !== STATE_VIEWING);
-        if (table) {
-            table.setURL(config.table.route(selectedEntity))
+        $typeIdHidden.val(selectedEntity);
+        loadItems($container, config, selectedEntity, tableFreeFieldManagementRules.state !== STATE_VIEWING);
+        if (tableFreeFieldManagementRules) {
+            tableFreeFieldManagementRules.setURL(config.tableFreeFieldManagementRules.route(selectedEntity))
         }
     });
 
     $addButton.on(`click`, function() {
         selectedEntity = null;
-
-        $container.find(`.delete-main-entity`).parent().addClass(`d-none`);
-        $pageBody.removeClass('d-none');
-
-        if (config.newTitle) {
-            let $title = $pageBody.find('.wii-title')
-            if (!$title.exists()) {
-                $title = $(`<div class="header wii-title"></div>`);
-                $pageBody.prepend($title);
-            }
-            $title.html(config.newTitle);
-            $(`#page-title .bold`).text(config.newTitle);
-        }
-
-        $pageBody.find(`.main-entity-content`).addClass('creation-mode');
-        table.setURL(config.table.route(selectedEntity), false);
-        table.toggleEdit(STATE_EDIT, true);
+        $typeIdHidden.val(null);
+        tableFreeFieldManagementRules.toggleEdit(STATE_EDIT, true);
     });
 
-    $editButton.on(`click`, function () {
-        table.toggleEdit(STATE_EDIT, true);
+    $editFreeFieldButton.on(`click`, function () {
+        tableFreeFields.toggleEdit(STATE_EDIT, true);
+    });
+
+    $editTypeButton.on(`click`, function () {
+        tableFreeFieldManagementRules.toggleEdit(STATE_EDIT, true);
     });
 
     if (config.header && config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
     }
 
-    return table;
+    return tableFreeFields;
 }
 
 function loadItems($container, config, type, edit = false) {
@@ -151,14 +151,12 @@ function loadItems($container, config, type, edit = false) {
 
                     if(config.name === "alertTemplates"){
                         const $editButton = $container.find(`.edit-button`);
-                        const $pageHeader = $container.find(`.management-header div:last-child`);
                         const $addButton = $container.find(`.add-entity`);
                         const $deleteButton = $container.find('.delete-main-entity');
                         const $managementBody = $container.find('.management-body');
                         const $managementHeader = $container.find('.management-header');
 
                         $editButton.on('click', function () {
-                            $pageHeader.addClass('d-none');
                             $managementBody.css('margin-top', '0');
                             $managementBody.css('border-top-left-radius', '0').css('border-top-right-radius', '0');
                             $managementHeader.css('border-bottom-left-radius', '0').css('border-bottom-right-radius', '0');
@@ -166,7 +164,6 @@ function loadItems($container, config, type, edit = false) {
 
                         if (!Boolean(edit)) {
                             $managementBody.css('margin-top', 15);
-                            $pageHeader.removeClass('d-none');
                         }
 
                         $addButton.on('click', function(){
@@ -292,12 +289,12 @@ export function fireRemoveMainEntityButton($container, deleteConfig) {
 function toggleCreationForm($pageHeader, $form, show) {
     const $category = $form.find(`.category`);
     if (show) {
-        $pageHeader.addClass('d-none');
+        $pageHeader?.addClass('d-none');
         $form.closest('.wii-section').find('.translate-labels').addClass('d-none');
         $category.addClass('data');
     }
     else {
-        $pageHeader.removeClass('d-none');
+        $pageHeader?.removeClass('d-none');
         $category.removeClass('data');
     }
 
