@@ -1,3 +1,7 @@
+{% block stylesheets %}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
 <div class="logistic-unit-content" data-pack="{{ pack.code }}">
     <span class="wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Contenu unité logistique') }}</span>
     <div class="logistic-unit-tabs">
@@ -6,8 +10,10 @@
         <div class="logistic-unit-tab" data-target=".article-history">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des articles') }}</div>
     </div>
 
-    <div class="content track-history">
-        todo
+    <div class="content track-history history-container h-75">
+        {% include 'pack/tracking_history.html.twig' with {
+            trackingRecordsHistory: trackingRecordsHistory,
+        } %}
     </div>
 
     <div class="content current-articles d-none">
