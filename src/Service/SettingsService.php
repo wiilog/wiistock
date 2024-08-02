@@ -757,7 +757,7 @@ class SettingsService {
                     ->setLabel($item["label"])
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"])
-                        ? $categoryFFRepository->findOneBy(['label' => $item["category"]])
+                        ? $categoryFFRepository->findOneBy(['id' => $item["category"]])
                         : $categoryFF
                     )
                     ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)

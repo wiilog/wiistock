@@ -191,6 +191,7 @@ class FreeFieldRepository extends EntityRepository {
      * @return FreeField[]
      */
     public function findByFreeFieldCategoryLabels(array $categoryCLLabels, ?array $typeCategories = []): array {
+
         $queryBuilder = $this->createQueryBuilder('freeField')
             ->join('freeField.categorieCL', 'categorieCL')
             ->where('categorieCL.label IN (:categoryCLLabels)')
@@ -198,8 +199,7 @@ class FreeFieldRepository extends EntityRepository {
 
         if(!empty($typeCategories)) {
             $queryBuilder
-                ->join("freeField.type", "join_type")
-                ->join("join_type.category", "join_type_category")
+                ->join("categorieCL.categoryType", "join_type_category")
                 ->andWhere("join_type_category.label IN (:typeCategories)")
                 ->setParameter('typeCategories', $typeCategories);
         }
@@ -239,9 +239,10 @@ class FreeFieldRepository extends EntityRepository {
         return $this->createQueryBuilder("free_field")
             ->select("free_field.id AS id")
             ->addSelect("free_field.label AS text")
-            ->join("free_field.categorieCL", "category")
+            ->join("free_field.categorieCL", "category_ff")
+            ->join("category_ff.categoryType", "category_type")
             ->andWhere("free_field.label LIKE :term")
-            ->andWhere("category.label = :category")
+            ->andWhere("category_type.label = :category")
             ->setParameter("term", "%$term%")
             ->setParameter("category", $category)
             ->getQuery()

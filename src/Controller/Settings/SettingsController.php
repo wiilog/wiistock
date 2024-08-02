@@ -2493,11 +2493,19 @@ class SettingsController extends AbstractController {
                                  UserService $userService,
                                  ?Type $type = null): Response {
         $categoryCLRepository = $manager->getRepository(CategorieCL::class);
+        $categoryTypeRepository = $manager->getRepository(CategoryType::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
 
         $edit = $request->query->getBoolean("edit");
         $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
-        $categoryCL = $categoryCLRepository->findOneByLabel($request->query->get("category"));
+        $categoryType = $categoryTypeRepository->findOneBy(["label" => $request->query->get("category")]);
+
+        dump($categoryType);
+
+        $categoryCL = $categoryCLRepository->findBy(["categoryType" => $categoryType]);
+
+        dump($categoryCL);
+
         $freeFields = $freeFieldRepository->findBy(["categorieCL" => $categoryCL]);
 
         $class = "form-control data";

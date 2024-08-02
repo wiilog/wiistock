@@ -9,6 +9,7 @@ const MODE_ARRIVAL = `arrival`;
 const MODE_TRACKING = `tracking`;
 const MODE_DISPATCH = `dispatch`;
 const MODE_HANDLING = `handling`;
+const MODE_ARTICLE = `article`
 const MODE_DELIVERY_REQUEST = `delivery_request`;
 const MODE_PRODUCTION = `production`;
 
@@ -39,6 +40,8 @@ function generateFreeFieldForm() {
     const fieldTypes = Object.entries(TYPINGS)
         .reduce((acc, [name, label]) => `${acc}<option value="${name}">${label}</option>`, ``);
 
+    const freeFieldCategories = $(`#free-field-categories`).val()
+    console.log(freeFieldCategories)
     return {
         actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
         label: `<input type="text" name="label" required class="form-control data" data-global-error="Libellé"/>`,
@@ -50,6 +53,7 @@ function generateFreeFieldForm() {
         elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
         minCharactersLength: `<input type="number" name="minCharactersLength" min="1" class="form-control data d-none" data-global-error="Nb caractères min"/>`,
         maxCharactersLength: `<input type="number" name="maxCharactersLength" min="1" class="form-control data d-none" data-global-error="Nb caractères max"/>`,
+        appliesTo: freeFieldCategories ? JSON.parse(freeFieldCategories): undefined,
         defaultValue: () => {
             // executed each time we add a new row to calculate new id
             const $booleanDefaultValue = $(`<div class="wii-switch-small">${JSON.parse($(`[name=default-value-template]`).val())}</div>`);
@@ -204,7 +208,7 @@ export function createFreeFieldsPage($container, canEdit, mode) {
             name: `freeFields`,
             route: (category) => Routing.generate('settings_free_field_api', {category}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(canEdit),
+            columns: generateFreeFieldColumns(canEdit, mode === MODE_ARTICLE),
             form: generateFreeFieldForm(),
         },
         tableFreeFieldManagementRules: {
@@ -316,38 +320,7 @@ function createFreeFieldsListeners($container, canEdit, mode) {
 }
 
 export function initializeStockArticlesTypesFreeFields($container, canEdit) {
-    const category = $container.find('.management-body').data('category');
-    createManagementPage($container, {
-        name: `freeFields`,
-        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
-        newTitle: 'Ajouter un type et des champs libres',
-        header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit, category}, true),
-            delete: {
-                checkRoute: 'settings_types_check_delete',
-                selectedEntityLabel: 'type',
-                route: 'settings_types_delete',
-                modalTitle: 'Supprimer le type',
-            },
-        },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
-            deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(canEdit, true),
-            form: {
-                appliesTo: JSON.parse($(`#article-free-field-categories`).val()),
-                ...generateFreeFieldForm(),
-            },
-        },
-        onEditStop: () => {
-            $container.find(`[type=radio]:checked + label`).text($container.find(`[name="label"]`).val());
-        }
-    });
-
-    $container.on(`change`, `[name=type]`, function () {
-        onTypingChange($(this));
-    });
-    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+    createFreeFieldsPage($container, canEdit, MODE_ARTICLE);
 }
 
 export function initializeTraceMovementsFreeFields($container, canEdit) {
