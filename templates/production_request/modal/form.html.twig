@@ -11,25 +11,18 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::type').value %}
     <div class="col-6 mb-2">
         {{ form.select(fieldCode, fieldLabel, true, {
-            type: types is defined ? '' : 'productionRequestType',
+            type: 'productionRequestType',
             placeholder: 'Sélectionnez un type',
             disabled: productionRequest.id ? true : false,
             search: true,
             value: productionRequest.type ? productionRequest.type.id : null,
-            items:productionRequest.type
-                ? [
-                    {
-                        'value': productionRequest.type.id,
-                        'label':  productionRequest.type.label,
-                        'selected': true
-                    }
-                ]
-                : types is defined
-                    ? types|map(item => ({
-                        'value': item.id,
-                        'label': item.label,
-                    }))
-                    : [],
+            items:productionRequest.type ? {
+                0: {
+                    'value': productionRequest.type.id,
+                    'label':  productionRequest.type.label,
+                    'selected': true
+                }
+            } : null,
             additionalAttributes: productionRequest.type ? [] : [
                 { name: 'onChange', value: 'onProductionRequestTypeChange($(this))' },
                 { name: 'data-other-params'},
@@ -53,7 +46,9 @@
                 }]
                 : [],
             includeParams: '[name=type]',
-            additionalAttributes: [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
+            additionalAttributes: [
+                { name: 'onChange', value: 'displayAttachmentRequired($(this))' },
+            ],
         }) }}
         <div class="error-empty-status d-none">
             {% include 'utils/warningSelectEmpty.html.twig' with {

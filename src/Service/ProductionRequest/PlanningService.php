@@ -2,7 +2,7 @@
 
 namespace App\Service\ProductionRequest;
 
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
 
@@ -17,8 +17,10 @@ class PlanningService {
 
     public function createCardConfig(array $displayedFieldsConfig, ProductionRequest $productionRequest, array $fieldModes,Language|string $userLanguage, Language|string|null $defaultLanguage): array {
         $cardContent = $displayedFieldsConfig;
+        $formatService = $this->formatService;
 
-        foreach ($freeFieldsByType[$productionRequest->getType()->getId()] ?? [] as $freeField) {
+        foreach ($productionRequest->getType()->getFreeFieldManagementRules() as $freeFieldManagementRule) {
+            $freeField = $freeFieldManagementRule->getFreeField();
             $fieldName = "free_field_" . $freeField->getId();
             $fieldDisplayConfig = $this->productionRequestService->getFieldDisplayConfig($fieldName, $fieldModes);
             if ($fieldDisplayConfig) {
@@ -26,7 +28,7 @@ class PlanningService {
                     "field" => $freeField,
                     "getDetails" => static fn(ProductionRequest $productionRequest, FreeField $freeField) => [
                         "label" => $freeField->getLabelIn($userLanguage, $defaultLanguage),
-                        "value" => $this->formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
+                        "value" => $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
                     ]
                 ];
             }

@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/parametrage')]
 class FreeFieldController extends AbstractController {
 
-    #[Route('/display-require-champ', name: 'display_required_champs_libres', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/display-require-champ', name: 'display_required_champs_libres', options: ['expose' => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function displayRequiredChampsLibres(Request $request,
                                                 EntityManagerInterface $entityManager): Response
     {
