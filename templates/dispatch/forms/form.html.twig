@@ -26,7 +26,7 @@
 
 <div class="row">
     <div class="col-md-4 col-12">
-        {% set uniqueType = typeChampsLibres is defined and typeChampsLibres|length == 1 %}
+        {% set uniqueType = types is defined and types|length == 1 %}
         {{ form.select(constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH'), trans('Demande', 'Général', 'Type', false), true, {
             inputClass: 'needs-default',
             disabled: dispatch.id,
@@ -39,16 +39,16 @@
                     label:  dispatch.type|format_helper('type'),
                     selected: true,
                 }]
-                : typeChampsLibres|map(type => ({
-                    value: type.typeId,
-                    label: type.typeLabel,
+                : types|map(type => ({
+                    value: type.id,
+                    label: type | format_helper('type'),
                     selected: uniqueType,
-                    'pick-location-id': type.pickLocation.id,
-                    'pick-location-label': type.pickLocation.label,
-                    'drop-location-id': type.dropLocation.id,
-                    'drop-location-label': type.dropLocation.label,
-                    'suggested-drop-locations': type.suggestedDropLocations,
-                    'suggested-pick-locations': type.suggestedDropLocations,
+                    'pick-location-id': type.pickLocation ? type.pickLocation.id,
+                    'pick-location-label': type.pickLocation ? type.pickLocation.label,
+                    'drop-location-id': type.dropLocation ? type.dropLocation.id,
+                    'drop-location-label': type.dropLocation ? type.dropLocation.label,
+                    'suggested-drop-locations': type.suggestedDropLocations | join(''),
+                    'suggested-pick-locations': type.suggestedDropLocations| join(''),
                 })),
             attributes: {
                 'data-init': (defaultType ?? false) ? defaultType.id,
@@ -405,18 +405,15 @@
     {% endif %}
 
     <!-- CHAMPS LIBRES -->
-    {% set typeChampsLibres = typeChampsLibres ?? (dispatch.type ? [{
-        typeId: dispatch.type.id,
-        champsLibres: dispatch.type.champsLibres,
-    }] : []) %}
+    {% set types = dispatch.type ? [dispatch.type] : types %}
     <div class="col-12">
         <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
         <div class="collapsible expanded free-fields-container mb-2">
-            {% for type in typeChampsLibres %}
-                <div class="{{ typeChampsLibres|length > 1 ? ' d-none' }}"
-                     data-type="{{ type.typeId }}">
+            {% for type in types %}
+                <div class="{{ types|length > 1 ? ' d-none' }}"
+                     data-type="{{ type.id }}">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                        freeFields: type.champsLibres,
+                        freeFieldManagementRules: type.freeFieldManagementRules,
                         freeFieldValues: dispatch.freeFields,
                         colType: 'col-md-4 col-12',
                         requiredType: requiredAction,

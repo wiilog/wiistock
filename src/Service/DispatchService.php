@@ -244,7 +244,6 @@ class DispatchService {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $fieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]);
@@ -266,25 +265,7 @@ class DispatchService {
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
-            'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
-                $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
-                return [
-                    'typeLabel' => $this->formatService->type($type),
-                    'typeId' => $type->getId(),
-                    'champsLibres' => $champsLibres,
-                    'pickLocation' => [
-                        "id" => $type->getPickLocation() ? $type->getPickLocation()->getId() : null,
-                        "label" => $type->getPickLocation() ? $type->getPickLocation()->getLabel() : null,
-                    ],
-                    'dropLocation' => [
-                        "id" => $type->getDropLocation() ? $type->getDropLocation()->getId() : null,
-                        "label" => $type->getDropLocation() ? $type->getDropLocation()->getLabel() : null,
-                    ],
-                    'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
-                    'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
-                    'isDefault' => $type->isDefault(),
-                ];
-            }, $types),
+            'types' => $types,
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $packs,
             'fromArrival' => $fromArrival,
