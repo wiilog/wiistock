@@ -75,6 +75,7 @@ Encore
     .addEntry('supplier-index', './assets/js/pages/supplier/index.js')
     .addEntry('stock-movement-index', './assets/js/pages/stock-movement/index.js')
     .addEntry('nature-index', './assets/js/pages/nature/index.js')
+    .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

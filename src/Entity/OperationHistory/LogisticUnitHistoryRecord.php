@@ -2,6 +2,7 @@
 
 namespace App\Entity\OperationHistory;
 
+use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\LogisticUnitHistoryRecordRepository;
@@ -15,6 +16,9 @@ class LogisticUnitHistoryRecord extends OperationHistory {
 
     #[ORM\ManyToOne(inversedBy: 'logisticUnitHistoryRecords')]
     private ?Pack $pack = null;
+
+    #[ORM\ManyToOne]
+    private ?Emplacement $location = null;
 
     public function __construct() {
         $this->attachments = new ArrayCollection();
@@ -33,6 +37,18 @@ class LogisticUnitHistoryRecord extends OperationHistory {
 
         $this->pack = $pack;
         $pack?->addLogisticUnitHistoryRecord($this);
+
+        return $this;
+    }
+
+    public function getLocation(): ?Emplacement
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?Emplacement $location): self
+    {
+        $this->location = $location;
 
         return $this;
     }
