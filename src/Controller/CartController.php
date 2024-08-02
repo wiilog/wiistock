@@ -44,31 +44,9 @@ class CartController extends AbstractController {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
-        $deliveryFreeFields = [];
-        foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-
-            $deliveryFreeFields[] = [
-                "typeLabel" => $type->getLabel(),
-                "typeId" => $type->getId(),
-                "champsLibres" => $champsLibres,
-            ];
-        }
-
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-
-        $collectFreeFields = [];
-        foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
-
-            $collectFreeFields[] = [
-                "typeLabel" => $type->getLabel(),
-                "typeId" => $type->getId(),
-                "champsLibres" => $champsLibres,
-            ];
-        }
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
         $referencesByBuyer = [];
         foreach($currentUser->getCart()->getReferences() as $reference) {
@@ -122,8 +100,8 @@ class CartController extends AbstractController {
             "collectRequests" => $collectRequests,
             "purchaseRequests" => $purchaseRequests,
             "defaultDeliveryLocations" => $defaultDeliveryLocations,
-            "deliveryFreeFieldsTypes" => $deliveryFreeFields,
-            "collectFreeFieldsTypes" => $collectFreeFields,
+            "deliveryTypes" => $deliveryTypes,
+            "collectTypes" => $collectTypes,
             "referencesByBuyer" => $referencesByBuyer,
             "deliveryFieldsParam" => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             "showTargetLocationPicking" => $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
