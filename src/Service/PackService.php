@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Reception;
@@ -680,5 +681,26 @@ class PackService {
             'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null,
             'typeLogoArrivalUl' => $typeLogoPath,
         ];
+    }
+
+    public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
+                                                     Pack                   $logisticUnit,
+                                                     string                 $message,
+                                                     DateTime               $historyDate,
+                                                     Utilisateur            $user,
+                                                     string                 $type,
+                                                     Emplacement            $location = null): void
+    {
+
+        $logisticUnitHistoryRecord = (new LogisticUnitHistoryRecord())
+            ->setMessage($message)
+            ->setPack($logisticUnit)
+            ->setStatusDate($historyDate)
+            ->setDate($historyDate)
+            ->setType($type)
+            ->setLocation($location)
+            ->setUser($user);
+
+        $entityManager->persist($logisticUnitHistoryRecord);
     }
 }

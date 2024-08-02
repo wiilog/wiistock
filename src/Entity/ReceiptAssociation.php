@@ -61,7 +61,7 @@ class ReceiptAssociation {
         return $this;
     }
 
-    public function serialize(Utilisateur $user = null, FormatService $formatService): array {
+    public function serialize(FormatService $formatService, Utilisateur $user = null): array {
         return [
             'creationDate' => $formatService->datetime($this->getCreationDate(), "", false, $user),
             'packCode' => Stream::From($this->getLogisticUnits())->map(static fn(Pack $logisticUnits) => $logisticUnits->getCode())->join(', ') ?? '',
