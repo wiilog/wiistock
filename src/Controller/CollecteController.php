@@ -75,23 +75,13 @@ class CollecteController extends AbstractController
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
         $restrictedResults = $paramGlobalRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
-		$typeChampLibre = [];
-		foreach ($types as $type) {
-			$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
 
-			$typeChampLibre[] = [
-				'typeLabel' => $type->getLabel(),
-				'typeId' => $type->getId(),
-				'champsLibres' => $champsLibres,
-			];
-		}
         $typesForModal = Stream::from($types)
             ->filter(static fn(Type $type) => $type->isActive())
             ->toArray();
 
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
-			'typeChampsLibres' => $typeChampLibre,
 			'types' => $types,
 			'typesForModal' => $typesForModal,
 			'filterStatus' => $filter,
@@ -348,26 +338,9 @@ class CollecteController extends AbstractController
             $settingRepository = $entityManager->getRepository(Setting::class);
 
             $collecte = $collecteRepository->find($data['id']);
-			$listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-
-			$typeChampLibre = [];
-            $freeFieldsGroupedByTypes = [];
-
-			foreach ($listTypes as $type) {
-				$collectFreeFields = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
-				$typeChampLibre[] = [
-					'typeLabel' => $type->getLabel(),
-					'typeId' => $type->getId(),
-					'champsLibres' => $collectFreeFields,
-				];
-                $freeFieldsGroupedByTypes[$type->getId()] = $collectFreeFields;
-			}
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
-				'typeChampsLibres' => $typeChampLibre,
-                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             ]);
 

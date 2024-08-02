@@ -53,11 +53,11 @@ class HandlingController extends AbstractController {
     #[Route("/", name: "handling_index", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
     public function index(EntityManagerInterface $entityManager,
-                          Request $request,
-                          StatusService $statusService,
-                          HandlingService $handlingService,
-                          TranslationService $translationService,
-                          LanguageService $languageService): Response {
+                          Request                $request,
+                          StatusService          $statusService,
+                          HandlingService        $handlingService,
+                          TranslationService     $translationService,
+                          LanguageService        $languageService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -121,14 +121,7 @@ class HandlingController extends AbstractController {
             'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
-                'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
-                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
-                    return [
-                        'typeLabel' => $this->getFormatter()->type($type),
-                        'typeId' => $type->getId(),
-                        'freeFields' => $freeFields,
-                    ];
-                }, $types),
+                'types' => $types,
                 'handlingTypes' => Stream::from($types)
                     ->filter(static fn(Type $type) => $type->isActive())
                     ->toArray(),
@@ -552,10 +545,8 @@ class HandlingController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::EDIT])]
     public function editHandling(Handling               $handling,
                                  EntityManagerInterface $entityManager): Response {
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $freeFields = $freeFieldRepository->findByType($handling->getType());
         $emergencies = Stream::from($fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY))
             ->map(fn($emergency) => [
                 "label" => $emergency,
@@ -574,7 +565,6 @@ class HandlingController extends AbstractController {
 
         return $this->render('handling/editHandling.html.twig', [
             'handling' => $handling,
-            'freeFields' => $freeFields,
             'submit_url' => $this->generateUrl('handling_edit', ['id' => $handling->getId()]),
             'emergencies' => $emergencies,
             'fieldsParam' => $fieldsParam,
