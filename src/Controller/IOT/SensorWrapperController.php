@@ -33,20 +33,10 @@ class SensorWrapperController extends AbstractController
     #[Route('/liste', name: 'sensor_wrapper_index')]
     #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function index(EntityManagerInterface $entityManager): Response {
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-
         $types = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::SENSOR]);
 
         return $this->render('IOT/sensor_wrapper/index.html.twig', [
-            'freeFieldsTypes' => Stream::from($types)->map(function (Type $type) use ($freeFieldsRepository) {
-                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::SENSOR);
-
-                return [
-                    'typeLabel' => $type->getLabel(),
-                    'typeId' => $type->getId(),
-                    'freeFields' => $freeFields,
-                ];
-            })
+            'types' => $types,
         ]);
     }
 

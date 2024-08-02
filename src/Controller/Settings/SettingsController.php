@@ -366,7 +366,10 @@ class SettingsController extends AbstractController {
                             "label" => "Configurations",
                             "save" => true,
                         ],
-                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
+                        self::MENU_FREE_FIELDS => [
+                            "label" => "Champs libres",
+                            "wrapped" => false,
+                        ],
                     ],
                 ],
                 self::MENU_HANDLINGS => [
@@ -521,6 +524,7 @@ class SettingsController extends AbstractController {
                 self::MENU_TYPES_FREE_FIELDS => [
                     "right" => Action::SETTINGS_DISPLAY_IOT,
                     "label" => "Types et champs libres",
+                    "wrapped" => false,
                 ],
             ],
         ],
@@ -1530,6 +1534,7 @@ class SettingsController extends AbstractController {
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
+                        "category" => CategoryType::MOUVEMENT_TRACA,
                     ],
                 ],
                 self::MENU_EMERGENCIES => [
@@ -1739,6 +1744,7 @@ class SettingsController extends AbstractController {
                     $types[0]["checked"] = true;
 
                     return [
+                        "category" => CategoryType::SENSOR,
                         "types" => $types,
                     ];
                 },

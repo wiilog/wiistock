@@ -71,7 +71,7 @@
                         <div class="row main-entity-content"></div>
                     </div>
                 {% else %}
-                    {{ form.hidden('label', type.label) }}
+                    {{ form.hidden('label') }}
                 {% endif %}
                 {{ form.hidden('typeId') }}
                 {% if can_edit %}
