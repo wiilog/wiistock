@@ -51,27 +51,31 @@
                 {% endif %}
             </div>
             <div class="row management-body">
-                {% if can_edit %}
-                <div class="translate-labels d-none ml-auto mr-2">
-                    <button class="translate-labels-button btn btn-primary d-flex align-items-center">
-                        <span class="wii-icon wii-icon-translate-white mr-2 wh-18px"></span>Traduction des libellés
-                    </button>
-                </div>
-                {% endif %}
-                <div class="wii-section-title col-12 mt-3">Informations du type</div>
-                {% if can_edit %}
-                    <div class="col-auto pt-3">
-                        <button class="btn btn-silent delete-main-entity" style="margin-top: 5px">
-                            <i class="wii-icon wii-icon-trash text-primary"></i>
+                {% if not (hideType ?? false) %}
+                    {% if can_edit %}
+                    <div class="translate-labels d-none ml-auto mr-2">
+                        <button class="translate-labels-button btn btn-primary d-flex align-items-center">
+                            <span class="wii-icon wii-icon-translate-white mr-2 wh-18px"></span>Traduction des libellés
                         </button>
                     </div>
+                    {% endif %}
+                    <div class="wii-section-title col-12 mt-3">Informations du type</div>
+                    {% if can_edit %}
+                        <div class="col-auto pt-3">
+                            <button class="btn btn-silent delete-main-entity" style="margin-top: 5px">
+                                <i class="wii-icon wii-icon-trash text-primary"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                    <div class="col">
+                        <div class="row main-entity-content"></div>
+                    </div>
+                {% else %}
+                    {{ form.hidden('label', type.label) }}
                 {% endif %}
-                <div class="col">
-                    {{ form.hidden('typeId') }}
-                    <div class="row main-entity-content"></div>
-                </div>
+                {{ form.hidden('typeId') }}
                 {% if can_edit %}
-                    <div class="col-auto pt-2">
+                    <div class="col-auto pt-2 {{ (hideType ?? false) ? "ml-auto" }}">
                         <button class="btn btn-primary edit-type-button">
                             <i class="fa fa-pen mr-2"></i> Modifier
                         </button>

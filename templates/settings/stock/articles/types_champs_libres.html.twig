@@ -24,5 +24,8 @@
 {% endblock %}
 
 {% block footer %}
+    {% include 'settings/modal_edit_translations.html.twig' with {
+        large: true,
+    } %}
     <input type="hidden" id="free-field-categories" value="{{ categories | json_encode }}">
 {% endblock %}

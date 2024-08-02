@@ -1,17 +1,29 @@
+{% extends 'settings/types_and_free_fields_template.html.twig' %}
+
 {% import 'form.html.twig' as form %}
 
-<div class="wii-section">
-    <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
-            Les champs libres permettent de personnaliser votre application à votre contexte d'utilisation
-        </div>
+{% set hideType = true %}
+
+{% block typesDescription %}
+    Les champs libres permettent de personnaliser votre application à votre contexte d'utilisation
+{% endblock %}
+
+{% block typesTitle %}
+    Utilisation des champs libres
+{% endblock %}
+
+{% block filters %}
+    <div class="d-none">
+        {% set types = [{
+            label: type.label,
+            value: type.id,
+            checked: true
+        }] %}
+        {{ form.switch('entity', null, false, types, {expanded: true}) }}
     </div>
+{% endblock %}
 
-    <table id="table-reception-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}" data-category="{{ constant('App\\Entity\\CategoryType::RECEPTION') }}"></table>
 
-    <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
-        {label: 'Oui', value: '1'},
-        {label: 'Non', value: '0'},
-        {label: 'Aucune', value: null, checked: true},
-    ]) | json_encode }}">
-</div>
+{% block footer %}
+    <input type="hidden" id="free-field-categories" value="{{ [category] | json_encode }}">
+{% endblock %}

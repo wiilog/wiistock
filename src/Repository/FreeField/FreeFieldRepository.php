@@ -160,15 +160,14 @@ class FreeFieldRepository extends EntityRepository {
      * @param int|Type $typeId
      * @return FreeField[]
      */
-    public function findByType($typeId) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\FreeField\FreeField c
-            WHERE c.type = :typeId"
-        )->setParameter('typeId', $typeId);
-
-        return $query->execute();
+    public function findByType($typeId): array {
+        $queryBuilder = $this->createQueryBuilder('free_field');
+        return $queryBuilder
+            ->join("free_field.freeFieldManagementRules", "free_field_management_rules")
+            ->andWhere($queryBuilder->expr()->eq('free_field_management_rules.type', ':typeId'))
+            ->setParameter('typeId', $typeId)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

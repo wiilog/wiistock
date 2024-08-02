@@ -277,7 +277,7 @@ class SettingsController extends AbstractController {
                             "label" => "Réceptions - Champs fixes",
                             "save" => true,
                         ],
-                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
+                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres",  "wrapped" => false,],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => [
                             "label" => "Litiges - Types",
@@ -1306,6 +1306,7 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
+                        "category" => CategoryType::RECEPTION,
                         "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],

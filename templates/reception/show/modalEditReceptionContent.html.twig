@@ -230,8 +230,7 @@
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
     {% include 'free_field/freeFieldsEdit.html.twig' with {
-        freeFields: freeFieldsGroupedByTypes,
-        freeFieldValues: reception.freeFields,
+        freeFieldManagementRules: reception.type.freeFieldManagementRules,
         colType: 'col-md-4 col-12',
         requiredType: 'requiredEdit',
         actionType: 'edit'

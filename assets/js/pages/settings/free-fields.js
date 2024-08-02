@@ -13,6 +13,7 @@ const MODE_HANDLING = `handling`;
 const MODE_ARTICLE = `article`
 const MODE_DELIVERY_REQUEST = `delivery_request`;
 const MODE_PRODUCTION = `production`;
+const MODE_RECEPTION = `reception`;
 
 const TEXT_TYPING = `text`;
 const NUMBER_TYPING = `number`;
@@ -350,33 +351,33 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
 }
 
 export function initializeReceptionsFreeFields($container, canEdit) {
-    $saveButton.addClass('d-none');
+    createFreeFieldsPage($container, canEdit, MODE_RECEPTION);
 
-    const table = EditableDatatable.create(`#table-reception-free-fields`, {
-        route: Routing.generate(`settings_free_field_api`, {
-            type: $(`#table-reception-free-fields`).data(`type`),
-        }),
-        deleteRoute: `settings_free_field_delete`,
-        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        search: true,
-        paging: true,
-        onEditStart: () => {
-            $saveButton.removeClass('d-none');
-            $discardButton.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $saveButton.removeClass('d-none');
-            $discardButton.removeClass('d-none');
-        },
-        columns: generateFreeFieldColumns(canEdit),
-        form: generateFreeFieldForm(),
-    });
-
-    $container.on(`change`, `[name=type]`, function () {
-        onTypingChange($(this));
-    });
-    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+    // const table = EditableDatatable.create(`#table-reception-free-fields`, {
+    //     route: Routing.generate(`settings_free_field_api`, {
+    //         type: $(`#table-reception-free-fields`).data(`type`),
+    //     }),
+    //     deleteRoute: `settings_free_field_delete`,
+    //     mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+    //     save: SAVE_MANUALLY,
+    //     search: true,
+    //     paging: true,
+    //     onEditStart: () => {
+    //         $saveButton.removeClass('d-none');
+    //         $discardButton.removeClass('d-none');
+    //     },
+    //     onEditStop: () => {
+    //         $saveButton.removeClass('d-none');
+    //         $discardButton.removeClass('d-none');
+    //     },
+    //     columns: generateFreeFieldColumns(canEdit),
+    //     form: generateFreeFieldForm(),
+    // });
+    //
+    // $container.on(`change`, `[name=type]`, function () {
+    //     onTypingChange($(this));
+    // });
+    // $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 
 export function initializeIotFreeFields($container, canEdit) {

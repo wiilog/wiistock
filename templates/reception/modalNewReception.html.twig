@@ -222,17 +222,15 @@
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container">
-                    {% for type in typeChampLibres %}
-                        <div data-type="{{ type.typeId }}">
-                            {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                freeFields: type.champsLibres,
-                                freeFieldValues: [],
-                                colType: 'col-md-4 col-12',
-                                requiredType: 'requiredCreate',
-                                actionType: 'new'
-                            } %}
-                        </div>
-                    {% endfor %}
+                    <div data-type="{{ type.id }}">
+                        {% include 'free_field/freeFieldsEdit.html.twig' with {
+                            freeFieldManagementRules: type.freeFieldManagementRules,
+                            freeFieldValues: [],
+                            colType: 'col-md-4 col-12',
+                            requiredType: 'requiredCreate',
+                            actionType: 'new'
+                        } %}
+                    </div>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

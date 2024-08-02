@@ -100,9 +100,9 @@
                                     onchange="onRequestTypeChange($(this))"
                                     disabled>
                                 <option>&nbsp;</option>
-                                {% set uniqueType = typeChampsLibres | length == 1  %}
-                                {% for type in typeChampsLibres %}
-                                    <option value="{{ type.typeId }}" {{ uniqueType ? "selected" }} >{{ type.typeLabel }} </option>
+                                {% set uniqueType = typesDL | length == 1  %}
+                                {% for type in typesDL %}
+                                    <option value="{{ type.id }}" {{ uniqueType ? "selected" }} >{{ type.label }} </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -149,11 +149,11 @@
 
                     <span class="toggle-collapsible expanded">Champs libres</span>
                     <div class="collapsible expanded free-fields-container mb-2">
-                        {% for type in typeChampsLibres %}
+                        {% for type in typesDL %}
                             <div class="d-none"
-                                 data-type="{{ type.typeId }}">
+                                 data-type="{{ type.id }}">
                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                    freeFields: type.champsLibres,
+                                    freeFieldManagementRules: type.freeFieldManagementRules,
                                     freeFieldValues: [],
                                     colType: 'col-md-4 col-12',
                                     requiredType: 'requiredCreate',
