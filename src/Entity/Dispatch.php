@@ -732,14 +732,14 @@ class Dispatch extends StatusHistoryContainer implements AttachmentContainer {
     public function serialize(FormatService $formatService): array {
         return [
             FixedFieldEnum::createdAt->value => $formatService->date($this->getCreationDate()),
-            FixedFieldEnum::status->value => $this->getStatut()->getCode(),
+            FixedFieldEnum::status->value => $this->getStatut()?->getCode(),
             FixedFieldEnum::type->value => $this->getType()->getLabel(),
             FixedFieldEnum::number->value => $this->getNumber(),
-            FixedFieldEnum::pickLocation->value => $this->getLocationFrom()->getLabel(),
-            FixedFieldEnum::dropLocation->value => $this->getLocationTo()->getLabel(),
+            FixedFieldEnum::pickLocation->value => $this->getLocationFrom()?->getLabel(),
+            FixedFieldEnum::dropLocation->value => $this->getLocationTo()?->getLabel(),
             FixedFieldEnum::comment->value => $this->getCommentaire(),
             FixedFieldEnum::emergency->value => $this->getEmergency(),
-            FixedFieldEnum::requester->value => $this->getRequester()->getUsername(),
+            FixedFieldEnum::requester->value => $this->getRequester()?->getUsername(),
         ];
     }
 }
