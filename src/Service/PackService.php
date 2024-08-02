@@ -161,6 +161,9 @@ class PackService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
+            'contentPack' => $this->templating->render('pack/content-pack-column.html.twig', [
+                'pack' => $pack,
+            ]),
             'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
                 "pack" => $pack,
             ]),
