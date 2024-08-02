@@ -653,21 +653,13 @@ class ArticleController extends AbstractController {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
-
-        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
-        $freeFieldsGroupedByTypes = [];
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
-        }
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/form/edit.html.twig", [
             "article" => $article,
             "submit_url" => $this->generateUrl("article_edit"),
-            "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "hasMovements" => $hasMovements,
             "fieldsParam" => $fieldsParam,
         ]);
@@ -682,15 +674,10 @@ class ArticleController extends AbstractController {
             ? $referenceArticleRepository->find($request->query->get('referenceId'))
             : null;
 
-        $freeFields = [];
-        if($reference) {
-            $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($reference->getType(), CategorieCL::ARTICLE);
-        }
-
         return $this->json([
             'success' => true,
             'template' => $this->renderView('article/form/free-fields.html.twig', [
-                'freeFields' => $freeFields
+                'type' => $reference?->getType(),
             ]),
             'type' => $reference?->getType()?->getLabel()
         ]);
