@@ -4,6 +4,7 @@ import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY}
 import Form from '@app/form';
 import AJAX, {GET, POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {generateRandomNumber} from "@app/utils";
 
 const MODE_ARRIVAL = `arrival`;
 const MODE_TRACKING = `tracking`;
@@ -61,7 +62,7 @@ function generateFreeFieldForm() {
                 const $input = $(this);
                 const $label = $booleanDefaultValue.find(`[for=${$input.attr(`id`)}]`);
 
-                const id = `defaultValue-${Math.floor(Math.random() * 1000000)}`;
+                const id = `defaultValue-${generateRandomNumber()}`;
                 $input.attr(`id`, id);
                 $label.attr(`for`, id);
             });
@@ -81,7 +82,7 @@ function generateFreeFieldForm() {
 function generateFreeFieldManagementRuleForm(category) {
     return {
         actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-        freeField: `<label class="w-100"><select class="form-control data w-100 needed" required data-s2="freeField" data-min-length="0" data-other-params-categoryFF="${category}" name="freeField"></select></label>`,
+        freeField: `<label class="w-100"><select class="form-control data w-100 needed" required data-s2="freeField" data-min-length="0" data-other-params-category-ff="${category}" name="freeField"></select></label>`,
         displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
         requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
         displayedEdit: `<input type="checkbox" name="displayedEdit" class="form-control data" data-global-error="Affiché à la modification"/>`,
@@ -399,14 +400,19 @@ export function initializeIotFreeFields($container, canEdit) {
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 function updateCheckedType($container) {
+    const $typeIdHidden =  $container.find("[name='typeId']");
+    if (!$typeIdHidden.val()) {
+        window.location.reload();
+    }
+
     const $radio = $container.find(`[type=radio]:checked + label`);
     const $radioWrapper = $('<span />', {
         text: $container.find(`[name="label"]`).val(),
         class: 'd-inline-flex align-items-center'
     });
     $radio.html($radioWrapper);
-
-    $radioWrapper.text($container.find(`[name="label"]`).val());
+    const label = `<div class="mr-2 dt-type-color" style="background: ${$container.find(`[name="color"]`).val()}"></div>${$container.find(`[name="label"]`).val()}`
+    $radioWrapper.html(label);
     const $logo = $container.find(`[name="logo"]`);
     const $logoPreview = $logo.siblings('.preview-container').find('.image');
     if ($logo.exists() && $logoPreview.exists() && $logoPreview.attr('src')) {

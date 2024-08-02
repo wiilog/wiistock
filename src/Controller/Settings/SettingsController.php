@@ -2487,7 +2487,7 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    #[Route('/champs-libres/api', name: 'settings_free_field_api', options: ['expose' => true])]
+    #[Route('/champs-libres/api', name: 'settings_free_field_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function freeFieldApi(Request $request,
                                  EntityManagerInterface $manager,
                                  UserService $userService,
@@ -2500,12 +2500,7 @@ class SettingsController extends AbstractController {
         $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
         $categoryType = $categoryTypeRepository->findOneBy(["label" => $request->query->get("category")]);
 
-        dump($categoryType);
-
         $categoryCL = $categoryCLRepository->findBy(["categoryType" => $categoryType]);
-
-        dump($categoryCL);
-
         $freeFields = $freeFieldRepository->findBy(["categorieCL" => $categoryCL]);
 
         $class = "form-control data";
@@ -2661,7 +2656,7 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    #[Route('/champs-libres/api/{type}', name: 'settings_free_field_management_rule_api', options: ['expose' => true])]
+    #[Route('/champs-libres-regle-de-gestion/api/{type}', name: 'settings_free_field_management_rule_api', options: ['expose' => true])]
     public function freeFieldManagementRulesApi(Request                $request,
                                                 FormService            $formService,
                                                 FormatService          $formatService,
@@ -2676,10 +2671,11 @@ class SettingsController extends AbstractController {
         $freeFieldFieldManagementRules = $type ? $type->getFreeFieldManagementRules() : [];
         foreach ($freeFieldFieldManagementRules as $freeFieldFieldManagementRule) {
             if ($edit) {
-                $displayedCreate = $freeFieldFieldManagementRule->isDisplayedCreate() ? "checked" : "";
-                $requiredCreate = $freeFieldFieldManagementRule->isRequiredCreate() ? "checked" : "";
-                $displayedEdit = $freeFieldFieldManagementRule->isDisplayedEdit() ? "checked" : "";
-                $requiredEdit = $freeFieldFieldManagementRule->isRequiredEdit() ? "checked" : "";
+                $checked = "checked";
+                $displayedCreate = $freeFieldFieldManagementRule->isDisplayedCreate() ? $checked : "";
+                $requiredCreate = $freeFieldFieldManagementRule->isRequiredCreate() ? $checked : "";
+                $displayedEdit = $freeFieldFieldManagementRule->isDisplayedEdit() ? $checked : "";
+                $requiredEdit = $freeFieldFieldManagementRule->isRequiredEdit() ? $checked : "";
                 $rows[] = [
                     "actions" => "<input type='hidden' class='$class' name='id' value='{$freeFieldFieldManagementRule->getId()}'>
                         <button class='btn btn-silent delete-row' data-id='{$freeFieldFieldManagementRule->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
@@ -2688,7 +2684,7 @@ class SettingsController extends AbstractController {
                         "search" => false,
                         "additionalAttributes" => [
                             ["name" => "data-other-params"],
-                            ["name" => "data-other-params-categoryFF", "value" => $freeFieldFieldManagementRule->getFreeField()->getCategorieCL()->getLabel()],
+                            ["name" => "data-other-params-category-ff", "value" => $freeFieldFieldManagementRule->getFreeField()->getCategorieCL()->getLabel()],
                             ["name" => "data-min-length", "value" => 0],
                         ],
                         "items" => [
@@ -2777,7 +2773,7 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    #[Route('/champ-libre-du-type/supprimer/{entity}', name: 'settings_free_field_management_rule_delete', options: ['expose' => true])]
+    #[Route('/champ-libre-du-type/supprimer/{entity}', name: 'settings_free_field_management_rule_delete', options: ['expose' => true], methods: [self::POST])]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteFreeFieldManagementRule(EntityManagerInterface $manager, FreeFieldManagementRule $entity): Response {
         $manager->remove($entity);

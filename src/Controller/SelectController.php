@@ -833,7 +833,7 @@ class SelectController extends AbstractController {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $term = $request->query->get("term", "");
-        $category = $request->query->get("categoryff");
+        $category = $request->query->get("category-ff");
         $freeFields = $freeFieldRepository->getForSelect($term, $category);
         return $this->json([
             "results" => $freeFields,

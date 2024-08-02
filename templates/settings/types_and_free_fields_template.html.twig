@@ -5,7 +5,11 @@
         {{ form.hidden('category', category) }}
     {% endif %}
     <div class="wii-box mt-15px box-edit-free-fields">
-        <div class="header wii-title">{% block freeFieldsTitle %}Champs libres{% endblock %}</div>
+        <div class="header wii-title">
+            {% block freeFieldsTitle %}
+                Champs libres
+            {% endblock %}
+        </div>
         <div class="focus-shadow p-3">
             <div class="row">
                 {% set description = block('freeFieldsDescription') ?? '' %}
@@ -37,7 +41,9 @@
                         {{ description | raw }}
                     </div>
                 {% endif %}
-                <div class="col">{% block filters %}{% endblock %}</div>
+                <div class="col">
+                    {% block filters %}{% endblock %}
+                </div>
                 {% if can_edit %}
                     <div class="ml-auto col-auto">
                         {% block button %}{% endblock %}
@@ -81,6 +87,11 @@
         </div>
     </div>
     {% include 'settings/common/delete-entity.html.twig' %}
+    <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
+        {label: 'Oui', value: '1'},
+        {label: 'Non', value: '0'},
+        {label: 'Aucune', value: null, checked: true},
+    ]) | json_encode }}">
 </div>
 
 {% block footer %}

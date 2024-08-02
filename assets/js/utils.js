@@ -351,3 +351,7 @@ export function togglePrintButton(datatable, $printButton, filledFilters) {
         .toggleClass(`has-tooltip`, disablePrintButton)
         .tooltip(disablePrintButton ? undefined : 'dispose');
 }
+
+export function generateRandomNumber() {
+    return Math.floor(Math.random() * 1000000);
+}

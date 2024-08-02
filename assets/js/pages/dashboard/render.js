@@ -1,4 +1,5 @@
 import {initDataTable} from "@app/datatable";
+import {generateRandomNumber} from "@app/utils";
 
 let currentChartsFontSize;
 let fontSizeYAxes;
@@ -456,7 +457,7 @@ function createLatePacksElement(data) {
 
     generateEditor(data, numberingConfig, [1, 2, 3]);
 
-    const table = `<table class="table display retards-table" id="${Math.floor(Math.random() * Math.floor(10000))}"></table>`;
+    const table = `<table class="table display retards-table" id="${generateRandomNumber()}"></table>`;
     let content = table;
     if ($('.modal.show').exists()) {
         content = `

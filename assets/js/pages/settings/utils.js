@@ -1,6 +1,7 @@
 import EditableDatatable, {SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "@app/editatable";
 import Flash from "@app/flash";
 import Routing from '@app/fos-routing';
+import {generateRandomNumber} from "@app/utils";
 
 global.toggleFrequencyInput = toggleFrequencyInput;
 
@@ -34,8 +35,8 @@ export function createManagementPage($container, config) {
 
     $managementButtons.addClass('d-none');
     $editFreeFieldButton.removeClass('d-none');
-    $tableFreeFields.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
-    $tableFreeFieldManagementRules.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
+    $tableFreeFields.attr(`id`, `table-${generateRandomNumber()}`);
+    $tableFreeFieldManagementRules.attr(`id`, `table-${generateRandomNumber()}`);
 
     loadItems($container, config, selectedEntity);
     const tableFreeFields = EditableDatatable.create(`#${$tableFreeFields.attr(`id`)}`, {
@@ -66,7 +67,7 @@ export function createManagementPage($container, config) {
         name: config.tableFreeFieldManagementRules.name,
         mode: config.mode,
         save: SAVE_MANUALLY,
-        route: config.tableFreeFieldManagementRules.route(selectedEntity),
+        route: config.tableFreeFieldManagementRules.route($typeIdHidden.val()),
         deleteRoute: config.tableFreeFieldManagementRules.deleteRoute,
         form: config.tableFreeFieldManagementRules.form,
         ordering: true,
@@ -115,6 +116,9 @@ export function createManagementPage($container, config) {
     $addButton.on(`click`, function() {
         selectedEntity = null;
         $typeIdHidden.val(null);
+        if (tableFreeFieldManagementRules) {
+            tableFreeFieldManagementRules.setURL(config.tableFreeFieldManagementRules.route(selectedEntity))
+        }
         tableFreeFieldManagementRules.toggleEdit(STATE_EDIT, true);
     });
 
@@ -310,7 +314,7 @@ function addNewEntity($container, entity) {
             .trigger('change');
     }
     else {
-        const inputId = `entity-${Math.floor(Math.random() * 1000000)}`;
+        const inputId = `entity-${generateRandomNumber()}`;
         const $newEntity = $(`
             <input type="radio" id="${inputId}" name="entity" value="${entity.id}" class="data" checked>
             <label for="${inputId}">
