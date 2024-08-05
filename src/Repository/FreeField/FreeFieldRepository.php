@@ -43,21 +43,6 @@ class FreeFieldRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function getByCategoryTypeAndCategoryCL(string $typeCategory, CategorieCL $ffCategory): array {
-        return $this->createQueryBuilder("f")
-            ->select("f.id AS id")
-            ->addSelect("f.label AS label")
-            ->addSelect("f.typage AS typage")
-            ->join("f.type", "t")
-            ->join("t.category", "c")
-            ->where("c.label = :type")
-            ->andWhere("f.categorieCL = :category")
-            ->setParameter("type", $typeCategory)
-            ->setParameter("category", $ffCategory)
-            ->getQuery()
-            ->getResult();
-    }
-
     /**
      * @return FreeField[]
      */
@@ -75,46 +60,6 @@ class FreeFieldRepository extends EntityRepository {
             ->getResult();
     }
 
-    /**
-     * @param string $label
-     * @return FreeField|null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByLabel($label): ?FreeField {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT cl
-            FROM App\Entity\FreeField\FreeField cl
-            WHERE cl.label LIKE :label
-            "
-        )->setParameter('label', $label);
-        return $query->getOneOrNullResult();
-    }
-
-    public function countByType($typeId) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(cl)
-            FROM App\Entity\FreeField\FreeField cl
-            WHERE cl.type = :typeId
-           "
-        )->setParameter('typeId', $typeId);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countByLabel($label) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(cl)
-            FROM App\Entity\FreeField\FreeField cl
-            WHERE cl.label LIKE :label
-           "
-        )->setParameter('label', $label);
-
-        return $query->getSingleScalarResult();
-    }
-
     public function findByTypeAndCategorieCLLabel(Type|array $types, string $freeFieldCategoryLabel): mixed {
         $types = is_array($types) ? $types : [$types];
         $typeIds = Stream::from($types)->map(fn(Type $type) => $type->getId())->toArray();
@@ -130,30 +75,6 @@ class FreeFieldRepository extends EntityRepository {
             ->setParameter('freeFieldCategoryLabel', $freeFieldCategoryLabel)
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * @param Type $type
-     * @param string $categorieCLLabel
-     * @param bool $creation
-     * @return FreeField[]
-     */
-    public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true): array {
-        $qb = $this->createQueryBuilder('c')
-            ->join('c.categorieCL', 'ccl')
-            ->where('c.type = :type AND ccl.label = :categorieCLLabel')
-            ->setParameters([
-                'type' => $type,
-                'categorieCLLabel' => $categorieCLLabel,
-            ]);
-
-        if($creation) {
-            $qb->andWhere('c.requiredCreate = 1');
-        } else {
-            $qb->andWhere('c.requiredEdit = 1');
-        }
-
-        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -212,7 +133,7 @@ class FreeFieldRepository extends EntityRepository {
      * @param string $categoryCL
      * @return array
      */
-    public function getLabelAndIdByCategory($categoryCL): array {
+    public function getLabelAndIdByCategory(string $categoryCL): array {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */

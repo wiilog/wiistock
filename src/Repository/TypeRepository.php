@@ -7,7 +7,6 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Dispute;
-use App\Entity\FreeField\FreeField;
 use App\Entity\Handling;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Reception;

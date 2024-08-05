@@ -111,12 +111,20 @@ class FreeFieldManagementRule {
     }
 
     public function serialize(): array {
+        $freeField = $this->getFreeField();
+        $type = $this->getType();
+        $categoryType = $type?->getCategory();
         return [
-            'id' => $this->id,
-            'requiredCreate' => $this->requiredCreate,
-            'requiredEdit' => $this->requiredEdit,
-            'displayedCreate' => $this->displayedCreate,
-            'displayedEdit' => $this->displayedEdit,
+            'id' => $this->getId(),
+            'freeFieldId' => $freeField->getId(),
+            'label' => $freeField->getLabel(),
+            'elements' => $freeField->getElements(),
+            'typing' => $freeField->getTypage(),
+            'defaultValue' => $freeField->getDefaultValue(),
+            'requiredCreate' => $this->isRequiredCreate(),
+            'requiredEdit' => $this->isRequiredEdit(),
+            'typeId' => $this->getType()?->getId(),
+            'categoryType' => $categoryType?->getLabel(),
         ];
     }
 }

@@ -35,8 +35,6 @@ class FreeFieldService {
     #[Required]
     public UserService $userService;
 
-    private array $freefieldManagementRules = [];
-
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels,
                                             ?array $typeCategories = []): array
@@ -122,9 +120,10 @@ class FreeFieldService {
         }
 
         $freeFieldIds = array_keys($freeFieldColumns);
+        $requiredGetter = $isNewEntity ? 'isRequiredCreate' : 'isRequiredEdit';
         foreach ($freeFieldManagementRules as $freeFieldManagementRule) {
             $freeFIeld = $freeFieldManagementRule->getFreeField();
-            if (!in_array($freeFIeld->getId(), $freeFieldIds)) {
+            if (!in_array($freeFIeld->getId(), $freeFieldIds) && $freeFieldManagementRule->$requiredGetter()) {
                 $missingFreeFields[] = $freeFIeld->getLabel();
             }
         }

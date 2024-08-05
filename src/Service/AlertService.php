@@ -83,7 +83,7 @@ class AlertService {
 
     public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager): void {
         $freeField = $entityManager->getRepository(FreeField::class)
-            ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
+            ->findOneBy(["label", FreeField::MACHINE_PDT_FREE_FIELD]);
         $freeFieldValue = $freeField ? $reference->getFreeFieldValue($freeField->getId()) : "";
         if($reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
             $type = "Seuil de sécurité";
