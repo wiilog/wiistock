@@ -994,7 +994,7 @@ class DispatchController extends AbstractController {
         }
 
         if(empty($pack)) {
-            $pack = $packService->createPack($entityManager, ['code' => $packCode]);
+            $pack = $packService->createPack($entityManager, ['code' => $packCode], $this->getUser());
             $entityManager->persist($pack);
         }
 

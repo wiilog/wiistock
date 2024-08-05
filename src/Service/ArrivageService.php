@@ -970,4 +970,18 @@ class ArrivageService {
 
         return null;
     }
+
+    public function buildCustomLogisticUnitHistoryRecord(Arrivage $arrival): string {
+        $values = $arrival->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn($value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
+    }
 }

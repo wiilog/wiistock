@@ -731,7 +731,6 @@ class Dispatch extends StatusHistoryContainer implements AttachmentContainer {
 
     public function serialize(FormatService $formatService): array {
         return [
-            FixedFieldEnum::createdAt->value => $formatService->date($this->getCreationDate()),
             FixedFieldEnum::status->value => $this->getStatut()?->getCode(),
             FixedFieldEnum::type->value => $this->getType()->getLabel(),
             FixedFieldEnum::number->value => $this->getNumber(),

@@ -236,4 +236,18 @@ class TruckArrivalService
             $barCodeConfig,
         ];
     }
+
+    public function buildCustomLogisticUnitHistoryRecord(TruckArrival $truckArrival): string {
+        $values = $truckArrival->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn($value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
+    }
 }
