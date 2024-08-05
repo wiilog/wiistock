@@ -188,6 +188,7 @@ class CartService {
             $type = $manager->find(Type::class, $data['deliveryType']);
             $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
+            $receiver = $manager->find(Utilisateur::class, $data['receivers'] ?? null);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
@@ -210,7 +211,8 @@ class CartService {
                 ->setDestination($destination)
                 ->setCommentaire($data['comment'] ?? null)
                 ->setProject($project)
-                ->setStatut($draft);
+                ->setStatut($draft)
+                ->setReceiver($receiver);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);

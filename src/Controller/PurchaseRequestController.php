@@ -654,7 +654,7 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route('/api-references', options: ['expose' => true], name: 'purchase_api_references', methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api-references', name: 'purchase_api_references', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function apiReferences(Request                $request,
                                   PurchaseRequestService $service): Response {
