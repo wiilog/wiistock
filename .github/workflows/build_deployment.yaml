@@ -6,8 +6,8 @@ on:
         tags:
             - 'v*'
 concurrency:
-  group: ${{ github.head_ref }}
-  cancel-in-progress: true
+    group: ${{ github.head_ref }}
+    cancel-in-progress: true
 
 jobs:
     build_deployment:
