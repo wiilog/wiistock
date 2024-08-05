@@ -107,8 +107,6 @@ class FreeFieldService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $missingFreeFields = [];
 
-        //TODo ICI
-
         $freeFieldCategory = match (true) {
             $freeFieldEntity instanceof ReferenceArticle => CategorieCL::REFERENCE_ARTICLE,
             $freeFieldEntity instanceof Article => CategorieCL::ARTICLE,
@@ -118,15 +116,16 @@ class FreeFieldService {
         };
 
         if ($freeFieldEntity->getType()?->getId()) {
-            $freeFields = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($freeFieldEntity->getType(), $freeFieldCategory, $isNewEntity);
+            $freeFieldManagementRules  = $freeFieldEntity->getType()?->getFreeFieldManagementRules();
         } else {
-            $freeFields = [];
+            $freeFieldManagementRules = [];
         }
 
         $freeFieldIds = array_keys($freeFieldColumns);
-        foreach ($freeFields as $freeField) {
-            if (!in_array($freeField->getId(), $freeFieldIds)) {
-                $missingFreeFields[] = $freeField->getLabel();
+        foreach ($freeFieldManagementRules as $freeFieldManagementRule) {
+            $freeFIeld = $freeFieldManagementRule->getFreeField();
+            if (!in_array($freeFIeld->getId(), $freeFieldIds)) {
+                $missingFreeFields[] = $freeFIeld->getLabel();
             }
         }
 
@@ -140,10 +139,15 @@ class FreeFieldService {
 
         $freeFieldsToInsert = $freeFieldEntity->getFreeFields();
 
-        foreach ($freeFieldColumns as $freeFieldId => $column) {
-            $freeField = $champLibreRepository->find($freeFieldId);
+        $ManagementRulesByFreeFieldId = Stream::from($freeFieldManagementRules)
+            ->keymap(fn(FreeFieldManagementRule $rule) => [$rule->getFreeField()->getId(), $rule])
+            ->toArray();
 
-            if($freeField->getType()?->getId() === $freeFieldEntity->getType()?->getId()) {
+        foreach ($freeFieldColumns as $freeFieldId => $column) {
+            $freeFieldManagementRule = $ManagementRulesByFreeFieldId[$freeFieldId] ?? null;
+            if($freeFieldManagementRule) {
+
+                $freeField = $freeFieldManagementRule->getFreeField();
                 $value = match ($freeField->getTypage()) {
                     FreeField::TYPE_BOOL => in_array($row[$column], ['Oui', 'oui', 1, '1']),
                     FreeField::TYPE_DATE => $this->checkImportDate($row[$column], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $freeField),
@@ -152,6 +156,7 @@ class FreeFieldService {
                     FreeField::TYPE_LIST_MULTIPLE => $this->checkImportList($row[$column], $freeField, true),
                     default => $row[$column],
                 };
+
                 $freeFieldsToInsert[$freeField->getId()] = strval(is_bool($value) ? intval($value) : $value);
             }
         }
