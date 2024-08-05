@@ -314,7 +314,7 @@
                             <div class="col-12 {{ not modeEdit ? 'd-none' }}"
                                  data-type="{{ [type.id] | json_encode }}">
                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                    freeFields: type.champsLibres,
+                                    freeFieldManagementRules: type.freeFieldManagementRules,
                                     freeFieldValues: request.freeFields,
                                     colType: 'col-md-6 col-12',
                                     requiredType: modeEdit ? 'requiredEdit' : 'requiredCreate',

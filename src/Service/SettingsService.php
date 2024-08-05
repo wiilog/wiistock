@@ -1211,22 +1211,21 @@ class SettingsService {
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
             $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            if (!is_numeric($data["entity"])) {
-                $template = $data["entity"] === Type::LABEL_DELIVERY
+            if (is_numeric($data["typeId"])){
+                $template = $entityManager->find(RequestTemplate::class, $data["typeId"]);
+            } else {
+                $template = $data["entityType"] === Type::LABEL_DELIVERY
                     ? new DeliveryRequestTemplate()
-                    : ($data["entity"] === Type::LABEL_COLLECT
+                    : ($data["entityType"] === Type::LABEL_COLLECT
                         ? new CollectRequestTemplate()
                         : new HandlingRequestTemplate()
                     );
-                $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
+                $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entityType"]));
 
                 $entityManager->persist($template);
 
                 $result['template'] = $template;
-            } else {
-                $template = $entityManager->find(RequestTemplate::class, $data["entity"]);
             }
-
             $sameName = $requestTemplateRepository->findOneBy(["name" => $data["name"]]);
             if ($sameName && $sameName->getId() !== $template->getId()) {
                 throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");

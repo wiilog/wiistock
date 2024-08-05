@@ -3361,9 +3361,10 @@ class SettingsController extends AbstractController {
         $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $templateType);
 
         $templates = Stream::from($requestTemplateRepository->findBy(["type" => $type]))
-            ->map(fn(RequestTemplate $template) => [
+            ->map(fn(RequestTemplate $template, int $index) => [
                 "label" => $template->getName(),
                 "value" => $template->getId(),
+                "selected" => $index === 0,
             ])
             ->toArray();
 
@@ -3383,6 +3384,7 @@ class SettingsController extends AbstractController {
 
         return [
             "templates" => $templates,
+            "type" => "alert",
         ];
     }
 

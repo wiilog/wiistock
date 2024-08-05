@@ -7,6 +7,7 @@ use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Setting;
@@ -214,24 +215,25 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    #[Route('/champs-libres/{type}', name: 'free_fields_by_type', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/champs-libres/{type}', name: 'free_fields_by_type', options: ['expose' => true], methods: [self::POST,], condition: self::IS_XML_HTTP_REQUEST)]
     public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager): Response
     {
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $allFreeFields = $freeFieldRepository->findByType($type->getId());
         $selectedFreeFieldId = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE);
-        $selectedFreeField = $selectedFreeFieldId ? $freeFieldRepository->find($selectedFreeFieldId) : null;
 
-        $freeFields = [($selectedFreeField && $selectedFreeField->getType()->getId() === $type->getId()) ? "<option value=''></option><option selected value='{$selectedFreeField->getId()}'>{$selectedFreeField->getLabel()}</option>" : "<option selected value=''></option>"];
+        $freeFields = [
+            "<option selected value=''></option>"
+        ];
 
-        $freeFields = array_merge($freeFields, Stream::from($allFreeFields)
-            ->map(function (FreeField $freeField) use ($selectedFreeField) {
-                if($freeField->getId() !== $selectedFreeField?->getId()){
-                    return "<option value='{$freeField->getId()}'>{$freeField->getLabel()}</option>";
-                }
+        $freeFields = array_merge($freeFields, Stream::from($type->getFreeFieldManagementRules())
+            ->map(function (FreeFieldManagementRule $freeFieldManagementRule) use ($selectedFreeFieldId) {
+                $freeField = $freeFieldManagementRule->getFreeField();
+                $attributes = $freeField->getId() == $selectedFreeFieldId ? "selected" : "";
+
+                return "<option value='{$freeField->getId()}' {$attributes}>{$freeField->getLabel()}</option>";
             })
             ->toArray()) ;
+
         return new JsonResponse([
             'success' => true,
             'freeFields' => $freeFields

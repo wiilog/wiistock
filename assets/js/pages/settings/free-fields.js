@@ -213,7 +213,7 @@ export function createFreeFieldsPage($container, canEdit, mode) {
             columns: generateFreeFieldColumns(canEdit, mode === MODE_ARTICLE),
             form: generateFreeFieldForm(),
         },
-        tableFreeFieldManagementRules: {
+        tableManagement: {
             name: `freeFieldManagementRules`,
             route: (type) => Routing.generate('settings_free_field_management_rule_api', {type}, true),
             deleteRoute: `settings_free_field_management_rule_delete`,

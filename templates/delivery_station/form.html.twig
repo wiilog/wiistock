@@ -49,7 +49,7 @@
                         <div class="row filter-fields-container">
                             {% if filterFields is not empty %}
                                 {% for filterField in filterFields %}
-                                    {% if filterField is instanceof('App\\Entity\\FreeField') %}
+                                    {% if filterField is instanceof('App\\Entity\\FreeField\\FreeField') %}
                                         {% include "free_field/freeFieldsEdit.html.twig" with {
                                             freeFields: [filterField],
                                             freeFieldValues: null,

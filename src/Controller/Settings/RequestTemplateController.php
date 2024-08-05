@@ -8,6 +8,7 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
@@ -218,9 +219,9 @@ class RequestTemplateController extends AbstractController {
             }
 
             $freeFieldTemplate = $twig->createTemplate('
-                    <div data-type="{{ free_field.type.id }}" class="inline-select">
+                    <div data-type="{{ freeFieldManagementRule.type.id }}" class="inline-select">
                         {% include "free_field/freeFieldsEdit.html.twig" with {
-                            freeFields: [free_field],
+                            freeFieldManagementRules: [freeFieldManagementRule],
                             freeFieldValues: value,
                             colType: "col-12",
                             actionType: "edit",
@@ -231,21 +232,22 @@ class RequestTemplateController extends AbstractController {
 
             foreach ($types as $type) {
 
-                $freeFields = $freeFieldsRepository->findByType($type->getId());
-                $filteredFreeFields = Stream::from($freeFields)
-                    ->filter(fn(FreeField $freeField) => (!$template && $freeField->getDisplayedCreate()) || $template)
+
+                $filteredFreeFieldManagementRules = Stream::from($type->getFreeFieldManagementRules())
+                    ->filter(fn(FreeFieldManagementRule $freeFieldManagementRule) => (!$template && $freeFieldManagementRule->isDisplayedCreate()) || $template)
                     ->toArray();
 
                 /** @var FreeField $freeField */
-                foreach ($filteredFreeFields as $freeField) {
+                foreach ($filteredFreeFieldManagementRules as $freeFieldManagementRule) {
+                    $freeField = $freeFieldManagementRule->getFreeField();
                     $data[] = [
                         "label" => $freeField->getLabel(),
                         "value" => $freeFieldTemplate->render([
-                            "free_field" => $freeField,
+                            "freeFieldManagementRule" => $freeFieldManagementRule,
                             "value" => $template ? $template->getFreeFields() : [],
                         ]),
                         "data" => [
-                            "type" => $freeField->getType()->getId(),
+                            "type" => $freeFieldManagementRule->getType()->getId(),
                         ],
                         "hidden" => true,
                     ];

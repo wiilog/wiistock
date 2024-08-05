@@ -34,6 +34,7 @@
                 {% endif %}
                 <div class="col">
                     <div class="row main-entity-content"></div>
+                    {{ form.hidden('entityType', type) }}
                 </div>
                 {% if can_edit %}
                     <div class="col-auto pt-2">
@@ -53,7 +54,7 @@
         <div class="wii-section {{ block('subtitle') is empty ? 'd-none' }}">
             <div class="row">
                 <div class="col-12">
-                    <table class="table subentities-table w-100"></table>
+                    <table class="table management-table w-100"></table>
                 </div>
             </div>
         </div>
@@ -61,6 +62,7 @@
         {% block footer %}{% endblock %}
         {% include 'settings/common/delete-entity.html.twig' %}
 
+        {{ form.hidden('typeId') }}
         <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
             {label: 'Oui', value: '1'},
             {label: 'Non', value: '0'},

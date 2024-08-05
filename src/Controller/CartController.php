@@ -142,7 +142,6 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'freeFields' => $type ? $type->getFreeFieldManagementRule() : [], // TODO ADAPTER LE TWIG
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
@@ -159,7 +158,6 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'freeFields' => $type ? $type->getFreeFieldManagementRule() : [], // TODO ADAPTER LE TWIG
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])

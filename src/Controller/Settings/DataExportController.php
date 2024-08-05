@@ -470,7 +470,7 @@ class DataExportController extends AbstractController {
 
                 $start = new DateTime();
                 $dataExportService->exportProductionRequest($productionRequests, $output, $freeFieldsConfig, $freeFieldsById);
-                $dataExportService->persistUniqueExport(Export::ENTITY_PRODUCTION, $start);
+                $dataExportService->persistUniqueExport($manager, Export::ENTITY_PRODUCTION, $start);
             },
             "export_productions-$today.csv",
             $header

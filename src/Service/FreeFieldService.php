@@ -35,6 +35,8 @@ class FreeFieldService {
     #[Required]
     public UserService $userService;
 
+    private array $freefieldManagementRules = [];
+
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels,
                                             ?array $typeCategories = []): array
@@ -104,6 +106,8 @@ class FreeFieldService {
     {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $missingFreeFields = [];
+
+        //TODo ICI
 
         $freeFieldCategory = match (true) {
             $freeFieldEntity instanceof ReferenceArticle => CategorieCL::REFERENCE_ARTICLE,
