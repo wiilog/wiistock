@@ -57,6 +57,9 @@ class Pack implements PairedEntity {
     #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
     private Collection $trackingMovements;
 
+    #[ORM\ManyToMany(targetEntity: ReceiptAssociation::class, mappedBy: 'logisticUnits')]
+    private Collection $receiptAssociations;
+
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
     private ?int $quantity = 1;
 
@@ -143,6 +146,7 @@ class Pack implements PairedEntity {
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
         $this->logisticUnitHistoryRecords = new ArrayCollection();
+        $this->receiptAssociations = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -835,4 +839,40 @@ class Pack implements PairedEntity {
         }
         return $this;
     }
+
+    public function getReceiptAssociations(): Collection {
+        return $this->receiptAssociations;
+    }
+
+    public function addReceptionAssociation(ReceiptAssociation $receiptAssociations): self {
+        if (!$this->receiptAssociations->contains($receiptAssociations)) {
+            $this->receiptAssociations[] = $receiptAssociations;
+            $receiptAssociations->addPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceiptAssociation(ReceiptAssociation $receiptAssociations): self {
+        if ($this->receiptAssociations->removeElement($receiptAssociations)) {
+            $receiptAssociations->removePack($this);
+        }
+
+        return $this;
+    }
+
+    public function setReceiptAssociations(?iterable $receiptAssociations): self {
+        foreach($this->getReceiptAssociations()->toArray() as $receiptAssociation) {
+            $this->removeReceiptAssociation($receiptAssociation);
+        }
+
+        $this->receiptAssociations = new ArrayCollection();
+        foreach($receiptAssociations ?? [] as $receiptAssociation) {
+            $this->addReceptionAssociation($receiptAssociation);
+        }
+
+        return $this;
+    }
+
+
 }

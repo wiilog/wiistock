@@ -2,6 +2,7 @@ const packsTableConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
+    page: 'pack',
     order: [['packLastDate', "desc"]],
     ajax: {
         url: Routing.generate('pack_api', true),
@@ -25,6 +26,8 @@ const packsTableConfig = {
         {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
         {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
+        {data: 'receiptAssociation', name: 'receiptAssociation', title: 'Association', className: 'noVis', orderable: false},
+        {data: 'truckArrivalNumber', name: 'truckArrivalNumber', title: 'Arrivage camion', className: 'noVis'},
     ],
     drawCallback: () => {
         toggleAddAllToCartButton();
