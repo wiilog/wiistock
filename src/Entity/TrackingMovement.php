@@ -3,12 +3,14 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -550,4 +552,11 @@ class TrackingMovement implements AttachmentContainer {
         return $this->orderIndex;
     }
 
+    public function serialize(FormatService $formatService): array {
+
+        return [
+            FixedFieldEnum::location->value => $this->getEmplacement()->getLabel(),
+            FixedFieldEnum::comment->value => $this->getCommentaire(),
+        ];
+    }
 }

@@ -65,6 +65,7 @@ class FiltreSupController extends AbstractController
                 'manufacturingOrderNumber' => FiltreSup::FIELD_MANUFACTURING_ORDER_NUMBER,
                 'productArticleCode' => FiltreSup::FIELD_PRODUCT_ARTICLE_CODE,
                 'attachmentAssigned' => FiltreSup::FIELD_ATTACHMENTS_ASSIGNED,
+                'receiptAssociation' => FiltreSup::FIELD_RECEIPT_ASSOCIATION,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {

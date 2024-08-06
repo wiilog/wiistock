@@ -1,11 +1,22 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Traçabilité | Unités Logistiques | Détails{% endblock %}
-{% block titleLink path("pack_index") %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
 
 {% block page_content %}
+    {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
-        <div class="row wii-column">
+        <div class="row wii-column w-100">
             <div class="col-12 col-md-6">
                 <div class="details-page-header d-flex flex-column" style="border-color: {{ logisticUnit.nature.color }}">
                     <div class="wii-type" style="background-color: {{ logisticUnit.nature.color }}">
@@ -125,6 +136,10 @@
                         </div>
                     </div>
                 </div>
+                <div class="wii-box mt-3">
+                    <div class="header wii-title">Champs libres</div>
+                    <div class="content"></div>
+                </div>
                 <div class="wii-box">
                     <div class="header wii-title">Contenu unité logistique</div>
                     <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
@@ -149,10 +164,22 @@
             <div class="col-12 col-md-6">
                 <div class="wii-box">
                     <div class="header wii-title">Historique de traçabilité</div>
-                    <div class="content"></div>
+                    <div class="content p-0">
+                        <div class="content history-container pl-0 pt-0 pr-0 pb-3">
+                            <div class="d-flex align-items-center justify-content-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="ml-3">Génération de l'historique en cours</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('pack-show') }}
 {% endblock %}

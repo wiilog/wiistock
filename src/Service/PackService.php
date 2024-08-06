@@ -4,14 +4,17 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\ArrivalHistory;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 use App\Entity\Project;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -22,66 +25,31 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class PackService {
 
-    #[Required]
-    public ProjectHistoryRecordService $projectHistoryRecordService;
+    public function __construct(private readonly EntityManagerInterface $entityManager,
+                                private readonly Security $security,
+                                private readonly Twig_Environment $templating,
+                                private readonly TrackingMovementService $trackingMovementService,
+                                private readonly MailerService $mailerService,
+                                private readonly LanguageService $languageService,
+                                private readonly TranslationService $translation,
+                                private readonly FieldModesService $fieldModesService,
+                                private readonly FormatService $formatService,
+                                private readonly ReceptionLineService $receptionLineService,
+                                private readonly TimeService $timeService,
+                                private readonly SettingsService $settingsService,
+                                private readonly TruckArrivalService $truckArrivalService,
+                                private readonly UserService $userService) {}
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public ArrivageService $arrivageDataService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public ReceptionService $receptionService;
-
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
-    #[Required]
-    public ReceptionLineService $receptionLineService;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public TimeService $timeService;
-
-    #[Required]
-    public SettingsService $settingsService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -108,6 +76,30 @@ class PackService {
             "recordsFiltered" => $queryResult['count'],
             "recordsTotal" => $queryResult['total'],
         ];
+    }
+
+    public function generateTrackingHistoryHtml(Pack $logisticUnit): string {
+        $user = $this->userService->getUser();
+        return $this->templating->render('pack/tracking_history.html.twig', [
+            "userLanguage" => $user?->getLanguage(),
+            "defaultLanguage" => $this->languageService->getDefaultLanguage(),
+            "trackingRecordsHistory" => $this->getTrackingRecordsHistory($logisticUnit->getLogisticUnitHistoryRecords()),
+            "logisticUnit" => $logisticUnit,
+        ]);
+    }
+
+    public function getTrackingRecordsHistory(Collection $logisticUnitHistoryRecords): array {
+        $user = $this->userService->getUser();
+        return Stream::from($logisticUnitHistoryRecords)
+            ->sort(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord1, LogisticUnitHistoryRecord $logisticUnitHistoryRecord2) => $logisticUnitHistoryRecord2->getDate() <=> $logisticUnitHistoryRecord1->getDate())
+            ->map(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord) => [
+                "type" => $logisticUnitHistoryRecord->getType(),
+                "date" => $this->formatService->datetime($logisticUnitHistoryRecord->getDate(), "", false, $user),
+                "user" => $this->formatService->user($logisticUnitHistoryRecord->getUser()),
+                "location" => $this->formatService->location($logisticUnitHistoryRecord->getLocation()),
+                "message" => $logisticUnitHistoryRecord->getMessage()
+            ])
+            ->toArray();
     }
 
     public function getGroupHistoryForDatatable($pack, $params) {
@@ -146,6 +138,9 @@ class PackService {
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
             ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName()
             : null;
+        $receptionAssociationFormatted = Stream::from($pack?->getReceiptAssociations())
+            ->map(fn(ReceiptAssociation $receptionAssociation) => $receptionAssociation->getReceptionNumber())
+            ->join(', ');
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -160,6 +155,9 @@ class PackService {
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
+            ]),
+            'contentPack' => $this->templating->render('pack/content-pack-column.html.twig', [
+                'pack' => $pack,
             ]),
             'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
                 "pack" => $pack,
@@ -177,7 +175,11 @@ class PackService {
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
-                : ''
+                : '',
+            'receiptAssociation' => $receptionAssociationFormatted,
+            'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
+                'truckArrival' => $pack->getArrivage()
+            ]),
         ];
     }
 
@@ -257,8 +259,8 @@ class PackService {
     }
 
     public function createPack(EntityManagerInterface $entityManager,
-                               array $options = []): Pack
-    {
+                               array                  $options = [],
+                               Utilisateur            $user = null): Pack {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
@@ -290,6 +292,19 @@ class PackService {
                 }
 
                 $arrival->addPack($pack);
+
+                $message = $this->arrivageDataService->buildCustomLogisticUnitHistoryRecord($arrival);
+                $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage UL", $arrival->getDropLocation());
+
+                if($arrival->getTruckArrival() || $arrival->getTruckArrivalLines()->first()){
+                    $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
+                    $truckArrival = $arrivalHasLine
+                        ? $arrivalHasLine->getTruckArrival()
+                        : $arrival->getTruckArrival();
+
+                    $message = $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival);
+                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage Camion", $truckArrival->getUnloadingLocation());
+                }
             }
             else if (isset($options['orderLine'])) {
                 /** @var Nature $nature */
@@ -420,7 +435,7 @@ class PackService {
             if ($number) {
                 $nature = $natureRepository->find($natureId);
                 for ($i = 0; $i < $number; $i++) {
-                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
+                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null], $user);
                     if ($persistTrackingMovements && isset($location)) {
                         $this->trackingMovementService->persistTrackingForArrivalPack(
                             $entityManager,
@@ -677,5 +692,24 @@ class PackService {
             'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null,
             'typeLogoArrivalUl' => $typeLogoPath,
         ];
+    }
+
+    public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
+                                                     Pack                   $logisticUnit,
+                                                     string                 $message,
+                                                     DateTime               $historyDate,
+                                                     Utilisateur            $user,
+                                                     string                 $type,
+                                                     Emplacement            $location = null): void {
+        $logisticUnitHistoryRecord = (new LogisticUnitHistoryRecord())
+            ->setMessage($message)
+            ->setPack($logisticUnit)
+            ->setStatusDate($historyDate)
+            ->setDate($historyDate)
+            ->setType($type)
+            ->setLocation($location)
+            ->setUser($user);
+
+        $entityManager->persist($logisticUnitHistoryRecord);
     }
 }
