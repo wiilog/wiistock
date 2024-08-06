@@ -17,7 +17,8 @@ use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -57,6 +58,7 @@ use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
+use App\Service\FormatService;
 use App\Service\FormService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -275,7 +277,7 @@ class SettingsController extends AbstractController {
                             "label" => "Réceptions - Champs fixes",
                             "save" => true,
                         ],
-                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
+                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres",  "wrapped" => false,],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => [
                             "label" => "Litiges - Types",
@@ -364,7 +366,10 @@ class SettingsController extends AbstractController {
                             "label" => "Configurations",
                             "save" => true,
                         ],
-                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
+                        self::MENU_FREE_FIELDS => [
+                            "label" => "Champs libres",
+                            "wrapped" => false,
+                        ],
                     ],
                 ],
                 self::MENU_HANDLINGS => [
@@ -519,6 +524,7 @@ class SettingsController extends AbstractController {
                 self::MENU_TYPES_FREE_FIELDS => [
                     "right" => Action::SETTINGS_DISPLAY_IOT,
                     "label" => "Types et champs libres",
+                    "wrapped" => false,
                 ],
             ],
         ],
@@ -1304,6 +1310,7 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
+                        "category" => CategoryType::RECEPTION,
                         "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
@@ -1527,6 +1534,7 @@ class SettingsController extends AbstractController {
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
+                        "category" => CategoryType::MOUVEMENT_TRACA,
                     ],
                 ],
                 self::MENU_EMERGENCIES => [
@@ -1736,6 +1744,7 @@ class SettingsController extends AbstractController {
                     $types[0]["checked"] = true;
 
                     return [
+                        "category" => CategoryType::SENSOR,
                         "types" => $types,
                     ];
                 },
@@ -2485,20 +2494,27 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    #[Route('/champs-libres/api/{type}', name: 'settings_free_field_api', options: ['expose' => true])]
-    public function freeFieldApi(Request $request, EntityManagerInterface $manager, UserService $userService, ?Type $type = null): Response {
+    #[Route('/champs-libres/api', name: 'settings_free_field_api', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    public function freeFieldApi(Request $request,
+                                 EntityManagerInterface $manager,
+                                 UserService $userService,
+                                 ?Type $type = null): Response {
+        $categoryCLRepository = $manager->getRepository(CategorieCL::class);
+        $categoryTypeRepository = $manager->getRepository(CategoryType::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
         $edit = $request->query->getBoolean("edit");
         $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
+        $categoryType = $categoryTypeRepository->findOneBy(["label" => $request->query->get("category")]);
+
+        $categoryCL = $categoryCLRepository->findBy(["categoryType" => $categoryType]);
+        $freeFields = $freeFieldRepository->findBy(["categorieCL" => $categoryCL]);
 
         $class = "form-control data";
-
-        $categorieCLRepository = $manager->getRepository(CategorieCL::class);
-
-        $categoryLabels = $categorieCLRepository->findByLabel([
+        $categoryLabels = $categoryCLRepository->findByLabel([
             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
         ]);
-        $rows = [];
-        $freeFields = $type ? $type->getChampsLibres() : [];
+
         foreach ($freeFields as $freeField) {
             if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";
@@ -2582,10 +2598,6 @@ class SettingsController extends AbstractController {
             }
 
             if ($edit) {
-                $displayedCreate = $freeField->getDisplayedCreate() ? "checked" : "";
-                $requiredCreate = $freeField->isRequiredCreate() ? "checked" : "";
-                $displayedEdit = $freeField->getDisplayedEdit() ? "checked" : "";
-                $requiredEdit = $freeField->isRequiredEdit() ? "checked" : "";
                 $elements = join(";", $freeField->getElements());
 
                 $categories = Stream::from($categoryLabels)
@@ -2596,16 +2608,11 @@ class SettingsController extends AbstractController {
                     ->join("");
 
                 $rows[] = [
-                    "id" => $freeField->getId(),
                     "actions" => "<input type='hidden' class='$class' name='id' value='{$freeField->getId()}'>
                         <button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
                     "label" => "<input type='text' name='label' class='$class' value='{$freeField->getLabel()}' required/>",
                     "appliesTo" => "<select name='category' class='$class' required>$categories</select>",
                     "type" => $typageCLFr,
-                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
-                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
-                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "defaultValue" => "<form>$defaultValue</form>",
                     "elements" => in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
@@ -2626,10 +2633,6 @@ class SettingsController extends AbstractController {
                         ? ucfirst($freeField->getCategorieCL()->getLabel())
                         : "",
                     "type" => $typageCLFr,
-                    "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
-                    "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
-                    "displayedEdit" => ($freeField->getDisplayedEdit() ? "oui" : "non"),
-                    "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
                     "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
                     "minCharactersLength" => $freeField->getMinCharactersLength() ?? "",
@@ -2648,14 +2651,87 @@ class SettingsController extends AbstractController {
                 "label" => "",
                 "appliesTo" => "",
                 "type" => "",
-                "displayedCreate" => "",
-                "displayedEdit" => "",
-                "requiredCreate" => "",
-                "requiredEdit" => "",
                 "defaultValue" => "",
                 "elements" => "",
                 "minCharactersLength" => "",
                 "maxCharactersLength" => "",
+            ];
+        }
+
+        return $this->json([
+            "data" => $rows ?? [],
+        ]);
+    }
+
+    #[Route('/champs-libres-regle-de-gestion/api/{type}', name: 'settings_free_field_management_rule_api', options: ['expose' => true])]
+    public function freeFieldManagementRulesApi(Request                $request,
+                                                FormService            $formService,
+                                                FormatService          $formatService,
+                                                UserService            $userService,
+                                                ?Type                  $type = null): Response {
+        $edit = $request->query->getBoolean("edit");
+        $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
+
+        $class = "form-control data";
+        $rows = [];
+
+        $freeFieldFieldManagementRules = $type ? $type->getFreeFieldManagementRules() : [];
+        foreach ($freeFieldFieldManagementRules as $freeFieldFieldManagementRule) {
+            if ($edit) {
+                $checked = "checked";
+                $displayedCreate = $freeFieldFieldManagementRule->isDisplayedCreate() ? $checked : "";
+                $requiredCreate = $freeFieldFieldManagementRule->isRequiredCreate() ? $checked : "";
+                $displayedEdit = $freeFieldFieldManagementRule->isDisplayedEdit() ? $checked : "";
+                $requiredEdit = $freeFieldFieldManagementRule->isRequiredEdit() ? $checked : "";
+                $rows[] = [
+                    "actions" => "<input type='hidden' class='$class' name='id' value='{$freeFieldFieldManagementRule->getId()}'>
+                        <button class='btn btn-silent delete-row' data-id='{$freeFieldFieldManagementRule->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
+                    "freeField" => $formService->macro("select", "freeField", null, true, [
+                        "type" => "freeField",
+                        "search" => false,
+                        "additionalAttributes" => [
+                            ["name" => "data-other-params"],
+                            ["name" => "data-other-params-category-ff", "value" => $freeFieldFieldManagementRule->getFreeField()->getCategorieCL()->getLabel()],
+                            ["name" => "data-min-length", "value" => 0],
+                        ],
+                        "items" => [
+                            [
+                                "value" => $freeFieldFieldManagementRule->getFreeField()->getId(),
+                                "label" => $freeFieldFieldManagementRule->getFreeField()->getLabel(),
+                                "selected" => true,
+                            ],
+                        ],
+                    ]),
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
+                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
+                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
+                ];
+            } else {
+                $rows[] = [
+                    "id" => $freeFieldFieldManagementRule->getId(),
+                    "actions" => "<button class='btn btn-silent delete-row' data-id='{$freeFieldFieldManagementRule->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
+                    "freeField" => $freeFieldFieldManagementRule->getFreeField()->getLabel(),
+                    "displayedCreate" => $formatService->bool($freeFieldFieldManagementRule->isDisplayedCreate()),
+                    "requiredCreate" => $formatService->bool($freeFieldFieldManagementRule->isRequiredCreate()),
+                    "displayedEdit" => $formatService->bool($freeFieldFieldManagementRule->isDisplayedEdit()),
+                    "requiredEdit" => $formatService->bool($freeFieldFieldManagementRule->isRequiredEdit()),
+                ];
+            }
+        }
+
+        $typeFreePages = $type
+            && in_array($type->getCategory()->getLabel(), [
+                CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION,
+            ]);
+        if ($hasEditRight && ($edit || $typeFreePages)) {
+            $rows[] = [
+                "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+                "freeField" => "",
+                "displayedCreate" => "",
+                "displayedEdit" => "",
+                "requiredCreate" => "",
+                "requiredEdit" => "",
             ];
         }
 
@@ -2703,6 +2779,19 @@ class SettingsController extends AbstractController {
             "msg" => "Le champ libre a été supprimé",
         ]);
     }
+
+    #[Route('/champ-libre-du-type/supprimer/{entity}', name: 'settings_free_field_management_rule_delete', options: ['expose' => true], methods: [self::POST])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
+    public function deleteFreeFieldManagementRule(EntityManagerInterface $manager, FreeFieldManagementRule $entity): Response {
+        $manager->remove($entity);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Le champ libre a été supprimé du type",
+        ]);
+    }
+
 
     #[Route('/champ-fixe/sous-lignes/{entity}', name: 'settings_sublines_fixed_field_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity, FormService $formService): Response
@@ -3272,9 +3361,10 @@ class SettingsController extends AbstractController {
         $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $templateType);
 
         $templates = Stream::from($requestTemplateRepository->findBy(["type" => $type]))
-            ->map(fn(RequestTemplate $template) => [
+            ->map(fn(RequestTemplate $template, int $index) => [
                 "label" => $template->getName(),
                 "value" => $template->getId(),
+                "selected" => $index === 0,
             ])
             ->toArray();
 
@@ -3294,6 +3384,7 @@ class SettingsController extends AbstractController {
 
         return [
             "templates" => $templates,
+            "type" => "alert",
         ];
     }
 

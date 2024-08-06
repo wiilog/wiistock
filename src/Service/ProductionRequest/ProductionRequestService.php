@@ -9,7 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Setting;

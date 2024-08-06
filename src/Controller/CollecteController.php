@@ -4,37 +4,33 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\Collecte;
-use App\Entity\Emplacement;
-use App\Entity\Menu;
-use App\Entity\Setting;
-use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
+use App\Entity\Emplacement;
+use App\Entity\FreeField\FreeField;
+use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
-use App\Entity\Article;
 use App\Helper\FormatHelper;
-use App\Service\MouvementStockService;
-use DateTime;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
+use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-
-use App\Service\FreeFieldService;
+use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
@@ -79,23 +75,13 @@ class CollecteController extends AbstractController
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
         $restrictedResults = $paramGlobalRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
-		$typeChampLibre = [];
-		foreach ($types as $type) {
-			$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
 
-			$typeChampLibre[] = [
-				'typeLabel' => $type->getLabel(),
-				'typeId' => $type->getId(),
-				'champsLibres' => $champsLibres,
-			];
-		}
         $typesForModal = Stream::from($types)
             ->filter(static fn(Type $type) => $type->isActive())
             ->toArray();
 
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
-			'typeChampsLibres' => $typeChampLibre,
 			'types' => $types,
 			'typesForModal' => $typesForModal,
 			'filterStatus' => $filter,
@@ -352,26 +338,9 @@ class CollecteController extends AbstractController
             $settingRepository = $entityManager->getRepository(Setting::class);
 
             $collecte = $collecteRepository->find($data['id']);
-			$listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-
-			$typeChampLibre = [];
-            $freeFieldsGroupedByTypes = [];
-
-			foreach ($listTypes as $type) {
-				$collectFreeFields = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
-				$typeChampLibre[] = [
-					'typeLabel' => $type->getLabel(),
-					'typeId' => $type->getId(),
-					'champsLibres' => $collectFreeFields,
-				];
-                $freeFieldsGroupedByTypes[$type->getId()] = $collectFreeFields;
-			}
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
-				'typeChampsLibres' => $typeChampLibre,
-                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             ]);
 

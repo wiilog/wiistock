@@ -6,7 +6,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Handling;
 use App\Entity\Language;
 use App\Entity\Setting;

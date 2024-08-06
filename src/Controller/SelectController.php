@@ -15,6 +15,7 @@ use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
@@ -824,6 +825,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $lines,
+        ]);
+    }
+
+    #[Route('/select/free-field', name: 'ajax_select_free_field', options: ['expose' => true], methods: self::GET, condition: self::IS_XML_HTTP_REQUEST)]
+    public function freeField(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $term = $request->query->get("term", "");
+        $category = $request->query->get("category-ff");
+        $freeFields = $freeFieldRepository->getForSelect($term, $category);
+        return $this->json([
+            "results" => $freeFields,
         ]);
     }
 }

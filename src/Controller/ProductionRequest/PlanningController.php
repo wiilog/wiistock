@@ -12,7 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
@@ -128,23 +128,6 @@ class PlanningController extends AbstractController {
                 ->toArray();
 
             $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
-
-            $allTypes = Stream::from($productionRequests)
-                ->keymap(fn(ProductionRequest $productionRequest) => [
-                    $productionRequest->getType()->getId(),
-                    $productionRequest->getType()
-                ])
-                ->values();
-
-            $freeFieldsByType = $allTypes
-                ? Stream::from($freeFieldRepository->findByTypeAndCategorieCLLabel($allTypes, CategorieCL::PRODUCTION_REQUEST))
-                    ->keymap(static fn(FreeField $freeField) => [
-                        $freeField->getType()->getId(),
-                        $freeField
-                    ], true)
-                    ->toArray()
-                : [];
-
             $displayedFieldsConfig = $productionRequestService->getDisplayedFieldsConfig($external, $fieldModes);
 
             $cards = Stream::from($productionRequests)

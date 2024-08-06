@@ -539,7 +539,7 @@
                         <div class="d-none"
                              data-type="{{ type.id }}">
                             {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                freeFields: type.champsLibres,
+                                freeFieldManagementRules: type.freeFieldManagementRules,
                                 freeFieldValues: [],
                                 colType: 'col-lg-4 col-md-6 col-12',
                                 requiredType: 'requiredCreate',

@@ -10,7 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PurchaseRequest;
@@ -44,31 +44,9 @@ class CartController extends AbstractController {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
-        $deliveryFreeFields = [];
-        foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-
-            $deliveryFreeFields[] = [
-                "typeLabel" => $type->getLabel(),
-                "typeId" => $type->getId(),
-                "champsLibres" => $champsLibres,
-            ];
-        }
-
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-
-        $collectFreeFields = [];
-        foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
-
-            $collectFreeFields[] = [
-                "typeLabel" => $type->getLabel(),
-                "typeId" => $type->getId(),
-                "champsLibres" => $champsLibres,
-            ];
-        }
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
         $referencesByBuyer = [];
         foreach($currentUser->getCart()->getReferences() as $reference) {
@@ -122,8 +100,8 @@ class CartController extends AbstractController {
             "collectRequests" => $collectRequests,
             "purchaseRequests" => $purchaseRequests,
             "defaultDeliveryLocations" => $defaultDeliveryLocations,
-            "deliveryFreeFieldsTypes" => $deliveryFreeFields,
-            "collectFreeFieldsTypes" => $collectFreeFields,
+            "deliveryTypes" => $deliveryTypes,
+            "collectTypes" => $collectTypes,
             "referencesByBuyer" => $referencesByBuyer,
             "deliveryFieldsParam" => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             "showTargetLocationPicking" => $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
@@ -164,7 +142,6 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
@@ -181,7 +158,6 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])

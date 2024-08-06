@@ -14,7 +14,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;

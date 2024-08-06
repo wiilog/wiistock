@@ -42,11 +42,6 @@
     <div class="col-12">
         <select name="type" class="form-control data d-block type needed col-12" disabled>
             <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
-            {% for type in types %}
-                {% if collecte.type != type %}
-                    <option value="{{ type.id }}">{{ type.label }}</option>
-                {% endif %}
-            {% endfor %}
         </select>
     </div>
 </div>
@@ -74,7 +69,7 @@
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container mb-2">
     {% include 'free_field/freeFieldsEdit.html.twig' with {
-        freeFields: freeFieldsGroupedByTypes[collecte.type.id] is defined ? freeFieldsGroupedByTypes[collecte.type.id] : [],
+        freeFieldManagementRules: collecte.type.freeFieldManagementRules,
         freeFieldValues: collecte.freeFields,
         colType: 'col-12',
         requiredType: 'requiredEdit',

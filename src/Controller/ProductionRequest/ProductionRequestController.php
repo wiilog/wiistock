@@ -12,7 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
@@ -96,12 +96,7 @@ class ProductionRequestController extends AbstractController
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager)->getContent(),
             "dateChoices" => $dateChoices,
-            "types" => Stream::from($types)
-                ->map(fn(Type $type) => [
-                    'id' => $type->getId(),
-                    'label' => $this->getFormatter()->type($type)
-                ])
-                ->toArray(),
+            "types" => $types,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
                 ->reduce(function($status, $item) {
                     $status[$item['id']] = $item['label'];
@@ -112,17 +107,6 @@ class ProductionRequestController extends AbstractController
             "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
-            "typeFreeFields" => Stream::from($types)
-                ->map(function (Type $type) use ($freeFieldRepository) {
-                    $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::PRODUCTION_REQUEST);
-
-                    return [
-                        "typeLabel" => $this->formatService->type($type),
-                        "typeId" => $type->getId(),
-                        "champsLibres" =>$freeFields,
-                    ];
-                })
-                ->toArray(),
         ]);
     }
 

@@ -44,11 +44,11 @@
         }) }}
     </div>
 </div>
-{% if sensor.type.champsLibres.count > 0 %}
+{% if sensor.type.freeFieldManagementRules.count > 0 %}
     <span class="toggle-collapsible expanded">Champs libres</span>
     <div class="collapsible expanded free-fields-container mb-2">
         {% include 'free_field/freeFieldsEdit.html.twig' with {
-            freeFields: sensorWrapper.sensor.type.champsLibres,
+            freeFieldManagementRules: sensorWrapper.sensor.type.freeFieldManagementRules,
             freeFieldValues: sensorWrapper.freeFields,
             colType: 'col-md-6 col-12',
             requiredType: 'requiredEdit',

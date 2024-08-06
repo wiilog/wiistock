@@ -6,16 +6,14 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Service\UniqueNumberService;
-use RuntimeException;
-use Symfony\Component\HttpFoundation\InputBag;
+use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\FieldModesService;
 use DateTime;
@@ -23,6 +21,8 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)

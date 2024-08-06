@@ -28,28 +28,22 @@ class RequestTemplateService {
     #[Required]
     public FreeFieldService $freeFieldService;
 
-    public function getType(int $type): ?Type {
+    public function getType(string $type): ?Type {
         $category = CategoryType::REQUEST_TEMPLATE;
-
-        if ($type === RequestTemplate::TYPE_HANDLING) {
-            $type = Type::LABEL_HANDLING;
-        } else if ($type === RequestTemplate::TYPE_DELIVERY) {
-            $type = Type::LABEL_DELIVERY;
-        } else if ($type === RequestTemplate::TYPE_COLLECT) {
-            $type = Type::LABEL_COLLECT;
-        } else {
+        if(!in_array($type, [Type::LABEL_HANDLING, Type::LABEL_DELIVERY, Type::LABEL_COLLECT])) {
             throw new RuntimeException("Unknown type $type");
         }
 
         return $this->manager->getRepository(Type::class)->findOneByCategoryLabelAndLabel($category, $type);
     }
 
-    public function updateRequestTemplate(RequestTemplate $template, array $data, array $files) {
+    public function updateRequestTemplate(RequestTemplate $template, array $data, array $files): void
+    {
         $typeRepository = $this->manager->getRepository(Type::class);
 
         $template->setName($data["name"]);
         if (!$template->getType()) {
-            $template->setType($this->getType($data["type"]));
+            $template->setType($this->getType($data["entityType"]));
         }
         $this->freeFieldService->manageFreeFields($template, $data, $this->manager);
 

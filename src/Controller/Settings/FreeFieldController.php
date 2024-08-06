@@ -2,10 +2,10 @@
 
 namespace App\Controller\Settings;
 
-use App\Entity\FreeField;
+use App\Controller\AbstractController;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/parametrage')]
 class FreeFieldController extends AbstractController {
 
-    #[Route('/display-require-champ', name: 'display_required_champs_libres', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/display-require-champ', name: 'display_required_champs_libres', options: ['expose' => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function displayRequiredChampsLibres(Request $request,
                                                 EntityManagerInterface $entityManager): Response
     {

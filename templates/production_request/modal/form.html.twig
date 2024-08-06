@@ -16,7 +16,7 @@
             disabled: productionRequest.id ? true : false,
             search: true,
             value: productionRequest.type ? productionRequest.type.id : null,
-            items: productionRequest.type ? {
+            items:productionRequest.type ? {
                 0: {
                     'value': productionRequest.type.id,
                     'label':  productionRequest.type.label,
@@ -46,7 +46,9 @@
                 }]
                 : [],
             includeParams: '[name=type]',
-            additionalAttributes: [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
+            additionalAttributes: [
+                { name: 'onChange', value: 'displayAttachmentRequired($(this))' },
+            ],
         }) }}
         <div class="error-empty-status d-none">
             {% include 'utils/warningSelectEmpty.html.twig' with {
@@ -178,18 +180,18 @@
     {% endif %}
 
     <!-- CHAMPS LIBRES -->
-    {% set typeFreeFields = typeFreeFields ?? (productionRequest.type ? [{
-        typeId: productionRequest.type.id,
-        champsLibres: productionRequest.type.champsLibres,
-    }] : []) %}
     <div class="col-12">
         <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
         <div class="collapsible expanded free-fields-container mb-2">
-            {% for type in typeFreeFields %}
-                <div class="{{ typeFreeFields|length > 1 ? ' d-none' }}"
-                     data-type="{{ type.typeId }}">
+            {% set types = productionRequest.id
+                ? [productionRequest.type]
+                : types
+            %}
+            {% for type in types %}
+                <div class="{{ types|length > 1 ? ' d-none' }}"
+                     data-type="{{ type.id }}">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                        freeFields: type.champsLibres,
+                        freeFieldManagementRules: type.freeFieldManagementRules,
                         freeFieldValues: productionRequest.freeFields,
                         colType: 'col-md-4 col-12',
                         requiredType: requiredAction,

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Helper\LanguageHelper;
@@ -56,9 +57,6 @@ class Type {
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
-
-    #[ORM\OneToMany(mappedBy: 'type', targetEntity: 'FreeField')]
-    private Collection $champsLibres;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: ReferenceArticle::class)]
     private Collection $referenceArticles;
@@ -159,8 +157,10 @@ class Type {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => true])]
     private ?bool $active = true;
 
+    #[ORM\OneToMany(mappedBy: 'type', targetEntity: FreeFieldManagementRule::class, orphanRemoval: true)]
+    private Collection $freeFieldManagementRules;
+
     public function __construct() {
-        $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -178,6 +178,7 @@ class Type {
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->freeFieldManagementRules = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -202,34 +203,6 @@ class Type {
 
     public function setLabel(?string $label): self {
         $this->label = $label;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|FreeField[]
-     */
-    public function getChampsLibres(): Collection {
-        return $this->champsLibres;
-    }
-
-    public function addChampLibre(FreeField $champLibre): self {
-        if (!$this->champsLibres->contains($champLibre)) {
-            $this->champsLibres[] = $champLibre;
-            $champLibre->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeChampLibre(FreeField $champLibre): self {
-        if ($this->champsLibres->contains($champLibre)) {
-            $this->champsLibres->removeElement($champLibre);
-            // set the owning side to null (unless already changed)
-            if ($champLibre->getType() === $this) {
-                $champLibre->setType(null);
-            }
-        }
 
         return $this;
     }
@@ -439,27 +412,6 @@ class Type {
 
     public function setDescription(?string $description): self {
         $this->description = $description;
-
-        return $this;
-    }
-
-    public function addChampsLibre(FreeField $champsLibre): self {
-        if (!$this->champsLibres->contains($champsLibre)) {
-            $this->champsLibres[] = $champsLibre;
-            $champsLibre->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeChampsLibre(FreeField $champsLibre): self {
-        if ($this->champsLibres->contains($champsLibre)) {
-            $this->champsLibres->removeElement($champsLibre);
-            // set the owning side to null (unless already changed)
-            if ($champsLibre->getType() === $this) {
-                $champsLibre->setType(null);
-            }
-        }
 
         return $this;
     }
@@ -918,5 +870,35 @@ class Type {
 
     public function isActive(): ?bool {
         return $this->active;
+    }
+
+    /**
+     * @return Collection<int, FreeFieldManagementRule>
+     */
+    public function getFreeFieldManagementRules(): Collection
+    {
+        return $this->freeFieldManagementRules;
+    }
+
+    public function addFreeFieldManagementRule(FreeFieldManagementRule $freeFieldManagementRule): self
+    {
+        if (!$this->freeFieldManagementRules->contains($freeFieldManagementRule)) {
+            $this->freeFieldManagementRules->add($freeFieldManagementRule);
+            $freeFieldManagementRule->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFreeFieldManagementRule(FreeFieldManagementRule $freeFieldManagementRule): self
+    {
+        if ($this->freeFieldManagementRules->removeElement($freeFieldManagementRule)) {
+            // set the owning side to null (unless already changed)
+            if ($freeFieldManagementRule->getType() === $this) {
+                $freeFieldManagementRule->setType(null);
+            }
+        }
+
+        return $this;
     }
 }

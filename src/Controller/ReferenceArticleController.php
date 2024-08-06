@@ -14,7 +14,7 @@ use App\Entity\CollecteReference;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Kiosk;
 use App\Entity\Menu;
@@ -889,19 +889,6 @@ class ReferenceArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
 
-        $typeChampLibre = [];
-        $freeFieldsGroupedByTypes = [];
-
-        foreach ($types as $type) {
-            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' =>  $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
-        }
-
         $shippingSettingsDefaultValues = [];
         if($request->query->has('shipping')){
             $shippingSettingsDefaultValues = [
@@ -930,8 +917,6 @@ class ReferenceArticleController extends AbstractController
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
             ],
             "categories" => $inventoryCategories,
-            "freeFieldTypes" => $typeChampLibre,
-            "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "descriptionConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
             "shippingSettingsDefaultValues" => $shippingSettingsDefaultValues,
         ]);

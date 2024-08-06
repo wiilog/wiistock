@@ -3,12 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
-use App\Entity\Handling;
 use App\Entity\Dispute;
+use App\Entity\Handling;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -202,7 +201,6 @@ class TypeRepository extends EntityRepository {
 
         $tableConfig = [
             ['class' => Article::class, 'where' => 'item.type = :id'],
-            ['class' => FreeField::class, 'where' => 'item.type = :id'],
             ['class' => Collecte::class, 'where' => 'item.type = :id'],
             ['class' => Demande::class, 'where' => 'item.type = :id'],
             ['class' => Dispute::class, 'where' => 'item.type = :id'],

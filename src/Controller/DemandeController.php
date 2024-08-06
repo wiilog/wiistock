@@ -13,7 +13,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
@@ -259,24 +259,12 @@ class DemandeController extends AbstractController
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
-        $typeChampLibre = [];
-        foreach ($types as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-        }
-
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
         $userForModal = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
 
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'typeChampsLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
             'typesForModal' => Stream::from($types)

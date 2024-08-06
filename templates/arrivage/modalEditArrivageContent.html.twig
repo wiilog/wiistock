@@ -261,7 +261,7 @@
 
 {% if arrivage.type is defined and arrivage.type is not null %}
     {% include 'free_field/freeFieldsEdit.html.twig' with {
-        freeFields: arrivage.type.champsLibres,
+        freeFieldManagementRules: arrivage.type.freeFieldManagementRules,
         freeFieldValues: arrivage.freeFields,
         colType: 'col-lg-4 col-md-6 col-12',
         requiredType: 'requiredEdit',

@@ -1,6 +1,6 @@
-{% if freeFields is not empty %}
+{% if type is not null %}
     {% include 'free_field/freeFieldsEdit.html.twig' with {
-        freeFields,
+        freeFieldManagementRules: type.freeFieldManagementRules|filter((rule) => rule.freeField.categorieCL.label == constant('App\\Entity\\CategorieCL::ARTICLE')),
         freeFieldValues: [],
         colType: 'col-md-6 col-12',
         requiredType: 'requiredCreate',

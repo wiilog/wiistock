@@ -17,7 +17,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Pack;
@@ -47,13 +47,13 @@ use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
-use App\Service\ReceptionService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\ReceptionLineService;
 use App\Service\ReceptionReferenceArticleService;
+use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
@@ -231,40 +231,11 @@ class ReceptionController extends AbstractController {
 
             $reception = $receptionRepository->find($data['id']);
 
-            $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-            $typeChampLibre = [];
-            $champsLibresEntity = [];
-            foreach($listType as $type) {
-                $champsLibresComplet = $champLibreRepository->findByType($type['id']);
-                $champsLibres = [];
-                //création array edit pour vue
-                foreach($champsLibresComplet as $champLibre) {
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'requiredEdit' => $champLibre->isRequiredEdit(),
-                    ];
-                    $champsLibresEntity[] = $champLibre;
-                }
-
-                $typeChampLibre[] = [
-                    'typeLabel' => $type['label'],
-                    'typeId' => $type['id'],
-                    'champsLibres' => $champsLibres,
-                ];
-            }
-
             $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/show/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-                'typeChampsLibres' => $typeChampLibre,
                 'fieldsParam' => $fieldsParam,
-                'freeFieldsGroupedByTypes' => $champsLibresEntity,
             ]);
             return new JsonResponse($json);
         }
@@ -294,7 +265,7 @@ class ReceptionController extends AbstractController {
         return $this->json($columns);
     }
 
-    #[Route('/liste/{purchaseRequest}', name: 'reception_index', methods: ['GET', 'POST'], options: ['expose' => true])]
+    #[Route('/liste/{purchaseRequest}', name: 'reception_index', options: ['expose' => true], methods: [self::GET, self::POST])]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE])]
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
@@ -328,24 +299,16 @@ class ReceptionController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
-        $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
-        $typeChampLibre = [];
-        foreach($listType as $type) {
-            $champsLibres = $champLibreRepository->findByType($type['id']);
-            $typeChampLibre[] = [
-                'typeLabel' => $type['label'],
-                'typeId' => $type['id'],
-                'champsLibres' => $champsLibres,
-            ];
-        }
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $fields = $receptionService->getColumnVisibleConfig($user);
 
         return $this->render('reception/index.html.twig', [
-            'typeChampLibres' => $typeChampLibre,
+            'type' => $type,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
             'receptionLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_RECEPTION),
@@ -837,22 +800,10 @@ class ReceptionController extends AbstractController {
                          TranslationService         $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
-        $typeChampLibreDL = [];
-
-        foreach($listTypesDL as $typeDL) {
-            $champsLibresDL = $champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
-
-            $typeChampLibreDL[] = [
-                'typeLabel' => $typeDL->getLabel(),
-                'typeId' => $typeDL->getId(),
-                'champsLibres' => $champsLibresDL,
-            ];
-        }
+        $typesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
         $precheckedDelivery = $settingRepository->getOneParamByLabel(Setting::CREATE_DL_AFTER_RECEPTION);
         $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
@@ -875,7 +826,7 @@ class ReceptionController extends AbstractController {
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'typeChampsLibres' => $typeChampLibreDL,
+            'typesDL' => $typesDL,
             'precheckedDelivery' => $precheckedDelivery,
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'deliverySwitchLabel' => $deliverySwitchLabel,
@@ -2108,12 +2059,10 @@ class ReceptionController extends AbstractController {
         }
 
         $type = $referenceArticle->getType();
-        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-
         return $this->json([
             'success' => true,
             'template' => $this->renderView('reception/show/packing/article-form.html.twig', [
-                'freeFields' => $freeFields,
+                'type' => $type,
                 'receptionReferenceArticle' => $receptionReferenceArticle,
                 'selectedPack' => $pack,
                 'supplierReference' => $supplierReference,

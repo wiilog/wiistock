@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Statut;
 use App\Helper\QueryBuilderHelper;

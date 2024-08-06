@@ -1,0 +1,103 @@
+{% import 'form.html.twig' as form %}
+
+<div class="w-100">
+    {% if category is not empty %}
+        {{ form.hidden('category', category) }}
+    {% endif %}
+    <div class="wii-box mt-15px box-edit-free-fields">
+        <div class="header wii-title">
+            {% block freeFieldsTitle %}
+                Champs libres
+            {% endblock %}
+        </div>
+        <div class="focus-shadow p-3">
+            <div class="row">
+                {% set description = block('freeFieldsDescription') ?? '' %}
+                {% if description is not empty %}
+                    <div class="col-12 wii-small-text mb-3">
+                        {{ description | raw }}
+                    </div>
+                {% endif %}
+                <div class="col-auto ml-auto mb-2">
+                    <button class="btn btn-primary edit-free-fields-button">
+                        <i class="fa fa-pen mr-2"></i> Modifier
+                    </button>
+                </div>
+                <div class="col-12">
+                    <table class="table free-field-table w-100"></table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="wii-box mt-15px box-edit-type spinner-container">
+        <div class="header wii-title">{% block typesTitle %}Types{% endblock %}</div>
+        <div class="focus-shadow p-3">
+            <div class="row type-selection">
+                {% set description = block('typesDescription') ?? '' %}
+                {% if description is not empty %}
+                    <div class="col-12 wii-small-text mb-3">
+                        {{ description | raw }}
+                    </div>
+                {% endif %}
+                <div class="col">
+                    {% block filters %}{% endblock %}
+                </div>
+                {% if can_edit %}
+                    <div class="ml-auto col-auto">
+                        {% block button %}{% endblock %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="row management-body">
+                {% if not (hideType ?? false) %}
+                    {% if can_edit %}
+                    <div class="translate-labels d-none ml-auto mr-2">
+                        <button class="translate-labels-button btn btn-primary d-flex align-items-center">
+                            <span class="wii-icon wii-icon-translate-white mr-2 wh-18px"></span>Traduction des libellés
+                        </button>
+                    </div>
+                    {% endif %}
+                    <div class="wii-section-title col-12 mt-3">Informations du type</div>
+                    {% if can_edit %}
+                        <div class="col-auto pt-3">
+                            <button class="btn btn-silent delete-main-entity" style="margin-top: 5px">
+                                <i class="wii-icon wii-icon-trash text-primary"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                    <div class="col">
+                        <div class="row main-entity-content"></div>
+                    </div>
+                {% else %}
+                    {{ form.hidden('label') }}
+                {% endif %}
+                {{ form.hidden('typeId') }}
+                {% if can_edit %}
+                    <div class="col-auto pt-2 {{ (hideType ?? false) ? "ml-auto" }}">
+                        <button class="btn btn-primary edit-type-button">
+                            <i class="fa fa-pen mr-2"></i> Modifier
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="row">
+                <div class="wii-section-title col-12 mt-3">Champs pour ce type</div>
+                <div class="col-12">
+                    <table class="table management-table w-100"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'settings/common/delete-entity.html.twig' %}
+    <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
+        {label: 'Oui', value: '1'},
+        {label: 'Non', value: '0'},
+        {label: 'Aucune', value: null, checked: true},
+    ]) | json_encode }}">
+</div>
+
+{% block footer %}
+{% endblock %}
+

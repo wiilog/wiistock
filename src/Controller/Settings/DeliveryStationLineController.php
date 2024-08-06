@@ -5,7 +5,7 @@ namespace App\Controller\Settings;
 use App\Controller\AbstractController;
 use App\Entity\CategorieCL;
 use App\Entity\DeliveryStationLine;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Utilisateur;
 use App\Service\DeliveryStationLineService;
 use Doctrine\ORM\EntityManagerInterface;

@@ -13,7 +13,8 @@ use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\IOT\AlertTemplate;
@@ -53,10 +54,8 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -712,145 +711,20 @@ class SettingsService {
         }
 
         if (isset($tables["freeFields"])) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+            $categoryFFRepository = $entityManager->getRepository(CategorieCL::class);
+            $categoryFF = $categoryFFRepository->findOneBy(['label' => $data["category"]]);
 
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
-
-            if (isset($data["entity"])) {
-                if (!is_numeric($data["entity"]) && in_array($data["entity"], CategoryType::ALL)) {
-                    $category = $categoryTypeRepository->findOneBy(["label" => $data["entity"]]);
-
-                    $alreadyCreatedType = $typeRepository->count([
-                        'label' => $data["label"],
-                        'category' => $category,
-                    ]);
-
-                    if ($alreadyCreatedType > 0) {
-                        throw new RuntimeException("Le type existe déjà pour cette categorie");
-                    }
-
-                    $type = new Type();
-                    $type->setCategory($category);
-                    $entityManager->persist($type);
-
-                    $result['type'] = $type;
-                } else if(is_numeric($data["entity"])){
-                    $type = $entityManager->find(Type::class, $data["entity"]);
-
-                    $alreadyCreatedType = $typeRepository->findOneBy([
-                        'label' => $data["label"],
-                        'category' => $type->getCategory(),
-                    ]);
-
-                    if($alreadyCreatedType && $alreadyCreatedType->getId() != $data["entity"]) {
-                        throw new RuntimeException("Le type existe déjà pour cette categorie");
-                    }
-                }
-
-                if (!isset($type)) {
-                    throw new RuntimeException("Le type est introuvable");
-                }
-
-                if ($type->getCategory()->getLabel() !== CategoryType::SENSOR && empty($data["label"])) {
-                    throw new RuntimeException("Vous devez saisir un libellé pour le type");
-                }
-
-                $suggestedDropLocations = null;
-                if (isset($data["suggestedDropLocations"])) {
-                    $dropLocation = isset($data["dropLocation"])
-                        ? $entityManager->find(Emplacement::class, $data["dropLocation"])->getId()
-                        : $type->getDropLocation()?->getId();
-
-                    $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
-
-                    if (!empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
-                        throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
-                    }
-                }
-
-                $suggestedPickLocations = null;
-                if (isset($data["suggestedPickLocations"])) {
-                    $pickLocation = isset($data["pickLocation"])
-                        ? $entityManager->find(Emplacement::class, $data["pickLocation"])->getId()
-                        : $type->getPickLocation()?->getId();
-
-                    $suggestedPickLocations = !empty($data["suggestedPickLocations"]) ? explode(',', $data["suggestedPickLocations"]) : [];;
-
-                    if (!empty($suggestedPickLocations) && $pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
-                        throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
-                    }
-                }
-
-                if(isset($data["active"]) && $type->getId()){
-                    $categoryTypeId = $type->getCategory()->getId();
-                    $countActiveTypeByCategoryType = $typeRepository->countActiveTypeByCategoryType($categoryTypeId);
-
-                    if($countActiveTypeByCategoryType <= 1 && !$data["active"]){
-                        throw new RuntimeException("Au moins un type doit être actif pour cette entité.");
-                    }
-                }
-
-                $newLabel = $data["label"] ?? $type->getLabel();
-                $type
-                    ->setLabel($newLabel)
-                    ->setDescription($data["description"] ?? null)
-                    ->setPickLocation(isset($data["pickLocation"]) ? $entityManager->find(Emplacement::class, $data["pickLocation"]) : null)
-                    ->setDropLocation(isset($data["dropLocation"]) ? $entityManager->find(Emplacement::class, $data["dropLocation"]) : null)
-                    ->setSuggestedPickLocations($suggestedPickLocations)
-                    ->setSuggestedDropLocations($suggestedDropLocations)
-                    ->setNotificationsEnabled($data["pushNotifications"] ?? false)
-                    ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
-                    ->setSendMailRequester($data["mailRequester"] ?? false)
-                    ->setSendMailReceiver($data["mailReceiver"] ?? false)
-                    ->setReusableStatuses($data["reusableStatuses"] ?? false)
-                    ->setActive($data["active"] ?? true)
-                    ->setColor($data["color"] ?? null);
-
-                $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
-                if ($defaultTranslation) {
-                    $defaultTranslation->setTranslation($newLabel);
-                } else {
-                    $this->translationService->setDefaultTranslation($entityManager, $type, $newLabel);
-                }
-
-                if(isset($data["isDefault"])) {
-                    if($data["isDefault"]) {
-                        $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
-                        if($alreadyByDefaultType) {
-                            $alreadyByDefaultType->setDefault(false);
-                        }
-                    }
-
-                    $type->setDefault($data["isDefault"]);
-                }
-
-                if (isset($files["logo"])) {
-                    $logoAttachment = $this->attachmentService->persistAttachment($entityManager, $files["logo"]);
-                    $type->setLogo($logoAttachment);
-                } else {
-                    if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
-                        $type->setLogo(null);
-                    }
-                }
-            } else if (isset($tables["category"])) {
-                $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
-                $type = $typeRepository->findOneBy([
-                    'label' => $tables["category"],
-                    'category' => $category,
-                ]);
-            }
-
-            $requestTemplateLineRepository = $entityManager->getRepository(FreeField::class);
-            $freeFields = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
-                ->keymap(fn($day) => [$day->getId(), $day])
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+            $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
+                ->keymap(fn($freeField) => [$freeField->getId(), $freeField])
                 ->toArray();
 
             foreach (array_filter($tables["freeFields"]) as $item) {
                 /** @var FreeField $freeField */
                 $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
 
-                $existing = $requestTemplateLineRepository->findOneBy(["label" => $item["label"]]);
+                $existing = $freeFieldRepository->findOneBy(["label" => $item["label"]]);
                 if ($existing && $existing->getId() != $freeField->getId()) {
                     throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
                 }
@@ -881,18 +755,13 @@ class SettingsService {
 
                 $freeField
                     ->setLabel($item["label"])
-                    ->setType($type ?? null)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"])
-                        ? $entityManager->find(CategorieCL::class, $item["category"])
-                        : ($type?->getCategory()->getCategorieCLs()->first() ?: null)
+                        ? $categoryFFRepository->findOneBy(['id' => $item["category"]])
+                        : $categoryFF
                     )
                     ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? $elements : null)
-                    ->setDisplayedCreate($item["displayedCreate"])
-                    ->setDisplayedEdit($item["displayedEdit"] ?? true)
-                    ->setRequiredCreate($item["requiredCreate"])
-                    ->setRequiredEdit($item["requiredEdit"])
                     ->setMinCharactersLength($minCharactersLength)
                     ->setMaxCharactersLength($maxCharactersLength);
 
@@ -931,6 +800,150 @@ class SettingsService {
                 }
 
                 $entityManager->persist($freeField);
+            }
+        }
+
+        if (isset($tables["freeFieldManagementRules"])) {
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFieldManagementRules"]);
+
+            if(isset($data["typeId"])){
+                $type = $typeRepository->find($data["typeId"]);
+            } else if (isset($data["category"]) && !is_numeric($data["category"])) {
+                $category = $categoryTypeRepository->findOneBy(["label" => $data["category"]]);
+
+                $alreadyCreatedType = $typeRepository->count([
+                    'label' => $data["label"],
+                    'category' => $category,
+                ]);
+
+                if ($alreadyCreatedType > 0) {
+                    throw new RuntimeException("Le type existe déjà pour cette categorie");
+                }
+
+                $type = new Type();
+                $type->setCategory($category);
+                $entityManager->persist($type);
+            }
+
+            if (!isset($type)) {
+                throw new RuntimeException("Le type est introuvable");
+            }
+
+            if ($type->getCategory()->getLabel() !== CategoryType::SENSOR && empty($data["label"])) {
+                throw new RuntimeException("Vous devez saisir un libellé pour le type");
+            }
+
+            $suggestedDropLocations = null;
+            if (isset($data["suggestedDropLocations"])) {
+                $dropLocation = isset($data["dropLocation"])
+                    ? $entityManager->find(Emplacement::class, $data["dropLocation"])->getId()
+                    : $type->getDropLocation()?->getId();
+
+                $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
+
+                if (!empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
+                    throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
+                }
+            }
+
+            $suggestedPickLocations = null;
+            if (isset($data["suggestedPickLocations"])) {
+                $pickLocation = isset($data["pickLocation"])
+                    ? $entityManager->find(Emplacement::class, $data["pickLocation"])->getId()
+                    : $type->getPickLocation()?->getId();
+
+                $suggestedPickLocations = !empty($data["suggestedPickLocations"]) ? explode(',', $data["suggestedPickLocations"]) : [];;
+
+                if (!empty($suggestedPickLocations) && $pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
+                    throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
+                }
+            }
+
+            if(isset($data["active"]) && $type->getId()){
+                $categoryTypeId = $type->getCategory()->getId();
+                $countActiveTypeByCategoryType = $typeRepository->countActiveTypeByCategoryType($categoryTypeId);
+
+                if($countActiveTypeByCategoryType <= 1 && !$data["active"]){
+                    throw new RuntimeException("Au moins un type doit être actif pour cette entité.");
+                }
+            }
+
+            $newLabel = $data["label"] ?? $type->getLabel();
+            $type
+                ->setLabel($newLabel)
+                ->setDescription($data["description"] ?? null)
+                ->setPickLocation(isset($data["pickLocation"]) ? $entityManager->find(Emplacement::class, $data["pickLocation"]) : null)
+                ->setDropLocation(isset($data["dropLocation"]) ? $entityManager->find(Emplacement::class, $data["dropLocation"]) : null)
+                ->setSuggestedPickLocations($suggestedPickLocations)
+                ->setSuggestedDropLocations($suggestedDropLocations)
+                ->setNotificationsEnabled($data["pushNotifications"] ?? false)
+                ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
+                ->setSendMailRequester($data["mailRequester"] ?? false)
+                ->setSendMailReceiver($data["mailReceiver"] ?? false)
+                ->setReusableStatuses($data["reusableStatuses"] ?? false)
+                ->setActive($data["active"] ?? true)
+                ->setColor($data["color"] ?? null);
+
+            $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
+            if ($defaultTranslation) {
+                $defaultTranslation->setTranslation($newLabel);
+            } else {
+                $this->translationService->setDefaultTranslation($entityManager, $type, $newLabel);
+            }
+
+            if(isset($data["isDefault"])) {
+                if($data["isDefault"]) {
+                    $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
+                    if($alreadyByDefaultType) {
+                        $alreadyByDefaultType->setDefault(false);
+                    }
+                }
+
+                $type->setDefault($data["isDefault"]);
+            }
+
+            if (isset($files["logo"])) {
+                $logoAttachment = $this->attachmentService->persistAttachment($entityManager, $files["logo"]);
+                $type->setLogo($logoAttachment);
+            } else {
+                if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
+                    $type->setLogo(null);
+                }
+            }
+
+            $freeFieldManagementRuleRepository = $entityManager->getRepository(FreeFieldManagementRule::class);
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+            $freeFieldManagementRules = Stream::from($freeFieldManagementRuleRepository->findBy(["id" => $ids]))
+                ->keymap(fn(FreeFieldManagementRule $freeFieldManagementRule) => [$freeFieldManagementRule->getId(), $freeFieldManagementRule])
+                ->toArray();
+
+            $treatedfreeFieldManagementRules = [];
+            foreach (array_filter($tables["freeFieldManagementRules"]) as $item) {
+                /** @var FreeField $freeField */
+                $freeFieldManagementRule = isset($item["id"]) ? $freeFieldManagementRules[$item["id"]] : new FreeFieldManagementRule();
+                $freeField = $freeFieldRepository->find($item["freeField"]);
+                $existing = $treatedfreeFieldManagementRules[$freeField->getId() . "-" . $type->getId()] ?? $freeFieldManagementRuleRepository->findOneBy([
+                    "freeField" => $freeField,
+                    "type" => $type
+                ]);
+                if ($existing && $existing->getId() != $freeFieldManagementRule->getId()) {
+                    throw new RuntimeException("le champ libre {$existing->getFreeField()->getLabel()} peut être associé qu'une seule fois à un type");
+                }
+
+                $freeFieldManagementRule
+                    ->setType($type)
+                    ->setFreeField($freeField)
+                    ->setDisplayedCreate($item["displayedCreate"])
+                    ->setDisplayedEdit($item["displayedEdit"] ?? true)
+                    ->setRequiredCreate($item["requiredCreate"])
+                    ->setRequiredEdit($item["requiredEdit"]);
+
+                $entityManager->persist($freeFieldManagementRule);
+                $treatedfreeFieldManagementRules[$freeField->getId() . "-" . $type->getId()] = $freeFieldManagementRule;
             }
         }
 
@@ -1198,22 +1211,21 @@ class SettingsService {
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
             $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            if (!is_numeric($data["entity"])) {
-                $template = $data["entity"] === Type::LABEL_DELIVERY
+            if (is_numeric($data["typeId"])){
+                $template = $entityManager->find(RequestTemplate::class, $data["typeId"]);
+            } else {
+                $template = $data["entityType"] === Type::LABEL_DELIVERY
                     ? new DeliveryRequestTemplate()
-                    : ($data["entity"] === Type::LABEL_COLLECT
+                    : ($data["entityType"] === Type::LABEL_COLLECT
                         ? new CollectRequestTemplate()
                         : new HandlingRequestTemplate()
                     );
-                $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
+                $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entityType"]));
 
                 $entityManager->persist($template);
 
                 $result['template'] = $template;
-            } else {
-                $template = $entityManager->find(RequestTemplate::class, $data["entity"]);
             }
-
             $sameName = $requestTemplateRepository->findOneBy(["name" => $data["name"]]);
             if ($sameName && $sameName->getId() !== $template->getId()) {
                 throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");

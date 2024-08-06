@@ -3,10 +3,11 @@
 namespace App\Controller\IOT;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
@@ -14,18 +15,15 @@ use App\Entity\Menu;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\PostHelper;
-
 use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
 use App\Service\IOT\SensorWrapperService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
@@ -35,20 +33,10 @@ class SensorWrapperController extends AbstractController
     #[Route('/liste', name: 'sensor_wrapper_index')]
     #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function index(EntityManagerInterface $entityManager): Response {
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-
         $types = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::SENSOR]);
 
         return $this->render('IOT/sensor_wrapper/index.html.twig', [
-            'freeFieldsTypes' => Stream::from($types)->map(function (Type $type) use ($freeFieldsRepository) {
-                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::SENSOR);
-
-                return [
-                    'typeLabel' => $type->getLabel(),
-                    'typeId' => $type->getId(),
-                    'freeFields' => $freeFields,
-                ];
-            })
+            'types' => $types,
         ]);
     }
 
