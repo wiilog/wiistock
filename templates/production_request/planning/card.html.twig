@@ -66,11 +66,13 @@
             {% set detailsDropdownData =  cardContent.dropdown ?? [] %}
             {{ macros.detail(detailsDropdownData.tags ?? [], detailsDropdownData.rows ?? [], detailsDropdownData.icons ?? []) }}
         </div>
+        {% if detailsDropdownData | length > 0 %}
         <div class="row">
             <div class="col-12 d-flex justify-content-center">
                 <div class="expand-card-button prevent-default" type="button" data-toggle="collapse"
                      data-target="#{{ id }}" aria-expanded="false" aria-controls="cardCollapse"></div>
             </div>
         </div>
+        {% endif %}
     </div>
 </a>

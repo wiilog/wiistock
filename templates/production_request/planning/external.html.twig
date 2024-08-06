@@ -19,6 +19,7 @@
                 <span class="refresh-date external">Actualisé le : {{ firstRefreshDate }}</span>
             </div>
             <div class="dashboard-container">
+                {{ form.hidden('token', token) }}
                 <div class="mx-4 wii-page-card flex-fill d-flex flex-column maxh-100" >
                     <div class="row">
                         {{ navigationButtons.navigationHeaderButtons(true) }}

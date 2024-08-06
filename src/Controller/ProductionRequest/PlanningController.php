@@ -68,121 +68,35 @@ class PlanningController extends AbstractController {
         ]);
     }
 
-    #[Route('/api', name: 'api', options: ['expose' => true], methods: self::GET)]
-    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
-    public function api(EntityManagerInterface   $entityManager,
-                        LanguageService          $languageService,
+    #[Route('/api-externe', name: 'api_external', options: ['expose' => true], methods: [self::GET])]
+    public function apiExternal(EntityManagerInterface   $entityManager,
                         PlanningService          $planningService,
-                        ProductionRequestService $productionRequestService,
-                        FormatService            $formatService,
                         Request                  $request): Response {
-        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
-        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
-        $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-
-        $external = $request->query->getBoolean("external");
-
-        $user = $this->getUser();
-        $defaultLanguage = $languageService->getDefaultLanguage();
-        $userLanguage = $user?->getLanguage() ?: $defaultLanguage;
-
-        $daysWorked = $daysWorkedRepository->getLabelWorkedDays();
-        $workFreeDays = $workFreeDayRepository->getWorkFreeDaysToDateTime(true);
-        $nbDaysOnPlanning = 7;
-
-        $planningStart = $this->getFormatter()->parseDatetime($request->query->get('date'));
-        $planningEnd = (clone $planningStart)->modify("+1 week");
-        $planningDays = Stream::fill(0, $nbDaysOnPlanning, null)
-            ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
-                $day = (clone $planningStart)->modify("+$index days");
-                if (in_array(strtolower($day->format("l")), $daysWorked)
-                    && !in_array($day->format("Y-m-d"), $workFreeDays)) {
-                    return $day;
-                }
-                else {
-                    return null;
-                }
-            })
-            ->toArray();
-
-        $fieldModes = $user->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
-
-        if (!empty($planningDays)) {
-            $filters = [];
-            if(!$external) {
-                $filters = Stream::from($supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION_PLANNING, $user))
-                    ->filter(static fn(array $filter) => ($filter["value"] != "" &&  in_array($filter["field"], [
-                            FiltreSup::FIELD_REQUEST_NUMBER,
-                            FiltreSup::FIELD_MULTIPLE_TYPES,
-                            FiltreSup::FIELD_OPERATORS,
-                            'statuses-filter',
-                        ])))
-                    ->toArray();
-            }
-
-            $statuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PRODUCTION))
-                ->filter(static fn(Statut $status) => $status->isDisplayedOnSchedule())
-                ->toArray();
-
-            $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
-            $displayedFieldsConfig = $productionRequestService->getDisplayedFieldsConfig($external, $fieldModes);
-
-            $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($planningService, $displayedFieldsConfig, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $defaultLanguage, $external) {
-                    $cardContent = $planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage, $defaultLanguage);
-                    return [
-                        $productionRequest->getExpectedAt()->format('Y-m-d'),
-                        $this->renderView('production_request/planning/card.html.twig', [
-                            "productionRequest" => $productionRequest,
-                            "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
-                            "cardContent" => $cardContent ?? [],
-                            "inPlanning" => true,
-                            "external" => $external,
-                        ])
-                    ];
-                }, true)
-                ->toArray();
-
-            $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
-                || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
-
-            $countLinesByDate = [];
-            if ($displayCountLines) {
-                Stream::from($productionRequests)
-                    ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
-                        $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
-                        $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
-                    });
-            }
-
-            $formatter = $this->getFormatter();
-            $planningColumns = Stream::from($planningDays)
-                ->map(static function (DateTime $day) use ($displayCountLines, $countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays, $formatter) {
-                    $dayStr = $day->format('Y-m-d');
-                    $count = count($cards[$dayStr] ?? []);
-                    $sProduction = $count > 1 ? 's' : '';
-
-                    return [
-                        "label" => $formatter->longDate($day, ["short" => true, "year" => false]),
-                        "cardSelector" => $dayStr,
-                        "columnClass" => "forced",
-                        "columnHint" => "<span class='font-weight-bold'>$count demande$sProduction</span>",
-                        "displayCountLines" => $displayCountLines,
-                        "countLines" => $countLinesByDate[$dayStr] ?? 0,
-                    ];
-                })
-                ->toArray();
+        if($request->query->get("token") !== $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"]) {
+           throw $this->createAccessDeniedException();
         }
 
         return $this->json([
             "success" => true,
-            "template" => $this->renderView('production_request/planning/content.html.twig', [
-                "planningColumns" => $planningColumns ?? [],
-                "cards" => $cards ?? [],
-            ]),
+            "template" => $this->renderView(
+                'production_request/planning/content.html.twig',
+                $planningService->createPlanningConfig($entityManager, $request, null, true)
+            ),
+        ]);
+    }
+
+
+    #[Route('/api', name: 'api', options: ['expose' => true], methods: [self::GET])]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
+    public function api(EntityManagerInterface   $entityManager,
+                        PlanningService          $planningService,
+                        Request                  $request): Response {
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView(
+                'production_request/planning/content.html.twig',
+                $planningService->createPlanningConfig($entityManager, $request, $this->getUser(), false)
+            ),
         ]);
     }
 

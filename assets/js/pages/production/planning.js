@@ -19,10 +19,12 @@ $(function () {
     external = Boolean($(`[name=external]`).val());
 
     planning = new Planning($(`.production-request-planning`), {
-        route: `production_request_planning_api`,
-        params: {
-            external,
-        },
+        route: external ? `production_request_planning_api_external`: `production_request_planning_api`,
+        params: external
+            ? {
+                token: $(`[name=token]`).val(),
+            }
+            : {},
         baseDate: moment().startOf(`isoWeek`),
     });
 
@@ -30,12 +32,13 @@ $(function () {
         onPlanningLoaded(planning);
     });
 
-    initializeFilters();
     initializePlanningNavigation();
     planning.fetch();
 
     if(external) {
         initPlanningRefresh();
+    } else {
+        initializeFilters();
     }
     const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
 
