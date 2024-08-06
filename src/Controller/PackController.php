@@ -63,7 +63,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: self::GET)]
+    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function show(Pack $logisticUnit): Response {
         return $this->render('pack/show.html.twig', [

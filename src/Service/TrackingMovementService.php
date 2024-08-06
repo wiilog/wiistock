@@ -445,7 +445,6 @@ class TrackingMovementService extends AbstractController
 
         $pack->addTrackingMovement($tracking);
 
-        //TODO mettre ici
         $message = $this->buildCustomLogisticUnitHistoryRecord($tracking);
         $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $tracking->getDatetime(), $tracking->getOperateur(), ucfirst($tracking->getType()->getCode()), $tracking->getEmplacement());
 
@@ -1620,7 +1619,7 @@ class TrackingMovementService extends AbstractController
         $message = "";
 
         Stream::from($values)
-            ->filter(static fn($value) => $value)
+            ->filter(static fn(string $value) => $value)
             ->each(static function (string $value, string $key) use (&$message) {
                 $message .= "$key : $value\n";
                 return $message;

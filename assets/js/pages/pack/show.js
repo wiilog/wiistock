@@ -1,7 +1,7 @@
-import {GET} from "../../ajax";
+import {GET} from "@app/ajax";
 
 $(function() {
-    const logisticUnitId = $(`[name=logisticUnitId]`).val();
+    const logisticUnitId = $(`[name="logisticUnitId"]`).val();
     getTrackingHistory(logisticUnitId);
 });
 
