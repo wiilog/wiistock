@@ -72,6 +72,12 @@ class PackController extends AbstractController
         return $this->render('pack/show.html.twig', [
             "logisticUnit" => $logisticUnit,
             "movements" => $movements,
+            "barcode" => [
+                "code" => $logisticUnit->getCode(),
+                "height" => 10,
+                "width" => 10,
+                "type" => 'qrcode',
+            ],
         ]);
     }
 

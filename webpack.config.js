@@ -78,6 +78,7 @@ Encore
     .addEntry('warning-header', './assets/js/warning-header.js')
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
+    .addStyleEntry('pack-details-page', './assets/scss/details-page.scss')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
