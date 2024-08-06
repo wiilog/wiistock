@@ -11,6 +11,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
@@ -82,6 +83,7 @@ class PlanningController extends AbstractController {
         $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $external = $request->query->getBoolean("external");
 
@@ -162,9 +164,8 @@ class PlanningController extends AbstractController {
                     ];
                 }, true)
                 ->toArray();
-
-            $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
-                || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
+            $fieldLineCount = $fixedFieldRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::lineCount->name);
+            $displayCountLines = $fieldLineCount?->isDisplayedCreate() || $fieldLineCount?->isDisplayedEdit();
 
             $countLinesByDate = [];
             if ($displayCountLines) {
