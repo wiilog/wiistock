@@ -890,7 +890,7 @@ class DeliveryRequestService
                 }
                 else if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                     if ($manageDeliveryWithoutStockQuantitySetting) {
-                        $locations[$defaultLocationReception->getId()] = true;
+                        $locations[$defaultLocationReception?->getId()] = true;
                     }
                     else {
                         $preparedUponValidation = false;
