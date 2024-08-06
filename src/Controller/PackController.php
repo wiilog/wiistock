@@ -11,6 +11,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
@@ -62,7 +63,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: self::GET)]
+    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function show(Pack $logisticUnit): Response {
         return $this->render('pack/show.html.twig', [
@@ -377,6 +378,30 @@ class PackController extends AbstractController
         return $this->json([
             'success' => true,
             'location' => $location?->getId(),
+        ]);
+    }
+
+    #[Route("/{id}/status-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: [self::GET])]
+    public function statusHistoryApi(Pack            $logisticUnit,
+                                     LanguageService $languageService): JsonResponse {
+        $user = $this->getUser();
+        return $this->json([
+            "success" => true,
+            "template" => $this->renderView('pack/tracking_history.html.twig', [
+                "userLanguage" => $user->getLanguage(),
+                "defaultLanguage" => $languageService->getDefaultLanguage(),
+                "trackingRecordsHistory" => Stream::from($logisticUnit->getLogisticUnitHistoryRecords())
+                    ->sort(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord1, LogisticUnitHistoryRecord $logisticUnitHistoryRecord2) => $logisticUnitHistoryRecord2->getDate() <=> $logisticUnitHistoryRecord1->getDate())
+                    ->map(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord) => [
+                        "type" => $logisticUnitHistoryRecord->getType(),
+                        "date" => $this->getFormatter()->datetime($logisticUnitHistoryRecord->getDate(), "", false, $user),
+                        "user" => $this->getFormatter()->user($logisticUnitHistoryRecord->getUser()),
+                        "location" => $this->getFormatter()->location($logisticUnitHistoryRecord->getLocation()),
+                        "message" => $logisticUnitHistoryRecord->getMessage()
+                    ])
+                    ->toArray(),
+                "logisticUnit" => $logisticUnit,
+            ]),
         ]);
     }
 }

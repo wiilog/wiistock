@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -126,7 +127,11 @@ class Pack implements PairedEntity {
     private ?ShippingRequestPack $shippingRequestPack = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
-    private ?int $truckArrivalDelay = null; //millisecondes entre la création de l'arrivage camion et l'UL
+    private ?int $truckArrivalDelay = null;
+    //millisecondes entre la création de l'arrivage camion et l'UL
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LogisticUnitHistoryRecord::class)]
+    private Collection $logisticUnitHistoryRecords;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -139,6 +144,7 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
+        $this->logisticUnitHistoryRecords = new ArrayCollection();
         $this->receiptAssociations = new ArrayCollection();
     }
 
@@ -789,6 +795,47 @@ class Pack implements PairedEntity {
     public function setTruckArrivalDelay(?int $truckArrivalDelay): self {
         $this->truckArrivalDelay = $truckArrivalDelay;
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LogisticUnitHistoryRecord>
+     */
+    public function getLogisticUnitHistoryRecords(): Collection
+    {
+        return $this->logisticUnitHistoryRecords;
+    }
+
+    public function addLogisticUnitHistoryRecord(LogisticUnitHistoryRecord $logisticUnitHistoryRecord): self
+    {
+        if (!$this->logisticUnitHistoryRecords->contains($logisticUnitHistoryRecord)) {
+            $this->logisticUnitHistoryRecords[] = $logisticUnitHistoryRecord;
+            $logisticUnitHistoryRecord->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLogisticUnitHistoryRecord(LogisticUnitHistoryRecord $logisticUnitHistoryRecord): self
+    {
+        if ($this->logisticUnitHistoryRecords->removeElement($logisticUnitHistoryRecord)) {
+            if ($logisticUnitHistoryRecord->getPack() === $this) {
+                $logisticUnitHistoryRecord->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setLogisticUnitHistoryRecords(?iterable $logisticUnitHistoryRecords): self {
+        foreach($this->getLogisticUnitHistoryRecords()->toArray() as $logisticUnitHistoryRecord) {
+            $this->removeLogisticUnitHistoryRecord($logisticUnitHistoryRecord);
+        }
+
+        $this->logisticUnitHistoryRecords = new ArrayCollection();
+        foreach($logisticUnitHistoryRecords ?? [] as $logisticUnitHistoryRecord) {
+            $this->addLogisticUnitHistoryRecord($logisticUnitHistoryRecord);
+        }
         return $this;
     }
 

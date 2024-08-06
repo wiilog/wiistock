@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\DispatchRepository;
+use App\Service\FormatService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -725,5 +727,18 @@ class Dispatch extends StatusHistoryContainer implements AttachmentContainer {
         $this->customerAddress = $customerAddress;
 
         return $this;
+    }
+
+    public function serialize(FormatService $formatService): array {
+        return [
+            FixedFieldEnum::status->value => $this->getStatut()?->getCode(),
+            FixedFieldEnum::type->value => $this->getType()->getLabel(),
+            FixedFieldEnum::number->value => $this->getNumber(),
+            FixedFieldEnum::pickLocation->value => $this->getLocationFrom()?->getLabel(),
+            FixedFieldEnum::dropLocation->value => $this->getLocationTo()?->getLabel(),
+            FixedFieldEnum::comment->value => $this->getCommentaire(),
+            FixedFieldEnum::emergency->value => $this->getEmergency(),
+            FixedFieldEnum::requester->value => $this->getRequester()?->getUsername(),
+        ];
     }
 }

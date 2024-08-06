@@ -76,6 +76,7 @@ Encore
     .addEntry('stock-movement-index', './assets/js/pages/stock-movement/index.js')
     .addEntry('nature-index', './assets/js/pages/nature/index.js')
     .addEntry('warning-header', './assets/js/warning-header.js')
+    .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

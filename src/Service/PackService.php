@@ -4,12 +4,14 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\ArrivalHistory;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
@@ -83,6 +85,8 @@ class PackService {
 
     #[Required]
     public SettingsService $settingsService;
+
+    public function __construct(private readonly TruckArrivalService $truckArrivalService) {}
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -265,8 +269,8 @@ class PackService {
     }
 
     public function createPack(EntityManagerInterface $entityManager,
-                               array $options = []): Pack
-    {
+                               array                  $options = [],
+                               Utilisateur            $user = null): Pack {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
@@ -298,6 +302,19 @@ class PackService {
                 }
 
                 $arrival->addPack($pack);
+
+                $message = $this->arrivageDataService->buildCustomLogisticUnitHistoryRecord($arrival);
+                $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage UL", $arrival->getDropLocation());
+
+                if($arrival->getTruckArrival() || $arrival->getTruckArrivalLines()->first()){
+                    $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
+                    $truckArrival = $arrivalHasLine
+                        ? $arrivalHasLine->getTruckArrival()
+                        : $arrival->getTruckArrival();
+
+                    $message = $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival);
+                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage Camion", $truckArrival->getUnloadingLocation());
+                }
             }
             else if (isset($options['orderLine'])) {
                 /** @var Nature $nature */
@@ -428,7 +445,7 @@ class PackService {
             if ($number) {
                 $nature = $natureRepository->find($natureId);
                 for ($i = 0; $i < $number; $i++) {
-                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
+                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null], $user);
                     if ($persistTrackingMovements && isset($location)) {
                         $this->trackingMovementService->persistTrackingForArrivalPack(
                             $entityManager,
@@ -685,5 +702,24 @@ class PackService {
             'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null,
             'typeLogoArrivalUl' => $typeLogoPath,
         ];
+    }
+
+    public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
+                                                     Pack                   $logisticUnit,
+                                                     string                 $message,
+                                                     DateTime               $historyDate,
+                                                     Utilisateur            $user,
+                                                     string                 $type,
+                                                     Emplacement            $location = null): void {
+        $logisticUnitHistoryRecord = (new LogisticUnitHistoryRecord())
+            ->setMessage($message)
+            ->setPack($logisticUnit)
+            ->setStatusDate($historyDate)
+            ->setDate($historyDate)
+            ->setType($type)
+            ->setLocation($location)
+            ->setUser($user);
+
+        $entityManager->persist($logisticUnitHistoryRecord);
     }
 }
