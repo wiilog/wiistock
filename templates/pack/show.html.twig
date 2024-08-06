@@ -8,10 +8,15 @@
     {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
-        <div class="row wii-column">
+        <div class="row wii-column w-100">
             <div class="col-12 col-md-6">
                 <div class="details-page-header d-flex flex-column" style="border-color: {{ logisticUnit.nature.color }}">
                     <div class="wii-type" style="background-color: {{ logisticUnit.nature.color }}">
@@ -130,6 +135,10 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="wii-box mt-3">
+                    <div class="header wii-title">Champs libres</div>
+                    <div class="content"></div>
                 </div>
                 <div class="wii-box">
                     <div class="header wii-title">Contenu unité logistique</div>

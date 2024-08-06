@@ -25,66 +25,29 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class PackService {
 
-    #[Required]
-    public ProjectHistoryRecordService $projectHistoryRecordService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public ArrivageService $arrivageDataService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public ReceptionService $receptionService;
-
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
-    #[Required]
-    public ReceptionLineService $receptionLineService;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public TimeService $timeService;
-
-    #[Required]
-    public SettingsService $settingsService;
+    public function __construct(private readonly EntityManagerInterface $entityManager,
+                                private readonly Security $security,
+                                private readonly Twig_Environment $templating,
+                                private readonly TrackingMovementService $trackingMovementService,
+                                private readonly MailerService $mailerService,
+                                private readonly LanguageService $languageService,
+                                private readonly TranslationService $translation,
+                                private readonly FieldModesService $fieldModesService,
+                                private readonly FormatService $formatService,
+                                private readonly ReceptionLineService $receptionLineService,
+                                private readonly TimeService $timeService,
+                                private readonly SettingsService $settingsService,
+                                private readonly UserService $userService) {}
 
     public function __construct(private readonly TruckArrivalService $truckArrivalService) {}
 
@@ -113,6 +76,30 @@ class PackService {
             "recordsFiltered" => $queryResult['count'],
             "recordsTotal" => $queryResult['total'],
         ];
+    }
+
+    public function generateTrackingHistoryHtml(Pack $logisticUnit): string {
+        $user = $this->userService->getUser();
+        return $this->templating->render('pack/tracking_history.html.twig', [
+            "userLanguage" => $user?->getLanguage(),
+            "defaultLanguage" => $this->languageService->getDefaultLanguage(),
+            "trackingRecordsHistory" => $this->getTrackingRecordsHistory($logisticUnit->getLogisticUnitHistoryRecords()),
+            "logisticUnit" => $logisticUnit,
+        ]);
+    }
+
+    public function getTrackingRecordsHistory(Collection $logisticUnitHistoryRecords): array {
+        $user = $this->userService->getUser();
+        return Stream::from($logisticUnitHistoryRecords)
+            ->sort(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord1, LogisticUnitHistoryRecord $logisticUnitHistoryRecord2) => $logisticUnitHistoryRecord2->getDate() <=> $logisticUnitHistoryRecord1->getDate())
+            ->map(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord) => [
+                "type" => $logisticUnitHistoryRecord->getType(),
+                "date" => $this->formatService->datetime($logisticUnitHistoryRecord->getDate(), "", false, $user),
+                "user" => $this->formatService->user($logisticUnitHistoryRecord->getUser()),
+                "location" => $this->formatService->location($logisticUnitHistoryRecord->getLocation()),
+                "message" => $logisticUnitHistoryRecord->getMessage()
+            ])
+            ->toArray();
     }
 
     public function getGroupHistoryForDatatable($pack, $params) {
@@ -168,6 +155,9 @@ class PackService {
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
+            ]),
+            'contentPack' => $this->templating->render('pack/content-pack-column.html.twig', [
+                'pack' => $pack,
             ]),
             'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
                 "pack" => $pack,
