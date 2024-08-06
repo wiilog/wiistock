@@ -4,6 +4,7 @@ namespace App\Controller\ProductionRequest;
 
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
+use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -28,7 +29,7 @@ use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequestService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\UserService;
 use DateTime;
@@ -55,7 +56,7 @@ class ProductionRequestController extends AbstractController
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser);
+        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_LIST);
 
         // repository
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -130,7 +131,7 @@ class ProductionRequestController extends AbstractController
     public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_LIST);
 
         return new JsonResponse($columns);
     }
@@ -344,7 +345,7 @@ class ProductionRequestController extends AbstractController
 
             $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
             $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(["slug" => $defaultSlug]);
-            $headers = Stream::from($productionRequestService->getVisibleColumnsConfig($entityManager, $user, true))
+            $headers = Stream::from($productionRequestService->getVisibleColumnsConfig($entityManager, $user,FieldModesController::PAGE_PRODUCTION_REQUEST_LIST, true))
                 ->map(static fn(array $column) => $column["title"])
                 ->toArray();
 

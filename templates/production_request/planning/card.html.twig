@@ -1,17 +1,52 @@
-{% set canDrag = not external and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
-{# same as ProductionRequestService::checkRoleForEdition #}
-{% set canUpdateStatus = (
-    not external
-    and productionRequest.status
-    and (
-        (productionRequest.status.inProgress and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST')))
-        or (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
-        or (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
-    )
-) %}
+{% macro detail(tags, rows, icons) %}
+    <div class="col">
+        {% if tags is not empty %}
+            <div class="d-flex flex-wrap">
+                {% for tag in tags %}
+                    {% if not tag is empty %}
+                    <div class="rounded px-2 py-1 mr-1 mb-1 {{ tag.class}}"
+                         style="background-color: {{ tag.color ?? 'white' }}">
+                        <span class="text-color-auto">
+                            {{ tag.label }}
+                        </span>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% for row in rows %}
+            {% if not row is empty %}
+                <div class="mt-1" data-field-label="{{ row.label }}">
+                    {{ row.label }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ row.value ?? "-" }}</span>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% if icons is not empty %}
+        <div class="pr-3 pl-3 w-min-content">
+            <div class="text-center d-flex flex-column align-items-center">
+                {% for icon in icons %}
+                    {% if not icon is empty %}
+                    <img src="{{ asset(icon.path) }}"
+                         class="has-tooltip mb-1"
+                         width="30"
+                         alt="{{ icon.alt }}"
+                         title="{{ icon.title }}"
+                    >
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
 
-{% set emergency = productionRequest.emergency ?? null %}
-{% set comment = (productionRequest.comment ?? "")|striptags %}
+{% import _self as macros %}
+
+{% set fieldsModes = app.user.fieldModesByPage[constant('App\\Controller\\FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING')]
+    ?? constant('App\\Entity\\Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES') %}
+
+{% set canDrag = not external and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
+
 <a class="planning-card preparation-card {{ not external ? 'pointer' }} {{ canDrag ? "can-drag" }} has-tooltip"
    {% if not external %}
        href="{{ path('production_request_show', {id: productionRequest.id}) }}"
@@ -23,68 +58,19 @@
     <div class="planning-card-wrapper"
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
-            <div class="{{ emergency or comment ? 'col-8' : 'col-12' }}">
-                <div class="rounded px-2 py-1 d-inline-block {{ canUpdateStatus ? "prevent-default" }} {{ canUpdateStatus  ? "open-modal-update-production-request-status"}}"
-                        style="background-color: {{ productionRequest.status.color ?? 'white' }}">
-                    <span class="text-color-auto">
-                        {{ productionRequest.status|format_helper("status") }}
-                    </span>
-                </div>
-                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
-                <div class="mt-1" data-field-label="{{ fieldLabel }}">
-                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>
-                </div>
-                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').value %}
-                <div class="mt-1" data-field-label="{{ fieldLabel }}">
-                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.manufacturingOrderNumber ?? "-" }}</span>
-                </div>
-                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
-                <div class="mt-1" data-field-label="{{ fieldLabel }}">
-                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.dropLocation|format_helper("location", "-") }}</span>
-                </div>
-                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').value %}
-                <div class="mt-1" data-field-label="{{ fieldLabel }}">
-                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.quantity ?? "-" }}</span>
-                </div>
+            {% set detailsHeaderData =  cardContent.header ?? [] %}
+            {{ macros.detail(detailsHeaderData.tags ?? [], detailsHeaderData.rows ?? [], detailsHeaderData.icons ?? []) }}
+        </div>
+        {% set id = "cardCollapse-" ~ random() %}
+        <div class="row collapse" id="{{ id }}">
+            {% set detailsDropdownData =  cardContent.dropdown ?? [] %}
+            {{ macros.detail(detailsDropdownData.tags ?? [], detailsDropdownData.rows ?? [], detailsDropdownData.icons ?? []) }}
+        </div>
+        <div class="row">
+            <div class="col-12 d-flex justify-content-center">
+                <div class="expand-card-button prevent-default" type="button" data-toggle="collapse"
+                     data-target="#{{ id }}" aria-expanded="false" aria-controls="cardCollapse"></div>
             </div>
-            {% if emergency or comment %}
-                <div class="col-4">
-                    <div class="text-center d-flex flex-column align-items-center">
-                        {% if emergency %}
-                            <img src="{{ asset('svg/urgence.svg') }}"
-                                 class="has-tooltip mb-1"
-                                 width="30"
-                                 alt="Icône urgence"
-                                 title="Une urgence est en cours sur cette demande : {{ emergency }}"
-                            >
-                        {% endif %}
-                        {% if comment %}
-                            <img src="{{ asset('svg/comment-dots-regular.svg') }}"
-                                 class="has-tooltip"
-                                 width="30"
-                                 alt="Icône commentaire"
-                                 title="Un commentaire est présent sur cette demande : {{ comment }}"
-                            >
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-            {% if fields is not empty %}
-                {% set id = "cardCollapse-" ~ random() %}
-                <div class="col-12 collapse" id="{{ id }}">
-                    {% for name, value in fields %}
-                        <div class="mt-1" data-field-label="{{ name }}">
-                            {{ name }}&nbsp;:&nbsp;<span class="font-weight-bold ">{{ value }}</span>
-                        </div>
-                    {% endfor %}
-                </div>
-                <div class="col-12 d-flex justify-content-center">
-                    <div class="expand-card-button prevent-default" type="button" data-toggle="collapse"
-                         data-target="#{{ id }}" aria-expanded="false" aria-controls="cardCollapse"></div>
-                </div>
-
-            {% endif %}
-
         </div>
     </div>
 </a>

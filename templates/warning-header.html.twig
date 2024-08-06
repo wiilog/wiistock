@@ -1,0 +1,31 @@
+{% import 'form.html.twig' as form %}
+
+{% set warning_header = setting_value('WARNING_HEADER') is not empty ? setting_value('WARNING_HEADER') : false %}
+{% if warning_header %}
+    {% set warning_header = warning_header | json_decode %}
+{% endif %}
+{% set color_warning_header = warning_header and warning_header.color is not empty ? warning_header.color : false %}
+{% set message_warning_header = warning_header and warning_header.message is not empty ? warning_header.message : false %}
+
+{% if color_warning_header and message_warning_header %}
+    <div class="row justify-content-center align-items-center banner-warning-header d-none"
+         style="background-color: {{ color_warning_header }}">
+        <div class="col text-center">
+            <div class="text-white bold p-2">{{ message_warning_header }}</div>
+        </div>
+        <div class="col-auto">
+            <button type="button"
+                    class="close btn-warning-header px-2"
+                    data-dismiss="alert"
+                    aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+
+    {{ form.hidden('warning-header-hash', warning_header.messageHash) }}
+{% endif %}
+
+{% block javascripts %}
+    {{ encore_entry_script_tags('warning-header') }}
+{% endblock %}

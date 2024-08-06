@@ -39,7 +39,7 @@ class Demande implements PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
-const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
+    const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
     use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;

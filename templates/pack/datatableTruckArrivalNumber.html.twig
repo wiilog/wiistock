@@ -1,0 +1,7 @@
+{% set truckArrival = truckArrival ?? null %}
+
+{% if truckArrival %}
+    <a href="{{ path('arrivage_show', {'id': truckArrival.id}) }}">
+        <u>{{ truckArrival.noTracking }}</u>
+    </a>
+{% endif %}

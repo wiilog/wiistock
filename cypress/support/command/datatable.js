@@ -68,16 +68,18 @@ Cypress.Commands.add('clickOnRowInDatatable', (tableId, label) => {
  * @param {string} dropdownSelector : selector of the dropdown
  * @param {string} modalSelector : selector of the modal
  * @example :
- * cy.checkAllInColumnManagement('.columnManagementButton', '#modalColumnVisible', '#modalColumnVisible');
+ * cy.checkAllInColumnManagement('.columnManagementButton', '#modalFieldModes', '#modalFieldModes');
  */
-Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelector = '#modalColumnVisible', modalSelector = '#modalColumnVisible') => {
+Cypress.Commands.add('checkAllInColumnManagement',(buttonSelector, dropdownSelector = '#modalFieldModes', modalSelector = '#modalFieldModes') => {
     // open the modal
     cy.get(`${buttonSelector} .dropdown-toggle`).click();
     cy.get(`${buttonSelector} [data-target='${dropdownSelector}']`).click();
     cy.get(modalSelector).should('be.visible');
 
     // check all input with checkbox types in the modal
-    cy.get(`${modalSelector} input[type='checkbox']`).check({force: true, multiple: true});
+    cy.get(`${modalSelector} input[type='checkbox']:not(:checked)`).each(($checkbox) => {
+        cy.get('label[for=' + $checkbox.attr('id') + ']').click({force: true});
+    });
     cy.get(`${modalSelector} input[type='checkbox']`).should('be.checked');
 
     // submit the modal & close it

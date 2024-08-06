@@ -26,46 +26,19 @@ class DisputeService {
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
 
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
-
-    private $security;
-
-    private $entityManager;
-    private $translation;
-    private $mailerService;
-    private $visibleColumnService;
-    private $CSVExportService;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                TranslationService $translation,
-                                MailerService $mailerService,
-                                CSVExportService $CSVExportService,
-                                VisibleColumnService $visibleColumnService,
-                                Security $security) {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->translation = $translation;
-        $this->security = $security;
-        $this->mailerService = $mailerService;
-        $this->visibleColumnService = $visibleColumnService;
-        $this->CSVExportService = $CSVExportService;
-    }
+    public function __construct(
+        private readonly AttachmentService      $attachmentService,
+        private readonly RouterInterface        $router,
+        private readonly FormatService          $formatService,
+        private readonly LanguageService        $languageService,
+        private readonly Twig_Environment       $templating,
+        private readonly Security               $security,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly TranslationService     $translation,
+        private readonly MailerService          $mailerService,
+        private readonly FieldModesService      $fieldModesService,
+        private readonly CSVExportService       $CSVExportService
+    ) {}
 
     public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {
 
@@ -78,7 +51,7 @@ class DisputeService {
             $filters = $preFilledFilters;
         }
 
-        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->visibleColumnService);
+        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->fieldModesService);
         $disputes = $queryResult['data'];
 
         $rows = [];
@@ -216,8 +189,8 @@ class DisputeService {
     }
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['dispute'];
-        return $this->visibleColumnService->getArrayConfig(
+        $columnsVisible = $currentUser->getFieldModes('dispute');
+        return $this->fieldModesService->getArrayConfig(
             [
                 ["name" => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
                 ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],

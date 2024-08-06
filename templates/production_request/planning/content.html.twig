@@ -8,6 +8,7 @@
             {% set cardSelector = date.cardSelector ?? null %}
             {% set cards = allCards[cardSelector] ?? [] %}
             {% set countLines = date.countLines ?? null %}
+            {% set displayCountLines = date.displayCountLines ?? false %}
 
             <div class="col-12 planning-col {{ columnClass }} production-request-card-column"
                  data-date="{{ cardSelector }}">
@@ -18,9 +19,11 @@
                     {% if columnHint %}
                         <div class="column-hint-container">
                             {{ columnHint|raw }}
-                            <div class="ml-auto bold">
-                                {{ countLines }} ligne{{ countLines > 1 ? "s" }} {# TODO : WIIS-11606 : N'afficher que si les lignes sont affichées dans les cartes #}
-                            </div>
+                            {% if displayCountLines %}
+                                <div class="ml-auto bold">
+                                    {{ countLines }} ligne{{ countLines > 1 ? "s" }}
+                                </div>
+                            {% endif %}
                         </div>
                     {% endif %}
                     <div class="d-flex flex-fill flex-column maxh-100 overflow-y-hidden">

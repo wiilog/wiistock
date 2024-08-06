@@ -38,7 +38,7 @@
                                     icon: "fas fa-cog",
                                     attributes: {
                                     "data-toggle": "modal",
-                                    "data-target": "#modalColumnVisible",
+                                    "data-target": "#modalFieldModes",
                                     },
                                 }
                             ]
@@ -54,11 +54,19 @@
         </div>
     </div>
     {% include "mouvement_stock/modalNewMvtStock.html.twig" %}
-    {% include "utils/visible_columns.html.twig" with {
-        'fields': fields,
-        'table': 'tableMvts',
-        'route': 'save_column_visible_for_stock_movements',
-        'page': 'stockMovement',
+    {% include "utils/fields-modes.html.twig" with {
+        fields,
+        table: 'tableMvts',
+        page: 'stockMovement',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 {% endblock %}
 

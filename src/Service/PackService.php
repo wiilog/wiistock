@@ -14,6 +14,7 @@ use App\Entity\LocationGroup;
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 use App\Entity\Project;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -62,7 +63,7 @@ class PackService {
     public TranslationService $translation;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FormatService $formatService;
@@ -150,6 +151,9 @@ class PackService {
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper())
             ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName()
             : null;
+        $receptionAssociationFormatted = Stream::from($pack?->getReceiptAssociations())
+            ->map(fn(ReceiptAssociation $receptionAssociation) => $receptionAssociation->getReceptionNumber())
+            ->join(', ');
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -181,7 +185,11 @@ class PackService {
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
-                : ''
+                : '',
+            'receiptAssociation' => $receptionAssociationFormatted,
+            'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
+                'truckArrival' => $pack->getArrivage()
+            ]),
         ];
     }
 
@@ -504,8 +512,8 @@ class PackService {
     }
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
-        return $this->visibleColumnService->getArrayConfig(
+        $columnsVisible = $currentUser->getFieldModes('arrivalPack');
+        return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
                 ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],
