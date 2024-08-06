@@ -12,7 +12,8 @@
 
     <div class="content track-history history-container h-75">
         {% include 'pack/tracking_history.html.twig' with {
-            trackingRecordsHistory: trackingRecordsHistory,
+            trackingRecordsHistory,
+            historyForPackContent: true,
         } %}
     </div>
 

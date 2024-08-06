@@ -14,8 +14,8 @@
                     <span class="ml-2">{{ history['date'] }}</span>
                 </div>
                 <div>
-                    <div class="title-left {{ state == 'current' and loop.first ? 'last' }} {{ state }}">{{ history['type'] }}</div>
-                    <div class="subtitle wii-small-text">{{ history["user"] }}</div>
+                    <div class="title-left {{ state == 'current' and loop.first ? 'last' }} {{ state }} {{ historyForPackContent is defined and historyForPackContent ? 'history-text-overflow' }}">{{ history['type'] }}</div>
+                    <div class="subtitle wii-small-text history-text-overflow">{{ history["user"] }}</div>
                 </div>
             </div>
             <div class="history-line-right-content

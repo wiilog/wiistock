@@ -121,6 +121,12 @@
 .history-line {
     height: fit-content !important;
 
+    .history-text-overflow {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .history-line-right-content {
 
         display: flex;
