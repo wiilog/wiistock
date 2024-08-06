@@ -127,56 +127,22 @@
                 </div>
                 <div class="wii-box">
                     <div class="header wii-title">Contenu unité logistique</div>
-                    <div class="row mt-3">
-                        <div class="col-md-4 text-center">Articles</div>
-                        <div class="col-md-8 text-center">Historique des articles</div>
-                    </div>
-                    <div class="content">
-                        {% if logisticUnit.childArticles is not empty %}
+                    <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
+                        <div class="logistic-unit-tabs">
+                            <div class="logistic-unit-tab active" data-target=".current-articles">Articles</div>
+                            <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
+                        </div>
+                        <div class="content current-articles">
                             {% for article in logisticUnit.childArticles %}
-                                <div class="article-code row mb-2">
-                                    <div class="col-md-6 d-flex align-items-center">
-                                        <i class="fas fa-barcode" style="color:#6433D7"></i>
-                                        <strong class="ml-2" style="color:#6433D7">{{ article.barCode }}</strong>
-                                        {% set articleRFID = article.RFIDtag %}
-                                        {% if articleRFID %}
-                                            <strong class="ref text-break ml-2">RFID : {{ articleRFID }}</strong>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6 d-flex align-items-center">
-                                        {% if article.statut.code == constant('App\\Entity\\Article::STATUT_ACTIF') %}
-                                            <span class="badge green ml-2">{{ article.statut.nom }}</span>
-                                        {% elseif article.statut.code == constant('App\\Entity\\Article::STATUT_EN_TRANSIT') %}
-                                            <span class="badge purple ml-2">{{ article.statut.nom }}</span>
-                                        {% elseif article.statut.code == constant('App\\Entity\\Article::STATUT_INACTIF') %}
-                                            <span class="badge grey ml-2">{{ article.statut.nom }}</span>
-                                        {% else %}
-                                            <span class="badge grey">{{ article.statut.nom }}</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="align-items-center row mb-1">
-                                    <div class="col-md-7 d-flex align-items-center">
-                                        <img src="/svg/pack.svg" alt="Icône UL" width="20px" class="mr-2">
-                                        <strong> Ref : </br> {{ article.reference }}</strong>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-content-center row">
-                                    <div class="col-md-7 mb-1">
-                                        <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="17px">
-                                        <span class="wii-field-name">Quantité : <span class="wii-body-text">{{ article.quantite }}</span></span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-content-center row">
-                                    <span class="wii-body-text col-md-7">{{ article.referenceArticle.libelle }}</span>
-                                </div>
-                                <div class="d-flex align-content-center row">
-                                    <span class="wii-field-name col-md-7">Lot : <span class="wii-body-text">{{ article.batch ? article.batch : "/" }}</span></span>
+                                {% include 'pack/article-card.html.twig' with {
+                                    article: article,
+                                } %}
+                            {% else %}
+                                <div class="logistic-unit-no-items">
+                                    <span>L'unité logistique ne contient aucun article actuellement</span>
                                 </div>
                             {% endfor %}
-                        {% else %}
-                            -
-                        {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
