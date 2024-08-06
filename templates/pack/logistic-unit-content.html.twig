@@ -33,7 +33,9 @@
     </div>
 
     <div class="content article-history d-none">
-        {% include 'pack/article-history.html.twig' %}
+        {% include 'pack/article-history.html.twig' with {
+            movements,
+        } %}
     </div>
 
 </div>
