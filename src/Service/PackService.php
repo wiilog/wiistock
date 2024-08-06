@@ -261,9 +261,8 @@ class PackService {
     }
 
     public function createPack(EntityManagerInterface $entityManager,
-                               array $options = [],
-                               Utilisateur $user = null): Pack
-    {
+                               array                  $options = [],
+                               Utilisateur            $user = null): Pack {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
@@ -703,9 +702,7 @@ class PackService {
                                                      DateTime               $historyDate,
                                                      Utilisateur            $user,
                                                      string                 $type,
-                                                     Emplacement            $location = null): void
-    {
-
+                                                     Emplacement            $location = null): void {
         $logisticUnitHistoryRecord = (new LogisticUnitHistoryRecord())
             ->setMessage($message)
             ->setPack($logisticUnit)

@@ -63,7 +63,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: self::GET)]
+    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function show(Pack $logisticUnit): Response {
         return $this->render('pack/show.html.twig', [
@@ -381,9 +381,9 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/status-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: self::GET)]
-    public function statusHistoryApi(Pack $logisticUnit,
-                                     LanguageService   $languageService): JsonResponse {
+    #[Route("/{id}/status-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: [self::GET])]
+    public function statusHistoryApi(Pack            $logisticUnit,
+                                     LanguageService $languageService): JsonResponse {
         $user = $this->getUser();
         return $this->json([
             "success" => true,

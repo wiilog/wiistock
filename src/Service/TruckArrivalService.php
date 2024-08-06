@@ -242,7 +242,7 @@ class TruckArrivalService
         $message = "";
 
         Stream::from($values)
-            ->filter(static fn($value) => $value)
+            ->filter(static fn(string $value) => $value)
             ->each(static function (string $value, string $key) use (&$message) {
                 $message .= "$key : $value\n";
                 return $message;

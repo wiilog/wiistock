@@ -127,7 +127,6 @@ class Pack implements PairedEntity {
     private ?int $truckArrivalDelay = null;
     //millisecondes entre la création de l'arrivage camion et l'UL
 
-
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LogisticUnitHistoryRecord::class)]
     private Collection $logisticUnitHistoryRecords;
 
