@@ -47,9 +47,9 @@ class PackService {
                                 private readonly ReceptionLineService $receptionLineService,
                                 private readonly TimeService $timeService,
                                 private readonly SettingsService $settingsService,
+                                private readonly TruckArrivalService $truckArrivalService,
                                 private readonly UserService $userService) {}
 
-    public function __construct(private readonly TruckArrivalService $truckArrivalService) {}
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
