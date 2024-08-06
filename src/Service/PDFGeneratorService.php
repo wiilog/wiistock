@@ -94,6 +94,7 @@ class PDFGeneratorService {
                 $largeLabel = !is_array($label) && strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
                 if(is_array($label)){
                     $labelForSecondBarcode = $label;
+                    unset($labels[$key]);
                 }
 
                 if($largeLabel){

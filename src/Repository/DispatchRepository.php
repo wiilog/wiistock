@@ -17,7 +17,7 @@ use App\Service\UniqueNumberService;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -32,11 +32,11 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params,
-                                          array $filters,
-                                          Utilisateur $user,
-                                          VisibleColumnService $visibleColumnService,
-                                          array $options = []): array {
+    public function findByParamAndFilters(InputBag          $params,
+                                          array             $filters,
+                                          Utilisateur       $user,
+                                          FieldModesService $fieldModesService,
+                                          array             $options = []): array {
         $qb = $this->createQueryBuilder('dispatch')
             ->groupBy('dispatch.id');
 
@@ -243,7 +243,7 @@ class DispatchRepository extends EntityRepository
                         "customerAddress" => "dispatch.customerAddress LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
 
                     $qb
                         ->leftJoin('dispatch.locationFrom', 'search_locationFrom')
@@ -275,7 +275,7 @@ class DispatchRepository extends EntityRepository
                             ->leftJoin('dispatch.locationTo', 'sort_locationTo')
                             ->orderBy('sort_locationTo.label', $order);
                     } else {
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);

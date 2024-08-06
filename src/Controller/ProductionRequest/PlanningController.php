@@ -4,24 +4,27 @@ namespace App\Controller\ProductionRequest;
 
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
+use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
+use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
+use App\Service\ProductionRequest\PlanningService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,11 +38,16 @@ class PlanningController extends AbstractController {
 
     #[Route('/index', name: 'index', methods: self::GET)]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING])]
-    public function index(EntityManagerInterface $entityManager, StatusService $statusService): Response {
+    public function index(EntityManagerInterface   $entityManager,
+                          StatusService            $statusService,
+                          ProductionRequestService $productionRequestService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $currentUser = $this->getUser();
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
+
+        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING);
 
         return $this->render('production_request/planning/index.html.twig', [
             "types" => Stream::from($types)
@@ -49,6 +57,7 @@ class PlanningController extends AbstractController {
                 ])
                 ->toArray(),
             "statuses" => $statusRepository->findByCategorieName(CategorieStatut::PRODUCTION),
+            "fields" => $fields,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
                 ->keymap(static fn(array $status) => [
                     $status['id'],
@@ -61,16 +70,17 @@ class PlanningController extends AbstractController {
 
     #[Route('/api', name: 'api', options: ['expose' => true], methods: self::GET)]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
-    public function api(EntityManagerInterface $entityManager,
-                        LanguageService        $languageService,
-                        FormatService          $formatService,
-                        Request                $request): Response {
+    public function api(EntityManagerInterface   $entityManager,
+                        LanguageService          $languageService,
+                        PlanningService          $planningService,
+                        ProductionRequestService $productionRequestService,
+                        FormatService            $formatService,
+                        Request                  $request): Response {
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
         $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $external = $request->query->getBoolean("external");
@@ -98,6 +108,8 @@ class PlanningController extends AbstractController {
             })
             ->toArray();
 
+        $fieldModes = $user->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
+
         if (!empty($planningDays)) {
             $filters = [];
             if(!$external) {
@@ -123,6 +135,7 @@ class PlanningController extends AbstractController {
                     $productionRequest->getType()
                 ])
                 ->values();
+
             $freeFieldsByType = $allTypes
                 ? Stream::from($freeFieldRepository->findByTypeAndCategorieCLLabel($allTypes, CategorieCL::PRODUCTION_REQUEST))
                     ->keymap(static fn(FreeField $freeField) => [
@@ -131,81 +144,56 @@ class PlanningController extends AbstractController {
                     ], true)
                     ->toArray()
                 : [];
-            $fixedFields = Stream::from($fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [
-                FixedFieldEnum::lineCount->name,
-                FixedFieldEnum::projectNumber->name,
-                FixedFieldEnum::comment->name,
-                FixedFieldEnum::attachments->name
-            ]))
-                ->keymap(static fn(FixedField $fixedField) => [
-                    $fixedField->getFieldCode(),
-                    $fixedField
-                ])
-                ->toArray();
+
+            $displayedFieldsConfig = $productionRequestService->getDisplayedFieldsConfig($external, $fieldModes);
 
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($formatService, $fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
-                    $fields = Stream::from([
-                        FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
-                        FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-                        FixedFieldEnum::attachments->name => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
-                    ])
-                        ->filter(static function (mixed $_, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
-                            $fixedField = $fixedFields[$fieldCode] ?? null;
-                            return $fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit();
-                        })
-                        ->keymap(static fn(mixed $value, string $field) => [
-                            FixedFieldEnum::fromCase($field) ?: $field,
-                            $value
-                        ])
-                        ->concat( // concat fixedField with freeField
-                            Stream::from($freeFieldsByType[$productionRequest->getType()->getId()] ?? [])
-                                ->keymap(static fn(FreeField $freeField) => [
-                                    $freeField->getLabelIn($userLanguage, $defaultLanguage),
-                                    $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
-                                ])
-                        )
-                        // remove element without values
-                        ->filter(static fn(mixed $value) => !in_array($value, [null, ""]))
-                        ->toArray();
-
+                ->keymap(function (ProductionRequest $productionRequest) use ($planningService, $displayedFieldsConfig, $fieldModes, $user, $userLanguage, $entityManager, $productionRequestService, $formatService, $defaultLanguage, $external) {
+                    $cardContent = $planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage, $defaultLanguage);
                     return [
                         $productionRequest->getExpectedAt()->format('Y-m-d'),
                         $this->renderView('production_request/planning/card.html.twig', [
                             "productionRequest" => $productionRequest,
                             "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
+                            "cardContent" => $cardContent ?? [],
                             "inPlanning" => true,
-                            "fields" => $fields,
                             "external" => $external,
                         ])
                     ];
                 }, true)
                 ->toArray();
 
+            $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
+                || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
+
             $countLinesByDate = [];
+            if ($displayCountLines) {
+                Stream::from($productionRequests)
+                    ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
+                        $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
+                        $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
+                    });
+            }
 
-            Stream::from($productionRequests)
-                ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
-                    $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
-                    $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
-            });
-
+            $formatter = $this->getFormatter();
             $planningColumns = Stream::from($planningDays)
-                ->map(function (DateTime $day) use ($countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
+                ->map(static function (DateTime $day) use ($displayCountLines, $countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays, $formatter) {
                     $dayStr = $day->format('Y-m-d');
                     $count = count($cards[$dayStr] ?? []);
                     $sProduction = $count > 1 ? 's' : '';
 
                     return [
-                        "label" => $this->getFormatter()->longDate($day, ["short" => true, "year" => false]),
+                        "label" => $formatter->longDate($day, ["short" => true, "year" => false]),
                         "cardSelector" => $dayStr,
                         "columnClass" => "forced",
                         "columnHint" => "<span class='font-weight-bold'>$count demande$sProduction</span>",
+                        "displayCountLines" => $displayCountLines,
                         "countLines" => $countLinesByDate[$dayStr] ?? 0,
                     ];
                 })
                 ->toArray();
         }
+
         return $this->json([
             "success" => true,
             "template" => $this->renderView('production_request/planning/content.html.twig', [

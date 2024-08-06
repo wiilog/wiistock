@@ -67,7 +67,7 @@ class ImportController extends AbstractController
 
             // Check if the user can plan a new import
             if(!$scheduledTaskService->canSchedule($entityManager, Import::class)){
-                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " imports");
+                throw new FormException("Vous avez déjà planifié " . ScheduledTaskService::MAX_ONGOING_SCHEDULED_TASKS . " planifications. Pensez à supprimer celles qui sont terminées en fréquence \"une fois\".");
             }
 
             $rule = $scheduleRuleService->updateRule(null, $post);
@@ -139,10 +139,10 @@ class ImportController extends AbstractController
         }
     }
 
-    #[Route("/link", name: "import_links", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function defineLinks(Request $request,
-                                ScheduledTaskService $scheduledTaskService,
-                                EntityManagerInterface $entityManager): Response {
+    #[Route("/link", name: "import_links", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function defineLinks(Request                $request,
+                                ScheduledTaskService   $scheduledTaskService,
+                                EntityManagerInterface $entityManager): JsonResponse {
         $importRepository = $entityManager->getRepository(Import::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $data = $request->request->all();

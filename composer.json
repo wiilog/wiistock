@@ -35,7 +35,6 @@
         "phpoffice/phpword": "1.2.0",
         "phpseclib/phpseclib": "^3.0",
         "scienta/doctrine-json-functions": "^5.0",
-        "sensio/framework-extra-bundle": "^6.2",
         "symfony/asset": "6.4.*",
         "symfony/console": "6.4.*",
         "symfony/css-selector": "6.4.*",

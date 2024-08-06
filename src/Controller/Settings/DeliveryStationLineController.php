@@ -17,9 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class DeliveryStationLineController extends AbstractController
 {
     #[Route("/delivery-station-line-new", name: "delivery_station_line_new", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]

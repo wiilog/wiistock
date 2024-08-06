@@ -62,7 +62,7 @@ $(function () {
 
     $('.print-truck-arrival-label').on('click', function () {
         const truckArrivalId = $(this).data('id');
-        printTruckArrivalLabel(truckArrivalId);
+        printTruckArrivalLabel(null, truckArrivalId);
     });
 });
 

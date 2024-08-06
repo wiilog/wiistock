@@ -19,9 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/transporteur")
- */
+#[Route('/transporteur')]
 class TransporteurController extends AbstractController
 {
     #[Route("/api", name: "transporteur_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]

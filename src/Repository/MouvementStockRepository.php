@@ -8,7 +8,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -320,10 +320,10 @@ class MouvementStockRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters(InputBag             $params,
-                                           array                $filters,
-                                           VisibleColumnService $visibleColumnService,
-                                           Utilisateur          $user,)
+    public function findByParamsAndFilters(InputBag          $params,
+                                           array             $filters,
+                                           FieldModesService $fieldModesService,
+                                           Utilisateur       $user,)
     {
         $queryBuilder = $this->createQueryBuilder('stock_movement');
         $exprBuilder = $queryBuilder->expr();
@@ -403,7 +403,7 @@ class MouvementStockRepository extends EntityRepository
                         "comment" => null,
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'stockMovement', $queryBuilder, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'stockMovement', $queryBuilder, $user, $search);
                     $queryBuilder
                         ->leftJoin('stock_movement.refArticle', 'search_reference_article')
                         ->leftJoin('stock_movement.article', 'search_article')

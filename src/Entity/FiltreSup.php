@@ -73,6 +73,8 @@ class FiltreSup {
     const FIELD_ATTACHMENTS_ASSIGNED = 'attachmentsAssigned';
     const FIELD_SUBJECT = 'subject';
     const FIELD_DESTINATION = 'destination';
+    const FIELD_RECEIPT_ASSOCIATION = 'receiptAssociation';
+
 
     const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';

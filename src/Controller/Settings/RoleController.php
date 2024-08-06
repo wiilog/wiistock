@@ -18,15 +18,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/parametrage/utilisateurs/roles")
- */
+#[Route('/parametrage/utilisateurs/roles')]
 class RoleController extends AbstractController {
 
-    /**
-     * @Route("/api", name="settings_role_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES})
-     */
+    #[Route('/api', name: 'settings_role_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES])]
     public function api(EntityManagerInterface $entityManager): Response {
         $roleRepository = $entityManager->getRepository(Role::class);
 
@@ -47,10 +43,8 @@ class RoleController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/creer", name="settings_role_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'settings_role_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES], mode: HasPermission::IN_JSON)]
     public function new(Request $request, RoleService $roleService, EntityManagerInterface $entityManager): JsonResponse {
         $role = new Role();
         $res = $roleService->updateRole($entityManager, $role, $request);
@@ -73,10 +67,8 @@ class RoleController extends AbstractController {
         return $this->json($res);
     }
 
-    /**
-     * @Route("/creer", name="settings_role_new_form", methods="GET")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'settings_role_new_form', methods: 'GET')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES], mode: HasPermission::IN_JSON)]
     public function newForm(EntityManagerInterface $entityManager): Response {
         $menuRepository = $entityManager->getRepository(Menu::class);
         return $this->render('/settings/utilisateurs/roles/form.html.twig', [
@@ -85,10 +77,8 @@ class RoleController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modifier/{role}", name="settings_role_edit",  options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier/{role}', name: 'settings_role_edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          RoleService $roleService,
                          Role $role,
@@ -112,10 +102,8 @@ class RoleController extends AbstractController {
         return $this->json($res);
     }
 
-    /**
-     * @Route("/modifier/{role}", name="settings_role_edit_form", methods="GET")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier/{role}', name: 'settings_role_edit_form', methods: 'GET')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES], mode: HasPermission::IN_JSON)]
     public function editForm(EntityManagerInterface $entityManager, Role $role): Response {
         $menuRepository = $entityManager->getRepository(Menu::class);
 
@@ -125,10 +113,8 @@ class RoleController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/verification", name="settings_role_check_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/verification', name: 'settings_role_check_delete', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES], mode: HasPermission::IN_JSON)]
     public function checkRoleCanBeDeleted(Request $request,
                                           EntityManagerInterface $entityManager): Response {
         if ($roleId = json_decode($request->getContent(), true)) {
@@ -158,10 +144,8 @@ class RoleController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="settings_role_delete",  options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'settings_role_delete', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            RoleService $roleService,
                            EntityManagerInterface $entityManager): Response {

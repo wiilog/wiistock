@@ -37,7 +37,7 @@ import './tooltips';
 import './select2';
 import Form from "./form";
 import {extendsDateSort, initDataTable, initSearchDate, initDatatablePlugin} from "@app/datatable";
-import {initVisibleColumn} from "@app/visible-column";
+import {initFieldModes} from "@app/field-modes";
 
 export const $document = $(document);
 
@@ -59,7 +59,7 @@ importIntlTelInput();
 importFirebase();
 importCamera();
 importDatatable();
-importVisibleColumn();
+importFieldModes();
 
 ///////////////// Functions
 
@@ -83,8 +83,8 @@ function importCamera() {
     global.Camera = Camera;
 }
 
-function importVisibleColumn() {
-    initVisibleColumn();
+function importFieldModes() {
+    initFieldModes();
 }
 
 function importDatatable() {

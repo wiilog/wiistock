@@ -84,7 +84,7 @@
                                 Impression des étiquettes
                             </div>
                         {% endif %}
-                        <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalFieldModes" href="#">
                             <span class="fa fa-cog mr-2"></span>
                             Gestion des colonnes
                         </a>
@@ -130,10 +130,19 @@
         hints: true,
     } %}
 
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableRefArticle',
         page: 'reference',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
     <button id="cannotDelete" hidden data-toggle="modal" data-target="#modalCannotDelete"></button>
 {% endblock %}

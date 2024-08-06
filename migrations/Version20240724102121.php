@@ -38,9 +38,9 @@ final class Version20240724102121 extends AbstractMigration
         foreach ($missionPlan as $plan) {
             $this->addSql("
                 INSERT INTO schedule_rule
-                    (begin, frequency, period, interval_time, interval_period, week_days, month_days, months, last_run)
+                    (begin, frequency, period, interval_time, interval_period, week_days, month_days, months)
                 VALUES
-                    (:begin, :frequency, :period, :interval_time, :interval_period, :week_days, :month_days, :months, :last_run)
+                    (:begin, :frequency, :period, :interval_time, :interval_period, :week_days, :month_days, :months)
             ", [
                 "begin" => $plan["begin"],
                 "frequency" => $plan["frequency"],
@@ -50,7 +50,6 @@ final class Version20240724102121 extends AbstractMigration
                 "week_days" => $plan["week_days"],
                 "month_days" => $plan["month_days"],
                 "months" => $plan["months"],
-                "last_run" => $plan["last_run"],
             ]);
             $this->addSql("
                 UPDATE inventory_mission_plan

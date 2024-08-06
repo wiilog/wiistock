@@ -24,15 +24,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
 
-/**
- * @Route("/alerte")
- */
+#[Route('/alerte')]
 class AlertController extends AbstractController {
 
-    /**
-     * @Route("/liste", name="alerte_index", methods="GET|POST", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER})
-     */
+    #[Route('/liste', name: 'alerte_index', methods: 'GET|POST', options: ['expose' => true])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ALER])]
     public function index(Request $request, EntityManagerInterface $manager): Response
     {
         $query = $request->query;
@@ -62,9 +58,7 @@ class AlertController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/notifications/liste", name="notifications_index", methods="GET|POST", options={"expose"=true})
-     */
+    #[Route('/notifications/liste', name: 'notifications_index', methods: 'GET|POST', options: ['expose' => true])]
     public function indexNotifications(EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
@@ -73,9 +67,7 @@ class AlertController extends AbstractController {
         return $this->render('notifications/index.html.twig');
     }
 
-    /**
-     * @Route("/notifications/api", name="notifications_api", methods="GET|POST", options={"expose"=true})
-     */
+    #[Route('/notifications/api', name: 'notifications_api', methods: 'GET|POST', options: ['expose' => true])]
     public function apiNotifications(Request $request, NotificationService $notificationService, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
@@ -85,9 +77,7 @@ class AlertController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/notifications/abonnement/{token}", name="register_topic", methods="POST", options={"expose"=true})
-     */
+    #[Route('/notifications/abonnement/{token}', name: 'register_topic', methods: 'POST', options: ['expose' => true])]
     public function subscribeToToken(string $token, NotificationService $notificationService): Response
     {
         try {
@@ -98,10 +88,8 @@ class AlertController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/api", name="alerte_ref_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'alerte_ref_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_ALER], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         RefArticleDataService $refArticleDataService): Response
     {
@@ -111,10 +99,8 @@ class AlertController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/csv", name="alert_export",options={"expose"=true}, methods="GET|POST" )
-     * @HasPermission({Menu::STOCK, Action::EXPORT_ALER})
-     */
+    #[Route('/csv', name: 'alert_export', options: ['expose' => true], methods: 'GET|POST')]
+    #[HasPermission([Menu::STOCK, Action::EXPORT_ALER])]
     public function export(Request $request,
                            AlertService $alertService,
                            SpecificService $specificService,

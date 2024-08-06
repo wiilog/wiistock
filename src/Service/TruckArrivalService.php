@@ -21,7 +21,7 @@ class TruckArrivalService
 {
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public TruckArrivalLineService $truckArrivalLineService;
@@ -51,7 +51,7 @@ class TruckArrivalService
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
-        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->visibleColumnService);
+        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->fieldModesService);
         $truckArrivals = Stream::from($queryResult['data'])
             ->map(function (TruckArrival $truckArrival) use ($entityManager) {
                 return $this->dataRowTruckArrival($truckArrival, $entityManager);
@@ -85,13 +85,11 @@ class TruckArrivalService
                         ]
                     ],
                     [
-                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS),
-                        'title' => 'Supprimer',
-                        'icon' => 'fa fa-trash',
-                        'class' => 'truck-arrival-delete',
-                        'attributes' => [
+                        "title" => "Imprimer",
+                        "icon" => "wii-icon wii-icon-printer-black",
+                        "attributes" => [
                             "data-id" => $truckArrival->getId(),
-                            "onclick" => "deleteTruckArrival($(this))"
+                            "onclick" => "printTruckArrivalLabel($(this))"
                         ]
                     ],
                     [
@@ -103,11 +101,13 @@ class TruckArrivalService
                         ],
                     ],
                     [
-                        "title" => "Imprimer",
-                        "icon" => "wii-icon wii-icon-printer-black",
-                        "attributes" => [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS),
+                        'title' => 'Supprimer',
+                        'icon' => 'fa fa-trash',
+                        'class' => 'truck-arrival-delete',
+                        'attributes' => [
                             "data-id" => $truckArrival->getId(),
-                            "onclick" => "printTruckArrivalLabel($(this))"
+                            "onclick" => "deleteTruckArrival($(this))"
                         ]
                     ],
                 ],
@@ -144,7 +144,7 @@ class TruckArrivalService
     }
 
     public function getVisibleColumns(Utilisateur $user): array {
-        $columnsVisible = $user->getVisibleColumns()['truckArrival'];
+        $columnsVisible = $user->getFieldModes('truckArrival');
         $columns = [
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'Date de création', 'name' => 'creationDate'],
@@ -158,7 +158,7 @@ class TruckArrivalService
             ['title' => 'Réserve sur n° tracking', 'name' => 'trackingLinesReserves', 'orderable' => false,],
             ['title' => 'Transporteur', 'name' => 'carrier'],
         ];
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function createHeaderDetailsConfig(TruckArrival $truckArrival): array {
@@ -235,5 +235,19 @@ class TruckArrivalService
             $fileName,
             $barCodeConfig,
         ];
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(TruckArrival $truckArrival): string {
+        $values = $truckArrival->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn(string $value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
     }
 }

@@ -20,6 +20,10 @@ use WiiCommon\Helper\Stream;
 
 class ScheduleRuleService
 {
+    private const SECONDS_IN_ONE_HOUR = 60 * 60;
+    private const SECONDS_IN_A_DAY = self::SECONDS_IN_ONE_HOUR * 24;
+    private const SECONDS_IN_A_WEEK = self::SECONDS_IN_A_DAY * 7;
+
     #[Required]
     public CacheService $cacheService;
 
@@ -99,11 +103,10 @@ class ScheduleRuleService
             // if next occurence can't be on the same week of from
             if (!isset($nextOccurrence)) {
                 $period = $rule->getPeriod();
-                $secondsInWeek = 60 * 60 * 24 * 7;
                 $secondsBetween = ($from->getTimestamp() - $begin->getTimestamp());
-                $weeksBetween = floor($secondsBetween / $secondsInWeek);
+                $weeksBetween = floor($secondsBetween / self::SECONDS_IN_A_WEEK);
                 $periodBetweenCount = floor($weeksBetween / $period);
-                $remainSecondsBetweenDate = ($secondsBetween % $secondsInWeek) + (($weeksBetween % $period) * $secondsInWeek);
+                $remainSecondsBetweenDate = ($secondsBetween % self::SECONDS_IN_A_WEEK) + (($weeksBetween % $period) * self::SECONDS_IN_A_WEEK);
 
                 $add = (
                     $periodBetweenCount * $period
@@ -140,9 +143,10 @@ class ScheduleRuleService
 
         $availableDays = Stream::from($rule->getMonthDays())
             ->filterMap(fn(mixed $day) => match ($day) {
-                ScheduleRule::LAST_DAY_OF_WEEK => 32,
-                "1", "15"                      => ((int) $day),
-                default                        => null,
+                ScheduleRule::LAST_DAY_OF_MONTH            => 32,
+                (string) ScheduleRule::FIRST_DAY_OF_MONTH,
+                (string) ScheduleRule::MIDDLE_DAY_OF_MONTH => ((int) $day),
+                default                                    => null,
             })
             ->sort(fn(int $day1, int $day2) => ($day1 <=> $day2));
 
@@ -206,11 +210,10 @@ class ScheduleRuleService
         $nextOccurrence = clone $start;
 
         if ($from > $start) {
-            $secondsInDay = 60 * 60 * 24;
             $secondsBetween = ($from->getTimestamp() - $start->getTimestamp());
-            $daysBetween = floor($secondsBetween / $secondsInDay);
+            $daysBetween = floor($secondsBetween / self::SECONDS_IN_A_DAY);
             $periodBetweenCount = floor($daysBetween / $period);
-            $remainSecondsBetweenDate = ($secondsBetween % $secondsInDay) + (($daysBetween % $period) * $secondsInDay);
+            $remainSecondsBetweenDate = ($secondsBetween % self::SECONDS_IN_A_DAY) + (($daysBetween % $period) * self::SECONDS_IN_A_DAY);
 
             $add = (
                 $periodBetweenCount * $period
@@ -235,15 +238,13 @@ class ScheduleRuleService
 
         $nextOccurrence = clone $begin;
         if ($from > $begin) {
-            $secondInHour = 60 * 60;
-
             $secondsBetweenDates = $from->getTimestamp() - $begin->getTimestamp();
 
-            $hoursBetweenDates = floor($secondsBetweenDates / $secondInHour);
+            $hoursBetweenDates = floor($secondsBetweenDates / self::SECONDS_IN_ONE_HOUR);
 
             $intervalPeriodBetweenCount = floor($hoursBetweenDates / $intervalPeriod);
             $intervalPeriodBetween = ($intervalPeriodBetweenCount * $intervalPeriod);
-            $remainSecondsBetweenDate = ($hoursBetweenDates - $intervalPeriodBetween) + ($secondsBetweenDates % $secondInHour);
+            $remainSecondsBetweenDate = ($hoursBetweenDates - $intervalPeriodBetween) + ($secondsBetweenDates % self::SECONDS_IN_ONE_HOUR);
 
             $hoursToAdd = (
                 $intervalPeriodBetween

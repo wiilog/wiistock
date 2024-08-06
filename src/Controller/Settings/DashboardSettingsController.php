@@ -29,9 +29,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/parametrage-global/dashboard")
- */
+#[Route('/parametrage-global/dashboard')]
 class DashboardSettingsController extends AbstractController {
 
     #[Required]
@@ -40,10 +38,8 @@ class DashboardSettingsController extends AbstractController {
     #[Required]
     public TranslationService $translationService;
 
-    /**
-     * @Route("/", name="dashboard_settings", methods={"GET"})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD})
-     */
+    #[Route('/', name: 'dashboard_settings', methods: ['GET'])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD])]
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
@@ -86,13 +82,13 @@ class DashboardSettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService
      * @return Response
      */
+    #[Route('/save', name: 'save_dashboard_settings', options: ['expose' => true], methods: ['POST'])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
     public function save(Request $request,
                          EntityManagerInterface $entityManager,
                          DashboardSettingsService $dashboardSettingsService): Response {
@@ -134,13 +130,13 @@ class DashboardSettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
      * @return Response
      */
+    #[Route('/api-component-type/{componentType}', name: 'dashboard_component_type_form', methods: ['POST'], options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
     public function apiComponentTypeForm(Request $request,
                                          EntityManagerInterface $entityManager,
                                          Dashboard\ComponentType $componentType): Response {
@@ -506,14 +502,14 @@ class DashboardSettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService
      * @param Dashboard\ComponentType $componentType
      * @return Response
      */
+    #[Route('/api-component-type/{componentType}/example-values', name: 'dashboard_component_type_example_values', methods: ['POST'], options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,

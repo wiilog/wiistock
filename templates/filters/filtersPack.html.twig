@@ -12,4 +12,8 @@
         title: trans('Traçabilité', 'Unités logistiques', 'Divers', 'N° d\'arrivage UL', false)
     } %}
     {% include 'filters/filter_item/filterProject.html.twig' %}
+    {% include 'filters/filter_item/filterBasicString.html.twig' with {
+        name: 'receiptAssociation',
+        placeholder: 'Association',
+    } %}
 {% endblock %}

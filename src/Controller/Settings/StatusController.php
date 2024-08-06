@@ -27,9 +27,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class StatusController extends AbstractController
 {
     const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
@@ -208,10 +206,8 @@ class StatusController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/status/{entity}/supprimer", name="settings_delete_status", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route('/status/{entity}/supprimer', name: 'settings_delete_status', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteStatus(EntityManagerInterface $manager, Statut $entity): JsonResponse
     {
         if($entity->isDefaultForCategory()) {
@@ -270,10 +266,8 @@ class StatusController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route('/status-api/edit/translate', name: 'settings_edit_status_translations_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function apiEditTranslations(Request $request,
                                         EntityManagerInterface $manager,
                                         TranslationService $translationService): JsonResponse
@@ -314,10 +308,8 @@ class StatusController extends AbstractController
             ]);
     }
 
-    /**
-     * @Route("/status/edit/translate", name="settings_edit_status_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/status/edit/translate', name: 'settings_edit_status_translations', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editTranslations(Request                $request,
                                      StatusService          $statusService,
                                      EntityManagerInterface $manager,

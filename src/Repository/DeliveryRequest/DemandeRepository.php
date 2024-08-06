@@ -10,7 +10,7 @@ use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
@@ -127,7 +127,7 @@ class DemandeRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, FieldModesService $fieldModesService): array
     {
         $qb = $this->createQueryBuilder("delivery_request")
             ->andWhere('delivery_request.manual = false');
@@ -214,7 +214,7 @@ class DemandeRepository extends EntityRepository
                         "expectedAt" => "DATE_FORMAT(delivery_request.expectedAt, '%d/%m/%Y') LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
 
                     $qb
                         ->leftJoin('delivery_request.statut', 'search_status')

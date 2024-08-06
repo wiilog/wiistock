@@ -33,7 +33,7 @@ final class Version20240523115333 extends AbstractMigration
             $visibleColumnStr = $user["visible_columns"] ?? null;
             $visibleColumn = @json_decode($visibleColumnStr ?: "", true) ?: null;
             if (empty($visibleColumn)) {
-                $visibleColumn = Utilisateur::DEFAULT_VISIBLE_COLUMNS;
+                $visibleColumn = Utilisateur::DEFAULT_FIELDS_MODES;
             }
             else {
                 $index = array_search("packCode", $visibleColumn["trackingMovement"]);

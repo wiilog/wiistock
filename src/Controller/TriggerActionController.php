@@ -100,7 +100,7 @@ class TriggerActionController extends AbstractController
 
                     foreach ($triggerActionConfigs as $key => $config) {
                         $limitValue = $data[$key] ?? false;
-                        if ($limitValue) {
+                        if ($limitValue || $limitValue === 0) {
                             $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
                                 $entityManager,
                                 $sensorWrapper,

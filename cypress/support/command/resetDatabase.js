@@ -78,7 +78,7 @@ Cypress.Commands.add('doctrineMakeMigration', () => {
 })
 
 Cypress.Commands.add('doctrineSchemaUpdate', () => {
-    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console d:s:u --force --no-interaction'`);
+    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console d:s:u --force --no-interaction --dump-sql --complete'`);
 })
 
 Cypress.Commands.add('doctrineFixturesLoad', () => {

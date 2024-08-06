@@ -42,7 +42,7 @@
             box-sizing: border-box;
             height: 79%;
             margin-bottom: 1%;
-            padding: 5% 5% 0 5%;
+            padding: 0 5% 0 5%;
         }
 
         svg {
@@ -65,7 +65,7 @@
         }
 
         .header-wrapper {
-            height: 20%;
+            height: 15%;
             max-height: 35%;
             width: 100%;
             position: relative;
@@ -142,7 +142,7 @@
 
     {% set labelsLength = config.labels|length %}
     {% set barcodeHeight = config.labelForSecondBarcode
-        ? "20%"
+        ? "25%"
         : (labelsLength == 0 or landscape
             ? (hasHeader ? "80%" : "100%")
             : (labelsLength < 3

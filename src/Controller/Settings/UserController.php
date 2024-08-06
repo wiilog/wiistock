@@ -34,15 +34,11 @@ use App\Annotation\HasPermission;
 use App\Entity\Menu;
 use App\Entity\Action;
 
-/**
- * @Route("/parametrage/users")
- */
+#[Route('/parametrage/users')]
 class UserController extends AbstractController {
 
-    /**
-     * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'user_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_USERS], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
@@ -100,10 +96,8 @@ class UserController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api", name="user_api",  options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'user_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_USERS], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         UserService $userService): Response
     {
@@ -112,10 +106,8 @@ class UserController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/verification", name="user_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/verification', name: 'user_check_delete', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_USERS], mode: HasPermission::IN_JSON)]
     public function checkUserCanBeDeleted(Request $request,
                                           UserService $userService,
                                           EntityManagerInterface $entityManager): Response
@@ -152,10 +144,8 @@ class UserController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_USERS}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'user_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_USERS], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            UserService $userService,
                            EntityManagerInterface $entityManager): Response
@@ -385,9 +375,7 @@ class UserController extends AbstractController {
         return $this->json($dataResponse);
     }
 
-    /**
-     * @Route("/export", name="export_csv_user", methods="GET")
-     */
+    #[Route('/export', name: 'export_csv_user', methods: 'GET')]
     public function exportCSV(CSVExportService          $CSVExportService,
                               UserService               $userService,
                               EntityManagerInterface    $entityManager,
@@ -578,9 +566,7 @@ class UserController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/recherches', name: 'update_user_searches', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function updateSearches(Request $request,
                                    EntityManagerInterface $entityManager) {
         $data = $request->get("searches");
@@ -604,9 +590,7 @@ class UserController extends AbstractController {
         return $this->json($res);
     }
 
-    /**
-     * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/recherchesArticle', name: 'update_user_searches_for_article', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function updateSearchesArticle(Request $request, EntityManagerInterface $entityManager) {
         $searches = $request->request->all("searches");
 
@@ -622,9 +606,7 @@ class UserController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/taille-page-arrivage', name: 'update_user_page_length_for_arrivage', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function updateUserPageLengthForArrivage(Request $request, EntityManagerInterface $manager)
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -636,9 +618,7 @@ class UserController extends AbstractController {
         return new JsonResponse();
     }
 
-    /**
-     * @Route("/langues/api", name="header_language_dateFormat_api" , methods={"POST"}, options={"expose"=true})
-     */
+    #[Route('/langues/api', name: 'header_language_dateFormat_api', methods: ['POST'], options: ['expose' => true])]
     public function userLanguageApi(EntityManagerInterface $manager,
                                        Request $request, CacheService $cacheService ): Response {
         $data = $request->request;
@@ -659,9 +639,7 @@ class UserController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/set-columns-order", name="set_columns_order", methods="POST", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/set-columns-order', name: 'set_columns_order', methods: 'POST', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
     public function setColumnsOrder(Request $request, EntityManagerInterface $manager): JsonResponse {
         $data = $request->request->all();
 
@@ -680,9 +658,7 @@ class UserController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/get-columns-order", name="get_columns_order", methods="GET", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/get-columns-order', name: 'get_columns_order', methods: 'GET', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
     public function getColumnsOrder(Request $request): JsonResponse {
         $page = $request->query->get('page');
 

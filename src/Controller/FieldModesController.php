@@ -4,16 +4,19 @@ namespace App\Controller;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Exceptions\FormException;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use WiiCommon\Helper\Stream;
 
-#[Route("/visible-column", name: "visible_column_")]
-class VisibleColumnController extends AbstractController {
+#[Route("/field-modes", name: "field_modes_")]
+class FieldModesController extends AbstractController {
 
     public const DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS = "deliveryRequestShow";
+    public const PAGE_PRODUCTION_REQUEST_LIST = "productionRequest";
+    public const PAGE_PRODUCTION_REQUEST_PLANNING = "productionRequestPlanning";
 
     private const PAGES = [
         "reference",
@@ -31,7 +34,8 @@ class VisibleColumnController extends AbstractController {
         "reference",
         "trackingMovement",
         "truckArrival",
-        "productionRequest",
+        self::PAGE_PRODUCTION_REQUEST_LIST,
+        self::PAGE_PRODUCTION_REQUEST_PLANNING,
         "shippingRequest",
     ];
 
@@ -39,21 +43,22 @@ class VisibleColumnController extends AbstractController {
     public function save(string                 $page,
                          Request                $request,
                          EntityManagerInterface $manager,
-                         VisibleColumnService   $visibleColumnService): Response {
+                         FieldModesService      $fieldModesService): Response {
         if (!in_array($page, self::PAGES)) {
             throw new FormException("Unknown visible columns page.");
         }
 
-        $displayedColumns = $request->request->keys();
+        $columnsModes = Stream::from($request->request->all())
+            ->filterMap(static fn(?string $value) => $value ? explode(",", $value): null)
+            ->toArray();
 
         $id = $request->request->getInt("id");
         if ($page === self::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS && $id) {
             $deliveryRequest = $manager->find(Demande::class, $id);
-
-            $deliveryRequest->setVisibleColumns($displayedColumns);
+            $deliveryRequest->setVisibleColumns($columnsModes);
         }
 
-        $visibleColumnService->setVisibleColumns($page, $displayedColumns, $this->getUser());
+        $fieldModesService->setFieldModesByPage($page, $columnsModes, $this->getUser());
 
         $manager->flush();
 

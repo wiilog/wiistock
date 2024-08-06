@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SettingRepository::class)]
 class Setting {
 
-    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/wiilog.svg';
+    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/wiilog-white.svg';
     const DEFAULT_EMAIL_LOGO_VALUE = '/img/wiilog.svg';
     const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/wiilog.svg';
     const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/wiilog.svg';
@@ -170,6 +170,8 @@ class Setting {
     const FONT_MONTSERRAT = 'Montserrat';
     const FONT_TAHOMA = 'Tahoma';
     const FONT_MYRIAD = 'Myriad';
+
+    const WARNING_HEADER = 'WARNING_HEADER';
 
     const FONTS = [
         Setting::FONT_MONTSERRAT => Setting::FONT_MONTSERRAT,

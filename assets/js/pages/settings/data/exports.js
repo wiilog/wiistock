@@ -4,7 +4,7 @@ import Routing from '@app/fos-routing';
 import Form from '@app/form';
 import Flash from '@app/flash';
 import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
-import AJAX, {POST} from "@app/ajax";
+import AJAX, {PATCH, POST} from "@app/ajax";
 import moment from "moment";
 import {getUserFiltersByPage} from '@app/utils';
 import {initDataTable} from "@app/datatable";
@@ -410,7 +410,7 @@ function onFormTypeChange(resetFrequency = true) {
 function cancelExport(exportId) {
     Modal.confirm({
         ajax: {
-            method: POST,
+            method: PATCH,
             route: 'settings_export_cancel',
             params: {
                 export: exportId

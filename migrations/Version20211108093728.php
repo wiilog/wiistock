@@ -44,13 +44,13 @@ final class Version20211108093728 extends AbstractMigration {
             ->fetchAssociative();
 
             $defaultVisibleColumns = [
-                "dispatch" => Utilisateur::DEFAULT_DISPATCH_VISIBLE_COLUMNS,
-                "dispute" => Utilisateur::DEFAULT_DISPUTE_VISIBLE_COLUMNS,
-                "arrival" => Utilisateur::DEFAULT_ARRIVAL_VISIBLE_COLUMNS,
-                "article" => Utilisateur::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
-                "reference" => Utilisateur::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
-                "trackingMovement" => Utilisateur::DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS,
-                "reception" => Utilisateur::DEFAULT_RECEPTION_VISIBLE_COLUMNS
+                "dispatch" => Utilisateur::DEFAULT_DISPATCH_FIELDS_MODES,
+                "dispute" => Utilisateur::DEFAULT_DISPUTE_FIELDS_MODES,
+                "arrival" => Utilisateur::DEFAULT_ARRIVAL_FIELDS_MODES,
+                "article" => Utilisateur::DEFAULT_ARTICLE_FIELDS_MODES,
+                "reference" => Utilisateur::DEFAULT_REFERENCE_FIELDS_MODES,
+                "trackingMovement" => Utilisateur::DEFAULT_TRACKING_MOVEMENT_FIELDS_MODES,
+                "reception" => Utilisateur::DEFAULT_RECEPTION_FIELDS_MODES
             ];
 
             $visibleColumns = Stream::from($visibleColumns)
@@ -63,7 +63,7 @@ final class Version20211108093728 extends AbstractMigration {
                 })
                 ->toArray();
 
-            $visibleColumns["deliveryRequest"] = Utilisateur::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS;
+            $visibleColumns["deliveryRequest"] = Utilisateur::DEFAULT_DELIVERY_REQUEST_FIELDS_MODES;
 
             $this->addSql("UPDATE utilisateur SET visible_columns = :columns WHERE id = {$user['id']}", ['columns' => json_encode($visibleColumns)]);
         }

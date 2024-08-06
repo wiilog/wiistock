@@ -6,7 +6,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
@@ -143,7 +143,7 @@ class ReceptionRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService)
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, FieldModesService $fieldModesService)
     {
         $qb = $this->createQueryBuilder("reception");
 
@@ -256,7 +256,7 @@ class ReceptionRepository extends EntityRepository
                         "user" => "search_user.username LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
 
                     $qb
 						->leftJoin('reception.statut', 'search_status')

@@ -6,7 +6,9 @@ use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\ComponentType;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
@@ -19,14 +21,13 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\ProductionRequest\ProductionRequestService;
 use DateTime;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
-use App\Entity\Dashboard as Dashboard;
-use App\Entity\Dashboard\Meter as DashboardMeter;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class DashboardSettingsService {
 

@@ -2,6 +2,7 @@ const packsTableConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
+    page: 'pack',
     order: [['packLastDate', "desc"]],
     ajax: {
         url: Routing.generate('pack_api', true),
@@ -15,6 +16,7 @@ const packsTableConfig = {
     },
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'contentPack', name: 'contentPack', title: '', className: 'noVis', orderable: false},
         {data: 'cart', name: 'cart', title: '<span class="wii-icon wii-icon-cart add-all-cart pointer"></span>', className: 'cart-row', orderable: false},
         {data: 'pairing', name: 'pairing', title: '<span class="wii-icon wii-icon-pairing black"><span>', className: 'pairing-row'},
         {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
@@ -24,6 +26,8 @@ const packsTableConfig = {
         {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
         {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
         {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
+        {data: 'receiptAssociation', name: 'receiptAssociation', title: 'Association', className: 'noVis', orderable: false},
+        {data: 'truckArrivalNumber', name: 'truckArrivalNumber', title: 'Arrivage camion', className: 'noVis'},
     ],
     drawCallback: () => {
         toggleAddAllToCartButton();
@@ -33,6 +37,7 @@ const packsTableConfig = {
         if($logisticUnitPane.exists()) {
             const pack = $logisticUnitPane.data(`pack`);
             const $number = $(`.logistic-unit-number[data-pack="${pack}"]`);
+
             if(!$number.exists()) {
                 $logisticUnitPane.remove();
                 packsTable.columns.adjust();
@@ -43,7 +48,7 @@ const packsTableConfig = {
 
         const codeUl = $('#lu-code').val();
         if(codeUl) {
-            $(`.logistic-unit-number .wii-icon`).trigger(`mouseup`);
+            $(`.logistic-unit-number`).trigger(`mouseup`);
         }
     }
 };
@@ -120,16 +125,15 @@ $(function() {
         addToCart(ids);
     })
 
-    $(document).arrive(`.logistic-unit-number .wii-icon`, function() {
-        const $icon = $(this);
-        const $number = $icon.closest(`.logistic-unit-number`);
+    $(document).arrive(`.logistic-unit-number`, function() {
+        const $number = $(this);
 
         let isLoading = false;
 
         // register the event directly on the element through arrive
         // to get the event before action-on-click and be able to
         // cancel modal openning through event.stopPropagation
-        $icon.on(`mouseup`, event => {
+        $number.on(`mouseup`, event => {
             event.stopPropagation();
             if(isLoading) {
                 Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)

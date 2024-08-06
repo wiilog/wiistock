@@ -15,15 +15,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-/**
- * @Route("iot/capteur")
- */
+#[Route('iot/capteur')]
 class SensorMessageController extends AbstractController
 {
-    /**
-     * @Route("/{id}/messages", name="sensor_message_index", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route('/{id}/messages', name: 'sensor_message_index', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function index($id, EntityManagerInterface $entityManager): Response
     {
         $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
@@ -32,10 +28,8 @@ class SensorMessageController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/messages/api/{sensor}", name="sensor_messages_api", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/messages/api/{sensor}', name: 'sensor_messages_api', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR], mode: HasPermission::IN_JSON)]
     public function api(Sensor $sensor,
                         Request $request,
                         SensorMessageService $sensorMessageService,

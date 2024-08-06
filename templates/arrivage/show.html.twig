@@ -48,7 +48,7 @@
                                             dropdownOnly: true,
                                             attributes: {
                                                 "data-toggle": "modal",
-                                                "data-target": "#modalColumnVisible",
+                                                "data-target": "#modalFieldModes",
                                             },
                                         },
                                         {
@@ -141,10 +141,19 @@
     {% include 'arrivage/modalDeleteLitige.html.twig' %}
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'pack/modalDeletePack.html.twig' %}
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tablePacks',
         page: 'arrivalPack',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 

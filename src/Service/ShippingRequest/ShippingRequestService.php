@@ -34,7 +34,7 @@ use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -49,7 +49,7 @@ use WiiCommon\Helper\Stream;
 class ShippingRequestService {
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public Security $security;
@@ -97,7 +97,7 @@ class ShippingRequestService {
     public MouvementStockService $mouvementStockService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
+        $columnsVisible = $currentUser->getFieldModes('shippingRequest');
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro', 'name' => 'number'],
@@ -124,7 +124,7 @@ class ShippingRequestService {
             ['title' => 'Poids brut (kg)', 'name' => 'grossWeight'],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request): array {
@@ -135,7 +135,7 @@ class ShippingRequestService {
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
             $filters,
-            $this->visibleColumnService,
+            $this->fieldModesService,
             [
                 'user' => $this->security->getUser(),
             ]

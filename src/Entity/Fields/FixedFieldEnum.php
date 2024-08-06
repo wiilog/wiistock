@@ -16,6 +16,7 @@ enum FixedFieldEnum: string
     case status = "Statut";
     case dropLocation = "Emplacement de dépose";
     case pickLocation = "Emplacement de prise";
+    case location = "Emplacement";
     case lineCount = "Nombre de lignes";
     case manufacturingOrderNumber = "Numéro d'OF";
     case productArticleCode = "Code produit/article";
@@ -60,6 +61,8 @@ enum FixedFieldEnum: string
     case object = "Objet";
     case pickingLocation = "Point de collecte";
     case quantityToPick = "Quantité à collecter";
+    case operator = "Opérateur";
+    case driver = "Chauffeur";
 
     public static function fromCase(string $case): string|null {
         try {

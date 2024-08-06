@@ -29,16 +29,12 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 
-/**
- * @Route("/inventaire/mission")
- */
+#[Route('/inventaire/mission')]
 class InventoryMissionController extends AbstractController
 {
 
-    /**
-     * @Route("/", name="inventory_mission_index")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
-     */
+    #[Route('/', name: 'inventory_mission_index')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE])]
     public function index(EntityManagerInterface $entityManager): Response {
 
         return $this->render('inventaire/index.html.twig', [
@@ -52,10 +48,8 @@ class InventoryMissionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="inv_missions_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'inv_missions_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         InvMissionService $invMissionService): Response
     {
@@ -64,10 +58,8 @@ class InventoryMissionController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'mission_new', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         if ($data = $request->request->all()) {
@@ -149,10 +141,8 @@ class InventoryMissionController extends AbstractController
     }
 
 
-    /**
-     * @Route("/verification", name="mission_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/verification', name: 'mission_check_delete', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function checkMissionCanBeDeleted(Request $request,
                                              EntityManagerInterface $entityManager): Response
     {
@@ -193,10 +183,8 @@ class InventoryMissionController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="mission_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'mission_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
@@ -217,10 +205,8 @@ class InventoryMissionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
-     */
+    #[Route('/voir/{id}', name: 'inventory_mission_show', options: ['expose' => true], methods: 'GET|POST')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE])]
     public function show(InventoryMission $mission): Response {
         $startPrevDate = $mission->getStartPrevDate();
         $isInventoryStarted =  new DateTime('now') >= $startPrevDate;
@@ -255,10 +241,8 @@ class InventoryMissionController extends AbstractController
         return new JsonResponse($result);
     }
 
-    /**
-     * @Route("/donnees_article/api/{id}", name="inv_entry_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/donnees_article/api/{id}', name: 'inv_entry_article_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function entryApiArticle(InventoryMission $mission,
                                     InvMissionService $invMissionService,
                                     Request $request): Response
@@ -267,10 +251,8 @@ class InventoryMissionController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/donnees_reference_article/api/{id}", name="inv_entry_reference_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/donnees_reference_article/api/{id}', name: 'inv_entry_reference_article_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function entryApiReferenceArticle(InventoryMission $mission,
                                              InvMissionService $invMissionService,
                                              Request $request): Response
@@ -279,10 +261,8 @@ class InventoryMissionController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/ajouter', name: 'add_to_mission', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function addToMission(Request $request,
                                  InventoryService $inventoryService,
                                  EntityManagerInterface $entityManager): Response {
@@ -417,10 +397,8 @@ class InventoryMissionController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/ajouter-emplacements", name="add_location_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/ajouter-emplacements', name: 'add_location_to_mission', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function addLocationToMission(Request $request,
                                  InventoryService $inventoryService,
                                  EntityManagerInterface $entityManager): Response {
@@ -475,9 +453,7 @@ class InventoryMissionController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/{mission}/csv", name="get_inventory_mission_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route('/{mission}/csv', name: 'get_inventory_mission_csv', options: ['expose' => true], methods: ['GET'])]
     public function getInventoryMissionCSV(InventoryEntryService $inventoryEntryService,
                                            CSVExportService $CSVExportService,
                                            InventoryMission $mission): Response {
@@ -539,10 +515,8 @@ class InventoryMissionController extends AbstractController
         );
     }
 
-    /**
-     * @Route("/remove_reference_from_inventory/", name="mission_remove_ref", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/remove_reference_from_inventory/', name: 'mission_remove_ref', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function removeReferenceFromInventoryMission(Request                $request,
                                                         EntityManagerInterface $entityManager): Response
     {
@@ -574,10 +548,8 @@ class InventoryMissionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/ajouter-emplacements-zones-datatable", name="add_locations_or_zones_to_mission_datatable", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/ajouter-emplacements-zones-datatable', name: 'add_locations_or_zones_to_mission_datatable', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function addLocationsOrZonesToMissionDatatable(Request $request, EntityManagerInterface $entityManager){
         $data = $request->query->all();
 
@@ -623,10 +595,8 @@ class InventoryMissionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/ajouter-emplacements-zones", name="add_locations_or_zones_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/ajouter-emplacements-zones', name: 'add_locations_or_zones_to_mission', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function addLocationsOrZonesToMission(Request $request, EntityManagerInterface $entityManager){
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);

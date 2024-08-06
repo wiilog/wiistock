@@ -20,9 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
 
-/**
- * @Route("/inventaire/saisie")
- */
+#[Route('/inventaire/saisie')]
 class InventoryEntryController extends AbstractController
 {
     /**
@@ -42,19 +40,15 @@ class InventoryEntryController extends AbstractController
         $this->inventoryEntryService = $inventoryEntryService;
     }
 
-    /**
-     * @Route("/", name="inventory_entry_index", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
-     */
+    #[Route('/', name: 'inventory_entry_index', options: ['expose' => true], methods: 'GET|POST')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE])]
     public function index()
     {
         return $this->render('saisie_inventaire/index.html.twig');
     }
 
-    /**
-     * @Route("/api", name="entries_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'entries_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_INVE], mode: HasPermission::IN_JSON)]
     public function api(Request $request)
     {
         $data = $this->inventoryEntryService->getDataForDatatable($request->request);
@@ -63,13 +57,13 @@ class InventoryEntryController extends AbstractController
 	}
 
     /**
-     * @Route("/csv", name="get_inventory_entries_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param InventoryEntryService $inventoryEntryService
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
      */
+    #[Route('/csv', name: 'get_inventory_entries_csv', options: ['expose' => true], methods: ['GET'])]
     public function getInventoryEntriesCSV(Request $request,
                                            InventoryEntryService $inventoryEntryService,
                                            EntityManagerInterface $entityManager,

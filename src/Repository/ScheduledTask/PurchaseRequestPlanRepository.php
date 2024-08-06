@@ -5,7 +5,6 @@ namespace App\Repository\ScheduledTask;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\Zone;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\QueryBuilder;
 
 class PurchaseRequestPlanRepository extends EntityRepository implements ScheduledTaskRepository{
 
@@ -19,23 +18,12 @@ class PurchaseRequestPlanRepository extends EntityRepository implements Schedule
             ->getSingleScalarResult() > 0 ;
     }
 
-    public function countScheduled(): int {
-        return $this->createScheduledQueryBuilder()
-            ->select("COUNT(purchaseRequestPlan)")
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     /**
      * @return PurchaseRequestPlan[]
      */
     public function findScheduled(): array {
-        return $this->createScheduledQueryBuilder()
+        return $this->createQueryBuilder('purchaseRequestPlan')
             ->getQuery()
             ->getResult();
-    }
-
-    private function createScheduledQueryBuilder(): QueryBuilder {
-        return $this->createQueryBuilder('purchaseRequestPlan');
     }
 }

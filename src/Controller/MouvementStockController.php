@@ -21,7 +21,7 @@ use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
 
 use App\Service\TranslationService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;

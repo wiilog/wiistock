@@ -61,7 +61,7 @@
                         {% endif %}
                         <a class="dropdown-item pointer"
                            data-toggle="modal"
-                           data-target="#modalColumnVisible">
+                           data-target="#modalFieldModes">
                             <i class="fa fa-cog mr-2"></i>
                             {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
                         </a>
@@ -105,10 +105,19 @@
     <input id="openNewModal" value="{{ openNewModal }}" hidden>
 
     {% include "arrivage/modalListPacks.html.twig" %}
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'arrivalsTable',
-        page: 'arrival'
+        page: 'arrival',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 
     {% include 'utils/modal/empty-modal.html.twig' with {

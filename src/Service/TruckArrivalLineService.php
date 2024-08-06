@@ -26,7 +26,7 @@ class TruckArrivalLineService
 {
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FormatService $formatService;

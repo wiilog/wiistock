@@ -38,9 +38,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/collecte")
- */
+#[Route('/collecte')]
 class CollecteController extends AbstractController
 {
 
@@ -69,10 +67,8 @@ class CollecteController extends AbstractController
         $this->collecteService = $collecteService;
     }
 
-    /**
-     * @Route("/liste/{filter}", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL})
-     */
+    #[Route('/liste/{filter}', name: 'collecte_index', options: ['expose' => true], methods: ['GET', 'POST'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_COLL])]
     public function index(EntityManagerInterface $entityManager,
                           $filter = null): Response
     {
@@ -107,10 +103,8 @@ class CollecteController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/voir/{id}', name: 'collecte_show', options: ['expose' => true], methods: ['GET', 'POST'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_COLL], mode: HasPermission::IN_JSON)]
     public function show(Collecte $collecte,
                          DemandeCollecteService $collecteService,
                          EntityManagerInterface $entityManager): Response
@@ -134,10 +128,8 @@ class CollecteController extends AbstractController
 		]);
     }
 
-    /**
-     * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'collecte_api', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_COLL], mode: HasPermission::IN_JSON)]
     public function api(Request $request): Response
 	{
         // cas d'un filtre statut depuis page d'accueil
@@ -147,10 +139,8 @@ class CollecteController extends AbstractController
         return new JsonResponse($data);
 	}
 
-    /**
-     * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/article/api/{id}', name: 'collecte_article_api', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_COLL], mode: HasPermission::IN_JSON)]
     public function articleApi(EntityManagerInterface $entityManager, $id): Response
     {
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -198,10 +188,8 @@ class CollecteController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'collecte_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager): Response
@@ -234,10 +222,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/ajouter-article', name: 'collecte_add_article', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function addArticle(Request                $request,
                                EntityManagerInterface $entityManager,
                                DemandeCollecteService $demandeCollecteService): Response
@@ -291,10 +277,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier-quantite-article", name="collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier-quantite-article', name: 'collecte_edit_article', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editArticle(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
@@ -311,10 +295,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier-quantite-api-article", name="collecte_edit_api_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier-quantite-api-article', name: 'collecte_edit_api_article', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApiArticle(Request $request,
                                    EntityManagerInterface $entityManager): Response
     {
@@ -330,10 +312,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/retirer-article', name: 'collecte_remove_article', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeArticle(Request $request,
                                   EntityManagerInterface $entityManager)
     {
@@ -360,10 +340,8 @@ class CollecteController extends AbstractController
     }
 
 
-    /**
-     * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'collecte_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
@@ -403,10 +381,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier', name: 'collecte_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,
                          FreeFieldService $champLibreService,
@@ -464,10 +440,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'collecte_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
@@ -489,9 +463,7 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/non-vide", name="demande_collecte_has_articles", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/non-vide', name: 'demande_collecte_has_articles', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     public function hasArticles(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
@@ -508,11 +480,9 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
-     */
-	public function getDemandCollectAutoComplete(Request $request,
+    #[Route('/autocomplete', name: 'get_demand_collect', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+ #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_COLL], mode: HasPermission::IN_JSON)]
+ public function getDemandCollectAutoComplete(Request $request,
                                                  EntityManagerInterface $entityManager): Response
 	{
         $collecteRepository = $entityManager->getRepository(Collecte::class);
@@ -524,11 +494,9 @@ class CollecteController extends AbstractController
         return new JsonResponse(['results' => $collectes]);
 	}
 
-    /**
-     * @Route("/csv", name="get_demandes_collectes_for_csv",options={"expose"=true}, methods="GET|POST" )
-     * @HasPermission({Menu::DEM, Action::EXPORT})
-     */
-	public function getDemandesCollecteCSV(EntityManagerInterface $entityManager,
+    #[Route('/csv', name: 'get_demandes_collectes_for_csv', options: ['expose' => true], methods: 'GET|POST')]
+ #[HasPermission([Menu::DEM, Action::EXPORT])]
+ public function getDemandesCollecteCSV(EntityManagerInterface $entityManager,
                                            DemandeCollecteService $demandeCollecteService,
                                            Request $request,
                                            FreeFieldService $freeFieldService,
@@ -597,10 +565,8 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-collect-references", options={"expose"=true}, name="collecte_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-collect-references', options: ['expose' => true], name: 'collecte_api_references', methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function apiReferences(Request $request,
                                   DemandeCollecteService $demandeCollecteService): Response
     {

@@ -293,9 +293,7 @@ class OrderController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/csv", name="transport_orders_export", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route('/csv', name: 'transport_orders_export', options: ['expose' => true], methods: ['GET'])]
     public function getDeliveryRequestCSV(Request                $request,
                                           FreeFieldService       $freeFieldService,
                                           CSVExportService       $CSVExportService,

@@ -8,9 +8,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class NomadeApkController extends AbstractController {
 
-    /**
-     * @Route("/telecharger/nomade.apk", name="download_nomade_apk", methods={"GET"})
-     */
+    #[Route('/telecharger/nomade.apk', name: 'download_nomade_apk', methods: ['GET'])]
     public function index(): Response {
         $apkUrl = $this->getParameter('nomade_apk');
         return $this->redirect($apkUrl);
