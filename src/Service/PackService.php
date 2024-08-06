@@ -47,6 +47,8 @@ class PackService {
                                 private readonly ReceptionLineService $receptionLineService,
                                 private readonly TimeService $timeService,
                                 private readonly SettingsService $settingsService,
+                                private readonly ArrivageService $arrivageService,
+                                private readonly ProjectHistoryRecordService $projectHistoryRecordService,
                                 private readonly TruckArrivalService $truckArrivalService,
                                 private readonly UserService $userService) {}
 
@@ -293,7 +295,7 @@ class PackService {
 
                 $arrival->addPack($pack);
 
-                $message = $this->arrivageDataService->buildCustomLogisticUnitHistoryRecord($arrival);
+                $message = $this->arrivageService->buildCustomLogisticUnitHistoryRecord($arrival);
                 $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage UL", $arrival->getDropLocation());
 
                 if($arrival->getTruckArrival() || $arrival->getTruckArrivalLines()->first()){
