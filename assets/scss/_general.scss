@@ -1117,7 +1117,7 @@ label.required:after {
 }
 
 .history-container {
-    overflow-x: hidden;
+    overflow: hidden;
 
     .header {
         margin-right: -30px;
@@ -1475,7 +1475,7 @@ label.required:after {
 
 .packsTableContainer .dataTables_wrapper {
     flex: 1 1 auto;
-    width: calc(100% - 400px);
+    width: calc(100% - 500px);
 }
 
 .logistic-unit-content {

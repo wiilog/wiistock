@@ -65,9 +65,13 @@ class PackController extends AbstractController
 
     #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
-    public function show(Pack $logisticUnit): Response {
+    public function show(Pack $logisticUnit, EntityManagerInterface $manager): Response {
+        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+        $movements = $trackingMovementRepository->findChildArticleMovementsBy($logisticUnit);
+
         return $this->render('pack/show.html.twig', [
-            "logisticUnit" => $logisticUnit
+            "logisticUnit" => $logisticUnit,
+            "movements" => $movements,
         ]);
     }
 

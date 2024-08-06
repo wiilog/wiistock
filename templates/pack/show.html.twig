@@ -2,26 +2,20 @@
 {% import 'form.html.twig' as form %}
 
 {% block title %}Traçabilité | Unités Logistiques | Détails{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    {{ encore_entry_link_tags('pack-common') }}
-{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    {{ encore_entry_link_tags('pack-common') }}
-{% endblock %}
+{% block titleLink path("pack_index") %}
 
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column w-100">
             <div class="col-12 col-md-6">
-                <div class="details-page-header d-flex flex-column" style="border-color: {{ logisticUnit.nature.color }}">
-                    <div class="wii-type" style="background-color: {{ logisticUnit.nature.color }}">
-                        <span>{{ logisticUnit.nature.label }}</span>
-                    </div>
+                {% set nature = logisticUnit.nature %}
+                <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black'}}">
+                    {% if nature %}
+                        <div class="wii-type" style="background-color: {{  logisticUnit.nature.color }}">
+                            <span class="p-1">{{ logisticUnit.nature.label }}</span>
+                        </div>
+                    {% endif %}
                     <div class="d-flex header-wrapper bg-white">
                         <div class="specifications w-100 m-3">
                             <div>
@@ -48,7 +42,7 @@
                         <div class="row">
                             {% set arrival = logisticUnit.arrivage %}
                             {% set truckArrival = arrival ? arrival.truckArrival : null %}
-                            {% if truckArrival is null and arrival.truckArrivalLines | length>0 %}
+                            {% if truckArrival and arrival.truckArrivalLines | length > 0 %}
                                 {% set truckArrival = (arrival.truckArrivalLines | first).truckArrival %}
                             {% endif %}
                             <div class="col-12 col-md-6 mt-3 d-flex">
@@ -100,14 +94,14 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Tracking associé</span>
-                                    <span class="wii-body-text">{{ arrival.noTracking ? arrival.noTracking : "-" }}</span>
+                                    <span class="wii-body-text">{{ arrival ? arrival.noTracking : "-" }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">N° de commande</span>
                                     <span class="wii-body-text">
-                                        {% if arrival.numeroCommandeList is not empty %}
+                                        {% if arrival and arrival.numeroCommandeList is not empty %}
                                             {{ arrival.numeroCommandeList|join(', ') }}
                                         {% else %}
                                             -
@@ -136,13 +130,31 @@
                         </div>
                     </div>
                 </div>
-                <div class="wii-box mt-3">
-                    <div class="header wii-title">Champs libres</div>
-                    <div class="content"></div>
-                </div>
                 <div class="wii-box">
                     <div class="header wii-title">Contenu unité logistique</div>
-                    <div class="content"></div>
+                    <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
+                        <div class="logistic-unit-tabs">
+                            <div class="logistic-unit-tab active" data-target=".current-articles">Articles</div>
+                            <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
+                        </div>
+                        <div class="content current-articles">
+                            {% for article in logisticUnit.childArticles %}
+                                {% include 'pack/article-card.html.twig' with { article: article } %}
+                            {% else %}
+                                <div class="logistic-unit-no-items">
+                                    <div class="logistic-unit-no-items-icon-circle">
+                                        <img src="/svg/UL-black.svg">
+                                    </div>
+                                    {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun article actuellement') }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="content article-history d-none">
+                            {% include 'pack/article-history.html.twig' with {
+                                movements,
+                            }%}
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-12 col-md-6">
@@ -160,9 +172,11 @@
             </div>
         </div>
     </div>
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('pack-show') }}
+    <script src="{{ asset('js/pages/pack.js') }}?v={{ web_version }}"></script>
 {% endblock %}

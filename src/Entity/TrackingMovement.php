@@ -555,7 +555,7 @@ class TrackingMovement implements AttachmentContainer {
     public function serialize(FormatService $formatService): array {
 
         return [
-            FixedFieldEnum::location->value => $this->getEmplacement()->getLabel(),
+            FixedFieldEnum::location->value => $this->getEmplacement()?->getLabel(),
             FixedFieldEnum::comment->value => $this->getCommentaire(),
         ];
     }
