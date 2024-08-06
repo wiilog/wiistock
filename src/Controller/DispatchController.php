@@ -917,6 +917,7 @@ class DispatchController extends AbstractController {
                             TranslationService     $translationService,
                             EntityManagerInterface $entityManager,
                             PackService            $packService,
+                            DispatchService        $dispatchService,
                             Dispatch               $dispatch): Response
     {
         $data = $request->request->all();
@@ -991,7 +992,7 @@ class DispatchController extends AbstractController {
         }
 
         if(empty($pack)) {
-            $pack = $packService->createPack($entityManager, ['code' => $packCode]);
+            $pack = $packService->createPack($entityManager, ['code' => $packCode], $this->getUser());
             $entityManager->persist($pack);
         }
 
@@ -1007,6 +1008,9 @@ class DispatchController extends AbstractController {
             ->setWidth($width !== null ? floatval($width) : $dispatchPack->getWidth())
             ->setLength($length !== null ? floatval($length) : $dispatchPack->getLength());
         $entityManager->persist($dispatchPack);
+
+        $message = $dispatchService->buildCustomLogisticUnitHistoryRecord($dispatch);
+        $packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $dispatch->getRequester(), "Acheminement", $dispatch->getLocationFrom());
 
         $dispatchPack->setQuantity($quantity);
         $pack

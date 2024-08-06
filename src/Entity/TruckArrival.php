@@ -2,14 +2,18 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\TruckArrivalRepository;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Google\Service\Forms\Form;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TruckArrivalRepository::class)]
 class TruckArrival implements AttachmentContainer
@@ -236,5 +240,17 @@ class TruckArrival implements AttachmentContainer
         }
 
         return $this;
+    }
+
+    public function serialize(FormatService $formatService): array {
+        $carrierTrackingNumbers = Stream::from($this->getTrackingLines())
+            ->map(static fn(TruckArrivalLine $line) => $line->getNumber())
+            ->join(', ');
+        return [
+            FixedFieldEnum::number->value =>$this->getNumber(),
+            FixedFieldEnum::carrier->value => $this->getCarrier()->getLabel(),
+            FixedFieldEnum::driver->value => $this->getDriver()->getPrenomNom(),
+            FixedFieldEnum::carrierTrackingNumber->value => $carrierTrackingNumbers,
+        ];
     }
 }

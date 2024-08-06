@@ -1081,6 +1081,9 @@ class DispatchService {
                 ->setQuantity($packQuantity)
                 ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
+
+            $message = $this->buildCustomLogisticUnitHistoryRecord($dispatch);
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $dispatch->getCreationDate(), $dispatch->getTreatedBy(), "Acheminement", $dispatch->getLocationFrom());
         }
     }
 
@@ -2408,5 +2411,19 @@ class DispatchService {
         $this->refArticleDataService->updateDescriptionField($entityManager, $referenceArticle, $description);
 
         return $dispatchReferenceArticle;
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(Dispatch $dispatch): string {
+        $values = $dispatch->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+                ->filter(static fn($value) => $value)
+                ->each(static function (string $value, string $key) use (&$message) {
+                    $message .= "$key : $value\n";
+                    return $message;
+                });
+
+        return $message;
     }
 }

@@ -28,7 +28,7 @@ class ReceiptAssociation {
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $receptionNumber = null;
 
-    #[ORM\ManyToMany(targetEntity: Pack::class)]
+    #[ORM\ManyToMany(targetEntity: Pack::class, inversedBy: 'receiptAssociations')]
     #[ORM\JoinTable(name: 'receipt_association_logistic_unit')]
     #[ORM\InverseJoinColumn(name: "logistic_unit_id", referencedColumnName: "id")]
     private Collection $logisticUnits;
@@ -61,7 +61,7 @@ class ReceiptAssociation {
         return $this;
     }
 
-    public function serialize(Utilisateur $user = null, FormatService $formatService): array {
+    public function serialize(FormatService $formatService, Utilisateur $user = null): array {
         return [
             'creationDate' => $formatService->datetime($this->getCreationDate(), "", false, $user),
             'packCode' => Stream::From($this->getLogisticUnits())->map(static fn(Pack $logisticUnits) => $logisticUnits->getCode())->join(', ') ?? '',
@@ -87,6 +87,22 @@ class ReceiptAssociation {
 
     public function setLogisticUnits(array $logisticUnits): self {
         $this->logisticUnits = new ArrayCollection($logisticUnits);
+
+        return $this;
+    }
+
+    public function addPack(Pack $pack): self {
+        if (!$this->logisticUnits->contains($pack)) {
+            $this->logisticUnits[] = $pack;
+        }
+
+        return $this;
+    }
+
+    public function removePack(Pack $pack): self {
+        if ($this->logisticUnits->removeElement($pack)) {
+            $pack->removeReceiptAssociation($this);
+        }
 
         return $this;
     }

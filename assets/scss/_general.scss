@@ -1137,7 +1137,7 @@ label.required:after {
         }
 
         &:not(.has-logistic-unit-parent) {
-            height: 80px !important;
+            height: fit-content !important;
         }
 
         &.has-logistic-unit-parent {
@@ -1480,15 +1480,16 @@ label.required:after {
 
 .logistic-unit-content {
     background: $light-blue;
-    max-width: 400px;
-    min-width: 400px;
+    max-width: 500px;
+    min-width: 500px;
     margin-left: 10px;
     border-radius: 4px;
     padding: 10px 15px;
 
     position: sticky;
-    top: 7px;
-    height: calc(100vh - 16px);
+    top: 15px;
+    right: 50px;
+    height: 75vh;
     overflow-y: auto;
 
     .logistic-unit-tabs {

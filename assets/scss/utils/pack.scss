@@ -118,3 +118,37 @@
     }
 }
 
+.history-line {
+    height: fit-content !important;
+
+    .history-text-overflow {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .history-line-right-content {
+
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+
+        .message-container {
+            font-size: 15px;
+            padding: 5px 15px 5px 10px;
+            color: $black !important;
+            border-radius: 15px;
+            margin-left: 3px;
+            width: fit-content;
+            border: 3px solid;
+
+            &.past {
+                border-color: rgba(51, 83, 215, 0.1);
+            }
+
+            &.current {
+                border-color: rgba(47, 194, 171, 0.1);
+            }
+        }
+    }
+}

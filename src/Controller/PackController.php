@@ -11,6 +11,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
@@ -62,6 +63,14 @@ class PackController extends AbstractController
         ]);
     }
 
+    #[Route('/voir/{logisticUnit}', name: 'pack_show', methods: [self::GET])]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
+    public function show(Pack $logisticUnit): Response {
+        return $this->render('pack/show.html.twig', [
+            "logisticUnit" => $logisticUnit
+        ]);
+    }
+
     #[Route("/api", name: "pack_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function api(Request $request, PackService $packService): JsonResponse
@@ -73,12 +82,17 @@ class PackController extends AbstractController
 
     #[Route("/{pack}/contenu", name: "logistic_unit_content", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function logisticUnitContent(EntityManagerInterface $manager, LanguageService $languageService, Pack $pack): JsonResponse
+    public function logisticUnitContent(EntityManagerInterface $manager,
+                                        Pack                    $pack,
+                                        PackService             $packService,
+                                        LanguageService         $languageService): JsonResponse
     {
         $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
 
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($pack);
+
+        $trackingRecordsHistory = $packService->getTrackingRecordsHistory($pack->getLogisticUnitHistoryRecords());
 
         return $this->json([
             "success" => true,
@@ -86,6 +100,7 @@ class PackController extends AbstractController
                 "pack" => $pack,
                 "movements" => $movements,
                 "use_long_format" => $longFormat,
+                "trackingRecordsHistory" => $trackingRecordsHistory
             ]),
         ]);
     }
@@ -369,6 +384,16 @@ class PackController extends AbstractController
         return $this->json([
             'success' => true,
             'location' => $location?->getId(),
+        ]);
+    }
+
+    #[Route("/{id}/status-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: self::GET)]
+    public function statusHistoryApi(Pack              $logisticUnit,
+                                     PackService       $packService): JsonResponse {
+        $template = $packService->generateTrackingHistoryHtml($logisticUnit);
+        return $this->json([
+            "success" => true,
+            "template" => $template,
         ]);
     }
 }

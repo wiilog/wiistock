@@ -445,6 +445,9 @@ class TrackingMovementService extends AbstractController
 
         $pack->addTrackingMovement($tracking);
 
+        $message = $this->buildCustomLogisticUnitHistoryRecord($tracking);
+        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $tracking->getDatetime(), $tracking->getOperateur(), ucfirst($tracking->getType()->getCode()), $tracking->getEmplacement());
+
         if (!$pack->getLastTracking()
             || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
             $pack->setLastTracking($tracking);
@@ -1609,5 +1612,19 @@ class TrackingMovementService extends AbstractController
                 ])
         )
             ->toArray();
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement): string {
+        $values = $trackingMovement->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn(string $value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
     }
 }

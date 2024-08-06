@@ -6,7 +6,7 @@ on:
             - "*"
 
 concurrency:
-    group: ${{ github.head_ref }}
+    group: ${{ github.head_ref }}-cypress
     cancel-in-progress: true
 
 jobs:
@@ -74,10 +74,10 @@ jobs:
             -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_php chown -R www-data:www-data ./
 
-#            -   name: get the version of wiistock config/services.yaml and store it in the environment
-#                run: |
-#                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
-#                    export VERSION=$(cat version.txt)
+            #            -   name: get the version of wiistock config/services.yaml and store it in the environment
+            #                run: |
+            #                    docker exec wiistock-cypress_php php bin/console app:version:config:services > version.txt
+            #                    export VERSION=$(cat version.txt)
 
             -   name: Install composer dependencies in app
                 run: docker exec wiistock-cypress_php composer install
@@ -111,19 +111,19 @@ jobs:
                 if: failure()
                 uses: actions/upload-artifact@v2
                 with:
-                  name: cypress-logs
-                  path: cypress_logs
+                    name: cypress-logs
+                    path: cypress_logs
 
             -   name: Upload Cypress videos artifact # run only if cypress fail
                 if: failure()
                 uses: actions/upload-artifact@v2
                 with:
-                  name: cypress-videos
-                  path: cypress_videos
+                    name: cypress-videos
+                    path: cypress_videos
 
             -   name: Upload dev.log artifact # run only if cypress fail
                 if: failure()
                 uses: actions/upload-artifact@v2
                 with:
-                  name: dev-log-symfony
-                  path: dev_log
+                    name: dev-log-symfony
+                    path: dev_log
