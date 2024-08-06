@@ -4,20 +4,18 @@
 {% block title %}Traçabilité | Unités Logistiques | Détails{% endblock %}
 {% block titleLink path("pack_index") %}
 
-{% block stylesheets %}
-    {{ parent() }}
-    {{ encore_entry_link_tags('pack-common') }}
-{% endblock %}
-
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column w-100">
             <div class="col-12 col-md-6">
-                <div class="details-page-header d-flex flex-column" style="border-color: {{ logisticUnit.nature.color }}">
-                    <div class="wii-type" style="background-color: {{ logisticUnit.nature.color }}">
-                        <span>{{ logisticUnit.nature.label }}</span>
-                    </div>
+                {% set nature = logisticUnit.nature %}
+                <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black'}}">
+                    {% if nature %}
+                        <div class="wii-type" style="background-color: {{  logisticUnit.nature.color }}">
+                            <span class="p-1">{{ logisticUnit.nature.label }}</span>
+                        </div>
+                    {% endif %}
                     <div class="d-flex header-wrapper bg-white">
                         <div class="specifications w-100 m-3">
                             <div>
@@ -44,7 +42,7 @@
                         <div class="row">
                             {% set arrival = logisticUnit.arrivage %}
                             {% set truckArrival = arrival ? arrival.truckArrival : null %}
-                            {% if truckArrival is null and arrival.truckArrivalLines | length>0 %}
+                            {% if truckArrival and arrival.truckArrivalLines | length > 0 %}
                                 {% set truckArrival = (arrival.truckArrivalLines | first).truckArrival %}
                             {% endif %}
                             <div class="col-12 col-md-6 mt-3 d-flex">
@@ -96,14 +94,14 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Tracking associé</span>
-                                    <span class="wii-body-text">{{ arrival.noTracking ? arrival.noTracking : "-" }}</span>
+                                    <span class="wii-body-text">{{ arrival ? arrival.noTracking : "-" }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">N° de commande</span>
                                     <span class="wii-body-text">
-                                        {% if arrival.numeroCommandeList is not empty %}
+                                        {% if arrival and arrival.numeroCommandeList is not empty %}
                                             {{ arrival.numeroCommandeList|join(', ') }}
                                         {% else %}
                                             -
