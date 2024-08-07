@@ -239,20 +239,25 @@ class TrackingMovementService extends AbstractController
 
         if ($movement->getLogisticUnitParent()) {
             if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
-                $packCode = "";
+                $pack = null;
             } else {
-                $packCode = $movement->getLogisticUnitParent()->getCode();
+                $pack = $movement->getLogisticUnitParent();
             }
         } else {
-            $packCode = $movement->getPackArticle()
-                ? ""
-                : $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle()
+                ? null
+                : $movement->getPack();
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'pack' => $packCode,
+            'pack' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
+                "entityPath" => "pack_show",
+                "entityId" => $pack?->getId(),
+                "from" => $pack?->getCode(),
+
+            ]),
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))

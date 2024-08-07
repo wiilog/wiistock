@@ -53,11 +53,6 @@
                     <div class="header wii-title">Description</div>
                     <div class="content">
                         <div class="row">
-                            {% set arrival = logisticUnit.arrivage %}
-                            {% set truckArrival = arrival ? arrival.truckArrival : null %}
-                            {% if truckArrival and arrival.truckArrivalLines | length > 0 %}
-                                {% set truckArrival = (arrival.truckArrivalLines | first).truckArrival %}
-                            {% endif %}
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Date arrivage camion</span>
