@@ -64,6 +64,7 @@ enum FixedFieldEnum: string
     case quantityToPick = "Quantité à collecter";
     case operator = "Opérateur";
     case driver = "Chauffeur";
+    case group = "Groupe";
 
     public static function fromCase(string $case): string|null {
         try {

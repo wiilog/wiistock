@@ -365,6 +365,7 @@ class TrackingMovementService extends AbstractController
                         [
                             'parent' => $parentPack,
                             'onlyPack' => true,
+                            'commentaire' => $data['commentaire'] ?? null,
                         ]
                     );
 
@@ -421,6 +422,10 @@ class TrackingMovementService extends AbstractController
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
+        $ungroup = !$disableUngrouping
+            && $pack->getParent()
+            && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
+
         $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)
@@ -443,6 +448,12 @@ class TrackingMovementService extends AbstractController
             }
         }
 
+        if(!$ungroup && $parent) {
+            // Si pas de mouvement de dégroupage, on set le parent
+            $tracking->setPackParent($parent);
+            $tracking->setGroupIteration($parent->getGroupIteration());
+        }
+
         $pack->addTrackingMovement($tracking);
 
         $message = $this->buildCustomLogisticUnitHistoryRecord($tracking);
@@ -463,9 +474,7 @@ class TrackingMovementService extends AbstractController
         ]);
         $this->manageTrackingFiles($tracking, $fileBag);
 
-        if (!$disableUngrouping
-             && $pack->getParent()
-             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+        if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             [$_, $orderIndex] = hrtime();
@@ -488,10 +497,8 @@ class TrackingMovementService extends AbstractController
                 $pack->setParent(null);
             }
             $entityManager->persist($trackingUngroup);
-        } else if($parent) {
-            // Si pas de mouvement de dégroupage, on set le parent
-            $tracking->setPackParent($parent);
-            $tracking->setGroupIteration($parent->getGroupIteration());
+            $message = $this->buildCustomLogisticUnitHistoryRecord($trackingUngroup);
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $trackingUngroup->getDatetime(), $trackingUngroup->getOperateur(), ucfirst($trackingUngroup->getType()->getCode()), $trackingUngroup->getEmplacement());
         }
         [$_, $orderIndex] = hrtime();
         $tracking->setOrderIndex($orderIndex);
@@ -501,8 +508,7 @@ class TrackingMovementService extends AbstractController
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
                                          TrackingMovement $tracking,
-                                         array $options) {
-
+                                         array $options): void {
         $from = $options['from'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $refOrArticle = $options['refOrArticle'] ?? null;
@@ -554,7 +560,7 @@ class TrackingMovementService extends AbstractController
         }
     }
 
-    private function manageTrackingFiles(TrackingMovement $tracking, $fileBag) {
+    private function manageTrackingFiles(TrackingMovement $tracking, $fileBag): void {
         if (isset($fileBag)) {
             $attachments = $this->attachmentService->createAttachmentsDeprecated($fileBag);
             foreach ($attachments as $attachment) {
@@ -564,8 +570,7 @@ class TrackingMovementService extends AbstractController
     }
 
     private function generateUniqueIdForMobile(EntityManagerInterface $entityManager,
-                                               DateTime $date): string
-    {
+                                               DateTime $date): string {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         //same format as moment.defaultFormat
@@ -581,7 +586,7 @@ class TrackingMovementService extends AbstractController
     }
 
     public function persistSubEntities(EntityManagerInterface $entityManager,
-                                       TrackingMovement $trackingMovement) {
+                                       TrackingMovement $trackingMovement): void {
         $pack = $trackingMovement->getPack();
         if (!empty($pack)) {
             $entityManager->persist($pack);
