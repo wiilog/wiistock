@@ -3,7 +3,6 @@
 namespace App\Command;
 
 use App\Entity\Pack;
-use App\Entity\ProductionRequest;
 use App\Repository\PackRepository;
 use App\Service\FormatService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,7 +52,7 @@ class RemoveDuplicateLUCommand extends Command {
                 $newCodeIsValid = false;
                 do {
                     // ask the user to enter the new code
-                    $newCode = $io->ask('Entrez le nouveau code');
+                    $newCode = $io->ask('Entrez le nouveau code', $duplicateLUData['code'].'_bis');
 
                     // check if the new code is already used
                     $newCodeIsValid = count($luRepository->findBy(['code' => $newCode])) === 0;
@@ -61,9 +60,7 @@ class RemoveDuplicateLUCommand extends Command {
                         $io->error("Le code {$newCode} est déjà utilisé");
                         $newCode = null;
                     }
-
                 } while ($newCodeIsValid === false);
-
 
                 // update the chosen LU with the new code
                 $lu = $luRepository->find($chosenLU);
