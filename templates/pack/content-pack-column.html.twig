@@ -1,7 +1,3 @@
-{% set articles = pack.childArticles | length %}
-
-{% if articles or pack.isArticleContainer %}
-    <span class=" logistic-unit-number" data-id="{{ pack.id }}" data-pack="{{ pack.code }}">
-        <span class="fa fa-search mr-2 logistic-unit-number"></span>
-    </span>
-{% endif %}
+<span class=" logistic-unit-number" data-id="{{ pack.id }}" data-pack="{{ pack.code }}">
+    <span class="fa fa-search mr-2 logistic-unit-number"></span>
+</span>
