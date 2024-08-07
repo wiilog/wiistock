@@ -57,6 +57,7 @@ enum FixedFieldEnum: string
     case businessUnit = "Business unit";
     case requester = "Demandeur";
     case carrierTrackingNumber = "N° tracking transporteur";
+    case carrierTrackingNumberReserve = "Réserve sur n° tracking";
     case emails = "Email(s)";
     case object = "Objet";
     case pickingLocation = "Point de collecte";

@@ -305,7 +305,7 @@ class PackService {
                         : $arrival->getTruckArrival();
 
                     $message = $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival);
-                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage Camion", $truckArrival->getUnloadingLocation());
+                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $truckArrival->getCreationDate(), $user, "Arrivage Camion", $truckArrival->getUnloadingLocation());
                 }
             }
             else if (isset($options['orderLine'])) {
