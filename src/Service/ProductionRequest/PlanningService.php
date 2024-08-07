@@ -7,7 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
