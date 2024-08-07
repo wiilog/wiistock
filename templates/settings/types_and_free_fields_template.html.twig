@@ -70,8 +70,6 @@
                     <div class="col">
                         <div class="row main-entity-content"></div>
                     </div>
-                {% else %}
-                    {{ form.hidden('label') }}
                 {% endif %}
                 {{ form.hidden('typeId') }}
                 {% if can_edit %}
@@ -83,7 +81,9 @@
                 {% endif %}
             </div>
             <div class="row">
-                <div class="wii-section-title col-12 mt-3">Champs pour ce type</div>
+                {% if not (hideType ?? false) %}
+                    <div class="wii-section-title col-12 mt-3">Champs pour ce type</div>
+                {% endif %}
                 <div class="col-12">
                     <table class="table management-table w-100"></table>
                 </div>

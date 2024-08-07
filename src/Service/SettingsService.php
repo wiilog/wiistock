@@ -832,6 +832,10 @@ class SettingsService {
                 throw new RuntimeException("Le type est introuvable");
             }
 
+            if (empty($data["label"])) {
+                $data["label"] = $type->getLabel();
+            }
+
             if ($type->getCategory()->getLabel() !== CategoryType::SENSOR && empty($data["label"])) {
                 throw new RuntimeException("Vous devez saisir un libellé pour le type");
             }
