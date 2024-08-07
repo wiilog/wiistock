@@ -246,10 +246,11 @@ class TruckArrival implements AttachmentContainer
         $carrierTrackingNumbers = Stream::from($this->getTrackingLines())
             ->map(static fn(TruckArrivalLine $line) => $line->getNumber())
             ->join(', ');
+
         return [
             FixedFieldEnum::number->value =>$this->getNumber(),
-            FixedFieldEnum::carrier->value => $this->getCarrier()->getLabel(),
-            FixedFieldEnum::driver->value => $this->getDriver()->getPrenomNom(),
+            FixedFieldEnum::carrier->value => $this->getCarrier()?->getLabel(),
+            FixedFieldEnum::driver->value => $this->getDriver()?->getPrenomNom(),
             FixedFieldEnum::carrierTrackingNumber->value => $carrierTrackingNumbers,
         ];
     }
