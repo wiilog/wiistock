@@ -770,4 +770,14 @@ class PackRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findDuplicateCode() {
+        // get all packs having a non-unique code
+        return $this->createQueryBuilder("pack")
+            ->select("pack.code")
+            ->addSelect("COUNT(pack.code) AS count")
+            ->groupBy("pack.code")
+            ->having("COUNT(pack.code) > 1")
+            ->getQuery()
+            ->getResult();
+    }
 }
