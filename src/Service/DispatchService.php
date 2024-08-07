@@ -2006,19 +2006,19 @@ class DispatchService {
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT);
         $columns = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
-            ["name" => 'code', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Code')],
-            ["name" => 'quantity', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Quantité UL')],
-            ["name" => 'nature', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)'), 'width' => '200px'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)'), 'width' => '200px'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)'), 'width' => '200px'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)')],
+            ["name" => 'code', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Code'), "alwaysVisible" => true],
+            ["name" => 'quantity', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Quantité UL'), "alwaysVisible" => true],
+            ["name" => 'nature', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)'), 'width' => '200px', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)'), 'width' => '200px', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)'), 'width' => '200px', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)'), "alwaysVisible" => true],
         ];
 
         $columns = Stream::from($columns)
