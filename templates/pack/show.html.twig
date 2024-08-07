@@ -7,6 +7,7 @@
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('pack-details-page') }}
+    {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
 {% block page_content %}
@@ -42,7 +43,7 @@
                                 </div>
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
-                                    <span class="wii-field-name">Emplacement <span class="wii-body-text">{{ logisticUnit.lastTracking.emplacement }}</span></span>
+                                    <span class="wii-field-name">Emplacement <span class="wii-body-text">{{ logisticUnit.lastTracking ? logisticUnit.lastTracking.emplacement.label }}</span></span>
                                 </div>
                             </div>
                         </div>

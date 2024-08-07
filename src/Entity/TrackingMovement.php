@@ -556,7 +556,7 @@ class TrackingMovement implements AttachmentContainer {
 
         return [
             FixedFieldEnum::location->value => $this->getEmplacement()?->getLabel(),
-            FixedFieldEnum::comment->value => $this->getCommentaire(),
+            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
         ];
     }
 }

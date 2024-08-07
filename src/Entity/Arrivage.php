@@ -582,7 +582,7 @@ class Arrivage implements AttachmentContainer {
             FixedFieldEnum::type->value => $this->getType()->getLabel(),
             FixedFieldEnum::dropLocation->value => $this->getDropLocation()?->getLabel(),
             FixedFieldEnum::carrier->value => $this->getTransporteur()->getLabel(),
-            FixedFieldEnum::comment->value => $this->getCommentaire(),
+            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
         ];
     }
 }

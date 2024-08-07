@@ -736,7 +736,7 @@ class Dispatch extends StatusHistoryContainer implements AttachmentContainer {
             FixedFieldEnum::number->value => $this->getNumber(),
             FixedFieldEnum::pickLocation->value => $this->getLocationFrom()?->getLabel(),
             FixedFieldEnum::dropLocation->value => $this->getLocationTo()?->getLabel(),
-            FixedFieldEnum::comment->value => $this->getCommentaire(),
+            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
             FixedFieldEnum::emergency->value => $this->getEmergency(),
             FixedFieldEnum::requester->value => $this->getRequester()?->getUsername(),
         ];
