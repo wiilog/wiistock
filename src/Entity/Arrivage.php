@@ -577,10 +577,8 @@ class Arrivage implements AttachmentContainer {
     public function serialize(FormatService $formatService): array {
 
         return [
-            FixedFieldEnum::createdAt->value => $formatService->datetime($this->getDate(), null),
             FixedFieldEnum::status->value => $this->getStatut()->getCode(),
             FixedFieldEnum::type->value => $this->getType()->getLabel(),
-            FixedFieldEnum::dropLocation->value => $this->getDropLocation()?->getLabel(),
             FixedFieldEnum::carrier->value => $this->getTransporteur()->getLabel(),
             FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
         ];
