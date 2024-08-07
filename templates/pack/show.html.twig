@@ -13,7 +13,7 @@
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
-        <div class="row wii-column w-100">
+        <div class="row wii-column">
             <div class="col-12 col-md-6">
                 {% set nature = logisticUnit.nature %}
                 <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black'}}">
@@ -39,11 +39,11 @@
                             <div class="d-flex justify-content-between mr-4">
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
-                                    <span class="wii-field-name">Quantité <span class="wii-body-text">{{ logisticUnit.quantity }}</span></span>
+                                    <span class="wii-field-name">Quantité <span class="wii-body-text ml-2">{{ logisticUnit.quantity }}</span></span>
                                 </div>
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
-                                    <span class="wii-field-name">Emplacement <span class="wii-body-text">{{ logisticUnit.lastTracking ? logisticUnit.lastTracking.emplacement.label }}</span></span>
+                                    <span class="wii-field-name">Emplacement <span class="wii-body-text ml-2">{{ logisticUnit.lastDrop ? logisticUnit.lastDrop.emplacement | format_helper('location') }}</span></span>
                                 </div>
                             </div>
                         </div>
