@@ -53,7 +53,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -442,13 +442,13 @@ class ArrivageController extends AbstractController {
     }
 
     #[Route("/{arrival}/urgent", name: "patch_arrivage_urgent", options: ["expose" => true], methods: [self::PATCH], condition: "request.isXmlHttpRequest()")]
-    #[Entity("arrival", expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
-    public function patchUrgentArrival(Arrivage $arrival,
-                                       Request $request,
-                                       ArrivageService $arrivageDataService,
-                                       UrgenceService $urgenceService,
-                                       EntityManagerInterface $entityManager): Response
-    {
+    public function patchUrgentArrival(
+        #[MapEntity(expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
+        Arrivage               $arrival,
+        Request                $request,
+        ArrivageService        $arrivageDataService,
+        UrgenceService         $urgenceService,
+        EntityManagerInterface $entityManager): Response {
         $numeroCommande = $request->request->get('numeroCommande');
         $postNb = $request->request->get('postNb');
 
@@ -479,11 +479,11 @@ class ArrivageController extends AbstractController {
     }
 
     #[Route("/{arrival}/tracking-movements", name: "post_arrival_tracking_movements", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    #[Entity("arrival", expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
-    public function postArrivalTrackingMovements(Arrivage                $arrival,
-                                                 TrackingMovementService $trackingMovementService,
-                                                 EntityManagerInterface  $entityManager): Response
-    {
+    public function postArrivalTrackingMovements(
+        #[MapEntity(expr: "repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")]
+        Arrivage                $arrival,
+        TrackingMovementService $trackingMovementService,
+        EntityManagerInterface  $entityManager): Response {
         $location = $arrival->getDropLocation();
         if (isset($location)) {
             /** @var Utilisateur $user */
