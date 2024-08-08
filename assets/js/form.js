@@ -450,6 +450,7 @@ function ignoreInput($form, $input, config) {
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
+    const $visibleForm = $form.find(':not(.d-none)');
     const $inputs = $form
         .find(`
             .fileInput,
@@ -470,11 +471,10 @@ function eachInputs(form, config, callback) {
         }
 
         if($input.attr(`type`) === `radio`) {
+            console.log($input);
             const $checked = $form.find(`input[type="radio"][name="${input.name}"]:checked`);
             if($checked.exists()) {
                 $input = $checked;
-            } else {
-                $input = $form.find(`input[type="radio"][name="${input.name}"]`);
             }
         }
 
@@ -552,7 +552,15 @@ function treatInputError($input, errors, form) {
         }
     }
 
-    if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
+
+    // if the input name is 40
+
+    if ($input.attr(`name`) === `40`) {
+         console.log("===================================================================================================================================")
+    }
+
+
+    if (($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`))) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
             const $elementInError = $input.closest(`.wii-radio-container, .wii-checkbox, .wii-switch, .wii-expanded-switch`);
             // check if element is already in error
