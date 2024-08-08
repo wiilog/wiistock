@@ -277,7 +277,11 @@ class ArrivageRepository extends EntityRepository
                     $qb
                         ->leftJoin('arrival.truckArrivalLines', 'lines')
                         ->leftJoin('lines.truckArrival', 'filter_truckArrival')
-                        ->andWhere('filter_truckArrival.number LIKE :numTruckArrival')
+                        ->leftJoin('arrival.truckArrival', 'filter_arrival_truckArrival')
+                        ->andWhere($qb->expr()->orX(
+                            'filter_truckArrival.number LIKE :numTruckArrival',
+                            'filter_arrival_truckArrival.number LIKE :numTruckArrival'
+                        ))
                         ->setParameter('numTruckArrival' , '%'.$filter['value'].'%');
                     break;
                 case 'noTracking':
