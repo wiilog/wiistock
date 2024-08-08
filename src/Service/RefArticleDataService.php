@@ -226,31 +226,13 @@ class RefArticleDataService
             ? $inventoryCategoryRepository->findBy([], ['label' => 'ASC'])
             : [];
 
-        $freeFieldsGroupedByTypes = [];
-        foreach ($types as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
-        }
-        $typeChampLibre = [];
-        foreach ($types as $type) {
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId()
-            ];
-        }
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
-            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'Synchronisation nomade' => $refArticle->getNeedsMobileSync(),
             'statut' => $refArticle->getStatut()->getNom(),
-            'typeChampsLibres' => $typeChampLibre,
             'articlesFournisseur' => $data['listArticlesFournisseur'],
             'totalQuantity' => $data['totalQuantity'],
+            'types' => $types,
             'articles' => $articlesFournisseur,
             'categories' => $categories,
             'isADemand' => $isADemand,
