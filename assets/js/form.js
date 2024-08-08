@@ -471,7 +471,6 @@ function eachInputs(form, config, callback) {
         }
 
         if($input.attr(`type`) === `radio`) {
-            console.log($input);
             const $checked = $form.find(`input[type="radio"][name="${input.name}"]:checked`);
             if($checked.exists()) {
                 $input = $checked;
@@ -551,14 +550,6 @@ function treatInputError($input, errors, form) {
             });
         }
     }
-
-
-    // if the input name is 40
-
-    if ($input.attr(`name`) === `40`) {
-         console.log("===================================================================================================================================")
-    }
-
 
     if (($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`))) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {

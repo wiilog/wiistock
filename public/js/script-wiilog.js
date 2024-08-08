@@ -365,6 +365,7 @@ function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
+                    $bloc.find('input[name], select[name], textarea[name]').removeClass('needed');
                     const $formControl = $bloc.find('[name="' + element + '"], .wii-switch:has(input[name="' + element + '"])');
                     const $label = $formControl.closest('.free-field').find('label');
                     $label
