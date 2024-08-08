@@ -152,6 +152,8 @@
             border: 3px solid;
             text-wrap: wrap;
             overflow-wrap: anywhere;
+            max-height: 250px;
+            overflow-y: auto;
 
             &.past {
                 border-color: rgba(51, 83, 215, 0.1);
