@@ -136,6 +136,12 @@
         text-overflow: ellipsis;
     }
 
+    .history-line-left-content {
+        .small-text {
+            font-size: 10px;
+        }
+    }
+
     .history-line-right-content {
 
         display: flex;
