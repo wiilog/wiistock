@@ -118,8 +118,17 @@
     }
 }
 
+.history-container {
+    overflow: hidden;
+    padding: 0 10px !important;
+}
+
 .history-line {
     height: fit-content !important;
+
+    .title-left{
+        overflow-wrap: normal;
+    }
 
     .history-text-overflow {
         max-width: 120px;
@@ -141,6 +150,8 @@
             margin-left: 3px;
             width: fit-content;
             border: 3px solid;
+            text-wrap: wrap;
+            overflow-wrap: anywhere;
 
             &.past {
                 border-color: rgba(51, 83, 215, 0.1);
