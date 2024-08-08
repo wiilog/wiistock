@@ -361,11 +361,10 @@ function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
             .addClass('d-none');
         params[require] = typeId;
         let path = Routing.generate('display_required_champs_libres', true);
-
+        $bloc.find('input[name], select[name], textarea[name]').removeClass('needed');
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    $bloc.find('input[name], select[name], textarea[name]').removeClass('needed');
                     const $formControl = $bloc.find('[name="' + element + '"], .wii-switch:has(input[name="' + element + '"])');
                     const $label = $formControl.closest('.free-field').find('label');
                     $label
