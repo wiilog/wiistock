@@ -266,8 +266,8 @@ function createArrival(form = null) {
                 $carrierSelect.append(`<option value="${data.carrier_id}" selected>${data.carrier_label}</option>`);
                 $noTrackingSelect
                     .prop(`disabled`, !$(this).val())
-                    .attr('data-other-params-carrier-id', $(this).val())
-                    .attr('data-other-params-truck-arrival-id', null);
+                    .attr('data-other-params-carrier-id', data.carrier_id)
+                    .attr('data-other-params-truck-arrival-id', $(this).val());
                 $noTrackingSelect.find(`option`).remove();
             }
         });
