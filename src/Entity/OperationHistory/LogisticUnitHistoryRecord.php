@@ -14,7 +14,7 @@ class LogisticUnitHistoryRecord extends OperationHistory {
 
     use AttachmentTrait;
 
-    #[ORM\ManyToOne(inversedBy: 'logisticUnitHistoryRecords')]
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
     #[ORM\ManyToOne]
@@ -24,30 +24,21 @@ class LogisticUnitHistoryRecord extends OperationHistory {
         $this->attachments = new ArrayCollection();
     }
 
-    public function getPack(): ?Pack
-    {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
-    public function setPack(?Pack $pack): self
-    {
-        if($this->pack && $this->pack !== $pack){
-            $this->pack->removeLogisticUnitHistoryRecord($this);
-        }
-
+    public function setPack(?Pack $pack): self {
         $this->pack = $pack;
-        $pack?->addLogisticUnitHistoryRecord($this);
 
         return $this;
     }
 
-    public function getLocation(): ?Emplacement
-    {
+    public function getLocation(): ?Emplacement {
         return $this->location;
     }
 
-    public function setLocation(?Emplacement $location): self
-    {
+    public function setLocation(?Emplacement $location): self {
         $this->location = $location;
 
         return $this;

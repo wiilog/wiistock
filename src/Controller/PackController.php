@@ -103,14 +103,16 @@ class PackController extends AbstractController
     public function logisticUnitContent(EntityManagerInterface $manager,
                                         Pack                    $pack,
                                         PackService             $packService,
-                                        LanguageService         $languageService): JsonResponse
-    {
+                                        EntityManagerInterface  $entityManager,
+                                        LanguageService         $languageService): JsonResponse {
+        $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
         $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
 
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($pack);
 
-        $trackingRecordsHistory = $packService->getTrackingRecordsHistory($pack->getLogisticUnitHistoryRecords());
+        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $pack]);
+        $trackingRecordsHistory = $packService->getTrackingRecordsHistory($logisticUnitHistoryRecords);
 
         return $this->json([
             "success" => true,
@@ -407,8 +409,9 @@ class PackController extends AbstractController
 
     #[Route("/{id}/status-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: self::GET)]
     public function statusHistoryApi(Pack              $logisticUnit,
+                                     EntityManagerInterface $entityManager,
                                      PackService       $packService): JsonResponse {
-        $template = $packService->generateTrackingHistoryHtml($logisticUnit);
+        $template = $packService->generateTrackingHistoryHtml($entityManager, $logisticUnit);
         return $this->json([
             "success" => true,
             "template" => $template,

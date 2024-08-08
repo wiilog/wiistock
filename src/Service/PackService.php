@@ -80,17 +80,19 @@ class PackService {
         ];
     }
 
-    public function generateTrackingHistoryHtml(Pack $logisticUnit): string {
+    public function generateTrackingHistoryHtml(EntityManagerInterface $entityManager, Pack $logisticUnit): string {
+        $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
+        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $logisticUnit]);
         $user = $this->userService->getUser();
         return $this->templating->render('pack/tracking_history.html.twig', [
             "userLanguage" => $user?->getLanguage(),
             "defaultLanguage" => $this->languageService->getDefaultLanguage(),
-            "trackingRecordsHistory" => $this->getTrackingRecordsHistory($logisticUnit->getLogisticUnitHistoryRecords()),
+            "trackingRecordsHistory" => $this->getTrackingRecordsHistory($logisticUnitHistoryRecords),
             "logisticUnit" => $logisticUnit,
         ]);
     }
 
-    public function getTrackingRecordsHistory(Collection $logisticUnitHistoryRecords): array {
+    public function getTrackingRecordsHistory(array $logisticUnitHistoryRecords): array {
         $user = $this->userService->getUser();
         return Stream::from($logisticUnitHistoryRecords)
             ->sort(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord1, LogisticUnitHistoryRecord $logisticUnitHistoryRecord2) => $logisticUnitHistoryRecord2->getDate() <=> $logisticUnitHistoryRecord1->getDate())
