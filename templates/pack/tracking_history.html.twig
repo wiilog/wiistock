@@ -1,34 +1,28 @@
-{% if trackingRecordsHistory is empty %}
-    <div class="text-center wii-small-text">
-        Aucun historique de traçabilité disponible
-    </div>
-{% else %}
-    {% for history in trackingRecordsHistory %}
-        {% set state = loop.first
-            ? 'current'
-            : 'past'
-        %}
-        <div class="history-line mb-2">
-            <div class="history-line-left-content">
-                <div class="text-left mr-2 small-text">
-                    <span class="ml-2">{{ history['date'] }}</span>
-                </div>
-                <div>
-                    <div class="title-left {{ state == 'current' and loop.first ? 'last' }} {{ state }} {{ historyForPackContent is defined and historyForPackContent ? 'history-text-overflow' }}">{{ history['type'] }}</div>
-                    <div class="subtitle wii-small-text history-text-overflow">{{ history["user"] }}</div>
-                </div>
-            </div>
-            <div class="history-line-right-content
-                {{ loop.first ? 'last-history-line' }}
-                {{ state }}">
-                <div class="title-right {{ state }} {{ not history['location'] ? 'bg-transparent' }} text-left">
-                    <img src="{{ asset('svg/location-black.svg') }}" alt="Icône emplacement timeline" width="18px" class="mr-1 {{ not history['location'] ? 'd-none' }}">
-                    <span class="mb-2">{{ history['location'] }}</span>
-                </div>
-                <div class="message-container {{ state }}">
-                    {{ history['message']|nl2br }}
-                </div>
-            </div>
+{% set state =  lastRecordId == trackingRecordHistory.id
+    ? 'current'
+    : 'past'
+%}
+
+<div class="history-line mb-2">
+    <div class="history-line-left-content">
+        <div class="text-left mr-2">
+            <span class="ml-2">{{ trackingRecordHistory['date'] }}</span>
         </div>
-    {% endfor %}
-{% endif %}
+        <div>
+            <div class="title-left {{ state }} {{ historyForPackContent is defined and historyForPackContent ? 'history-text-overflow' }}">{{ trackingRecordHistory['type'] }}</div>
+            <div class="subtitle wii-small-text history-text-overflow">{{ trackingRecordHistory["user"] }}</div>
+        </div>
+    </div>
+    <div class="history-line-right-content
+        {{ state == "curent" ? 'last-history-line' }}
+        {{ state }}">
+        <div class="title-right {{ state }} {{ not trackingRecordHistory['location'] ? 'bg-transparent' }} text-left">
+            <img src="{{ asset('svg/location-black.svg') }}" alt="Icône emplacement timeline" width="18px" class="mr-1 {{ not trackingRecordHistory['location'] ? 'd-none' }}">
+            <span class="mb-2">{{ trackingRecordHistory['location'] }}</span>
+        </div>
+        <div class="message-container {{ state }}">
+            {{ trackingRecordHistory['message']|nl2br }}
+        </div>
+    </div>
+</div>
+

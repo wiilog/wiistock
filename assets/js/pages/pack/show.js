@@ -1,4 +1,5 @@
-import {GET} from "@app/ajax";
+import {GET, POST} from "@app/ajax";
+import Routing from "@app/fos-routing";
 
 $(function() {
     const logisticUnitId = $(`[name="logisticUnitId"]`).val();
@@ -6,10 +7,17 @@ $(function() {
 });
 
 function getTrackingHistory(logisticUnitId) {
-    return AJAX.route(GET, `pack_tracking_history_api`, {id: logisticUnitId})
-        .json()
-        .then(({template}) => {
-            const $trackingHistoryContainer = $(`.history-container`);
-            $trackingHistoryContainer.html(template);
-        });
+    const tableLuhistoryConfig = {
+        processing: true,
+        serverSide: true,
+        paging: true,
+        ajax: {
+            url: Routing.generate(`pack_tracking_history_api`, {id: logisticUnitId}, true),
+            type: POST,
+        },
+        columns: [
+            {data: `history`, title: ``, orderable: false},
+        ],
+    };
+    initDataTable($('#table-LU-history'), tableLuhistoryConfig);
 }

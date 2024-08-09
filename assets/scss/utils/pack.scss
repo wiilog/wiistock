@@ -121,52 +121,86 @@
 .history-container {
     overflow: hidden;
     padding: 0 10px !important;
-}
 
-.history-line {
-    height: fit-content !important;
-
-    .title-left{
-        overflow-wrap: normal;
+    thead {
+        display: none !important;
     }
 
-    .history-text-overflow {
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .history-line-left-content {
-        .small-text {
-            font-size: 10px;
+    table.wii-table tr {
+        td {
+            padding: 0 !important;
+            border: none !important;
         }
     }
 
-    .history-line-right-content {
 
-        display: flex;
-        flex-direction: column;
-        align-items: baseline;
+    .history-line {
+        height: fit-content !important;
+        max-width: none !important;
+        margin: 0 !important;
 
-        .message-container {
-            font-size: 15px;
-            padding: 5px 15px 5px 10px;
-            color: $black !important;
-            border-radius: 15px;
-            margin-left: 3px;
-            width: fit-content;
-            border: 3px solid;
-            text-wrap: wrap;
-            overflow-wrap: anywhere;
-            max-height: 250px;
-            overflow-y: auto;
+        .title-left {
+            overflow-wrap: normal;
+        }
 
-            &.past {
-                border-color: rgba(51, 83, 215, 0.1);
+        .history-text-overflow {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-line-left-content {
+            .small-text {
+                font-size: 10px;
             }
+        }
+
+        .history-line-right-content {
+
+            display: flex;
+            flex-direction: column;
+            align-items: baseline;
 
             &.current {
-                border-color: rgba(47, 194, 171, 0.1);
+                &:after {
+                    top: 35px !important;
+                }
+            }
+
+            &:not(.current) {
+                &:before {
+                    top: 0 !important;
+                }
+            }
+
+            &:before {
+                background-color: $medium-grey !important;
+            }
+
+            .message-container {
+                font-size: 15px;
+                padding: 5px 15px 5px 10px;
+                color: $black !important;
+                border-radius: 15px;
+                margin-left: 3px;
+                width: fit-content;
+                border: 3px solid;
+                text-wrap: wrap;
+                overflow-wrap: anywhere;
+                max-height: 250px;
+                overflow-y: auto;
+
+                &.past {
+                    border-color: rgba(51, 83, 215, 0.1);
+                }
+
+                &.current {
+                    border-color: rgba(47, 194, 171, 0.1);
+
+                    &:after {
+                        top: 0 !important;
+                    }
+                }
             }
         }
     }

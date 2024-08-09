@@ -80,30 +80,26 @@ class PackService {
         ];
     }
 
-    public function generateTrackingHistoryHtml(EntityManagerInterface $entityManager, Pack $logisticUnit): string {
-        $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
-        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $logisticUnit]);
+    public function generateTrackingHistoryHtml(EntityManagerInterface $entityManager, LogisticUnitHistoryRecord $logisticUnitHistoryRecord,int $latestRecordId): string {
         $user = $this->userService->getUser();
         return $this->templating->render('pack/tracking_history.html.twig', [
+            "lastRecordId" => $latestRecordId,
             "userLanguage" => $user?->getLanguage(),
             "defaultLanguage" => $this->languageService->getDefaultLanguage(),
-            "trackingRecordsHistory" => $this->getTrackingRecordsHistory($logisticUnitHistoryRecords),
-            "logisticUnit" => $logisticUnit,
+            "trackingRecordHistory" => $this->getTrackingRecordsHistory($logisticUnitHistoryRecord),
         ]);
     }
 
-    public function getTrackingRecordsHistory(array $logisticUnitHistoryRecords): array {
+    public function getTrackingRecordsHistory(LogisticUnitHistoryRecord $logisticUnitHistoryRecord): array {
         $user = $this->userService->getUser();
-        return Stream::from($logisticUnitHistoryRecords)
-            ->sort(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord1, LogisticUnitHistoryRecord $logisticUnitHistoryRecord2) => $logisticUnitHistoryRecord2->getDate() <=> $logisticUnitHistoryRecord1->getDate())
-            ->map(fn(LogisticUnitHistoryRecord $logisticUnitHistoryRecord) => [
-                "type" => $logisticUnitHistoryRecord->getType(),
-                "date" => $this->formatService->datetime($logisticUnitHistoryRecord->getDate(), "", false, $user),
-                "user" => $this->formatService->user($logisticUnitHistoryRecord->getUser()),
-                "location" => $this->formatService->location($logisticUnitHistoryRecord->getLocation()),
-                "message" => $logisticUnitHistoryRecord->getMessage()
-            ])
-            ->toArray();
+        return  [
+            "id" => $logisticUnitHistoryRecord->getId(),
+            "type" => $logisticUnitHistoryRecord->getType(),
+            "date" => $this->formatService->datetime($logisticUnitHistoryRecord->getDate(), "", false, $user),
+            "user" => $this->formatService->user($logisticUnitHistoryRecord->getUser()),
+            "location" => $this->formatService->location($logisticUnitHistoryRecord->getLocation()),
+            "message" => $logisticUnitHistoryRecord->getMessage()
+        ];
     }
 
     public function getGroupHistoryForDatatable($pack, $params) {
