@@ -193,8 +193,8 @@
         margin: 0 !important;
 
         .title-left {
-            overflow-wrap: normal;
-            text-wrap: pretty;
+            text-wrap: wrap;
+            overflow-wrap: anywhere;
             padding: 10px 15px;
         }
 
@@ -205,6 +205,7 @@
         }
 
         .history-line-left-content {
+            overflow: auto;
             max-width: 50%;
             justify-content: space-between;
 
