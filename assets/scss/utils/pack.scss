@@ -69,10 +69,10 @@
                         }
 
                         &:nth-child(2) {
-                            border-left: $medium-grey solid 1px;
+                            border-left: $primary solid 1px;
 
                             &:not(:last-child) {
-                                border-right: $medium-grey solid 1px;
+                                border-right: $primary solid 1px;
                             }
                         }
                     }
@@ -95,14 +95,14 @@
                 }
 
                 .articles-wrapper {
-                    border-left: 1px solid $medium-grey;
-                    border-right: 1px solid $medium-grey;
-                    border-bottom: 1px solid $medium-grey;
+                    border-left: 1px solid $primary;
+                    border-right: 1px solid $primary;
+                    border-bottom: 1px solid $primary;
                     border-bottom-left-radius: 0.35rem;
                     border-bottom-right-radius: 0.35rem;
 
                     td {
-                        border-color: $medium-grey;
+                        border-color: $primary;
                     }
 
                     tr:last-child {
@@ -147,7 +147,7 @@
                                 height: 0;
                                 border-left: 7px solid transparent;
                                 border-right: 7px solid transparent;
-                                border-top: 7px solid $medium-grey;
+                                border-top: 7px solid $primary;
                                 border-radius: 12px;
                             }
                         }
@@ -171,7 +171,7 @@
                                 height: 0;
                                 border-left: 7px solid transparent;
                                 border-right: 7px solid transparent;
-                                border-bottom: 7px solid $medium-grey;
+                                border-bottom: 7px solid $primary;
                                 border-radius: 12px;
                             }
                         }
@@ -223,6 +223,11 @@
             &.current {
                 &:after {
                     top: 50%;
+
+                }
+                &:before {
+                    height: 50%;
+                    background: linear-gradient(0deg, $primary, $success);
                 }
             }
 
@@ -246,7 +251,7 @@
 
 
             &:before {
-                background-color: $medium-grey !important;
+                background-color: $primary !important;
             }
 
             .message-container {
