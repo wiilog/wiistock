@@ -143,6 +143,7 @@
 
         .title-left {
             overflow-wrap: normal;
+            text-wrap: pretty;
         }
 
         .history-text-overflow {
@@ -152,6 +153,9 @@
         }
 
         .history-line-left-content {
+            max-width: 50%;
+            justify-content: space-between;
+
             .small-text {
                 font-size: 10px;
             }
