@@ -6,7 +6,7 @@
 <div class="history-line mb-2 {{ state == "current" ? 'last-history-line' }} {{ trackingRecordHistory.id == firstRecord ? 'first-history-line' }}">
     <div class="history-line-left-content">
         <div class="text-left mr-2">
-            <span class="ml-2">{{ trackingRecordHistory['date'] }}</span>
+            <span class="ml-2 text-wrap ">{{ trackingRecordHistory['date'] }}</span>
         </div>
         <div>
             <div class="title-left {{ state }} {{ historyForPackContent is defined and historyForPackContent ? 'history-text-overflow' }}">{{ trackingRecordHistory['type'] }}</div>

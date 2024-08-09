@@ -161,8 +161,7 @@
                 .history-line:not(.last-history-line) {
                     .history-line-left-content {
                         div:last-child {
-                            // draw arrow
-                            &:before {
+                            &:after {
                                 position: absolute;
                                 top: 0;
                                 right: 50%;
@@ -196,6 +195,7 @@
         .title-left {
             overflow-wrap: normal;
             text-wrap: pretty;
+            padding: 10px 15px;
         }
 
         .history-text-overflow {
