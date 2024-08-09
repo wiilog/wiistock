@@ -58,10 +58,10 @@ final class Version20240730093606 extends AbstractMigration
                     [
                         "type_id" => $freeField['type_id'],
                         "free_field_id" => $freeField['id'],
-                        "required_create" => $freeField['required_create'] ?? false,
-                        "required_edit" => $freeField['required_edit'] ?? false,
-                        "displayed_create" => $freeField['displayed_create'] ?? false,
-                        "displayed_edit" => $freeField['displayed_edit'] ?? false,
+                        "required_create" => intval($freeField['required_create'] ?? 0),
+                        "required_edit" => intval($freeField['required_edit'] ?? 0),
+                        "displayed_create" => intval($freeField['displayed_create'] ?? 0),
+                        "displayed_edit" => intval($freeField['displayed_edit'] ?? 0),
                     ]
                 );
             }
