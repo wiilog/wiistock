@@ -105,14 +105,10 @@ class PackController extends AbstractController
                                         PackService             $packService,
                                         EntityManagerInterface  $entityManager,
                                         LanguageService         $languageService): JsonResponse {
-        $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
         $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
 
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($pack);
-
-        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $pack]);
-        $trackingRecordsHistory = $packService->getTrackingRecordsHistory($logisticUnitHistoryRecords);
 
         return $this->json([
             "success" => true,
@@ -120,7 +116,6 @@ class PackController extends AbstractController
                 "pack" => $pack,
                 "movements" => $movements,
                 "use_long_format" => $longFormat,
-                "trackingRecordsHistory" => $trackingRecordsHistory
             ]),
         ]);
     }

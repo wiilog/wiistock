@@ -6,7 +6,7 @@ $(function() {
     getTrackingHistory(logisticUnitId);
 });
 
-function getTrackingHistory(logisticUnitId) {
+export function getTrackingHistory(logisticUnitId) {
     const tableLuhistoryConfig = {
         processing: true,
         serverSide: true,

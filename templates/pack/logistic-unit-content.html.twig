@@ -11,10 +11,7 @@
     </div>
 
     <div class="content track-history history-container h-75">
-        {% include 'pack/tracking_history.html.twig' with {
-            trackingRecordsHistory,
-            historyForPackContent: true,
-        } %}
+        <table class="w-100" id="table-LU-history" ></table>
     </div>
 
     <div class="content current-articles d-none">
@@ -37,5 +34,4 @@
             movements,
         } %}
     </div>
-
 </div>

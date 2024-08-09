@@ -185,5 +185,5 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('pack-show') }}
-    <script src="{{ asset('js/pages/pack.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('pack') }}
 {% endblock %}
