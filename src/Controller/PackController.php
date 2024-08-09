@@ -422,17 +422,18 @@ class PackController extends AbstractController
                     ]
                 ],
                 "recordsFiltered" => 1,
-                  "recordsTotal" => 1,
+                "recordsTotal" => 1,
             ]);
         }
 
         $latestRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'DESC']);
+        $firstRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'ASC']);
 
         return $this->json([
             "data" =>
                 Stream::from($logisticUnitHistoryRecords)
                     ->map(fn(LogisticUnitHistoryRecord $record) => [
-                        "history" => $packService->generateTrackingHistoryHtml($entityManager, $record, $latestRecord->getId()),
+                        "history" => $packService->generateTrackingHistoryHtml($entityManager, $record, $firstRecord->getId(), $latestRecord->getId()),
                     ])
                     ->toArray()
             ,

@@ -80,10 +80,11 @@ class PackService {
         ];
     }
 
-    public function generateTrackingHistoryHtml(EntityManagerInterface $entityManager, LogisticUnitHistoryRecord $logisticUnitHistoryRecord,int $latestRecordId): string {
+    public function generateTrackingHistoryHtml(EntityManagerInterface $entityManager, LogisticUnitHistoryRecord $logisticUnitHistoryRecord,int $firstRecord, int $latestRecordId): string {
         $user = $this->userService->getUser();
         return $this->templating->render('pack/tracking_history.html.twig', [
             "lastRecordId" => $latestRecordId,
+            "firstRecord" => $firstRecord,
             "userLanguage" => $user?->getLanguage(),
             "defaultLanguage" => $this->languageService->getDefaultLanguage(),
             "trackingRecordHistory" => $this->getTrackingRecordsHistory($logisticUnitHistoryRecord),

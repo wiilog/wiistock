@@ -163,15 +163,28 @@
 
             &.current {
                 &:after {
-                    top: 35px !important;
+                    top: 50%;
                 }
             }
 
             &:not(.current) {
                 &:before {
-                    top: 0 !important;
+                    top: 0 ;
                 }
             }
+
+            &.first-history-line{
+                 &:before {
+                     top: -50% ;
+                 }
+            }
+
+            &.current.first-history-line {
+                &:before {
+                    opacity: 0;
+                }
+            }
+
 
             &:before {
                 background-color: $medium-grey !important;

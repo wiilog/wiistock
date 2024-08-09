@@ -15,6 +15,7 @@
     </div>
     <div class="history-line-right-content
         {{ state == "curent" ? 'last-history-line' }}
+        {{ trackingRecordHistory.id == firstRecord ? 'first-history-line' }}
         {{ state }}">
         <div class="title-right {{ state }} {{ not trackingRecordHistory['location'] ? 'bg-transparent' }} text-left">
             <img src="{{ asset('svg/location-black.svg') }}" alt="Icône emplacement timeline" width="18px" class="mr-1 {{ not trackingRecordHistory['location'] ? 'd-none' }}">
