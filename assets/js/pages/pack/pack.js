@@ -161,7 +161,7 @@ $(function() {
                         $container.append(result.html);
                         packsTable.columns.adjust();
 
-                        getTrackingHistory(logisticUnitId);
+                        getTrackingHistory(logisticUnitId, false);
                         isLoading = false;
                     });
             }
