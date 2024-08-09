@@ -168,11 +168,10 @@
             <div class="col-12 col-md-6">
                 <div class="wii-box">
                     <div class="header wii-title">Historique de traçabilité</div>
-                    <div class="content p-0">
-                        <div class="content history-container pl-0 pt-0 pr-0 pb-3">
-                            <div class="d-flex align-items-center justify-content-center p-3">
-                                <div class="spinner-border text-primary" role="status"></div>
-                                <span class="ml-3">Génération de l'historique en cours</span>
+                    <div class="content pt-2 px-0">
+                        <div class="content history-container py-2 pt-2">
+                            <div class="align-items-center justify-content-center p-0">
+                                 <table class="w-100" id="table-LU-history" ></table>
                             </div>
                         </div>
                     </div>
@@ -186,5 +185,5 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('pack-show') }}
-    <script src="{{ asset('js/pages/pack.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('pack') }}
 {% endblock %}

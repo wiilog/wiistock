@@ -10,11 +10,8 @@
         <div class="logistic-unit-tab" data-target=".article-history">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des articles') }}</div>
     </div>
 
-    <div class="content track-history history-container h-75">
-        {% include 'pack/tracking_history.html.twig' with {
-            trackingRecordsHistory,
-            historyForPackContent: true,
-        } %}
+    <div class="content track-history history-container">
+        <table class="w-100" id="table-LU-history" ></table>
     </div>
 
     <div class="content current-articles d-none">
@@ -37,5 +34,4 @@
             movements,
         } %}
     </div>
-
 </div>

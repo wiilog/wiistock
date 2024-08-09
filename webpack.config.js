@@ -77,6 +77,7 @@ Encore
     .addEntry('nature-index', './assets/js/pages/nature/index.js')
     .addEntry('warning-header', './assets/js/warning-header.js')
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
+    .addEntry('pack', './assets/js/pages/pack/pack.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .addStyleEntry('pack-details-page', './assets/scss/details-page.scss')
     .autoProvidejQuery()

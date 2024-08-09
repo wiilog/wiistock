@@ -1,3 +1,5 @@
+import {getTrackingHistory} from "./show";
+
 const packsTableConfig = {
     responsive: true,
     serverSide: true,
@@ -149,7 +151,8 @@ $(function() {
                 $container.find(`.logistic-unit-content`).remove();
                 packsTable.columns.adjust().draw();
             } else {
-                AJAX.route(`GET`, `logistic_unit_content`, {pack: $number.data(`id`)})
+                const logisticUnitId = $number.data(`id`);
+                AJAX.route(`GET`, `logistic_unit_content`, {pack: logisticUnitId})
                     .json()
                     .then(result => {
                         $container.find(`.logistic-unit-content`).remove();
@@ -158,6 +161,7 @@ $(function() {
                         $container.append(result.html);
                         packsTable.columns.adjust();
 
+                        getTrackingHistory(logisticUnitId, false);
                         isLoading = false;
                     });
             }

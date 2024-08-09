@@ -105,14 +105,10 @@ class PackController extends AbstractController
                                         PackService             $packService,
                                         EntityManagerInterface  $entityManager,
                                         LanguageService         $languageService): JsonResponse {
-        $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
         $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
 
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($pack);
-
-        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $pack]);
-        $trackingRecordsHistory = $packService->getTrackingRecordsHistory($logisticUnitHistoryRecords);
 
         return $this->json([
             "success" => true,
@@ -120,7 +116,6 @@ class PackController extends AbstractController
                 "pack" => $pack,
                 "movements" => $movements,
                 "use_long_format" => $longFormat,
-                "trackingRecordsHistory" => $trackingRecordsHistory
             ]),
         ]);
     }
@@ -407,14 +402,41 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/status-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: self::GET)]
-    public function statusHistoryApi(Pack              $logisticUnit,
+    #[Route("/{id}/tracking-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: [self::POST])]
+    public function statusHistoryApi(Pack                   $logisticUnit,
+                                     Request                $request,
                                      EntityManagerInterface $entityManager,
-                                     PackService       $packService): JsonResponse {
-        $template = $packService->generateTrackingHistoryHtml($entityManager, $logisticUnit);
+                                     PackService            $packService): JsonResponse {
+        $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
+        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $logisticUnit], ['date' => 'DESC']);
+
+        if (empty($logisticUnitHistoryRecords)) {
+            return $this->json([
+                "data" => [
+                    [
+                        "history" => "Aucun historique trouvé",
+                    ]
+                ],
+                "recordsFiltered" => 1,
+                "recordsTotal" => 1,
+            ]);
+        }
+
+        $params = $request->request;
+        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($params, $logisticUnit);
+
+        $latestRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'DESC', 'id' => 'DESC']);
+        $firstRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'ASC', 'id' => 'ASC']);
+
         return $this->json([
-            "success" => true,
-            "template" => $template,
+            "data" =>
+                Stream::from($queryResult["data"])
+                    ->map(fn(LogisticUnitHistoryRecord $record) => [
+                        "history" => $packService->generateTrackingHistoryHtml($entityManager, $record, $firstRecord->getId(), $latestRecord->getId()),
+                    ])
+                    ->toArray(),
+            "recordsFiltered" => $queryResult["count"],
+            "recordsTotal" => $queryResult["total"],
         ]);
     }
 }
