@@ -126,8 +126,60 @@
         display: none !important;
     }
 
+    .dataTables_wrapper {
+        width: auto !important;
+    }
     table.wii-table tr {
-        background-color: $white !important;
+        background-color: #00000000 !important;
+
+        &:last-child {
+            td {
+                .history-line:not(.first-history-line) {
+                    .history-line-left-content {
+                        div:last-child {
+                            &:before {
+                                position: absolute;
+                                bottom: 0;
+                                right: 50%;
+                                transform: translateX(50%);
+                                content: '';
+                                width: 0;
+                                height: 0;
+                                border-left: 7px solid transparent;
+                                border-right: 7px solid transparent;
+                                border-top: 7px solid $medium-grey;
+                                border-radius: 12px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &:first-child {
+            td {
+                .history-line:not(.last-history-line) {
+                    .history-line-left-content {
+                        div:last-child {
+                            // draw arrow
+                            &:before {
+                                position: absolute;
+                                top: 0;
+                                right: 50%;
+                                transform: translateX(50%);
+                                content: '';
+                                width: 0;
+                                height: 0;
+                                border-left: 7px solid transparent;
+                                border-right: 7px solid transparent;
+                                border-bottom: 7px solid $medium-grey;
+                                border-radius: 12px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         td {
             padding: 0 !important;
@@ -175,14 +227,14 @@
 
             &:not(.current) {
                 &:before {
-                    top: 0 ;
+                    top: 0;
                 }
             }
 
-            &.first-history-line{
-                 &:before {
-                     top: -50% ;
-                 }
+            &.first-history-line {
+                &:before {
+                    top: -50%;
+                }
             }
 
             &.current.first-history-line {
