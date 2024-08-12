@@ -4,6 +4,8 @@ import {getUserFiltersByPage} from '@app/utils';
 import Flash, {ERROR} from "@app/flash";
 import {initDataTable} from "@app/datatable";
 
+global.getQuantityRefArticle = getQuantityRefArticle;
+
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
 

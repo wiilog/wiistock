@@ -1,5 +1,3 @@
-import {getQuantityRefArticle} from "@app/pages/stock-movement";
-
 const PAGE_PURCHASE_REQUEST = 'rpurchase';
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
 const PAGE_TRANSFER_ORDER = 'otransfer';

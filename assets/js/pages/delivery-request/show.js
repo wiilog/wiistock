@@ -1,7 +1,6 @@
 import AJAX, {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
-import {getQuantityRefArticle} from "@app/pages/stock-movement";
 
 let tables = [];
 let editableTableArticles = null;
