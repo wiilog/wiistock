@@ -49,6 +49,7 @@ function initNewDispatchEditor(modal) {
 function onDispatchTypeChange($select) {
     const $modal = $select.closest('.modal');
     onTypeChange($select);
+
     const $selectedOption = $select.find('option:selected');
     const $pickLocationSelect = $modal.find('select[name="pickLocation"]');
     const $dropLocationSelect = $modal.find('select[name="dropLocation"]');
@@ -58,16 +59,26 @@ function onDispatchTypeChange($select) {
     const dropLocationLabel = $selectedOption.data('drop-location-label');
     const pickLocationId = $selectedOption.data('pick-location-id');
     const pickLocationLabel = $selectedOption.data('pick-location-label');
+
     if (pickLocationId) {
         let option = new Option(pickLocationLabel, pickLocationId, true, true);
         $pickLocationSelect.append(option).trigger('change');
-    } else {
+
+        // add data-init to select2 input used to not remove the default value when the form is submitted
+        $pickLocationSelect.attr('data-init', pickLocationId);
+    }
+    else {
         $pickLocationSelect.val(null).trigger('change');
     }
+
     if (dropLocationId) {
         let option = new Option(dropLocationLabel, dropLocationId, true, true);
         $dropLocationSelect.append(option).trigger('change');
-    } else {
+
+        // add data-init to select2 input used to not remove the default value when the form is submitted
+        $dropLocationSelect.attr('data-init', dropLocationId);
+    }
+    else {
         $dropLocationSelect.val(null).trigger('change');
     }
 

@@ -226,6 +226,7 @@ function initTableDispatch(groupedSignatureMode = false) {
 
 function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
+    const keepModalOpenAndClearAfterSubmit = $modalNewDispatch.find('[name=keepModalOpenAndClearAfterSubmit]').val();
     Form
         .create($modalNewDispatch)
         .on('change', '[name=customerName]', (event) => {
@@ -241,7 +242,13 @@ function initPage() {
             'dispatch_new',
             {
                 tables: [tableDispatches],
-                success: ({redirect}) => window.location.href = redirect,
+                success: ({redirect}) => {
+                    if (!keepModalOpenAndClearAfterSubmit) {
+                        window.location.href = redirect;
+                    }
+                },
+                keepModal: !!keepModalOpenAndClearAfterSubmit,
+                clearFields: !!keepModalOpenAndClearAfterSubmit,
             }
         )
 }
