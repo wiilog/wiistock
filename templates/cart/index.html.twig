@@ -156,7 +156,7 @@
                                 {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                     <div class="col-md-6 col-12">
                                         {% set fieldRequired = deliveryFieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
-                                        {{ form.select('receivers', trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'), fieldRequired, {
+                                        {{ form.select(fieldCode, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'), fieldRequired, {
                                             type: 'user',
                                         }) }}
 
