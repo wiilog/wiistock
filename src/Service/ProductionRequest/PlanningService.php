@@ -3,12 +3,15 @@
 namespace App\Service\ProductionRequest;
 
 use App\Controller\FieldModesController;
+use App\Controller\Settings\StatusController;
+use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -17,28 +20,41 @@ use App\Entity\WorkFreeDay;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
+use App\Service\SettingsService;
+use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 readonly class PlanningService {
+
+    public const SORTING_TYPE_BY_DATE = "Date";
+    public const SORTING_TYPE_BY_STATUS_STATE = "StatusState";
+
+    public const SORTING_TYPES = [
+        self::SORTING_TYPE_BY_DATE,
+        self::SORTING_TYPE_BY_STATUS_STATE,
+    ];
+
+    public const NB_DAYS_ON_PLANNING = 7;
+
+
     public function __construct(
-        private ProductionRequestService $productionRequestService,
-        private FormatService                     $formatService,
-        private LanguageService          $languageService,
-        private Environment        $templating,
+        private FormatService   $formatService,
+        private StatusService   $statusService,
     ) {}
 
-    public function createCardConfig(array $displayedFieldsConfig, ProductionRequest $productionRequest, array $fieldModes,Language|string $userLanguage, Language|string|null $defaultLanguage): array {
+    public function createCardConfig(array $displayedFieldsConfig, ProductionRequest $productionRequest, array $fieldModes,Language|string $userLanguage, Language|string|null $defaultLanguage = null): array {
         $cardContent = $displayedFieldsConfig;
         $formatService = $this->formatService;
 
         foreach ($productionRequest->getType()->getFreeFieldManagementRules() as $freeFieldManagementRule) {
             $freeField = $freeFieldManagementRule->getFreeField();
             $fieldName = "free_field_" . $freeField->getId();
-            $fieldDisplayConfig = $this->productionRequestService->getFieldDisplayConfig($fieldName, $fieldModes);
+            $fieldDisplayConfig = $this->getFieldDisplayConfig($fieldName, $fieldModes);
             if ($fieldDisplayConfig) {
                 $cardContent[$fieldDisplayConfig]["rows"][] = [
                     "field" => $freeField,
@@ -65,111 +81,96 @@ readonly class PlanningService {
             ->toArray();
     }
 
+    public function getFieldDisplayConfig(string $fieldName,
+                                                 $fieldModes): ?string {
+        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$fieldName] ?? [])) {
+            $fieldLocation = "header";
+        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$fieldName] ?? [])) {
+            $fieldLocation = "dropdown";
+        } else {
+            $fieldLocation = null;
+        }
+        return $fieldLocation;
+    }
+
     public function createPlanningConfig(EntityManagerInterface $entityManager,
-                                         Request                $request,
-                                         ?Utilisateur           $user,
-                                         bool                   $external): array {
-        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
+                                         DateTime               $planningStart,
+                                         string                 $sortingType,
+                                         string                 $statusMode,
+                                         array                  $cards,
+                                         array                  $options): array {
+        if (!in_array($sortingType, self::SORTING_TYPES)) {
+            throw new BadRequestHttpException("Invalid sorting type");
+        }
+
         $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
 
-        $defaultLanguage = $this->languageService->getDefaultLanguage();
-        $userLanguage = $user?->getLanguage() ?: $defaultLanguage;
-
         $daysWorked = $daysWorkedRepository->getLabelWorkedDays();
         $workFreeDays = $workFreeDayRepository->getWorkFreeDaysToDateTime(true);
-        $nbDaysOnPlanning = 7;
 
-        $planningStart = $this->formatService->parseDatetime($request->query->get('date'));
-        $planningEnd = (clone $planningStart)->modify("+1 week");
-        $planningDays = Stream::fill(0, $nbDaysOnPlanning, null)
-            ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
-                $day = (clone $planningStart)->modify("+$index days");
-                if (in_array(strtolower($day->format("l")), $daysWorked)
-                    && !in_array($day->format("Y-m-d"), $workFreeDays)) {
-                    return $day;
-                }
-                else {
-                    return null;
-                }
-            })
-            ->toArray();
-
-        $fieldModes = $user?->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
-
-        if (!empty($planningDays)) {
-            $filters = [];
-            if(!$external) {
-                $filters = Stream::from($supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION_PLANNING, $user))
-                    ->filter(static fn(array $filter) => ($filter["value"] != "" &&  in_array($filter["field"], [
-                            FiltreSup::FIELD_REQUEST_NUMBER,
-                            FiltreSup::FIELD_MULTIPLE_TYPES,
-                            FiltreSup::FIELD_OPERATORS,
-                            'statuses-filter',
-                        ])))
-                    ->toArray();
-            }
-
-            $statuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PRODUCTION))
-                ->filter(static fn(Statut $status) => $status->isDisplayedOnSchedule())
+        if ($sortingType === self::SORTING_TYPE_BY_DATE) {
+            $planningColums = Stream::fill(0, $this::NB_DAYS_ON_PLANNING, null)
+                ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
+                    $day = (clone $planningStart)->modify("+$index days");
+                    if (in_array(strtolower($day->format("l")), $daysWorked)
+                        && !in_array($day->format("Y-m-d"), $workFreeDays)) {
+                        return $day;
+                    }
+                    else {
+                        return null;
+                    }
+                })
+                ->keymap(function (DateTime $day) {
+                    return [$day->format('Y-m-d'), $this->formatService->longDate($day, ["short" => true, "year" => false])];
+                })
                 ->toArray();
-
-            $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
-            $displayedFieldsConfig = $this->productionRequestService->getDisplayedFieldsConfig($external, $fieldModes);
-
-            $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($displayedFieldsConfig, $fieldModes, $user, $userLanguage, $entityManager, $defaultLanguage, $external) {
-                    $cardContent = $this->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage, $defaultLanguage);
-                    return [
-                        $productionRequest->getExpectedAt()->format('Y-m-d'),
-                        $this->templating->render('production_request/planning/card.html.twig', [
-                            "productionRequest" => $productionRequest,
-                            "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
-                            "cardContent" => $cardContent,
-                            "inPlanning" => true,
-                            "external" => $external,
-                        ])
-                    ];
-                }, true)
-                ->toArray();
-
-            $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
-                || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
-
-            $countLinesByDate = [];
-            if ($displayCountLines) {
-                Stream::from($productionRequests)
-                    ->map(function (ProductionRequest $productionRequest) use (&$countLinesByDate) {
-                        $expectedAt = $productionRequest->getExpectedAt()->format('Y-m-d');
-                        $countLinesByDate[$expectedAt] = ($countLinesByDate[$expectedAt] ?? 0) + $productionRequest->getLineCount();
-                    });
+        } else if($sortingType === self::SORTING_TYPE_BY_STATUS_STATE) {
+            if (!in_array($statusMode, StatusController::MODES)) {
+                throw new BadRequestHttpException("Invalid status mode");
             }
+            $planningColums = Stream::from($this->statusService->getStatusStatesValues($statusMode))
+                ->keymap(static fn(array $status) => [
+                    $status['id'],
+                    $status['label']
+                ]);
+        } else {
+            throw new BadRequestHttpException("Invalid sorting type");
+        }
 
-            $planningColumns = Stream::from($planningDays)
-                ->map( function (DateTime $day) use ($displayCountLines, $countLinesByDate, $planningStart, $cards, $daysWorked, $workFreeDays) {
-                    $dayStr = $day->format('Y-m-d');
-                    $count = count($cards[$dayStr] ?? []);
-                    $sProduction = $count > 1 ? 's' : '';
+        if (!empty($planningColums)) {
 
-                    return [
-                        "label" => $this->formatService->longDate($day, ["short" => true, "year" => false]),
-                        "cardSelector" => $dayStr,
-                        "columnClass" => "forced",
-                        "columnHint" => "<span class='font-weight-bold'>$count demande$sProduction</span>",
-                        "displayCountLines" => $displayCountLines,
-                        "countLines" => $countLinesByDate[$dayStr] ?? 0,
+            $planningColumnsConfig = Stream::from($planningColums)
+                ->map( function (string $columnLabel, string $columnId) use ($options, $planningStart, $cards, $daysWorked, $workFreeDays) {
+                    $count = count($cards[$columnId] ?? []);
+                    $plurialMark = $count > 1 ? 's' : '';
+
+                    $config = [
+                        "columnLeftInfo" => $columnLabel,
+                        "cardSelector" => $columnId,
+                        "columnClasses" => ["forced"],
+                        "columnLeftHint" => "<span class='font-weight-bold'>$count demande$plurialMark</span>",
+                        "countLines" => $countLinesByDate[$columnId] ?? 0,
+
                     ];
+
+                    if (isset($options["columnRightHints"])) {
+                        $config["columnRightHint"] = $options["columnRightHints"][$columnId] ?? null;
+                    }
+
+                    if (isset($options["columnRightInfos"])) {
+                        $config["columnRightInfo"] = $options["columnRightInfos"][$columnId] ?? null;
+                    }
+
+                    return $config;
                 })
                 ->toArray();
 
             return [
-                "planningColumns" => $planningColumns,
+                "planningColumns" => $planningColumnsConfig,
                 "cards" => $cards,
             ];
         }
-
-
+        return []; // TODO
     }
 }

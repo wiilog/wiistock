@@ -47,7 +47,7 @@ function callbackSaveFilter() {
 }
 
 function refreshColumnHint($column) {
-    const preparationCount = $column.find('.preparation-card').length;
+    const preparationCount = $column.find('.planning-card').length;
     const preparationHint = preparationCount + ' préparation' + (preparationCount > 1 ? 's' : '');
     $column.find('.column-hint-container').html(`<span class='font-weight-bold'>${preparationHint}</span>`);
 }
@@ -179,7 +179,7 @@ function getPreparationLaunchForm($modal){
                 }
 
                 $modal.find('.add-all').on('click', function () {
-                    const $preparationCards = $modal.find('.available-preparations .preparation-card');
+                    const $preparationCards = $modal.find('.available-preparations .planning-card');
                     const $targetContainer = $modal.find('.assigned-preparations');
                     $preparationCards
                         .detach()
@@ -189,7 +189,7 @@ function getPreparationLaunchForm($modal){
                 });
 
                 $modal.find('.remove-all').on('click', function () {
-                    const $preparationCards = $modal.find('.assigned-preparations .preparation-card');
+                    const $preparationCards = $modal.find('.assigned-preparations .planning-card');
                     const $targetContainer = $modal.find('.available-preparations');
                     $preparationCards
                         .detach()
@@ -217,8 +217,8 @@ function getPreparationLaunchForm($modal){
 }
 
 function onOrdersDragAndDropDone($modal){
-    const $preparationsAvailable = $modal.find('.available-preparations .preparation-card');
-    const $preparationsToStart = $modal.find('.assigned-preparations .preparation-card');
+    const $preparationsAvailable = $modal.find('.available-preparations .planning-card');
+    const $preparationsToStart = $modal.find('.assigned-preparations .planning-card');
     const $preparationsAvailableContainer = $modal.find('.available-preparations-counter');
     const $preparationsToStartContainer = $modal.find('.assigned-preparations-counter');
     const $submitButton = $modal.find('.check-stock-button');
@@ -241,7 +241,7 @@ function onOrdersDragAndDropDone($modal){
 function launchStockCheck($modal) {
     changeMoveAllMode($modal, false);
     const $assignedPreparations = $modal.find('.assigned-preparations');
-    const $preparationCards = $assignedPreparations.find('.preparation-card');
+    const $preparationCards = $assignedPreparations.find('.planning-card');
     const $submitButton = $modal.find('.check-stock-button');
     const data = [];
     $preparationCards.each(function() {

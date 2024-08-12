@@ -39,21 +39,12 @@
         </div>
     {% endif %}
 {% endmacro %}
-
 {% import _self as macros %}
 
-{% set fieldsModes = app.user.fieldModesByPage[constant('App\\Controller\\FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING')]
-    ?? constant('App\\Entity\\Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES') %}
-
-{% set canDrag = not external and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
-
-<a class="planning-card preparation-card {{ not external ? 'pointer' }} {{ canDrag ? "can-drag" }} has-tooltip"
-   {% if not external %}
-       href="{{ path('production_request_show', {id: productionRequest.id}) }}"
-       data-status="{{ productionRequest.status ? productionRequest.status.code }}"
-   {% endif %}
-   data-id="{{ productionRequest.id }}"
-   title="Attendu le {{ productionRequest.expectedAt|format_helper("longDate", {time: true, addAt: true}) }}"
+<a class="planning-card {{ (additionalClasses ?? []) | join(" ") }} has-tooltip"
+    {% for attribute in additionalAttributes ?? [] %}
+        {{ attribute.name }}="{{ attribute.value ?? '' }}"
+    {% endfor %}
 >
     <div class="planning-card-wrapper"
          style="background: {{ color }}50; border-left-color: {{ color }};">

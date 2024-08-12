@@ -2,26 +2,33 @@
     {% set allCards = cards ?? [] %}
     {% if planningColumns is not empty %}
         {% for column in planningColumns %}
-            {% set label = column.label ?? null %}
+            {% set columnLeftInfo = column.columnLeftInfo ?? null %}
+            {% set columnRightInfo = column.columnRightInfo ?? null %}
             {% set columnClasses = column.columnClasses ?? null %}
-            {% set columnHint = column.columnHint ?? null %}
+            {% set columnLeftHint = column.columnLeftHint ?? null %}
+            {% set columnRightHint = column.columnRightHint ?? null %}
             {% set cardSelector = column.cardSelector ?? null %}
             {% set cards = allCards[cardSelector] ?? [] %}
-            {% set countLines = column.countLines ?? null %}
-            {% set displayCountLines = column.displayCountLines ?? false %}
 
             <div class="col-12 planning-col {{ columnClasses | join(" ") }}"
                  data-card-selector="{{ cardSelector }}">
                 <div class="wii-box border flex-fill d-flex flex-column">
-                    <div class="header">
-                        <span class="wii-title">{{ label }}</span>
+                    <div class="header d-flex justify-content-between">
+                        <span class="wii-title">{{ columnLeftInfo }}</span>
+                        <span class="wii-title">
+                            {{ columnRightInfo }}
+                        </span>
                     </div>
-                    {% if columnHint %}
+                    {% if columnLeftHint or columnRightHint %}
                         <div class="column-hint-container">
-                            {{ columnHint|raw }}
-                            {% if displayCountLines %}
+                            {%  if columnLeftHint is defined and columnLeftHint %}
+                                <div class="column-hint column-hint-left">
+                                    {{ columnLeftHint|raw }}
+                                </div>
+                            {% endif %}
+                            {% if columnRightHint %}
                                 <div class="ml-auto bold">
-                                    {{ countLines }} ligne{{ countLines > 1 ? "s" }}
+                                    {{ columnRightHint|raw }}
                                 </div>
                             {% endif %}
                         </div>

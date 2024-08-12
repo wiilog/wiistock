@@ -3,8 +3,11 @@
 namespace App\Service\ProductionRequest;
 
 use App\Controller\FieldModesController;
+use App\Controller\ProductionRequest\PlanningController;
+use App\Controller\Settings\StatusController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
@@ -23,14 +26,17 @@ use App\Service\CSVExportService;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
+use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\OperationHistoryService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -42,53 +48,26 @@ use WiiCommon\Helper\Stream;
 
 class ProductionRequestService
 {
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public StatusHistoryService $statusHistoryService;
-
-    #[Required]
-    public OperationHistoryService $operationHistoryService;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TranslationService $translation;
-
     private ?array $freeFieldsConfig = null;
+
+    public function __construct(
+        private readonly TranslationService      $translation,
+        private readonly StatusHistoryService    $statusHistoryService,
+        private readonly UserService             $userService,
+        private readonly MailerService           $mailerService,
+        private readonly CSVExportService        $CSVExportService,
+        private readonly OperationHistoryService $operationHistoryService,
+        private readonly UniqueNumberService     $uniqueNumberService,
+        private readonly AttachmentService       $attachmentService,
+        private readonly EntityManagerInterface  $entityManager,
+        private readonly FreeFieldService        $freeFieldService,
+        private readonly Twig_Environment        $templating,
+        private readonly RouterInterface         $router,
+        private readonly FormatService           $formatService,
+        private readonly Security                $security,
+        private readonly FieldModesService       $fieldModesService,
+        private readonly PlanningService         $planningService, private readonly SettingsService $settingsService, private readonly LanguageService $languageService,
+    ) {}
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, string $page, bool $forExport = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -188,7 +167,7 @@ class ProductionRequestService
         $typeColor = $productionRequest->getType()->getColor();
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::PRODUCTION_REQUEST, CategoryType::PRODUCTION);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::PRODUCTION_REQUEST, CategoryType::PRODUCTION);
         }
 
         $productionRequestId = $productionRequest->getId();
@@ -275,8 +254,7 @@ class ProductionRequestService
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
                                             FileBag                $fileBag,
-                                            bool $fromUpdateStatus = false,
-                                            bool $deleteTmpFile = true): ProductionRequest {
+                                            bool $fromUpdateStatus = false): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -880,7 +858,8 @@ class ProductionRequestService
         return false;
     }
 
-    public function getDisplayedFieldsConfig(bool $external, array $fieldModes): array {
+    public function getDisplayedFieldsConfig(bool  $external,
+                                             array $fieldModes): array {
 
         $fields = [
             [
@@ -1035,7 +1014,7 @@ class ProductionRequestService
 
         $displayedFieldsConfig = [];
         foreach ($fields as $fieldData) {
-            $fieldLocation = $this->getFieldDisplayConfig($fieldData["field"]->name, $fieldModes);
+            $fieldLocation = $this->planningService->getFieldDisplayConfig($fieldData["field"]->name, $fieldModes);
             if($fieldLocation) {
                 $displayedFieldsConfig[$fieldLocation][$fieldData["type"]][] = $fieldData;
             }
@@ -1044,16 +1023,111 @@ class ProductionRequestService
         return $displayedFieldsConfig;
     }
 
-    public function getFieldDisplayConfig(string $fieldName, $fieldModes): ?string {
-        if (in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[$fieldName] ?? [])) {
-            $fieldLocation = "header";
-        } else if (in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[$fieldName] ?? [])) {
-            $fieldLocation = "dropdown";
-        } else {
-            $fieldLocation = null;
+    public function createPlanningConfig(EntityManagerInterface $entityManager,
+                                         Request                $request,
+                                         bool                   $external): array {
+        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
+
+        $user = $this->userService->getUser();
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
+
+        $planningStart = $this->formatService->parseDatetime($request->query->get('date'));
+        $maxDays = PlanningService::NB_DAYS_ON_PLANNING;
+        $planningEnd = (clone $planningStart)->modify("+$maxDays days");
+
+        $sortingType = PlanningService::SORTING_TYPE_BY_DATE; // TODO : get sorting type from request
+
+
+        $fieldModes = $user?->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
+        $displayedFieldsConfig = $this->getDisplayedFieldsConfig($external, $fieldModes);
+
+        $filters = [];
+        if(!$external) {
+            $filters = Stream::from($supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION_PLANNING, $user))
+                ->filter(static fn(array $filter) => ($filter["value"] != "" &&  in_array($filter["field"], [
+                        FiltreSup::FIELD_REQUEST_NUMBER,
+                        FiltreSup::FIELD_MULTIPLE_TYPES,
+                        FiltreSup::FIELD_OPERATORS,
+                        'statuses-filter',
+                    ])))
+                ->toArray();
         }
-        return $fieldLocation;
+
+        $statuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PRODUCTION))
+            ->filter(static fn(Statut $status) => $status->isDisplayedOnSchedule())
+            ->toArray();
+
+        $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
+        $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
+            || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
+
+        $cards = [];
+        $LinesCountByColumns = [];
+
+        foreach ($productionRequests as $productionRequest) {
+            $cardContent = $this->planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage);
+            $columnId = match ($sortingType) {
+                PlanningService::SORTING_TYPE_BY_DATE => $productionRequest->getExpectedAt()->format('Y-m-d'),
+                PlanningService::SORTING_TYPE_BY_STATUS_STATE => $productionRequest->getStatus()->getState(),
+            };
+
+            $cards[$columnId][] = $this->templating->render('utils/planning/card.html.twig', [
+                "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
+                "cardContent" => $cardContent,
+                ...$this->generateAdditionalCardConfig($entityManager, $productionRequest, $external),
+            ]);
+            if ($displayCountLines) {
+                $LinesCountByColumns[$columnId] = ($LinesCountByColumns[$columnId] ?? 0) + $productionRequest->getLineCount();
+            }
+        }
+
+        $options = [];
+        if ($displayCountLines) {
+            $options["columnRightHints"] = Stream::from($LinesCountByColumns)
+                ->map(function (int $count) {
+                    $plurialMark = $count > 1 ? 's' : '';
+                    return "$count ligne$plurialMark";
+                })
+                ->toArray();;
+        }
+
+        return $this->planningService->createPlanningConfig(
+            $entityManager,
+            $planningStart,
+            $sortingType,
+            StatusController::MODE_PRODUCTION,
+            $cards,
+            $options
+        );
     }
 
+    private function generateAdditionalCardConfig(EntityManagerInterface $entityManager,
+                                                 ProductionRequest      $productionRequest,
+                                                 bool                   $external): array {
+        $additionalClasses = ["has-tooltip"];
+
+        if (!$external && $this->settingsService->getValue($entityManager, Menu::PRODUCTION, Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST)) {
+            $additionalClasses[] = "pointer";
+            $additionalClasses[] = "can-drag";
+        }
+
+        $expectedAt = $this->formatService->longDate($productionRequest->getExpectedAt());
+        $additionalAttributes = [
+            ["name" => "data-id", "value" => $productionRequest->getId()],
+            ["name" => "title", "value" => "Attendu le $expectedAt"],
+        ];
+
+        if (!$external) {
+            $additionalAttributes[] = ["name" => "href", "value" => $this->router->generate('production_request_show', ['id' => $productionRequest->getId()])];
+            $additionalAttributes[] = ["name" => "data-status", "value" => $productionRequest->getStatus()->getCode()];
+        }
+
+        return [
+            "additionalClasses" => $additionalClasses,
+            "additionalAttributes" => $additionalAttributes,
+        ];
+    }
 
 }

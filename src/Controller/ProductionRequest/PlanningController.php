@@ -71,8 +71,8 @@ class PlanningController extends AbstractController {
 
     #[Route('/api-externe', name: 'api_external', options: ['expose' => true], methods: [self::GET])]
     public function apiExternal(EntityManagerInterface   $entityManager,
-                        PlanningService          $planningService,
-                        Request                  $request): Response {
+                                ProductionRequestService $productionRequestService,
+                                Request                  $request): Response {
         if($request->query->get("token") !== $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"]) {
            throw $this->createAccessDeniedException();
         }
@@ -80,8 +80,8 @@ class PlanningController extends AbstractController {
         return $this->json([
             "success" => true,
             "template" => $this->renderView(
-                'production_request/planning/content.html.twig',
-                $planningService->createPlanningConfig($entityManager, $request, null, true)
+                'utils/planning/content.html.twig',
+                $productionRequestService->createPlanningConfig($entityManager, $request, true)
             ),
         ]);
     }
@@ -90,13 +90,13 @@ class PlanningController extends AbstractController {
     #[Route('/api', name: 'api', options: ['expose' => true], methods: [self::GET])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface   $entityManager,
-                        PlanningService          $planningService,
+                        ProductionRequestService $productionRequestService,
                         Request                  $request): Response {
         return $this->json([
             "success" => true,
             "template" => $this->renderView(
-                'production_request/planning/content.html.twig',
-                $planningService->createPlanningConfig($entityManager, $request, $this->getUser(), false)
+                'utils/planning/content.html.twig',
+                $productionRequestService->createPlanningConfig($entityManager, $request, false)
             ),
         ]);
     }

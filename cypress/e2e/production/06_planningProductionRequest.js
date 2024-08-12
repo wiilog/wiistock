@@ -6,7 +6,7 @@ const user = Cypress.config('user');
 const modalUpdateStatus = 'modalUpdateProductionRequestStatus';
 const openModalUpdateProductionRequestStatus = 'div.open-modal-update-production-request-status';
 const expectedAt = "2024-05-28";
-const productionRequestCardColumn = `div.production-request-card-column[data-date=${expectedAt}]`;
+const productionRequestCardColumn = `div.planning-col[data-card-selector=${expectedAt}]`;
 describe('Test of the production request', () => {
     beforeEach(() => {
         uncaughtException();
