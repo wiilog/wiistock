@@ -2,7 +2,7 @@
 
 .empty-cart {
     & > .wii-box {
-        height: calc(100% - #{$grid-gutter-width / 2});
+        height: calc(100% - calc($grid-gutter-width / 2));
 
         & > .row {
             height: 100%;

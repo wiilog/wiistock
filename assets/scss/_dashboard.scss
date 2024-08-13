@@ -80,8 +80,8 @@ $rowNumberToDatatableHeight: (
         overflow: hidden;
         @for $rowIndex from 1 through $maxRowOnPage {
             &.dashboard-size-#{$rowIndex} .dashboard-row {
-                flex: 1 1 calc(#{percentage(1 / $rowIndex)} - #{$spacer});
-                max-height: calc(#{percentage(1 / $rowIndex)} - #{$spacer});
+                flex: 1 1 calc(#{percentage(calc(1 / $rowIndex))} - #{$spacer});
+                max-height: calc(#{percentage(calc(1 / $rowIndex))} - #{$spacer});
 
                 .dataTables_scrollBody {
                     height: if(map-has-key($rowNumberToDatatableHeight, $rowIndex), map-get($rowNumberToDatatableHeight, $rowIndex), 0) !important;
@@ -102,8 +102,8 @@ $rowNumberToDatatableHeight: (
 
         @for $columnIndex from 1 through $maxColumnOnRow {
             &[data-size="#{$columnIndex}"] > .dashboard-row-wrapper > .dashboard-component {
-                flex: 1 1 calc(#{percentage(1 / $columnIndex)} - #{$spacer});
-                max-width: calc(#{percentage(1 / $columnIndex)} - #{$spacer});
+                flex: 1 1 calc(#{percentage(calc(1 / $columnIndex))} - #{$spacer});
+                max-width: calc(#{percentage(calc(1 / $columnIndex))} - #{$spacer});
             }
         }
     }
