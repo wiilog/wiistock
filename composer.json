@@ -1,5 +1,6 @@
 {
     "name": "wiilog/wiistock",
+    "version": "1.0.0",
     "type": "project",
     "license": "proprietary",
     "description": "Wiistock web application",
