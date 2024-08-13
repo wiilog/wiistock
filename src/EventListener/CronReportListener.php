@@ -6,13 +6,13 @@ namespace App\EventListener;
 
 use App\Service\ExceptionLoggerService;
 use Cron\CronBundle\Entity\CronReport;
-use Symfony\Contracts\Service\Attribute\Required;
 
 
 class CronReportListener
 {
-    #[Required]
-    public ExceptionLoggerService $exceptionLoggerService;
+    public function __construct(
+        private readonly ExceptionLoggerService $exceptionLoggerService
+    ) {}
 
     /**
      * @var CronReport[]

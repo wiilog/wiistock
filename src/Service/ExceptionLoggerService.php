@@ -19,23 +19,16 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 
 class ExceptionLoggerService {
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public HttpClientInterface $client;
-
-    #[Required]
-    public LoggerInterface $symfonyLogger;
-
     private Serializer $serializer;
 
-    public function __construct() {
+    public function __construct(
+        private readonly HttpClientInterface $client,
+        private readonly LoggerInterface $symfonyLogger,
+        private readonly Security $security,
+    ) {
         $encoder = new JsonEncoder();
         $defaultContext = [
             AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
