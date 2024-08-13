@@ -4006,10 +4006,10 @@ html-entities@^2.3.2:
   resolved "https://registry.yarnpkg.com/html-entities/-/html-entities-2.3.2.tgz#760b404685cb1d794e4f4b744332e3b00dcfe488"
   integrity sha512-c3Ab/url5ksaT0WyleslpBEthOzWhrjQbg75y7XUsfSzi3Dgzt0l8w5e7DylRn15MTlMMD58dTfzddNS2kcAjQ==
 
-html5sortable@^0.13.3:
-  version "0.13.3"
-  resolved "https://registry.yarnpkg.com/html5sortable/-/html5sortable-0.13.3.tgz#3bb90abf0d5962af21c4aec5245ac8c80d6b5b76"
-  integrity sha512-rmglSaNttGo4LY33PFW51mgeD1ItvHyfS9cRCD+Cj9Msj/xFaG/sZjLGVtPbtxYJmhY/c8jtw6G07yWhC2ifEw==
+html5sortable@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/html5sortable/-/html5sortable-0.14.0.tgz#1f414b1bcaf7cdfb0637967bb448e91113c51366"
+  integrity sha512-esbDyvvrNEAeTwMUIVPyCHeabcrHAKetFDk2TEEOSFwySK5L4byZfy4h5wBqrKer7sfznevzRobn8iqpLobUjw==
 
 htmlparser2@^6.1.0:
   version "6.1.0"
