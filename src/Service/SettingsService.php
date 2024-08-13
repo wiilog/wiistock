@@ -875,6 +875,13 @@ class SettingsService {
                 }
             }
 
+            if(isset($data["averageTime"])){
+                $averageTime = $data["averageTime"];
+                if(!preg_match("/" . Type::AVERAGE_TIME_REGEX . "/", $averageTime)){
+                    throw new RuntimeException("Le temps moyen doit être au format HH:MM");
+                }
+            }
+
             $newLabel = $data["label"] ?? $type->getLabel();
             $type
                 ->setLabel($newLabel)
@@ -889,7 +896,8 @@ class SettingsService {
                 ->setSendMailReceiver($data["mailReceiver"] ?? false)
                 ->setReusableStatuses($data["reusableStatuses"] ?? false)
                 ->setActive($data["active"] ?? true)
-                ->setColor($data["color"] ?? null);
+                ->setColor($data["color"] ?? null)
+                ->setAverageTime($data["averageTime"] ?? null);
 
             $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
             if ($defaultTranslation) {

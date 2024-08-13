@@ -42,6 +42,9 @@ class Type {
     const LABEL_SCHEDULED_IMPORT = 'Import planifié';
     const LABEL_UNIQUE_IMPORT = 'Import unique';
 
+    const LABEL_AVERAGE_TIME = 'Temps moyen';
+    const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
+
     const DEFAULT_COLOR = "#3353D7";
 
     #[ORM\Id]
@@ -159,6 +162,9 @@ class Type {
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: FreeFieldManagementRule::class, orphanRemoval: true)]
     private Collection $freeFieldManagementRules;
+
+    #[ORM\Column(type: TYPES::STRING, length: 5, nullable: true)]
+    private ?string $averageTime = null;
 
     public function __construct() {
         $this->referenceArticles = new ArrayCollection();
@@ -898,6 +904,16 @@ class Type {
                 $freeFieldManagementRule->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAverageTime(): ?string {
+        return $this->averageTime;
+    }
+
+    public function setAverageTime(?string $averageTime): self {
+        $this->averageTime = $averageTime;
 
         return $this;
     }

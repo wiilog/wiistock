@@ -2355,12 +2355,25 @@ class SettingsController extends AbstractController {
                 ];
             }
 
+            if (in_array($categoryLabel, [CategoryType::PRODUCTION])) {
+                $averageTime = $type?->getAverageTime();
+                $data[] = [
+                    "label" => Type::LABEL_AVERAGE_TIME . $formService->macro("tooltip", "Veuillez suivre ce format : HH:MM. Le temps moyen maximal est de 23:59"),
+                    "value" => $formService->macro("input", "averageTime", null, false, $averageTime, [
+                        "additionalAttributes" => [
+                            ["name" => "pattern", "value" => Type::AVERAGE_TIME_REGEX],
+                        ]
+                    ]),
+                ];
+            }
+
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
                 $data[] = [
                     "label" => "Actif",
                     "value" => $formService->macro("checkbox", "active", '', null, $type ? $type->isActive() : true),
                 ];
             }
+
         } else {
             $data = [
                 [
@@ -2484,6 +2497,13 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Actif",
                     "value" => $this->formatService->bool($type->isActive(), "Non"),
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::PRODUCTION])) {
+                $data[] = [
+                    "label" => Type::LABEL_AVERAGE_TIME,
+                    "value" => $type?->getAverageTime(),
                 ];
             }
         }
