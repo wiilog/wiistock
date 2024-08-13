@@ -6,25 +6,15 @@ use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Controller\FieldModesController;
 use App\Entity\Action;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FiltreSup;
-use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
-use App\Entity\WorkFreeDay;
-use App\Service\FieldModesService;
 use App\Service\FormatService;
-use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequest\PlanningService;
 use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
@@ -71,8 +61,8 @@ class PlanningController extends AbstractController {
 
     #[Route('/api-externe', name: 'api_external', options: ['expose' => true], methods: [self::GET])]
     public function apiExternal(EntityManagerInterface   $entityManager,
-                        PlanningService          $planningService,
-                        Request                  $request): Response {
+                                ProductionRequestService $productionRequestService,
+                                Request                  $request): Response {
         if($request->query->get("token") !== $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"]) {
            throw $this->createAccessDeniedException();
         }
@@ -80,8 +70,8 @@ class PlanningController extends AbstractController {
         return $this->json([
             "success" => true,
             "template" => $this->renderView(
-                'production_request/planning/content.html.twig',
-                $planningService->createPlanningConfig($entityManager, $request, null, true)
+                'utils/planning/content.html.twig',
+                $productionRequestService->createPlanningConfig($entityManager, $request, true)
             ),
         ]);
     }
@@ -90,13 +80,13 @@ class PlanningController extends AbstractController {
     #[Route('/api', name: 'api', options: ['expose' => true], methods: [self::GET])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface   $entityManager,
-                        PlanningService          $planningService,
+                        ProductionRequestService $productionRequestService,
                         Request                  $request): Response {
         return $this->json([
             "success" => true,
             "template" => $this->renderView(
-                'production_request/planning/content.html.twig',
-                $planningService->createPlanningConfig($entityManager, $request, $this->getUser(), false)
+                'utils/planning/content.html.twig',
+                $productionRequestService->createPlanningConfig($entityManager, $request, false)
             ),
         ]);
     }

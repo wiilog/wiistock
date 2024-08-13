@@ -150,6 +150,7 @@
             display: block;
             margin-top: 10px;
             rotate: 90deg;
+            padding: 10px;
 
             &[aria-expanded=true] {
                 rotate: 270deg;

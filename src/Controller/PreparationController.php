@@ -752,7 +752,7 @@ class PreparationController extends AbstractController
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $nbDaysOnPlanning = 5;
-        $planningStart = FormatHelper::parseDatetime($request->query->get('date'));
+        $planningStart = FormatHelper::parseDatetime($request->query->get('startDate'));
         $planningEnd = (clone $planningStart)->modify("+{$nbDaysOnPlanning} days");
 
         $filters = $entityManager->getRepository(FiltreSup::class)->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPARATION_PLANNING, $this->getUser());

@@ -1,11 +1,24 @@
 {% set external = external is defined and external %}
 
 {% macro navigationHeaderButtons(external, token = null) %}
+    {% import 'form.html.twig' as form %}
+    <div class="col-auto">
+        {{ form.switch(
+            'sortingType',
+            null,
+            true,
+            constant('App\\Service\\PlanningService::SORTING_TYPES') | map((label, value) => {
+                label: label,
+                value: value,
+                checked: value == constant('App\\Service\\PlanningService::SORTING_TYPE_BY_DATE'),
+            })
+        ) }}
+    </div>
     <div class="col-auto">
         <button class="btn btn-outline-primary today-date mr-0 h-100"
                 disabled
                 data-loader-color="black">
-            Aujourd'hui
+            Cette semaine
         </button>
     </div>
     <div class="col-auto">

@@ -20,11 +20,12 @@ $(function () {
 
     planning = new Planning($(`.production-request-planning`), {
         route: external ? `production_request_planning_api_external`: `production_request_planning_api`,
-        params: external
-            ? {
+        params: {
+            ... external ? {
                 token: $(`[name=token]`).val(),
-            }
-            : {},
+            } : {},
+            sortingType: $(`[name="sortingType"]`).val(),
+        },
         baseDate: moment().startOf(`isoWeek`),
     });
 
@@ -54,12 +55,6 @@ function callbackSaveFilter() {
     if (planning) {
         planning.fetch();
     }
-}
-
-function refreshColumnHint($column) {
-    const productionRequestCount = $column.find(`.preparation-card`).length;
-    const productionRequestHint = `${productionRequestCount} demande${productionRequestCount > 1 ? `s` : ``}`;
-    $column.find(`.column-hint-container`).html(`<span class='font-weight-bold'>${productionRequestHint}</span>`);
 }
 
 function initializeFilters() {
@@ -118,8 +113,8 @@ function onPlanningLoaded(planning) {
             const $card = $(e.detail.item);
             const productionRequest = $card.data(`id`);
             const $destination = $card.closest(`.planning-card-container`);
-            const $column = $destination.closest(`.production-request-card-column`);
-            const date = $column.data(`date`);
+            const $column = $destination.closest(`.planning-col`);
+            const date = $column.data(`card-selector`);
 
             const order = Array.from($(e.target).find(`.planning-card`)).map((card) => $(card).data(`id`));
 
@@ -134,8 +129,6 @@ function onPlanningLoaded(planning) {
                     .json()
                     .then(() => {
                         $(`.tooltip`).tooltip(`hide`);
-                        refreshColumnHint($column);
-                        refreshColumnHint($origin.closest(`.production-request-card-column`));
                         planning.fetch();
                     })
             ));
@@ -201,6 +194,15 @@ function initializePlanningNavigation() {
                     }
                 })
         ));
+    });
+
+    $(document).on(`change`, `[name="sortingType"]`, function ($event) {
+        planning.params.sortingType = $event.target.value;
+        planning.fetch();
+
+        if(external) {
+            updateRefreshRate();
+        }
     });
 }
 

@@ -38,6 +38,16 @@ class StatusController extends AbstractController
     const MODE_HANDLING = 'handling';
     const MODE_PRODUCTION = 'production';
 
+    const MODES = [
+        self::MODE_ARRIVAL_DISPUTE,
+        self::MODE_RECEPTION_DISPUTE,
+        self::MODE_PURCHASE_REQUEST,
+        self::MODE_ARRIVAL,
+        self::MODE_DISPATCH,
+        self::MODE_HANDLING,
+        self::MODE_PRODUCTION,
+    ];
+
     #[Route("/statuses-api", name: "settings_statuses_api", options: ["expose" => true])]
     public function statusesApi(Request                $request,
                                 UserService            $userService,
@@ -49,17 +59,7 @@ class StatusController extends AbstractController
         $mode = $request->query->get("mode");
         $typeId = $request->query->get("type");
 
-        $availableMode = [
-            self::MODE_ARRIVAL_DISPUTE,
-            self::MODE_RECEPTION_DISPUTE,
-            self::MODE_PURCHASE_REQUEST,
-            self::MODE_ARRIVAL,
-            self::MODE_DISPATCH,
-            self::MODE_HANDLING,
-            self::MODE_PRODUCTION,
-        ];
-
-        if (!in_array($mode, $availableMode)) {
+        if (!in_array($mode, $this::MODES)) {
             throw new InvalidArgumentException('Invalid mode');
         }
 
