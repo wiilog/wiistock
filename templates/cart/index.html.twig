@@ -141,6 +141,7 @@
                                         }) }}
                                     </div>
                                 {% endif %}
+
                                 {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
                                 {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                     <div class="col-md-6 col-12">
@@ -150,6 +151,18 @@
                                         }) }}
                                     </div>
                                 {% endif %}
+
+                                {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE') %}
+                                {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                                    <div class="col-md-6 col-12">
+                                        {% set fieldRequired = deliveryFieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                                        {{ form.select(fieldCode, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'), fieldRequired, {
+                                            type: 'user',
+                                        }) }}
+
+                                    </div>
+                                {% endif %}
+
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
