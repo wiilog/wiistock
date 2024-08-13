@@ -16,9 +16,9 @@
         "cy:run": "cypress run"
     },
     "dependencies": {
-        "@fortawesome/fontawesome-free": "^5.15.1",
-        "@fortawesome/fontawesome-svg-core": "^6.1.2",
-        "@fortawesome/free-solid-svg-icons": "^5.15.1",
+        "@fortawesome/fontawesome-free": "^6.6.0",
+        "@fortawesome/fontawesome-svg-core": "^6.6.0",
+        "@fortawesome/free-solid-svg-icons": "^6.6.0",
         "@popperjs/core": "^2.11.0",
         "@types/jslib-html5-camera-photo": "^3.1.5",
         "arrive": "^2.4.1",
