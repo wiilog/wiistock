@@ -124,8 +124,7 @@ class ReferenceArticleController extends AbstractController
                         TrackingMovementService $trackingMovementService,
                         RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
-                        AttachmentService $attachmentService): Response
-    {
+                        AttachmentService $attachmentService): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
             && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
             throw new FormException("Accès refusé");
@@ -525,8 +524,7 @@ class ReferenceArticleController extends AbstractController
     #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
                            EntityManagerInterface   $entityManager,
-                           TranslationService       $translation): Response
-    {
+                           TranslationService       $translation): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
@@ -569,8 +567,7 @@ class ReferenceArticleController extends AbstractController
 
     #[Route('/addFournisseur', name: 'ajax_render_add_fournisseur', options: ['expose' => true], methods: 'GET', requirements: ['currentIndex' => '\d+'])]
     #[HasPermission([Menu::STOCK, Action::EDIT])]
-    public function addFournisseur(Request $request): Response
-    {
+    public function addFournisseur(Request $request): Response {
         $currentIndex = $request->query->get('currentIndex');
         $currentIndexInt = $request->query->getInt('currentIndex');
 
@@ -580,22 +577,17 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($json);
     }
 
-    #[Route('/quantite', name: 'get_quantity_ref_article', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/{referenceArticle}/quantity", name: "get_quantity_ref_article", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function getQuantityByRefArticleId(Request                $request,
-                                              SettingsService        $settingsService,
-                                              EntityManagerInterface $entityManager) {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
+    public function getQuantityByRefArticleId(SettingsService        $settingsService,
+                                              EntityManagerInterface $entityManager,
+                                              ReferenceArticle       $referenceArticle): JsonResponse {
         $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
         $quantity = false;
 
-        $refArticleId = $request->request->get('refArticleId');
-        $refArticle = $referenceArticleRepository->find($refArticleId);
-
-        if ($refArticle && $needsQuantitiesCheck) {
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $quantity = $refArticle->getQuantiteDisponible();
+        if ($needsQuantitiesCheck) {
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                $quantity = $referenceArticle->getQuantiteDisponible();
             }
         }
 
@@ -633,8 +625,7 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route('/{reference}/data', name: 'get_reference_data', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
-    public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager)
-    {
+    public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locations = [];
         if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {

@@ -270,14 +270,11 @@ function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadi
     });
 }
 
-function setMaxQuantityEdit(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantite').attr('max', data);
-    }, 'json');
+async function setMaxQuantityEdit(select) {
+    const refArticleQte = await getQuantityRefArticle(select.val());
+
+    let modalBody = select.closest(".modal-body");
+    modalBody.find('#quantite').attr('max', refArticleQte);
 }
 
 function toggleRadioButton($button) {
