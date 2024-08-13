@@ -58,15 +58,19 @@ class ProductionRequestService
         private readonly OperationHistoryService $operationHistoryService,
         private readonly UniqueNumberService     $uniqueNumberService,
         private readonly AttachmentService       $attachmentService,
-        private readonly EntityManagerInterface  $entityManager,
-        private readonly FreeFieldService        $freeFieldService,
-        private readonly Twig_Environment        $templating,
-        private readonly RouterInterface         $router,
-        private readonly FormatService           $formatService,
-        private readonly Security                $security,
-        private readonly FieldModesService       $fieldModesService,
-        private readonly PlanningService         $planningService, private readonly SettingsService $settingsService, private readonly LanguageService $languageService,
-    ) {}
+        private readonly EntityManagerInterface $entityManager,
+        private readonly FreeFieldService       $freeFieldService,
+        private readonly Twig_Environment       $templating,
+        private readonly RouterInterface        $router,
+        private readonly FormatService          $formatService,
+        private readonly Security               $security,
+        private readonly FieldModesService      $fieldModesService,
+        private readonly PlanningService        $planningService,
+        private readonly SettingsService        $settingsService,
+        private readonly LanguageService        $languageService,
+    )
+    {
+    }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, string $page, bool $forExport = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -1032,7 +1036,7 @@ class ProductionRequestService
         $user = $this->userService->getUser();
         $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
 
-        $planningStart = $this->formatService->parseDatetime($request->query->get('date'));
+        $planningStart = $this->formatService->parseDatetime($request->query->get('startDate'));
         $maxDays = PlanningService::NB_DAYS_ON_PLANNING;
         $planningEnd = (clone $planningStart)->modify("+$maxDays days");
 

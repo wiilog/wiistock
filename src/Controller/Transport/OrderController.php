@@ -396,7 +396,7 @@ class OrderController extends AbstractController {
     #[Route("/api/is-order-for-date", name: "is-order-for-date", options: ['expose' => true], methods: "GET")]
     public function calculate(Request $request,
                               EntityManagerInterface $entityManager): Response {
-        return $entityManager->getRepository(TransportOrder::class)->findToAssignByDate(DateTime::createFromFormat( 'Y-m-d', $request->query->get('date')))
+        return $entityManager->getRepository(TransportOrder::class)->findToAssignByDate(DateTime::createFromFormat( 'Y-m-d', $request->query->get('startDate')))
             ? $this->json(true)
             : $this->json(false);
     }

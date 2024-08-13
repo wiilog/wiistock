@@ -35,7 +35,7 @@ export default class Planning {
         const params = this.params || {};
         return AJAX
             .route(GET, this.route, {
-                date: this.baseDate.format('YYYY-MM-DD'),
+                startDate: this.baseDate.format('YYYY-MM-DD'),
                 ...params,
             })
             .json()
