@@ -1056,20 +1056,21 @@ class DispatchController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/{id}/validate", name: "dispatch_validate_request", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function validateDispatchRequest(Request                $request,
-                                            EntityManagerInterface $entityManager,
-                                            Dispatch               $dispatch,
-                                            TranslationService     $translationService,
-                                            DispatchService        $dispatchService,
-                                            NotificationService    $notificationService,
-                                            StatusHistoryService   $statusHistoryService,
-                                            TrackingMovementService $trackingMovementService): Response {
+    #[Route("/{id}/validate", name: "dispatch_validate_request", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function validateDispatchRequest(Request                 $request,
+                                            EntityManagerInterface  $entityManager,
+                                            Dispatch                $dispatch,
+                                            TranslationService      $translationService,
+                                            DispatchService         $dispatchService,
+                                            NotificationService     $notificationService,
+                                            StatusHistoryService    $statusHistoryService,
+                                            TrackingMovementService $trackingMovementService,
+                                            AttachmentService       $attachmentService): Response {
         $status = $dispatch->getStatut();
         $now = new DateTime('now');
 
         if(!$status || $status->isDraft()) {
-            $data = json_decode($request->getContent(), true);
+            $data = $request->request->all();
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             $statusId = $data['status'];
@@ -1085,7 +1086,10 @@ class DispatchController extends AbstractController {
                     }
 
                     $dispatch
-                        ->setValidationDate($now);
+                        ->setValidationDate($now)
+                        ->setCommentaire($data['comment']);
+
+                    $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
 
                     $user = $this->getUser();
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
@@ -1153,12 +1157,13 @@ class DispatchController extends AbstractController {
                                          EntityManagerInterface $entityManager,
                                          DispatchService        $dispatchService,
                                          Dispatch               $dispatch,
-                                         TranslationService     $translationService): Response
+                                         TranslationService     $translationService,
+                                         AttachmentService      $attachmentService): Response
     {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isNotTreated() || $status->isPartial()) {
-            $data = json_decode($request->getContent(), true);
+            $data = $request->request->all();
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             $statusId = $data['status'];
@@ -1174,7 +1179,9 @@ class DispatchController extends AbstractController {
 
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
-                $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
+                $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser, false, null, $data['comment']);
+
+                $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
 
                 $entityManager->flush();
             } else {

@@ -1,3 +1,5 @@
+{% import "form.html.twig" as form %}
+
 <div class="modal fade" id="modalTreatDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -18,6 +20,15 @@
                                 {% endfor %}
                             </select>
                         </div>
+
+                        <div class="col-12 mt-3">
+                            {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            {{ form.attachment('Pièces jointes') }}
+                        </div>
+
                     </div>
                 {% else %}
                     {% include 'utils/warningSelectEmpty.html.twig' with {
