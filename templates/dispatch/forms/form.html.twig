@@ -20,8 +20,14 @@
 
 {% set typeCanChange =  dispatch.id ? false : true %}
 
+{% set keepModalOpenAndClearAfterSubmit = setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT') %}
+
 {% if dispatch.id %}
     {{ form.hidden('id', dispatch.id) }}
+{% endif %}
+
+{% if keepModalOpenAndClearAfterSubmit %}
+    {{ form.hidden('keepModalOpenAndClearAfterSubmit', keepModalOpenAndClearAfterSubmit) }}
 {% endif %}
 
 <div class="row">
@@ -117,6 +123,7 @@
             {{ form.hidden('typeDispatchPickLocation', dispatch.type.id ?? null) }}
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise'), requiredOnform, {
+                inputClass: 'needs-default',
                 type: 'location',
                 items: dispatch.locationFrom ? [{
                     value: dispatch.locationFrom.id,
@@ -139,6 +146,7 @@
             {{ form.hidden('typeDispatchDropLocation', dispatch.type.id ?? null ) }}
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose'), requiredOnform, {
+                inputClass: 'needs-default',
                 type: 'location',
                 items: dispatch.locationTo ? [{
                     value: dispatch.locationTo.id,

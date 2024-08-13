@@ -108,6 +108,7 @@ export default class Form {
      *    success?: function,
      *    routeParams?: {[string]: string},
      *    tables?: Datatable|Datatable[],
+     *    clearFields?: boolean,
      * }} options
      * @returns {Form}
      */
@@ -126,6 +127,10 @@ export default class Form {
 
                             if(options.success) {
                                 options.success(response);
+                            }
+
+                            if (options.clearFields) {
+                                form.clear();
                             }
 
                             if(options.tables) {
