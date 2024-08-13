@@ -20,8 +20,8 @@ class CategorieCL {
     const MVT_TRACA = 'mouvement traca';
     const SENSOR = 'capteur';
     const AUCUNE = 'aucune';
-    const DELIVERY_TRANSPORT = 'transport livraison';
-    const COLLECT_TRANSPORT = 'transport collecte';
+    const DELIVERY_TRANSPORT = CategoryType::DELIVERY_TRANSPORT;
+    const COLLECT_TRANSPORT = CategoryType::COLLECT_TRANSPORT;
     const PRODUCTION_REQUEST = 'production';
 
     #[ORM\Id]

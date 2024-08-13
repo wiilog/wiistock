@@ -3,16 +3,16 @@
 namespace App\Controller\DeliveryStation;
 
 use App\Controller\AbstractController;
+use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryStationLine;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Service\DeliveryRequestService;
-use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
@@ -21,7 +21,6 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use App\Entity\Article;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;

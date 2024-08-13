@@ -6,7 +6,6 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Inventory\InventoryLocationMission;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
@@ -14,6 +13,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\Vehicle;
@@ -148,8 +148,8 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinColumn(nullable: false)]
     private ?Zone $zone = null;
 
-    #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
-    private Collection $inventoryMissionRules;
+    #[ORM\ManyToMany(targetEntity: InventoryMissionPlan::class, mappedBy: 'locations')]
+    private Collection $inventoryMissionPlans;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     #[ORM\JoinTable(name: 'location_manager')]
@@ -183,7 +183,7 @@ class Emplacement implements PairedEntity {
         $this->transferOrders = new ArrayCollection();
         $this->signatories = new ArrayCollection();
         $this->temperatureRanges = new ArrayCollection();
-        $this->inventoryMissionRules = new ArrayCollection();
+        $this->inventoryMissionPlans = new ArrayCollection();
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
@@ -1074,35 +1074,35 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function getInventoryMissionRules(): Collection {
-        return $this->inventoryMissionRules;
+    public function getInventoryMissionPlans(): Collection {
+        return $this->inventoryMissionPlans;
     }
 
-    public function addInventoryMissionRule(InventoryMissionRule $inventoryMissionRule): self {
-        if (!$this->inventoryMissionRules->contains($inventoryMissionRule)) {
-            $this->inventoryMissionRules[] = $inventoryMissionRule;
-            $inventoryMissionRule->addLocation($this);
+    public function addInventoryMissionPlan(InventoryMissionPlan $inventoryMissionPlan): self {
+        if (!$this->inventoryMissionPlans->contains($inventoryMissionPlan)) {
+            $this->inventoryMissionPlans[] = $inventoryMissionPlan;
+            $inventoryMissionPlan->addLocation($this);
         }
 
         return $this;
     }
 
-    public function removeInventoryMissionRule(InventoryMissionRule $inventoryMissionRule): self {
-        if ($this->inventoryMissionRules->removeElement($inventoryMissionRule)) {
-            $inventoryMissionRule->removeLocation($this);
+    public function removeInventoryMissionPlan(InventoryMissionPlan $inventoryMissionPlan): self {
+        if ($this->inventoryMissionPlans->removeElement($inventoryMissionPlan)) {
+            $inventoryMissionPlan->removeLocation($this);
         }
 
         return $this;
     }
 
-    public function setLocations(?iterable $inventoryMissionRules): self {
-        foreach($this->getInventoryMissionRules()->toArray() as $inventoryMissionRule) {
-            $this->removeInventoryMissionRule($inventoryMissionRule);
+    public function setLocations(?iterable $inventoryMissionPlans): self {
+        foreach($this->getInventoryMissionPlans()->toArray() as $inventoryMissionPlan) {
+            $this->removeInventoryMissionPlan($inventoryMissionPlan);
         }
 
-        $this->inventoryMissionRules = new ArrayCollection();
-        foreach($inventoryMissionRules ?? [] as $inventoryMissionRule) {
-            $this->addInventoryMissionRule($inventoryMissionRule);
+        $this->inventoryMissionPlans = new ArrayCollection();
+        foreach($inventoryMissionPlans ?? [] as $inventoryMissionPlan) {
+            $this->addInventoryMissionPlan($inventoryMissionPlan);
         }
 
         return $this;

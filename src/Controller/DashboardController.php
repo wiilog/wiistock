@@ -14,9 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @Route("/")
- */
+#[Route('/')]
 class DashboardController extends AbstractController {
 
     /**
@@ -38,13 +36,13 @@ class DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/dashboard/externe/{token}", name="dashboards_external", options={"expose"=true})
      * @param DashboardService $dashboardService
      * @param DashboardSettingsService $dashboardSettingsService
      * @param EntityManagerInterface $manager
      * @param string $token
      * @return Response
      */
+    #[Route('/dashboard/externe/{token}', name: 'dashboards_external', options: ['expose' => true])]
     public function external(DashboardService $dashboardService,
                              DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $manager,
@@ -64,13 +62,13 @@ class DashboardController extends AbstractController {
     }
 
     /**
-     * @Route("/dashboard/sync/{mode}", name="dashboards_fetch", options={"expose"=true})
      * @param DashboardService $dashboardService
      * @param DashboardSettingsService $dashboardSettingsService
      * @param EntityManagerInterface $manager
      * @param int $mode
      * @return Response
      */
+    #[Route('/dashboard/sync/{mode}', name: 'dashboards_fetch', options: ['expose' => true])]
     public function fetch(DashboardService $dashboardService,
                           DashboardSettingsService $dashboardSettingsService,
                           EntityManagerInterface $manager,
@@ -83,9 +81,7 @@ class DashboardController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/dashboard/statistics/late-pack-api", name="api_late_pack", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/dashboard/statistics/late-pack-api', name: 'api_late_pack', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     public function apiLatePacks(EntityManagerInterface $entityManager): Response
     {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
@@ -96,9 +92,7 @@ class DashboardController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/dashboard/statistics/receptions-associations", name="get_asso_recep_statistics", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/dashboard/statistics/receptions-associations', name: 'get_asso_recep_statistics', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
     public function getAssoRecepStatistics(Request $request,
                                            EntityManagerInterface $entityManager,
                                            DashboardSettingsService $dashboardSettingsService): Response
@@ -111,9 +105,7 @@ class DashboardController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/dashboard/statistics/arrivages-um", name="get_arrival_um_statistics", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/dashboard/statistics/arrivages-um', name: 'get_arrival_um_statistics', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
     public function getArrivalUmStatistics(Request $request,
                                            EntityManagerInterface $entityManager,
                                            DashboardSettingsService $dashboardSettingsService): Response

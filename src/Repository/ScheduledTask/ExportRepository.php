@@ -8,20 +8,8 @@ use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
-class ExportRepository extends EntityRepository
-{
+class ExportRepository extends EntityRepository implements ScheduledTaskRepository {
 
-    public function findScheduledExports() {
-        return $this->createQueryBuilder("export")
-            ->join("export.type", "type")
-            ->join("export.status", "status")
-            ->andWhere("type.label = :type")
-            ->andWhere("status.code = :status")
-            ->setParameter("type", Type::LABEL_SCHEDULED_EXPORT)
-            ->setParameter("status", Export::STATUS_SCHEDULED)
-            ->getQuery()
-            ->getResult();
-    }
 
     public function findByParamsAndFilters(InputBag $params, $filters)
     {
@@ -76,7 +64,6 @@ class ExportRepository extends EntityRepository
                             "DATE_FORMAT(export.createdAt, '%d/%m/%Y') LIKE :value",
                             "DATE_FORMAT(export.beganAt, '%d/%m/%Y') LIKE :value",
                             "DATE_FORMAT(export.endedAt, '%d/%m/%Y') LIKE :value",
-                            "DATE_FORMAT(export.nextExecution, '%d/%m/%Y') LIKE :value",
                         ))
                         ->setParameter("value", "%$search%");
                 }
@@ -129,5 +116,18 @@ class ExportRepository extends EntityRepository
         ];
     }
 
-
+    /**
+     * @return Export[]
+     */
+    public function findScheduled(): array {
+        return $this->createQueryBuilder("export")
+            ->join("export.type", "type")
+            ->join("export.status", "status")
+            ->andWhere("type.label = :type")
+            ->andWhere("status.code = :status")
+            ->setParameter("type", Type::LABEL_SCHEDULED_EXPORT)
+            ->setParameter("status", Export::STATUS_SCHEDULED)
+            ->getQuery()
+            ->getResult();
+    }
 }

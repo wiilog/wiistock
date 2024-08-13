@@ -5,7 +5,7 @@ namespace App\Controller\Settings;
 use App\Controller\AbstractController;
 use App\Entity\CategorieCL;
 use App\Entity\DeliveryStationLine;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Utilisateur;
 use App\Service\DeliveryStationLineService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,9 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class DeliveryStationLineController extends AbstractController
 {
     #[Route("/delivery-station-line-new", name: "delivery_station_line_new", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]

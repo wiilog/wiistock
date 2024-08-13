@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api")]
+#[Rest\Route("/api/mobile")]
 class TruckArrivalController extends AbstractController {
 
     #[Rest\Get("/get-truck-arrival-default-unloading-location", condition: self::IS_XML_HTTP_REQUEST)]

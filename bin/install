@@ -72,7 +72,7 @@ function main(): void {
         [
             STEP_DESCRIPTION => "Clear app cache",
             STEP_COMMANDS => function() {
-                execCommand("php /project/bin/console app:cache:clear");
+                execCommand("rm -rf /project/cache/*");
             },
             STEP_FILTER => fn () => $mode === ENV_DEV,
         ],
@@ -81,7 +81,7 @@ function main(): void {
             STEP_COMMANDS => function() use ($WIISTOCK_VERSION) {
                 downloadZipCache(
                     "/project",
-                    "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/vendor.zip"
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/vendor.zip"
                 );
             },
             STEP_FILTER => fn () => $mode !== ENV_DEV && $WIISTOCK_VERSION,
@@ -108,7 +108,7 @@ function main(): void {
             STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_CONTEXT, $APP_DOMAIN_NAME) {
                 downloadZipCache(
                     "/project/public",
-                    "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/build-$APP_CONTEXT.zip"
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/build-$APP_CONTEXT.zip"
                 );
                 if (file_exists("/project/public/build")) {
                     execCommand("find public/build -type f -exec sed -i \"s/<<DOMAIN_NAME>>/$APP_DOMAIN_NAME/g\" {} \;");
@@ -121,7 +121,7 @@ function main(): void {
             STEP_COMMANDS => function() use ($WIISTOCK_VERSION, $APP_DOMAIN_NAME) {
                 downloadZipCache(
                     "/project",
-                    "https://github.com/wiilog/wiistock/releases/download/$WIISTOCK_VERSION/node_modules.zip"
+                    getReleaseDownloadUrl($WIISTOCK_VERSION) . "/node_modules.zip"
                 );
             },
             STEP_FILTER => fn() => !file_exists("/project/public/build") && $mode !== ENV_DEV && $WIISTOCK_VERSION,
@@ -183,7 +183,7 @@ function main(): void {
             STEP_COMMANDS => function() {
                 execCommand("php /project/bin/console doctrine:migrations:migrate --no-interaction --dry-run");
                 execCommand("php /project/bin/console doctrine:migrations:migrate --no-interaction");
-                execCommand("php /project/bin/console doctrine:schema:update --force --dump-sql");
+                execCommand("php /project/bin/console doctrine:schema:update --force --dump-sql --complete");
             },
             STEP_FILTER => fn () => ($tableCount > 0),
         ],
@@ -242,24 +242,20 @@ function downloadZipCache(string $destination,
         fclose($cacheRelease);
 
         if (file_exists($tmpPath)) {
-            $zip = new ZipArchive();
-            $res = $zip->open($tmpPath);
-            if ($res) {
-                $zip->extractTo($destination);
-                $zip->close();
-            }
+            execCommand("unzip -q $tmpPath -d $destination");
             unlink($tmpPath);
         }
     }
 }
 
-function countDatabaseTables(string $databaseUrl, ?string $databaseSSLConfigJson): int {
+function countDatabaseTables(string  $databaseUrl,
+                             ?string $databaseSSLConfigJson): int {
     if (!$databaseUrl) {
         throw new Exception("Database url is missing");
     }
 
 
-    preg_match("/mysql:\/\/(\w+):(\w+)@((?:\w|-|_|\.)+):(\d+)\/(\w+)/", $databaseUrl, $matches);
+    preg_match("/mysql:\/\/((?:\w|-)+):((?:\w|-|_)+)@((?:\w|-|_|\.)+):(\d+)\/((?:\w|-)+)/", $databaseUrl, $matches);
 
     [
         ,
@@ -358,5 +354,9 @@ function enableSAMLConfig(): void {
     ]);
 }
 
+function getReleaseDownloadUrl(string $release): string {
+    $releaseUri = rawurlencode($release);
+    return "https://github.com/wiilog/wiistock/releases/download/$releaseUri";
+}
 
 

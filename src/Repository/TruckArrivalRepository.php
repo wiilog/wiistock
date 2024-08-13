@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -36,7 +36,7 @@ class TruckArrivalRepository extends EntityRepository
         }
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array {
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, FieldModesService $fieldModesService): array {
         $qb = $this->createQueryBuilder('truckArrival');
         $countTotal =  QueryBuilderHelper::count($qb, 'truckArrival');
 
@@ -55,7 +55,7 @@ class TruckArrivalRepository extends EntityRepository
                         "trackingLinesNumber" => "order_trackingLines.number LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'truckArrival', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'truckArrival', $qb, $user, $search);
 
                     $qb
                         ->leftJoin('truckArrival.driver', 'search_driver')
@@ -160,6 +160,7 @@ class TruckArrivalRepository extends EntityRepository
                                 "filter_reserveType.disableTrackingNumber IS NULL",
                                 "filter_reserveType.disableTrackingNumber = 0"
                             ))
+                            ->andWhere('truckArrival.trackingLines IS NOT EMPTY')
                             ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
                             ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned')
                             ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
@@ -201,5 +202,36 @@ class TruckArrivalRepository extends EntityRepository
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
+    }
+
+    public function getForSelect(?string $term, $option = []): array {
+        $qb = $this->createQueryBuilder('truck_arrival');
+
+        $qb ->select("truck_arrival.id AS id")
+            ->addSelect("truck_arrival.number AS text")
+            ->addSelect("truck_arrival.id AS truck_arrival_id")
+            ->addSelect("carrier.id AS carrier_id")
+            ->addSelect("carrier.label AS carrier_label")
+            ->addSelect("carrier.code AS carrier_code")
+            ->andWhere("truck_arrival.number LIKE :term")
+            ->leftJoin('truck_arrival.carrier', 'carrier')
+            ->setParameter('term', "%$term%");
+
+
+        if ($option['truckArrivalId']) {
+            $qb
+                ->andWhere('truck_arrival.id = :truck_arrival_id')
+                ->setParameter('truck_arrival_id', $option['truckArrivalId']);
+        }
+
+        if ($option['carrierId']) {
+            $qb
+                ->andWhere('truck_arrival.carrier = :carrier_id')
+                ->setParameter('carrier_id', $option['carrierId']);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getArrayResult();
     }
 }

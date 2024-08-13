@@ -51,8 +51,10 @@ const ROUTES = {
     supplierArticles: 'ajax_select_supplier_articles',
     driver: 'ajax_select_driver',
     truckArrivalLine: 'ajax_select_truck_arrival_line',
+    truckArrival: 'ajax_select_truck_arrival',
     locationWithGroups: `ajax_select_location_with_group`,
     productionRequestType: `ajax_select_production_request_type`,
+    freeField: `ajax_select_free_field`,
 }
 
 const INSTANT_SELECT_TYPES = {

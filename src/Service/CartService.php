@@ -10,6 +10,7 @@ use App\Entity\CollecteReference;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Project;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
@@ -184,10 +185,15 @@ class CartService {
         else if ($data['addOrCreate'] === "create") {
             $statutRepository = $manager->getRepository(Statut::class);
             $projectRepository = $manager->getRepository(Project::class);
-            $destination = $manager->find(Emplacement::class, $data['location']);
-            $type = $manager->find(Type::class, $data['deliveryType']);
+            $utilisateurRepository = $manager->getRepository(Utilisateur::class);
+            $typeRepository = $manager->getRepository(Type::class);
+            $emplacementRepository = $manager->getRepository(Emplacement::class);
+
+            $destination = $emplacementRepository->find($data['location']);
+            $type = $typeRepository->find($data['deliveryType']);
             $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
+            $receiver = $utilisateurRepository->findOneBy(['email' => $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE]]);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
@@ -210,7 +216,8 @@ class CartService {
                 ->setDestination($destination)
                 ->setCommentaire($data['comment'] ?? null)
                 ->setProject($project)
-                ->setStatut($draft);
+                ->setStatut($draft)
+                ->setReceiver($receiver);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);

@@ -30,7 +30,7 @@
                             icon: "fa fa-cog mr-2",
                             attributes: {
                                 'data-toggle': 'modal',
-                                'data-target': '#modalColumnVisible',
+                                'data-target': '#modalFieldModes',
                             },
                         },
                     ]
@@ -49,10 +49,19 @@
 
     <input id="truck-arrival-filters" value="{{ initial_filters }}" hidden>
 
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
-        table: "truckArrivalsTable",
+        table: 'truckArrivalsTable',
         page: 'truckArrival',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 
     {% include "truck_arrival/modal-new.html.twig" with {

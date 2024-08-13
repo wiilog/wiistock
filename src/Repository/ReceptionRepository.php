@@ -6,8 +6,9 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -142,7 +143,7 @@ class ReceptionRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService)
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, FieldModesService $fieldModesService)
     {
         $qb = $this->createQueryBuilder("reception");
 
@@ -255,7 +256,7 @@ class ReceptionRepository extends EntityRepository
                         "user" => "search_user.username LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'reception', $qb, $user, $search);
 
                     $qb
 						->leftJoin('reception.statut', 'search_status')
@@ -365,32 +366,66 @@ class ReceptionRepository extends EntityRepository
     }
 
     public function getMobileReceptions(): array {
-        $qb = $this->createQueryBuilder("reception")
+        $maxNumberOfReceptions = 100;
+
+        $countLineWithPackQueryBuilder = $this->createQueryBuilder("count_line_with_pack_reception")
+            ->select("COUNT(join_count_line_with_pack_line.id)")
+            ->andWhere("count_line_with_pack_reception.id = reception.id")
+            ->join("count_line_with_pack_reception.lines", "join_count_line_with_pack_line")
+            ->join("join_count_line_with_pack_line.pack", "join_count_line_with_pack_pack");
+
+        $sumReferenceQuantityQueryBuilder = $this->createQueryBuilder("sum_reference_quantity_reception")
+            ->select("SUM(COALESCE(join_sum_reference_quantity_reception_reference_article.quantiteAR, 0) - COALESCE(join_sum_reference_quantity_reception_reference_article.quantite, 0))")
+            ->andWhere("sum_reference_quantity_reception.id = reception.id")
+            ->join("sum_reference_quantity_reception.lines", "join_sum_reference_quantity_line")
+            ->join("join_sum_reference_quantity_line.receptionReferenceArticles", "join_sum_reference_quantity_reception_reference_article");
+
+        // get reception which can be treated
+        $queryBuilder = $this->createQueryBuilder("reception");
+        $exprBuilder = $queryBuilder->expr();
+
+        return $queryBuilder
             ->select("reception.id AS id")
-            ->addSelect("receptionSupplier.nom AS supplier")
+            ->addSelect("join_supplier.nom AS supplier")
             ->addSelect("reception.orderNumber AS orderNumber")
-            ->addSelect("reception.commentaire AS comment")
             ->addSelect("reception.dateAttendue AS expectedDate")
             ->addSelect("reception.dateCommande AS orderDate")
-            ->addSelect("receptionUser.username AS user")
-            ->addSelect("receptionCarrier.nom AS carrier")
-            ->addSelect("receptionLocation.label AS location")
-            ->addSelect("receptionStorageLocation.label AS storageLocation")
-            ->addSelect("reception.manualUrgent AS emergency")
+            ->addSelect("join_user.username AS user")
+            ->addSelect("join_carrier.label AS carrier")
+            ->addSelect("join_location.label AS location")
+            ->addSelect("join_storageLocation.label AS storageLocation")
+            ->addSelect("reception.urgentArticles AS emergency_articles")
+            ->addSelect("reception.manualUrgent AS emergency_manual")
             ->addSelect("reception.number AS number")
-            ->addSelect("receptionStatus.nom AS status")
-            ->andWhere("receptionStatus.code IN (:states)")
-            ->andWhere("receptionLine.pack is null") // TODO : verif
-            ->leftJoin("reception.statut", "receptionStatus")
-            ->leftJoin("reception.fournisseur", "receptionCarrier")
-            ->leftJoin("reception.utilisateur", "receptionUser")
-            ->leftJoin("reception.location", "receptionLocation")
-            ->leftJoin("reception.storageLocation", "receptionStorageLocation")
-            ->leftJoin("reception.fournisseur", "receptionSupplier")
-            ->leftJoin("reception.lines", "receptionLine")
-            ->setParameter("states", [Reception::STATUT_RECEPTION_PARTIELLE, Reception::STATUT_EN_ATTENTE]);
+            ->addSelect("join_status.nom AS status")
 
-        return $qb->getQuery()->getResult();
+            ->join("reception.statut", "join_status")
+            ->leftJoin("reception.storageLocation", "join_storageLocation")
+            ->leftJoin("reception.location", "join_location")
+            ->leftJoin("reception.transporteur", "join_carrier")
+            ->leftJoin("reception.fournisseur", "join_supplier")
+            ->leftJoin("reception.utilisateur", "join_user")
+
+            // Select only reception without packs
+            ->andWhere($exprBuilder->eq("({$countLineWithPackQueryBuilder->getDQL()})", 0))
+
+            // Select only reception with quantity to receive
+            ->andWhere($exprBuilder->gt("({$sumReferenceQuantityQueryBuilder->getDQL()})", 0))
+
+            // Select only reception not finished
+            ->andWhere("join_status.code IN (:states)")
+
+            ->orderBy("reception.dateAttendue", Order::Descending->value)
+            ->addOrderBy("reception.id", Order::Descending->value)
+
+            ->setMaxResults($maxNumberOfReceptions)
+
+            ->setParameter("states", [
+                Reception::STATUT_RECEPTION_PARTIELLE,
+                Reception::STATUT_EN_ATTENTE,
+            ])
+            ->getQuery()
+            ->getResult();
     }
 
 }

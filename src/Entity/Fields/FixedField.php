@@ -68,6 +68,7 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+            FixedFieldEnum::carrierTrackingNumber->name
         ],
         FixedFieldStandard::ENTITY_CODE_DEMANDE => [
             FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT

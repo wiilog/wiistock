@@ -1,0 +1,38 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade"
+     id="modalEditProductionRequest"
+     role="dialog"
+     aria-hidden="true"
+     data-modal-type="edit">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Dupliquer demande de production"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {{ form.number('quantityToGenerate', 'Nombre de demande à générer', true, 1, {
+                    min: 1,
+                    inputClass: 'needs-default',
+                    additionalAttributes: [{
+                        name: 'data-init',
+                        value: 1,
+                    }],
+                    max: 10,
+                    step: 1,
+                }) }}
+
+                <div class="form-production-request mt-4">
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

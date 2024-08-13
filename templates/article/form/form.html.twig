@@ -326,9 +326,10 @@
                         </div>
                     </div>
                 {% else %}
+                    {% set type = article.type %}
                     <div class="px-3">
                         {% include 'free_field/freeFieldsEdit.html.twig' with {
-                            freeFields: freeFieldsGroupedByTypes[article.type.id] is defined ? freeFieldsGroupedByTypes[article.type.id] : [],
+                            freeFieldManagementRules: type.freeFieldManagementRules|filter((rule) => rule.freeField.categorieCL.label == constant('App\\Entity\\CategorieCL::ARTICLE')),
                             freeFieldValues: article.freeFields,
                             colType: 'col-md-6 col-12',
                             requiredType: 'requiredEdit',

@@ -11,7 +11,6 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\EmplacementDataService;
@@ -436,7 +435,7 @@ class TrackingMovementController extends AbstractController {
 
     #[Rest\Get("/tracking-drops", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
-    public function getTrackingDropsOnLocation(Request $request, EntityManagerInterface $entityManager): Response
+    public function getTrackingDropsOnLocation(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $resData = [];
 
@@ -483,7 +482,7 @@ class TrackingMovementController extends AbstractController {
     #[Wii\RestVersionChecked]
     public function getPackData(Request                $request,
                                 EntityManagerInterface $entityManager,
-                                NatureService          $natureService): Response
+                                NatureService          $natureService): JsonResponse
     {
         $code = $request->query->get('code');
         $includeNature = $request->query->getBoolean('nature');
@@ -535,7 +534,7 @@ class TrackingMovementController extends AbstractController {
 
     #[Rest\Get("/pack-groups", condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
-    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): Response
+    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $code = $request->query->get('code');
 
@@ -571,7 +570,7 @@ class TrackingMovementController extends AbstractController {
                           PackService             $packService,
                           EntityManagerInterface  $entityManager,
                           GroupService            $groupService,
-                          TrackingMovementService $trackingMovementService): Response
+                          TrackingMovementService $trackingMovementService): JsonResponse
     {
         $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -617,6 +616,11 @@ class TrackingMovementController extends AbstractController {
 
         foreach ($packs as $data) {
             $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
+
+            if(isset($data["comment"])) {
+                $pack->setComment($data["comment"]);
+            }
+
             if (!$pack->getParent()) {
                 $pack->setParent($parentPack);
 
@@ -705,25 +709,6 @@ class TrackingMovementController extends AbstractController {
 
         return $this->json([
             "success" => true,
-        ]);
-    }
-
-    #[Rest\Get("/previous-operator-movements", condition: self::IS_XML_HTTP_REQUEST)]
-    #[Wii\RestVersionChecked]
-    public function getPreviousOperatorMovements(Request $request, EntityManagerInterface $manager)
-    {
-        $userRepository = $manager->getRepository(Utilisateur::class);
-        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
-
-        $user = $userRepository->find($request->query->get("operator"));
-        $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
-            $user,
-            TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT
-        );
-
-        return $this->json([
-            "success" => true,
-            "movements" => $movements,
         ]);
     }
 

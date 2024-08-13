@@ -52,14 +52,14 @@
                         }) }}
                     </div>
                 </div>
-                {% if freeFieldsTypes is not empty %}
+                {% if types is not empty %}
                     <div class="d-none">
                         <span class="toggle-collapsible expanded">Champs libres</span>
                         <div class="collapsible expanded free-fields-container">
-                            {% for type in freeFieldsTypes %}
-                                <div class="d-none" data-type="{{ type.typeId }}">
+                            {% for type in types %}
+                                <div class="d-none" data-type="{{ type.id }}">
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                        freeFields: type.freeFields,
+                                        freeFieldManagementRules: type.freeFieldManagementRules,
                                         freeFieldValues: [],
                                         colType: 'col-12',
                                         requiredType: 'requiredCreate',

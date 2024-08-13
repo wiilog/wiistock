@@ -135,11 +135,11 @@
                     <div class="col-12">
                         <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
                         <div class="collapsible expanded free-fields-container mb-2">
-                            {% for type in freeFieldsTypes %}
+                            {% for type in types %}
                                 <div class="d-none"
-                                     data-type="{{ type.typeId }}">
+                                     data-type="{{ type.id }}">
                                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                        freeFields: type.freeFields,
+                                        freeFieldManagementRules: type.freeFieldManagementRules,
                                         freeFieldValues: [],
                                         colType: 'col-md-6 col-12',
                                         requiredType: 'requiredCreate',

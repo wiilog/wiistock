@@ -2,7 +2,7 @@
 
 namespace App\Twig;
 
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\OperationHistory\TransportHistoryRecord;
@@ -11,10 +11,10 @@ use App\Entity\Utilisateur;
 use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
+use App\Service\OperationHistoryService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
-use App\Service\OperationHistoryService;
 use App\Service\UserService;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,10 +22,10 @@ use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
+use Twig\Extension\AbstractExtension;
 use Twig\Markup;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
-use Twig\Extension\AbstractExtension;
 use Twig\TwigTest;
 use WiiCommon\Helper\Stream;
 

@@ -15,7 +15,7 @@
                     </a>
                 {% endif %}
                 {% if hasRightEdit %}
-                    <div class="dropdown-item action-on-click"
+                    <div class="dropdown-item"
                          data-toggle='modal'
                          data-target='#modalEditPack'
                          data-id="{{ pack.id }}"
@@ -39,6 +39,11 @@
                         {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données') }}
                     </a>
                 {% endif %}
+                <a class="dropdown-item action-on-click d-none"
+                   href="{{ path('pack_show', {id: pack.id}) }}">
+                    <span class="fa fa-eye"></span>
+                    Détails
+                </a>
             </div>
         </div>
     </div>

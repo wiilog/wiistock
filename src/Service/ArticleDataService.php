@@ -5,36 +5,36 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
-use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
-use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
-use App\Entity\CategorieCL;
 use App\Exceptions\FormException;
-use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class ArticleDataService
 {
@@ -79,7 +79,7 @@ class ArticleDataService
     public EmplacementDataService $emplacementDataService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     public function getCollecteArticleOrNoByRefArticle(Collecte         $collect,
                                                        ReferenceArticle $refArticle,
@@ -510,7 +510,7 @@ class ArticleDataService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $article->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -707,7 +707,7 @@ class ArticleDataService
             ["title" => "Pays d'origine", "name" => "nativeCountry", 'searchable' => true],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
+        return $this->fieldModesService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getFieldModes('article'));
     }
 
     public function putArticleLine($handle,

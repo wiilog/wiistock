@@ -57,7 +57,7 @@
                         <div class="dropdown-menu dropdown-wiilog dropdown-menu-right">
                             <a class="dropdown-item pointer"
                                data-toggle="modal"
-                               data-target="#modalColumnVisible">
+                               data-target="#modalFieldModes">
                                 <i class="fa fa-cog mr-2"></i>
                                 Gestion des colonnes
                             </a>
@@ -65,7 +65,7 @@
                     {% else %}
                         <button class="btn btn-primary"
                                 data-toggle="modal"
-                                data-target="#modalColumnVisible">
+                                data-target="#modalFieldModes">
                             <i class="fa fa-cog mr-2"></i>
                             Gestion des colonnes
                         </button>
@@ -99,10 +99,19 @@
         defaultReceiver: defaultReceiver,
     } %}
 
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'table_demande',
-        page: 'deliveryRequest'
+        page: 'deliveryRequest',
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 {% endblock %}
 

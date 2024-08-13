@@ -227,10 +227,16 @@ class PackRepository extends EntityRepository
                         ->andWhere('projectFilter.id LIKE :projectCode')
                         ->setParameter('projectCode', $filter['value']);
                     break;
+                case 'receiptAssociation':
+                    $queryBuilder
+                        ->join('pack.receiptAssociations', 'receiptAssociationFilter')
+                        ->andWhere('receiptAssociationFilter.receptionNumber like :receiptAssociationCode')
+                        ->setParameter('receiptAssociationCode', '%' . $filter['value'] . '%');
+                    break;
             }
         }
 
-        //Filter search
+        // Filter bar search
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
@@ -242,13 +248,15 @@ class PackRepository extends EntityRepository
                         ->leftJoin('pack.arrivage', 'arrivage')
                         ->leftJoin('arrivage.type','arrival_type')
                         ->leftJoin('pack.childArticles', 'child_articles_search')
+                        ->leftJoin('pack.receiptAssociations', 'receipt_associations_search')
                         ->andWhere("(
                             pack.code LIKE :value OR
                             e2.label LIKE :value OR
                             n2.label LIKE :value OR
                             arrivage.numeroArrivage LIKE :value OR
                             arrival_type.label LIKE :value OR
-                            child_articles_search.barCode LIKE :value
+                            child_articles_search.barCode LIKE :value OR
+                            receipt_associations_search.receptionNumber LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -260,31 +268,35 @@ class PackRepository extends EntityRepository
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
                     if ($column === 'packLocation') {
                         $queryBuilder
-                            ->leftJoin('pack.lastTracking', 'm3')
-                            ->leftJoin('m3.emplacement', 'e3')
-                            ->orderBy('e3.label', $order);
+                            ->leftJoin('pack.lastTracking', 'order_packLocation_pack_lastTracking')
+                            ->leftJoin('order_packLocation_pack_lastTracking.emplacement', 'order_packLocation_pack_lastTracking_emplacement')
+                            ->orderBy('order_packLocation_pack_lastTracking_emplacement.label', $order);
                     } else if ($column === 'packNature') {
                         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], ['nature'], ["order" => $order]);
                     } else if ($column === 'packLastDate') {
                         $queryBuilder
-                            ->leftJoin('pack.lastTracking', 'm3')
-                            ->orderBy('m3.datetime', $order);
+                            ->leftJoin('pack.lastTracking', 'order_packLastDate_pack_lastTracking')
+                            ->orderBy('order_packLastDate_pack_lastTracking.datetime', $order);
                     } else if ($column === 'packOrigin') {
                         $queryBuilder
-                            ->leftJoin('pack.arrivage', 'arrivage3')
-                            ->orderBy('arrivage3.numeroArrivage', $order);
+                            ->leftJoin('pack.arrivage', 'order_packOrigin_pack_arrivage')
+                            ->orderBy('order_packOrigin_pack_arrivage.numeroArrivage', $order);
                     } else if ($column === 'arrivageType') {
                         $queryBuilder
-                            ->leftJoin('pack.arrivage', 'arrivage3')
-                            ->orderBy('arrivage3.type', $order);
+                            ->leftJoin('pack.arrivage', 'order_arrivageType_pack_arrivage')
+                            ->orderBy('order_arrivageType_pack_arrivage.type', $order);
                     } else if ($column === 'pairing') {
                         $queryBuilder
-                            ->leftJoin('pack.pairings', 'order_pairings')
-                            ->orderBy('order_pairings.active', $order);
+                            ->leftJoin('pack.pairings', 'order_pairing_pack_pairings')
+                            ->orderBy('order_pairing_pack_pairings.active', $order);
                     } else if ($column === 'project') {
                         $queryBuilder
-                            ->leftJoin('pack.project', 'order_project')
-                            ->orderBy('order_project.code', $order);
+                            ->leftJoin('pack.project', 'order_project_pack_project')
+                            ->orderBy('order_project_pack_project.code', $order);
+                    } else if ($column === 'truckArrivalNumber') {
+                        $queryBuilder
+                            ->leftJoin('pack.arrivage', 'order_truckArrivalNumber_pack_arrivage')
+                            ->orderBy('order_truckArrivalNumber_pack_arrivage.noTracking', $order);
                     } else {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);
@@ -758,4 +770,14 @@ class PackRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findDuplicateCode() {
+        // get all packs having a non-unique code
+        return $this->createQueryBuilder("pack")
+            ->select("pack.code")
+            ->addSelect("COUNT(pack.code) AS count")
+            ->groupBy("pack.code")
+            ->having("COUNT(pack.code) > 1")
+            ->getQuery()
+            ->getResult();
+    }
 }

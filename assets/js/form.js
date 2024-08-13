@@ -108,6 +108,7 @@ export default class Form {
      *    success?: function,
      *    routeParams?: {[string]: string},
      *    tables?: Datatable|Datatable[],
+     *    clearFields?: boolean,
      * }} options
      * @returns {Form}
      */
@@ -126,6 +127,10 @@ export default class Form {
 
                             if(options.success) {
                                 options.success(response);
+                            }
+
+                            if (options.clearFields) {
+                                form.clear();
                             }
 
                             if(options.tables) {
@@ -230,10 +235,6 @@ export default class Form {
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
 
-            if($input.is('[data-intl-tel-input]')){
-                $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
-            }
-
             const $multipleKey = $input.closest(`[data-multiple-key]`);
             if ($multipleKey.exists()) {
                 const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
@@ -337,7 +338,7 @@ export default class Form {
                     if($elem.attr(`type`) === `checkbox`) {
                         return $elem.is(`:checked`) ? $elem.val() : null;
                     } else {
-                        return $elem.val();
+                        return formatInputValue($elem);
                     }
                 })
                 .filter(val => val !== null));
@@ -454,6 +455,7 @@ function ignoreInput($form, $input, config) {
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
+    const $visibleForm = $form.find(':not(.d-none)');
     const $inputs = $form
         .find(`
             .fileInput,
@@ -477,8 +479,6 @@ function eachInputs(form, config, callback) {
             const $checked = $form.find(`input[type="radio"][name="${input.name}"]:checked`);
             if($checked.exists()) {
                 $input = $checked;
-            } else {
-                $input = $form.find(`input[type="radio"][name="${input.name}"]`);
             }
         }
 
@@ -556,7 +556,7 @@ function treatInputError($input, errors, form) {
         }
     }
 
-    if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
+    if (($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`))) {
         if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
             const $elementInError = $input.closest(`.wii-radio-container, .wii-checkbox, .wii-switch, .wii-expanded-switch`);
             // check if element is already in error
@@ -632,6 +632,8 @@ function formatInputValue($input) {
         value = $input.is(`:checked`)
             ? $input.val()
             : null;
+    } else if (($input.attr(`type`) === `text` && $input.hasClass(`phone-number`))) {
+        value = window.intlTelInputGlobals.getInstance($input[0])?.getNumber() || null;
     } else {
         value = $input.val() || null;
     }

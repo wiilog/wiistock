@@ -10,34 +10,34 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FreeField;
 use App\Entity\Dispatch;
+use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Pack;
-use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\Setting;
-use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
-use Exception;
-use Symfony\Bundle\SecurityBundle\Security;
-use Doctrine\ORM\EntityManagerInterface;
-use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class TrackingMovementService extends AbstractController
 {
@@ -61,7 +61,7 @@ class TrackingMovementService extends AbstractController
     public LoggerInterface $logger;
 
     private $locationClusterService;
-    private $visibleColumnService;
+    private $fieldModesService;
     private $groupService;
 
     #[Required]
@@ -92,18 +92,18 @@ class TrackingMovementService extends AbstractController
 
     public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
-                                Twig_Environment $templating,
-                                Security $security,
-                                GroupService $groupService,
-                                VisibleColumnService $visibleColumnService,
-                                AttachmentService $attachmentService)
+                                Twig_Environment       $templating,
+                                Security               $security,
+                                GroupService           $groupService,
+                                FieldModesService      $fieldModesService,
+                                AttachmentService      $attachmentService)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
-        $this->visibleColumnService = $visibleColumnService;
+        $this->fieldModesService = $fieldModesService;
         $this->groupService = $groupService;
     }
 
@@ -115,7 +115,7 @@ class TrackingMovementService extends AbstractController
         $user = $this->security->getUser();
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
 
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->fieldModesService);
 
         $mouvements = $queryResult['data'];
 
@@ -239,20 +239,25 @@ class TrackingMovementService extends AbstractController
 
         if ($movement->getLogisticUnitParent()) {
             if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
-                $packCode = "";
+                $pack = null;
             } else {
-                $packCode = $movement->getLogisticUnitParent()->getCode();
+                $pack = $movement->getLogisticUnitParent();
             }
         } else {
-            $packCode = $movement->getPackArticle()
-                ? ""
-                : $movement->getPack()->getCode();
+            $pack = $movement->getPackArticle()
+                ? null
+                : $movement->getPack();
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'pack' => $packCode,
+            'pack' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
+                "entityPath" => "pack_show",
+                "entityId" => $pack?->getId(),
+                "from" => $pack?->getCode(),
+
+            ]),
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -279,7 +284,7 @@ class TrackingMovementService extends AbstractController
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -365,6 +370,7 @@ class TrackingMovementService extends AbstractController
                         [
                             'parent' => $parentPack,
                             'onlyPack' => true,
+                            'commentaire' => $data['commentaire'] ?? null,
                         ]
                     );
 
@@ -421,6 +427,10 @@ class TrackingMovementService extends AbstractController
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
+        $ungroup = !$disableUngrouping
+            && $pack->getParent()
+            && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
+
         $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)
@@ -443,7 +453,16 @@ class TrackingMovementService extends AbstractController
             }
         }
 
+        if(!$ungroup && $parent) {
+            // Si pas de mouvement de dégroupage, on set le parent
+            $tracking->setPackParent($parent);
+            $tracking->setGroupIteration($parent->getGroupIteration());
+        }
+
         $pack->addTrackingMovement($tracking);
+
+        $message = $this->buildCustomLogisticUnitHistoryRecord($tracking);
+        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $tracking->getDatetime(), $tracking->getOperateur(), ucfirst($tracking->getType()->getCode()), $tracking->getEmplacement());
 
         if (!$pack->getLastTracking()
             || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
@@ -460,9 +479,7 @@ class TrackingMovementService extends AbstractController
         ]);
         $this->manageTrackingFiles($tracking, $fileBag);
 
-        if (!$disableUngrouping
-             && $pack->getParent()
-             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
+        if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
             [$_, $orderIndex] = hrtime();
@@ -485,10 +502,8 @@ class TrackingMovementService extends AbstractController
                 $pack->setParent(null);
             }
             $entityManager->persist($trackingUngroup);
-        } else if($parent) {
-            // Si pas de mouvement de dégroupage, on set le parent
-            $tracking->setPackParent($parent);
-            $tracking->setGroupIteration($parent->getGroupIteration());
+            $message = $this->buildCustomLogisticUnitHistoryRecord($trackingUngroup);
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $trackingUngroup->getDatetime(), $trackingUngroup->getOperateur(), ucfirst($trackingUngroup->getType()->getCode()), $trackingUngroup->getEmplacement());
         }
         [$_, $orderIndex] = hrtime();
         $tracking->setOrderIndex($orderIndex);
@@ -498,8 +513,7 @@ class TrackingMovementService extends AbstractController
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
                                          TrackingMovement $tracking,
-                                         array $options) {
-
+                                         array $options): void {
         $from = $options['from'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $refOrArticle = $options['refOrArticle'] ?? null;
@@ -551,7 +565,7 @@ class TrackingMovementService extends AbstractController
         }
     }
 
-    private function manageTrackingFiles(TrackingMovement $tracking, $fileBag) {
+    private function manageTrackingFiles(TrackingMovement $tracking, $fileBag): void {
         if (isset($fileBag)) {
             $attachments = $this->attachmentService->createAttachmentsDeprecated($fileBag);
             foreach ($attachments as $attachment) {
@@ -561,8 +575,7 @@ class TrackingMovementService extends AbstractController
     }
 
     private function generateUniqueIdForMobile(EntityManagerInterface $entityManager,
-                                               DateTime $date): string
-    {
+                                               DateTime $date): string {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         //same format as moment.defaultFormat
@@ -578,7 +591,7 @@ class TrackingMovementService extends AbstractController
     }
 
     public function persistSubEntities(EntityManagerInterface $entityManager,
-                                       TrackingMovement $trackingMovement) {
+                                       TrackingMovement $trackingMovement): void {
         $pack = $trackingMovement->getPack();
         if (!empty($pack)) {
             $entityManager->persist($pack);
@@ -694,7 +707,7 @@ class TrackingMovementService extends AbstractController
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['trackingMovement'];
+        $columnsVisible = $currentUser->getFieldModes('trackingMovement');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, CategorieCL::MVT_TRACA);
 
         $columns = [
@@ -712,7 +725,7 @@ class TrackingMovementService extends AbstractController
             ['title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur', false), 'name' => 'operator'],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function persistTrackingForArrivalPack(EntityManagerInterface $entityManager,
@@ -1609,5 +1622,19 @@ class TrackingMovementService extends AbstractController
                 ])
         )
             ->toArray();
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement): string {
+        $values = $trackingMovement->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn(?string $value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
     }
 }

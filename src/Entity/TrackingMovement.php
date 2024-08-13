@@ -3,12 +3,14 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -112,10 +114,10 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $groupIteration = null;
 
-    #[ORM\OneToMany(mappedBy: 'firstDrop', targetEntity: LocationClusterRecord::class)]
+    #[ORM\OneToMany(mappedBy: 'firstDrop', targetEntity: LocationClusterRecord::class, cascade: ["persist"])]
     private Collection $firstDropRecords;
 
-    #[ORM\OneToMany(mappedBy: 'lastTracking', targetEntity: LocationClusterRecord::class)]
+    #[ORM\OneToMany(mappedBy: 'lastTracking', targetEntity: LocationClusterRecord::class, cascade: ["persist"])]
     private Collection $lastTrackingRecords;
 
     #[ORM\ManyToOne(targetEntity: ReceptionReferenceArticle::class, inversedBy: 'trackingMovements')]
@@ -550,4 +552,11 @@ class TrackingMovement implements AttachmentContainer {
         return $this->orderIndex;
     }
 
+    public function serialize(FormatService $formatService): array {
+        return [
+            FixedFieldEnum::quantity->value => $this->getQuantity(),
+            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
+            FixedFieldEnum::group->value => $formatService->pack($this->getPackParent()),
+        ];
+    }
 }

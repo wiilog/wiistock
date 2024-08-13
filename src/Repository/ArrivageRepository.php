@@ -5,11 +5,11 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Statut;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
@@ -147,7 +147,7 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
+    public function findByParamsAndFilters(InputBag $params, array $filters, FieldModesService $fieldModesService, array $options = []): array
     {
         $qb = $this->createQueryBuilder("arrival")
             ->addSelect('SUM(main_packs.weight) AS totalWeight')
@@ -277,7 +277,11 @@ class ArrivageRepository extends EntityRepository
                     $qb
                         ->leftJoin('arrival.truckArrivalLines', 'lines')
                         ->leftJoin('lines.truckArrival', 'filter_truckArrival')
-                        ->andWhere('filter_truckArrival.number LIKE :numTruckArrival')
+                        ->leftJoin('arrival.truckArrival', 'filter_arrival_truckArrival')
+                        ->andWhere($qb->expr()->orX(
+                            'filter_truckArrival.number LIKE :numTruckArrival',
+                            'filter_arrival_truckArrival.number LIKE :numTruckArrival'
+                        ))
                         ->setParameter('numTruckArrival' , '%'.$filter['value'].'%');
                     break;
                 case 'noTracking':
@@ -317,7 +321,7 @@ class ArrivageRepository extends EntityRepository
                         "truckArrivalNumber" => "search_truckArrival.number LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'arrival', $qb, $options['user'], $search);
 
                     $qb
                         ->leftJoin('arrival.transporteur', 'search_carrier')
@@ -380,7 +384,7 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('arrival.dropLocation', 'order_dropLocation')
                             ->orderBy('order_dropLocation.label', $order);
                     } else {
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);

@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArrivageRepository;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -102,6 +104,9 @@ class Arrivage implements AttachmentContainer {
 
     #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrivals')]
     private Collection $truckArrivalLines;
+
+    #[ORM\ManyToOne(targetEntity: TruckArrival::class)]
+    private ?TruckArrival $truckArrival = null;
 
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
@@ -555,5 +560,27 @@ class Arrivage implements AttachmentContainer {
         }
 
         return $this;
+    }
+
+    public function getTruckArrival(): ?TruckArrival
+    {
+        return $this->truckArrival;
+    }
+
+    public function setTruckArrival(?TruckArrival $truckArrival): self
+    {
+        $this->truckArrival = $truckArrival;
+
+        return $this;
+    }
+
+    public function serialize(FormatService $formatService): array {
+
+        return [
+            FixedFieldEnum::status->value => $this->getStatut()->getCode(),
+            FixedFieldEnum::type->value => $this->getType()->getLabel(),
+            FixedFieldEnum::carrier->value => $this->getTransporteur()->getLabel(),
+            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
+        ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -56,14 +57,17 @@ class Pack implements PairedEntity {
     #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
     private Collection $trackingMovements;
 
+    #[ORM\ManyToMany(targetEntity: ReceiptAssociation::class, mappedBy: 'logisticUnits')]
+    private Collection $receiptAssociations;
+
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
     private ?int $quantity = 1;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
-    private ?float $weight = null;
+    private ?string $weight = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 6, nullable: true)]
-    private ?float $volume = null;
+    private ?string $volume = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
@@ -123,7 +127,8 @@ class Pack implements PairedEntity {
     private ?ShippingRequestPack $shippingRequestPack = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
-    private ?int $truckArrivalDelay = null; //millisecondes entre la création de l'arrivage camion et l'UL
+    private ?int $truckArrivalDelay = null;
+    //millisecondes entre la création de l'arrivage camion et l'UL
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -136,6 +141,7 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
+        $this->receiptAssociations = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -312,20 +318,28 @@ class Pack implements PairedEntity {
     }
 
     public function getWeight(): ?float {
-        return $this->weight;
+        return isset($this->weight)
+            ? ((float) $this->weight)
+            : null;
     }
 
     public function setWeight(?float $weight): self {
-        $this->weight = $weight;
+        $this->weight = isset($weight)
+            ? ((string) $weight)
+            : null;
         return $this;
     }
 
     public function getVolume(): ?float {
-        return $this->volume;
+        return isset($this->volume)
+            ? ((float) $this->volume)
+            : null;
     }
 
     public function setVolume(?float $volume): self {
-        $this->volume = $volume;
+        $this->volume = isset($volume)
+            ? ((string) $volume)
+            : null;
         return $this;
     }
 
@@ -779,4 +793,40 @@ class Pack implements PairedEntity {
 
         return $this;
     }
+
+    public function getReceiptAssociations(): Collection {
+        return $this->receiptAssociations;
+    }
+
+    public function addReceptionAssociation(ReceiptAssociation $receiptAssociations): self {
+        if (!$this->receiptAssociations->contains($receiptAssociations)) {
+            $this->receiptAssociations[] = $receiptAssociations;
+            $receiptAssociations->addPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceiptAssociation(ReceiptAssociation $receiptAssociations): self {
+        if ($this->receiptAssociations->removeElement($receiptAssociations)) {
+            $receiptAssociations->removePack($this);
+        }
+
+        return $this;
+    }
+
+    public function setReceiptAssociations(?iterable $receiptAssociations): self {
+        foreach($this->getReceiptAssociations()->toArray() as $receiptAssociation) {
+            $this->removeReceiptAssociation($receiptAssociation);
+        }
+
+        $this->receiptAssociations = new ArrayCollection();
+        foreach($receiptAssociations ?? [] as $receiptAssociation) {
+            $this->addReceptionAssociation($receiptAssociation);
+        }
+
+        return $this;
+    }
+
+
 }

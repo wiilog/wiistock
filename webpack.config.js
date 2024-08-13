@@ -41,6 +41,9 @@ Encore
     .addEntry('reception-show', './assets/js/pages/reception/show.js')
     .addEntry('handling-show', './assets/js/pages/handling/show.js')
     .addEntry('handling-edit', './assets/js/pages/handling/edit.js')
+    .addEntry('handling-index', './assets/js/pages/handling/index.js')
+    .addEntry('collect-request-index', './assets/js/pages/collect-request/index.js')
+    .addEntry('collect-request-show', './assets/js/pages/collect-request/show.js')
     .addEntry('register', './assets/js/pages/register/register.js')
     .addEntry('customer-index', './assets/js/pages/customer/index.js')
     .addEntry('kiosk', './assets/js/pages/kiosk.js')
@@ -72,7 +75,11 @@ Encore
     .addEntry('supplier-index', './assets/js/pages/supplier/index.js')
     .addEntry('stock-movement-index', './assets/js/pages/stock-movement/index.js')
     .addEntry('nature-index', './assets/js/pages/nature/index.js')
+    .addEntry('warning-header', './assets/js/warning-header.js')
+    .addEntry('pack-show', './assets/js/pages/pack/show.js')
+    .addEntry('pack', './assets/js/pages/pack/pack.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
+    .addStyleEntry('pack-details-page', './assets/scss/details-page.scss')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

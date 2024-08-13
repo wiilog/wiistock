@@ -12,7 +12,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -28,7 +28,6 @@ use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,7 +76,7 @@ class ArrivageService {
     public FixedFieldService $fieldsParamService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FormatService $formatService;
@@ -111,7 +110,7 @@ class ArrivageService {
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
-            $this->visibleColumnService,
+            $this->fieldModesService,
             [
                 'userIdArrivalFilter' => $userIdArrivalFilter,
                 'user' => $this->security->getUser(),
@@ -157,6 +156,9 @@ class ArrivageService {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
+        $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
+        $truckArrivalNumber = $arrival->getTruckArrival()?->getNumber() ?: '';
+
         $row = [
             'id' => $arrivalId,
             'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='UL acheminée(s)'></i></td>" : '',
@@ -183,7 +185,9 @@ class ArrivageService {
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => $this->formatService->location($arrival->getDropLocation()),
-            'truckArrivalNumber' => !$arrival->getTruckArrivalLines()->isEmpty() ? $arrival->getTruckArrivalLines()->first()->getTruckArrival()->getNumber() : '',
+            'truckArrivalNumber' => $arrivalHasLine
+                ? $arrivalHasLine->getTruckArrival()->getNumber()
+                : ($truckArrivalNumber),
             'url' => $url,
         ];
 
@@ -195,7 +199,7 @@ class ArrivageService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $this->security->getUser());
         }
@@ -543,8 +547,9 @@ class ArrivageService {
             ],
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N°Arrivage camion'),
-                'value' => count($truckArrivalLines) > 0 ?
-                    '<a href="/arrivage-camion/voir/'. $truckArrivalLines->first()->getTruckArrival()->getId() . '" title="Détail Arrivage Camion">' . $truckArrivalLines->first()->getTruckArrival()->getNumber() . '</a>' : '',
+                'value' => count($truckArrivalLines) > 0
+                    ? '<a href="/arrivage-camion/voir/'. $truckArrivalLines->first()->getTruckArrival()->getId() . '" title="Détail Arrivage Camion">' . $truckArrivalLines->first()->getTruckArrival()->getNumber() . '</a>'
+                    : '<a href="/arrivage-camion/voir/'. $arrivage->getTruckArrival()?->getId() . '" title="Détail Arrivage Camion">' . $arrivage->getTruckArrival()?->getNumber() . '</a>',
                 'isRaw' => true
             ],
             [
@@ -638,7 +643,7 @@ class ArrivageService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['arrival'];
+        $columnsVisible = $currentUser->getFieldModes('arrival');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
 
         $columns = [
@@ -685,7 +690,7 @@ class ArrivageService {
             $columns[] = ['title' =>  $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose'), 'name' => 'dropLocation'];
         }
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function sendMailForDeliveredPack(Emplacement            $location,
@@ -963,5 +968,19 @@ class ArrivageService {
         }
 
         return null;
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(Arrivage $arrival): string {
+        $values = $arrival->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn(?string $value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
     }
 }

@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method Import[]    findAll()
  * @method Import[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ImportRepository extends EntityRepository
+class ImportRepository extends EntityRepository implements ScheduledTaskRepository
 {
 	public function findByParamsAndFilters(InputBag $params, $filters): array
 	{
@@ -139,7 +139,11 @@ class ImportRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findScheduledImports(): array {
+
+    /**
+     * @return Import[]
+     */
+    public function findScheduled(): array {
         return $this->createQueryBuilder("import")
             ->innerJoin("import.type", "join_type", Join::WITH, "join_type.label = :type")
             ->innerJoin("import.status", "join_status", Join::WITH, "join_status.code = :status")

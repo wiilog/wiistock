@@ -4,6 +4,7 @@ namespace App\Controller\ProductionRequest;
 
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
+use App\Controller\FieldModesController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -11,7 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
@@ -28,7 +29,7 @@ use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequestService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\UserService;
 use DateTime;
@@ -55,7 +56,7 @@ class ProductionRequestController extends AbstractController
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser);
+        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_LIST);
 
         // repository
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -95,12 +96,7 @@ class ProductionRequestController extends AbstractController
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager)->getContent(),
             "dateChoices" => $dateChoices,
-            "types" => Stream::from($types)
-                ->map(fn(Type $type) => [
-                    'id' => $type->getId(),
-                    'label' => $this->getFormatter()->type($type)
-                ])
-                ->toArray(),
+            "types" => $types,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
                 ->reduce(function($status, $item) {
                     $status[$item['id']] = $item['label'];
@@ -111,17 +107,6 @@ class ProductionRequestController extends AbstractController
             "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
-            "typeFreeFields" => Stream::from($types)
-                ->map(function (Type $type) use ($freeFieldRepository) {
-                    $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::PRODUCTION_REQUEST);
-
-                    return [
-                        "typeLabel" => $this->formatService->type($type),
-                        "typeId" => $type->getId(),
-                        "champsLibres" =>$freeFields,
-                    ];
-                })
-                ->toArray(),
         ]);
     }
 
@@ -130,7 +115,7 @@ class ProductionRequestController extends AbstractController
     public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_LIST);
 
         return new JsonResponse($columns);
     }
@@ -155,6 +140,8 @@ class ProductionRequestController extends AbstractController
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
             "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::emergency->name),
             "productionRequest" => $productionRequest,
+            "hasRightDeleteProductionRequest" => $productionRequestService->hasRightToDelete($productionRequest),
+            "hasRightEditProductionRequest" => $productionRequestService->hasRightToEdit($productionRequest),
             "detailsConfig" => $productionRequestService->createHeaderDetailsConfig($productionRequest),
             "attachments" => $productionRequest->getAttachments(),
             "freeFields" => $freeFields,
@@ -165,15 +152,38 @@ class ProductionRequestController extends AbstractController
     #[HasPermission([Menu::PRODUCTION, Action::CREATE_PRODUCTION_REQUEST])]
     public function new(EntityManagerInterface   $entityManager,
                         Request                  $request,
+                        UserService              $userService,
                         ProductionRequestService $productionRequestService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
+
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
 
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
-        $entityManager->persist($productionRequest);
+        $quantityToGenerate = $data->getInt('quantityToGenerate');
+        if ($quantityToGenerate !== 1 && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST)) {
+            throw new FormException("Vous n'avez pas les droits pour générer plusieurs demandes de production.");
+        }
+
+
+        if ($quantityToGenerate < 1) {
+            throw new FormException("La quantité à générer doit être supérieure à 0.");
+        }
+        $limitQuantity = 10;
+        if ($quantityToGenerate > $limitQuantity) {
+            throw new FormException("La quantité à générer ne peut pas dépasser $limitQuantity.");
+        }
+
+        $productionRequests = [];
+        for ($i = 0; $i < $quantityToGenerate; $i++) {
+            $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files, false);
+            $productionRequests[] = $productionRequest;
+            $entityManager->persist($productionRequest);
+        }
+
         $entityManager->flush();
 
-        $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        foreach ($productionRequests as $productionRequest) {
+            $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        }
 
         return $this->json([
             'success' => true,
@@ -319,7 +329,7 @@ class ProductionRequestController extends AbstractController
 
             $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
             $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(["slug" => $defaultSlug]);
-            $headers = Stream::from($productionRequestService->getVisibleColumnsConfig($entityManager, $user, true))
+            $headers = Stream::from($productionRequestService->getVisibleColumnsConfig($entityManager, $user,FieldModesController::PAGE_PRODUCTION_REQUEST_LIST, true))
                 ->map(static fn(array $column) => $column["title"])
                 ->toArray();
 
@@ -401,13 +411,34 @@ class ProductionRequestController extends AbstractController
 
         $entityManager->flush();
 
-        if($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
+        if ($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
         }
 
         return $this->json([
             "success" => true,
             "msg" => "La demande de production a été modifiée avec succès.",
+        ]);
+    }
+
+    #[Route("/formulaire-de-duplication/{productionRequest}", name: "form_duplicate", options: ["expose" => true], methods: self::GET, condition: self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST])]
+    public function duplicate(ProductionRequest $productionRequest,
+                              EntityManagerInterface $entityManager): JsonResponse {
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $productionRequest = clone $productionRequest;
+
+        $productionRequest->clearAttachments();
+
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("production_request/modal/form.html.twig", [
+                "productionRequest" => $productionRequest,
+                "displayAction" => "displayedCreate",
+                "requiredAction" => "requiredCreate",
+                "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+                "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            ]),
         ]);
     }
 }

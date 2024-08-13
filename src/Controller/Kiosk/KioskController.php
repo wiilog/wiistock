@@ -6,9 +6,10 @@ use App\Annotation\HasPermission;
 use App\Annotation\HasValidToken;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Kiosk;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -24,7 +25,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use App\Entity\Article;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -199,7 +199,7 @@ class KioskController extends AbstractController
         // repositories
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldManagementRuleRepository = $entityManager->getRepository(FreeFieldManagementRule::class);
         $kioskRepository = $entityManager->getRepository(Kiosk::class);
 
         // get data
@@ -227,16 +227,16 @@ class KioskController extends AbstractController
 
 
         $freeFieldReferenceCreate = $settingsService->getValue($entityManager, Setting::FREE_FIELD_REFERENCE_CREATE);
-
-        $freeField = $freeFieldReferenceCreate
-            ? $freeFieldRepository->find($freeFieldReferenceCreate)
-            : '';
+        $freeFieldManagementRule = $freeFieldManagementRuleRepository->findOneBy([
+            'type' => $reference->getType() ?? $settingsService->getValue($entityManager, Setting::TYPE_REFERENCE_CREATE),
+            'freeField' => $freeFieldReferenceCreate,
+        ]);
 
         return $this->render('kiosk/form.html.twig', [
             'kiosk' => $kiosk,
             'reference' => $reference,
             'scannedReference' => $scannedReference,
-            'freeField' => $reference?->getType() && $freeField instanceof FreeField ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
+            'freeFieldManagementRule' => $freeFieldManagementRule,
             'inStock' => $reference?->getQuantiteStock() > 0,
             'article' => $article ?? null,
             'notExistRefresh' => $notExistRefresh,

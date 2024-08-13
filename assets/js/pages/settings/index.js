@@ -40,6 +40,7 @@ import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventor
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
 import {onSelectAll} from '@app/pages/settings/utils';
+import {generateRandomNumber} from "@app/utils";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.addTypeRow = addTypeRow;
@@ -532,7 +533,7 @@ function initializeGlobalLabels() {
             barcodeType: () => {
                 const elements = [{label: 'Code 128', value: '1', checked: false}, {label: 'QR Code', value: '0', checked: true}]
                     .map(({label, value, checked}) => {
-                        const id = 'barcodeType-' + Math.floor(Math.random() * 1000000);
+                        const id = 'barcodeType-' + generateRandomNumber();
                         return `
                             <input type='radio' id='${id}' name='barcodeType' class='form-control data d-none' value='${value}' ${checked ? 'checked' : ''} content='${label}'>
                             <label for="${id}">${label}</label>
@@ -1152,7 +1153,7 @@ function addTypeRow($button) {
     let field = $button.closest('.modal').find('.zone-type');
     let template = $button.closest('.modal').find('.row-template');
     let clone = template.clone().contents();
-    let newMultipleKey = Math.floor(Math.random() * 100000000);
+    let newMultipleKey = generateRandomNumber();
     field.append(clone);
     field.find($('select[name=user]').last()).data('multiple-object-index', newMultipleKey);
     field.find($('select[name=handlingType]').last()).data('multiple-object-index', newMultipleKey);

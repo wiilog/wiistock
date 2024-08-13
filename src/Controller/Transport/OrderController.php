@@ -3,12 +3,13 @@
 namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
@@ -27,7 +28,6 @@ use App\Service\Transport\TransportService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -293,9 +293,7 @@ class OrderController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/csv", name="transport_orders_export", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route('/csv', name: 'transport_orders_export', options: ['expose' => true], methods: ['GET'])]
     public function getDeliveryRequestCSV(Request                $request,
                                           FreeFieldService       $freeFieldService,
                                           CSVExportService       $CSVExportService,

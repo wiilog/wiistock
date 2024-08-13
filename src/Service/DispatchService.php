@@ -17,7 +17,7 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -37,7 +37,6 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -82,7 +81,7 @@ class DispatchService {
     public FixedFieldService $fieldsParamService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public ArrivageService $arrivalService;
@@ -145,7 +144,7 @@ class DispatchService {
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->visibleColumnService,  [
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->fieldModesService,  [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
             'fromDashboard' => $fromDashboard,
@@ -229,7 +228,7 @@ class DispatchService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $dispatch->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -245,7 +244,6 @@ class DispatchService {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $fieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]);
@@ -267,25 +265,7 @@ class DispatchService {
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
-            'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
-                $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
-                return [
-                    'typeLabel' => $this->formatService->type($type),
-                    'typeId' => $type->getId(),
-                    'champsLibres' => $champsLibres,
-                    'pickLocation' => [
-                        "id" => $type->getPickLocation() ? $type->getPickLocation()->getId() : null,
-                        "label" => $type->getPickLocation() ? $type->getPickLocation()->getLabel() : null,
-                    ],
-                    'dropLocation' => [
-                        "id" => $type->getDropLocation() ? $type->getDropLocation()->getId() : null,
-                        "label" => $type->getDropLocation() ? $type->getDropLocation()->getLabel() : null,
-                    ],
-                    'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
-                    'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
-                    'isDefault' => $type->isDefault(),
-                ];
-            }, $types),
+            'types' => $types,
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $packs,
             'fromArrival' => $fromArrival,
@@ -678,7 +658,7 @@ class DispatchService {
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $groupedSignatureMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['dispatch'];
+        $columnsVisible = $currentUser->getFieldModes('dispatch');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, CategorieCL::DEMANDE_DISPATCH);
 
         $columns = [
@@ -720,7 +700,7 @@ class DispatchService {
             array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis']);
         }
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function parseRequestForCard(Dispatch $dispatch,
@@ -1101,6 +1081,9 @@ class DispatchService {
                 ->setQuantity($packQuantity)
                 ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
+
+            $message = $this->buildCustomLogisticUnitHistoryRecord($dispatch);
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $dispatch->getCreationDate(), $dispatch->getTreatedBy() ?? $this->security->getUser(), "Acheminement", $dispatch->getLocationFrom());
         }
     }
 
@@ -2023,19 +2006,19 @@ class DispatchService {
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT);
         $columns = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
-            ["name" => 'code', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Code')],
-            ["name" => 'quantity', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Quantité UL')],
-            ["name" => 'nature', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur')],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)'), 'width' => '200px'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)'), 'width' => '200px'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)'), 'width' => '200px'],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)')],
+            ["name" => 'code', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Code'), "alwaysVisible" => true],
+            ["name" => 'quantity', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Quantité UL'), "alwaysVisible" => true],
+            ["name" => 'nature', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)'), 'width' => '200px', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)'), 'width' => '200px', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)'), 'width' => '200px', "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)'), "alwaysVisible" => true],
         ];
 
         $columns = Stream::from($columns)
@@ -2056,7 +2039,7 @@ class DispatchService {
             })
             ->values();
 
-        return $this->visibleColumnService->getArrayConfig($columns);
+        return $this->fieldModesService->getArrayConfig($columns);
     }
 
     public function getDispatchLabelData(Dispatch $dispatch, EntityManagerInterface $entityManager): array {
@@ -2428,5 +2411,19 @@ class DispatchService {
         $this->refArticleDataService->updateDescriptionField($entityManager, $referenceArticle, $description);
 
         return $dispatchReferenceArticle;
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(Dispatch $dispatch): string {
+        $values = $dispatch->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+                ->filter(static fn($value) => $value)
+                ->each(static function (string $value, string $key) use (&$message) {
+                    $message .= "$key : $value\n";
+                    return $message;
+                });
+
+        return $message;
     }
 }

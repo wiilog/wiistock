@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;

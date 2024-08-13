@@ -5,14 +5,14 @@ namespace App\Service;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\FreeField;
-use App\Entity\Setting;
+use App\Entity\FreeField\FreeField;
 use App\Entity\ReferenceArticle;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
+use App\Entity\Setting;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 class AlertService {
 
@@ -83,7 +83,7 @@ class AlertService {
 
     public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager): void {
         $freeField = $entityManager->getRepository(FreeField::class)
-            ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
+            ->findOneBy(["label" => FreeField::MACHINE_PDT_FREE_FIELD]);
         $freeFieldValue = $freeField ? $reference->getFreeFieldValue($freeField->getId()) : "";
         if($reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
             $type = "Seuil de sécurité";

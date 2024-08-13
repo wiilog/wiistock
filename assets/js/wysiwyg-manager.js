@@ -1,4 +1,5 @@
 import {createPopper} from '@popperjs/core';
+import {generateRandomNumber} from "@app/utils";
 
 export default class WysiwygManager {
 
@@ -100,7 +101,7 @@ function toggleWysiwygPopover($wysiwyg) {
 
     if(!popoverId) {
         do {
-            popoverId = `wii-one-line-wysiwyg-popover-${Math.floor(Math.random() * 10000)}`;
+            popoverId = `wii-one-line-wysiwyg-popover-${generateRandomNumber()}`;
         }
         while($(`.wii-one-line-wysiwyg-wrapper[data-popover="${popoverId}"]`).exists());
         $wysiwyg

@@ -1,23 +1,16 @@
+{% extends 'settings/types_and_free_fields_template.html.twig' %}
+
 {% import 'form.html.twig' as form %}
 
-<div class="wii-section">
-    <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
-            Un type est une classification de vos entités. Sur les IoT, les types sont figés et se réfèrent à la catégorie d'objet connecté. Vous
-            pouvez associer à un type des champs libres afin d'apporter des informations supplémentaires propres à cette classification.
-            Cela vous permet de personnaliser votre application pour votre contexte d'utilisation.
-        </div>
-    </div>
+{% block title %}Types et champs libres{% endblock %}
+
+{% set hideType = true %}
+{% block typesDescription %}
+    Un type est une classification de vos entités. Sur les IoT, les types sont figés et se réfèrent à la catégorie d'objet connecté. Vous
+    pouvez associer à un type des champs libres afin d'apporter des informations supplémentaires propres à cette classification.
+    Cela vous permet de personnaliser votre application pour votre contexte d'utilisation.
+{% endblock %}
+
+{% block filters %}
     {{ form.switch('entity', null, false, types, {expanded: true}) }}
-</div>
-
-<div class="wii-section-title">Champs libres</div>
-<div class="wii-section">
-    <table class="table subentities-table w-100"></table>
-</div>
-
-<input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
-    {label: 'Oui', value: '1'},
-    {label: 'Non', value: '0'},
-    {label: 'Aucune', value: null, checked: true},
-]) | json_encode }}">
+{% endblock %}

@@ -4,7 +4,7 @@
 namespace App\Service;
 
 
-use App\Controller\VisibleColumnController;
+use App\Controller\FieldModesController;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -15,7 +15,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
@@ -31,6 +31,7 @@ use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Dataflow\Straggler;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
@@ -80,7 +81,7 @@ class DeliveryRequestService
     public NotificationService $notificationService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public UniqueNumberService $uniqueNumberService;
@@ -128,7 +129,7 @@ class DeliveryRequestService
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $user);
         }
-        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $user, $this->visibleColumnService);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $user, $this->fieldModesService);
 
         $demandeArray = $queryResult['data'];
 
@@ -180,7 +181,7 @@ class DeliveryRequestService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField);
         }
@@ -294,8 +295,11 @@ class DeliveryRequestService
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
 
-        if ((!$type->isActive() || !in_array($type->getId(), $utilisateur->getDeliveryTypeIds()))
-            && !empty($utilisateur->getDeliveryTypeIds())) {
+        if (!empty($utilisateur->getDeliveryTypeIds())
+            && (
+                !$type->isActive()
+                || !in_array($type->getId(), $utilisateur->getDeliveryTypeIds())
+            )) {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
 
@@ -330,7 +334,7 @@ class DeliveryRequestService
 
         $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? '');
 
-        $visibleColumns = $utilisateur->getVisibleColumns()[VisibleColumnController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS] ?? Demande::DEFAULT_VISIBLE_COLUMNS;
+        $visibleColumns = $utilisateur->getFieldModes(FieldModesController::DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS) ?? Demande::DEFAULT_VISIBLE_COLUMNS;
 
         $demande = new Demande();
         $demande
@@ -751,7 +755,7 @@ class DeliveryRequestService
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $manager, Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getVisibleColumns()['deliveryRequest'];
+        $columnsVisible = $currentUser->getFieldModes('deliveryRequest');
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, CategorieCL::DEMANDE_LIVRAISON);
 
@@ -771,7 +775,7 @@ class DeliveryRequestService
             ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function treatSetting_manageDeliveryWithoutStockQuantity(EntityManagerInterface       $entityManager,
@@ -886,7 +890,7 @@ class DeliveryRequestService
                 }
                 else if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                     if ($manageDeliveryWithoutStockQuantitySetting) {
-                        $locations[$defaultLocationReception->getId()] = true;
+                        $locations[$defaultLocationReception?->getId()] = true;
                     }
                     else {
                         $preparedUponValidation = false;
@@ -1011,7 +1015,7 @@ class DeliveryRequestService
             })
             ->values();
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function editatableLineForm(EntityManagerInterface                                       $entityManager,

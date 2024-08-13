@@ -16,7 +16,6 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Utilisateur;
-use App\Repository\SettingRepository;
 use Composer\Semver\Semver;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,6 +40,9 @@ class MobileApiService {
     public AlertService $alertService;
 
     #[Required]
+    public SettingsService $settingsService;
+
+    #[Required]
     public RefArticleDataService $refArticleDataService;
 
     const MOBILE_TRANSLATIONS = [
@@ -58,15 +60,14 @@ class MobileApiService {
 
     public function getDispatchesData(EntityManagerInterface $entityManager,
                                       Utilisateur $loggedUser): array {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
 
         $dispatchExpectedDateColors = [
-            'after' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER),
-            'DDay' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_D_DAY),
-            'before' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
+            'after' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER),
+            'DDay' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_EXPECTED_DATE_COLOR_D_DAY),
+            'before' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
         ];
 
         $dispatchOfflineMode = $this->userService->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $loggedUser);

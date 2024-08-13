@@ -24,6 +24,12 @@ security:
             pattern: ^/telecharger/nomade.apk$
             security: false
 
+        iot:
+            lazy: true
+            pattern: ^/api/iot
+            stateless: true
+            security: false
+
         api:
             lazy: true
             pattern: ^/api
@@ -75,6 +81,7 @@ security:
         - { path: ^/api/mobile/server-images$, role: PUBLIC_ACCESS }
         - { path: ^/api/mobile/nomade-versions$, role: PUBLIC_ACCESS }
         - { path: ^/api/mobile/api-key$, role: PUBLIC_ACCESS }
+        - { path: ^/api/mobile/users/\d+/previous-picking-counter$, role: PUBLIC_ACCESS }
         - { path: ^/api/ping$, role: PUBLIC_ACCESS }
         - { path: ^/login, role: PUBLIC_ACCESS }
         - { path: ^/register, role: PUBLIC_ACCESS }
@@ -86,6 +93,8 @@ security:
         - { path: ^/dashboard/sync, role: PUBLIC_ACCESS }
         - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }
         - { path: ^/dashboard/externe, role: PUBLIC_ACCESS }
+        - { path: ^/production/planning/externe, role: PUBLIC_ACCESS }
+        - { path: ^/production/planning/api-externe, role: PUBLIC_ACCESS }
         - { path: ^/verification-connexion, role: PUBLIC_ACCESS }
         - { path: ^/borne/$, role: PUBLIC_ACCESS }
         - { path: ^/caisse-automatique, role: PUBLIC_ACCESS }

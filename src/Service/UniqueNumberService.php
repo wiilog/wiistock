@@ -36,6 +36,8 @@ class UniqueNumberService
     #[Required]
     public EntityManagerInterface $entityManager;
 
+    private array $lastNumberByEntity = [];
+
     /**
      * getLastNumberByPrefixAndDate() function must be implemented in current entity repository with $prefix and $date params
      * @param EntityManagerInterface $entityManager
@@ -70,7 +72,7 @@ class UniqueNumberService
         $counterFormat = $matches[2];
 
         $dateStr = $date->format($dateFormat);
-        $lastNumber = $entityRepository->getLastNumberByDate($dateStr, $prefix, $format);
+        $lastNumber = $this->lastNumberByEntity[$entity] ?? $entityRepository->getLastNumberByDate($dateStr, $prefix, $format);
         $counterLen = strlen($counterFormat);
         $lastCounter = (
         (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
@@ -87,7 +89,11 @@ class UniqueNumberService
             $dateStr = str_replace("{" . $key . "}", $data, $dateStr);
         }
 
-        return ($smartPrefix . $dateStr . $currentCounterStr);
+        $number = $smartPrefix . $dateStr . $currentCounterStr;
+
+        $this->lastNumberByEntity[$entity] = $number;
+
+        return $number;
     }
 
     public function createWithRetry(EntityManagerInterface $entityManager,

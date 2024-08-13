@@ -3,35 +3,32 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
+use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Type;
-use App\Entity\Menu;
-use App\Entity\Action;
 use App\Exceptions\FormException;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/parametrage/type")
- */
+#[Route('/parametrage/type')]
 class TypeController extends AbstractController {
 
-    /**
-     * @Route("/type-api/{type}/edit/translate", name="settings_edit_type_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route('/type-api/{type}/edit/translate', name: 'settings_edit_type_translations_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function apiEditTranslations(EntityManagerInterface $manager,
                                         TranslationService $translationService,
                                         ?Type $type = null): JsonResponse
@@ -51,7 +48,8 @@ class TypeController extends AbstractController {
             $translationService->setDefaultTranslation($manager, $type, $type->getLabel());
         }
 
-        foreach ($type->getChampsLibres() as $freeField) {
+        /*
+        foreach ($type->getChampsLibres() as $freeField) { //TODO
             if ($freeField->getLabelTranslation() === null) {
                 $translationService->setDefaultTranslation($manager, $freeField, $freeField->getLabel());
             }
@@ -66,6 +64,7 @@ class TypeController extends AbstractController {
                 }
             }
         }
+        */
 
         $manager->flush();
 
@@ -78,10 +77,8 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/type/edit/translate", name="settings_edit_type_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/type/edit/translate', name: 'settings_edit_type_translations', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editTranslations(Request                $request,
                                      EntityManagerInterface $manager,
                                      TranslationService     $translationService): JsonResponse {
@@ -167,11 +164,9 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/verification/{type}", name="settings_types_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function checkTypeCanBeDeleted(Type $type,
-                                          EntityManagerInterface $entityManager): Response {
+    #[Route('/verification/{type}', name: 'settings_types_check_delete', options: ['expose' => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    public function checkTypeCanBeDeleted(Type                      $type,
+                                          EntityManagerInterface    $entityManager): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -184,10 +179,8 @@ class TypeController extends AbstractController {
             $message = 'Voulez-vous réellement supprimer ce type ?';
         }
         else if (!$canDelete) {
-            $hasNoFreeFields = $type->getChampsLibres()->isEmpty();
-            $message = $hasNoFreeFields
-                ? 'Ce type est utilisé, vous ne pouvez pas le supprimer.'
-                : 'Des champs libres sont liés à ce type, veuillez les supprimer avant de procéder à la suppression du type';
+
+            $message =  'Ce type est utilisé, vous ne pouvez pas le supprimer.';
         }
         else {
             $message = 'Ce type est lié à des statuts, veuillez les supprimer avant de procéder à la suppression du type';
@@ -199,9 +192,7 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer/{type}", name="settings_types_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/supprimer/{type}', name: 'settings_types_delete', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function delete(Type $type,
                            EntityManagerInterface $entityManager): Response
     {
@@ -224,26 +215,25 @@ class TypeController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/champs-libres/{type}", name="free_fields_by_type", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/champs-libres/{type}', name: 'free_fields_by_type', options: ['expose' => true], methods: [self::POST,], condition: self::IS_XML_HTTP_REQUEST)]
     public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager): Response
     {
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $allFreeFields = $freeFieldRepository->findByType($type->getId());
         $selectedFreeFieldId = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE);
-        $selectedFreeField = $selectedFreeFieldId ? $freeFieldRepository->find($selectedFreeFieldId) : null;
 
-        $freeFields = [($selectedFreeField && $selectedFreeField->getType()->getId() === $type->getId()) ? "<option value=''></option><option selected value='{$selectedFreeField->getId()}'>{$selectedFreeField->getLabel()}</option>" : "<option selected value=''></option>"];
+        $freeFields = [
+            "<option selected value=''></option>"
+        ];
 
-        $freeFields = array_merge($freeFields, Stream::from($allFreeFields)
-            ->map(function (FreeField $freeField) use ($selectedFreeField) {
-                if($freeField->getId() !== $selectedFreeField?->getId()){
-                    return "<option value='{$freeField->getId()}'>{$freeField->getLabel()}</option>";
-                }
+        $freeFields = array_merge($freeFields, Stream::from($type->getFreeFieldManagementRules())
+            ->map(function (FreeFieldManagementRule $freeFieldManagementRule) use ($selectedFreeFieldId) {
+                $freeField = $freeFieldManagementRule->getFreeField();
+                $attributes = $freeField->getId() == $selectedFreeFieldId ? "selected" : "";
+
+                return "<option value='{$freeField->getId()}' {$attributes}>{$freeField->getLabel()}</option>";
             })
             ->toArray()) ;
+
         return new JsonResponse([
             'success' => true,
             'freeFields' => $freeFields

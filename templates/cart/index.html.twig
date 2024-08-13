@@ -141,6 +141,7 @@
                                         }) }}
                                     </div>
                                 {% endif %}
+
                                 {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
                                 {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                     <div class="col-md-6 col-12">
@@ -150,13 +151,25 @@
                                         }) }}
                                     </div>
                                 {% endif %}
+
+                                {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE') %}
+                                {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                                    <div class="col-md-6 col-12">
+                                        {% set fieldRequired = deliveryFieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                                        {{ form.select(fieldCode, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'), fieldRequired, {
+                                            type: 'user',
+                                        }) }}
+
+                                    </div>
+                                {% endif %}
+
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
-                                        {% for type in deliveryFreeFieldsTypes %}
-                                            <div class="d-none" data-type="{{ type.typeId }}">
+                                        {% for type in deliveryTypes %}
+                                            <div class="d-none" data-type="{{ type.id }}">
                                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                                    freeFields: type.champsLibres,
+                                                    freeFieldManagementRules: type.freeFieldManagementRules,
                                                     freeFieldValues: [],
                                                     colType: 'col-md-6 col-12',
                                                     requiredType: 'requiredCreate',
@@ -249,10 +262,10 @@
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
-                                        {% for type in collectFreeFieldsTypes %}
-                                            <div class="d-none" data-type="{{ type.typeId }}">
+                                        {% for type in collectTypes %}
+                                            <div class="d-none" data-type="{{ type.id }}">
                                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
-                                                    freeFields: type.champsLibres,
+                                                    freeFieldManagementRules: type.freeFieldManagementRules,
                                                     freeFieldValues: [],
                                                     colType: 'col-md-6 col-12',
                                                     requiredType: 'requiredCreate',

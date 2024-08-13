@@ -351,10 +351,13 @@
             {% endif %}
             <input type="number"
                    data-no-arrow
-                   class="form-control {{ not (options.buttons ?? true) ? 'text-left w-100' : 'w-50 p-0' }} {{ not disabled ? 'data' }}"
+                   class="form-control {{ not (options.buttons ?? true) ? 'text-left w-100' : 'w-50 p-0' }} {{ not disabled ? 'data' }} {{ options.inputClass ?? '' }}"
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
                    {{ required and not disabled ? 'required' }}
+                    {% for attribute in options.additionalAttributes ?? [] %}
+                        {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                    {% endfor %}
                 {{ disabled }}
                 {{ _self.common_attributes(name, options) }}
                 {{ _self.multiple_key(options) }}>

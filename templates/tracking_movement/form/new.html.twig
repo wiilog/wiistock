@@ -57,7 +57,7 @@
                                     items : form_statuses
                                         |filter(status =>
                                             status.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
-                                            or status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight
+                                            or (status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight)
                                         )
                                         |map(status => ({
                                             value: status.id,
@@ -89,7 +89,7 @@
                 <span class="toggle-collapsible expanded">{{ trans('Général', '', 'Modale', 'Champs libres', false) }}</span>
                 <div class="collapsible expanded free-fields-container">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                        freeFields: champsLibres,
+                        freeFieldManagementRules: type.freeFieldManagementRules,
                         freeFieldValues: [],
                         colType: 'col-md-4 col-12',
                         requiredType: 'requiredCreate',

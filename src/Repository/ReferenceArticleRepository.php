@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -22,13 +22,12 @@ use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FormatService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
-use Doctrine\ORM\Query\Expr\Select;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -725,7 +724,7 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->orderBy('order_editedBy.username', $order);
                         break;
                     default:
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
@@ -800,7 +799,7 @@ class ReferenceArticleRepository extends EntityRepository {
                         break;
                     default:
                         $field = self::DtToDbLabels[$searchableField] ?? $searchableField;
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($field);
                         $freeField = is_numeric($freeFieldId)
                             ? $freeFieldRepository->find($freeFieldId)
                             : null;

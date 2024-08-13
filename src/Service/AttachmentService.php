@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Attachment;
 use App\Entity\Interfaces\AttachmentContainer;
-use App\Entity\TrackingMovement;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -109,8 +108,7 @@ class AttachmentService {
             $publicPath = Attachment::MAIN_PATH . "/$dedicatedSubFolder/$filename";
             $i++;
         } while (file_exists($fullPath));
-
-        $uploadedFile->move($dedicatedFolder, $filename);
+        copy($uploadedFile->getPathname(), $dedicatedFolder . $filename);
 
         return $this->createAttachmentDeprecated($filename, $publicPath);
     }

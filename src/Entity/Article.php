@@ -103,7 +103,7 @@ class Article implements PairedEntity {
     private Collection $inventoryMissions;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
-    private ?float $prixUnitaire = null;
+    private ?string $prixUnitaire = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateLastInventory = null;
@@ -375,11 +375,15 @@ class Article implements PairedEntity {
     }
 
     public function getPrixUnitaire(): ?float {
-        return $this->prixUnitaire;
+        return isset($this->prixUnitaire)
+            ? ((float) $this->prixUnitaire)
+            : null;
     }
 
     public function setPrixUnitaire(?float $prixUnitaire): self {
-        $this->prixUnitaire = $prixUnitaire;
+        $this->prixUnitaire = isset($prixUnitaire)
+            ? ((string) $prixUnitaire)
+            : null;
 
         return $this;
     }

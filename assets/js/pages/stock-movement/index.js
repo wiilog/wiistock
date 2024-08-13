@@ -4,8 +4,23 @@ import {getUserFiltersByPage} from '@app/utils';
 import Flash, {ERROR} from "@app/flash";
 import {initDataTable} from "@app/datatable";
 
+global.getQuantityRefArticle = getQuantityRefArticle;
+
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
+
+export function getQuantityRefArticle(refArticleId) {
+    return AJAX
+        .route(
+            GET,
+            "get_quantity_ref_article",
+            {
+                referenceArticle: refArticleId,
+            }
+        )
+        .json()
+}
+
 $(function() {
     initDateTimePicker();
     $('.select2').select2();
@@ -109,34 +124,45 @@ function showFieldsAndFillOnArticleChange($select) {
     let currentArticle = $select.select2('data')[0];
     const $elements = $('[name="chosen-ref-location"], [name="chosen-ref-quantity"], [name="chosen-type-mvt"]');
     const $barcodeInput = $('input[name="chosen-ref-barcode"]');
+
     if (currentArticle) {
         $elements.parent().parent().addClass('needed').removeClass('d-none');
 
         const $articleLocation = $modalNewMvtStock.find('[name="chosen-ref-location"]');
         const $articleQuantity = $modalNewMvtStock.find('[name="chosen-ref-quantity"]');
+
         $barcodeInput.val(currentArticle.text);
         $articleLocation.val(currentArticle.location);
         $articleQuantity.val(currentArticle.quantity);
     }
 }
 
-function newMvtStockReferenceChosen($select) {
+async function newMvtStockReferenceChosen($select) {
     let referenceArticle = $select.select2('data')[0];
-    if (referenceArticle) {
-        const $referenceLibelle = $modalNewMvtStock.find('[name="chosen-ref-label"]');
-        const $referenceBarCode = $modalNewMvtStock.find('[name="chosen-ref-barcode"]');
-        const $referenceLocation = $modalNewMvtStock.find('[name="chosen-ref-location"]');
-        const $referenceQuantite = $modalNewMvtStock.find('[name="chosen-ref-quantity"]');
-        const $typeMvt = $modalNewMvtStock.find('[name="chosen-type-mvt"]');
 
-        $referenceLibelle.val(referenceArticle.label);
-        $referenceBarCode.val(referenceArticle.barCode);
-        $referenceQuantite.val(referenceArticle.quantityDisponible);
-        $referenceLocation.val(referenceArticle.location);
-
-        $modalNewMvtStock.find('.is-hidden-by-ref').removeClass('d-none');
-        $typeMvt.addClass('needed');
+    if (!referenceArticle) {
+        return;
     }
+
+    const $referenceLibelle = $modalNewMvtStock.find('[name="chosen-ref-label"]');
+    const $referenceBarCode = $modalNewMvtStock.find('[name="chosen-ref-barcode"]');
+    const $referenceLocation = $modalNewMvtStock.find('[name="chosen-ref-location"]');
+    const $referenceQuantite = $modalNewMvtStock.find('[name="chosen-ref-quantity"]');
+    const $typeMvt = $modalNewMvtStock.find('[name="chosen-type-mvt"]');
+
+    $referenceLibelle.val(referenceArticle.label);
+    $referenceBarCode.val(referenceArticle.barCode);
+    $referenceLocation.val(referenceArticle.location);
+
+    /* Make another request to get the quantity because the value dumped in the back is good but the value logged in the front is not good
+     * Maybe it come from select2 cache ?
+     * To prevent this, we make a request to get the quantity of the reference article
+     */
+    const refArticleQte = await getQuantityRefArticle(referenceArticle.id);
+    $referenceQuantite.val(refArticleQte);
+
+    $modalNewMvtStock.find('.is-hidden-by-ref').removeClass('d-none');
+    $typeMvt.addClass('needed');
 }
 
 function resetNewModal($modal) {

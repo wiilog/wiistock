@@ -1,0 +1,189 @@
+{% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %}Traçabilité | Unités Logistiques | Détails{% endblock %}
+{% block titleLink path("pack_index") %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-details-page') }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
+{% block page_content %}
+    {{ form.hidden('logisticUnitId', logisticUnit.id) }}
+    <div class="details-page-container d-flex justify-content-center align-content-center">
+        <div class="row wii-column">
+            <div class="col-12 col-md-6">
+                {% set nature = logisticUnit.nature %}
+                <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black'}}">
+                    {% if nature %}
+                        <div class="wii-type" style="background-color: {{  logisticUnit.nature.color }}">
+                            <span class="p-1">{{ logisticUnit.nature.label }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="d-flex header-wrapper bg-white">
+                        <div class="barcode-container col-3 p-3">
+                            {{ printBarcode({
+                                code: barcode.code,
+                                type: barcode.type,
+                                format: 'svg',
+                                height: barcode.height,
+                                width: barcode.width,
+                            })|raw }}
+                        </div>
+                        <div class="specifications w-100 m-3">
+                            <div>
+                                <strong class="ref text-break">{{ logisticUnit.code }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mr-4">
+                                <div class="d-flex align-content-center">
+                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
+                                    <span class="wii-field-name">Quantité <span class="wii-body-text ml-2">{{ logisticUnit.quantity }}</span></span>
+                                </div>
+                                <div class="d-flex align-content-center">
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
+                                    <span class="wii-field-name">Emplacement <span class="wii-body-text ml-2">{{ logisticUnit.lastDrop ? logisticUnit.lastDrop.emplacement | format_helper('location') }}</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-box mt-3">
+                    <div class="header wii-title">Description</div>
+                    <div class="content">
+                        <div class="row">
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Date arrivage camion</span>
+                                    <span class="wii-body-text">
+                                        {% if truckArrival is not null %}
+                                            {{ truckArrival.creationDate.format("d-m-Y H:i:s") }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Arrivage camion</span>
+                                    <span class="wii-body-text">
+                                        {% if truckArrival %}
+                                            <a href="{{ path("truck_arrival_show", {"id": truckArrival.id}) }}">
+                                            <i class="fas fa-external-link-alt mr-2"></i>{{ truckArrival.number }}
+                                            </a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Date arrivage UL</span>
+                                    <span class="wii-body-text">{{ arrival ? arrival.date.format("d-m-Y H:i:s") : "-" }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Arrivage UL</span>
+                                    <span class="wii-body-text">
+                                        {% if arrival %}
+                                            <a href="{{ path("arrivage_show", {"id": arrival.id}) }}">
+                                            <i class="fas fa-external-link-alt mr-2"></i>{{ arrival.numeroArrivage }}
+                                            </a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Tracking associé</span>
+                                    <span class="wii-body-text">{{ arrival ? arrival.noTracking : "-" }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">N° de commande</span>
+                                    <span class="wii-body-text">
+                                        {% if arrival and arrival.numeroCommandeList is not empty %}
+                                            {{ arrival.numeroCommandeList|join(', ') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Poids (Kg)</span>
+                                    <span class="wii-body-text">{{ logisticUnit.weight ? logisticUnit.weight : "-" }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Volume (m3)</span>
+                                    <span class="wii-body-text">{{ logisticUnit.volume ? logisticUnit.volume : "-" }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Projet</span>
+                                    <span class="wii-body-text">{{ logisticUnit.project ? logisticUnit.project.code : "-" }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wii-box">
+                    <div class="header wii-title">Contenu unité logistique</div>
+                    <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
+                        <div class="logistic-unit-tabs">
+                            <div class="logistic-unit-tab active" data-target=".current-articles">Articles</div>
+                            <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
+                        </div>
+                        <div class="content current-articles">
+                            {% for article in logisticUnit.childArticles %}
+                                {% include 'pack/article-card.html.twig' with { article: article } %}
+                            {% else %}
+                                <div class="logistic-unit-no-items">
+                                    <div class="logistic-unit-no-items-icon-circle">
+                                        <img src="/svg/UL-black.svg">
+                                    </div>
+                                    {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun article actuellement') }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="content article-history d-none">
+                            {% include 'pack/article-history.html.twig' with {
+                                movements,
+                            }%}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="wii-box">
+                    <div class="header wii-title">Historique de traçabilité</div>
+                    <div class="content pt-2 px-0">
+                        <div class="content history-container py-2 pt-2">
+                            <div class="align-items-center justify-content-center p-0">
+                                 <table class="w-100" id="table-LU-history" ></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('pack-show') }}
+    {{ encore_entry_script_tags('pack') }}
+{% endblock %}

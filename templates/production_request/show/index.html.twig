@@ -4,16 +4,6 @@
 {% block title_tooltip %}Production | Détails{% endblock %}
 {% block titleLink path('production_request_index') %}
 
-{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_TO_TREAT_PRODUCTION_REQUEST')) %}
-
-{% if productionRequest.status.inProgress %}
-    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST')) %}
-{% endif %}
-
-{% if productionRequest.status.treated %}
-    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_TREATED_PRODUCTION_REQUEST')) %}
-{% endif %}
-
 {% block page_content %}
     <input type="hidden" name="productionRequestId" value="{{ productionRequest.id }}"/>
 
@@ -25,33 +15,25 @@
                         <div class="mx-2">
                             <div class="dropdown dropright">
                                 <div class="d-flex">
-                                    {% set hasRightEditProductionRequest =
-                                        productionRequest.status.state == constant('App\\Entity\\Statut::NOT_TREATED')
-                                        ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST'))
-                                        : (productionRequest.status.state == constant('App\\Entity\\Statut::IN_PROGRESS')
-                                            ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST'))
-                                            : (productionRequest.status.state == constant('App\\Entity\\Statut::TREATED')
-                                                ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST'))
-                                                : 0)
-                                        )
-                                    %}
-
                                     {% include "utils/action-buttons/dropdown.html.twig" with {
                                         actions: [
                                             {
                                                 hasRight: hasRightEditProductionRequest,
                                                 title: trans('Général', '', 'Modale', 'Modifier'),
                                                 icon: "fas fa-pencil-alt",
+                                                class: "open-modal-edit",
                                                 attributes: {
-                                                    "onclick": "openModalEditProductionRequest()",
+                                                    "data-target" : "#modalEditProductionRequest",
+                                                    "data-toggle" : "modal",
                                                 },
                                             },
                                             {
-                                                hasRight: hasRightDelete,
+                                                hasRight: hasRightDeleteProductionRequest,
                                                 title: trans('Général', '', 'Modale', 'Supprimer'),
                                                 icon: "wii-icon wii-icon-trash-black",
+                                                class: "delete-production-request",
                                                 attributes: {
-                                                    onclick: "deleteProductionRequest(" ~ productionRequest.id ~ ")",
+                                                    "data-id": productionRequest.id,
                                                 },
                                             }
                                         ]
@@ -177,11 +159,13 @@
         </div>
     </div>
 
-    {% include 'production_request/modal/edit.html.twig' with {
-        productionRequest,
-        fieldsParam,
-        emergencies,
-    }%}
+    {% if hasRightEditProductionRequest %}
+        {% include 'production_request/modal/edit.html.twig' with {
+            productionRequest,
+            fieldsParam,
+            emergencies,
+        }%}
+    {% endif %}
 
     {%  include 'production_request/modal/updateStatus.html.twig' %}
 {% endblock %}

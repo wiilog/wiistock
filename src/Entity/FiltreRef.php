@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\FreeField\FreeField;
 use App\Repository\FiltreRefRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -23,7 +24,7 @@ class FiltreRef {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: 'FreeField', inversedBy: 'filters')]
+    #[ORM\ManyToOne(targetEntity: FreeField::class, inversedBy: 'filters')]
     #[ORM\JoinColumn(nullable: true)]
     private ?FreeField $champLibre = null;
 

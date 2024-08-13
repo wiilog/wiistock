@@ -13,7 +13,8 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
@@ -187,7 +188,7 @@ class MobileController extends AbstractController {
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldManagementRuleRepository = $entityManager->getRepository(FreeFieldManagementRule::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -388,13 +389,12 @@ class MobileController extends AbstractController {
                 $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
             );
 
-            $requestFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+            $requestFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
         }
 
         if($rights['deliveryRequest']){
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
-            $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
-
+            $deliveryFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
         }
 
         $dispatchTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
@@ -412,7 +412,7 @@ class MobileController extends AbstractController {
 
         if ($rights['movement']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
-            $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
+            $trackingFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
         }
 
         $carriers = Stream::from($carrierRepository->findAll())
@@ -477,11 +477,11 @@ class MobileController extends AbstractController {
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
             'freeFields' => Stream::from(
-                $trackingFreeFields ?? [],
-                $requestFreeFields ?? [],
-                $deliveryFreeFields ?? []
+                $trackingFreeFieldManagementRules ?? [],
+                $requestFreeFieldManagementRules ?? [],
+                $deliveryFreeFieldManagementRules ?? []
             )
-                ->map(fn(FreeField $freeField) => $freeField->serialize())
+                ->map(fn(FreeFieldManagementRule $freeFieldManagementRule) => $freeFieldManagementRule->serialize())
                 ->toArray(),
             'preparations' => $preparations ?? [],
             'articlesPrepa' => $articlesPrepa ?? [],

@@ -8,16 +8,16 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
-use App\Entity\TrackingMovement;
-
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
-
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
@@ -26,7 +26,7 @@ use App\Service\FreeFieldService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,7 +34,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use DateTime;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -53,7 +52,7 @@ class TrackingMovementController extends AbstractController
                           TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $typeRepository =  $entityManager->getRepository(Type::class);
 
         $currentUser = $this->getUser();
         $packFilter = $request->query->get('pack');
@@ -85,9 +84,9 @@ class TrackingMovementController extends AbstractController
             'form_statuses' => Stream::from($mvtStatuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
                 ->toArray(),
-            'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
             'filterArticle' => $article,
+            'type' => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
             "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
             "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),
@@ -142,10 +141,7 @@ class TrackingMovementController extends AbstractController
         }
 
         if ($quantity < 1) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'La quantité doit être supérieure à 0.'
-            ]);
+            throw new FormException("La quantité doit être supérieure à 0.");
         }
 
         if($isNow) {
@@ -279,18 +275,11 @@ class TrackingMovementController extends AbstractController
             }
         } catch (Exception $exception) {
             if($exception->getMessage() === Pack::PACK_IS_GROUP) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'unité logistique scannée est un groupe",
-                ]);
+                throw new FormException("L'unité logistique scannée est un groupe");
             } else {
                 // uncomment following line to debug
                 // throw $exception;
-
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Une erreur est survenue lors du traitement de la requête",
-                ]);
+                throw new FormException("Une erreur est survenue lors du traitement de la requête");
             }
         }
 
@@ -310,7 +299,7 @@ class TrackingMovementController extends AbstractController
         $countCreatedMouvements = count($createdMovements);
         $entityManager->flush();
 
-        return new JsonResponse([
+        return $this->json([
             'success' => $countCreatedMouvements > 0,
             'group' => null,
             'trackingMovementsCounter' => $countCreatedMouvements,
@@ -333,9 +322,11 @@ class TrackingMovementController extends AbstractController
                             UserService            $userService,
                             TrackingMovement       $trackingMovement): Response {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $typeRepository =  $entityManager->getRepository(Type::class);
 
         $html = $this->renderView('tracking_movement/form/edit.html.twig', [
             'mvt' => $trackingMovement,
+            'type' => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
             'attachments' => $trackingMovement->getAttachments(),
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
@@ -391,6 +382,7 @@ class TrackingMovementController extends AbstractController
         $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $trackingMovement]);
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
+            $entityManager->remove($trackingMovement);
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
@@ -413,7 +405,6 @@ class TrackingMovementController extends AbstractController
                 }
 
                 $entityManager->persist($new);
-                $entityManager->remove($trackingMovement);
                 $entityManager->flush();
 
                 $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));

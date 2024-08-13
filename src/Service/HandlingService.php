@@ -6,7 +6,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Handling;
 use App\Entity\Language;
 use App\Entity\Setting;
@@ -46,7 +46,7 @@ class HandlingService {
     public TokenStorageInterface $tokenStorage;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public FreeFieldService $freeFieldService;
@@ -139,7 +139,7 @@ class HandlingService {
         }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $handling->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $user);
         }
@@ -266,7 +266,7 @@ class HandlingService {
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnsVisible = $currentUser->getVisibleColumns()['handling'];
+        $columnsVisible = $currentUser->getFieldModes('handling');
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_HANDLING,
             CategorieCL::DEMANDE_HANDLING);
 
@@ -285,7 +285,7 @@ class HandlingService {
             ['title' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'), 'name' => 'comment'],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function putHandlingLine(EntityManagerInterface $entityManager,

@@ -17,7 +17,6 @@
     } %}
 {% endblock %}
 
-{# TODO WIIS-10760 #}
 {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT_PRODUCTION_REQUEST')) %}
 
 {% block page_content %}
@@ -36,9 +35,9 @@
                             title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
                             icon: "fa fa-cog",
                             attributes: {
-                            "data-toggle": "modal",
-                            "data-target": "#modalColumnVisible",
-                        },
+                                "data-toggle": "modal",
+                                "data-target": "#modalFieldModes",
+                            },
                         }
                     ]
                 } %}
@@ -53,10 +52,19 @@
 
     <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
 
-    {% include "utils/visible_columns.html.twig" with {
+    {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tableProductions',
-        page: 'productionRequest',
+        page: constant('App\\Controller\\FieldModesController::PAGE_PRODUCTION_REQUEST_LIST'),
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
     } %}
 
     {% include 'production_request/modal/new.html.twig' with {
@@ -64,6 +72,9 @@
         fieldsParam,
         emergencies,
     }%}
+
+    {% include 'production_request/modal/duplicate.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}

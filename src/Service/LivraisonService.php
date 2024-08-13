@@ -57,7 +57,7 @@ class LivraisonService
     public TranslationService $translation;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
@@ -373,6 +373,6 @@ class LivraisonService
             })
             ->values();
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 }

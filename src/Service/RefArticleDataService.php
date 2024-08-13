@@ -13,14 +13,12 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Language;
-use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\PurchaseRequestLine;
@@ -37,24 +35,19 @@ use App\Entity\VisibilityGroup;
 use App\Exceptions\FormException;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\FormatHelper;
-use App\Repository\PurchaseRequestLineRepository;
-use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class RefArticleDataService
 {
@@ -127,7 +120,7 @@ class RefArticleDataService
     public AlertService $alertService;
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public AttachmentService $attachmentService;
@@ -233,31 +226,13 @@ class RefArticleDataService
             ? $inventoryCategoryRepository->findBy([], ['label' => 'ASC'])
             : [];
 
-        $freeFieldsGroupedByTypes = [];
-        foreach ($types as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
-        }
-        $typeChampLibre = [];
-        foreach ($types as $type) {
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId()
-            ];
-        }
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
-            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'Synchronisation nomade' => $refArticle->getNeedsMobileSync(),
             'statut' => $refArticle->getStatut()->getNom(),
-            'typeChampsLibres' => $typeChampLibre,
             'articlesFournisseur' => $data['listArticlesFournisseur'],
             'totalQuantity' => $data['totalQuantity'],
+            'types' => $types,
             'articles' => $articlesFournisseur,
             'categories' => $categories,
             'isADemand' => $isADemand,
@@ -644,7 +619,7 @@ class RefArticleDataService
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $refArticle->getFreeFieldValue($freeFieldId);
             $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
@@ -953,7 +928,7 @@ class RefArticleDataService
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
-        $columnVisible = $currentUser->getVisibleColumns()['reference'];
+        $columnVisible = $currentUser->getFieldModes('reference');
         $freeFields = $freeFieldRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::REFERENCE_ARTICLE);
 
         $fields = self::REF_ARTICLE_FIELDS;
@@ -970,7 +945,7 @@ class RefArticleDataService
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $columnVisible);
+        return $this->fieldModesService->getArrayConfig($fields, $freeFields, $columnVisible);
     }
 
     public function getFieldTitle(string $fieldName): ?string {

@@ -394,6 +394,7 @@ class TransportService {
             $statusCode = match ($transportRequest->getStatus()?->getCode()) {
                 TransportRequest::STATUS_AWAITING_PLANNING => TransportOrder::STATUS_TO_CONTACT,
                 TransportRequest::STATUS_AWAITING_VALIDATION => TransportOrder::STATUS_AWAITING_VALIDATION,
+                default => $transportOrder->getStatus()?->getCode(),
             };
         }
         else {

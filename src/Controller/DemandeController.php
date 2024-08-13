@@ -13,7 +13,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
@@ -35,7 +35,7 @@ use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -259,24 +259,12 @@ class DemandeController extends AbstractController
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
-        $typeChampLibre = [];
-        foreach ($types as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-        }
-
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
         $userForModal = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
 
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'typeChampsLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
             'typesForModal' => Stream::from($types)
@@ -817,9 +805,9 @@ class DemandeController extends AbstractController
 
     #[Route("/visible_column", name: "save_visible_columns_for_delivery_request", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
-    public function saveVisibleColumn(Request $request,
+    public function saveVisibleColumn(Request                $request,
                                       EntityManagerInterface $entityManager,
-                                      VisibleColumnService $visibleColumnService): Response {
+                                      FieldModesService      $fieldModesService): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
@@ -827,7 +815,7 @@ class DemandeController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $visibleColumnService->setVisibleColumns('deliveryRequest', $fields, $currentUser);
+        $fieldModesService->setFieldModesByPage('deliveryRequest', $fields, $currentUser);
 
         $entityManager->flush();
 

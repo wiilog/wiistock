@@ -1,10 +1,19 @@
 # Wiistock
 
 ## Installing
-
 Créer le fichier `config/generated.yaml` avec le contenu suivant
 ```json
 {"parameters": {"session_lifetime": 1440}}
+```
+
+## Run PHPUnit
+* Create phpunit.xml
+```sh
+cp phpunit.xml.dist phpunit.xml
+```
+* Run command
+```sh
+php bin/phpunit
 ```
 
 ## Security checker

@@ -7,8 +7,8 @@ export function initializeRequestTemplates($container, canEdit) {
     const handling = $container.find('#handling-template-type').length > 0;
     const type = $(delivery ? `#delivery-template-type` : (collect ? `#collect-template-type` : '#handling-template-type')).val();
     const quantityLabel = delivery ? `Quantité à livrer` : 'Quantité à collecter';
+    const $entitySelect =  $container.find(`[name="entity"]`);
     const table = createManagementPage($container, {
-        name: `requestTemplates`,
         edit: canEdit,
         newTitle: 'Ajouter un modèle de demande',
         category: type,
@@ -21,7 +21,8 @@ export function initializeRequestTemplates($container, canEdit) {
                 modalTitle: 'Supprimer le modèle de demande',
             },
         },
-        table: {
+        tableManagement: {
+            name: `requestTemplates`,
             route: (template) => Routing.generate('settings_request_template_api', {type, template}, true),
             deleteRoute: `settings_request_template_line_delete`,
             hidden: handling,
@@ -41,6 +42,16 @@ export function initializeRequestTemplates($container, canEdit) {
             },
             minimumRows: handling ? 0 : 1,
         },
+        onEditStop: () => {
+            const $typeIdHidden =  $container.find("[name='typeId']");
+            if (!$typeIdHidden.val()) {
+                window.location.reload();
+            }
+            $entitySelect.removeClass(`d-none`);
+        },
+        onEditStart: () => {
+            $entitySelect.addClass(`d-none`);
+        }
     });
 
     function onTypeChange() {

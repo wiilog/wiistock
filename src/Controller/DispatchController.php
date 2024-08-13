@@ -17,12 +17,11 @@ use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -47,9 +46,8 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -302,8 +300,11 @@ class DispatchController extends AbstractController {
 
         $currentUser = $this->getUser();
         $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
-        if (!$type->isActive() || !in_array($type->getId(), $currentUser->getDispatchTypeIds())
-            && !empty($currentUser->getDeliveryTypeIds())
+        if (!empty($currentUser->getDispatchTypeIds())
+            && (
+                !$type->isActive()
+                || !in_array($type->getId(), $currentUser->getDispatchTypeIds())
+            )
         ) {
             throw new FormException("Veuillez rendre ce type actif ou le mettre dans les types de votre utilisateur avant de pouvoir l'utiliser.");
         }
@@ -916,6 +917,7 @@ class DispatchController extends AbstractController {
                             TranslationService     $translationService,
                             EntityManagerInterface $entityManager,
                             PackService            $packService,
+                            DispatchService        $dispatchService,
                             Dispatch               $dispatch): Response
     {
         $data = $request->request->all();
@@ -990,7 +992,7 @@ class DispatchController extends AbstractController {
         }
 
         if(empty($pack)) {
-            $pack = $packService->createPack($entityManager, ['code' => $packCode]);
+            $pack = $packService->createPack($entityManager, ['code' => $packCode], $this->getUser());
             $entityManager->persist($pack);
         }
 
@@ -1006,6 +1008,9 @@ class DispatchController extends AbstractController {
             ->setWidth($width !== null ? floatval($width) : $dispatchPack->getWidth())
             ->setLength($length !== null ? floatval($length) : $dispatchPack->getLength());
         $entityManager->persist($dispatchPack);
+
+        $message = $dispatchService->buildCustomLogisticUnitHistoryRecord($dispatch);
+        $packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $dispatch->getRequester(), "Acheminement", $dispatch->getLocationFrom());
 
         $dispatchPack->setQuantity($quantity);
         $pack
@@ -1079,10 +1084,6 @@ class DispatchController extends AbstractController {
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
 
-                    if($dispatch->getType() &&
-                        ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
-                        $notificationService->toTreat($dispatch);
-                    }
                     $dispatch
                         ->setValidationDate($now);
 
@@ -1117,6 +1118,14 @@ class DispatchController extends AbstractController {
 
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+
+                    if ($dispatch->getStatut()?->getNeedsMobileSync()
+                        && (
+                            $dispatch->getType()?->isNotificationsEnabled()
+                            || $dispatch->getType()?->isNotificationsEmergency($dispatch->getEmergency())
+                        )) {
+                        $notificationService->toTreat($dispatch);
+                    }
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,

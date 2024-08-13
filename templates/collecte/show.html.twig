@@ -1,9 +1,13 @@
+{% import 'form.html.twig' as form %}
+
 {% extends 'layout.html.twig' %}
 
 {% block title %}Demande | Collecte | Détails{% endblock %}
 {% block titleLink path('collecte_index') %}
 
 {% block page_content %}
+    {{ form.hidden('requestId', collecte.id) }}
+
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -69,9 +73,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{ collecte.id }};
-    </script>
-    <script src="{{ asset('js/pages/collect/request/show.js') }}?v={{ web_version }}"></script>
-
+    {{ encore_entry_script_tags('collect-request-show') }}
 {% endblock %}

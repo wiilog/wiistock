@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
@@ -15,16 +15,14 @@ use App\Entity\Kiosk;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use RuntimeException;
@@ -346,6 +344,7 @@ class ArticleRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $queryBuilder = $this->createQueryBuilder("article");
+        $articlePageFieldModes = $user->getFieldModes('article');
 
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -467,7 +466,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "nativeCountry":
-                                if(in_array('nativeCountry', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['nativeCountry'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->leftJoin('article.nativeCountry', 'country_search')
@@ -480,7 +479,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "deliveryNoteLine":
-                                if(in_array('deliveryNoteLine', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['deliveryNoteLine'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.deliveryNote LIKE :search')
@@ -492,7 +491,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "purchaseOrderLine":
-                                if(in_array('purchaseOrderLine', $user->getVisibleColumns()['article'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['purchaseOrderLine'])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.purchaseOrder LIKE :search')
@@ -505,8 +504,8 @@ class ArticleRepository extends EntityRepository {
                                 break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
-                                $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                                if(in_array($field, $user->getVisibleColumns()['article'])){
+                                $freeFieldId = FieldModesService::extractFreeFieldId($field);
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes[$field] ?? [])){
                                     if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                         if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 
@@ -554,25 +553,29 @@ class ArticleRepository extends EntityRepository {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     switch ($column) {
                         case "type":
-                            $queryBuilder->leftJoin('article.type', 't')
-                                ->orderBy('t.label', $order);
+                            $queryBuilder
+                                ->leftJoin('article.type', 'order_type')
+                                ->orderBy('order_type.label', $order);
                             break;
                         case "supplierReference":
-                            $queryBuilder->leftJoin('article.articleFournisseur', 'af1')
-                                ->orderBy('af1.reference', $order);
+                            $queryBuilder
+                                ->leftJoin('article.articleFournisseur', 'order_supplierArticle')
+                                ->orderBy('order_supplierArticle.reference', $order);
                             break;
                         case "location":
-                            $queryBuilder->leftJoin('article.emplacement', 'e')
-                                ->orderBy('e.label', $order);
+                            $queryBuilder
+                                ->leftJoin("article.emplacement", "order_location")
+                                ->orderBy("order_location.label", $order);
                             break;
-                        case "reference":
-                            $queryBuilder->leftJoin('article.articleFournisseur', 'af2')
-                                ->leftJoin('af2.referenceArticle', 'ra2')
-                                ->orderBy('ra2.reference', $order);
+                        case "articleReference":
+                            $queryBuilder
+                                ->leftJoin('article.articleFournisseur', 'order_articleReference_supplierArticle')
+                                ->leftJoin('order_articleReference_supplierArticle.referenceArticle', 'order_referenceArticle')
+                                ->orderBy('order_referenceArticle.reference', $order);
                             break;
                         case "status":
-                            $queryBuilder->leftJoin('article.statut', 's_sort')
-                                ->orderBy('s_sort.nom', $order);
+                            $queryBuilder->leftJoin('article.statut', 'order_status')
+                                ->orderBy('order_status.nom', $order);
                             break;
                         case "pairing":
                             $queryBuilder->leftJoin('article.pairings', 'order_pairings')
@@ -583,7 +586,7 @@ class ArticleRepository extends EntityRepository {
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                            $freeFieldId = FieldModesService::extractFreeFieldId($column);
 
                             if(is_numeric($freeFieldId)) {
                                 /** @var FreeField $freeField */

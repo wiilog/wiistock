@@ -21,7 +21,7 @@ class TruckArrivalService
 {
 
     #[Required]
-    public VisibleColumnService $visibleColumnService;
+    public FieldModesService $fieldModesService;
 
     #[Required]
     public TruckArrivalLineService $truckArrivalLineService;
@@ -42,7 +42,7 @@ class TruckArrivalService
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public FixedFieldService $fieldsParamService;
+    public PDFGeneratorService $PDFGeneratorService;
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request,
@@ -51,7 +51,7 @@ class TruckArrivalService
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRUCK_ARRIVAL, $user);
-        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->visibleColumnService);
+        $queryResult = $truckArrivalRepository->findByParamsAndFilters($request->request, $filters, $user, $this->fieldModesService);
         $truckArrivals = Stream::from($queryResult['data'])
             ->map(function (TruckArrival $truckArrival) use ($entityManager) {
                 return $this->dataRowTruckArrival($truckArrival, $entityManager);
@@ -83,6 +83,22 @@ class TruckArrivalService
                         'attributes' => [
                             'onclick' => "window.location.href = '{$this->router->generate('truck_arrival_show', ['id' => $truckArrival->getId()])}'",
                         ]
+                    ],
+                    [
+                        "title" => "Imprimer",
+                        "icon" => "wii-icon wii-icon-printer-black",
+                        "attributes" => [
+                            "data-id" => $truckArrival->getId(),
+                            "onclick" => "printTruckArrivalLabel($(this))"
+                        ]
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::CREATE_ARRIVAL),
+                        'title' => 'Créer arrivage UL',
+                        'icon' => 'fa fa-plus',
+                        'attributes' => [
+                            'onclick' => "window.location.href = '{$this->router->generate('arrivage_index', ['truckArrivalId' => $truckArrival->getId()])}'",
+                        ],
                     ],
                     [
                         'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS),
@@ -128,7 +144,7 @@ class TruckArrivalService
     }
 
     public function getVisibleColumns(Utilisateur $user): array {
-        $columnsVisible = $user->getVisibleColumns()['truckArrival'];
+        $columnsVisible = $user->getFieldModes('truckArrival');
         $columns = [
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'Date de création', 'name' => 'creationDate'],
@@ -142,7 +158,7 @@ class TruckArrivalService
             ['title' => 'Réserve sur n° tracking', 'name' => 'trackingLinesReserves', 'orderable' => false,],
             ['title' => 'Transporteur', 'name' => 'carrier'],
         ];
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function createHeaderDetailsConfig(TruckArrival $truckArrival): array {
@@ -197,5 +213,41 @@ class TruckArrivalService
                 'isNeededNotEmpty' => true,
             ],
         ];
+    }
+
+    public function getLabelConfig(TruckArrival $truckArrival): array
+    {
+        $labels = [
+            "{$truckArrival->getCarrier()->getLabel()}",
+            "{$this->formatService->datetime($truckArrival->getCreationDate())}",
+        ];
+
+        $barCodeConfig = [
+            "code" => $truckArrival->getNumber(),
+            "labels" => array_filter($labels, function (string $label) {
+                return !empty($label);
+            }),
+        ];
+
+        $fileName = $this->PDFGeneratorService->getBarcodeFileName([$barCodeConfig], "arrivage_camion");
+
+        return [
+            $fileName,
+            $barCodeConfig,
+        ];
+    }
+
+    public function buildCustomLogisticUnitHistoryRecord(TruckArrival $truckArrival): string {
+        $values = $truckArrival->serialize($this->formatService);
+        $message = "";
+
+        Stream::from($values)
+            ->filter(static fn(?string $value) => $value)
+            ->each(static function (string $value, string $key) use (&$message) {
+                $message .= "$key : $value\n";
+                return $message;
+            });
+
+        return $message;
     }
 }

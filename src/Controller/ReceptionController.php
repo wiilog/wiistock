@@ -17,7 +17,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Pack;
@@ -66,6 +66,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -73,13 +74,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
-use Throwable;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @Route("/reception")
- */
+#[Route('/reception')]
 class ReceptionController extends AbstractController {
 
     #[Required]
@@ -88,10 +86,8 @@ class ReceptionController extends AbstractController {
     #[Required]
     public FreeFieldService $freeFieldService;
 
-    /**
-     * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/new', name: 'reception_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
                         ReceptionService $receptionService,
@@ -130,10 +126,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier', name: 'reception_edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
@@ -225,10 +219,8 @@ class ReceptionController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-modifier', name: 'api_reception_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEdit(EntityManagerInterface $entityManager,
                             Request $request): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -240,40 +232,11 @@ class ReceptionController extends AbstractController {
 
             $reception = $receptionRepository->find($data['id']);
 
-            $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-            $typeChampLibre = [];
-            $champsLibresEntity = [];
-            foreach($listType as $type) {
-                $champsLibresComplet = $champLibreRepository->findByType($type['id']);
-                $champsLibres = [];
-                //création array edit pour vue
-                foreach($champsLibresComplet as $champLibre) {
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'requiredEdit' => $champLibre->isRequiredEdit(),
-                    ];
-                    $champsLibresEntity[] = $champLibre;
-                }
-
-                $typeChampLibre[] = [
-                    'typeLabel' => $type['label'],
-                    'typeId' => $type['id'],
-                    'champsLibres' => $champsLibres,
-                ];
-            }
-
             $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/show/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-                'typeChampsLibres' => $typeChampLibre,
                 'fieldsParam' => $fieldsParam,
-                'freeFieldsGroupedByTypes' => $champsLibresEntity,
             ]);
             return new JsonResponse($json);
         }
@@ -294,10 +257,8 @@ class ReceptionController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/api-columns", name="reception_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-columns', name: 'reception_api_columns', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function apiColumns(ReceptionService $receptionService): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -305,10 +266,8 @@ class ReceptionController extends AbstractController {
         return $this->json($columns);
     }
 
-    /**
-     * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
-     */
+    #[Route('/liste/{purchaseRequest}', name: 'reception_index', options: ['expose' => true], methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE])]
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
@@ -341,24 +300,16 @@ class ReceptionController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
-        $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
-        $typeChampLibre = [];
-        foreach($listType as $type) {
-            $champsLibres = $champLibreRepository->findByType($type['id']);
-            $typeChampLibre[] = [
-                'typeLabel' => $type['label'],
-                'typeId' => $type['id'],
-                'champsLibres' => $champsLibres,
-            ];
-        }
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $fields = $receptionService->getColumnVisibleConfig($user);
 
         return $this->render('reception/index.html.twig', [
-            'typeChampLibres' => $typeChampLibre,
+            'type' => $type,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
             'receptionLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_RECEPTION),
@@ -369,10 +320,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer', name: 'reception_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response {
@@ -420,10 +369,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/annuler', name: 'reception_cancel', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function cancel(Request $request,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -446,10 +393,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/remove-reception-reference-article", name="reception_reference_article_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/remove-reception-reference-article', name: 'reception_reference_article_remove', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                     ReceptionService       $receptionService,
                                                     MouvementStockService  $mouvementStockService,
@@ -544,10 +489,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/new-reception-reference-article", name="reception_reference_article_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/new-reception-reference-article', name: 'reception_reference_article_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function newReceptionReferenceArticle(EntityManagerInterface           $entityManager,
                                                  ReceptionService                 $receptionService,
                                                  ReceptionLineService             $receptionLineService,
@@ -661,10 +604,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-edit-reception-reference-article", name="reception_reference_article_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api-edit-reception-reference-article', name: 'reception_reference_article_edit_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEditReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                      Request                $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
@@ -860,22 +801,10 @@ class ReceptionController extends AbstractController {
                          TranslationService         $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
-        $typeChampLibreDL = [];
-
-        foreach($listTypesDL as $typeDL) {
-            $champsLibresDL = $champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
-
-            $typeChampLibreDL[] = [
-                'typeLabel' => $typeDL->getLabel(),
-                'typeId' => $typeDL->getId(),
-                'champsLibres' => $champsLibresDL,
-            ];
-        }
+        $typesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
         $precheckedDelivery = $settingRepository->getOneParamByLabel(Setting::CREATE_DL_AFTER_RECEPTION);
         $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
@@ -898,7 +827,7 @@ class ReceptionController extends AbstractController {
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'typeChampsLibres' => $typeChampLibreDL,
+            'typesDL' => $typesDL,
             'precheckedDelivery' => $precheckedDelivery,
             'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'deliverySwitchLabel' => $deliverySwitchLabel,
@@ -936,9 +865,7 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/autocomplete-ref-art/{reception}', name: 'get_ref_article_reception', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     public function getRefTypeQtyArticle(Reception                        $reception,
                                          ReceptionReferenceArticleService $receptionReferenceArticleService) {
 
@@ -967,10 +894,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/modifier-litige', name: 'litige_edit_reception', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editDispute(EntityManagerInterface $entityManager,
                                 ArticleDataService     $articleDataService,
                                 DisputeService         $disputeService,
@@ -1081,10 +1006,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/creer-litige", name="dispute_new_reception", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer-litige', name: 'dispute_new_reception', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function newLitige(EntityManagerInterface $entityManager,
                               DisputeService         $disputeService,
                               AttachmentService      $attachmentService,
@@ -1169,8 +1092,8 @@ class ReceptionController extends AbstractController {
     }
 
     #[Route("/api-modifier-litige/{dispute}", name: "litige_api_edit_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
-    #[Entity("dispute", expr: "repository.find(id)")]
     public function apiEditLitige(EntityManagerInterface $entityManager,
+                                  #[MapEntity(expr: "repository.find(id)")]
                                   Dispute                $dispute): Response  {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1209,10 +1132,8 @@ class ReceptionController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/supprimer-litige', name: 'litige_delete_reception', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::QUALI, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function deleteDispute(Request $request,
                                  EntityManagerInterface $entityManager, TranslationService $translation): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -1249,9 +1170,7 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/litiges/api/{reception}", name="litige_reception_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/litiges/api/{reception}', name: 'litige_reception_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function apiReceptionLitiges(EntityManagerInterface $entityManager,
                                         Reception $reception): Response {
 
@@ -1293,10 +1212,8 @@ class ReceptionController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/finir', name: 'reception_finish', methods: ['GET', 'POST'], options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function finish(Request $request,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
@@ -1348,9 +1265,7 @@ class ReceptionController extends AbstractController {
         $entityManager->flush();
     }
 
-    /**
-     * @Route("/verif-avant-suppression", name="reception_reference_article_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/verif-avant-suppression', name: 'reception_reference_article_check_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     public function checkBeforeReceptionReferenceArticleDelete(EntityManagerInterface $entityManager,
                                                                TranslationService     $translationService,
                                                                Request                $request) {
@@ -1394,9 +1309,7 @@ class ReceptionController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
-     */
+    #[Route('/{reception}/etiquettes', name: 'reception_bar_codes_print', options: ['expose' => true])]
     public function getReceptionBarCodes(Request $request,
                                          Reception $reception,
                                          EntityManagerInterface $entityManager,
@@ -1465,9 +1378,7 @@ class ReceptionController extends AbstractController {
     }
 
 
-    /**
-     * @Route("/{reception}/ligne-article/{receptionReferenceArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
-     */
+    #[Route('/{reception}/ligne-article/{receptionReferenceArticle}/etiquette', name: 'reception_ligne_article_bar_code_print', options: ['expose' => true])]
     public function getReceptionLigneArticleBarCode(Reception                 $reception,
                                                     ReceptionReferenceArticle $receptionReferenceArticle,
                                                     RefArticleDataService     $refArticleDataService,
@@ -1487,10 +1398,8 @@ class ReceptionController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/apiArticle', name: 'article_by_reception_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function apiArticle(EntityManagerInterface $entityManager,
                                ArticleDataService $articleDataService,
                                Request $request): Response {
@@ -1504,10 +1413,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="reception_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/verification', name: 'reception_check_delete', options: ['expose' => true], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function checkReceptionCanBeDeleted(EntityManagerInterface $entityManager,
                                                TranslationService $translationService,
                                                Request $request): Response {
@@ -1613,6 +1520,7 @@ class ReceptionController extends AbstractController {
                                    Reception                  $reception,
                                    ArticleDataService         $articleDataService,
                                    TrackingMovementService    $trackingMovementService,
+                                   SettingsService            $settingsService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService   $livraisonsManagerService,
@@ -1630,10 +1538,9 @@ class ReceptionController extends AbstractController {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
-        $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
+
+        $createDirectDelivery = $settingsService->getValue($entityManager, Setting::DIRECT_DELIVERY);
+        $needCreatePrepa = $settingsService->getValue($entityManager, Setting::CREATE_PREPA_AFTER_DL);
 
         $transferRequest = null;
         $demande = null;
@@ -1696,63 +1603,71 @@ class ReceptionController extends AbstractController {
             $needCreateTransfer = $data['requestType'] === 'transfer';
 
             if ($needCreateLivraison) {
-                // optionnel : crée l'ordre de prépa
-                $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
-                $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
-
                 $demande = $demandeLivraisonService->newDemande($data, $entityManager);
                 if ($demande instanceof Demande) {
                     $entityManager->persist($demande);
 
-                    if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
-                        if ($validateResponse['success']) {
-                            /** @var Preparation $preparation */
-                            $preparation = $demande->getPreparations()->first();
+                    if ($createDirectDelivery || $needCreatePrepa) {
+                        // validate delivery request and create preparation
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck(
+                            $entityManager,
+                            $demande,
+                            false,
+                            $createDirectDelivery,
+                            true,
+                            false,
+                            ['sendNotification' => !$createDirectDelivery]
+                        );
+                    }
 
-                            /** @var Utilisateur $currentUser */
-                            $currentUser = $this->getUser();
-                            $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
+                    $validatedRequest = $validateResponse['success'] ?? false;
+                    if ($createDirectDelivery && $validatedRequest) {
 
-                            $dateEnd = new DateTime('now');
-                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
+                        /** @var Preparation $preparation */
+                        $preparation = $demande->getPreparations()->first();
 
-                            $locationEndPreparation = $demande->getDestination();
+                        /** @var Utilisateur $currentUser */
+                        $currentUser = $this->getUser();
+                        $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                            $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-                            $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
+                        $dateEnd = new DateTime('now');
+                        $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
 
-                            try {
-                                $entityManager->flush();
+                        $locationEndPreparation = $demande->getDestination();
 
-                                if ($newPreparation
-                                    && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $notificationService->toTreat($newPreparation);
-                                }
-                                if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                    $this->notificationService->toTreat($delivery);
-                                }
-                            } /** @noinspection PhpRedundantCatchClauseInspection */
-                            catch (UniqueConstraintViolationException $e) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
-                                ]);
+                        $newPreparation = $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
+                        $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
+
+                        try {
+                            $entityManager->flush();
+
+                            if ($newPreparation
+                                && $newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+                                $notificationService->toTreat($newPreparation);
                             }
-                            $preparationMovements = $preparation->getMouvements();
-                            foreach ($preparationMovements as $movement) {
-                                $preparationsManagerService->persistDeliveryMovement(
-                                    $entityManager,
-                                    $movement->getQuantity(),
-                                    $currentUser,
-                                    $delivery,
-                                    !empty($movement->getRefArticle()),
-                                    $movement->getRefArticle() ?? $movement->getArticle(),
-                                    $preparation,
-                                    false,
-                                    $locationEndPreparation
-                                );
+                            if ($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                $this->notificationService->toTreat($delivery);
                             }
+                        } /** @noinspection PhpRedundantCatchClauseInspection */
+                        catch (UniqueConstraintViolationException $e) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
+                            ]);
+                        }
+                        $preparationMovements = $preparation->getMouvements();
+                        foreach ($preparationMovements as $movement) {
+                            $preparationsManagerService->persistDeliveryMovement(
+                                $entityManager,
+                                $movement->getQuantity(),
+                                $currentUser,
+                                $delivery,
+                                !empty($movement->getRefArticle()),
+                                $movement->getRefArticle() ?? $movement->getArticle(),
+                                $preparation,
+                                false,
+                                $locationEndPreparation
+                            );
                         }
                     }
                 }
@@ -2092,9 +2007,7 @@ class ReceptionController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/{reception}/etiquette/{article}", name="reception_article_single_bar_code_print", options={"expose"=true})
-     */
+    #[Route('/{reception}/etiquette/{article}', name: 'reception_article_single_bar_code_print', options: ['expose' => true])]
     public function getSingleReceptionArticleBarCode(Article $article,
                                                     Reception $reception,
                                                     ArticleDataService $articleDataService,
@@ -2147,12 +2060,10 @@ class ReceptionController extends AbstractController {
         }
 
         $type = $referenceArticle->getType();
-        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-
         return $this->json([
             'success' => true,
             'template' => $this->renderView('reception/show/packing/article-form.html.twig', [
-                'freeFields' => $freeFields,
+                'type' => $type,
                 'receptionReferenceArticle' => $receptionReferenceArticle,
                 'selectedPack' => $pack,
                 'supplierReference' => $supplierReference,

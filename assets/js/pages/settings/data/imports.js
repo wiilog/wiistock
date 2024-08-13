@@ -35,7 +35,7 @@ export function initializeImports() {
             {data: `createdAt`, title: `Date de création`},
             {data: `startDate`, title: `Date début`},
             {data: `endDate`, title: `Date fin`},
-            {data: `nextExecutionDate`, title: `Prochaine exécution`, orderable: false},
+            {data: `nextExecution`, title: `Prochaine exécution`, orderable: false},
             {data: `frequency`, title: `Fréquence`, orderable: false},
             {data: `label`, title: `Nom import`},
             {data: `newEntries`, title: `Nvx enreg.`},

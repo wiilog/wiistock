@@ -51,10 +51,10 @@
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''></option>
 
-            {% for type in typeChampsLibres %}
+            {% for type in types %}
                 {% set selected = '' %}
-                {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.typeId ? 'selected' : '' %}{% endif %}
-                <option {{ selected }} value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
+                <option {{ selected }} value="{{ type.id }}">{{ type.label }}</option>
             {% endfor %}
         </select>
     </div>
@@ -256,13 +256,16 @@
 <!-- CHAMPS LIBRES -->
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container">
-    {% include 'free_field/freeFieldsEdit.html.twig' with {
-        freeFields: freeFieldsGroupedByTypes[articleRef.type.id] is defined ? freeFieldsGroupedByTypes[articleRef.type.id] : [],
-        freeFieldValues: articleRef.freeFields,
-        colType: 'col-md-4 col-12',
-        requiredType: 'requiredEdit',
-        actionType: 'edit'
-    } %}
+    {% set type = articleRef.type %}
+    {% if type %}
+        {% include 'free_field/freeFieldsEdit.html.twig' with {
+            freeFieldManagementRules: type.freeFieldManagementRules,
+            freeFieldValues: articleRef.freeFields,
+            colType: 'col-md-4 col-12',
+            requiredType: 'requiredEdit',
+            actionType: 'edit'
+        } %}
+    {% endif %}
 </div>
 
 <!-- Reference Fournisseur -->

@@ -6,7 +6,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;

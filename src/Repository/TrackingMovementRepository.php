@@ -5,14 +5,14 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\FreeField;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
-use App\Entity\Statut;
 use App\Entity\Pack;
+use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
+use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -78,7 +78,7 @@ class TrackingMovementRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
+    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, FieldModesService $fieldModesService): array
     {
         $qb = $this->createQueryBuilder('tracking_movement')
             ->groupBy('tracking_movement.id');
@@ -166,7 +166,7 @@ class TrackingMovementRepository extends EntityRepository
                         "article" => "search_pack_article.barCode LIKE :search_value",
                     ];
 
-                    $visibleColumnService->bindSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
+                    $fieldModesService->bindSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
 
                     $qb
                         ->innerJoin('tracking_movement.pack', 'search_pack')
@@ -235,7 +235,7 @@ class TrackingMovementRepository extends EntityRepository
                                                 NULL,
                                                 code_order_pack.code)))', $order);
                     } else {
-                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        $freeFieldId = FieldModesService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);

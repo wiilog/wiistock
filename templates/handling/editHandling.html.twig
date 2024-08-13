@@ -208,7 +208,7 @@
                 <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
                 <div class="content">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
-                        freeFields: freeFields,
+                        freeFieldManagementRules: handling.type.freeFieldManagementRules,
                         freeFieldValues: handling.freeFields,
                         colType: 'col-md-6 col-12 w-100',
                         requiredType: 'requiredEdit',

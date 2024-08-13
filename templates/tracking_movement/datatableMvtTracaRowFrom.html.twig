@@ -5,8 +5,10 @@
        target="_blank">
         <i class='fas fa-share-square mr-2'></i>
         <span class="flex-fill">
-            <span>{{ fromLabel }}</span>
-            <br/>
+            {% if fromLabel is defined %}
+                <span>{{ fromLabel }}</span>
+                <br/>
+            {% endif %}
             <span>{{ from|replace({'-': '&#8209;'})|raw }}</span>
         </span>
     </a>

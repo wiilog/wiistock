@@ -15,6 +15,7 @@ use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
@@ -35,6 +36,7 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -757,9 +759,17 @@ class SelectController extends AbstractController {
     public function truckArrivalLineNumber(Request $request, EntityManagerInterface $manager): Response {
         $term = $request->query->get("term");
         $carrierId = $request->query->get("carrier-id") ?? $request->query->get("transporteur");
-        $truckArrivalId = $request->query->get("truck-arrival-id");
-
+        $truckArrivalId = $request->query->get("truck-arrival-id") ?? $request->query->get("noTruckArrival");
+        $newItem = $request->query->get("new-item");
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
+
+        if($newItem && $term){
+            array_unshift($lines, [
+                "id" => "new-item",
+                "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau numéro tracking</b></div>",
+            ]);
+        }
+
         return $this->json([
             "results" => $lines,
         ]);
@@ -800,6 +810,33 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $results,
+        ]);
+    }
+
+    #[Route('/select/truck-arrival', name: 'ajax_select_truck_arrival', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function truckArrival(Request $request, EntityManagerInterface $manager): JsonResponse {
+        $truckArrivalRepository = $manager->getRepository(TruckArrival::class);
+
+        $term = $request->query->get("term");
+        $carrierId = $request->query->getInt("carrier-id") ?? $request->query->get("transporteur");
+        $truckArrivalId = $request->query->getInt("truck-arrival-id");
+
+        $lines = $truckArrivalRepository->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
+
+        return $this->json([
+            "results" => $lines,
+        ]);
+    }
+
+    #[Route('/select/free-field', name: 'ajax_select_free_field', options: ['expose' => true], methods: self::GET, condition: self::IS_XML_HTTP_REQUEST)]
+    public function freeField(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $term = $request->query->get("term", "");
+        $category = $request->query->get("category-ff");
+        $freeFields = $freeFieldRepository->getForSelect($term, $category);
+        return $this->json([
+            "results" => $freeFields,
         ]);
     }
 }
