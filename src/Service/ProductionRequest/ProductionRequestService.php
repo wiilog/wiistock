@@ -3,7 +3,6 @@
 namespace App\Service\ProductionRequest;
 
 use App\Controller\FieldModesController;
-use App\Controller\ProductionRequest\PlanningController;
 use App\Controller\Settings\StatusController;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
@@ -29,6 +28,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\OperationHistoryService;
+use App\Service\PlanningService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
@@ -36,13 +36,12 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -1037,8 +1036,7 @@ class ProductionRequestService
         $maxDays = PlanningService::NB_DAYS_ON_PLANNING;
         $planningEnd = (clone $planningStart)->modify("+$maxDays days");
 
-        $sortingType = PlanningService::SORTING_TYPE_BY_DATE; // TODO : get sorting type from request
-
+        $sortingType = $request->query->get('sortingType');
 
         $fieldModes = $user?->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
         $displayedFieldsConfig = $this->getDisplayedFieldsConfig($external, $fieldModes);
@@ -1071,12 +1069,13 @@ class ProductionRequestService
             $columnId = match ($sortingType) {
                 PlanningService::SORTING_TYPE_BY_DATE => $productionRequest->getExpectedAt()->format('Y-m-d'),
                 PlanningService::SORTING_TYPE_BY_STATUS_STATE => $productionRequest->getStatus()->getState(),
+                default => throw new BadRequestHttpException(),
             };
 
             $cards[$columnId][] = $this->templating->render('utils/planning/card.html.twig', [
                 "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
                 "cardContent" => $cardContent,
-                ...$this->generateAdditionalCardConfig($entityManager, $productionRequest, $external),
+                ...$this->generateAdditionalCardConfig($entityManager, $productionRequest, $external, $sortingType),
             ]);
             if ($displayCountLines) {
                 $LinesCountByColumns[$columnId] = ($LinesCountByColumns[$columnId] ?? 0) + $productionRequest->getLineCount();
@@ -1104,11 +1103,12 @@ class ProductionRequestService
     }
 
     private function generateAdditionalCardConfig(EntityManagerInterface $entityManager,
-                                                 ProductionRequest      $productionRequest,
-                                                 bool                   $external): array {
+                                                  ProductionRequest      $productionRequest,
+                                                  bool                   $external,
+                                                  string                 $sortingType): array {
         $additionalClasses = ["has-tooltip"];
 
-        if (!$external && $this->settingsService->getValue($entityManager, Menu::PRODUCTION, Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST)) {
+        if (!$external && $sortingType == PlanningService::SORTING_TYPE_BY_DATE && $this->settingsService->getValue($entityManager, Menu::PRODUCTION, Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST)) {
             $additionalClasses[] = "pointer";
             $additionalClasses[] = "can-drag";
         }

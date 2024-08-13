@@ -20,11 +20,12 @@ $(function () {
 
     planning = new Planning($(`.production-request-planning`), {
         route: external ? `production_request_planning_api_external`: `production_request_planning_api`,
-        params: external
-            ? {
+        params: {
+            ... external ? {
                 token: $(`[name=token]`).val(),
-            }
-            : {},
+            } : {},
+            sortingType: $(`[name="sortingType"]`).val(),
+        },
         baseDate: moment().startOf(`isoWeek`),
     });
 
@@ -193,6 +194,15 @@ function initializePlanningNavigation() {
                     }
                 })
         ));
+    });
+
+    $(document).on(`change`, `[name="sortingType"]`, function ($event) {
+        planning.params.sortingType = $event.target.value;
+        planning.fetch();
+
+        if(external) {
+            updateRefreshRate();
+        }
     });
 }
 

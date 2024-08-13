@@ -1,32 +1,15 @@
 <?php
 
-namespace App\Service\ProductionRequest;
+namespace App\Service;
 
-use App\Controller\FieldModesController;
 use App\Controller\Settings\StatusController;
-use App\Entity\Action;
-use App\Entity\CategorieStatut;
 use App\Entity\DaysWorked;
-use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
-use App\Entity\Menu;
-use App\Entity\ProductionRequest;
-use App\Entity\Statut;
-use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
-use App\Service\FieldModesService;
-use App\Service\FormatService;
-use App\Service\LanguageService;
-use App\Service\SettingsService;
-use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Routing\RouterInterface;
-use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 readonly class PlanningService {
@@ -35,8 +18,8 @@ readonly class PlanningService {
     public const SORTING_TYPE_BY_STATUS_STATE = "StatusState";
 
     public const SORTING_TYPES = [
-        self::SORTING_TYPE_BY_DATE,
-        self::SORTING_TYPE_BY_STATUS_STATE,
+        self::SORTING_TYPE_BY_DATE => "Planning",
+        self::SORTING_TYPE_BY_STATUS_STATE => "Modulaire",
     ];
 
     public const NB_DAYS_ON_PLANNING = 7;
@@ -47,32 +30,32 @@ readonly class PlanningService {
         private StatusService   $statusService,
     ) {}
 
-    public function createCardConfig(array $displayedFieldsConfig, ProductionRequest $productionRequest, array $fieldModes,Language|string $userLanguage, Language|string|null $defaultLanguage = null): array {
+    public function createCardConfig(array $displayedFieldsConfig, mixed $entity, array $fieldModes, Language|string $userLanguage, Language|string|null $defaultLanguage = null): array {
         $cardContent = $displayedFieldsConfig;
         $formatService = $this->formatService;
 
-        foreach ($productionRequest->getType()->getFreeFieldManagementRules() as $freeFieldManagementRule) {
+        foreach ($entity->getType()->getFreeFieldManagementRules() as $freeFieldManagementRule) {
             $freeField = $freeFieldManagementRule->getFreeField();
             $fieldName = "free_field_" . $freeField->getId();
             $fieldDisplayConfig = $this->getFieldDisplayConfig($fieldName, $fieldModes);
             if ($fieldDisplayConfig) {
                 $cardContent[$fieldDisplayConfig]["rows"][] = [
                     "field" => $freeField,
-                    "getDetails" => static fn(ProductionRequest $productionRequest, FreeField $freeField) => [
+                    "getDetails" => static fn(mixed $entity, FreeField $freeField) => [
                         "label" => $freeField->getLabelIn($userLanguage, $defaultLanguage),
-                        "value" => $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
+                        "value" => $formatService->freeField($entity->getFreeFieldValue($freeField->getId()), $freeField)
                     ]
                 ];
             }
         }
 
         return Stream::from($cardContent)
-            ->map(static function(array $location) use ($productionRequest) {
+            ->map(static function(array $location) use ($entity) {
                 return Stream::from($location)
-                    ->map(static function(array $type) use ($productionRequest) {
+                    ->map(static function(array $type) use ($entity) {
                         return Stream::from($type)
-                            ->map(static function(array $fieldConfig) use ($productionRequest) {
-                                return $fieldConfig["getDetails"]($productionRequest, $fieldConfig["field"]);
+                            ->map(static function(array $fieldConfig) use ($entity) {
+                                return $fieldConfig["getDetails"]($entity, $fieldConfig["field"]);
                             })
                             ->toArray();
                     })
@@ -99,7 +82,7 @@ readonly class PlanningService {
                                          string                 $statusMode,
                                          array                  $cards,
                                          array                  $options): array {
-        if (!in_array($sortingType, self::SORTING_TYPES)) {
+        if (!array_key_exists($sortingType, self::SORTING_TYPES)) {
             throw new BadRequestHttpException("Invalid sorting type");
         }
 
