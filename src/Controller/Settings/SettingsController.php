@@ -2355,11 +2355,15 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::PRODUCTION])) {
+            if (in_array($categoryLabel, [CategoryType::PRODUCTION])) {
                 $averageTime = $type?->getAverageTime();
                 $data[] = [
-                    "label" => Type::LABEL_AVERAGE_TIME .  $formService->macro("tooltip", "Veuillez suivre ce format : HH:MM"),
-                    "value" => "<input name='averageTime' class='data form-control' value=\"$averageTime\" pattern='" . Type::AVERAGE_TIME_REGEX . "'>",
+                    "label" => Type::LABEL_AVERAGE_TIME . $formService->macro("tooltip", "Veuillez suivre ce format : HH:MM. Le temps moyen maximal est de 23:59"),
+                    "value" => $formService->macro("input", "averageTime", null, false, $averageTime, [
+                        "additionalAttributes" => [
+                            ["name" => "pattern", "value" => Type::AVERAGE_TIME_REGEX],
+                        ]
+                    ]),
                 ];
             }
 

@@ -163,7 +163,7 @@ class Type {
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: FreeFieldManagementRule::class, orphanRemoval: true)]
     private Collection $freeFieldManagementRules;
 
-    #[ORM\Column(type: TYPES::STRING, length: 255, nullable: true)]
+    #[ORM\Column(type: TYPES::STRING, length: 5, nullable: true)]
     private ?string $averageTime = null;
 
     public function __construct() {

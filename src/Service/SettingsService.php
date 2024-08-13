@@ -875,7 +875,7 @@ class SettingsService {
                 }
             }
 
-            if(isset($data["averageTime"]) && $type->getId()){
+            if(isset($data["averageTime"])){
                 $averageTime = $data["averageTime"];
                 if(!preg_match("/" . Type::AVERAGE_TIME_REGEX . "/", $averageTime)){
                     throw new RuntimeException("Le temps moyen doit être au format HH:MM");
