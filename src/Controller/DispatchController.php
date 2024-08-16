@@ -485,6 +485,7 @@ class DispatchController extends AbstractController {
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
         $printBL = $request->query->getBoolean('printBL');
 
@@ -507,8 +508,11 @@ class DispatchController extends AbstractController {
 
         $attachments = array_merge($dispatchAttachments, $dispatchReferenceArticleAttachments);
 
+        $fieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH, [FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT]);
+
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
+            'fieldsParam' => $fieldsParam,
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
             'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
             'newPackConfig' => [
