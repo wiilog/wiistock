@@ -432,4 +432,20 @@ class FormatService
         return $triggerAction?->getAlertTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT] : ($triggerAction?->getRequestTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST] : $else);
     }
 
+    public function minutesToDatetime(string $time): DateTime {
+        $date = new DateTime();
+        $date->setTime(0, 0);
+        $date->modify("+$time minutes");
+
+        return $date;
+    }
+
+    public function datetimeToString(DateTime $date): string
+    {
+        $hours = $date->format('G');  // 'G' donne l'heure au format 24h sans zéro en tête
+        $minutes = $date->format('i');
+
+        return $hours . "h" . $minutes;
+    }
+
 }

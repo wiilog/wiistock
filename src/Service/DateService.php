@@ -62,4 +62,22 @@ class DateService
             . ($delay->s ? " {$delay->s}s" : '')
         );
     }
+
+    public function calculateMinuteFrom(string $time): int
+    {
+        // Vérifier si le format est correct
+        if (!preg_match('/^([01][0-9]|2[0-3]):([0-5][0-9])$/', $time)) {
+            throw new \InvalidArgumentException("Le format de l'heure doit être HH:MM");
+        }
+
+        // Séparer les heures et les minutes
+        list($hours, $minutes) = explode(':', $time);
+
+        // Convertir en entiers
+        $hours = (int) $hours;
+        $minutes = (int) $minutes;
+
+        // Calculer le total des minutes
+        return $hours * DateService::SECONDS_IN_MINUTE + $minutes;
+    }
 }
