@@ -18,6 +18,8 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 use Throwable;
 
 #[AsCommand(
@@ -27,17 +29,11 @@ use Throwable;
 class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
-    private EntityManagerInterface $entityManager;
-    private DashboardService $dashboardService;
-    private WiilockService $wiilockService;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                DashboardService $dashboardService,
-                                WiilockService $wiilockService) {
+    public function __construct(private EntityManagerInterface    $entityManager,
+                                private readonly DashboardService $dashboardService,
+                                private readonly HubInterface     $hub,
+                                private readonly WiilockService   $wiilockService) {
         parent::__construct();
-        $this->entityManager = $entityManager;
-        $this->dashboardService = $dashboardService;
-        $this->wiilockService = $wiilockService;
     }
 
     /**
@@ -171,6 +167,15 @@ class DashboardFeedCommand extends Command {
 
         $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
         $this->entityManager->flush();
+
+        $update = new Update(
+            Dashboard\Page::DASHBOARD_FEED_TOPIC,
+            json_encode([
+                'reload' => true
+            ], JSON_THROW_ON_ERROR),
+            true
+        );
+        $this->hub->publish($update);
 
         return 0;
     }

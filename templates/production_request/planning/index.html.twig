@@ -70,4 +70,11 @@
     {{ parent() }}
     {{ encore_entry_script_tags('filters') }}
     {{ encore_entry_script_tags('production-planning') }}
+
+    <script>
+        const eventSource = new EventSource("{{ mercure('channelname',  { subscribe: 'channelname' })|escape('js') }}", {
+            withCredentials: true,
+        });
+    </script>
+
 {% endblock %}

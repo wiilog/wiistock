@@ -12,6 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'dashboard_page')]
 class Page {
 
+    public const DASHBOARD_FEED_TOPIC = "dashboard-feed";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

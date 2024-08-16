@@ -101,16 +101,19 @@ function loadDashboards(m, refreshRate) {
         });
     }
     else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
-        setInterval(function () {
-            $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
-                dashboards = JSON.parse(response.dashboards);
-                currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
+        eventSource.onmessage = event => {
+            const results = JSON.parse(event.data);
+            if (results.reload === true) {
+                $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
+                    dashboards = JSON.parse(response.dashboards);
+                    currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
 
-                renderCurrentDashboard();
-                renderDashboardPagination();
-                renderRefreshDate(response.refreshed);
-            })
-        }, refreshRate * 60 * 1000);
+                    renderCurrentDashboard();
+                    renderDashboardPagination();
+                    renderRefreshDate(response.refreshed);
+                })
+            }
+        }
     }
 }
 

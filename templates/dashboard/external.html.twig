@@ -37,5 +37,10 @@
 
     <script>
         $(document).ready(() => loadDashboards(MODE_EXTERNAL, {{ refresh_rate }}));
+
+        {% set topic = constant('App\\Entity\\Dashboard\\Page::DASHBOARD_FEED_TOPIC') %}
+        const eventSource = new EventSource("{{ mercure(topic,  { subscribe: topic })|escape('js') }}", {
+        withCredentials: true,
+        });
     </script>
 {% endblock %}
