@@ -36,9 +36,9 @@ $(function () {
     initializePlanningNavigation();
     planning.fetch();
 
-    if(external) {
-        initPlanningRefresh();
-    } else {
+    initPlanningRefresh(planning);
+
+    if(!external) {
         initializeFilters();
     }
     const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
@@ -211,12 +211,19 @@ function changeNavigationButtonStates() {
         .prop(`disabled`, moment().week() === planning.baseDate.week());
 }
 
-function initPlanningRefresh() {
-    setInterval(function () {
-        planning.fetch().then(() => {
-            updateRefreshRate();
-        });
-    }, EXTERNAL_PLANNING_REFRESH_RATE);
+function initPlanningRefresh(planning) {
+    eventSource.onmessage = event => {
+        const results = JSON.parse(event.data);
+        const baseDate = planning.baseDate;
+        const baseDatePlus7 = moment(baseDate).add(7, `days`);
+        const dates = results.dates.map(date => moment(Date.parse(date)));
+        const shouldUpdatePlanning = dates.some(date => date.isAfter(baseDate) && date.isBefore(baseDatePlus7));
+        if(shouldUpdatePlanning) {
+            planning.fetch().then(() => {
+                updateRefreshRate();
+            });
+        }
+    }
 }
 
 function updateRefreshRate() {

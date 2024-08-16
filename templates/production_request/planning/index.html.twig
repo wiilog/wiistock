@@ -72,7 +72,8 @@
     {{ encore_entry_script_tags('production-planning') }}
 
     <script>
-        const eventSource = new EventSource("{{ mercure('channelname',  { subscribe: 'channelname' })|escape('js') }}", {
+        {% set topic = constant('App\\Service\\ServerSentEventService::PRODUCTION_REQUEST_UPDATE_TOPIC') %}
+        const eventSource = new EventSource("{{ mercure(topic,  { subscribe: topic })|escape('js') }}", {
             withCredentials: true,
         });
     </script>

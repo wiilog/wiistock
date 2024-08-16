@@ -10,6 +10,7 @@ use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
 use App\Exceptions\DashboardException;
 use App\Service\DashboardService;
+use App\Service\ServerSentEventService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,10 +30,10 @@ use Throwable;
 class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
-    public function __construct(private EntityManagerInterface    $entityManager,
-                                private readonly DashboardService $dashboardService,
-                                private readonly HubInterface     $hub,
-                                private readonly WiilockService   $wiilockService) {
+    public function __construct(private EntityManagerInterface          $entityManager,
+                                private readonly DashboardService       $dashboardService,
+                                private readonly ServerSentEventService $serverSenteventService,
+                                private readonly WiilockService         $wiilockService) {
         parent::__construct();
     }
 
@@ -168,14 +169,13 @@ class DashboardFeedCommand extends Command {
         $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
         $this->entityManager->flush();
 
-        $update = new Update(
-            Dashboard\Page::DASHBOARD_FEED_TOPIC,
-            json_encode([
+        $this->serverSenteventService->sendEvent(
+            ServerSentEventService::DASHBOARD_FEED_TOPIC,
+            [
                 'reload' => true
-            ], JSON_THROW_ON_ERROR),
+            ],
             true
         );
-        $this->hub->publish($update);
 
         return 0;
     }
