@@ -619,6 +619,7 @@ class ProductionRequestService
             && (
                 ($status->isInProgress() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST))
                 || ($status->isNotTreated() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TO_TREAT_PRODUCTION_REQUEST))
+                || ($status->isPartial() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_PARTIAL_PRODUCTION_REQUEST))
                 || ($status->isTreated() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST))
             )
         );
@@ -857,6 +858,9 @@ class ProductionRequestService
         if ($status->isInProgress()) {
             return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST);
         }
+        if ($status->isPartial()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_PARTIAL_PRODUCTION_REQUEST);
+        }
         if ($status->isTreated()) {
             return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST);
         }
@@ -871,7 +875,7 @@ class ProductionRequestService
                 "field" => FixedFieldEnum::status,
                 "type" => "tags",
                 "getDetails" => fn(ProductionRequest $productionRequest) => [
-                    "class" => !$external && $this->hasRightToUpdateStatus($productionRequest) ? "prevent-default open-modal-update-production-request-status" : "",
+                    "class" => !$external && $this->hasRightToUpdateStatus($productionRequest) && !$productionRequest->getStatus()->isTreated() ? "prevent-default open-modal-update-production-request-status" : "",
                     "color" => $productionRequest->getStatus()->getColor(),
                     "label" => $this->formatService->status($productionRequest->getStatus()),
                 ],

@@ -162,7 +162,7 @@ class StatusService {
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL,
                 'code' => 'partial',
-                'modes' => [StatusController::MODE_DISPATCH],
+                'modes' => [StatusController::MODE_DISPATCH, StatusController::MODE_PRODUCTION],
             ],
         ])
             ->filter(fn($state) => (
