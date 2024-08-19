@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Type;
 use DateInterval;
 
 class DateService
@@ -26,6 +25,8 @@ class DateService
     const SECONDS_IN_DAY = 86400;
     const SECONDS_IN_HOUR = 3600;
     const SECONDS_IN_MINUTE = 60;
+
+    const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
 
     public function dateIntervalToSeconds(DateInterval $dateInterval): int {
         return
@@ -70,7 +71,7 @@ class DateService
      */
     public function calculateMinuteFrom(string $time): int
     {
-        if (!preg_match("/". Type::AVERAGE_TIME_REGEX ."/", $time)) {
+        if (!preg_match("/". DateService::AVERAGE_TIME_REGEX ."/", $time)) {
             throw new \InvalidArgumentException("Le format de l'heure doit être HH:MM");
         }
 
