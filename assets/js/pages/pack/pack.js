@@ -1,4 +1,5 @@
 import {getTrackingHistory} from "./show";
+import '@styles/pages/pack/timeline.scss';
 
 const packsTableConfig = {
     responsive: true,

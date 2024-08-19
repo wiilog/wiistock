@@ -1,4 +1,6 @@
-import {GET, POST} from "@app/ajax";
+import '@styles/details-page.scss';
+import '@styles/pages/pack/timeline.scss';
+import {POST} from "@app/ajax";
 import Routing from "@app/fos-routing";
 
 $(function() {
