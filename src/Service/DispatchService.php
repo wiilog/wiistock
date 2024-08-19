@@ -582,7 +582,9 @@ class DispatchService {
                                          Statut                 $treatedStatus,
                                          Utilisateur            $loggedUser,
                                          bool                   $fromNomade = false,
-                                         array                  $treatedPacks = null): void {
+                                         array                  $treatedPacks = null,
+                                         ?string                $comment = null): void {
+
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
@@ -594,6 +596,8 @@ class DispatchService {
                 ->setTreatmentDate($date)
                 ->setTreatedBy($loggedUser);
         }
+
+        $dispatch->setCommentaire($comment);
 
         $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus, [
             "initiatedBy" => $loggedUser,

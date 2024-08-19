@@ -1,9 +1,13 @@
+{% import "form.html.twig" as form %}
+{% set treatedStatus = dispatchTreat.treatedStatus ?? [] %}
+
 <div class="modal fade" id="modalTreatDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande', false)
             } %}
+
 
             <div class="modal-body modal-input">
                 {% if treatedStatus is not empty %}
@@ -18,6 +22,23 @@
                                 {% endfor %}
                             </select>
                         </div>
+
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH') %}
+                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
+                        {% if displayOnform %}
+                            <div class="col-12 mt-3">
+                                {{ form.wysiwyg('comment', 'Commentaire', false, dispatch.commentaire ?: null) }}
+                            </div>
+                        {% endif %}
+
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
+                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
+                        {% if displayOnform %}
+                            <div class="col-12 mt-3">
+                                {{ form.attachment('Pièces jointes' , false, dispatch.attachments) }}
+                            </div>
+                        {% endif %}
+
                     </div>
                 {% else %}
                     {% include 'utils/warningSelectEmpty.html.twig' with {
