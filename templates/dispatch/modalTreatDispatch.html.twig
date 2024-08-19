@@ -1,4 +1,5 @@
 {% import "form.html.twig" as form %}
+{% set treatedStatus = dispatchTreat.treatedStatus ?? [] %}
 
 <div class="modal fade" id="modalTreatDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -6,6 +7,7 @@
             {% include 'utils/modal/header.html.twig' with {
                 title: trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Terminer la demande', false)
             } %}
+
 
             <div class="modal-body modal-input">
                 {% if treatedStatus is not empty %}
@@ -25,7 +27,7 @@
                         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
                         {% if displayOnform %}
                             <div class="col-12 mt-3">
-                                {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                                {{ form.wysiwyg('comment', 'Commentaire', false, dispatch.commentaire ?: null) }}
                             </div>
                         {% endif %}
 
@@ -33,7 +35,7 @@
                         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
                         {% if displayOnform %}
                             <div class="col-12 mt-3">
-                                {{ form.attachment('Pièces jointes') }}
+                                {{ form.attachment('Pièces jointes' , false, dispatch.attachments) }}
                             </div>
                         {% endif %}
 

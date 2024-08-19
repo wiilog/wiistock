@@ -1,5 +1,7 @@
 {% import "form.html.twig" as form %}
 
+{% set untreatedStatus = dispatchValidate.untreatedStatus ?? [] %}
+
 <div class="modal fade" id="modalValidateDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -26,15 +28,15 @@
                         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
                         {% if displayOnform %}
                             <div class="col-12 mt-3">
-                                {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                                {{ form.wysiwyg('comment', 'Commentaire', false, dispatch.commentaire ?: null) }}
                             </div>
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
                         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
                         {% if displayOnform %}
-                            <div class="col-12 mt-3">
-                                {{ form.attachment('Pièces jointes') }}
+                            <div class="col-12 mt-3 >
+                                {{ form.attachment('Pièces jointes', false, dispatch.attachments) }}
                             </div>
                         {% endif %}
 

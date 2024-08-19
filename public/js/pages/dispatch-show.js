@@ -214,7 +214,7 @@ function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
     const $modal = $(modalSelector);
 
-    clearModal(modalSelector);
+    $modal.find('select[name=status]').val(null).trigger('change');
 
     $modal.modal('show');
 }
@@ -247,7 +247,7 @@ function openTreatDispatchModal() {
     const modalSelector = '#modalTreatDispatch';
     const $modal = $(modalSelector);
 
-    clearModal(modalSelector);
+    $modal.find('select[name=status]').val(null).trigger('change');
 
     $modal.modal('show');
 }
