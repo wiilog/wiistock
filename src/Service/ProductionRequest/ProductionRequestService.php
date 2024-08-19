@@ -1111,8 +1111,8 @@ class ProductionRequestService
             $groupedProductionRequests[$columnId][] = $productionRequest;
         }
 
-        foreach ($groupedProductionRequests as $columnId => $productionRequestsDays) {
-            $totalMinutes = Stream::from($productionRequestsDays)
+        foreach ($groupedProductionRequests as $columnId => $productionRequestsColumn) {
+            $totalMinutes = Stream::from($productionRequestsColumn)
                 ->reduce(function ($totalMinutesPerDay, ProductionRequest $productionRequest) {
                     $averageTimeByDay = $productionRequest->getType()->getAverageTime();
 
@@ -1123,13 +1123,9 @@ class ProductionRequestService
                     return $totalMinutesPerDay;
                 }, 0);
 
-            // Calculer la moyenne
-            $count = count($productionRequestsDays);
-            $averageMinutes = $count > 0 ? $totalMinutes / $count : 0;
-
-            // Convertir sous la forme HH h MM
-            $averageTimeByType[$columnId] = $averageMinutes > 0
-                ? $this->formatService->datetimeToString($this->formatService->minutesToDatetime((int)round($averageMinutes)))
+            // convert minutes to this format: HH h MM
+            $averageTimeByType[$columnId] = $totalMinutes > 0
+                ? $this->formatService->datetimeToString($this->formatService->minutesToDatetime($totalMinutes))
                 : null;
         }
 

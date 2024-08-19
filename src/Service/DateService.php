@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Type;
 use DateInterval;
 
 class DateService
@@ -63,21 +64,23 @@ class DateService
         );
     }
 
+    /**
+     * @param string $time the time in HH:MM format
+     * @return int the number of minutes
+     */
     public function calculateMinuteFrom(string $time): int
     {
-        // Vérifier si le format est correct
-        if (!preg_match('/^([01][0-9]|2[0-3]):([0-5][0-9])$/', $time)) {
+        if (!preg_match("/". Type::AVERAGE_TIME_REGEX ."/", $time)) {
             throw new \InvalidArgumentException("Le format de l'heure doit être HH:MM");
         }
 
-        // Séparer les heures et les minutes
+        // separate hours and minutes
         list($hours, $minutes) = explode(':', $time);
 
-        // Convertir en entiers
         $hours = (int) $hours;
         $minutes = (int) $minutes;
 
-        // Calculer le total des minutes
+        // calculate minutes
         return $hours * DateService::SECONDS_IN_MINUTE + $minutes;
     }
 }
