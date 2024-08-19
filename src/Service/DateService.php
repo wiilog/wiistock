@@ -26,6 +26,8 @@ class DateService
     const SECONDS_IN_HOUR = 3600;
     const SECONDS_IN_MINUTE = 60;
 
+    const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
+
     public function dateIntervalToSeconds(DateInterval $dateInterval): int {
         return
             ($dateInterval->d * self::SECONDS_IN_DAY) +
@@ -61,5 +63,25 @@ class DateService
             . ($delay->i ? " {$delay->i}m" : '')
             . ($delay->s ? " {$delay->s}s" : '')
         );
+    }
+
+    /**
+     * @param string $time the time in HH:MM format
+     * @return int the number of minutes
+     */
+    public function calculateMinuteFrom(string $time): int
+    {
+        if (!preg_match("/". DateService::AVERAGE_TIME_REGEX ."/", $time)) {
+            throw new \InvalidArgumentException("Le format de l'heure doit être HH:MM");
+        }
+
+        // separate hours and minutes
+        list($hours, $minutes) = explode(':', $time);
+
+        $hours = (int) $hours;
+        $minutes = (int) $minutes;
+
+        // calculate minutes
+        return $hours * DateService::SECONDS_IN_MINUTE + $minutes;
     }
 }
