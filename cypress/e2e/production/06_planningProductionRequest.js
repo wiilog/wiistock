@@ -16,9 +16,9 @@ describe('Test of the production request', () => {
 
         //Obligé d'intercepter toutes les requêtes car l'interception avec l'url spécifique ne marche pas
         cy.intercept('GET', "**", (req) => {
-            if (req.url.toString().includes("/production/planning/api?date=")) {
+            if (req.url.toString().includes("/production/planning/api")) {
                 const url = new URL(req.url, window.location.origin);
-                url.searchParams.set('date', '2024-05-27');
+                url.searchParams.set('startDate', '2024-05-27');
                 req.url = url.toString();
                 req.continue();
             }

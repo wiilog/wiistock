@@ -715,10 +715,10 @@ label.required:after {
     background: $white;
     border-radius: 5px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-    margin-top: $grid-gutter-width / 2;
+    margin-top: calc($grid-gutter-width / 2);
 
     .header {
-        padding: $grid-gutter-width / 2;
+        padding: calc($grid-gutter-width / 2);
         border-bottom: 1px solid $medium-grey;
 
         &.optioned {

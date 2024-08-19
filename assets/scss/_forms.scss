@@ -458,7 +458,7 @@ $wysiwyg-dropdown-button-size: 20px;
         background-color: transparent;
         position: absolute;
         right: 4px;
-        top: calc(50% - (#{$wysiwyg-dropdown-button-size / 2}));
+        top: calc(50% - (calc($wysiwyg-dropdown-button-size / 2)));
         cursor: pointer;
         display: flex;
 
