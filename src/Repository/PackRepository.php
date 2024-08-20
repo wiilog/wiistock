@@ -315,7 +315,7 @@ class PackRepository extends EntityRepository
                             ->leftJoin('pack.lastTracking', 'order_packLocation_pack_lastTracking')
                             ->leftJoin('order_packLocation_pack_lastTracking.emplacement', 'order_packLocation_pack_lastTracking_emplacement')
                             ->orderBy('order_packLocation_pack_lastTracking_emplacement.label', $order);
-                    } else if ($column === 'lature') {
+                    } else if ($column === 'nature') {
                         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], ['nature'], ["order" => $order]);
                     } else if ($column === 'LastMovementDate') {
                         $queryBuilder
