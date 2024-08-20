@@ -508,8 +508,14 @@ class DispatchController extends AbstractController {
             ->toArray();
 
         $attachments = array_merge($dispatchAttachments, $dispatchReferenceArticleAttachments);
+        $dispatchType = $dispatch->getType();
 
-        $fieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH, [FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT]);
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($dispatchType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($dispatchType),
+            ]])
+            ->toArray();
 
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
@@ -1080,7 +1086,6 @@ class DispatchController extends AbstractController {
 
             $statusId = $payload->get('status');
             $untreatedStatus = $statusRepository->find($statusId);
-
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {

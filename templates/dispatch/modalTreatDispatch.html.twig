@@ -1,5 +1,6 @@
 {% import "form.html.twig" as form %}
 {% set treatedStatus = dispatchTreat.treatedStatus ?? [] %}
+{% set displayAction = constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') %}
 
 <div class="modal fade" id="modalTreatDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -24,7 +25,7 @@
                         </div>
 
                         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH') %}
-                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
+                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
                         {% if displayOnform %}
                             <div class="col-12 mt-3">
                                 {{ form.wysiwyg(constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name, constant('App\\Entity\\Fields\\FixedFieldEnum::comment').value, false, dispatch.commentaire ?: null) }}
@@ -32,7 +33,7 @@
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
-                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, "displayedEdit") %}
+                        {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
                         {% if displayOnform %}
                             <div class="col-12 mt-3">
                                 {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value , false, dispatch.attachments) }}
@@ -65,7 +66,7 @@
                 {% include 'utils/modal/footer.html.twig' with {
                     elements: [
                         {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                        {classes: 'btn btn-success submit-button', text: trans('Général', null, 'Modale', 'Enregistrer')}
+                        {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
                     ],
                 } %}
 
