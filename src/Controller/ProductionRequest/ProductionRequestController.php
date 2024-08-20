@@ -433,6 +433,7 @@ class ProductionRequestController extends AbstractController
         return $this->json([
             "success" => true,
             "html" => $this->renderView("production_request/modal/form.html.twig", [
+                "isDuplication" => true,
                 "productionRequest" => $productionRequest,
                 "displayAction" => "displayedCreate",
                 "requiredAction" => "requiredCreate",
