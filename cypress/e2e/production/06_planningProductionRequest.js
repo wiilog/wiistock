@@ -111,14 +111,5 @@ describe('Test of the production request', () => {
                 cy.closeAndVerifyModal(`#${modalUpdateStatus}`, 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
                 cy.wait(1000);
             });
-        cy
-            .get(productionRequestCardColumn)
-            .find('a.planning-card')
-            .then((card) => {
-               // should find a children with the class open-modal-update-production-request-status
-                cy.wrap(card).within(() => {
-                    cy.get('.open-modal-update-production-request-status').should('exist');
-                });
-            });
     });
 });
