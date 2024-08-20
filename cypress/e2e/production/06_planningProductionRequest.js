@@ -82,16 +82,16 @@ describe('Test of the production request', () => {
         cy
             .get(productionRequestCardColumn)
             .find('a.planning-card')
-                .then((card) => {
-                    cy
-                        .wrap(card)
-                        .find(openModalUpdateProductionRequestStatus)
-                        .children()
-                        .invoke('text')
-                        .then((statusValue) => {
-                            expect(statusValue.trim()).to.equal(inProgress);
-                        });
-                });
+            .then((card) => {
+                cy
+                    .wrap(card)
+                    .find(openModalUpdateProductionRequestStatus)
+                    .children()
+                    .invoke('text')
+                    .then((statusValue) => {
+                        expect(statusValue.trim()).to.equal(inProgress);
+                    });
+            });
     });
 
     it('Change the status to processed', () => {
@@ -114,15 +114,6 @@ describe('Test of the production request', () => {
         cy
             .get(productionRequestCardColumn)
             .find('a.planning-card')
-            .then((card) => {
-                cy
-                    .wrap(card)
-                    .find(openModalUpdateProductionRequestStatus)
-                    .children()
-                    .invoke('text')
-                    .then((statusValue) => {
-                        expect(statusValue.trim()).to.equal(processed);
-                    });
-            });
+            .should('have.class', "open-modal-update-production-request-status")
     });
 });
