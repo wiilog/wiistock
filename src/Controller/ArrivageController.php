@@ -246,7 +246,6 @@ class ArrivageController extends AbstractController {
                             }
 
                             $entityManager->persist($line);
-                            $entityManager->flush();
                         }
 
                         $line->addArrival($arrivage);
