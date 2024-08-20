@@ -17,6 +17,7 @@ class FieldModesController extends AbstractController {
     public const DELIVERY_REQUEST_SHOW_VISIBLE_COLUMNS = "deliveryRequestShow";
     public const PAGE_PRODUCTION_REQUEST_LIST = "productionRequest";
     public const PAGE_PRODUCTION_REQUEST_PLANNING = "productionRequestPlanning";
+    public const PAGE_PACK_LIST = "packList";
 
     private const PAGES = [
         "reference",
@@ -37,6 +38,7 @@ class FieldModesController extends AbstractController {
         self::PAGE_PRODUCTION_REQUEST_LIST,
         self::PAGE_PRODUCTION_REQUEST_PLANNING,
         "shippingRequest",
+        self::PAGE_PACK_LIST,
     ];
 
     #[Route("/{page}/save", name: "save", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]

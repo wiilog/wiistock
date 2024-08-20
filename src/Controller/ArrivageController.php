@@ -822,7 +822,7 @@ class ArrivageController extends AbstractController {
             ])
             ->toArray();
 
-        $fields = $packService->getColumnVisibleConfig($this->getUser());
+        $fields = $packService->getArrivalPackColumnVisibleConfig($this->getUser());
 
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
@@ -1507,7 +1507,7 @@ class ArrivageController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $columns = $packService->getColumnVisibleConfig($currentUser);
+        $columns = $packService->getArrivalPackColumnVisibleConfig($currentUser);
         return new JsonResponse($columns);
     }
 }

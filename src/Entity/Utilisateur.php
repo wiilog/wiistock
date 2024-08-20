@@ -145,7 +145,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         "treatedBy" => [FieldModesService::FIELD_MODE_VISIBLE],
         "emergency" => [FieldModesService::FIELD_MODE_VISIBLE],
     ];
-    const DEFAULT_PACK_FIELDS_MODES = [
+    const DEFAULT_ARRIVAL_PACK_FIELDS_MODES = [
         "nature" => [FieldModesService::FIELD_MODE_VISIBLE],
         "code" => [FieldModesService::FIELD_MODE_VISIBLE],
         "lastMvtDate" => [FieldModesService::FIELD_MODE_VISIBLE],
@@ -235,6 +235,21 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         FixedFieldEnum::attachments->name => [FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN],
     ];
 
+    const DEFAULT_PACK_LIST_FIELDS_MODES = [
+        "cart" => [FieldModesService::FIELD_MODE_VISIBLE],
+        'pairing' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'details' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'code' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'nature' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'quantity' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'project' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'lastMovementDate' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'origin' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'location' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'receiptAssociation' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'truckArrivalNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
+
     const DEFAULT_FIELDS_MODES = [
         'reference' => self::DEFAULT_REFERENCE_FIELDS_MODES,
         'article' => self::DEFAULT_ARTICLE_FIELDS_MODES,
@@ -246,12 +261,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_FIELDS_MODES,
         'handling' => self::DEFAULT_HANDLING_FIELDS_MODES,
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_FIELDS_MODES,
-        'arrivalPack' => self::DEFAULT_PACK_FIELDS_MODES,
+        'arrivalPack' => self::DEFAULT_ARRIVAL_PACK_FIELDS_MODES,
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_FIELDS_MODES,
         FieldModesController::PAGE_PRODUCTION_REQUEST_LIST => self::DEFAULT_PRODUCTION_REQUEST_LIST_FIELDS_MODES,
         FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING => self::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES,
         'onGoing' => self::DEFAULT_ON_GOING_FIELDS_MODES,
         'stockMovement' => self::DEFAULT_STOCK_MOVEMENT_FIELDS_MODES,
+        FieldModesController::PAGE_PACK_LIST => self::DEFAULT_PACK_LIST_FIELDS_MODES,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -1873,9 +1889,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this->fieldModesByPage;
     }
 
-
-    public function getFieldModes(string $page): array {
-        return $this->fieldModesByPage[$page] ?? [];
+    public function getFieldModes(string $page): ?array {
+        return $this->fieldModesByPage[$page] ?? null;
     }
 
     public function setFieldModesByPage(?array $fieldModesByPage): self {
