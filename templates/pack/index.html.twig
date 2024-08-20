@@ -31,23 +31,38 @@
         </ul>
 
         <hr>
-
-        {% if hasRightExport %}
-            <div class="row wii-page-card-header">
-                <div class="col-auto ml-auto">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary" onclick="toExport()">
-                            <i class="fa fa-file-csv mr-2"></i>
-                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                        </button>
-                    </div>
-                </div>
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRightExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            icon: "fa fa-file-csv",
+                            attributes: {
+                                "onclick": "toExport()",
+                            },
+                        },
+                        {
+                            hasRight: hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')),
+                            title: "Gestion des colonnes",
+                            icon: "fas fa-cog",
+                            attributes: {
+                            "data-toggle": "modal",
+                                "data-target": "#modalFieldModes",
+                            },
+                        }
+                    ]
+                } %}
             </div>
-        {% endif %}
+        </div>
 
         <div class="row">
             <div class="col-12 packsTableContainer d-flex">
-                <table id="packsTable" class="table w-100"></table>
+                <table id="packsTable" class="table w-100"
+                       data-initial-visible="{{ fields|json_encode() }}">
+                </table>
+
             </div>
             <div class="col-12 groupsTableContainer">
                 <table id="groupsTable" class="table wii-list w-100"></table>
@@ -60,6 +75,20 @@
     {% include 'pack/modalDeletePack.html.twig' %}
     {% include 'group/edit.html.twig' %}
     {% include 'group/ungroup.html.twig' %}
+    {% include "utils/fields-modes.html.twig" with {
+        fields,
+        table: 'packsTable',
+        page: constant('App\\Controller\\FieldModesController::PAGE_PACK_LIST'),
+        config: {
+            columns: [
+                {
+                    label: "Visible",
+                    type: "checkbox",
+                    name: constant('App\\Service\\FieldModesService::FIELD_MODE_VISIBLE'),
+                },
+            ],
+        }
+    } %}
 {% endblock %}
 
 {% block javascripts %}

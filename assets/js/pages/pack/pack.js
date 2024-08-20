@@ -1,12 +1,14 @@
 import {getTrackingHistory} from "./show";
 import '@styles/pages/pack/timeline.scss';
 
+global.toExport = toExport;
+
 const packsTableConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
-    page: 'pack',
-    order: [['packLastDate', "desc"]],
+    page: 'packList',
+    order: [['lastMovementDate', "desc"]],
     ajax: {
         url: Routing.generate('pack_api', true),
         type: "POST",
@@ -17,21 +19,6 @@ const packsTableConfig = {
     rowConfig: {
         needsRowClickAction: true
     },
-    columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-        {data: 'contentPack', name: 'contentPack', title: '', className: 'noVis', orderable: false},
-        {data: 'cart', name: 'cart', title: '<span class="wii-icon wii-icon-cart add-all-cart pointer"></span>', className: 'cart-row', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '<span class="wii-icon wii-icon-pairing black"><span>', className: 'pairing-row'},
-        {data: 'packNum', name: 'packNum', title: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')},
-        {data: 'packNature', name: 'packNature', title: Translation.of('Traçabilité', 'Général', 'Nature')},
-        {data: `quantity`, name: 'quantity',  'title': Translation.of('Traçabilité', 'Général', 'Quantité')},
-        {data: `project`, name: 'project',  'title': Translation.of('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')},
-        {data: 'packLastDate', name: 'packLastDate', title: Translation.of('Traçabilité', 'Général', 'Date dernier mouvement')},
-        {data: "packOrigin", name: 'packOrigin', title: Translation.of('Traçabilité', 'Général', 'Issu de'), className: 'noVis', orderable: false},
-        {data: "packLocation", name: 'packLocation', title: Translation.of('Traçabilité', 'Général', 'Emplacement')},
-        {data: 'receiptAssociation', name: 'receiptAssociation', title: 'Association', className: 'noVis', orderable: false},
-        {data: 'truckArrivalNumber', name: 'truckArrivalNumber', title: 'Arrivage camion', className: 'noVis'},
-    ],
     drawCallback: () => {
         toggleAddAllToCartButton();
 
@@ -215,7 +202,9 @@ function switchPacks() {
     window.location.hash = HASH_PACKS;
 
     if(!packsTable) {
-        packsTable = initDataTable(`packsTable`, packsTableConfig);
+        const $packTable = $('#packsTable');
+
+        packsTable = initDataTable($packTable, packsTableConfig);
 
         const $modalEditPack = $('#modalEditPack');
         const $submitEditPack = $('#submitEditPack');
