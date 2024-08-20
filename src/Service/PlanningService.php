@@ -113,6 +113,7 @@ readonly class PlanningService {
                 throw new BadRequestHttpException("Invalid status mode");
             }
             $planningColums = Stream::from($this->statusService->getStatusStatesValues($statusMode))
+                ->sort(fn($firstStatusState, $secondStatusState) => $firstStatusState['id'] - $secondStatusState['id'])
                 ->keymap(static fn(array $status) => [
                     $status['id'],
                     $status['label']
