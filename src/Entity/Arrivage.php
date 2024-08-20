@@ -574,13 +574,13 @@ class Arrivage implements AttachmentContainer {
         return $this;
     }
 
-    public function serialize(FormatService $formatService): array {
+    public function serialize(): array {
 
         return [
             FixedFieldEnum::status->value => $this->getStatut()->getCode(),
             FixedFieldEnum::type->value => $this->getType()->getLabel(),
-            FixedFieldEnum::carrier->value => $this->getTransporteur()->getLabel(),
-            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
+            FixedFieldEnum::carrier->value => $this->getTransporteur()?->getLabel(),
+            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire() ?? ''),
         ];
     }
 }
