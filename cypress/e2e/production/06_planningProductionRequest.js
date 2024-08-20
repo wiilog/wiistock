@@ -116,7 +116,9 @@ describe('Test of the production request', () => {
             .find('a.planning-card')
             .then((card) => {
                // should find a children with the class open-modal-update-production-request-status
-                cy.wrap(card).find('.open-modal-update-production-request-status').should('exist');
+                cy.wrap(card).within(() => {
+                    cy.get('.open-modal-update-production-request-status').should('exist');
+                });
             });
     });
 });
