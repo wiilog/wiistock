@@ -14,6 +14,7 @@ use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
@@ -1074,10 +1075,10 @@ class DispatchController extends AbstractController {
         $now = new DateTime('now');
 
         if(!$status || $status->isDraft()) {
-            $data = $request->request->all();
+            $payload = $request->request;
             $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $statusId = $data['status'];
+            $statusId = $payload->get('status');
             $untreatedStatus = $statusRepository->find($statusId);
 
 
@@ -1091,8 +1092,13 @@ class DispatchController extends AbstractController {
 
                     $dispatch
                         ->setValidationDate($now)
-                        ->setCommentaire($data['comment']);
+                        ->setCommentaire($payload->get(FixedFieldEnum::comment->name));
 
+                    $alreadySavedFiles = $payload->has('files')
+                        ? $payload->all('files')
+                        : [];
+
+                    $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
                     $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
 
                     $user = $this->getUser();
@@ -1167,10 +1173,10 @@ class DispatchController extends AbstractController {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isNotTreated() || $status->isPartial()) {
-            $data = $request->request->all();
+            $payload = $request->request;
             $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $statusId = $data['status'];
+            $statusId = $payload->get('status');
             $treatedStatus = $statusRepository->find($statusId);
 
             if($treatedStatus
@@ -1183,8 +1189,13 @@ class DispatchController extends AbstractController {
 
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
-                $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser, false, null, $data['comment']);
+                $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser, false, null, $payload->get(FixedFieldEnum::comment->name));
 
+                $alreadySavedFiles = $payload->has('files')
+                    ? $payload->all('files')
+                    : [];
+
+                $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
                 $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
 
                 $entityManager->flush();
