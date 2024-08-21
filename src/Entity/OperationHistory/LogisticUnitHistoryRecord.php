@@ -15,6 +15,7 @@ class LogisticUnitHistoryRecord extends OperationHistory {
     use AttachmentTrait;
 
     #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Pack $pack = null;
 
     #[ORM\ManyToOne]
