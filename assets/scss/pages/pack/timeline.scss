@@ -81,9 +81,10 @@
         }
 
         .history-text-overflow {
-            max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-align: right;
+            padding-right: 10px;
         }
 
         .history-line-left-content {
@@ -148,6 +149,7 @@
                 overflow-wrap: anywhere;
                 max-height: 250px;
                 overflow-y: auto;
+                background-color: $white;
 
                 &.past {
                     border-color: rgba(51, 83, 215, 0.1);
