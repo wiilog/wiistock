@@ -99,19 +99,16 @@ function loadDashboards(m, refreshRate) {
         $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
             $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
         });
-    }
-    else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
+    } else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
         eventSource.onmessage = event => {
             const results = JSON.parse(event.data);
-            if (results.reload === true) {
-                $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
-                    dashboards = JSON.parse(response.dashboards);
-                    currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
+            if (results) {
+                dashboards = JSON.parse(results.dashboards);
+                currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
 
-                    renderCurrentDashboard();
-                    renderDashboardPagination();
-                    renderRefreshDate(response.refreshed);
-                })
+                renderCurrentDashboard();
+                renderDashboardPagination();
+                renderRefreshDate(results.refreshed);
             }
         }
     }

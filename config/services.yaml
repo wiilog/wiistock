@@ -101,6 +101,7 @@ services:
             - { name: 'doctrine.orm.entity_listener', event: 'postUpdate', lazy: true, entity: 'App\Entity\Article' }
             - { name: 'doctrine.orm.entity_listener', event: 'postRemove', lazy: true, entity: 'App\Entity\Article' }
             - { name: 'doctrine.event_listener', event: 'postFlush', lazy: true, entity: 'App\Entity\Article' }
+
     App\EventListener\RefArticleStateNotifier:
         tags:
             - { name: 'doctrine.orm.entity_listener', event: 'postUpdate', lazy: true, entity: 'App\Entity\Reception' }
@@ -135,6 +136,13 @@ services:
     App\EventListener\LogoutListener:
         tags:
             - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LogoutEvent', dispatcher: security.event_dispatcher.main }
+
+    App\EventListener\sse\entityListener\ProductionListener:
+        tags:
+            - { name: 'doctrine.event_listener', event: 'preUpdate', lazy: true, entity: 'App\Entity\ProductionRequest' }
+            - { name: 'doctrine.event_listener', event: 'postFlush', lazy: true, entity: 'App\Entity\ProductionRequest' }
+            - { name: 'doctrine.event_listener', event: 'postPersist', lazy: true, entity: 'App\Entity\ProductionRequest' }
+            - { name: 'doctrine.event_listener', event: 'postRemove', lazy: true, entity: 'App\Entity\ProductionRequest' }
 
     saml_user_factory:
         class: App\Security\SAMLUserFactory

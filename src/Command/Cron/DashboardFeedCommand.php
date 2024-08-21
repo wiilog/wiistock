@@ -10,7 +10,9 @@ use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
 use App\Exceptions\DashboardException;
 use App\Service\DashboardService;
+use App\Service\DashboardSettingsService;
 use App\Service\ServerSentEventService;
+use App\Service\UserService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,8 +21,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Mercure\HubInterface;
-use Symfony\Component\Mercure\Update;
 use Throwable;
 
 #[AsCommand(
@@ -30,10 +30,12 @@ use Throwable;
 class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
-    public function __construct(private EntityManagerInterface          $entityManager,
-                                private readonly DashboardService       $dashboardService,
-                                private readonly ServerSentEventService $serverSenteventService,
-                                private readonly WiilockService         $wiilockService) {
+    public function __construct(private EntityManagerInterface            $entityManager,
+                                private readonly DashboardService         $dashboardService,
+                                private readonly ServerSentEventService   $serverSenteventService,
+                                private readonly UserService              $userService,
+                                private readonly WiilockService           $wiilockService,
+                                private readonly DashboardSettingsService $dashboardSettingsService,) {
         parent::__construct();
     }
 
@@ -172,7 +174,8 @@ class DashboardFeedCommand extends Command {
         $this->serverSenteventService->sendEvent(
             ServerSentEventService::DASHBOARD_FEED_TOPIC,
             [
-                'reload' => true
+                "dashboards" => $this->dashboardSettingsService->serialize($this->entityManager, $this->userService->getUser(), 1),
+                "refreshed" => $this->dashboardService->refreshDate($this->entityManager),
             ],
             true
         );

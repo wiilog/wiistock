@@ -25,13 +25,11 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\ExceptionLoggerService;
 use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
 use App\Service\ProductionRequest\ProductionRequestService;
-use App\Service\ServerSentEventService;
 use App\Service\StatusService;
 use App\Service\UserService;
 use DateTime;
@@ -156,9 +154,7 @@ class ProductionRequestController extends AbstractController
                         Request                  $request,
                         UserService              $userService,
                         ProductionRequestService $productionRequestService,
-                        FixedFieldService        $fieldsParamService,
-                        ServerSentEventService   $serverSentEventService,
-                        ExceptionLoggerService   $exceptionLoggerService): JsonResponse {
+                        FixedFieldService        $fieldsParamService): JsonResponse {
 
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
 
@@ -187,22 +183,6 @@ class ProductionRequestController extends AbstractController
 
         foreach ($productionRequests as $productionRequest) {
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
-        }
-
-        try {
-            $serverSentEventService->sendEvent(
-                ServerSentEventService::PRODUCTION_REQUEST_UPDATE_TOPIC,
-                [
-                    "dates" => [
-                        Stream::from($productionRequests)
-                            ->map(fn(ProductionRequest $productionRequest) => $productionRequest->getExpectedAt()->format("Y-m-d"))
-                            ->unique()
-                            ->toArray(),
-                    ]
-                ]
-            );
-        } catch (Throwable $exception) {
-            $exceptionLoggerService->sendLog($exception, $request);
         }
 
         return $this->json([
