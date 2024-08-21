@@ -171,45 +171,50 @@ function onPlanningLoaded(planning) {
 
 }
 
-function initializePlanningNavigation() {
-    $(`.today-date`).on(`click`, function () {
-        wrapLoadingOnActionButton($(this), () => (
-            planning
-                .resetBaseDate(true)
-                .then(() => {
-                    changeNavigationButtonStates();
-
-                    if(external) {
-                        updateRefreshRate();
-                    }
-                })
-        ));
+function updateDateInputs($startDate, $endDate) {
+    planning.baseDate = moment($startDate.val());
+    planning.step = moment($endDate.val()).diff(planning.baseDate, `days`)+1;
+    return planning.fetch().then(() => {
+        changeNavigationButtonStates();
+        if(external) {
+            updateRefreshRate();
+        }
     });
+}
+
+function initializePlanningNavigation() {
+    const $startDate = $(`[name=startDate]`);
+    const $endDate = $(`[name=endDate]`);
+
+
+    $startDate.add($endDate).on(`change`, function () {
+        updateDateInputs($startDate, $endDate)
+    })
+
+    $(`.today-date`).on(`click`, function () {
+        wrapLoadingOnActionButton($(this), () => {
+            const now = moment().startOf(`isoWeek`).format(`YYYY-MM-DD`)
+            $startDate.val(now);
+            planning.step = 6;
+            $endDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
+            return updateDateInputs($startDate, $endDate)
+        });
+    }).trigger(`click`);
 
     $(document).on(`click`, `.decrement-date, .previous-week`, function () {
-        wrapLoadingOnActionButton($(this), () => (
-            planning.previousWeek()
-                .then(() => {
-                    changeNavigationButtonStates();
-
-                    if(external) {
-                        updateRefreshRate();
-                    }
-                })
-        ));
+        wrapLoadingOnActionButton($(this), () => {
+            $startDate.val(moment($startDate.val()).add(0-planning.step, `days`).format(`YYYY-MM-DD`));
+            $endDate.val(moment($startDate.val()).add(planning.step-1, `days`).format(`YYYY-MM-DD`));
+            return updateDateInputs($startDate, $endDate)
+        });
     });
 
     $(document).on(`click`, `.increment-date, .next-week`, function () {
-        wrapLoadingOnActionButton($(this), () => (
-            planning.nextWeek()
-                .then(() => {
-                    changeNavigationButtonStates();
-
-                    if(external) {
-                        updateRefreshRate();
-                    }
-                })
-        ));
+        wrapLoadingOnActionButton($(this), () => {
+            $startDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
+            $endDate.val(moment($startDate.val()).add(planning.step-1, `days`).format(`YYYY-MM-DD`));
+            return updateDateInputs($startDate, $endDate)
+        });
     });
 
     $(document).on(`change`, `[name="sortingType"]`, function ($event) {
@@ -220,11 +225,13 @@ function initializePlanningNavigation() {
             updateRefreshRate();
         }
     });
+
+
 }
 
 function changeNavigationButtonStates() {
     $(`.today-date`)
-        .prop(`disabled`, moment().week() === planning.baseDate.week());
+        .prop(`disabled`, moment().week() === planning.baseDate.week() && planning.step === 7);
 }
 
 function initPlanningRefresh() {

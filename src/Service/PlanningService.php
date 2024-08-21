@@ -78,6 +78,7 @@ readonly class PlanningService {
 
     public function createPlanningConfig(EntityManagerInterface $entityManager,
                                          DateTime               $planningStart,
+                                         int                    $step,
                                          string                 $sortingType,
                                          string                 $statusMode,
                                          array                  $cards,
@@ -93,7 +94,7 @@ readonly class PlanningService {
         $workFreeDays = $workFreeDayRepository->getWorkFreeDaysToDateTime(true);
 
         if ($sortingType === self::SORTING_TYPE_BY_DATE) {
-            $planningColums = Stream::fill(0, $this::NB_DAYS_ON_PLANNING, null)
+            $planningColums = Stream::fill(0, $step, null)
                 ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
                     $day = (clone $planningStart)->modify("+$index days");
                     if (in_array(strtolower($day->format("l")), $daysWorked)

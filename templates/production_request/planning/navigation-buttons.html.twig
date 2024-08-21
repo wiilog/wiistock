@@ -15,6 +15,26 @@
         ) }}
     </div>
     <div class="col-auto">
+        {{ form.inlineInputs('dates', null, false,{
+            content: [
+                {
+                    label: 'Du',
+                    name: 'startDate',
+                    value: null,
+                    type: 'date',
+                    width: '',
+                },
+                {
+                    label: 'Au',
+                    name: 'endDate',
+                    value: null,
+                    type: 'date',
+                    width: '',
+                },
+            ],
+        }) }}
+    </div>
+    <div class="col-auto">
         <button class="btn btn-outline-primary today-date mr-0 h-100"
                 disabled
                 data-loader-color="black">

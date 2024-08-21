@@ -10,6 +10,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
@@ -1038,15 +1039,19 @@ class ProductionRequestService
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
 
         $user = $this->userService->getUser();
         $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
 
         $planningStart = $this->formatService->parseDatetime($request->query->get('startDate'));
-        $maxDays = PlanningService::NB_DAYS_ON_PLANNING;
-        $planningEnd = (clone $planningStart)->modify("+$maxDays days");
+
+        $step = $request->query->getint('step', PlanningService::NB_DAYS_ON_PLANNING);
+        $planningEnd = (clone $planningStart)->modify("+$step days");
 
         $sortingType = $request->query->get('sortingType');
+
 
         $fieldModes = $user?->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
         $displayedFieldsConfig = $this->getDisplayedFieldsConfig($external, $fieldModes);
@@ -1068,8 +1073,8 @@ class ProductionRequestService
             ->toArray();
 
         $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
-        $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
-            || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
+        $fixedFieldParamCountLines  = $fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldEnum::lineCount->name])[0] ?? null;
+        $displayCountLines = $fixedFieldParamCountLines?->isDisplayedEdit() || $fixedFieldParamCountLines?->isDisplayedCreate();
 
         $cards = [];
         $LinesCountByColumns = [];
@@ -1138,6 +1143,7 @@ class ProductionRequestService
         return $this->planningService->createPlanningConfig(
             $entityManager,
             $planningStart,
+            $step,
             $sortingType,
             StatusController::MODE_PRODUCTION,
             $cards,
