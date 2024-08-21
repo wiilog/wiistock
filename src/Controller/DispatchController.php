@@ -510,7 +510,10 @@ class DispatchController extends AbstractController {
         $attachments = array_merge($dispatchAttachments, $dispatchReferenceArticleAttachments);
         $dispatchType = $dispatch->getType();
 
-        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH,
+            "fieldCode" => [FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH, FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH]
+        ]))
             ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
                 FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($dispatchType),
                 FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($dispatchType),

@@ -38,7 +38,7 @@
                         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
                         {% if displayOnform %}
                             <div class="col-12 mt-3 >
-                                {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').name, false, dispatch.attachments) }}
+                                {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, dispatch.attachments) }}
                             </div>
                         {% endif %}
 
