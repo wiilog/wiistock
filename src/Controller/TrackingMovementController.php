@@ -131,6 +131,14 @@ class TrackingMovementController extends AbstractController
         }
 
         $packCode = $post->get('pack');
+
+        if(preg_match('/,/', $packCode)) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Le code d\'unité logistique ne doit pas contenir de virgule.'
+            ]);
+        }
+
         $commentaire = $post->get('commentaire');
         $quantity = $post->getInt('quantity') ?: 1;
         $articles = $post->get('articles') ?: null;
