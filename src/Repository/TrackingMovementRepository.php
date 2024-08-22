@@ -537,6 +537,7 @@ class TrackingMovementRepository extends EntityRepository
             ->getQuery()
             ->getSingleResult();
 
-        return $result["count"] ?? 0;
+
+        return $result[1] ?? 0;
     }
 }
