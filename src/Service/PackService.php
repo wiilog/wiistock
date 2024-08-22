@@ -145,6 +145,10 @@ class PackService {
         $receptionAssociationFormatted = Stream::from($pack?->getReceiptAssociations())
             ->map(fn(ReceiptAssociation $receptionAssociation) => $receptionAssociation->getReceptionNumber())
             ->join(', ');
+        $arrival = $pack->getArrivage();
+        $truckArrival = $arrival
+            ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
+            : null ;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -182,7 +186,7 @@ class PackService {
                 : '',
             'receiptAssociation' => $receptionAssociationFormatted,
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
-                'truckArrival' => $pack->getArrivage()
+                'truckArrival' => $truckArrival
             ]),
         ];
     }

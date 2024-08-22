@@ -115,6 +115,18 @@ $(function() {
         addToCart(ids);
     })
 
+    $(document).arrive('.origin', function() {
+        const $origin = $(this);
+
+        // register the event directly on the element through arrive
+        // to get the event before action-on-click and be able to
+        // cancel modal openning through event.stopPropagation
+        $origin.on(`mouseup`, event => {
+            event.stopPropagation();
+            console.log('origin');
+        })
+    });
+
     $(document).arrive(`.logistic-unit-number`, function() {
         const $number = $(this);
 
