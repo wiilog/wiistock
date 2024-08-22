@@ -132,7 +132,7 @@ class MouvementStockController extends AbstractController
             /** @var Article|ReferenceArticle|null $chosenArticleToMove */
             $chosenArticleToMove = (
                 $referenceArticleRepository->findOneBy(['barCode' => $movementBarcode])
-                ?: $articleRepository->findOneBy(['id' => $movementBarcode])
+                ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
             );
 
             $chosenArticleStatus = $chosenArticleToMove->getStatut();
