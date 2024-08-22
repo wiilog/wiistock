@@ -102,7 +102,7 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Tracking associé</span>
-                                    <span class="wii-body-text">{{ arrival ? arrival.noTracking : "-" }}</span>
+                                    <span class="wii-body-text">{{ arrival ? (arrival.noTracking ?: arrival.truckArrivalLines|map((line) => line.number)|join(', ')) : "-" }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
