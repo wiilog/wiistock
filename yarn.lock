@@ -2866,12 +2866,12 @@ datatables.net-buttons@1.6.5, datatables.net-buttons@^1.6.4:
     datatables.net "^1.10.15"
     jquery ">=1.7"
 
-datatables.net-colreorder@^1.5.4:
-  version "1.5.4"
-  resolved "https://registry.yarnpkg.com/datatables.net-colreorder/-/datatables.net-colreorder-1.5.4.tgz#60f9a937c46bbc77c4fd1c909d746238daa0c1d2"
-  integrity sha512-Y9J2DvjBiFw/ADRce7aSaWhLN9yea9ZxK5FA8MDoLmMXtAR7AnKoe0XoTXAPD5aoHCUMiQKEt91qU7CT05KhEg==
+datatables.net-colreorder@^1.5.5:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/datatables.net-colreorder/-/datatables.net-colreorder-1.7.2.tgz#9806f165048daecb2fe93a482c744efc6e649c06"
+  integrity sha512-F8TYMFXtWLtsjciwS7hkP/Fbp3XS6WHuHLc+iMFtQqiQmbMo/59GK7YSxKuxSoqTTJU/opaPXQYjODnIuNEc/g==
   dependencies:
-    datatables.net "^1.10.15"
+    datatables.net "^1.13.0"
     jquery ">=1.7"
 
 datatables.net-dt@^1.10.15, datatables.net-dt@^1.10.22:
@@ -2904,7 +2904,7 @@ datatables.net@^1.10.15:
   dependencies:
     jquery ">=1.7"
 
-datatables.net@^1.11.4:
+datatables.net@^1.11.4, datatables.net@^1.13.0:
   version "1.13.11"
   resolved "https://registry.yarnpkg.com/datatables.net/-/datatables.net-1.13.11.tgz#e2a4c8b50553512f241ebfcbc078d74d551183b2"
   integrity sha512-AE6RkMXziRaqzPcu/pl3SJXeRa6fmXQG/fVjuRESujvkzqDCYEeKTTpPMuVJSGYJpPi32WGSphVNNY1G4nSN/g==
