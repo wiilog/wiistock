@@ -416,13 +416,15 @@ function createArrival(form = null) {
 
 function validatorNoTracking($modal) {
     const $noTracking = $modal.find('select[name=noTracking]');
-    const isValid = $noTracking.val().length > 0 && $noTracking.attr('required');
-    if(!isValid) {
-        return {
-            success: false,
-            errorMessages: ["Veuillez renseigner le champs 'N° de tracking transporteur'"],
-            $isInvalidElements: [$noTracking],
-        };
+    if ($noTracking.length !== 0) {
+        const isValid = $noTracking.val()?.length > 0 && $noTracking.attr('required');
+        if(!isValid) {
+            return {
+                success: false,
+                errorMessages: ["Veuillez renseigner le champs 'N° de tracking transporteur'"],
+                $isInvalidElements: [$noTracking],
+            };
+        }
     }
 }
 
