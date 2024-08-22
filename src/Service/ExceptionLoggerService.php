@@ -19,20 +19,16 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 
 class ExceptionLoggerService {
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public HttpClientInterface $client;
-
     private Serializer $serializer;
 
-    public function __construct() {
+    public function __construct(
+        private readonly HttpClientInterface $client,
+        private readonly LoggerInterface $symfonyLogger,
+        private readonly Security $security,
+    ) {
         $encoder = new JsonEncoder();
         $defaultContext = [
             AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
@@ -58,15 +54,17 @@ class ExceptionLoggerService {
             $user = [
                 "id" => $user->getId(),
                 "email" => $user->getEmail(),
-                "role" => $user->getRole() ? $user->getRole()->getLabel() : null,
+                "role" => $user->getRole()
+                    ? $user->getRole()->getLabel()
+                    : null,
             ];
         }
 
         $throwable = FlattenException::createFromThrowable($throwable);
         $exceptions = array_merge([$throwable], $throwable->getAllPrevious());
 
-        foreach ($exceptions as $throwable) {
-            $stacktrace = $throwable->getTrace();
+        foreach ($exceptions as $previous) {
+            $stacktrace = $previous->getTrace();
             foreach ($stacktrace as &$trace) {
                 $file = $trace['file'] ? file($trace["file"]) : [];
                 array_unshift($file, "");
@@ -84,11 +82,11 @@ class ExceptionLoggerService {
             $class = new ReflectionClass(FlattenException::class);
             $property = $class->getProperty("trace");
             $property->setAccessible(true);
-            $property->setValue($throwable, $stacktrace);
+            $property->setValue($previous, $stacktrace);
 
             $property = $class->getProperty("previous");
             $property->setAccessible(true);
-            $property->setValue($throwable, null);
+            $property->setValue($previous, null);
         }
 
         try {
@@ -116,8 +114,10 @@ class ExceptionLoggerService {
                     ],
                 ]);
             }
-        } catch (Throwable $ignored) {
-
+        }
+        catch (Throwable $sendLogException) {
+            $this->symfonyLogger->error("ExceptionLoggerService::sendLog - Exception on logger request: " . $sendLogException->getMessage());
+            $this->symfonyLogger->error("ExceptionLoggerService::sendLog - Exception thrown: " . $throwable->getMessage() . " " . $throwable->getTraceAsString());
         }
     }
 
