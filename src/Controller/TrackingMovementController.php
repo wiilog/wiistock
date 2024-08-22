@@ -131,14 +131,6 @@ class TrackingMovementController extends AbstractController
         }
 
         $packCode = $post->get('pack');
-
-        if(preg_match('/,/', $packCode)) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Le code d\'unité logistique ne doit pas contenir de virgule.'
-            ]);
-        }
-
         $commentaire = $post->get('commentaire');
         $quantity = $post->getInt('quantity') ?: 1;
         $articles = $post->get('articles') ?: null;
@@ -214,6 +206,13 @@ class TrackingMovementController extends AbstractController
                 }
 
                 foreach ($packArrayFiltered as $pack) {
+                    // allow to prevent the creation of a pack with a comma in its code
+                    if($pack === '') {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => 'Le code d\'unité logistique ne doit pas contenir de virgule.'
+                        ]);
+                    }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
                         $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                             $entityManager,
