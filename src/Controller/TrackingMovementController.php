@@ -210,7 +210,7 @@ class TrackingMovementController extends AbstractController
                     if($pack === '') {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => 'Le code d\'unité logistique ne doit pas contenir de virgule.'
+                            'msg' => 'Le code d\'unité logistique ne peut pas être vide.'
                         ]);
                     }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
