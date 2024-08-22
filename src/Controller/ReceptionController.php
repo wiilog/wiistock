@@ -1093,7 +1093,7 @@ class ReceptionController extends AbstractController {
 
     #[Route("/api-modifier-litige/{dispute}", name: "litige_api_edit_reception", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     public function apiEditLitige(EntityManagerInterface $entityManager,
-                                  #[MapEntity(expr: "repository.find(id)")]
+                                  #[MapEntity(expr: "repository.find(dispute)")]
                                   Dispute                $dispute): Response  {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
