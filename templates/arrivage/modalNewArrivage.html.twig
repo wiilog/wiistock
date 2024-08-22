@@ -197,6 +197,7 @@
                                 {{ form.select('noTracking', trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur'), trackingNumberRequired, {
                                     type: 'truckArrivalLine',
                                     disabled: trackingNumberRequired,
+                                    inputClass: 'form-control input-sm data',
                                     includeParams: 'select[name=transporteur], select[name=noTruckArrival]',
                                     minLength: 0,
                                     multiple: true,

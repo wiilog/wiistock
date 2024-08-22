@@ -201,10 +201,6 @@ function createArrival(form = null) {
         $modal.attr(`style`, style);
         $modal.addClass(`show`);
 
-        // remove errors from previous form
-        $modal.find('.is-invalid').removeClass('is-invalid');
-        $modal.find('.error-msg').text('');
-
         $modal.find('[type=submit]').popLoader();
     } else {
         $(`body`).append(data.html);
@@ -378,7 +374,6 @@ function createArrival(form = null) {
                     waitForUserAction: () => {
                         return checkPossibleCustoms($modal);
                     },
-                    validator: validatorNoTracking,
                     success: (res) => {
                         res = res || {};
                         let newForm = res.new_form;
@@ -412,18 +407,6 @@ function createArrival(form = null) {
         }
     });
     return $modal;
-}
-
-function validatorNoTracking($modal) {
-    const $noTracking = $modal.find('select[name=noTracking]');
-    const isValid = $noTracking.val().length > 0 && $noTracking.attr('required');
-    if(!isValid) {
-        return {
-            success: false,
-            errorMessages: ["Veuillez renseigner le champs 'N° de tracking transporteur'"],
-            $isInvalidElements: [$noTracking],
-        };
-    }
 }
 
 function updateArrivalPageLength() {
