@@ -123,7 +123,6 @@ $(function() {
         // cancel modal openning through event.stopPropagation
         $origin.on(`mouseup`, event => {
             event.stopPropagation();
-            console.log('origin');
         })
     });
 
