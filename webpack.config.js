@@ -78,6 +78,7 @@ Encore
     .addEntry('warning-header', './assets/js/warning-header.js')
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addEntry('pack', './assets/js/pages/pack/pack.js')
+    .addEntry('encours-index', '/assets/js/pages/encours/index.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

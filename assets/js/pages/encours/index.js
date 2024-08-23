@@ -1,22 +1,35 @@
-fromDashboard = $('input[name=fromDashboard]').val();
+import Routing from '@app/fos-routing';
+import {getUserFiltersByPage} from '@app/utils'
+import AJAX, {POST} from "@app/ajax";
+
+const fromDashboard = $('input[name=fromDashboard]').val();
+
+global.loadPage = loadPage;
 
 $(function () {
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 1);
     Select2Old.init($('.filter-select2[name="natures"]'), Translation.of('Traçabilité', 'Encours', 'Natures', false));
 
     const isPreFilledFilter = $('.filters-container [name="isPreFilledFilter"]').val() === '1';
+    AJAX
+        .route(
+            POST,
+            "check_time_worked_is_defined",
+        )
+        .json()
+        .then((data) => {
+            if (data === false) {
+                showBSAlert('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', 'danger');
+            }
 
-    $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
-        if (data === false) {
-            showBSAlert('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', 'danger');
-        }
+            // filtres enregistrés en base pour chaque utilisateur
+            getUserFiltersByPage(PAGE_ENCOURS, {preventPrefillFilters: isPreFilledFilter}, () => {
+                extendsDateSort('date', 'YYYY-MM-DDTHH:mm:ss');
+                loadPage();
+            });
+        })
 
-        // filtres enregistrés en base pour chaque utilisateur
-        getUserFiltersByPage(PAGE_ENCOURS, {preventPrefillFilters: isPreFilledFilter}, () => {
-            extendsDateSort('date', 'YYYY-MM-DDTHH:mm:ss');
-            loadPage();
-        });
-    });
+
 });
 
 function loadPage() {
@@ -27,14 +40,13 @@ function loadPage() {
     const locationFiltersCounter = idLocationsToDisplay.length;
     const min = Number($('#encours-min-location-filter').val());
 
-    if (locationFiltersCounter < min ) {
+    if (locationFiltersCounter < min) {
         $('.block-encours').addClass('d-none');
         showBSAlert(Translation.of('Traçabilité', 'Encours', 'Vous devez sélectionner au moins un emplacement dans les filtres'), 'danger')
-    }
-    else {
+    } else {
         $('.block-encours').each(function () {
             const $blockEncours = $(this);
-            let $tableEncours = $blockEncours.find('.encours-table').filter(function() {
+            let $tableEncours = $blockEncours.find('.encours-table').filter(function () {
                 return $(this).attr('id');
             });
             if (locationFiltersCounter === 0
@@ -47,11 +59,20 @@ function loadPage() {
         });
     }
 
-    $.post(Routing.generate('check_location_delay', {locationIds: idLocationsToDisplay}, true), (response) => {
-        if(!response.hasDelayError){
-            showBSAlert(Translation.of('Traçabilité', 'Encours', 'Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.'), 'danger')
-        }
-    });
+    AJAX
+        .route(
+            POST,
+            'check_location_delay',
+        )
+        .json({
+            locationIds: idLocationsToDisplay
+        })
+        .then((response) => {
+            if (!response.hasDelayError) {
+                showBSAlert(Translation.of('Traçabilité', 'Encours', 'Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.'), 'danger')
+            }
+        });
+
 }
 
 function loadEncoursDatatable($table, useTruckArrivals, natures) {
@@ -70,10 +91,9 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
         $table.DataTable().settings()[0].ajax.data = data;
         // rechargement du datatable avec les nouvelles données
         $table.DataTable().ajax.reload();
-    }
-    else {
+    } else {
         const columns = $table.data('initial-visible').map((column) => {
-            if(column.name === `delay`){
+            if (column.name === `delay`) {
                 column.render = (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type);
             }
 
@@ -85,7 +105,7 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
             responsive: true,
             ajax: {
                 "url": routeForApi,
-                "type": "POST",
+                "type": POST,
                 data,
             },
             columns: [
