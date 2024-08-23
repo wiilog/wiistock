@@ -14,8 +14,14 @@ global.displayAttachmentRequired = displayAttachmentRequired;
 
 let planning = null;
 let external = null;
+let planningDatesForm = null;
 
 $(function () {
+    const $planningDates = $('.planning-dates')
+    const $startDate = $planningDates.find(`[name=startDate]`);
+    const $endDate = $planningDates.find(`[name=endDate]`);
+    planningDatesForm = Form.create($planningDates);
+
     external = Boolean($(`[name=external]`).val());
 
     planning = new Planning($(`.production-request-planning`), {
@@ -33,7 +39,8 @@ $(function () {
         onPlanningLoaded(planning);
     });
 
-    initializePlanningNavigation();
+    initializePlanningNavigation($startDate, $endDate);
+    selectThisWeek($startDate, $endDate);
     planning.fetch();
 
     if(external) {
@@ -172,8 +179,22 @@ function onPlanningLoaded(planning) {
 }
 
 function updateDateInputs($startDate, $endDate) {
-    planning.baseDate = moment($startDate.val());
-    planning.step = moment($endDate.val()).diff(planning.baseDate, `days`)+1;
+    const datesData = planningDatesForm.process()
+    if (!datesData) {
+        return
+    }
+
+    const startDate = moment($startDate.val());
+    let endDate = moment($endDate.val());
+
+    if (startDate.isAfter(endDate)) {
+        endDate = startDate;
+        $endDate.val(endDate.format(`YYYY-MM-DD`));
+    }
+
+    planning.baseDate = startDate;
+    planning.step = endDate.diff(planning.baseDate, `days`)+1;
+
     return planning.fetch().then(() => {
         changeNavigationButtonStates();
         if(external) {
@@ -182,24 +203,24 @@ function updateDateInputs($startDate, $endDate) {
     });
 }
 
-function initializePlanningNavigation() {
-    const $startDate = $(`[name=startDate]`);
-    const $endDate = $(`[name=endDate]`);
+function selectThisWeek($startDate, $endDate) {
+    const now = moment().startOf(`isoWeek`).format(`YYYY-MM-DD`)
+    $startDate.val(now);
+    planning.step = 6;
+    $endDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
+}
 
-
+function initializePlanningNavigation($startDate, $endDate) {
     $startDate.add($endDate).on(`change`, function () {
         updateDateInputs($startDate, $endDate)
     })
 
     $(`.today-date`).on(`click`, function () {
         wrapLoadingOnActionButton($(this), () => {
-            const now = moment().startOf(`isoWeek`).format(`YYYY-MM-DD`)
-            $startDate.val(now);
-            planning.step = 6;
-            $endDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
+            selectThisWeek($startDate, $endDate)
             return updateDateInputs($startDate, $endDate)
         });
-    }).trigger(`click`);
+    });
 
     $(document).on(`click`, `.decrement-date, .previous-week`, function () {
         wrapLoadingOnActionButton($(this), () => {
@@ -218,12 +239,10 @@ function initializePlanningNavigation() {
     });
 
     $(document).on(`change`, `[name="sortingType"]`, function ($event) {
-        planning.params.sortingType = $event.target.value;
-        planning.fetch();
-
-        if(external) {
-            updateRefreshRate();
-        }
+        wrapLoadingOnActionButton($(this), () => {
+            planning.params.sortingType = $event.target.value;
+            return updateDateInputs($startDate, $endDate)
+        });
     });
 
 

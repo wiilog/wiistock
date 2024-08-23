@@ -1073,6 +1073,10 @@ class ProductionRequestService
             ->toArray();
 
         $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
+        if (count($productionRequests) > 2500) {
+            throw new FormException('Il y a trop de demandes de production pour cette période, veuillez affiner votre recherche.');
+        }
+
         $fixedFieldParamCountLines  = $fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldEnum::lineCount->name])[0] ?? null;
         $displayCountLines = $fixedFieldParamCountLines?->isDisplayedEdit() || $fixedFieldParamCountLines?->isDisplayedCreate();
 
