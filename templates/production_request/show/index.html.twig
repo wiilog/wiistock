@@ -61,7 +61,7 @@
                         {{ productionRequest.type|format_helper('type') }}
                     </div>
                     <div class="content bordered p-0">
-                        <div class="content history-container p-0">
+                        <div class="content history-container p-0 overflow-y-hidden">
                             <div class="d-flex align-items-center justify-content-center p-3">
                                 <div class="spinner-border text-primary" role="status"></div>
                                 <span class="ml-3">Génération de l'historique en cours</span>
@@ -120,7 +120,7 @@
                             and (
                                 (productionRequest.status.inProgress and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST')))
                                 or (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
-                                or (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
+                                or (productionRequest.status.partial and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_PARTIAL_PRODUCTION_REQUEST')))
                             )
                             and not productionRequest.status.treated
                         ) %}

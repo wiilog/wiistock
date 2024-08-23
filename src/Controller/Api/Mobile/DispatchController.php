@@ -328,7 +328,7 @@ class DispatchController extends AbstractController
                         }
                     }
 
-                    $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true, $treatedPacks);
+                    $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true, $treatedPacks, $dispatch->getCommentaire());
 
                     if (!$treatedStatus->isPartial()) {
                         $entireTreatedDispatch[] = $dispatch->getId();

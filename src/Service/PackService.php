@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Article;
@@ -34,36 +35,38 @@ use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class PackService {
-
-    public function __construct(private readonly EntityManagerInterface $entityManager,
-                                private readonly Security $security,
-                                private readonly Twig_Environment $templating,
-                                private readonly TrackingMovementService $trackingMovementService,
-                                private readonly MailerService $mailerService,
-                                private readonly LanguageService $languageService,
-                                private readonly TranslationService $translation,
-                                private readonly FieldModesService $fieldModesService,
-                                private readonly FormatService $formatService,
-                                private readonly ReceptionLineService $receptionLineService,
-                                private readonly TimeService $timeService,
-                                private readonly SettingsService $settingsService,
-                                private readonly ArrivageService $arrivageService,
+    public function __construct(private readonly EntityManagerInterface      $entityManager,
+                                private readonly Security                    $security,
+                                private readonly Twig_Environment            $templating,
+                                private readonly TrackingMovementService     $trackingMovementService,
+                                private readonly MailerService               $mailerService,
+                                private readonly LanguageService             $languageService,
+                                private readonly TranslationService          $translation,
+                                private readonly FieldModesService           $fieldModesService,
+                                private readonly FormatService               $formatService,
+                                private readonly ReceptionLineService        $receptionLineService,
+                                private readonly TimeService                 $timeService,
+                                private readonly SettingsService             $settingsService,
+                                private readonly ArrivageService             $arrivageService,
+                                private readonly TranslationService          $translationService,
                                 private readonly ProjectHistoryRecordService $projectHistoryRecordService,
-                                private readonly TruckArrivalService $truckArrivalService,
-                                private readonly UserService $userService) {}
+                                private readonly TruckArrivalService         $truckArrivalService,
+                                private readonly UserService                 $userService) {}
 
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
+        $currentUser = $this->security->getUser();
 
         $filters = $params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
-        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $language = $currentUser->getLanguage() ?: $defaultLanguage;
         $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE, [
             'defaultLanguage' => $defaultLanguage,
-            'language' => $language
+            'language' => $language,
+            'fields' => $this->getPackListColumnVisibleConfig($currentUser),
         ]);
 
         $packs = $queryResult["data"];
@@ -142,6 +145,10 @@ class PackService {
         $receptionAssociationFormatted = Stream::from($pack?->getReceiptAssociations())
             ->map(fn(ReceiptAssociation $receptionAssociation) => $receptionAssociation->getReceptionNumber())
             ->join(', ');
+        $arrival = $pack->getArrivage();
+        $truckArrival = $arrival
+            ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
+            : null ;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -157,29 +164,29 @@ class PackService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'contentPack' => $this->templating->render('pack/content-pack-column.html.twig', [
+            'details' => $this->templating->render('pack/content-pack-column.html.twig', [
                 'pack' => $pack,
             ]),
-            'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+            'code' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
                 "pack" => $pack,
             ]),
-            'packNature' => $this->formatService->nature($pack->getNature()),
+            'nature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
             'project' => $pack->getProject()?->getCode(),
-            'packLastDate' => $lastPackMovement
+            'lastMovementDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'packLocation' => $lastPackMovement
+            'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'location' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
                 : '',
             'receiptAssociation' => $receptionAssociationFormatted,
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
-                'truckArrival' => $pack->getArrivage()
+                'truckArrival' => $truckArrival
             ]),
         ];
     }
@@ -502,7 +509,7 @@ class PackService {
         return $counter;
     }
 
-    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
+    public function getArrivalPackColumnVisibleConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getFieldModes('arrivalPack');
         return $this->fieldModesService->getArrayConfig(
             [
@@ -513,6 +520,30 @@ class PackService {
                 ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
                 ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
                 ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
+            ],
+            [],
+            $columnsVisible
+        );
+    }
+
+    public function getPackListColumnVisibleConfig(Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
+
+        return $this->fieldModesService->getArrayConfig(
+            [
+                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
+                ["name" => 'details', "title" => '<span class="fa fa-search"><span>', "className" => 'noVis', "orderable" => false],
+                ['name' => 'cart', 'title' => '<span class="wii-icon wii-icon-cart"></span>', 'classname' => 'cart-row', "orderable" => false],
+                ['name' => 'pairing', 'title' => '<span class="wii-icon wii-icon-pairing black"><span>', 'classname' => 'pairing-row'],
+                ['name' => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')],
+                ['name' => 'nature', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Nature')],
+                ['name' => 'quantity', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Quantité')],
+                ['name' => 'project', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')],
+                ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
+                ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
+                ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
+                ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
+                ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
             ],
             [],
             $columnsVisible

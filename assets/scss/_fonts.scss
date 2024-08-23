@@ -82,10 +82,10 @@
 }
 
 @each $name, $color in $text-colors {
-    .text-wii-#{$name} {
+    .text-wii-#{"#{$name}"} {
         color: $color;
     }
-    .bg-#{$name} {
+    .bg-#{"#{$name}"} {
         background-color: $color;
     }
 }

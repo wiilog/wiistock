@@ -14,7 +14,7 @@ import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
 import Routes from "@generated/routes.json";
 import Routing from '@app/fos-routing';
-import Quill from 'quill/dist/quill.js';
+import Quill from 'quill';
 import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
 import 'arrive';

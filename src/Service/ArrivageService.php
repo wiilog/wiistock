@@ -971,7 +971,7 @@ class ArrivageService {
     }
 
     public function buildCustomLogisticUnitHistoryRecord(Arrivage $arrival): string {
-        $values = $arrival->serialize($this->formatService);
+        $values = $arrival->serialize();
         $message = "";
 
         Stream::from($values)

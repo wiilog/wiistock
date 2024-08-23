@@ -165,14 +165,14 @@ $icon-colors: (
     }
 
     @each $key, $val in $icon-colors {
-        .wii-icon-#{$size}px-#{$key} {
+        .wii-icon-#{$size}px-#{"#{$key}"} {
             display: inline-block;
             width: #{$size}px;
             height: #{$size}px;
             background: $val;
         }
 
-        .wii-icon-min-#{$size}px-#{$key} {
+        .wii-icon-min-#{$size}px-#{"#{$key}"} {
             display: inline-block;
             min-width: #{$size}px;
             min-height: #{$size}px;

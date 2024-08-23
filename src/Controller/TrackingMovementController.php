@@ -206,6 +206,13 @@ class TrackingMovementController extends AbstractController
                 }
 
                 foreach ($packArrayFiltered as $pack) {
+                    // allow to prevent the creation of a pack with a comma in its code
+                    if($pack === '') {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => 'Le code d\'unité logistique ne peut pas être vide.'
+                        ]);
+                    }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
                         $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                             $entityManager,

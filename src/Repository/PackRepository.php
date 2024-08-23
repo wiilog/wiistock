@@ -241,23 +241,67 @@ class PackRepository extends EntityRepository
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
+                    $fields = $options["fields"] ?? [];
+                    $searchParams = [
+                        "arrival_type.label LIKE :value",
+                        "child_articles_search.barCode LIKE :value"
+                    ];
                     $queryBuilder
-                        ->leftJoin('pack.lastTracking', 'm2')
-                        ->leftJoin('m2.emplacement', 'e2')
-                        ->leftJoin('pack.nature', 'n2')
-                        ->leftJoin('pack.arrivage', 'arrivage')
-                        ->leftJoin('arrivage.type','arrival_type')
-                        ->leftJoin('pack.childArticles', 'child_articles_search')
-                        ->leftJoin('pack.receiptAssociations', 'receipt_associations_search')
-                        ->andWhere("(
-                            pack.code LIKE :value OR
-                            e2.label LIKE :value OR
-                            n2.label LIKE :value OR
-                            arrivage.numeroArrivage LIKE :value OR
-                            arrival_type.label LIKE :value OR
-                            child_articles_search.barCode LIKE :value OR
-                            receipt_associations_search.receptionNumber LIKE :value
-						)")
+                        ->leftJoin('pack.arrivage', 'arrivageSearch')
+                        ->leftJoin('pack.lastTracking', 'lastTrackingMovement')
+                        ->leftJoin('arrivageSearch.type','arrival_type')
+                        ->leftJoin('pack.childArticles', 'child_articles_search');
+                    foreach ($fields as $field) {
+                        if ($field['fieldVisible'] ?? false) {
+                            switch ($field['name'] ?? null) {
+                                case "code":
+                                    $searchParams[] = 'pack.code LIKE :value';
+                                    break;
+                                case "location":
+                                    $queryBuilder->leftJoin('lastTrackingMovement.emplacement', 'locationSearch');
+                                    $searchParams[] = 'locationSearch.label LIKE :value';
+                                    break;
+                                case "nature":
+                                    $queryBuilder->leftJoin('pack.nature', 'natureSearch');
+                                    $searchParams[] = 'natureSearch.label LIKE :value';
+                                    break;
+                                case "arrivage":
+                                    $queryBuilder->leftJoin('pack.arrivage', 'arrivageSearch');
+                                    $searchParams[] = 'arrivageSearch.numeroArrivage LIKE :value';
+                                    break;
+                                case "receiptAssociation": {
+                                    $queryBuilder->leftJoin('pack.receiptAssociations', 'receipt_associations_search');
+                                    $searchParams[] = 'receipt_associations_search.receptionNumber LIKE :value';
+                                    break;
+                                }
+                                case "lastMovementDate": {
+                                    $searchParams[] = 'lastTrackingMovement.datetime LIKE :value';
+                                    break;
+                                }
+                                case "project": {
+                                    $queryBuilder->join('pack.project', 'projectSearch');
+                                    $searchParams[] = 'projectSearch.code LIKE :value';
+                                    break;
+                                }
+                                case "quantity": {
+                                    $searchParams[] = 'pack.quantity LIKE :value';
+                                    break;
+                                }
+                                case "truckArrivalNumber": {
+                                    $queryBuilder->leftJoin('arrivageSearch.truckArrival', 'truckArrivalSearch');
+                                    $searchParams[] = 'truckArrivalSearch.number LIKE :value';
+
+                                    $queryBuilder->leftJoin('arrivageSearch.truckArrivalLines', 'truckArrivalLinesSearch');
+                                    $queryBuilder->leftJoin('truckArrivalLinesSearch.truckArrival', 'truckArrivalByLinesSearch');
+
+                                    $searchParams[] = 'truckArrivalByLinesSearch.number LIKE :value';
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    $queryBuilder
+                        ->andWhere($queryBuilder->expr()->orX(...$searchParams))
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -266,22 +310,22 @@ class PackRepository extends EntityRepository
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
-                    if ($column === 'packLocation') {
+                    if ($column === 'location') {
                         $queryBuilder
                             ->leftJoin('pack.lastTracking', 'order_packLocation_pack_lastTracking')
                             ->leftJoin('order_packLocation_pack_lastTracking.emplacement', 'order_packLocation_pack_lastTracking_emplacement')
                             ->orderBy('order_packLocation_pack_lastTracking_emplacement.label', $order);
-                    } else if ($column === 'packNature') {
+                    } else if ($column === 'nature') {
                         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], ['nature'], ["order" => $order]);
-                    } else if ($column === 'packLastDate') {
+                    } else if ($column === 'LastMovementDate') {
                         $queryBuilder
                             ->leftJoin('pack.lastTracking', 'order_packLastDate_pack_lastTracking')
                             ->orderBy('order_packLastDate_pack_lastTracking.datetime', $order);
-                    } else if ($column === 'packOrigin') {
+                    } else if ($column === 'origin') {
                         $queryBuilder
                             ->leftJoin('pack.arrivage', 'order_packOrigin_pack_arrivage')
                             ->orderBy('order_packOrigin_pack_arrivage.numeroArrivage', $order);
-                    } else if ($column === 'arrivageType') {
+                    } else if ($column === 'type') {
                         $queryBuilder
                             ->leftJoin('pack.arrivage', 'order_arrivageType_pack_arrivage')
                             ->orderBy('order_arrivageType_pack_arrivage.type', $order);

@@ -6,8 +6,8 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('pack-details-page') }}
     {{ encore_entry_link_tags('pack-common') }}
+    {{ encore_entry_link_tags('pack-show') }}
 {% endblock %}
 
 {% block page_content %}
@@ -16,9 +16,9 @@
         <div class="row wii-column">
             <div class="col-12 col-md-6">
                 {% set nature = logisticUnit.nature %}
-                <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black'}}">
+                <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black' }}">
                     {% if nature %}
-                        <div class="wii-type" style="background-color: {{  logisticUnit.nature.color }}">
+                        <div class="wii-type" style="background-color: {{ logisticUnit.nature.color }}">
                             <span class="p-1">{{ logisticUnit.nature.label }}</span>
                         </div>
                     {% endif %}
@@ -102,7 +102,7 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Tracking associé</span>
-                                    <span class="wii-body-text">{{ arrival ? arrival.noTracking : "-" }}</span>
+                                    <span class="wii-body-text">{{ arrival ? (arrival.noTracking ?: arrival.truckArrivalLines|map((line) => line.number)|join(', ')) : "-" }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
@@ -138,32 +138,38 @@
                         </div>
                     </div>
                 </div>
-                <div class="wii-box">
-                    <div class="header wii-title">Contenu unité logistique</div>
-                    <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
-                        <div class="logistic-unit-tabs">
-                            <div class="logistic-unit-tab active" data-target=".current-articles">Articles</div>
-                            <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
-                        </div>
-                        <div class="content current-articles">
-                            {% for article in logisticUnit.childArticles %}
-                                {% include 'pack/article-card.html.twig' with { article: article } %}
-                            {% else %}
-                                <div class="logistic-unit-no-items">
-                                    <div class="logistic-unit-no-items-icon-circle">
-                                        <img src="/svg/UL-black.svg">
+
+                {% if logisticUnit.childArticles|length > 0 or movements|length > 0 %}
+
+                    <div class="wii-box">
+                        <div class="header wii-title">Contenu unité logistique</div>
+                        <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
+                            <div class="logistic-unit-tabs">
+                                <div class="logistic-unit-tab active" data-target=".current-articles">Articles</div>
+                                <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
+                            </div>
+                            <div class="content current-articles">
+                                {% for article in logisticUnit.childArticles %}
+                                    {% include 'pack/article-card.html.twig' with { article: article } %}
+                                {% else %}
+                                    <div class="logistic-unit-no-items">
+                                        <div class="logistic-unit-no-items-icon-circle">
+                                            <img src="/svg/UL-black.svg">
+                                        </div>
+                                        {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun article actuellement') }}
                                     </div>
-                                    {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun article actuellement') }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <div class="content article-history d-none">
-                            {% include 'pack/article-history.html.twig' with {
-                                movements,
-                            }%}
+                                {% endfor %}
+                            </div>
+                            <div class="content article-history d-none">
+                                {% include 'pack/article-history.html.twig' with {
+                                    movements,
+                                } %}
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                {% endif %}
+
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">
@@ -171,7 +177,7 @@
                     <div class="content pt-2 px-0">
                         <div class="content history-container py-2 pt-2">
                             <div class="align-items-center justify-content-center p-0">
-                                 <table class="w-100" id="table-LU-history" ></table>
+                                <table class="w-100" id="table-LU-history"></table>
                             </div>
                         </div>
                     </div>

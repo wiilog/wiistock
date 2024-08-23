@@ -146,11 +146,14 @@ class Action {
     const EXPORT_PRODUCTION_REQUEST = 'exporter demandes de production';
     const EDIT_IN_PROGRESS_PRODUCTION_REQUEST = 'modifier demandes de production au statut en cours';
     const EDIT_TO_TREAT_PRODUCTION_REQUEST = 'modifier demandes de production au statut à traiter';
-    const DELETE_TO_TREAT_PRODUCTION_REQUEST = 'supprimer demandes de production au statut à traiter';
-    const DELETE_TREATED_PRODUCTION_REQUEST = 'supprimer demandes de production au statut traité';
-    const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
+    const EDIT_PARTIAL_PRODUCTION_REQUEST = 'modifier demandes de production au statut partiel';
     const EDIT_TREATED_PRODUCTION_REQUEST = 'modifier demandes de production au statut traité';
     const EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST = "modification du champ date attendue d'une demande de production";
+    const DELETE_TO_TREAT_PRODUCTION_REQUEST = 'supprimer demandes de production au statut à traiter';
+    const DELETE_TREATED_PRODUCTION_REQUEST = 'supprimer demandes de production au statut traité';
+    const DELETE_PARTIAL_PRODUCTION_REQUEST = 'supprimer demandes de production au statut partiel';
+    const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
+
     const DUPLICATE_PRODUCTION_REQUEST = "dupliquer une  demandes de production";
     const DISPLAY_PRODUCTION_REQUEST_PLANNING = "afficher Production - Planning";
 

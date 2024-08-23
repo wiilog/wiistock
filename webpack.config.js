@@ -79,7 +79,6 @@ Encore
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addEntry('pack', './assets/js/pages/pack/pack.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
-    .addStyleEntry('pack-details-page', './assets/scss/details-page.scss')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

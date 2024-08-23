@@ -252,12 +252,13 @@ class TrackingMovementService extends AbstractController
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'pack' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
-                "entityPath" => "pack_show",
-                "entityId" => $pack?->getId(),
-                "from" => $pack?->getCode(),
-
-            ]),
+            'pack' => $pack
+                ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
+                    "entityPath" => "pack_show",
+                    "entityId" => $pack?->getId(),
+                    "from" => $pack?->getCode(),
+                ])
+                : '',
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))

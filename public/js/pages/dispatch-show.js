@@ -11,6 +11,31 @@ $(function() {
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, {modifiable: isEdit});
 
+
+    const $modalValidateDispatch = $('#modalValidateDispatch');
+    Form
+        .create($modalValidateDispatch)
+        .submitTo(AJAX.POST, `dispatch_validate_request`, {
+            routeParams: {id: dispatchId},
+            success: response => {
+                if(response.success) {
+                    window.location.reload()
+                }
+            },
+        })
+
+    const $modalTreatDispatch = $('#modalTreatDispatch');
+    Form
+        .create($modalTreatDispatch)
+        .submitTo(AJAX.POST, `dispatch_treat_request`, {
+            routeParams: {id: dispatchId},
+            success: response => {
+                if (response.success) {
+                    window.location.reload()
+                }
+            },
+        });
+
     const $modalEditDispatch = $('#modalEditDispatch');
     Form
         .create($modalEditDispatch)
@@ -53,16 +78,6 @@ $(function() {
                 }
             }
         )
-
-    const $modalValidateDispatch = $('#modalValidateDispatch');
-    const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
-    const urlValidateDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
-    InitModal($modalValidateDispatch, $submitValidatedDispatch, urlValidateDispatch);
-
-    const $modalTreatDispatch = $('#modalTreatDispatch');
-    const $submitTreatedDispatch = $modalTreatDispatch.find('.submit-button');
-    const urlTreatDispatch = Routing.generate('dispatch_treat_request', {id: dispatchId}, true);
-    InitModal($modalTreatDispatch, $submitTreatedDispatch, urlTreatDispatch);
 
     const $modalDeleteDispatch = $('#modalDeleteDispatch');
     const $submitDeleteDispatch = $('#submitDeleteDispatch');
@@ -214,7 +229,7 @@ function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
     const $modal = $(modalSelector);
 
-    clearModal(modalSelector);
+    $modal.find('select[name=status]').val(null).trigger('change');
 
     $modal.modal('show');
 }
@@ -247,7 +262,7 @@ function openTreatDispatchModal() {
     const modalSelector = '#modalTreatDispatch';
     const $modal = $(modalSelector);
 
-    clearModal(modalSelector);
+    $modal.find('select[name=status]').val(null).trigger('change');
 
     $modal.modal('show');
 }

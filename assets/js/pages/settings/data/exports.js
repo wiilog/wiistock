@@ -59,15 +59,16 @@ export function initializeExports() {
     });
 }
 
-function displayExportModal(exportId) {
+function displayExportModal(exportId, isDuplication = false) {
     let $modal = $("#modalExport");
-
     $modal.modal(`show`);
     const params = exportId
         ? {export: exportId}
         : {};
     const title = exportId
-        ? "Modifier la planification d'un export"
+        ? isDuplication
+            ? "Dupliquer la planification d'un export"
+            : "Modifier la planification d'un export"
         : "Nouvel export";
 
     $modal.find('.modal-title')
@@ -89,6 +90,10 @@ function displayExportModal(exportId) {
         onFormEntityChange();
         onFormTypeChange(false);
         onPeriodIntervalChange($modal);
+
+        if (isDuplication) {
+            $modal.find('[name=exportId]').val(null);
+        }
 
         const $checkedFrequency = $modal.find('[name=frequency]:checked');
         if ($checkedFrequency.exists()) {

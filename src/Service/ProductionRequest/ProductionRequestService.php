@@ -22,6 +22,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DateService;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -68,6 +69,7 @@ class ProductionRequestService
         private readonly PlanningService        $planningService,
         private readonly SettingsService        $settingsService,
         private readonly LanguageService        $languageService,
+        private readonly DateService            $dateService,
     )
     {
     }
@@ -617,6 +619,7 @@ class ProductionRequestService
             && (
                 ($status->isInProgress() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST))
                 || ($status->isNotTreated() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TO_TREAT_PRODUCTION_REQUEST))
+                || ($status->isPartial() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_PARTIAL_PRODUCTION_REQUEST))
                 || ($status->isTreated() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST))
             )
         );
@@ -855,6 +858,9 @@ class ProductionRequestService
         if ($status->isInProgress()) {
             return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST);
         }
+        if ($status->isPartial()) {
+            return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_PARTIAL_PRODUCTION_REQUEST);
+        }
         if ($status->isTreated()) {
             return $this->userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST);
         }
@@ -869,7 +875,7 @@ class ProductionRequestService
                 "field" => FixedFieldEnum::status,
                 "type" => "tags",
                 "getDetails" => fn(ProductionRequest $productionRequest) => [
-                    "class" => !$external && $this->hasRightToUpdateStatus($productionRequest) ? "prevent-default open-modal-update-production-request-status" : "",
+                    "class" => !$external && $this->hasRightToUpdateStatus($productionRequest) && !$productionRequest->getStatus()->isTreated() ? "prevent-default open-modal-update-production-request-status" : "",
                     "color" => $productionRequest->getStatus()->getColor(),
                     "label" => $this->formatService->status($productionRequest->getStatus()),
                 ],
@@ -1093,8 +1099,41 @@ class ProductionRequestService
                     $plurialMark = $count > 1 ? 's' : '';
                     return "$count ligne$plurialMark";
                 })
-                ->toArray();;
+                ->toArray();
         }
+
+        $groupedProductionRequests = [];
+        $averageTimeByType = [];
+
+        foreach ($productionRequests as $productionRequest) {
+            $columnId = match ($sortingType) {
+                PlanningService::SORTING_TYPE_BY_DATE => $productionRequest->getExpectedAt()->format('Y-m-d'),
+                PlanningService::SORTING_TYPE_BY_STATUS_STATE => $productionRequest->getStatus()->getState(),
+                default => throw new BadRequestHttpException(),
+            };
+
+            $groupedProductionRequests[$columnId][] = $productionRequest;
+        }
+
+        foreach ($groupedProductionRequests as $columnId => $productionRequestsColumn) {
+            $totalMinutes = Stream::from($productionRequestsColumn)
+                ->reduce(function ($totalMinutesPerDay, ProductionRequest $productionRequest) {
+                    $averageTimeByDay = $productionRequest->getType()->getAverageTime();
+
+                    if ($averageTimeByDay) {
+                        return $totalMinutesPerDay + $this->dateService->calculateMinuteFrom($averageTimeByDay);
+                    }
+
+                    return $totalMinutesPerDay;
+                }, 0);
+
+            // convert minutes to this format: HH h MM
+            $averageTimeByType[$columnId] = $totalMinutes > 0
+                ? $this->formatService->datetimeToString($this->formatService->minutesToDatetime($totalMinutes))
+                : null;
+        }
+
+        $options["columnRightInfos"] = $averageTimeByType;
 
         return $this->planningService->createPlanningConfig(
             $entityManager,

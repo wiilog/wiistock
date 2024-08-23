@@ -56,6 +56,7 @@ use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
+use App\Service\DateService;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
@@ -2361,7 +2362,7 @@ class SettingsController extends AbstractController {
                     "label" => Type::LABEL_AVERAGE_TIME . $formService->macro("tooltip", "Veuillez suivre ce format : HH:MM. Le temps moyen maximal est de 23:59"),
                     "value" => $formService->macro("input", "averageTime", null, false, $averageTime, [
                         "additionalAttributes" => [
-                            ["name" => "pattern", "value" => Type::AVERAGE_TIME_REGEX],
+                            ["name" => "pattern", "value" => DateService::AVERAGE_TIME_REGEX],
                         ]
                     ]),
                 ];

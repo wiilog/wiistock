@@ -316,7 +316,7 @@ class FreeFieldService {
             throw new RuntimeException('Invalid options');
         }
 
-        $freeFields = Stream::from($type->getfreeFieldManagementRules())
+        $freeFields = Stream::from($type->getfreeFieldManagementRules() ?: [])
             ->map(fn(FreeFieldManagementRule $rule) => $rule->getFreeField())
             ->toArray();
 

@@ -138,7 +138,7 @@ class TransportOrderRepository extends EntityRepository {
     }
 
     // find by date
-    public function findToAssignByDate(\DateTime $date)
+    public function findToAssignByDate(DateTime $date)
     {
         return $this->createQueryBuilder("transport_order")
             ->join("transport_order.request", "request")

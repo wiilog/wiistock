@@ -66,7 +66,7 @@ describe('Get the right permissions for logistic units arrivals', () => {
         const columnsToCheckName = ["Afficher","Obligatoire"];
 
         // get the index of the columns with her name
-        cy.get("#table-arrival-fixed-fields thead tr[role=row] th").then(($ths) => {
+        cy.get('[id^="table-arrival-fixed-fields"] thead:first tr th').then(($ths) => {
             $ths.each((index, th) => {
                 if (columnsToCheckName.includes(th.textContent)) {
                     // get the index of the columns to check in the datatable
@@ -78,7 +78,8 @@ describe('Get the right permissions for logistic units arrivals', () => {
 
         cy.get(ULFreeFieldsLines).each((tr) => {
             columnsToCheck.forEach((columnIndex) => {
-                cy.wrap(tr).find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                cy.wrap(tr)
+                    .find(`td:eq(${columnIndex}) input[type=checkbox]`)
                     .check({force: true});
             });
         });

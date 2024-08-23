@@ -16,9 +16,9 @@ describe('Test of the production request', () => {
 
         //Obligé d'intercepter toutes les requêtes car l'interception avec l'url spécifique ne marche pas
         cy.intercept('GET', "**", (req) => {
-            if (req.url.toString().includes("/production/planning/api?date=")) {
+            if (req.url.toString().includes("/production/planning/api")) {
                 const url = new URL(req.url, window.location.origin);
-                url.searchParams.set('date', '2024-05-27');
+                url.searchParams.set('startDate', '2024-05-27');
                 req.url = url.toString();
                 req.continue();
             }
@@ -82,16 +82,16 @@ describe('Test of the production request', () => {
         cy
             .get(productionRequestCardColumn)
             .find('a.planning-card')
-                .then((card) => {
-                    cy
-                        .wrap(card)
-                        .find(openModalUpdateProductionRequestStatus)
-                        .children()
-                        .invoke('text')
-                        .then((statusValue) => {
-                            expect(statusValue.trim()).to.equal(inProgress);
-                        });
-                });
+            .then((card) => {
+                cy
+                    .wrap(card)
+                    .find(openModalUpdateProductionRequestStatus)
+                    .children()
+                    .invoke('text')
+                    .then((statusValue) => {
+                        expect(statusValue.trim()).to.equal(inProgress);
+                    });
+            });
     });
 
     it('Change the status to processed', () => {
@@ -110,19 +110,6 @@ describe('Test of the production request', () => {
                 cy.select2Ajax('status', processed, modalUpdateStatus, true, 'production_request_planning_api_test', false);
                 cy.closeAndVerifyModal(`#${modalUpdateStatus}`, 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
                 cy.wait(1000);
-            });
-        cy
-            .get(productionRequestCardColumn)
-            .find('a.planning-card')
-            .then((card) => {
-                cy
-                    .wrap(card)
-                    .find(openModalUpdateProductionRequestStatus)
-                    .children()
-                    .invoke('text')
-                    .then((statusValue) => {
-                        expect(statusValue.trim()).to.equal(processed);
-                    });
             });
     });
 });

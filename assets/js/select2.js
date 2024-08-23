@@ -199,12 +199,15 @@ export default class Select2 {
             });
 
             $element.on(`change`, () => {
-                const [selected] = $element.select2('data');
+                const [selected] = $element.select2('data').reverse();
                 if (selected) {
                     if (selected.id === `new-item` && search && search.length) {
                         $element
-                            .append(new Option(search, search, true, true))
-                            .trigger('change');
+                             .append(new Option(search, search, true, true))
+                        $element
+                            .find('option[value="new-item"]')
+                            .remove();
+                        $element.trigger('change');
                     } else if (selected.id === `redirect-url` && selected.url) {
                         location.href = selected.url;
                         $element
@@ -271,7 +274,9 @@ export default class Select2 {
                     $element.closest(`tr`).addClass(`focus-within`);
                 }
 
-                const $searchField = $('.select2-dropdown .select2-search__field');
+                let $searchField = $(e.target).prop('multiple')
+                    ? $(e.target).siblings('.select2-container').find('.select2-selection--multiple .select2-search--inline .select2-search__field')
+                    : $('.select2-dropdown .select2-search__field');
                 if ($searchField.exists()) {
                     setTimeout(() => $searchField[0].focus(), 300);
                 }
@@ -279,7 +284,7 @@ export default class Select2 {
                 search = null;
                 $(document)
                     .off(`keyup.select2-save-search`)
-                    .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
+                    .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field, .select2-search--inline .select2-search__field`, () => {
                         search = $searchField.val();
                     });
 

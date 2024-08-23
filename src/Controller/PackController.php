@@ -47,15 +47,21 @@ class PackController extends AbstractController
 
     #[Route("/liste/{code}", name: "pack_index", options: ["expose" => true], defaults: ["code" => null], methods: [ self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
-    public function index(EntityManagerInterface $entityManager, LanguageService $languageService, $code):Response
+    public function index(EntityManagerInterface $entityManager,
+                          LanguageService        $languageService,
+                          PackService            $packService,
+                                                 $code):Response
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
 
+        $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
+
         return $this->render('pack/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
+            "fields" => $fields,
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'projects' => $projectRepository->findActive(),

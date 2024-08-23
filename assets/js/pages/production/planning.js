@@ -51,6 +51,19 @@ $(function () {
     });
 });
 
+function addStyleToTodayCard() {
+    const cardSelectorOfTheDay = new Date().toISOString().split(`T`)[0];  // '2024-08-16'
+    const cardOfTheDay = $(`.planning-col[data-card-selector="${cardSelectorOfTheDay}"]`);
+
+    if(cardOfTheDay.length > 0) {
+        // take first and only children to applu css
+        const $card = cardOfTheDay.find(`.wii-box .header`);
+        // add style css
+        $card.addClass('today-card');
+    }
+}
+
+
 function callbackSaveFilter() {
     if (planning) {
         planning.fetch();
@@ -153,6 +166,9 @@ function onPlanningLoaded(planning) {
 
         $expandedCards.val(currentExpandedCards.join(`;`));
     });
+
+    addStyleToTodayCard();
+
 }
 
 function initializePlanningNavigation() {

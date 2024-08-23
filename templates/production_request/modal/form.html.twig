@@ -36,7 +36,7 @@
     <div class="col-6 mb-2">
         {{ form.select(fieldCode, fieldLabel, true, {
             type: 'status',
-            disabled: not productionRequest.type or (productionRequest.status and productionRequest.status.treated),
+            disabled: isDuplication is defined and isDuplication ? false : not productionRequest.type or (productionRequest.status and productionRequest.status.treated),
             value: productionRequest.status ? productionRequest.status.id : null,
             items: productionRequest.status
                 ? [{

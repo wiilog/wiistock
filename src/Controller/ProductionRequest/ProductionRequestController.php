@@ -201,6 +201,7 @@ class ProductionRequestController extends AbstractController
         if (
             ($status->isNotTreated() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TO_TREAT_PRODUCTION_REQUEST))
             || ($status->isInProgress() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST))
+            || ($status->isPartial() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_PARTIAL_PRODUCTION_REQUEST))
             || ($status->isTreated() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TREATED_PRODUCTION_REQUEST))
         ) {
             throw new FormException("Accès refusé");
@@ -433,6 +434,7 @@ class ProductionRequestController extends AbstractController
         return $this->json([
             "success" => true,
             "html" => $this->renderView("production_request/modal/form.html.twig", [
+                "isDuplication" => true,
                 "productionRequest" => $productionRequest,
                 "displayAction" => "displayedCreate",
                 "requiredAction" => "requiredCreate",
