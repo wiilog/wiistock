@@ -1077,7 +1077,7 @@ class ProductionRequestService
         foreach ($productionRequests as $productionRequest) {
             $cardContent = $this->planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage);
             $columnId = match ($sortingType) {
-                PlanningService::SORTING_TYPE_BY_DATE => $productionRequest->getExpectedAt()->format('Y-m-d'),
+                PlanningService::SORTING_TYPE_BY_DATE => $productionRequest->getExpectedAt()->format(PlanningService::PLANNING_COLUMN_DATE_FORMAT),
                 PlanningService::SORTING_TYPE_BY_STATUS_STATE => $productionRequest->getStatus()->getState(),
                 default => throw new BadRequestHttpException(),
             };

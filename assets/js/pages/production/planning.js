@@ -240,6 +240,14 @@ function initPlanningRefresh(planning) {
             });
         }
     }
+
+    eventSource.onerror(() => {
+        setInterval(function () {
+            planning.fetch().then(() => {
+                updateRefreshRate();
+            });
+        }, EXTERNAL_PLANNING_REFRESH_RATE);
+    })
 }
 
 function updateRefreshRate() {

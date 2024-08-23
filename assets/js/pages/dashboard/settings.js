@@ -100,17 +100,29 @@ function loadDashboards(m, refreshRate) {
             $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
         });
     } else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
-        eventSource.onmessage = event => {
+        eventSource.onmessage = function(event) {
             const results = JSON.parse(event.data);
-            if (results) {
-                dashboards = JSON.parse(results.dashboards);
-                currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
-
-                renderCurrentDashboard();
-                renderDashboardPagination();
-                renderRefreshDate(results.refreshed);
-            }
+            parseResultAndUpdateDashboard(results)
         }
+
+        eventSource.onerror = function () {
+            setInterval(function () {
+                $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
+                    parseResultAndUpdateDashboard(response)
+                })
+            }, refreshRate * 60 * 1000);
+        }
+    }
+}
+
+function parseResultAndUpdateDashboard(results) {
+    if (results) {
+        dashboards = JSON.parse(results.dashboards);
+        currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
+
+        renderCurrentDashboard();
+        renderDashboardPagination();
+        renderRefreshDate(results.refreshed);
     }
 }
 
