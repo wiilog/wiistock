@@ -137,7 +137,7 @@ class MouvementStockController extends AbstractController
 
             $chosenArticleStatus = $chosenArticleToMove->getStatut();
             $chosenArticleStatusName = $chosenArticleStatus ? $chosenArticleStatus?->getCode() : null;
-            if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])) {
+            if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE, Article::STATUT_INACTIF])) {
                 $response['msg'] = 'Le statut de la référence ou de l\'article choisi est incorrect, il doit être actif.';
             } else {
                 $now = new DateTime();
