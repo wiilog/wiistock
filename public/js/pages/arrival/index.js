@@ -417,7 +417,7 @@ function createArrival(form = null) {
 function validatorNoTracking($modal) {
     const $noTracking = $modal.find('select[name=noTracking]');
     if ($noTracking.length !== 0) {
-        const isValid = $noTracking.val()?.length > 0 && $noTracking.attr('required');
+        const isValid = $noTracking.attr('required') === undefined || $noTracking.val()?.length > 0 && $noTracking.attr('required');
         if(!isValid) {
             return {
                 success: false,
