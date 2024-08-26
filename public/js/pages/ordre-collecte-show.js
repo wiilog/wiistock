@@ -93,19 +93,16 @@ function printArticles(collecteId) {
         ordreCollecte: collecteId
     };
     if (templates.length > 0) {
-        console.log('ici')
         Promise.all(
             [AJAX.route('GET', `collecte_bar_codes_print`, {forceTagEmpty: true, ...params}).file({})]
                 .concat(templates.map(function (template) {
                     params.template = template;
-                    console.log('deuxieme')
                     return AJAX
                         .route('GET', `collecte_bar_codes_print`, params)
                         .file({})
                 }))
         ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
     } else {
-        console.log('la')
         AJAX
             .route('GET', `collecte_bar_codes_print`, params)
             .file({
