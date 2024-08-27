@@ -79,7 +79,7 @@ Encore
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addEntry('pack', './assets/js/pages/pack/pack.js')
     .addEntry('encours-index', '/assets/js/pages/encours/index.js')
-    .addEntry('login-index', './assets/js/pages/login.js')
+    .addEntry('login-index', './assets/js/pages/security/login.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
