@@ -75,7 +75,6 @@ class SecuriteController extends AbstractController {
         }
 
         return $this->render('securite/login.html.twig', [
-            'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
             'success' => $success

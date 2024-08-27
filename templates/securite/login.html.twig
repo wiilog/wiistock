@@ -1,4 +1,5 @@
 {% extends 'securite/unique-form-layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Connexion{% endblock %}
 
@@ -34,14 +35,31 @@
                     </div>
                     <form class="form-signin" method="post">
                         <div class="form-group">
-                            <label for="inputEmail" class="form-control-label wii-field-name">Adresse email</label>
-                            <input type="text" id="inputEmail" name="_username" class="form-control"
-                                   required="required" autofocus="autofocus">
+                            {{ form.input('_username', 'Adresse email', true, last_username, {
+                                labelOptions: {
+                                    removeAsterisk: true,
+                                },
+                                additionalAttributes: [
+                                    {
+                                        name: 'autofocus',
+                                        value: 'autofocus'
+                                    }
+                                ],
+                            }) }}
                         </div>
                         <div class="form-group mb-1">
-                            <label for="inputPassword" class="form-control-label wii-field-name">Mot de passe</label>
-                            <input type="password" name="_password" id="inputPassword" class="form-control" aria-describedby="passwordHelp"
-                                   required="required">
+                            {{ form.input('_password', 'Mot de passe', true, null, {
+                                type: "password",
+                                labelOptions: {
+                                    removeAsterisk: true,
+                                },
+                                additionalAttributes: [
+                                    {
+                                        name: 'aria-describedby',
+                                        value: 'passwordHelp'
+                                    }
+                                ],
+                            }) }}
                         </div>
                         <a href="{{ path('forgotten') }}"
                            class="third">
@@ -69,6 +87,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/login.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/popover.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('login-index') }}
 {% endblock %}

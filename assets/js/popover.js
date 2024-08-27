@@ -1,4 +1,4 @@
-function initImagePopovers() {
+export function initImagePopovers() {
     $(`body`).popover({
         selector: `[data-toggle=popover-hover]`,
         html: true,
