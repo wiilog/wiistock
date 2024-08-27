@@ -557,6 +557,7 @@ class TrackingMovement implements AttachmentContainer {
             FixedFieldEnum::quantity->value => $this->getQuantity(),
             FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
             FixedFieldEnum::group->value => $formatService->pack($this->getPackParent()),
+            FixedFieldEnum::nature->value => $formatService->nature($this->pack->getNature()),
         ];
     }
 }
