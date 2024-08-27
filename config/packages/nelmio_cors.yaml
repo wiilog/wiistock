@@ -1,17 +1,18 @@
 nelmio_cors:
-    defaults:
-        origin_regex: true
-        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
-        allow_methods: ['GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE']
-        allow_headers: ['Content-Type', 'Authorization']
-        max_age: 3600
-    paths:
-#        '^/': ~
-        '^/api/':
-            allow_origin: ['*']
-            allow_headers: ['*']
-            allow_methods: ['POST', 'PUT', 'GET', 'DELETE', 'PATCH']
-        '^/uploads/':
-            allow_origin: [ '*' ]
-            allow_headers: [ '*' ]
-            allow_methods: [ 'POST', 'PUT', 'GET', 'DELETE' ]
+  defaults:
+    allow_methods: [ 'GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE' ]
+    allow_headers: [ 'Content-Type', 'Authorization' ]
+    max_age: 3600
+  paths:
+    '^/api/mobile':
+      allow_origin: [ '*' ]
+      allow_headers: [ 'x-app-version', 'x-authorization', 'x-requested-with' ]
+      allow_methods: [ 'POST', 'PUT', 'GET', 'DELETE', 'PATCH', 'OPTIONS' ]
+    '^/api/iot':
+      allow_origin: [ '*' ]
+      allow_headers: [ 'x-api-key' ]
+      allow_methods: [ 'POST' ]
+    '^/api/ping$':
+      allow_origin: [ '*' ]
+      allow_headers: [ 'x-app-version', 'x-authorization', 'x-requested-with' ]
+      allow_methods: [ 'GET', 'OPTIONS' ]

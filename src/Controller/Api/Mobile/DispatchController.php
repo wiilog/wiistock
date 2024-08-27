@@ -30,18 +30,18 @@ use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class DispatchController extends AbstractController
 {
 
-    #[Rest\Post("/new-offline-dispatches", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/new-offline-dispatches", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function createNewOfflineDispatchs(Request                $request,
                                               EntityManagerInterface $entityManager,
@@ -246,7 +246,7 @@ class DispatchController extends AbstractController
             'errors' => $errors,
         ]);
     }
-    #[Rest\Post("/dispatches", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/dispatches", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function patchDispatches(Request                $request,
                                     AttachmentService      $attachmentService,
@@ -342,7 +342,7 @@ class DispatchController extends AbstractController
 
         return new JsonResponse($resData, $statusCode);
     }
-    #[Rest\Get("/dispatch-emergencies", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/dispatch-emergencies", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function dispatchEmergencies(EntityManagerInterface $manager): Response
     {
@@ -356,7 +356,7 @@ class DispatchController extends AbstractController
         return $this->json($emergencies);
     }
 
-    #[Rest\Post("/waybill/{dispatch}", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/waybill/{dispatch}", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function dispatchWaybill(EntityManagerInterface $manager, Dispatch $dispatch, Request $request, DispatchService $dispatchService): Response
     {
@@ -374,7 +374,7 @@ class DispatchController extends AbstractController
         ]);
     }
 
-    #[Rest\Post("/new-dispatch", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/new-dispatch", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function newDispatch(Request                $request,
                                 EntityManagerInterface $manager,
@@ -460,7 +460,7 @@ class DispatchController extends AbstractController
     }
 
 
-    #[Rest\Post("/dispatch-validate", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/dispatch-validate", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function dispatchValidate(Request                $request,
                                      EntityManagerInterface $entityManager,
@@ -504,7 +504,7 @@ class DispatchController extends AbstractController
         ]);
     }
 
-    #[Rest\Get("/get-waybill-data/{dispatch}", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/get-waybill-data/{dispatch}", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getWayBillData(EntityManagerInterface $manager, Dispatch $dispatch, DispatchService $dispatchService): Response
     {
@@ -534,7 +534,7 @@ class DispatchController extends AbstractController
     }
 
 
-    #[Rest\Post("/finish-grouped-signature", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/finish-grouped-signature", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishGroupedSignature(Request                $request,
                                            EntityManagerInterface $manager,
@@ -567,7 +567,7 @@ class DispatchController extends AbstractController
 
         return $this->json($response);
     }
-    #[Rest\Get("/get-associated-ref-intels/{packCode}/{dispatch}", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/get-associated-ref-intels/{packCode}/{dispatch}", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getAssociatedPackIntels(EntityManagerInterface $manager,
                                             string $packCode,
@@ -622,7 +622,7 @@ class DispatchController extends AbstractController
 
         return $this->json($data);
     }
-    #[Rest\Get("/get-reference", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/get-reference", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getReference(Request $request, EntityManagerInterface $manager): Response
     {
@@ -657,7 +657,7 @@ class DispatchController extends AbstractController
         ]);
     }
 
-    #[Rest\Get("/get-associated-document-type-elements", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/get-associated-document-type-elements", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function getAssociatedDocumentTypeElements(EntityManagerInterface $entityManager,
                                                       SettingsService        $settingsService): Response

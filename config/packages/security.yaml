@@ -1,102 +1,102 @@
 security:
-    access_denied_url: ~
-    enable_authenticator_manager: true
+  access_denied_url: ~
 
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+  password_hashers:
+    Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    providers:
-        db_provider:
-            entity:
-                class: App\Entity\Utilisateur
-                property: email
-        saml_provider:
-            entity:
-                class: App\Entity\Utilisateur
-                property: email
+  providers:
+    db_provider:
+      entity:
+        class: App\Entity\Utilisateur
+        property: email
+    saml_provider:
+      entity:
+        class: App\Entity\Utilisateur
+        property: email
 
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
 
-        nomade_apk:
-            pattern: ^/telecharger/nomade.apk$
-            security: false
+    nomade_apk:
+      pattern: ^/telecharger/nomade.apk$
+      security: false
 
-        iot:
-            lazy: true
-            pattern: ^/api/iot
-            stateless: true
-            security: false
+    iot:
+      lazy: true
+      pattern: ^/api/iot
+      stateless: true
+      security: false
 
-        api:
-            lazy: true
-            pattern: ^/api
-            stateless: true
-            custom_authenticators:
-                - App\Security\ApiKeyAuthenticator
+    api:
+      lazy: true
+      pattern: ^/api
+      stateless: true
+      provider: db_provider
+      custom_authenticators:
+        - App\Security\ApiKeyAuthenticator
 
-        main:
-            lazy: true
-            provider: db_provider
-            pattern: ^/
-            user_checker: App\Security\UserChecker
+    main:
+      lazy: true
+      provider: db_provider
+      pattern: ^/
+      user_checker: App\Security\UserChecker
 
-            form_login:
-                login_path: login
-                use_forward: false
-                check_path: login
-                provider: db_provider
-                default_target_path: app_index
-                always_use_default_target_path: false
-                enable_csrf: true
-                use_referer: true
+      form_login:
+        login_path: login
+        use_forward: false
+        check_path: login
+        provider: db_provider
+        default_target_path: app_index
+        always_use_default_target_path: false
+        enable_csrf: true
+        use_referer: true
 
-            remember_me:
-                secret: '%kernel.secret%'
-                lifetime: 604800 # 1 semaine
+      remember_me:
+        secret: '%kernel.secret%'
+        lifetime: 604800 # 1 semaine
 
-            entry_point: 'form_login'
-            logout: true
-            switch_user: true #role to use: a:2:{i:0;s:9:"ROLE_USER";i:1;s:22:"ROLE_ALLOWED_TO_SWITCH";}
+      entry_point: 'form_login'
+      logout: true
+      switch_user: true #role to use: a:2:{i:0;s:9:"ROLE_USER";i:1;s:22:"ROLE_ALLOWED_TO_SWITCH";}
 
-            # default:
-            #     anonymous: ~
-            #     logout: ~
-            #     guard:
-            #         authenticators:
-            #             - App\Security\TokenAuthenticator
+      # default:
+      #     anonymous: ~
+      #     logout: ~
+      #     guard:
+      #         authenticators:
+      #             - App\Security\TokenAuthenticator
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#firewalls-authentication
+      # activate different ways to authenticate
+      # https://symfony.com/doc/current/security.html#firewalls-authentication
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+      # https://symfony.com/doc/current/security/impersonating_user.html
+      # switch_user: true
 
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
-    access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
-        - { path: ^/saml/(metadata|login|acs), role: PUBLIC_ACCESS }
-        - { path: ^/api/mobile/server-images$, role: PUBLIC_ACCESS }
-        - { path: ^/api/mobile/nomade-versions$, role: PUBLIC_ACCESS }
-        - { path: ^/api/mobile/api-key$, role: PUBLIC_ACCESS }
-        - { path: ^/api/mobile/users/\d+/previous-picking-counter$, role: PUBLIC_ACCESS }
-        - { path: ^/api/ping$, role: PUBLIC_ACCESS }
-        - { path: ^/login, role: PUBLIC_ACCESS }
-        - { path: ^/register, role: PUBLIC_ACCESS }
-        - { path: ^/oubli, role: PUBLIC_ACCESS }
-        - { path: ^/change-password, role: PUBLIC_ACCESS }
-        - { path: ^/change-password-in-bdd, role: PUBLIC_ACCESS }
-        - { path: ^/verifier-email, role: PUBLIC_ACCESS }
-        - { path: ^/check_last_login, role: PUBLIC_ACCESS }
-        - { path: ^/dashboard/sync, role: PUBLIC_ACCESS }
-        - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }
-        - { path: ^/dashboard/externe, role: PUBLIC_ACCESS }
-        - { path: ^/production/planning/externe, role: PUBLIC_ACCESS }
-        - { path: ^/production/planning/api-externe, role: PUBLIC_ACCESS }
-        - { path: ^/verification-connexion, role: PUBLIC_ACCESS }
-        - { path: ^/borne/$, role: PUBLIC_ACCESS }
-        - { path: ^/caisse-automatique, role: PUBLIC_ACCESS }
-        - { path: /reference-article/validate-stock-entry, role: PUBLIC_ACCESS }
-        - { path: ^/, role: IS_AUTHENTICATED_FULLY }
+  # Easy way to control access for large sections of your site
+  # Note: Only the *first* access control that matches will be used
+  access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
+    - { path: ^/saml/(metadata|login|acs), role: PUBLIC_ACCESS }
+    - { path: ^/api/mobile/server-images$, role: PUBLIC_ACCESS }
+    - { path: ^/api/mobile/nomade-versions$, role: PUBLIC_ACCESS }
+    - { path: ^/api/mobile/api-key$, role: PUBLIC_ACCESS }
+    - { path: ^/api/mobile/users/\d+/previous-picking-counter$, role: PUBLIC_ACCESS }
+    - { path: ^/api/ping$, role: PUBLIC_ACCESS }
+    - { path: ^/login, role: PUBLIC_ACCESS }
+    - { path: ^/register, role: PUBLIC_ACCESS }
+    - { path: ^/oubli, role: PUBLIC_ACCESS }
+    - { path: ^/change-password, role: PUBLIC_ACCESS }
+    - { path: ^/change-password-in-bdd, role: PUBLIC_ACCESS }
+    - { path: ^/verifier-email, role: PUBLIC_ACCESS }
+    - { path: ^/check_last_login, role: PUBLIC_ACCESS }
+    - { path: ^/dashboard/sync, role: PUBLIC_ACCESS }
+    - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }
+    - { path: ^/dashboard/externe, role: PUBLIC_ACCESS }
+    - { path: ^/production/planning/externe, role: PUBLIC_ACCESS }
+    - { path: ^/production/planning/api-externe, role: PUBLIC_ACCESS }
+    - { path: ^/verification-connexion, role: PUBLIC_ACCESS }
+    - { path: ^/borne/$, role: PUBLIC_ACCESS }
+    - { path: ^/caisse-automatique, role: PUBLIC_ACCESS }
+    - { path: /reference-article/validate-stock-entry, role: PUBLIC_ACCESS }
+    - { path: ^/, role: IS_AUTHENTICATED_FULLY }
