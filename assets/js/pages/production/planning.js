@@ -7,6 +7,7 @@ import moment from "moment";
 import {displayAttachmentRequired, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 import {getUserFiltersByPage} from '@app/utils';
 
+// 5 minutes in milliseconds
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 
 global.callbackSaveFilter = callbackSaveFilter;
@@ -27,9 +28,9 @@ $(function () {
     planning = new Planning($(`.production-request-planning`), {
         route: external ? `production_request_planning_api_external`: `production_request_planning_api`,
         params: {
-            ... external ? {
-                token: $(`[name=token]`).val(),
-            } : {},
+            ... (external
+                ? { token: $(`[name=token]`).val(),}
+                : {}),
             sortingType: $(`[name="sortingType"]`).val(),
         },
         baseDate: moment().startOf(`isoWeek`),
@@ -244,8 +245,6 @@ function initializePlanningNavigation($startDate, $endDate) {
             return updateDateInputs($startDate, $endDate)
         });
     });
-
-
 }
 
 function changeNavigationButtonStates() {
