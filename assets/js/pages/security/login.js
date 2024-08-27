@@ -1,5 +1,7 @@
-try {
-    $(document).ready(function () {
+import {initImagePopovers} from "@app/popover";
+
+$(function () {
+    try {
         initImagePopovers();
 
         //for testing purposes allow logging in if the allow GET param is set to any
@@ -12,11 +14,10 @@ try {
                 showCompliantBrowserMessage();
             }
         }
-    });
-}
-catch (ignored) {
-    showCompliantBrowserMessage();
-}
+    } catch (ignored) {
+        showCompliantBrowserMessage();
+    }
+});
 
 function showCompliantBrowserMessage() {
     const elementsToDisplay = document.getElementsByClassName('chrome-message');
