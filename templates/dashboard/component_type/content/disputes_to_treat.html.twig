@@ -23,7 +23,7 @@
                 type: '',
                 multiple: true,
                 items: disputeStatuses|map((disputeStatus) => {
-                    label: disputeStatus.code,
+                    label: disputeStatus | format_helper('status') ,
                     value: disputeStatus.id,
                     selected: disputeStatus in values.disputeStatuses,
                 }),
