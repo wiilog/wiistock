@@ -49,12 +49,16 @@
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField\\FreeField::TYPE_NUMBER') %}
                                 {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                     type: 'number',
-                                    additionalAttributes: [{
-                                        name: 'data-init',
-                                        value: entityValue
-                                    }, {
-                                        name: 'data-negative'
-                                    }],
+                                    inputClass: "needs-default",
+                                    additionalAttributes: [
+                                        {
+                                            name: 'data-init',
+                                            value: entityValue
+                                        },
+                                        {
+                                            name: 'data-negative'
+                                        },
+                                    ],
                                     labelOptions: {
                                         smallText: labelSmallText
                                     }
@@ -127,7 +131,7 @@
                                         <input type="text"
                                                value="{{ value }}"
                                                data-init="{{ value }}"
-                                               class="form-control w-100 data free-field-datetime {{ needed ? 'needed' }} pointer"
+                                               class="form-control w-100 data needs-default free-field-datetime {{ needed ? 'needed' }} pointer"
                                                name="{{ freeField.id }}"
                                                placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
                                                autocomplete="off"/>
@@ -136,6 +140,7 @@
                                     {% set value = entityValue ? ((entityValue | replace({'/': '-'}) ) | date('Y-m-d\\TH:i')) : '' %}
                                     {{ form.input(freeField.id, displayedLabel, needed, value, {
                                         type: 'datetime-local',
+                                        inputClass: "needs-default",
                                         additionalAttributes: [{
                                             name: 'data-init',
                                             value: value
@@ -155,7 +160,7 @@
                                         <input type="text"
                                                value="{{ value }}"
                                                data-init="{{ value }}"
-                                               class="form-control w-100 data free-field-date {{ needed ? 'needed' }} pointer"
+                                               class="form-control w-100 data needs-default free-field-date {{ needed ? 'needed' }} pointer"
                                                name="{{ freeField.id }}"
                                                placeholder="{{ app.user.displayedDateFormat }}"
                                                autocomplete="off"/>
@@ -170,6 +175,7 @@
                                     {% endif %}
                                     {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                         type: 'date',
+                                        inputClass: "needs-default",
                                         additionalAttributes: [{
                                             name: 'data-init',
                                             value: entityValue
