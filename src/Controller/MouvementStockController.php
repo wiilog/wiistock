@@ -109,7 +109,7 @@ class MouvementStockController extends AbstractController
         $chosenRefQuantity = $request->request->get("chosen-ref-quantity");
         $chosenRefLabel = $request->request->get("chosen-ref-label");
 
-        if ($chosenMvtType && $chosenRefQuantity!=null && $chosenRefLabel) {
+        if ($chosenMvtType && $chosenRefQuantity != null && $chosenRefLabel) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -180,6 +180,13 @@ class MouvementStockController extends AbstractController
                     $trackingMovementService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                     $entityManager->persist($associatedDropTracaMvt);
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER || $chosenMvtType === MouvementStock::TYPE_SORTIE) {
+
+                    // For a transfer or a stock release, the article must be active
+                    if($chosenArticleStatusName === Article::STATUT_INACTIF) {
+                        $response['msg'] = 'Le statut de l\'article choisi est incorrect, il doit être actif.';
+                        return new JsonResponse($response);
+                    }
+
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if (($chosenArticleToMove instanceof Article && !in_array($chosenArticleToMove->getStatut()->getCode(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]))
                         || ($chosenArticleToMove instanceof ReferenceArticle && $referenceArticleRepository->isUsedInQuantityChangingProcesses($chosenArticleToMove))) {
