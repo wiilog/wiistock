@@ -160,6 +160,6 @@ readonly class PlanningService {
                 "cards" => $cards,
             ];
         }
-        return []; // TODO
+        return [];
     }
 }

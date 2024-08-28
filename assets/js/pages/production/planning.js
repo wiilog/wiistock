@@ -3,6 +3,7 @@ import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
 import AJAX, {PUT} from "@app/ajax";
 import Planning from "@app/planning";
+import Form from "@app/form";
 import moment from "moment";
 import {displayAttachmentRequired, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 import {getUserFiltersByPage} from '@app/utils';
@@ -87,7 +88,7 @@ function initializeFilters() {
 }
 
 function onPlanningLoaded(planning) {
-    const $navigationButtons = $(`.previous-week, .next-week`);
+    const $navigationButtons = $(`.previous-period, .next-period`);
     const $expandedCards = $(`[name=expandedCards]`);
 
     Sortable.create(`.planning-card-container`, {
@@ -119,7 +120,7 @@ function onPlanningLoaded(planning) {
 
     $navigationButtons.on(`sortupdate`, function (e) {
         const $button = $(e.target);
-        if($button.is(`.previous-week, .next-week`)) {
+        if($button.is(`.previous-period, .next-period`)) {
             $button.find(`.planning-card`).remove();
         }
 
@@ -179,7 +180,7 @@ function onPlanningLoaded(planning) {
 
 }
 
-function updateDateInputs($startDate, $endDate) {
+function onDateInputsUpdated($startDate, $endDate) {
     const datesData = planningDatesForm.process()
     if (!datesData) {
         return
@@ -213,36 +214,36 @@ function selectThisWeek($startDate, $endDate) {
 
 function initializePlanningNavigation($startDate, $endDate) {
     $startDate.add($endDate).on(`change`, function () {
-        updateDateInputs($startDate, $endDate)
+        onDateInputsUpdated($startDate, $endDate)
     })
 
     $(`.today-date`).on(`click`, function () {
         wrapLoadingOnActionButton($(this), () => {
             selectThisWeek($startDate, $endDate)
-            return updateDateInputs($startDate, $endDate)
+            return onDateInputsUpdated($startDate, $endDate)
         });
     });
 
-    $(document).on(`click`, `.decrement-date, .previous-week`, function () {
+    $(document).on(`click`, `.decrement-date, .previous-period`, function () {
         wrapLoadingOnActionButton($(this), () => {
             $startDate.val(moment($startDate.val()).add(0-planning.step, `days`).format(`YYYY-MM-DD`));
             $endDate.val(moment($startDate.val()).add(planning.step-1, `days`).format(`YYYY-MM-DD`));
-            return updateDateInputs($startDate, $endDate)
+            return onDateInputsUpdated($startDate, $endDate)
         });
     });
 
-    $(document).on(`click`, `.increment-date, .next-week`, function () {
+    $(document).on(`click`, `.increment-date, .next-period`, function () {
         wrapLoadingOnActionButton($(this), () => {
             $startDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
             $endDate.val(moment($startDate.val()).add(planning.step-1, `days`).format(`YYYY-MM-DD`));
-            return updateDateInputs($startDate, $endDate)
+            return onDateInputsUpdated($startDate, $endDate)
         });
     });
 
     $(document).on(`change`, `[name="sortingType"]`, function ($event) {
         wrapLoadingOnActionButton($(this), () => {
             planning.params.sortingType = $event.target.value;
-            return updateDateInputs($startDate, $endDate)
+            return onDateInputsUpdated($startDate, $endDate)
         });
     });
 }

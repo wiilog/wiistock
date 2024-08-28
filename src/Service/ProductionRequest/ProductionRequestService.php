@@ -49,6 +49,8 @@ use WiiCommon\Helper\Stream;
 
 class ProductionRequestService
 {
+    private const MAX_REQUESTS_ON_PLANNING = 2500;
+
     private ?array $freeFieldsConfig = null;
 
     public function __construct(
@@ -1073,7 +1075,7 @@ class ProductionRequestService
             ->toArray();
 
         $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
-        if (count($productionRequests) > 2500) {
+        if (count($productionRequests) > self::MAX_REQUESTS_ON_PLANNING) {
             throw new FormException('Il y a trop de demandes de production pour cette période, veuillez affiner votre recherche.');
         }
 
@@ -1081,7 +1083,7 @@ class ProductionRequestService
         $displayCountLines = $fixedFieldParamCountLines?->isDisplayedEdit() || $fixedFieldParamCountLines?->isDisplayedCreate();
 
         $cards = [];
-        $LinesCountByColumns = [];
+        $linesCountByColumns = [];
 
         foreach ($productionRequests as $productionRequest) {
             $cardContent = $this->planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage);
@@ -1097,13 +1099,13 @@ class ProductionRequestService
                 ...$this->generateAdditionalCardConfig($entityManager, $productionRequest, $external, $sortingType),
             ]);
             if ($displayCountLines) {
-                $LinesCountByColumns[$columnId] = ($LinesCountByColumns[$columnId] ?? 0) + $productionRequest->getLineCount();
+                $linesCountByColumns[$columnId] = ($linesCountByColumns[$columnId] ?? 0) + $productionRequest->getLineCount();
             }
         }
 
         $options = [];
         if ($displayCountLines) {
-            $options["columnRightHints"] = Stream::from($LinesCountByColumns)
+            $options["columnRightHints"] = Stream::from($linesCountByColumns)
                 ->map(function (int $count) {
                     $plurialMark = $count > 1 ? 's' : '';
                     return "$count ligne$plurialMark";
