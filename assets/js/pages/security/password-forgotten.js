@@ -7,5 +7,5 @@ $(function() {
         .submitTo(
             POST,
             `reset_password_request`
-        )
-})
+        );
+});
