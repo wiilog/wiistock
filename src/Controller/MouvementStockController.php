@@ -109,7 +109,9 @@ class MouvementStockController extends AbstractController
         $chosenRefQuantity = $request->request->get("chosen-ref-quantity");
         $chosenRefLabel = $request->request->get("chosen-ref-label");
 
-        if ($chosenMvtType && $chosenRefQuantity!=null && $chosenRefLabel) {
+        if ($chosenMvtType
+            && $chosenRefQuantity != null
+            && $chosenRefLabel) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -135,10 +137,9 @@ class MouvementStockController extends AbstractController
                 ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
             );
 
-            $chosenArticleStatus = $chosenArticleToMove->getStatut();
-            $chosenArticleStatusName = $chosenArticleStatus ? $chosenArticleStatus?->getCode() : null;
-            if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])) {
-                $response['msg'] = 'Le statut de la référence ou de l\'article choisi est incorrect, il doit être actif.';
+            if (empty($chosenArticleToMove)
+                || !$mouvementStockService->isArticleMovable($chosenMvtType, $chosenArticleToMove)) {
+                $response['msg'] = 'Le statut de la référence ou de l\'article choisi est incorrect.';
             } else {
                 $now = new DateTime();
                 $emplacementTo = null;
