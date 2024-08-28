@@ -276,9 +276,18 @@ function createArrival(form = null) {
             }
         });
 
-        $noTrackingSelect.on(`select2:unselecting`, function () {
-            $(this).find('option').remove().trigger('change');
-        });
+        $noTrackingSelect
+            .on(`select2:unselecting`, function () {
+                $(this).find('option').remove().trigger('change');
+            })
+            .on(`change`, function () {
+                const $selectedOptions = $(this).find(`option:selected`);
+                if ($selectedOptions.length > 0) {
+                    $noTruckArrivalSelect.addClass('needed');
+                } else {
+                    $noTruckArrivalSelect.removeClass('needed');
+                }
+            })
 
         const trackingNumberSuccess = function (data) {
             const $driverSelect = $modal.find("select[name='chauffeur']");
