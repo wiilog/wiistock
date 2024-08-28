@@ -15,6 +15,5 @@ $(function() {
                     $(`.error-msg`).removeClass(`d-none`).html(response.msg);
                 }
             }
-        )
-
-})
+        );
+});

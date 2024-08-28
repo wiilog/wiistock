@@ -85,7 +85,7 @@ security:
     - { path: ^/api/ping$, role: PUBLIC_ACCESS }
     - { path: ^/login, role: PUBLIC_ACCESS }
     - { path: ^/register, role: PUBLIC_ACCESS }
-    - { path: ^/mot-de-passe-opublie, role: PUBLIC_ACCESS }
+    - { path: ^/mot-de-passe-oublie, role: PUBLIC_ACCESS }
     - { path: ^/change-password, role: PUBLIC_ACCESS }
     - { path: ^/change-password-in-bdd, role: PUBLIC_ACCESS }
     - { path: ^/reset-password, role: PUBLIC_ACCESS }

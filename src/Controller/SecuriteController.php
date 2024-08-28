@@ -196,7 +196,7 @@ class SecuriteController extends AbstractController {
         return $this->redirectToRoute('login');
     }
 
-    #[Route("/mot-de-passe-opublie", name: "password_forgotten")]
+    #[Route("/mot-de-passe-oublie", name: "password_forgotten")]
     public function passwordForgotten(): Response {
         return $this->render('securite/password_forgotten.html.twig');
     }
@@ -223,7 +223,7 @@ class SecuriteController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => "Si l'adresse email renseignée correspond à un  comptes, un lien pour réinitialiser le mot de passe de votre compte vient d'être envoyé sur votre adresse email."
+            'msg' => "Si l'adresse email renseignée correspond à un comptes, un lien pour réinitialiser le mot de passe de votre compte vient d'être envoyé sur votre adresse email.",
         ]);
     }
 
