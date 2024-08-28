@@ -424,7 +424,8 @@ class OrdreCollecteController extends AbstractController
 
         $barCodesReferences = array_map(function (OrdreCollecteReference $ordreCollecteReference) use ($tag, $refArticleDataService) {
             $referenceArticle = $ordreCollecteReference->getReferenceArticle();
-            return $referenceArticle && (empty($tag) || in_array($referenceArticle->getType(), $tag->getTypes()->toArray()))
+            $referenceArticleTags = $referenceArticle->getType()->getTags()->toArray();
+            return $referenceArticle && ((!$tag && empty($referenceArticleTags)) || ($tag && in_array($tag, $referenceArticleTags)))
                 ? $refArticleDataService->getBarcodeConfig($referenceArticle)
                 : null;
         }, $ordreCollecteReferences);
