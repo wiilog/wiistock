@@ -436,9 +436,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'reporter', targetEntity: Dispute::class)]
     private Collection $reportedDisputes;
 
-    #[ORM\ManyToMany(targetEntity: ReferenceArticle::class, mappedBy: 'managers')]
-    private Collection $referencesArticle;
-
     #[ORM\ManyToMany(targetEntity: Handling::class, mappedBy: 'receivers')]
     private Collection $receivedHandlings;
 
@@ -544,7 +541,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->disputes = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->reportedDisputes = new ArrayCollection();
-        $this->referencesArticle = new ArrayCollection();
         $this->receivedHandlings = new ArrayCollection();
         $this->referencesBuyer = new ArrayCollection();
         $this->purchaseRequestBuyers = new ArrayCollection();
@@ -1362,31 +1358,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         if($this->disputes->contains($dispute)) {
             $this->disputes->removeElement($dispute);
             $dispute->removeBuyer($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
-    public function getReferencesArticle(): Collection {
-        return $this->referencesArticle;
-    }
-
-    public function addReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if(!$this->referencesArticle->contains($referenceArticle)) {
-            $this->referencesArticle[] = $referenceArticle;
-            $referenceArticle->addManager($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self {
-        if($this->referencesArticle->contains($referenceArticle)) {
-            $this->referencesArticle->removeElement($referenceArticle);
-            $referenceArticle->removeManager($this);
         }
 
         return $this;
