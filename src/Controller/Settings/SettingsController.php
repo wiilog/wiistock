@@ -2411,7 +2411,7 @@ class SettingsController extends AbstractController {
             if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
                 $locationRepository = $this->manager->getRepository(Emplacement::class);
 
-                $suggestedPickLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                $suggestedPickLocations = Stream::from($locationRepository->findBy(['id' => $type?->getSuggestedPickLocations()]) ?? [])
                     ->map(fn(Emplacement $location) => $location->getLabel())
                     ->join(', ');
 
@@ -2430,7 +2430,7 @@ class SettingsController extends AbstractController {
             if(in_array($categoryLabel, [CategoryType::PRODUCTION, CategoryType::DEMANDE_DISPATCH])) {
                 $locationRepository = $this->manager->getRepository(Emplacement::class);
 
-                $suggestedDropLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                $suggestedDropLocations = Stream::from($locationRepository->findBy(['id' => $type?->getSuggestedDropLocations()]) ?? [])
                     ->map(fn(Emplacement $location) => $location->getLabel())
                     ->join(', ');
 
@@ -2483,21 +2483,21 @@ class SettingsController extends AbstractController {
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
                 $data[] = [
                     "label" => "Par défaut",
-                    "value" => $this->formatService->bool($type->isDefault()) ?: "Non",
+                    "value" => $this->formatService->bool($type?->isDefault()) ?: "Non",
                 ];
             }
 
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
-                    "value" => $this->formatService->bool($type->hasReusableStatuses(), "Non"),
+                    "value" => $this->formatService->bool($type?->hasReusableStatuses(), "Non"),
                 ];
             }
 
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_HANDLING, CategoryType::PRODUCTION, CategoryType::DEMANDE_COLLECTE, CategoryType::DEMANDE_LIVRAISON])) {
                 $data[] = [
                     "label" => "Actif",
-                    "value" => $this->formatService->bool($type->isActive(), "Non"),
+                    "value" => $this->formatService->bool($type?->isActive(), "Non"),
                 ];
             }
 
