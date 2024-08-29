@@ -11,11 +11,11 @@ parameters:
   nomade_apk: 'https://github.com/wiilog/wiistock-mobile/releases/download/v7.19.19/wiistock.apk'
   wiispool_exe: 'https://github.com/wiilog/wiispool/releases/download/v3.0.2/wiispool.exe'
 
-  client: '%env(APP_CLIENT)%'
-  appLocale: '%env(APP_LOCALE)%'
+    client: '%env(APP_CLIENT)%'
+    appLocale: '%env(APP_LOCALE)%'
 
-  # default value for env variable
-  env(APP_FORBIDDEN_PHONES): ''
+    # default value for env variable
+    env(APP_FORBIDDEN_PHONES): ''
 
 services:
   # default configuration for services in *this* file
