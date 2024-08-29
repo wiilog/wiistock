@@ -8,6 +8,7 @@ use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\TrackingMovement;
+use App\Entity\Type;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\TrackingMovementService;
@@ -90,10 +91,15 @@ class TrackingMovementListener implements EventSubscriber
                 if ($location && $location->isSendEmailToManagers()) {
                     $managers = $location->getManagers();
                     if (!$managers->isEmpty()) {
+                        $objectManager = $args->getObjectManager();
+                        $typeRepository = $objectManager->getRepository(Type::class);
                         $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                             $args->getObjectManager(),
                             $trackingMovement,
-                            ["freeFieldCategoryLabel" => CategorieCL::MVT_TRACA],
+                            [
+                                "freeFieldCategoryLabel" => CategorieCL::MVT_TRACA,
+                                "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA)
+                            ],
                             null,
                         );
 
