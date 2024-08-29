@@ -158,6 +158,23 @@ class Emplacement implements PairedEntity {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private ?bool $sendEmailToManagers = false;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private ?bool $startTrackingTimerOnPicking = false;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private ?bool $stopTrackingTimerOnDrop = false;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private ?bool $pauseTrackingTimerOnDrop = false;
+
+    #[ORM\ManyToOne(targetEntity: Nature::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Nature $newNatureOnDrop = null;
+
+    #[ORM\ManyToOne(targetEntity: Nature::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Nature $newNatureOnPick = null;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -1147,6 +1164,66 @@ class Emplacement implements PairedEntity {
     public function setSendEmailToManagers(bool $sendEmailToManagers): static
     {
         $this->sendEmailToManagers = $sendEmailToManagers;
+
+        return $this;
+    }
+
+    public function isStartTrackingTimerOnPicking(): ?bool
+    {
+        return $this->startTrackingTimerOnPicking;
+    }
+
+    public function setStartTrackingTimerOnPicking(bool $startTrackingTimerOnPicking): static
+    {
+        $this->startTrackingTimerOnPicking = $startTrackingTimerOnPicking;
+
+        return $this;
+    }
+
+    public function isStopTrackingTimerOnDrop(): ?bool
+    {
+        return $this->stopTrackingTimerOnDrop;
+    }
+
+    public function setStopTrackingTimerOnDrop(bool $stopTrackingTimerOnDrop): static
+    {
+        $this->stopTrackingTimerOnDrop = $stopTrackingTimerOnDrop;
+
+        return $this;
+    }
+
+    public function isPauseTrackingTimerOnDrop(): ?bool
+    {
+        return $this->pauseTrackingTimerOnDrop;
+    }
+
+    public function setPauseTrackingTimerOnDrop(bool $pauseTrackingTimerOnDrop): static
+    {
+        $this->pauseTrackingTimerOnDrop = $pauseTrackingTimerOnDrop;
+
+        return $this;
+    }
+
+    public function getNewNatureOnDrop(): ?Nature
+    {
+        return $this->newNatureOnDrop;
+    }
+
+    public function setNewNatureOnDrop(?Nature $newNatureOnDrop): static
+    {
+        $this->newNatureOnDrop = $newNatureOnDrop;
+
+        return $this;
+    }
+
+    public function getNewNatureOnPick(): ?Nature
+    {
+        return $this->newNatureOnPick;
+    }
+
+    public function setNewNatureOnPick(?Nature $newNatureOnPick): static
+    {
+        $this->newNatureOnPick = $newNatureOnPick;
 
         return $this;
     }

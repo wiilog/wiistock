@@ -66,6 +66,11 @@ enum FixedFieldEnum: string
     case driver = "Chauffeur";
     case group = "Groupe";
     case nature = "Nature";
+    case startTrackingTimerOnPicking = "Emplacement de prise initiale";
+    case stopTrackingTimerOnDrop = "Emplacement de dépose finale";
+    case pauseTrackingTimerOnDrop = "Emplacement de pause";
+    case newNatureOnPick = "Nouvelle nature à la prise sur emplacement";
+    case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
 
     public static function fromCase(string $case): string|null {
         try {
