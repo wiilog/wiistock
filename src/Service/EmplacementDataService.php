@@ -98,7 +98,12 @@ class EmplacementDataService {
             ->setManagers($managers ?? [])
             ->setTemperatureRanges(!empty($data[FixedFieldEnum::allowedTemperatures->name]) ? $temperatureRangeRepository->findBy(["id" => $data[FixedFieldEnum::allowedTemperatures->name]]) : [])
             ->setSignatories($signatories ?? [])
-            ->setEmail($data[FixedFieldEnum::email->name] ?? null);
+            ->setEmail($data[FixedFieldEnum::email->name] ?? null)
+            ->setStartTrackingTimerOnPicking($data[FixedFieldEnum::startTrackingTimerOnPicking->name] ?? null)
+            ->setPauseTrackingTimerOnDrop($data[FixedFieldEnum::pauseTrackingTimerOnDrop->name] ?? null)
+            ->setStopTrackingTimerOnDrop($data[FixedFieldEnum::stopTrackingTimerOnDrop->name] ?? null)
+            ->setNewNatureOnPick(!empty($data[FixedFieldEnum::newNatureOnPick->name]) ? $naturesRepository->findOneBy(["id" => $data[FixedFieldEnum::newNatureOnPick->name]]) : null)
+            ->setNewNatureOnDrop(!empty($data[FixedFieldEnum::newNatureOnDrop->name]) ? $naturesRepository->findOneBy(["id" => $data[FixedFieldEnum::newNatureOnDrop->name]]) : null);
 
         $location->setProperty(FixedFieldEnum::zone->name, $zone);
         $entityManager->persist($location);
