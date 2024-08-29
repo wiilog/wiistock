@@ -69,20 +69,20 @@ class ScheduledTaskService {
         $now = new DateTime("now");
 
 
-        // Step 1
+        // Step 1: get tasks
         [
             "tasks" => $tasks,
             "cacheExists" => $cacheExists,
         ] = $this->getTasksToExecute($entityManager, $class, $now);
 
-        // Step 2
+        // Step 2:
+        // refresh cache for next execution before executing current exports
+        // OR refresh new cache if it does not exist
         if (!empty($tasks) || !$cacheExists) {
-            // refresh cache for next execution before executing current exports
-            // OR refresh new cache if it does not exist
             $this->saveTasksCache($entityManager, $class, new DateTime("now +1 minute"));
         }
 
-        // Step 3
+        // Step 3: execute tasks
         foreach ($tasks as $task) {
             $teatTask($task, $now);
         }
