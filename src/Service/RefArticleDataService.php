@@ -370,7 +370,6 @@ class RefArticleDataService
 
         if($data->has('managers')) {
             $managersIds = $data->get('managers');
-            $refArticle->getManagers()->clear();
             foreach ($refArticle->getManagers() as $manager) {
                 $refArticle->removeManager($manager);
             }
