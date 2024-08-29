@@ -182,11 +182,17 @@ class LocationController extends AbstractController {
                 ->setManagers($userRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::managers->name))]))
                 ->setSignatories($signatories ?? [])
                 ->setEmail($email)
-                ->setStartTrackingTimerOnPicking($data->get(FixedFieldEnum::startTrackingTimerOnPicking->name) ?? null)
-                ->setPauseTrackingTimerOnDrop($data->get(FixedFieldEnum::pauseTrackingTimerOnDrop->name) ?? null)
-                ->setStopTrackingTimerOnDrop($data->get(FixedFieldEnum::stopTrackingTimerOnDrop->name) ?? null)
-                ->setNewNatureOnPick(!empty($data->get(FixedFieldEnum::newNatureOnPick->name)) ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnPick->name)]) : null)
-                ->setNewNatureOnDrop(!empty($data->get(FixedFieldEnum::newNatureOnDrop->name)) ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnDrop->name)]) : null)
+                ->setStartTrackingTimerOnPicking($data->getBoolean(FixedFieldEnum::startTrackingTimerOnPicking->name))
+                ->setPauseTrackingTimerOnDrop($data->getBoolean(FixedFieldEnum::pauseTrackingTimerOnDrop->name) )
+                ->setStopTrackingTimerOnDrop($data->getBoolean(FixedFieldEnum::stopTrackingTimerOnDrop->name))
+                ->setNewNatureOnPick(!empty($data->get(FixedFieldEnum::newNatureOnPick->name))
+                    ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnPick->name)])
+                    : null
+                )
+                ->setNewNatureOnDrop(!empty($data->get(FixedFieldEnum::newNatureOnDrop->name))
+                    ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnDrop->name)])
+                    : null
+                )
                 ->setProperty(FixedFieldEnum::zone->name, $zone);
 
             $entityManager->flush();

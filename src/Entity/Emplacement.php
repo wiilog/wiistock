@@ -201,10 +201,10 @@ class Emplacement implements PairedEntity {
         $this->signatories = new ArrayCollection();
         $this->temperatureRanges = new ArrayCollection();
         $this->inventoryMissionPlans = new ArrayCollection();
+        $this->managers = new ArrayCollection();
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
-        $this->managers = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -950,8 +950,7 @@ class Emplacement implements PairedEntity {
     /**
      * @return Collection<int, TemperatureRange>
      */
-    public function getTemperatureRanges(): Collection
-    {
+    public function getTemperatureRanges(): Collection {
         return $this->temperatureRanges;
     }
 
@@ -1012,7 +1011,6 @@ class Emplacement implements PairedEntity {
     }
 
     public function addSignatory(Utilisateur $signatory): self {
-
         if (!$this->signatories->contains($signatory)) {
             $this->signatories->add($signatory);
         }
@@ -1128,13 +1126,11 @@ class Emplacement implements PairedEntity {
     /**
      * @return Collection<int, Utilisateur>
      */
-    public function getManagers(): Collection
-    {
+    public function getManagers(): Collection{
         return $this->managers;
     }
 
-    public function addManager(Utilisateur $manager): static
-    {
+    public function addManager(Utilisateur $manager): static {
         if (!$this->managers->contains($manager)) {
             $this->managers->add($manager);
         }
@@ -1142,87 +1138,73 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function removeManager(Utilisateur $manager): static
-    {
+    public function removeManager(Utilisateur $manager): static {
         $this->managers->removeElement($manager);
 
         return $this;
     }
 
-    public function setManagers(array $managers): self
-    {
+    public function setManagers(array $managers): self {
         $this->managers = new ArrayCollection($managers);
 
         return $this;
     }
 
-    public function isSendEmailToManagers(): ?bool
-    {
+    public function isSendEmailToManagers(): ?bool {
         return $this->sendEmailToManagers;
     }
 
-    public function setSendEmailToManagers(bool $sendEmailToManagers): static
-    {
+    public function setSendEmailToManagers(bool $sendEmailToManagers): static {
         $this->sendEmailToManagers = $sendEmailToManagers;
 
         return $this;
     }
 
-    public function isStartTrackingTimerOnPicking(): ?bool
-    {
+    public function isStartTrackingTimerOnPicking(): ?bool {
         return $this->startTrackingTimerOnPicking;
     }
 
-    public function setStartTrackingTimerOnPicking(bool $startTrackingTimerOnPicking): static
-    {
+    public function setStartTrackingTimerOnPicking(bool $startTrackingTimerOnPicking): static {
         $this->startTrackingTimerOnPicking = $startTrackingTimerOnPicking;
 
         return $this;
     }
 
-    public function isStopTrackingTimerOnDrop(): ?bool
-    {
+    public function isStopTrackingTimerOnDrop(): ?bool {
         return $this->stopTrackingTimerOnDrop;
     }
 
-    public function setStopTrackingTimerOnDrop(bool $stopTrackingTimerOnDrop): static
-    {
+    public function setStopTrackingTimerOnDrop(bool $stopTrackingTimerOnDrop): static {
         $this->stopTrackingTimerOnDrop = $stopTrackingTimerOnDrop;
 
         return $this;
     }
 
-    public function isPauseTrackingTimerOnDrop(): ?bool
-    {
+    public function isPauseTrackingTimerOnDrop(): ?bool {
         return $this->pauseTrackingTimerOnDrop;
     }
 
-    public function setPauseTrackingTimerOnDrop(bool $pauseTrackingTimerOnDrop): static
-    {
+    public function setPauseTrackingTimerOnDrop(bool $pauseTrackingTimerOnDrop): static {
         $this->pauseTrackingTimerOnDrop = $pauseTrackingTimerOnDrop;
 
         return $this;
     }
 
-    public function getNewNatureOnDrop(): ?Nature
-    {
+    public function getNewNatureOnDrop(): ?Nature {
         return $this->newNatureOnDrop;
     }
 
-    public function setNewNatureOnDrop(?Nature $newNatureOnDrop): static
-    {
+    public function setNewNatureOnDrop(?Nature $newNatureOnDrop): static {
         $this->newNatureOnDrop = $newNatureOnDrop;
 
         return $this;
     }
 
-    public function getNewNatureOnPick(): ?Nature
-    {
+    public function getNewNatureOnPick(): ?Nature {
         return $this->newNatureOnPick;
     }
 
-    public function setNewNatureOnPick(?Nature $newNatureOnPick): static
-    {
+    public function setNewNatureOnPick(?Nature $newNatureOnPick): static {
         $this->newNatureOnPick = $newNatureOnPick;
 
         return $this;
