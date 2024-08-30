@@ -202,18 +202,13 @@ class SecuriteController extends AbstractController {
     }
 
     #[Route("/reset-password", name: "reset_password_request", options: ["expose" => true], methods: [ self::POST ], condition: self::IS_XML_HTTP_REQUEST)]
-    public function ressetPasswordRequest(Request $request, EntityManagerInterface $entityManager): Response {
+    public function resetPasswordRequest(Request $request, EntityManagerInterface $entityManager): Response {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $email = $request->request->get('email');
 
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return $this->json([
-                "success" => false,
-                "msg" => "L'adresse email renseignée est invalide.",
-            ]);
-        }
-
-        $user = $userRepository->findOneBy(['email' => $email]);
+        $user = $email
+            ? $userRepository->findOneBy(['email' => $email])
+            : null;
         if($user) {
             if($user->getStatus()) {
                 $token = $this->passwordService->generateToken(80);
@@ -223,7 +218,7 @@ class SecuriteController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => "Si l'adresse email renseignée correspond à un comptes, un lien pour réinitialiser le mot de passe de votre compte vient d'être envoyé sur votre adresse email.",
+            'msg' => "Un lien pour réinitialiser votre mot de passe vient d'être envoyé sur votre adresse email si elle correspond à un compte valide.",
         ]);
     }
 
