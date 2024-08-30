@@ -45,6 +45,8 @@ class TrackingMovementListener implements EventSubscriber
      */
     private array $flushedTackingMovements = [];
 
+    private ?Type $trackingMovementType = null;
+
     public function getSubscribedEvents(): array {
         return [
             'preRemove',
@@ -91,14 +93,17 @@ class TrackingMovementListener implements EventSubscriber
                 if ($location && $location->isSendEmailToManagers()) {
                     $managers = $location->getManagers();
                     if (!$managers->isEmpty()) {
-                        $objectManager = $args->getObjectManager();
-                        $typeRepository = $objectManager->getRepository(Type::class);
+                        if(is_null($this->trackingMovementType)) {
+                            $objectManager = $args->getObjectManager();
+                            $typeRepository = $objectManager->getRepository(Type::class);
+                            $this->trackingMovementType = $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA);
+                        }
                         $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                             $args->getObjectManager(),
                             $trackingMovement,
                             [
                                 "freeFieldCategoryLabel" => CategorieCL::MVT_TRACA,
-                                "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA)
+                                "type" => $this->trackingMovementType
                             ],
                             null,
                         );
