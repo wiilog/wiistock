@@ -93,7 +93,7 @@ class TrackingMovementListener implements EventSubscriber
                 if ($location && $location->isSendEmailToManagers()) {
                     $managers = $location->getManagers();
                     if (!$managers->isEmpty()) {
-                        if(is_null($this->trackingMovementType)) {
+                        if(!isset($this->trackingMovementType)) {
                             $objectManager = $args->getObjectManager();
                             $typeRepository = $objectManager->getRepository(Type::class);
                             $this->trackingMovementType = $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA);
