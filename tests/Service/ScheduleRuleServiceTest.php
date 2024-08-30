@@ -233,6 +233,97 @@ class ScheduleRuleServiceTest extends KernelTestCase {
             "from" => "2024-07-29 16:00:00", // monday the week next the beginning
             "expected" => "2024-08-05 17:00:00", // monday the next execution week
         ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-09-27",
+                "repeatPeriod" => 1,
+                "intervalTime" => '06:00',
+                "weekDays" => '1,4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-29 06:00:00", // a Thursday
+            "expected" => "2024-08-29 06:00:00", // the Thursday
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-09-27",
+                "repeatPeriod" => 1,
+                "intervalTime" => '06:00',
+                "weekDays" => '1,4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-28 06:00:00", // a wednesday
+            "expected" => "2024-08-29 06:00:00", // next Thursday
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-09-27",
+                "repeatPeriod" => 1,
+                "intervalTime" => '06:00',
+                "weekDays" => '1,4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-26 07:00:00", // a wednesday
+            "expected" => "2024-08-29 06:00:00", // next Thursday
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-09-27",
+                "repeatPeriod" => 1,
+                "intervalTime" => '06:00',
+                "weekDays" => '1', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-26 07:00:00", // a wednesday
+            "expected" => "2024-09-02 06:00:00", // next Thursday
+        ],
+
+
+
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-11-23",
+                "repeatPeriod" => 1,
+                "intervalTime" => '14:00',
+                "weekDays" => '4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-26 07:00:00", // a wednesday
+            "expected" => "2024-08-29 14:00:00", // next Thursday
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-11-23",
+                "repeatPeriod" => 1,
+                "intervalTime" => '14:00',
+                "weekDays" => '4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-29 07:00:00", // a wednesday
+            "expected" => "2024-08-29 14:00:00", // next Thursday
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-11-23",
+                "repeatPeriod" => 1,
+                "intervalTime" => '14:00',
+                "weekDays" => '4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-29 15:00:00", // a wednesday
+            "expected" => "2024-09-05 14:00:00", // next Thursday
+        ],
+        [
+            "scheduleRule" => [
+                "frequency" => ScheduleRule::WEEKLY,
+                "startDate" => "2023-11-23",
+                "repeatPeriod" => 1,
+                "intervalTime" => '14:00',
+                "weekDays" => '4', // 1 (monday) to 7 (sunday)
+            ],
+            "from" => "2024-08-30 14:00:00", // a wednesday
+            "expected" => "2024-09-05 14:00:00", // next Thursday
+        ],
     ];
 
     private const MONTHLY_SCHEDULE_RULES_TO_TEST = [

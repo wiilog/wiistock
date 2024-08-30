@@ -20,6 +20,7 @@ use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\DeliveryRequest\DemandeRepository;
+use App\Service\FieldModesService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -39,7 +40,11 @@ class Demande implements PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
-    const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
+    const DEFAULT_VISIBLE_COLUMNS = [
+        'barcode' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'location' => [FieldModesService::FIELD_MODE_VISIBLE],
+        'label' => [FieldModesService::FIELD_MODE_VISIBLE],
+    ];
     use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;

@@ -85,10 +85,10 @@ security:
     - { path: ^/api/ping$, role: PUBLIC_ACCESS }
     - { path: ^/login, role: PUBLIC_ACCESS }
     - { path: ^/register, role: PUBLIC_ACCESS }
-    - { path: ^/oubli, role: PUBLIC_ACCESS }
+    - { path: ^/mot-de-passe-oublie, role: PUBLIC_ACCESS }
     - { path: ^/change-password, role: PUBLIC_ACCESS }
     - { path: ^/change-password-in-bdd, role: PUBLIC_ACCESS }
-    - { path: ^/verifier-email, role: PUBLIC_ACCESS }
+    - { path: ^/reset-password, role: PUBLIC_ACCESS }
     - { path: ^/check_last_login, role: PUBLIC_ACCESS }
     - { path: ^/dashboard/sync, role: PUBLIC_ACCESS }
     - { path: ^/dashboard/statistics, role: PUBLIC_ACCESS }

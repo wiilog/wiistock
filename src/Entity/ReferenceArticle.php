@@ -154,7 +154,7 @@ class ReferenceArticle implements AttachmentContainer
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $stockManagement = null;
 
-    #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'referencesArticle')]
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $managers;
 
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: Alert::class, cascade: ['remove'])]

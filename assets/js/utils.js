@@ -275,9 +275,9 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
     const $table = $(tableSelector);
     const path = Routing.generate('filter_sup_new');
 
-    const $filterDateMin = $('.filter-date-min');
-    const $filterDateMax = $('.filter-date-max');
-    const $filterDateExpected = $('.filter-date-expected');
+    const $filterDateMin = $('.filter-date-min:visible');
+    const $filterDateMax = $('.filter-date-max:visible');
+    const $filterDateExpected = $('.filter-date-expected:visible');
     const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
     const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
     const $filterDateExpectedPicker = $filterDateExpected.data("DateTimePicker");
