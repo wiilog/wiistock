@@ -370,13 +370,16 @@ class RefArticleDataService
 
         if($data->has('managers')) {
             $managersIds = $data->get('managers');
-            $refArticle->getManagers()->clear();
+            foreach ($refArticle->getManagers() as $manager) {
+                $refArticle->removeManager($manager);
+            }
             if (!empty($managersIds)) {
                 $managers = is_string($managersIds)
                     ? explode(',', $managersIds)
                     : $managersIds;
+                $managers = $userRepository->findBy(["id" => $managers]);
                 foreach ($managers as $manager) {
-                    $refArticle->addManager($userRepository->find($manager));
+                    $refArticle->addManager($manager);
                 }
             }
         }
