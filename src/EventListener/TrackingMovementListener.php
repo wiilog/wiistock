@@ -9,9 +9,14 @@ use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\Tracking\TrackingMovement;
+use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
+use App\Entity\Pack;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
+use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use Doctrine\Common\EventSubscriber;
@@ -48,6 +53,10 @@ class TrackingMovementListener implements EventSubscriber
 
     private ?Type $trackingMovementType = null;
 
+    public function __construct(private readonly PackService $packService, private readonly FormatService $formatService)
+    {
+    }
+
     public function getSubscribedEvents(): array {
         return [
             'preRemove',
@@ -82,6 +91,46 @@ class TrackingMovementListener implements EventSubscriber
         $this->flushedTackingMovements = Stream::from($args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions())
             ->filter(static fn($entity) => $entity instanceof TrackingMovement)
             ->toArray();
+
+        foreach ($this->flushedTackingMovements as $trackingMovement) {
+            $pack = $trackingMovement->getPack();
+            if(isset($pack) && $pack->isBasic()) {
+                if($trackingMovement->isDrop()) {
+                    $nature = $trackingMovement->getEmplacement()?->getNewNatureOnDrop();
+                }
+                else if ($trackingMovement->isPicking()) {
+                    $nature = $trackingMovement->getEmplacement()?->getNewNatureOnPick();
+                }
+
+                if(isset($nature)) {
+                    $oldNature = $pack->getNature();
+                    $user = $trackingMovement->getOperateur();
+                    $pack->setNature($nature);
+                    $unitOfWork = $args->getObjectManager()->getUnitOfWork();
+                    $unitOfWork->recomputeSingleEntityChangeSet(
+                        $args->getObjectManager()->getClassMetadata(Pack::class),
+                        $pack
+                    );
+
+                    $message =
+                        'Ancienne nature : ' . $this->formatService->nature($oldNature,'-') . '
+                        Nouvelle nature : ' . $this->formatService->nature($nature,'-')
+                    ;
+
+                    $historyRecord = $this->packService->persistLogisticUnitHistoryRecord(
+                        $unitOfWork,
+                        $pack,
+                        $message,
+                        $trackingMovement->getDatetime(),
+                        $user,
+                        "Mise a jour automatique de la nature",
+                        $trackingMovement->getEmplacement(),
+                    );
+                    $unitOfWork->computeChangeSet($args->getObjectManager()->getClassMetadata(LogisticUnitHistoryRecord::class), $historyRecord);
+                }
+            }
+        }
+
     }
 
     #[AsEventListener(event: 'postFlush')]

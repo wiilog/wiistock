@@ -26,6 +26,7 @@ use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\UnitOfWork;
 use Exception;
 use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
@@ -730,9 +731,9 @@ readonly class PackService {
      * @param array{message: string, historyDate: DateTime, user: Utilisateur, type: string, location?: Emplacement} $data
      * @return void
      */
-    public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
+    public function persistLogisticUnitHistoryRecord(EntityManagerInterface|UnitOfWork $entityManager,
                                                      Pack                   $logisticUnit,
-                                                     array                  $data): void {
+                                                     array                  $data): LogisticUnitHistoryRecord {
 
         $message = $data["message"];
         $historyDate = $data["historyDate"];
@@ -750,5 +751,7 @@ readonly class PackService {
             ->setUser($user);
 
         $entityManager->persist($logisticUnitHistoryRecord);
+
+        return $logisticUnitHistoryRecord;
     }
 }
