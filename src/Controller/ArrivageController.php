@@ -234,7 +234,7 @@ class ArrivageController extends AbstractController {
                 if ($useTruckArrivals) {
                     $truckArrivalLineId = explode(',', $trackingNumber);
                     foreach ($truckArrivalLineId as $lineId) {
-                        $line = $truckArrivalLineRepository->find($lineId);
+                        $line = $truckArrivalLineRepository->findOneBy(["number" => $lineId]);
                         if(!$line){
                             $truckArrivalLineService->checkForInvalidNumber([$lineId], $entityManager);
 
