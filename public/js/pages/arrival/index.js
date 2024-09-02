@@ -272,7 +272,13 @@ function createArrival(form = null) {
                     .prop(`disabled`, !$(this).val())
                     .attr('data-other-params-carrier-id', data.carrier_id)
                     .attr('data-other-params-truck-arrival-id', $(this).val());
-                $noTrackingSelect.find(`option`).remove();
+
+                const newTrackingNumbers = $element.select2('data').filter(({isNewElement}) => isNewElement).map(({id}) => id);
+                $noTrackingSelect.find(`option`).each(function() {
+                    if (!newTrackingNumbers.includes($(this).val())) {
+                        $(this).remove();
+                    }
+                });
             }
         });
 
