@@ -78,48 +78,60 @@ class ScheduleRuleService
             ->filter(static fn(string $day, string $dayIndex) => in_array($dayIndex, $rule->getWeekDays()))
             ->toArray();
 
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-        $begin = (clone $rule->getBegin())->setTime($hour, $minute);
+        $hourMinute = explode(":", $rule->getIntervalTime());
+        $nextOccurrenceHour = (int) $hourMinute[0];
+        $nextOccurrenceMinute = (int) $hourMinute[1];
+        $nextOccurrenceDaySecond = ($nextOccurrenceHour * 60 * 60 + $nextOccurrenceMinute * 60);
+
+
+        $begin = (clone $rule->getBegin())->setTime($nextOccurrenceHour, $nextOccurrenceMinute);
+
+        $fromHour = (int) $from->format("H");
+        $fromMinute = (int) $from->format("i");
+        $fromSecond = (int) $from->format("s");
+        $fromDaySecond = ($fromHour * 60 * 60 + $fromMinute * 60 + $fromSecond);
 
         if ($from > $begin) {
+            $availableDaysInThisWeek = Stream::from($availableWeekDays)
+                ->filter(static fn(string $day, int $dayIndex) => (
+                    (
+                        $dayIndex == $from->format("N")
+                        && ($nextOccurrenceDaySecond >= $fromDaySecond)
+                    )
+                    || ($dayIndex > $from->format("N"))
+                ));
+
+            $mondayBegin = (clone $begin)->modify("monday this week");
+
+            $period = $rule->getPeriod();
+            $secondsBetween = ($from->getTimestamp() - $mondayBegin->getTimestamp());
+            $weeksBetween = floor($secondsBetween / self::SECONDS_IN_A_WEEK);
+            $periodBetweenCount = floor($weeksBetween / $period);
+
+            $add = ($periodBetweenCount * $period);
+
+            $firstAvailableDayInAWeek = Stream::from($availableWeekDays)->first();
+
+            $nextOccurrence = (clone $mondayBegin)->modify("+$add weeks");
+
             $sameWeek = (
-                $from->format("W") === $begin->format("W")
-                && $from->format("Y") === $begin->format("Y")
+                $from->format("W") === $nextOccurrence->format("W")
+                && $from->format("Y") === $nextOccurrence->format("Y")
             );
 
             if ($sameWeek) {
-                $availableDayInThisWeek = Stream::from($availableWeekDays)
-                    ->filter(static fn(string $day, int $dayIndex) => $dayIndex > $from->format("N"));
-
-                if (!$availableDayInThisWeek->isEmpty()) {
-                    $nextExecutionDay = $availableDayInThisWeek->first();
-                    $nextOccurrence = clone $from;
-                    $nextOccurrence
-                        ->modify("{$nextExecutionDay} this week")
-                        ->setTime($hour, $minute);
-                }
+                $nextExecutionDay = $availableDaysInThisWeek->first();
             }
 
-            // if next occurence can't be on the same week of from
-            if (!isset($nextOccurrence)) {
-                $period = $rule->getPeriod();
-                $secondsBetween = ($from->getTimestamp() - $begin->getTimestamp());
-                $weeksBetween = floor($secondsBetween / self::SECONDS_IN_A_WEEK);
-                $periodBetweenCount = floor($weeksBetween / $period);
-                $remainSecondsBetweenDate = ($secondsBetween % self::SECONDS_IN_A_WEEK) + (($weeksBetween % $period) * self::SECONDS_IN_A_WEEK);
-
-                $add = (
-                    $periodBetweenCount * $period
-                    + ($remainSecondsBetweenDate > 0 ? $period : 0)
-                );
-
-                $firstAvailableDayInAWeek = Stream::from($availableWeekDays)->first();
-
-                $nextOccurrence = (clone $begin)
-                    ->modify("+$add weeks")
-                    ->modify("{$firstAvailableDayInAWeek} this week")
-                    ->setTime($hour, $minute);
+            // execution can't be this week
+            if (!isset($nextExecutionDay)) {
+                $nextExecutionDay = $firstAvailableDayInAWeek;
+                $nextOccurrence->modify("+{$period} weeks");
             }
+
+            $nextOccurrence
+                ->modify("{$nextExecutionDay} this week")
+                ->setTime($nextOccurrenceHour, $nextOccurrenceMinute);
         }
         else {
             $nextOccurrence = clone $begin;

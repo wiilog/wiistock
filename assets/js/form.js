@@ -106,6 +106,7 @@ export default class Form {
      * @param {{
      *    keepModal?: boolean,
      *    success?: function,
+     *    error?: function
      *    routeParams?: {[string]: string},
      *    tables?: Datatable|Datatable[],
      *    clearFields?: boolean,
@@ -147,6 +148,8 @@ export default class Form {
                                     }
                                 })
                             }
+                        } else if (options.error){
+                            options.error(response)
                         }
                     })
             )

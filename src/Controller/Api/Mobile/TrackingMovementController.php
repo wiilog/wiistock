@@ -48,8 +48,7 @@ class TrackingMovementController extends AbstractController {
                                           ExceptionLoggerService  $exceptionLoggerService,
                                           FreeFieldService        $freeFieldService,
                                           AttachmentService       $attachmentService,
-                                          EntityManagerInterface  $entityManager): Response
-    {
+                                          EntityManagerInterface  $entityManager): Response {
         $successData = [];
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');

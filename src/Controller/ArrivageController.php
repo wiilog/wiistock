@@ -238,12 +238,13 @@ class ArrivageController extends AbstractController {
                         if(!$line){
                             $truckArrivalLineService->checkForInvalidNumber([$lineId], $entityManager);
 
-                            $line = (new TruckArrivalLine())
-                                ->setNumber($lineId);
-
-                            if($truckArrival){
-                                $line->setTruckArrival($truckArrival);
+                            if(!$truckArrival){
+                                throw new FormException('Veuillez renseigner le champ "N° arrivage camion"');
                             }
+
+                            $line = (new TruckArrivalLine())
+                                ->setNumber($lineId)
+                                ->setTruckArrival($truckArrival);
 
                             $entityManager->persist($line);
                         }
