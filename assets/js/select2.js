@@ -202,12 +202,15 @@ export default class Select2 {
                 const [selected] = $element.select2('data').reverse();
                 if (selected) {
                     if (selected.id === `new-item` && search && search.length) {
-                        $element
-                             .append(new Option(search, search, true, true))
+                        $element.append(
+                            $(new Option(search, search, true, true))
+                        )
                         $element
                             .find('option[value="new-item"]')
                             .remove();
                         $element.trigger('change');
+                        const newItem = $element.select2('data').find(({id}) => id === search);
+                        newItem.isNewElement = true;
                     } else if (selected.id === `redirect-url` && selected.url) {
                         location.href = selected.url;
                         $element
