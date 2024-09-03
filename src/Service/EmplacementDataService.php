@@ -15,9 +15,11 @@ use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 
 use Symfony\Contracts\Service\Attribute\Required;
@@ -252,4 +254,19 @@ class EmplacementDataService {
         return $location;
     }
 
+    public function checkValidity (ParameterBag $data): void {
+        $email = $data->get(FixedFieldEnum::email->name);
+        if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new FormException("L'adresse email renseignée est invalide.");
+        }
+
+        $allowedNatures = Stream::explode(',', $data->get(FixedFieldEnum::allowedNatures->name, ''))
+            ->filter(fn (string $id) => !empty($id))
+            ->toArray();
+        $newNatureOnDrop = $data->get(FixedFieldEnum::newNatureOnDrop->name);
+        if (count($allowedNatures) && $newNatureOnDrop && !in_array($newNatureOnDrop, $allowedNatures)) {
+            throw new FormException("La nouvelle nature à la dépose sur emplacement doit être présente dans les natures autorisées.");
+        }
+
+    }
 }
