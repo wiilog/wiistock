@@ -86,10 +86,7 @@ class LocationController extends AbstractController {
         $this->checkLocationLabel($entityManager, $data->get(FixedFieldEnum::name->name));
         $this->checkMaxTime($dateMaxTime);
 
-        $email = $data->get(FixedFieldEnum::email->name);
-        if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new FormException("L'adresse email renseignée est invalide.");
-        }
+        $emplacementDataService->checkValidity($data);
 
         $emplacement = $emplacementDataService->persistLocation($data->all(), $entityManager);
         $entityManager->flush();
@@ -136,7 +133,9 @@ class LocationController extends AbstractController {
 
     #[Route("/edit", name: "emplacement_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response {
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager,
+                         EmplacementDataService $emplacementDataService): Response {
         $data = $request->request;
         if ($data->count() > 0) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -161,10 +160,9 @@ class LocationController extends AbstractController {
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
                 : [];
+
+            $emplacementDataService->checkValidity($data);
             $email = $data->get(FixedFieldEnum::email->name);
-            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new FormException("L'adresse email renseignée est invalide.");
-            }
 
             $emplacement = $emplacementRepository->find($locationId);
             $emplacement
