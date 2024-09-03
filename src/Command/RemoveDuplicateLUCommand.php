@@ -41,6 +41,7 @@ class RemoveDuplicateLUCommand extends Command {
         }
 
         foreach ($duplicateLUsData as $duplicateLUData) {
+            $index = 1;
             do {
                 $lus = $luRepository->findBy(['code' => $duplicateLUData['code']]);
                 $io->section("ULs dupliquées : {$duplicateLUData['code']}");
@@ -52,7 +53,7 @@ class RemoveDuplicateLUCommand extends Command {
                 $newCodeIsValid = false;
                 do {
                     // ask the user to enter the new code
-                    $newCode = $io->ask('Entrez le nouveau code', $duplicateLUData['code'].'_bis');
+                    $newCode = $io->ask('Entrez le nouveau code', $duplicateLUData['code'].'_'.$index++);
 
                     // check if the new code is already used
                     $newCodeIsValid = count($luRepository->findBy(['code' => $newCode])) === 0;
@@ -78,8 +79,7 @@ class RemoveDuplicateLUCommand extends Command {
     }
 
     private function createTableConfig( array $lus, FormatService $formatService, PackRepository $luRepository): array {
-
-        $header = ['Id', 'Dernier mouvement', 'nature', 'Enplacement', 'nb d\'ul enfants'];
+        $header = ['Id', 'Dernier mouvement', 'nature', 'Emplacement', 'nb d\'ul enfants'];
         $table = [];
 
         foreach ($lus as $lu) {
