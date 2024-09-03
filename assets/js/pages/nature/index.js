@@ -1,7 +1,11 @@
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
+import {POST} from "@app/ajax";
+import Form from "@app/form";
+import Modal from "@app/modal";
 
 global.onNewModalShow = onNewModalShow;
+global.initializeSegments = initializeSegments;
 global.toggleEntitiesContainer = toggleEntitiesContainer;
 global.toggleTypes = toggleTypes;
 global.selectAllTypes = selectAllTypes;
@@ -10,20 +14,26 @@ $(function () {
     const table = initNatureTable();
 
     let $modalNewNature = $(`#modalNewNature`);
-    let $submitNewNature = $(`#submitNewNature`);
-    let urlNewNature = Routing.generate(`nature_new`, true);
-    InitModal($modalNewNature, $submitNewNature, urlNewNature, {
-        tables: [table],
-        clearOnClose: true,
-        success: () => {
-            $modalNewNature.find(`input[name=displayedOnForms]`).trigger(`change`);
-        }
-    });
+    Form.create($modalNewNature, {clearOnOpen: true})
+        .submitTo(POST, 'nature_new', {
+            tables: [table],
+            success: () => {
+                $modalNewNature.find(`input[name=displayedOnForms]`).trigger(`change`);
+            }
+        });
 
     let $modalEditNature = $(`#modalEditNature`);
-    let $submitEditNature = $(`#submitEditNature`);
-    let urlEditNature = Routing.generate(`nature_edit`, true);
-    InitModal($modalEditNature, $submitEditNature, urlEditNature, {tables: [table]});
+    Form.create($modalEditNature, {clearOnOpen: true})
+        .onOpen((event) => {
+            Modal.load('nature_api_edit', {id: $(event.relatedTarget).data('id')}, $modalEditNature, $modalEditNature.find('.modal-body'), {
+                onOpen: () => {
+                    initializeSegments($modalEditNature);
+                }
+            })
+        })
+        .submitTo(POST, 'nature_edit', {
+            tables: [table],
+        });
 
     let $modalDeleteNature = $("#modalDeleteNature");
     let $submitDeleteNature = $("#submitDeleteNature");
@@ -67,6 +77,8 @@ function onNewModalShow() {
 
     $entitiesContainer.addClass(`d-none`);
     $entitiesContainer.find(`select`).prop(`disabled`, true);
+
+    initializeSegments($modal);
 }
 
 function toggleEntitiesContainer($input) {
@@ -97,4 +109,16 @@ function selectAllTypes($button) {
     });
 
     $select.trigger(`change`);
+}
+
+function initializeSegments($modal) {
+    const $segmentsList = $modal.find('.segments-list');
+    if ($segmentsList.length > 0) {
+        const segments = $segmentsList.data(`segments`);
+        if (segments.length > 0) {
+            initializeEntryTimeIntervals(segments, $modal, true);
+        } else {
+            addEntryTimeInterval($segmentsList.find('.add-time-interval'), null, false, true);
+        }
+    }
 }

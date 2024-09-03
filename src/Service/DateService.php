@@ -65,23 +65,42 @@ class DateService
         );
     }
 
+    public function intervalToHourAndMinStr(DateInterval $delay): string {
+        return (
+            ($delay->h
+                ? "{$delay->h}h"
+                : '')
+            . ($delay->i
+                ? (strlen($delay->i) === 1
+                    ? "0{$delay->i}"
+                    : "$delay->i")
+                : '')
+        );
+    }
+
     /**
      * @param string $time the time in HH:MM format
      * @return int the number of minutes
      */
-    public function calculateMinuteFrom(string $time): int
+    public function calculateMinuteFrom(string $time, string $regex = DateService::AVERAGE_TIME_REGEX, string $separator = ":"): int
     {
-        if (!preg_match("/". DateService::AVERAGE_TIME_REGEX ."/", $time)) {
-            throw new \InvalidArgumentException("Le format de l'heure doit être HH:MM");
+        if (!preg_match("/". $regex ."/", $time)) {
+            throw new \InvalidArgumentException("Le format de l'heure doit être HH{$separator}MM");
         }
 
         // separate hours and minutes
-        list($hours, $minutes) = explode(':', $time);
+        list($hours, $minutes) = explode($separator, $time);
 
         $hours = (int) $hours;
         $minutes = (int) $minutes;
 
         // calculate minutes
         return $hours * DateService::SECONDS_IN_MINUTE + $minutes;
+    }
+
+    public function calculateSecondsFrom(string $time, string $regex = DateService::AVERAGE_TIME_REGEX, string $separator = ":"): int
+    {
+        $minutes = $this->calculateMinuteFrom($time, $regex, $separator);
+        return $minutes * DateService::SECONDS_IN_MINUTE;
     }
 }

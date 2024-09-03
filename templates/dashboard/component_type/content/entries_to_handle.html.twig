@@ -85,12 +85,8 @@
 {% endblock %}
 
 {% block content_right %}
-    <div class="col-12 segments-list" data-segments="{{ (values.segments ?? ['6', '12', '24', '36', '48']) | json_encode }}">
-        <div class="wii-section-title my-3 d-flex align-items-center">
-            Segments horaires
-        </div>
-        <button class="btn btn-primary add-time-interval mt-3 d-flex align-items-center p-2" onclick="addEntryTimeInterval($(this), null, true)" data-current="0" type="button">
-            <span class="wii-icon wii-icon-plus"></span>
-        </button>
-    </div>
+    {% include 'utils/segments-list.html.twig' with {
+        values,
+        defaultValues: ['6', '12', '24', '36', '48'],
+    } %}
 {% endblock %}

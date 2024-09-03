@@ -41,6 +41,8 @@ class Nature {
         ],
     ];
 
+    public const TRACKING_DELAY_REGEX = "^(\d{1,3})h([0-5]\d)$";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -100,6 +102,19 @@ class Nature {
 
     #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'natures')]
     private Collection $tags;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Utilisateur $natureManager = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $exceededDelayColor = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $trackingDelay = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $trackingDelaySegments = null;
 
     public function __construct() {
         $this->packs = new ArrayCollection();
@@ -349,6 +364,54 @@ class Nature {
     public function getTags(): Collection
     {
         return $this->tags;
+    }
+
+    public function getNatureManager(): ?Utilisateur
+    {
+        return $this->natureManager;
+    }
+
+    public function setNatureManager(?Utilisateur $natureManager): self
+    {
+        $this->natureManager = $natureManager;
+
+        return $this;
+    }
+
+    public function getExceededDelayColor(): ?string
+    {
+        return $this->exceededDelayColor;
+    }
+
+    public function setExceededDelayColor(?string $exceededDelayColor): self
+    {
+        $this->exceededDelayColor = $exceededDelayColor;
+
+        return $this;
+    }
+
+    public function getTrackingDelay(): ?int
+    {
+        return $this->trackingDelay;
+    }
+
+    public function setTrackingDelay(?int $trackingDelay): self
+    {
+        $this->trackingDelay = $trackingDelay;
+
+        return $this;
+    }
+
+    public function getTrackingDelaySegments(): ?array
+    {
+        return $this->trackingDelaySegments;
+    }
+
+    public function setTrackingDelaySegments(?array $trackingDelaySegments): self
+    {
+        $this->trackingDelaySegments = $trackingDelaySegments;
+
+        return $this;
     }
 
 }
