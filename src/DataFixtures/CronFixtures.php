@@ -139,8 +139,9 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
 
         $existingCronJobs = $cronJobRepository->findAll();
         foreach ($existingCronJobs as $cronJob) {
+            // run in non interactive mode
             exec('php bin/console cron:disable ' . $cronJob->getName());
-            exec('php bin/console cron:delete ' . $cronJob->getName());
+            exec('yes | php bin/console cron:delete ' . $cronJob->getName());
         }
 
         $manager->flush();
