@@ -1,0 +1,20 @@
+{% import 'form.html.twig' as form %}
+
+<div class="col-12 segments-list"
+     data-segments="{{ (values.segments ?? defaultValues) | json_encode }}"
+     data-colors="{{ (values.colors ?? []) | json_encode }}">
+    <div class="wii-section-title my-3 d-flex align-items-center">
+        Segments horaires
+         {% if fromNature is defined and fromNature %}
+             {{ form.tooltip({
+                 text: "Le format de date est le suivant : 00h00."
+             }, false) }}
+         {% endif %}
+    </div>
+    <button class="btn btn-primary add-time-interval mt-3 d-flex align-items-center p-2"
+            onclick="addEntryTimeInterval($(this), null, true, {{ fromNature is defined and fromNature }})"
+            data-current="0"
+            type="button">
+        <span class="wii-icon wii-icon-plus"></span>
+    </button>
+</div>

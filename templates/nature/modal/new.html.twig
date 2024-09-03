@@ -129,14 +129,46 @@
                         {% endfor %}
                     </div>
                 </div>
+                <div class="wii-section-title my-3 d-flex align-items-center">Délais de traitement</div>
+                <div class="row">
+                    <div class="form-group col-md-6 col-12">
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureTrackingDelay') %}
+                        {{ form.input(field.name, field.value, false, null, {
+                            tooltip: "Le format de date est le suivant : 00h00.",
+                            attributes: {
+                                pattern: constant("App\\Entity\\Nature::TRACKING_DELAY_REGEX"),
+                                "data-error-patternmismatch": "Format de date incorrect",
+                            },
+                        }) }}
+                    </div>
+                    <div class="form-group col-md-6 col-12">
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureManager') %}
+                        {{ form.select(field.name, field.value, false, {
+                            type: 'user',
+                        }) }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-6 col-12">
+                        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureExceededDelayColor') %}
+                        {{ form.color(field.name, field.value, false) }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-12 p-0">
+                        {% include 'utils/segments-list.html.twig' with {
+                            defaultValues: [],
+                            fromNature: true,
+                        }%}
+                    </div>
+                </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewNature'}
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
                 ],
             } %}
-
         </div>
     </div>
 </div>

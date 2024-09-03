@@ -15,6 +15,10 @@ global.onEntityChange = onEntityChange;
 global.toggleTreatmentDelay = toggleTreatmentDelay;
 global.onConfirmPageDeleted = onConfirmPageDeleted;
 global.drawChartWithHisto = drawChartWithHisto;
+global.addEntryTimeInterval = addEntryTimeInterval;
+global.onSegmentInputChange  = onSegmentInputChange;
+global.deleteEntryTimeInterval  = deleteEntryTimeInterval;
+global.initializeEntryTimeIntervals  = initializeEntryTimeIntervals;
 global.renderComponent = renderComponent;
 global.hideOrShowStackButton = hideOrShowStackButton;
 global.MODE_DISPLAY = MODE_DISPLAY;
@@ -1143,12 +1147,11 @@ function initSecondStep(html, component) {
     if ($segmentsList.length > 0) {
         const segments = $segmentsList.data(`segments`);
         if (segments.length > 0) {
-            initializeEntryTimeIntervals(segments);
+            initializeEntryTimeIntervals(segments, $modalComponentTypeSecondStepContent, false);
         } else {
             addEntryTimeInterval($segmentsList.find('.add-time-interval'));
         }
     }
-
 
     const $preview = $modalComponentTypeSecondStep.find('.preview-component-image');
     const $input = $modalComponentTypeSecondStep.find('.upload-component-image');
@@ -1326,15 +1329,22 @@ function renderComponentWithData($container, component, formData = null) {
         });
 }
 
-function initializeEntryTimeIntervals(segments) {
-    const $button = $(`.add-time-interval`);
+function initializeEntryTimeIntervals(segments, $modal, fromNature = false) {
+    const $button = $modal.find(`.add-time-interval`);
+    const $segmentContainer = $modal.find(`.segment-container`);
+
+    if($segmentContainer.length > 0){
+        $segmentContainer.clear();
+    }
+
+    $button.data(`current`, 0);
 
     for (const segment of segments) {
-        addEntryTimeInterval($button, segment);
+        addEntryTimeInterval($button, segment, false, fromNature);
     }
 }
 
-function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
+function addEntryTimeInterval($button, time = null, notEmptySegment = false, fromNature = false) {
     const current = $button.data(`current`);
 
     if (notEmptySegment) {
@@ -1347,14 +1357,16 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
         }
     }
 
+    const colors = fromNature ? $button.closest('.segments-list').data(`colors`) : false;
+
     const $newSegmentInput = $(`
         <div class="segment-container interval">
             <div class="form-group row align-items-center">
-                <label class="col-3 wii-field-name">Segment <span class="segment-value">0</span></label>
-                <div class="input-group col-7">
+                <label class="${fromNature ? 'col-2' : 'col-3'} wii-field-name">Segment <span class="segment-value">0</span></label>
+                <div class="input-group ${fromNature ? 'col-6' : 'col-7'}">
                     <input type="text"
                            class="data needed form-control text-center display-previous segment-hour"
-                           ${current === 0 ? 'value="1h"' : ''}
+                           ${current === 0 ? "value=" + (fromNature ? "00h00" : "1h") : ''}
                            title="Heure de début du segment"
                            style="border: none; background-color: #e9ecef; color: #b1b1b1"
                            disabled />
@@ -1362,15 +1374,22 @@ function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
                         <span class="input-group-text" style="border: none;">à</span>
                     </div>
                     <input type="text"
-                           class="data-array form-control needed text-center segment-hour"
+                           class="data-array form-control ${!fromNature ? 'needed' : ''} text-center segment-hour"
                            name="segments"
                            data-no-stringify
+                           ${fromNature ? "pattern=\"^(\\d{1,3})h([0-5]\\d)$\"\n data-error-patternmismatch=\"Format de date incorrect\"" : ''}
                            title="Heure de fin du segment"
                            style="border: none; background-color: #e9ecef;"
                            ${time !== null ? 'value="' + time + '"' : ''}
-                           onkeyup="onSegmentInputChange($(this), false)"
-                           onfocusout="onSegmentInputChange($(this), true)" />
+                           onkeyup="onSegmentInputChange($(this), false, ${fromNature})"
+                           onfocusout="onSegmentInputChange($(this), true, ${fromNature})" />
                 </div>
+                ${fromNature
+                    ? `<div class="col-2">
+                        ${getInputColor('segmentColor', colors ? colors[current] : false , 'data-array')}
+                        </div>`
+                    : ''
+                }
                 <div class="col-2">
                     <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><span class="wii-icon wii-icon-trash-black mr-2"></span></button>
                 </div>
@@ -1422,12 +1441,14 @@ function recalculateIntervals() {
     });
 }
 
-function onSegmentInputChange($input, isChanged = false) {
-    const value = $input.val();
-    const smartValue = clearSegmentHourValues(value);
-    const newVal = smartValue && (parseInt(smartValue) + (isChanged ? 'h' : ''));
+function onSegmentInputChange($input, isChanged = false, fromNature = false) {
+    if(!fromNature) {
+        const value = $input.val();
+        const smartValue = clearSegmentHourValues(value);
+        const newVal = smartValue && (parseInt(smartValue) + (isChanged ? 'h' : ''));
 
-    $input.val(newVal);
+        $input.val(newVal);
+    }
 
     if (isChanged) {
         recalculateIntervals();
@@ -1614,4 +1635,20 @@ function removeUploadedFile($element) {
 
         droppedFiles = [];
     }
+}
+
+function getInputColor(name, value = false, inputClass = '') {
+    return `
+        <input type='color' class='${inputClass} form-control wii-color-picker data' name='${name}' value='${value ?? '#3353D7'}' list='type-color'/>
+        <datalist>
+            <option>#D76433</option>
+            <option>#D7B633</option>
+            <option>#A5D733</option>
+            <option>#33D7D1</option>
+            <option>#33A5D7</option>
+            <option>#3353D7</option>
+            <option>#6433D7</option>
+            <option>#D73353</option>
+        </datalist>
+    `
 }

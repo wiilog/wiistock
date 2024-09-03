@@ -66,6 +66,9 @@ enum FixedFieldEnum: string
     case driver = "Chauffeur";
     case group = "Groupe";
     case nature = "Nature";
+    case natureTrackingDelay = "Délai de traitement de la nature";
+    case natureManager = "Responsable de la nature";
+    case natureExceededDelayColor = "Délai de traitement de la nature dépassé";
     case startTrackingTimerOnPicking = "Emplacement de prise initiale";
     case stopTrackingTimerOnDrop = "Emplacement de dépose finale";
     case pauseTrackingTimerOnDrop = "Emplacement de pause";

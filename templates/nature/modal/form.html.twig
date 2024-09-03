@@ -1,9 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 <div class="row">
-    <div class="form-group col-md-6 col-12 required d-none">
-        <input type="text" class="form-control data needed" name="nature" required="" value="{{ nature.id }}">
-    </div>
+    {{ form.hidden('nature', nature.id) }}
 
     <div class="form-group col-md-6 col-12">
         {{ form.lang('label', 'Libellé', true, {
@@ -135,4 +133,48 @@
             </div>
         {% endfor %}
     </div>
+
+    <div class="col-12">
+        <div class="wii-section-title my-3 d-flex align-items-center">Délais de traitement</div>
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureTrackingDelay') %}
+        {{ form.input(field.name, field.value, false, trackingDelay, {
+            tooltip: "Le format de date est le suivant : 00h00.",
+            attributes: {
+                pattern: constant("App\\Entity\\Nature::TRACKING_DELAY_REGEX"),
+                "data-error-patternmismatch": "Format de date incorrect",
+            },
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureManager') %}
+        {{ form.select(field.name, field.value, false, {
+            type: 'user',
+            items: nature.natureManager ? [{
+                label: nature.natureManager.username,
+                value: nature.natureManager.id,
+            }] : [],
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureExceededDelayColor') %}
+        {{ form.color(field.name, field.value, false, nature.exceededDelayColor) }}
+    </div>
+    <div class="form-group col-12 p-0">
+        {% include 'utils/segments-list.html.twig' with {
+            defaultValues: [],
+            values: {
+                segments: segmentsMax,
+                colors: segmentsColors,
+            },
+            fromNature: true,
+        }%}
+    </div>
+    {% include 'utils/modal/footer.html.twig' with {
+        elements: [
+            {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+            {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
+        ],
+    } %}
 </div>
