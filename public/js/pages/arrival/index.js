@@ -273,7 +273,7 @@ function createArrival(form = null) {
                     .attr('data-other-params-carrier-id', data.carrier_id)
                     .attr('data-other-params-truck-arrival-id', $(this).val());
 
-                const newTrackingNumbers = $noTrackingSelect.select2('data').filter(({isNewElement}) => isNewElement).map(({id}) => id);
+                const newTrackingNumbers = $noTrackingSelect.select2('data')?.filter(({isNewElement}) => isNewElement).map(({id}) => id);
                 $noTrackingSelect.find(`option`).each(function() {
                     if (!newTrackingNumbers.includes($(this).val())) {
                         $(this).remove();
@@ -386,7 +386,7 @@ function createArrival(form = null) {
                     return;
                 }
 
-                $('[name="newTrackingNumbers"]').val(JSON.stringify($modal.find("select[name='noTracking']").select2('data').filter(({isNewElement}) => isNewElement).map(({id}) => id)));
+                $('[name="newTrackingNumbers"]').val(JSON.stringify($modal.find("select[name='noTracking']").select2('data')?.filter(({isNewElement}) => isNewElement).map(({id}) => id)));
 
                 SubmitAction($modal, $submit, Routing.generate('arrivage_new', true), {
                     keepForm: true,
