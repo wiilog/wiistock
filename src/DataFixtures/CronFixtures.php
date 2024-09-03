@@ -24,12 +24,12 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class CronFixtures extends Fixture implements FixtureGroupInterface {
 
-    #[Required]
-    public SpecificService $specificService;
+    public function __construct(
+        private readonly SpecificService $specificService,
+    ) {}
 
     private const CRON_JOBS = [
         [
@@ -139,7 +139,8 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
 
         $existingCronJobs = $cronJobRepository->findAll();
         foreach ($existingCronJobs as $cronJob) {
-            $manager->remove($cronJob);
+            exec('php bin/console cron:disable ' . $cronJob->getName());
+            exec('php bin/console cron:delete ' . $cronJob->getName());
         }
 
         $manager->flush();
