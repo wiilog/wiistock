@@ -228,14 +228,14 @@ class ArrivageController extends AbstractController {
 
         if (!empty($data['noTracking'])) {
             $trackingNumber = $data['noTracking'];
-            $newTrackingNumbers = json_decode($data['newTrackingNumbers'] ?? '[]', true);
             $truckArrival = isset($data["noTruckArrival"]) ? $truckArrivalRepository->find($data["noTruckArrival"]) : null;
             $emptyTrackingNumber = $trackingNumber !== "null";
             if($emptyTrackingNumber){
                 if ($useTruckArrivals) {
                     $truckArrivalLineId = explode(',', $trackingNumber);
                     foreach ($truckArrivalLineId as $lineId) {
-                        if (in_array($lineId, $newTrackingNumbers)) {
+                        $line = $truckArrivalLineRepository->find($lineId);
+                        if(!$line){
                             $truckArrivalLineService->checkForInvalidNumber([$lineId], $entityManager);
 
                             if(!$truckArrival){
@@ -247,14 +247,10 @@ class ArrivageController extends AbstractController {
                                 ->setTruckArrival($truckArrival);
 
                             $entityManager->persist($line);
-                        } else {
-                            $line = $truckArrivalLineRepository->find($lineId);
                         }
 
-                        if ($line) {
-                            $line->addArrival($arrivage);
-                            $arrivage->addTruckArrivalLine($line);
-                        }
+                        $line->addArrival($arrivage);
+                        $arrivage->addTruckArrivalLine($line);
                     }
                 } else {
                     $arrivage->setNoTracking(substr($trackingNumber, 0, 64));
