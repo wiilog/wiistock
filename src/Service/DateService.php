@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use DateInterval;
+use RuntimeException;
 
 class DateService
 {
@@ -97,6 +98,73 @@ class DateService
         // calculate minutes
         return $hours * DateService::SECONDS_IN_MINUTE + $minutes;
     }
+
+    function validateHoursFormat(string $hours): void {
+        if (!preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
+            throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM ou HH:MM-HH:MM");
+        }
+
+        if (!preg_match("/^(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d)(;(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d))?$/", $hours)) {
+            throw new RuntimeException("Les heures doivent être comprises entre 00:00 et 23:59");
+        }
+    }
+
+    function validateTimeRange(string $start, string $end): void {
+        $startTime = strtotime($start);
+        $endTime = strtotime($end);
+
+        if ($startTime >= $endTime) {
+            throw new RuntimeException("L'heure de début doit être inférieure à l'heure de fin pour chaque créneau.");
+        }
+    }
+
+    function checkForOverlaps(array $timeSlots): void {
+        $timeRanges = [];
+
+        foreach ($timeSlots as $timeSlot) {
+            [$start, $end] = explode('-', $timeSlot);
+
+            $this->validateTimeRange($start, $end);
+
+            $startTime = strtotime($start);
+            $endTime = strtotime($end);
+
+            foreach ($timeRanges as $range) {
+                if (($startTime < $range['end'] && $endTime > $range['start']) ||
+                    ($range['start'] < $endTime && $range['end'] > $startTime)) {
+                    throw new RuntimeException("Les créneaux horaires ne doivent pas se chevaucher.");
+                }
+            }
+
+            $timeRanges[] = ['start' => $startTime, 'end' => $endTime];
+        }
+    }
+
+    function processWorkingHours(array $workingHours, array &$days): void {
+        foreach ($workingHours as $workingHour) {
+            $hours = $workingHour["hours"] ?? null;
+
+            if ($hours) {
+                $this->validateHoursFormat($hours);
+
+                $timeSlots = explode(';', $hours);
+                $this->checkForOverlaps($timeSlots);
+            }
+
+            if (!empty($workingHour['id'])) {
+                $day = $days[$workingHour["id"]]
+                    ->setTimes($hours)
+                    ->setWorked($workingHour["worked"]);
+
+                if ($day->isWorked() && !$day->getTimes()) {
+                    throw new RuntimeException("Le champ horaires de travail est requis pour les jours travaillés");
+                } elseif (!$day->isWorked()) {
+                    $day->setTimes(null);
+                }
+            }
+        }
+    }
+
 
     public function calculateSecondsFrom(string $time, string $regex = DateService::AVERAGE_TIME_REGEX, string $separator = ":"): int
     {

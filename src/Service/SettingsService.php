@@ -94,7 +94,7 @@ class SettingsService {
 
     private array $settingsConstants;
 
-    public function __construct() {
+    public function __construct(private readonly DateService $dateService) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
             ->filter(fn($settingLabel) => is_string($settingLabel))
@@ -487,28 +487,7 @@ class SettingsService {
                     ->keymap(fn($day) => [$day->getId(), $day])
                     ->toArray();
 
-            foreach ($tables["workingHours"] as $workingHour) {
-                $hours = $workingHour["hours"] ?? null;
-                if ($hours && !preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
-                    throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM ou HH:MM-HH:MM");
-                } else if ($hours
-                    && !preg_match("/^(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d)(;(0\d|1\d|2[0-3]):(0\d|[1-5]\d)-(0\d|1\d|2[0-3]):(0\d|[1-5]\d))?$/",
-                        $hours)) {
-                    throw new RuntimeException("Les heures doivent être comprises entre 00:00 et 23:59");
-                }
-                if (!empty($workingHour['id'])) {
-                    $day = $days[$workingHour["id"]]
-                        ->setTimes($hours)
-                        ->setWorked($workingHour["worked"]);
-                    if ($day->isWorked() && !$day->getTimes()) {
-                        throw new RuntimeException("Le champ horaires de travail est requis pour les jours travaillés");
-                    } else {
-                        if (!$day->isWorked()) {
-                            $day->setTimes(null);
-                        }
-                    }
-                }
-            }
+            $this->dateService->processWorkingHours($tables["workingHours"], $days);
         }
 
         if (isset($tables["hourShifts"]) && count($tables["hourShifts"]) && count($tables["hourShifts"][0])) {
