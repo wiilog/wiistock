@@ -28,7 +28,7 @@ readonly class NatureService {
         private FormatService          $formatService,
         private Security               $security,
         private Twig_Environment       $templating,
-        private DateService            $dateService,
+        private DateTimeService        $dateTimeService,
     ) {
 
     }
@@ -124,7 +124,7 @@ readonly class NatureService {
             : null;
 
         $trackingDelayInSeconds = $data['natureTrackingDelay']
-            ? $this->dateService->calculateSecondsFrom($data['natureTrackingDelay'], Nature::TRACKING_DELAY_REGEX, "h")
+            ? $this->dateTimeService->calculateSecondsFrom($data['natureTrackingDelay'], Nature::TRACKING_DELAY_REGEX, "h")
             : null;
 
         $segmentsMax = Stream::explode(",", $data['segments'] ?? "")

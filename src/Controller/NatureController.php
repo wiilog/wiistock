@@ -13,7 +13,7 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Service\DateService;
+use App\Service\DateTimeService;
 use App\Service\NatureService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -78,7 +78,7 @@ class NatureController extends AbstractController {
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEdit(Request                $request,
                             EntityManagerInterface $manager,
-                            DateService            $dateService,
+                            DateTimeService        $dateTimeService,
                             TranslationService     $translationService): Response {
         $data = $request->query->all();
         $natureRepository = $manager->getRepository(Nature::class);
@@ -105,7 +105,9 @@ class NatureController extends AbstractController {
                 $segmentsColors[] = $trackingDelaySegment['segmentColor'];
             });
 
-        $trackingDelay = $nature->getTrackingDelay() ? $dateService->intervalToHourAndMinStr($dateService->secondsToDateInterval($nature->getTrackingDelay())) : null;
+        $trackingDelay = $nature->getTrackingDelay()
+            ? $dateTimeService->intervalToHourAndMinStr($dateTimeService->secondsToDateInterval($nature->getTrackingDelay()))
+            : null;
         $content = $this->renderView('nature/modal/form.html.twig', [
             "nature" => $nature,
             "temperatures" => $temperatures,

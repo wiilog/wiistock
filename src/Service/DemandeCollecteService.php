@@ -303,15 +303,15 @@ class DemandeCollecteService
 
     /**
      * @param Collecte $request
-     * @param DateService $dateService
+     * @param DateTimeService $dateTimeService
      * @param array $averageRequestTimesByType
      * @return array
      * @throws Exception
      */
-    public function parseRequestForCard(Collecte $request,
-                                        DateService $dateService,
-                                        array $averageRequestTimesByType,
-                                        string $backgroundColor) {
+    public function parseRequestForCard(Collecte        $request,
+                                        DateTimeService $dateTimeService,
+                                        array           $averageRequestTimesByType,
+                                        string          $backgroundColor) {
 
         $requestStatus = $request->getStatut() ? $this->formatService->status($request->getStatut()) : '';
         $requestType = $request->getType() ? $request->getType()->getLabel() : '';
@@ -343,7 +343,7 @@ class DemandeCollecteService
 
         if (isset($averageTime)) {
             $expectedDate = (clone $request->getDate())
-                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de collecte prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
@@ -358,7 +358,7 @@ class DemandeCollecteService
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
-                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . DateTimeService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
                 . $requestDate->format(' (H\hi)')
             )
             : 'Non défini';

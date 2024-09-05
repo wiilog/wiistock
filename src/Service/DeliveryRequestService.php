@@ -189,9 +189,9 @@ class DeliveryRequestService
         return $row;
     }
 
-    public function parseRequestForCard(Demande             $demande,
-                                        DateService         $dateService,
-                                        array               $averageRequestTimesByType): array
+    public function parseRequestForCard(Demande         $demande,
+                                        DateTimeService $dateTimeService,
+                                        array           $averageRequestTimesByType): array
     {
 
         $requestStatus = $demande->getStatut()?->getCode();
@@ -225,7 +225,7 @@ class DeliveryRequestService
 
         if (isset($averageTime)) {
             $expectedDate = (clone $demande->getCreatedAt())
-                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de livraison prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
@@ -240,7 +240,7 @@ class DeliveryRequestService
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
-                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . DateTimeService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
                 . $requestDate->format(' (H\hi)')
             )
             : 'Non défini';

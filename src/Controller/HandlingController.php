@@ -22,7 +22,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\DateService;
+use App\Service\DateTimeService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -405,7 +405,6 @@ class HandlingController extends AbstractController {
                                     TranslationService     $translation,
                                     CSVExportService       $CSVExportService,
                                     FreeFieldService       $freeFieldService,
-                                    DateService            $dateService,
                                     HandlingService        $handlingService,
                                     EntityManagerInterface $entityManager,
                                     FormatService          $formatService): Response {
@@ -420,7 +419,6 @@ class HandlingController extends AbstractController {
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
-            $settingRepository = $entityManager->getRepository(Setting::class);
             $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);

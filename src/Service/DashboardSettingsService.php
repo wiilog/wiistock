@@ -52,7 +52,7 @@ class DashboardSettingsService {
     public TruckArrivalLineService $truckArrivalLineService;
 
     #[Required]
-    public DateService $dateService;
+    public DateTimeService $dateTimeService;
 
     #[Required]
     public DeliveryRequestService $demandeLivraisonService;
@@ -375,7 +375,7 @@ class DashboardSettingsService {
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, self::MAX_REQUESTS_TO_DISPLAY))
                         ->map(function(Demande $demande) use ($averageRequestTimesByType) {
-                            return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateService, $averageRequestTimesByType);
+                            return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateTimeService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -387,7 +387,7 @@ class DashboardSettingsService {
                     $backgroundColor = $config['backgroundColor'] ?? '';
                     $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, self::MAX_REQUESTS_TO_DISPLAY))
                         ->map(function(Collecte $collecte) use ($averageRequestTimesByType, $backgroundColor) {
-                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType, $backgroundColor);
+                            return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateTimeService, $averageRequestTimesByType, $backgroundColor);
                         })
                         ->toArray();
                 }
@@ -398,7 +398,7 @@ class DashboardSettingsService {
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
                         ->map(function(Handling $handling) use ($averageRequestTimesByType) {
-                            return $this->handlingService->parseRequestForCard($handling, $this->dateService, $averageRequestTimesByType);
+                            return $this->handlingService->parseRequestForCard($handling, $this->dateTimeService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -409,7 +409,7 @@ class DashboardSettingsService {
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, self::MAX_REQUESTS_TO_DISPLAY))
                         ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
-                            return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);
+                            return $this->transferRequestService->parseRequestForCard($transfer, $this->dateTimeService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }
@@ -419,7 +419,7 @@ class DashboardSettingsService {
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
                         ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
-                            return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
+                            return $this->dispatchService->parseRequestForCard($dispatch, $this->dateTimeService, $averageRequestTimesByType);
                         })
                         ->toArray();
                 }

@@ -94,7 +94,7 @@ class SettingsService {
 
     private array $settingsConstants;
 
-    public function __construct(private readonly DateService $dateService) {
+    public function __construct(private readonly DateTimeService $dateTimeService) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
             ->filter(fn($settingLabel) => is_string($settingLabel))
@@ -487,7 +487,7 @@ class SettingsService {
                     ->keymap(fn($day) => [$day->getId(), $day])
                     ->toArray();
 
-            $this->dateService->processWorkingHours($tables["workingHours"], $days);
+            $this->dateTimeService->processWorkingHours($tables["workingHours"], $days);
         }
 
         if (isset($tables["hourShifts"]) && count($tables["hourShifts"]) && count($tables["hourShifts"][0])) {
@@ -856,7 +856,7 @@ class SettingsService {
 
             if(isset($data["averageTime"])){
                 $averageTime = $data["averageTime"];
-                if(!preg_match("/" . DateService::AVERAGE_TIME_REGEX . "/", $averageTime)){
+                if(!preg_match("/" . DateTimeService::AVERAGE_TIME_REGEX . "/", $averageTime)){
                     throw new RuntimeException("Le temps moyen doit être au format HH:MM");
                 }
             }

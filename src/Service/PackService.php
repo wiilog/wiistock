@@ -5,7 +5,6 @@ namespace App\Service;
 
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
-use App\Entity\ArrivalHistory;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
@@ -26,7 +25,6 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
@@ -34,24 +32,24 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-class PackService {
-    public function __construct(private readonly EntityManagerInterface      $entityManager,
-                                private readonly Security                    $security,
-                                private readonly Twig_Environment            $templating,
-                                private readonly TrackingMovementService     $trackingMovementService,
-                                private readonly MailerService               $mailerService,
-                                private readonly LanguageService             $languageService,
-                                private readonly TranslationService          $translation,
-                                private readonly FieldModesService           $fieldModesService,
-                                private readonly FormatService               $formatService,
-                                private readonly ReceptionLineService        $receptionLineService,
-                                private readonly TimeService                 $timeService,
-                                private readonly SettingsService             $settingsService,
-                                private readonly ArrivageService             $arrivageService,
-                                private readonly TranslationService          $translationService,
-                                private readonly ProjectHistoryRecordService $projectHistoryRecordService,
-                                private readonly TruckArrivalService         $truckArrivalService,
-                                private readonly UserService                 $userService) {}
+readonly class PackService {
+    public function __construct(private EntityManagerInterface      $entityManager,
+                                private Security                    $security,
+                                private Twig_Environment            $templating,
+                                private TrackingMovementService     $trackingMovementService,
+                                private MailerService               $mailerService,
+                                private LanguageService             $languageService,
+                                private TranslationService          $translation,
+                                private FieldModesService           $fieldModesService,
+                                private FormatService               $formatService,
+                                private ReceptionLineService        $receptionLineService,
+                                private DateTimeService             $dateTimeService,
+                                private SettingsService             $settingsService,
+                                private ArrivageService             $arrivageService,
+                                private TranslationService          $translationService,
+                                private ProjectHistoryRecordService $projectHistoryRecordService,
+                                private TruckArrivalService         $truckArrivalService,
+                                private UserService                 $userService) {}
 
 
     public function getDataForDatatable($params = null) {
@@ -400,7 +398,7 @@ class PackService {
         $workedDays = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
-        $delayTimestamp = $this->timeService->getIntervalFromDate($workedDays, $creationDate, $workFreeDays);
+        $delayTimestamp = $this->dateTimeService->getIntervalFromDate($workedDays, $creationDate, $workFreeDays);
 
         return (
             ($delayTimestamp->h * 60 * 60 * 1000) + // hours in milliseconds

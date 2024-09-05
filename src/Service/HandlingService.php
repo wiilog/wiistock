@@ -192,7 +192,7 @@ class HandlingService {
         }
     }
 
-    public function parseRequestForCard(Handling $handling, DateService $dateService, array $averageRequestTimesByType): array {
+    public function parseRequestForCard(Handling $handling, DateTimeService $dateTimeService, array $averageRequestTimesByType): array {
         $requestStatus = $handling->getStatus()?->getCode();
         $requestBodyTitle = !empty($handling->getSubject())
             ? $handling->getSubject() . (!empty($handling->getType())
@@ -214,7 +214,7 @@ class HandlingService {
         if (isset($averageTime)) {
             $today = new DateTime();
             $expectedDate = (clone $handling->getCreationDate())
-                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de traitement prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
@@ -231,7 +231,7 @@ class HandlingService {
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
-                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . DateTimeService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
                 . $requestDate->format(' (H\hi)')
             )
             : 'Non défini';

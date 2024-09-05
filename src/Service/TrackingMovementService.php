@@ -1627,15 +1627,10 @@ class TrackingMovementService extends AbstractController
 
     public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement): string {
         $values = $trackingMovement->serialize($this->formatService);
-        $message = "";
 
-        Stream::from($values)
+        return Stream::from($values)
             ->filter(static fn(?string $value) => $value)
-            ->each(static function (string $value, string $key) use (&$message) {
-                $message .= "$key : $value\n";
-                return $message;
-            });
-
-        return $message;
+            ->map(static fn(string $value, string $key) => "$key : $value")
+            ->join("\n");
     }
 }

@@ -142,14 +142,14 @@ class TransferRequestService {
 
     /**
      * @param TransferRequest $request
-     * @param DateService $dateService
+     * @param DateTimeService $dateTimeService
      * @param array $averageRequestTimesByType
      * @return array
      * @throws Exception
      */
     public function parseRequestForCard(TransferRequest $request,
-                                        DateService $dateService,
-                                        array $averageRequestTimesByType) {
+                                        DateTimeService $dateTimeService,
+                                        array           $averageRequestTimesByType) {
         $requestStatus = $request->getStatus()?->getCode();
 
         if ($requestStatus !== TransferRequest::DRAFT && $request->getOrder()) {
@@ -171,7 +171,7 @@ class TransferRequestService {
 
         if (isset($averageTime) && $request->getValidationDate()) {
             $expectedDate = (clone $request->getValidationDate())
-                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de transfert prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
@@ -186,7 +186,7 @@ class TransferRequestService {
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
-                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . DateTimeService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
                 . $requestDate->format(' (H\hi)')
             )
             : 'Non défini';

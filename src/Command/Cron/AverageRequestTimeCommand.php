@@ -11,7 +11,6 @@ use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
-use App\Service\DateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -28,12 +27,10 @@ class AverageRequestTimeCommand extends Command {
     public const COMMAND_NAME = 'app:feed:average:requests';
 
     private EntityManagerInterface $entityManager;
-    private DateService $dateService;
 
-    public function __construct(EntityManagerInterface $entityManager, DateService $dateService) {
+    public function __construct(EntityManagerInterface $entityManager) {
         parent::__construct();
         $this->entityManager = $entityManager;
-        $this->dateService = $dateService;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
