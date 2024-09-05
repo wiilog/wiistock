@@ -8,37 +8,33 @@ use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-class NatureService
-{
-    #[Required]
-    public Twig_Environment $templating;
+readonly class NatureService {
 
-    #[Required]
-    public EntityManagerInterface $manager;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private LanguageService        $languageService,
+        private TranslationService     $translationService,
+        private FormatService          $formatService,
+        private Security               $security,
+        private Twig_Environment       $templating,
+        private DateService            $dateService,
+    ) {
 
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
+    }
 
     public function getDataForDatatable(InputBag $params): array {
-        $natureRepository = $this->manager->getRepository(Nature::class);
+        $natureRepository = $this->entityManager->getRepository(Nature::class);
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
@@ -65,11 +61,11 @@ class NatureService
 
     public function dataRowNature(Nature $nature): array
     {
-        $typeRepository = $this->manager->getRepository(Type::class);
+        $typeRepository = $this->entityManager->getRepository(Type::class);
         $userLanguage = $this->security->getUser()->getLanguage();
         $label = $this->formatService->nature($nature);
 
-        if ($userLanguage !== $this->manager->getRepository(Language::class)->find(1)
+        if ($userLanguage !== $this->entityManager->getRepository(Language::class)->find(1)
             && $nature->getLabelTranslation() && $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())) {
             $label = $nature->getLabelTranslation()->getTranslationIn($userLanguage->getSlug())->getTranslation();
         }
@@ -114,5 +110,125 @@ class NatureService
             'defaultNature' => $nature->getDefaultNature(),
             'isDisplayedOnDispatch' => $nature->isDisplayedOnForm(Nature::DISPATCH_CODE)
         ];
+    }
+
+    public function updateNature(EntityManagerInterface $entityManager,
+                                 Nature $nature,
+                                 array $data): void {
+        $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
+        $natureManager = $data["natureManager"]
+            ? $userRepository->findOneBy(["id" => $data["natureManager"]])
+            : null;
+
+        $trackingDelayInSeconds = $data['natureTrackingDelay']
+            ? $this->dateService->calculateSecondsFrom($data['natureTrackingDelay'], Nature::TRACKING_DELAY_REGEX, "h")
+            : null;
+
+        $segmentsMax = Stream::explode(",", $data['segments'])
+            ->filter()
+            ->toArray();
+        $segmentsColor = Stream::explode(",", $data['segmentColor'])
+            ->filter()
+            ->toArray();;
+        $trackingDelaySegments = Stream::from($segmentsMax)
+            ->map(static fn($segmentMax, $index) => [
+                "segmentMax" => $segmentMax,
+                "segmentColor" => $segmentsColor[$index],
+            ])
+            ->toArray();
+
+        $nature
+            ->setPrefix($data['prefix'] ?? null)
+            ->setColor($data['color'])
+            ->setNeedsMobileSync($data['mobileSync'] ?? false)
+            ->setDefaultQuantity($data['quantity'])
+            ->setDefaultQuantityForDispatch($data['defaultQuantityDispatch'] ?: null)
+            ->setDescription($data['description'] ?? null)
+            ->setCode($data['code'])
+            ->setExceededDelayColor($data["natureExceededDelayColor"] ?? null)
+            ->setNatureManager($natureManager)
+            ->setTrackingDelay($trackingDelayInSeconds)
+            ->setTrackingDelaySegments($trackingDelaySegments);
+
+        $nature->getTemperatureRanges()->clear();
+        $allowedTemperatureIds = Stream::explode(",", $data["allowedTemperatures"])
+            ->filter()
+            ->toArray();
+        if (!empty($allowedTemperatureIds)) {
+            $temperatureRanges = $temperatureRangeRepository->findBy(["id" => $allowedTemperatureIds]);
+            $nature->setTemperatureRanges($temperatureRanges);
+        }
+
+        if($data['displayedOnForms']) {
+            $allowedForms = [];
+            if($data[Nature::ARRIVAL_CODE]) {
+                $allowedForms[Nature::ARRIVAL_CODE] = 'all';
+            }
+
+            if($data[Nature::DISPATCH_CODE]) {
+                $allowedForms[Nature::DISPATCH_CODE] = 'all';
+            }
+
+            if($data[Nature::TRANSPORT_COLLECT_CODE]) {
+                $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = $data['transportCollectTypes'];
+            }
+
+            if($data[Nature::DISPATCH_CODE]) {
+                $allowedForms[Nature::DISPATCH_CODE] = 'all';
+            }
+
+            if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
+                $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
+            }
+
+            $nature
+                ->setDisplayedOnForms(true)
+                ->setAllowedForms($allowedForms);
+        } else {
+            $nature
+                ->setDisplayedOnForms(false)
+                ->setAllowedForms(null);
+        }
+
+        $labels = json_decode($data['labels'], true);
+        foreach ($labels as $label) {
+            if (preg_match("[[,;]]", $label['label'])) {
+                throw new FormException("Le libellé d'une nature ne peut pas contenir ; ou ,");
+            }
+
+            if ($natureRepository->findDuplicates($label["label"], $label["language-id"])) {
+                $language = $entityManager->find(Language::class, $label["language-id"]);
+
+                throw new FormException("Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"");
+            }
+        }
+
+        $labelTranslationSource = $nature->getLabelTranslation();
+        if($labelTranslationSource) {
+            $this->translationService->editEntityTranslations($entityManager, $labelTranslationSource, $labels);
+        }
+        $frenchLabel = $this->formatService->nature($nature);
+        $nature->setLabel($frenchLabel ?: $data['code']);
+
+        $natures = $natureRepository->findAll();
+
+        $default = filter_var($data['default'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        if($default) {
+            $currentNatureId = $nature->getId();
+            $isAlreadyDefault = !Stream::from($natures)
+                ->filter(static fn(Nature $nature) => $nature->getDefaultNature() && (!$currentNatureId || $nature->getId() !== $currentNatureId))
+                ->isEmpty();
+
+            if(!$isAlreadyDefault) {
+                $nature->setDefaultNature($default);
+            } else {
+                throw new FormException("Une nature par défaut pour les acheminements a déjà été sélectionnée");
+            }
+        } else {
+            $nature->setDefaultNature(false);
+        }
     }
 }
