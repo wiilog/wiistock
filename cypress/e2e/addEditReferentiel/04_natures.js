@@ -40,9 +40,9 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
             // submit form & wait reponse
             cy.closeAndVerifyModal(selectorModal, null, routes.nature_new.alias, true);
+            cy.wait('@nature_api');
 
         })
-        cy.wait('@nature_api');
 
         // check datatable after edit
         cy.checkDataInDatatable(newNature, 'label', 'tableNatures', propertiesMap);
