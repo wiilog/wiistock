@@ -32,14 +32,14 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
         cy.get(`${selectorModal}`).should('be.visible', {timeout: 8000}).then(() => {
 
-            // edit valuesz
+            // edit values
             const languageInput = "Français"
             cy.get(`#modalNewNature [data-cypress=${languageInput}]`).type(newNature.label);
 
             cy.typeInModalInputs(selectorModal, newNature, ['label']);
 
             // submit form & wait reponse
-            cy.closeAndVerifyModal(selectorModal, null, 'nature_new', true);
+            cy.closeAndVerifyModal(selectorModal, null, routes.nature_new.alias, true);
         })
         cy.wait('@nature_api');
 
@@ -76,7 +76,7 @@ describe('Add and edit components in Referentiel > Nature', () => {
             cy.typeInModalInputs(selectorModal, newNatures[index], ['label']);
 
             // submit form
-            cy.closeAndVerifyModal(selectorModal, 'submitEditNature', 'nature_edit', true);
+            cy.closeAndVerifyModal(selectorModal, null, routes.nature_edit.alias, true);
             cy.wait('@nature_api');
 
             cy.checkDataInDatatable(newNatures[index], 'label', 'tableNatures', propertiesMap)

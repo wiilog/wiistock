@@ -89,7 +89,7 @@ export const routes = {
     },
     nature_edit: {
         method: 'POST',
-        route: '/natureedit',
+        route: '/nature/edit',
         alias: 'nature_edit'
     },
     vehicule_api: {
