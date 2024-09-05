@@ -3,12 +3,18 @@ import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
+import {addEntryTimeInterval, initializeEntryTimeIntervals, onSegmentInputChange, deleteEntryTimeInterval} from "@app/pages/segment";
+
 
 global.onNewModalShow = onNewModalShow;
 global.initializeSegments = initializeSegments;
 global.toggleEntitiesContainer = toggleEntitiesContainer;
 global.toggleTypes = toggleTypes;
 global.selectAllTypes = selectAllTypes;
+global.addEntryTimeInterval = addEntryTimeInterval;
+global.onSegmentInputChange  = onSegmentInputChange;
+global.deleteEntryTimeInterval  = deleteEntryTimeInterval;
+global.initializeEntryTimeIntervals  = initializeEntryTimeIntervals;
 
 $(function () {
     const table = initNatureTable();
