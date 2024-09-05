@@ -312,6 +312,19 @@ class Nature {
         return $this->temperatureRanges;
     }
 
+    public function setTemperatureRanges(?iterable $temperatureRanges): self {
+        foreach($this->getTemperatureRanges()->toArray() as $temperatureRange) {
+            $this->removeTemperatureRange($temperatureRange);
+        }
+
+        $this->temperatureRanges = new ArrayCollection();
+        foreach($temperatureRanges ?? [] as $temperatureRange) {
+            $this->addTemperatureRange($temperatureRange);
+        }
+
+        return $this;
+    }
+
     public function addTemperatureRange(TemperatureRange $temperatureRange): self {
         if (!$this->temperatureRanges->contains($temperatureRange)) {
             $this->temperatureRanges[] = $temperatureRange;
