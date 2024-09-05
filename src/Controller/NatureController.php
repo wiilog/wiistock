@@ -40,6 +40,7 @@ class NatureController extends AbstractController {
         return $this->render('nature/index.html.twig', [
             'temperatures' => $temperatures,
             'types' => $types,
+            "nature" => new Nature(),
         ]);
     }
 
