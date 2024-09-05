@@ -1145,15 +1145,7 @@ function initSecondStep(html, component) {
     $modalComponentTypeSecondStep.off('change.secondStepComponentType');
     $modalComponentTypeSecondStep.on('change.secondStepComponentType', 'select.data, input.data, input.data-array, input.checkbox', () => renderFormComponentExample())
 
-    const $segmentsList = $modalComponentTypeSecondStepContent.find('.segments-list');
-    if ($segmentsList.length > 0) {
-        const segments = $segmentsList.data(`segments`);
-        if (segments.length > 0) {
-            initializeEntryTimeIntervals(segments, $modalComponentTypeSecondStepContent, false);
-        } else {
-            addEntryTimeInterval($segmentsList.find('.add-time-interval'));
-        }
-    }
+    initializeEntryTimeIntervals($modalComponentTypeSecondStepContent, false);
 
     const $preview = $modalComponentTypeSecondStep.find('.preview-component-image');
     const $input = $modalComponentTypeSecondStep.find('.upload-component-image');

@@ -6,7 +6,7 @@
     <div class="form-group col-md-6 col-12">
         {{ form.lang('label', 'Libellé', true, {
             languages: language_service.languages,
-            entity: nature
+            entity: nature.id ? nature : null,
         }) }}
     </div>
     <div class="form-group col-md-6 col-12">
@@ -139,7 +139,7 @@
     </div>
     <div class="form-group col-md-6 col-12">
         {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureTrackingDelay') %}
-        {{ form.input(field.name, field.value, false, trackingDelay, {
+        {{ form.input(field.name, field.value, false, trackingDelay ?? null, {
             tooltip: "Le format de date est le suivant : 00h00.",
             attributes: {
                 pattern: constant("App\\Entity\\Nature::TRACKING_DELAY_REGEX"),
@@ -164,17 +164,11 @@
     <div class="form-group col-12 p-0">
         {% include 'utils/segments-list.html.twig' with {
             defaultValues: [],
-            values: {
+            values: segmentsMax is defined and segmentsColors is defined ? [{
                 segments: segmentsMax,
                 colors: segmentsColors,
-            },
+            }] : [{}],
             fromNature: true,
         }%}
     </div>
-    {% include 'utils/modal/footer.html.twig' with {
-        elements: [
-            {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-            {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
-        ],
-    } %}
 </div>

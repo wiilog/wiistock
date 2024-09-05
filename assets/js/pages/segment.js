@@ -5,7 +5,7 @@ export function addEntryTimeInterval($button, time = null, notEmptySegment = fal
         const lastSegmentHourEndValue = $('.segment-hour').last().val();
         const lastSegmentLabel = $('.segment-container label').last().text();
 
-        if (!lastSegmentHourEndValue) {
+        if (!lastSegmentHourEndValue && lastSegmentLabel) {
             showBSAlert('Le <strong>' + lastSegmentLabel.toLowerCase() + '</strong> doit contenir une valeur de fin', 'danger');
             return false;
         }
@@ -45,13 +45,12 @@ export function addEntryTimeInterval($button, time = null, notEmptySegment = fal
         : ''
     }
                 <div class="col-2">
-                    <button class="btn d-block" onclick="deleteEntryTimeInterval($(this))"><span class="wii-icon wii-icon-trash-black mr-2"></span></button>
+                    <button class="btn d-block" onclick="deleteEntryTimeInterval($(this), ${fromNature})"><span class="wii-icon wii-icon-trash-black mr-2"></span></button>
                 </div>
             </div>
         </div>
     `);
 
-    $button.data("current", current + 1);
     const $lastSegmentValues = $button.closest('.modal').find('.segment-value');
     const $currentSegmentValue = $newSegmentInput.find('.segment-value');
     const $lastSegmentValue = $lastSegmentValues.last();
@@ -62,10 +61,10 @@ export function addEntryTimeInterval($button, time = null, notEmptySegment = fal
     recalculateIntervals();
 }
 
-export function deleteEntryTimeInterval($button) {
+export function deleteEntryTimeInterval($button, fromNature = false) {
     const $segmentContainer = $('.segment-container');
 
-    if ($segmentContainer.length === 1) {
+    if ($segmentContainer.length === 1 && !fromNature) {
         showBSAlert('Au moins un segment doit être renseigné', 'danger');
         event.preventDefault();
         return false;
@@ -80,6 +79,7 @@ export function deleteEntryTimeInterval($button) {
         $segmentValue.text(parseInt($segmentValue.text()) - 1);
     });
     $currentSegmentContainer.remove();
+    $button.data(`current`, 0);
     recalculateIntervals();
 }
 
@@ -95,18 +95,25 @@ function recalculateIntervals() {
     });
 }
 
-export function initializeEntryTimeIntervals(segments, $modal, fromNature = false) {
+export function initializeEntryTimeIntervals($modal, fromNature = false) {
     const $button = $modal.find(`.add-time-interval`);
     const $segmentContainer = $modal.find(`.segment-container`);
 
     if($segmentContainer.length > 0){
-        $segmentContainer.clear();
+        $segmentContainer.empty();
     }
 
     $button.data(`current`, 0);
-
-    for (const segment of segments) {
-        addEntryTimeInterval($button, segment, false, fromNature);
+    const $segmentsList = $modal.find('.segments-list');
+    if ($segmentsList.length > 0) {
+        const segments = $segmentsList.data(`segments`);
+        if (segments.length > 0) {
+            for (const segment of segments) {
+                addEntryTimeInterval($button, segment, false, fromNature);
+            }
+        } else if (!fromNature){
+            addEntryTimeInterval($button, null, false, true);
+        }
     }
 }
 

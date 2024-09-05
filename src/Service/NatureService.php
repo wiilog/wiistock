@@ -127,10 +127,10 @@ readonly class NatureService {
             ? $this->dateService->calculateSecondsFrom($data['natureTrackingDelay'], Nature::TRACKING_DELAY_REGEX, "h")
             : null;
 
-        $segmentsMax = Stream::explode(",", $data['segments'])
+        $segmentsMax = Stream::explode(",", $data['segments'] ?? "")
             ->filter()
             ->toArray();
-        $segmentsColor = Stream::explode(",", $data['segmentColor'])
+        $segmentsColor = Stream::explode(",", $data['segmentColor'] ?? "")
             ->filter()
             ->toArray();;
         $trackingDelaySegments = Stream::from($segmentsMax)

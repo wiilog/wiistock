@@ -7,7 +7,6 @@ import {addEntryTimeInterval, initializeEntryTimeIntervals, onSegmentInputChange
 
 
 global.onNewModalShow = onNewModalShow;
-global.initializeSegments = initializeSegments;
 global.toggleEntitiesContainer = toggleEntitiesContainer;
 global.toggleTypes = toggleTypes;
 global.selectAllTypes = selectAllTypes;
@@ -33,7 +32,7 @@ $(function () {
         .onOpen((event) => {
             Modal.load('nature_api_edit', {id: $(event.relatedTarget).data('id')}, $modalEditNature, $modalEditNature.find('.modal-body'), {
                 onOpen: () => {
-                    initializeSegments($modalEditNature);
+                    initializeEntryTimeIntervals($modalEditNature, true);
                 }
             })
         })
@@ -84,7 +83,7 @@ function onNewModalShow() {
     $entitiesContainer.addClass(`d-none`);
     $entitiesContainer.find(`select`).prop(`disabled`, true);
 
-    initializeSegments($modal);
+    initializeEntryTimeIntervals($modal, true);
 }
 
 function toggleEntitiesContainer($input) {
@@ -115,16 +114,4 @@ function selectAllTypes($button) {
     });
 
     $select.trigger(`change`);
-}
-
-function initializeSegments($modal) {
-    const $segmentsList = $modal.find('.segments-list');
-    if ($segmentsList.length > 0) {
-        const segments = $segmentsList.data(`segments`);
-        if (segments.length > 0) {
-            initializeEntryTimeIntervals(segments, $modal, true);
-        } else {
-            addEntryTimeInterval($segmentsList.find('.add-time-interval'), null, false, true);
-        }
-    }
 }
