@@ -182,6 +182,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPLAY_WARNING_WRONG_LOCATION => [
                 'default' => false,
             ],
+            Setting::ALLOW_CHANGE_NATURE_ON_MVT => [
+                'default' => false,
+            ],
             Setting::USES_UTF8 => [
                 'default' => true,
             ],
