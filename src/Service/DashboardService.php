@@ -42,7 +42,6 @@ use App\Exceptions\DashboardException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,31 +59,17 @@ class DashboardService {
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public EnCoursService $enCoursService;
-
-    #[Required]
-    public TruckArrivalLineService $truckArrivalLineService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public WiilockService $wiilockService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TimeService $timeService;
-
     private $cacheDaysWorked;
+
+    public function __construct(
+        private readonly DateTimeService $dateTimeService,
+        private readonly TranslationService $translationService,
+        private readonly LanguageService $languageService,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly TruckArrivalLineService $truckArrivalLineService,
+        private readonly FormatService $formatService,
+        private readonly EnCoursService $enCoursService,
+    ) {}
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
@@ -233,7 +218,7 @@ class DashboardService {
                 if (!empty($lastEnCours[0]) && $lastEnCours[0]['dateMaxTime']) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
-                    $date = $this->timeService->getIntervalFromDate($daysWorked, $lastEnCoursDateTime, $workFreeDays);
+                    $date = $this->dateTimeService->getIntervalFromDate($daysWorked, $lastEnCoursDateTime, $workFreeDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $lastEnCours[0]['dateMaxTime']);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
                 }
@@ -683,7 +668,7 @@ class DashboardService {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    $interval = $this->timeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
+                    $interval = $this->dateTimeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -1109,7 +1094,7 @@ class DashboardService {
                     'nonUrgentTranslationLabel' => $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
                 ]);
                 if (isset($lastDate)) {
-                    $date = $this->timeService->getIntervalFromDate($daysWorked, $lastDate, $freeWorkDays);
+                    $date = $this->dateTimeService->getIntervalFromDate($daysWorked, $lastDate, $freeWorkDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $treatmentDelay);
                 }
                 $meter->setDelay($timeInformation['countDownLateTimespan'] ?? null);
@@ -1192,7 +1177,7 @@ class DashboardService {
                 $operator = $period === self::DAILY_PERIOD_PREVIOUS_DAYS ? '-' : '+';
                 $dateToCheck = new DateTime("now " . $operator . " $dayIndex days");
 
-                if (!$this->timeService->isDayInArray($dateToCheck, $workFreeDays)) {
+                if (!$this->dateTimeService->isDayInArray($dateToCheck, $workFreeDays)) {
                     $dateDayLabel = strtolower($dateToCheck->format('l'));
 
                     if (in_array($dateDayLabel, $workedDaysLabels)) {

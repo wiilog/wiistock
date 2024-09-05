@@ -2,16 +2,16 @@
 
 namespace App\Tests\Service;
 
-use App\Service\DateService;
+use App\Service\DateTimeService;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class DateServiceTest extends KernelTestCase
+class DateTimeServiceTest extends KernelTestCase
 {
-    private DateService $dateService;
+    private DateTimeService $dateTimeService;
 
     protected function setUp(): void
     {
-        $this->dateService = new DateService();
+        $this->dateTimeService = new DateTimeService();
     }
 
     /**
@@ -19,7 +19,7 @@ class DateServiceTest extends KernelTestCase
      */
     public function testCalculateMinuteFromWithValidTimes(string $time, int $expectedMinutes): void
     {
-        $this->assertEquals($expectedMinutes, $this->dateService->calculateMinuteFrom($time));
+        $this->assertEquals($expectedMinutes, $this->dateTimeService->calculateMinuteFrom($time));
     }
 
     /**
@@ -28,7 +28,7 @@ class DateServiceTest extends KernelTestCase
     public function testCalculateMinuteFromWithInvalidTimes(string $time): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->dateService->calculateMinuteFrom($time);
+        $this->dateTimeService->calculateMinuteFrom($time);
     }
 
     public function validTimeProvider(): array
@@ -66,22 +66,22 @@ class DateServiceTest extends KernelTestCase
 
     public function testCalculateMinuteFromWithEdgeCases(): void
     {
-        $this->assertEquals(0, $this->dateService->calculateMinuteFrom('00:00'));
-        $this->assertEquals(1439, $this->dateService->calculateMinuteFrom('23:59'));
+        $this->assertEquals(0, $this->dateTimeService->calculateMinuteFrom('00:00'));
+        $this->assertEquals(1439, $this->dateTimeService->calculateMinuteFrom('23:59'));
     }
 
     public function testCalculateMinuteFromWithLeadingZeros(): void
     {
-        $this->assertEquals(90, $this->dateService->calculateMinuteFrom('01:30'));
-        $this->assertEquals(5, $this->dateService->calculateMinuteFrom('00:05'));
+        $this->assertEquals(90, $this->dateTimeService->calculateMinuteFrom('01:30'));
+        $this->assertEquals(5, $this->dateTimeService->calculateMinuteFrom('00:05'));
     }
 
     public function testCalculateMinuteFromUsesCorrectMultiplier(): void
     {
         // Assuming SECONDS_IN_MINUTE is public and equals 60
         $this->assertEquals(
-            2 * DateService::SECONDS_IN_MINUTE + 5,
-            $this->dateService->calculateMinuteFrom('02:05')
+            2 * DateTimeService::SECONDS_IN_MINUTE + 5,
+            $this->dateTimeService->calculateMinuteFrom('02:05')
         );
     }
 }

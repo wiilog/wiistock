@@ -707,9 +707,9 @@ class DispatchService {
         return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    public function parseRequestForCard(Dispatch $dispatch,
-                                        DateService $dateService,
-                                        array $averageRequestTimesByType): array {
+    public function parseRequestForCard(Dispatch        $dispatch,
+                                        DateTimeService $dateTimeService,
+                                        array           $averageRequestTimesByType): array {
 
         $requestStatus = $dispatch->getStatut()?->getCode();
         $requestType = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
@@ -724,7 +724,7 @@ class DispatchService {
 
         if (isset($averageTime)) {
             $expectedDate = (clone $dispatch->getCreationDate())
-                ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure d\'acheminement prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');
@@ -741,7 +741,7 @@ class DispatchService {
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
-                . DateService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
+                . DateTimeService::ENG_TO_FR_MONTHS[$requestDate->format('M')]
                 . $requestDate->format(' (H\hi)')
             )
             : 'Non défini';

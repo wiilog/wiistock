@@ -6,39 +6,16 @@ namespace App\Service;
 
 use App\Entity\Pack;
 use App\Entity\DaysWorked;
-use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 
-class EnCoursService
-{
-    /**
-     * @var EntityManagerInterface $entityManager
-     */
-    private EntityManagerInterface $entityManager;
-    private Environment $templating;
-
-    #[Required]
-    public TimeService $timeService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public TrackingMovementService  $trackingMovementService;
+readonly class EnCoursService {
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -49,15 +26,14 @@ class EnCoursService
     private const MORNING_FIRST_MINUTE_INDEX = 1;
     private const MORNING_LAST_MINUTE_INDEX = 3;
 
-    /**
-     * EnCoursService constructor.
-     * @param EntityManagerInterface $entityManager
-     */
-    public function __construct(EntityManagerInterface $entityManager, Environment $templating)
-    {
-        $this->entityManager = $entityManager;
-        $this->templating = $templating;
-    }
+    public function __construct(
+        private TrackingMovementService  $trackingMovementService,
+        private FormatService $formatService,
+        private Environment $templating,
+        private DateTimeService $dateTimeService,
+        private TranslationService $translationService,
+        private FieldModesService $fieldModesService
+    ) {}
 
     /**
      * @param DaysWorked $daysWorked the day to get the times on
@@ -220,7 +196,7 @@ class EnCoursService
         );
         foreach ($ongoingOnLocation as $pack) {
             $dateMvt = $pack['datetime'];
-            $movementAge = $this->timeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
+            $movementAge = $this->dateTimeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
             $dateMaxTime = $pack['dateMaxTime'];
             $truckArrivalDelay = $useTruckArrivals ? intval($pack["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);

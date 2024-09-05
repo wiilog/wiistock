@@ -22,7 +22,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\DateService;
+use App\Service\DateTimeService;
 use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -69,7 +69,7 @@ class ProductionRequestService
         private readonly PlanningService        $planningService,
         private readonly SettingsService        $settingsService,
         private readonly LanguageService        $languageService,
-        private readonly DateService            $dateService,
+        private readonly DateTimeService        $dateTimeService,
     )
     {
     }
@@ -1121,7 +1121,7 @@ class ProductionRequestService
                     $averageTimeByDay = $productionRequest->getType()->getAverageTime();
 
                     if ($averageTimeByDay) {
-                        return $totalMinutesPerDay + $this->dateService->calculateMinuteFrom($averageTimeByDay);
+                        return $totalMinutesPerDay + $this->dateTimeService->calculateMinuteFrom($averageTimeByDay);
                     }
 
                     return $totalMinutesPerDay;
