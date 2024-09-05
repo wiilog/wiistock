@@ -7,6 +7,7 @@ use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: NatureRepository::class)]
@@ -45,49 +46,49 @@ class Nature {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     /**
      * Attribute used for data warehouse, do not delete it
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $label = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $code = null;
 
     #[ORM\OneToMany(mappedBy: 'nature', targetEntity: Pack::class)]
     private Collection $packs;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $defaultQuantity = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $prefix = null;
 
-    #[ORM\Column(type: 'string', length: 32, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true)]
     private ?string $color = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $needsMobileSync = null;
 
     #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'allowedNatures')]
     private Collection $emplacements;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => 1])]
     private ?bool $displayed = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => 0])]
     private ?bool $defaultNature = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedOnForms = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $allowedForms = [];
 
     #[ORM\ManyToMany(targetEntity: TemperatureRange::class, inversedBy: 'natures')]
@@ -97,7 +98,7 @@ class Nature {
     #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class, cascade: ['remove'])]
     private ?TranslationSource $labelTranslation = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $defaultQuantityForDispatch = null;
 
     #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'natures')]
@@ -107,13 +108,13 @@ class Nature {
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Utilisateur $natureManager = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $exceededDelayColor = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $trackingDelay = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $trackingDelaySegments = null;
 
     public function __construct() {
