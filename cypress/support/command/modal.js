@@ -65,7 +65,7 @@ Cypress.Commands.add('openModal', (modalId, inputName = 'name', customSelectorBt
  * cy.closeAndVerifyModal('#modalNewFournisseur');
  * cy.closeAndVerifyModal('#modalNewFournisseur', 'customSubmitButtonId', 'customInterceptorAlias', true);
  */
-Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId, interceptorAlias, searchWithSubmitType = false, customSelector = null) => {
+Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId = null, interceptorAlias, searchWithSubmitType = false, customSelector = null) => {
     // If searchWithSubmitType is true, search for submit button based on type=submit attribute
     let buttonSelector;
 
@@ -78,7 +78,11 @@ Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId, intercepto
         buttonSelector = `${modalId} button#${submitButtonId}`;
     }
 
-    cy.get(buttonSelector).click();
+    cy.get(buttonSelector).click()
+        .wait(`@${interceptorAlias}`)
+        .then((xhr) => {
+            expect(xhr.response.statusCode).to.equal(200);
+    });
 
     cy.get(modalId).should('not.be.visible');
 });
