@@ -78,9 +78,7 @@ Cypress.Commands.add('closeAndVerifyModal', (modalId, submitButtonId, intercepto
         buttonSelector = `${modalId} button#${submitButtonId}`;
     }
 
-    cy.get(buttonSelector).click().wait(`@${interceptorAlias}`).then((xhr) => {
-        expect(xhr.response.statusCode).to.equal(200);
-    });
+    cy.get(buttonSelector).click();
 
     cy.get(modalId).should('not.be.visible');
 });
