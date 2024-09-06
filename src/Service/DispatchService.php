@@ -25,7 +25,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;

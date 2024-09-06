@@ -6,14 +6,13 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryEntry;
-use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
@@ -23,7 +22,6 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class InventoryService {
 

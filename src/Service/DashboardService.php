@@ -29,7 +29,7 @@ use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;

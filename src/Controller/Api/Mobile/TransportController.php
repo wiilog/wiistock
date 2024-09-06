@@ -15,7 +15,7 @@ use App\Entity\Notification;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportCollectRequestLine;
 use App\Entity\Transport\TransportDeliveryOrderPack;

@@ -1,15 +1,29 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Tracking;
 
+use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
+use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\Livraison;
+use App\Entity\LocationClusterRecord;
+use App\Entity\MouvementStock;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Repository\TrackingMovementRepository;
+use App\Entity\Utilisateur;
+use App\Repository\Tracking\TrackingMovementRepository;
 use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -83,6 +97,9 @@ class TrackingMovement implements AttachmentContainer {
 
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $orderIndex = 0;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
+    private ?TrackingEvent $event = null;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
     private ?Reception $reception = null;
@@ -550,6 +567,15 @@ class TrackingMovement implements AttachmentContainer {
 
     public function getOrderIndex(): ?int {
         return $this->orderIndex;
+    }
+
+    public function getEvent(): ?TrackingEvent {
+        return $this->event;
+    }
+
+    public function setEvent(?TrackingEvent $event): self {
+        $this->event = $event;
+        return $this;
     }
 
     public function serialize(FormatService $formatService): array {

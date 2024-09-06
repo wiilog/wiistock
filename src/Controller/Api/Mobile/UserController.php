@@ -4,9 +4,9 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Controller\AbstractController;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Repository\TrackingMovementRepository;
+use App\Repository\Tracking\TrackingMovementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

@@ -21,7 +21,7 @@ use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;

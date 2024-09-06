@@ -14,7 +14,7 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;

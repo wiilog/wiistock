@@ -15,7 +15,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -24,7 +24,6 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use function PHPUnit\Framework\matches;
 
 class MouvementStockService
 {

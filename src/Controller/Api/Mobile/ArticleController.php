@@ -13,7 +13,7 @@ use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;

@@ -22,7 +22,7 @@ use App\Entity\StatusHistory;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Service\AttachmentService;
 use App\Service\LanguageService;

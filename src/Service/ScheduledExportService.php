@@ -15,7 +15,7 @@ use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Exceptions\FTPException;
 use App\Helper\LanguageHelper;

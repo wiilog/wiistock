@@ -56,13 +56,13 @@
                                     ],
                                     items : form_statuses
                                         |filter(status =>
-                                            status.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
-                                            or (status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight)
+                                            status.nom != constant('App\\Entity\\Tracking\\TrackingMovement::TYPE_UNGROUP')
+                                            or (status.nom == constant('App\\Entity\\Tracking\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight)
                                         )
                                         |map(status => ({
                                             value: status.id,
                                             label: status.nom,
-                                            selected: status.nom == constant('App\\Entity\\TrackingMovement::DEFAULT_TYPE')
+                                            selected: status.nom == constant('App\\Entity\\Tracking\\TrackingMovement::DEFAULT_TYPE')
                                         }))
                                 }) }}
                             </div>
@@ -97,7 +97,7 @@
                         needsDateFormatting: true
                     } %}
                 </div>
-                {{ form.hidden('empty-round', constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')) }}
+                {{ form.hidden('empty-round', constant('App\\Entity\\Tracking\\TrackingMovement::TYPE_EMPTY_ROUND')) }}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

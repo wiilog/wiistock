@@ -2,11 +2,16 @@
 
 namespace App\Service;
 
+use App\Entity\DaysWorked;
+use App\Entity\WorkFreeDay;
 use DateInterval;
 use DatePeriod;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use JetBrains\PhpStorm\Deprecated;
 use RuntimeException;
+use WiiCommon\Helper\Stream;
 
 class DateTimeService {
     const ENG_TO_FR_MONTHS = [
@@ -29,6 +34,8 @@ class DateTimeService {
     const SECONDS_IN_MINUTE = 60;
 
     const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
+
+    private array $cache = [];
 
     public function dateIntervalToSeconds(DateInterval $dateInterval): int {
         return
@@ -152,6 +159,9 @@ class DateTimeService {
             }
         }
     }
+
+
+    // TODO optimiser : trier le tableau, et si on a passé la date on quitte la boucle ?
     public function isDayInArray(DateTime $day, array $daysToCheck): bool
     {
         $isDayInArray = false;
@@ -178,6 +188,8 @@ class DateTimeService {
      * @return DateInterval
      * @throws Exception
      */
+
+    #[Deprecated]
     public function getIntervalFromDate(array $workedDays, DateTime $initialDate, array $workFreeDays): DateInterval
     {
         if (count($workedDays) > 0) {
@@ -278,4 +290,99 @@ class DateTimeService {
         );
     }
 
+
+    // TODO quand on est sur un encours vérifier dans les appels que $start < $end sinon on renvoies un encours de 0min
+    // TODO test unitaire
+    public function getWorkedPeriodBetweenDates(EntityManagerInterface $entityManager,
+                                                DateTime               $start,
+                                                DateTime               $end): DateInterval {
+        $cache = $this->getCache($entityManager);
+        $workedDays = $cache["workedDays"];
+        $workFreeDays = $cache["workFreeDays"];
+
+        if ($start > $end) {
+            throw new RuntimeException("Invalid input: Datetime \$start should be older or equal to \$end.");
+        }
+
+        if (!empty($workedDays)) {
+            $period = new DatePeriod(
+                $start,
+                DateInterval::createFromDateString('1 day'),
+                (clone $end)->setTime(23, 59, 59)
+            );
+
+            $dateCalculation = new DateTime();
+            $dateCalculation2 = clone $dateCalculation;
+
+            // foreach days between $start and $end
+            foreach ($period as $day) {
+                $dayLabel = strtolower($day->format('l'));
+
+                if (isset($workedDays[$dayLabel])
+                    && !$this->isDayInArray($day, $workFreeDays)) {
+
+                    foreach ($workedDays[$dayLabel] as $period) {
+                        [$startTimePeriod, $endTimePeriod] = $period;
+                        [$startHour, $startMinute] = explode(':', $startTimePeriod);
+                        [$endHour, $endMinute] = explode(':', $endTimePeriod);
+
+                        $startPeriod = (clone $day)->setTime($startHour, $startMinute);
+                        $endPeriod = (clone $day)->setTime($endHour, $endMinute);
+
+                        if ($start >= $endPeriod
+                            || $end <= $startPeriod) {
+                            continue;
+                        }
+
+                        if ($start > $startPeriod) {
+                            $startPeriod = $start;
+                        }
+
+                        if ($end < $endPeriod) {
+                            $endPeriod = $end;
+                        }
+                        $intervalToAdd = $startPeriod->diff($endPeriod);
+
+                        $dateCalculation->add($intervalToAdd);
+                    }
+                }
+            }
+
+            return $dateCalculation2->diff($dateCalculation);
+        }
+
+        return new DateInterval("P0Y");
+    }
+
+    private function getCache(EntityManagerInterface $entityManager): array {
+        if (!isset($this->cache["workedDays"])) {
+            $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+            $workedDays = $workedDaysRepository->findAll();
+            $this->cache["workedDays"] = Stream::from($workedDays)
+                ->keymap(fn(DaysWorked $dayWorked) => (
+                    $dayWorked->isWorked()
+                        ? [
+                            $dayWorked->getDay(),
+                            $this->timePeriodToArray($dayWorked->getTimes())
+                        ]
+                        : null
+                ));
+        }
+
+        if (!isset($this->cache["workFreeDays"])) {
+            $workedDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+            $this->cache["workFreeDays"] = $workedDaysRepository->getWorkFreeDaysToDateTime();
+        }
+
+        return $this->cache;
+    }
+
+    /**
+     * @return array{string, string}[]
+     */
+    private function timePeriodToArray(string $periods): array {
+        return Stream::explode(";", $periods)
+            ->map(static fn(string $period) => explode("-", $period))
+            ->toArray();
+    }
 }

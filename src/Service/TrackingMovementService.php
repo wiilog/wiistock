@@ -25,9 +25,10 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingEvent;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Repository\TrackingMovementRepository;
+use App\Repository\Tracking\TrackingMovementRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1632,5 +1633,9 @@ class TrackingMovementService extends AbstractController
             ->filter(static fn(?string $value) => $value)
             ->map(static fn(string $value, string $key) => "$key : $value")
             ->join("\n");
+    }
+
+    public function getTrackingEvent(Emplacement $trackingLocation): ?TrackingEvent {
+        // TODO
     }
 }

@@ -19,7 +19,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;

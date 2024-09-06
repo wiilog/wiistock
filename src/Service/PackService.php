@@ -16,7 +16,7 @@ use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;

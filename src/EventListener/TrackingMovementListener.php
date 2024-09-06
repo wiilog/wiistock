@@ -7,7 +7,7 @@ use App\Entity\CategorieCL;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;

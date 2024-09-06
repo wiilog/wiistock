@@ -5,9 +5,10 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
-use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\Tracking\TrackingDelay;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
@@ -51,6 +52,20 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(inversedBy: 'linkedPackLastTracking', targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastTracking = null;
+
+//    TODO
+// à l'enregistrement du mvt traca le set
+// OU si le mvt est supprimer refaire une requête pour le remplacer
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $lastStart = null;
+
+//    TODO
+// à l'enregistrement du mvt traca le set
+// OU si le mvt est supprimer refaire une requête pour le remplacer
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $lastStop = null;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class, cascade: ['remove'])]
     #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
@@ -125,9 +140,14 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
     private ?ShippingRequestPack $shippingRequestPack = null;
 
+    /**
+     * @var int|null Milliseconds between truck arrival creation and the logistic unit (if there is a link between them)
+     */
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $truckArrivalDelay = null;
-    //millisecondes entre la création de l'arrivage camion et l'UL
+
+    #[ORM\OneToOne(mappedBy: "pack", targetEntity: TrackingDelay::class, cascade: ["persist", "remove"])]
+    private ?TrackingDelay $trackingDelay = null;
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -827,5 +847,38 @@ class Pack implements PairedEntity {
         return $this;
     }
 
+    public function getTrackingDelay(): ?TrackingDelay {
+        return $this->trackingDelay;
+    }
 
+    public function setTrackingDelay(?TrackingDelay $trackingDelay): self {
+        if($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
+            $oldTrackingDelay = $this->trackingDelay;
+            $this->trackingDelay = null;
+            $oldTrackingDelay->setPack(null);
+        }
+        $this->trackingDelay = $trackingDelay;
+        if($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
+            $this->trackingDelay->setPack($this);
+        }
+        return $this;
+    }
+
+    public function getLastStart(): ?TrackingMovement {
+        return $this->lastStart;
+    }
+
+    public function setLastStart(?TrackingMovement $lastStart): self {
+        $this->lastStart = $lastStart;
+        return $this;
+    }
+
+    public function getLastStop(): ?TrackingMovement {
+        return $this->lastStop;
+    }
+
+    public function setLastStop(?TrackingMovement $lastStop): self {
+        $this->lastStop = $lastStop;
+        return $this;
+    }
 }
