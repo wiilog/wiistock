@@ -17,6 +17,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints\Cascade;
+use Symfony\Component\Validator\Mapping\CascadingStrategy;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
 class Pack implements PairedEntity {
@@ -45,24 +47,18 @@ class Pack implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Nature::class, inversedBy: 'packs')]
     private ?Nature $nature = null;
 
-    #[ORM\OneToOne(inversedBy: 'linkedPackLastDrop', targetEntity: TrackingMovement::class)]
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastDrop = null;
 
-    #[ORM\OneToOne(inversedBy: 'linkedPackLastTracking', targetEntity: TrackingMovement::class)]
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastTracking = null;
 
-//    TODO
-// à l'enregistrement du mvt traca le set
-// OU si le mvt est supprimer refaire une requête pour le remplacer
     #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStart = null;
 
-//    TODO
-// à l'enregistrement du mvt traca le set
-// OU si le mvt est supprimer refaire une requête pour le remplacer
     #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStop = null;
@@ -226,17 +222,7 @@ class Pack implements PairedEntity {
     }
 
     public function setLastDrop(?TrackingMovement $lastDrop): self {
-        if($this->lastDrop && $this->lastDrop->getLinkedPackLastDrop() !== $this) {
-            $oldLastDrop = $this->lastDrop;
-            $this->lastDrop = null;
-            $oldLastDrop->setLinkedPackLastDrop(null);
-        }
-
         $this->lastDrop = $lastDrop;
-
-        if($this->lastDrop && $this->lastDrop->getLinkedPackLastDrop() !== $this) {
-            $this->lastDrop->setLinkedPackLastDrop($this);
-        }
 
         return $this;
     }
@@ -246,17 +232,7 @@ class Pack implements PairedEntity {
     }
 
     public function setLastTracking(?TrackingMovement $lastTracking): self {
-        if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
-            $oldLastTracking = $this->lastTracking;
-            $this->lastTracking = null;
-            $oldLastTracking->setLinkedPackLastTracking(null);
-        }
-
         $this->lastTracking = $lastTracking;
-
-        if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
-            $this->lastTracking->setLinkedPackLastTracking($this);
-        }
 
         return $this;
     }
@@ -268,8 +244,9 @@ class Pack implements PairedEntity {
     public function getTrackingMovements(string $order = 'DESC'): Collection {
         $criteria = Criteria::create()
             ->orderBy([
-                'datetime' => $order,
-                'id' => $order,
+                "datetime" => $order,
+                "orderIndex" => $order,
+                "id" => $order,
             ]);
         return $this->trackingMovements->matching($criteria);
     }

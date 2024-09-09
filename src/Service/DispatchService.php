@@ -1086,8 +1086,13 @@ class DispatchService {
                 ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
 
-            $message = $this->buildCustomLogisticUnitHistoryRecord($dispatch);
-            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $dispatch->getCreationDate(), $dispatch->getTreatedBy() ?? $this->security->getUser(), "Acheminement", $dispatch->getLocationFrom());
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                "message" => $this->buildCustomLogisticUnitHistoryRecord($dispatch),
+                "historyDate" => $dispatch->getCreationDate(),
+                "user" => $dispatch->getTreatedBy() ?? $this->security->getUser(),
+                "type" => "Acheminement",
+                "location" => $dispatch->getLocationFrom(),
+            ]);
         }
     }
 

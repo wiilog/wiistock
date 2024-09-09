@@ -207,8 +207,13 @@ class ReceiptAssociationService
         if(!empty($logisticUnits)){
             $defaultUlLocation = $defaultUlLocationId ? $locationRepository->find($defaultUlLocationId) : null;
             foreach ($logisticUnits as $logisticUnit) {
-                $message = $this->buildCustomLogisticUnitHistoryRecord($receptionNumbers);
-                $this->packService->persistLogisticUnitHistoryRecord($entityManager, $logisticUnit, $message, $now, $user, "Association BR", $defaultUlLocation);
+                $this->packService->persistLogisticUnitHistoryRecord($entityManager, $logisticUnit, [
+                    "message" => $this->buildCustomLogisticUnitHistoryRecord($receptionNumbers),
+                    "historyDate" => $now,
+                    "user" => $user,
+                    "type" => "Association BR",
+                    "location" => $defaultUlLocation,
+                ]);
             }
         }
 

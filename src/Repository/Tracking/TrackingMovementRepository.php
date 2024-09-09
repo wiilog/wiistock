@@ -640,4 +640,45 @@ class TrackingMovementRepository extends EntityRepository
         }
     }
 
+    /**
+     * @param "tracking"|"start"|"stop" $type
+     */
+    public function findOneLast(string            $type,
+                                ?TrackingMovement $ignored): ?TrackingMovement {
+        $queryBuilder = $this->createQueryBuilder("movement")
+            ->orderBy("movement.datetime", Order::Descending->value)
+            ->addOrderBy("movement.orderIndex", Order::Descending->value)
+            ->addOrderBy("movement.id", Order::Descending->value)
+            ->setMaxResults(1);
+
+        if ($ignored?->getId()) {
+            $queryBuilder
+                ->andWhere("movement != :ignored_movement")
+                ->setParameter("ignored_movement", $ignored);
+        }
+
+        switch ($type) {
+            case "tracking":
+                // get the last one whatever the movement
+                break;
+            case "start":
+                $queryBuilder
+                    ->andWhere("movement.event = :startEvent")
+                    ->setParameter("startEvent", TrackingEvent::START->value);
+                break;
+            case "stop":
+                $queryBuilder
+                    ->andWhere("movement.event = :stopEvent")
+                    ->setParameter("stopEvent", TrackingEvent::STOP->value);
+                break;
+            default:
+                throw new \Exception("Not implemented yet");
+        }
+
+        /** @var TrackingMovement|null $movement */
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

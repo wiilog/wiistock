@@ -7,6 +7,8 @@ use App\Entity\CategorieCL;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
+use App\Entity\Pack;
+use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Service\FreeFieldService;
@@ -62,9 +64,7 @@ class TrackingMovementListener implements EventSubscriber
         $entityManager = $lifecycleEventArgs->getObjectManager();
 
         $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
-            ->map(function (LocationClusterRecord $record) {
-                return $record->getId();
-            })
+            ->map(static fn (LocationClusterRecord $record) => $record->getId())
             ->toArray();
 
         $this->treatPackLinking($movementToDelete, $entityManager);
@@ -132,12 +132,10 @@ class TrackingMovementListener implements EventSubscriber
 
     public function treatPackLinking(TrackingMovement $movementToDelete,
                                      EntityManager $entityManager): void {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+
         $pack = $movementToDelete->getPack();
 
-        $trackingMovements = $pack->getTrackingMovements();
-
-        $newLastTracking = null;
-        $newLastDrop = null;
         $lastDropToUpdate = (
             !$pack->getLastDrop()
             || $pack->getLastDrop()->getId() === $movementToDelete->getId()
@@ -148,32 +146,50 @@ class TrackingMovementListener implements EventSubscriber
             && $pack->getLastTracking()->getId() === $movementToDelete->getId()
         );
 
-        foreach ($trackingMovements as $savedTrackingMovement) {
-            if (($movementToDelete !== $savedTrackingMovement)
-                && (!isset($newLastTracking))) {
-                $newLastTracking = $savedTrackingMovement;
-            }
+        $lastStartToUpdate = (
+            $pack->getLastStart()
+            && $pack->getLastStart()->getId() === $movementToDelete->getId()
+        );
 
-            if (isset($newLastTracking)) {
-                break;
-            }
-        }
+        $lastStopToUpdate = (
+            $pack->getLastStop()
+            && $pack->getLastStop()->getId() === $movementToDelete->getId()
+        );
 
-        if ($lastDropToUpdate
-            && isset($newLastTracking)
-            && $newLastTracking->isDrop()) {
-            $newLastDrop = $newLastTracking;
-        }
+        $lastTracking = ($lastTrackingToUpdate || $lastDropToUpdate)
+            ? $trackingMovementRepository->findOneLast("tracking", $movementToDelete)
+            : null;
 
-        if ($lastDropToUpdate) {
-            $pack->setLastDrop($newLastDrop);
-        }
+        $lastStart = $lastStartToUpdate
+            ? $trackingMovementRepository->findOneLast("start", $movementToDelete)
+            : null;
+
+        $lastStop = $lastStopToUpdate
+            ? $trackingMovementRepository->findOneLast("stop", $movementToDelete)
+            : null;
+
+        // set movements
 
         if ($lastTrackingToUpdate) {
-            $pack->setLastTracking($newLastTracking);
+            $pack->setLastTracking($lastTracking);
         }
 
-        $entityManager->flush($pack);
+        if ($lastDropToUpdate && $lastTracking?->isDrop()) {
+            $pack->setLastDrop($lastTracking);
+        }
+
+        if ($lastStartToUpdate) {
+            $pack->setLastStart($lastStart);
+        }
+
+        if ($lastStopToUpdate) {
+            $pack->setLastStop($lastStop);
+        }
+
+        $entityManager->getUnitOfWork()->recomputeSingleEntityChangeSet(
+            $entityManager->getClassMetadata(Pack::class),
+            $pack
+        );
     }
 
     private function treatFirstDropRecordLinking(TrackingMovement $movementToDelete,
@@ -242,7 +258,7 @@ class TrackingMovementListener implements EventSubscriber
 
                     if (isset($replacedTracking)){
                         $record->setLastTracking($replacedTracking);
-                        if ($replacedTracking->isTaking()) {
+                        if ($replacedTracking->isPicking()) {
                             $record->setActive(false);
                         }
                     }

@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Controller\AbstractController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\Cart;
@@ -33,79 +32,39 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-class TrackingMovementService extends AbstractController
-{
+class TrackingMovementService {
+
     public const INVALID_LOCATION_TO = 'invalid-location-to';
-
-    private $templating;
-    private $security;
-    private $entityManager;
-    private $attachmentService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public PackService $packService;
-
-    #[Required]
-    public ProjectHistoryRecordService $projectHistoryRecordService;
-
-    #[Required]
-    public LoggerInterface $logger;
-
-    private $locationClusterService;
-    private $fieldModesService;
-    private $groupService;
-
-    #[Required]
-    public MouvementStockService $stockMovementService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
 
     public array $stockStatuses = [];
 
     private ?array $freeFieldsConfig = null;
 
 
-    public function __construct(EntityManagerInterface $entityManager,
-                                LocationClusterService $locationClusterService,
-                                Twig_Environment       $templating,
-                                Security               $security,
-                                GroupService           $groupService,
-                                FieldModesService      $fieldModesService,
-                                AttachmentService      $attachmentService)
-    {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->security = $security;
-        $this->attachmentService = $attachmentService;
-        $this->locationClusterService = $locationClusterService;
-        $this->fieldModesService = $fieldModesService;
-        $this->groupService = $groupService;
+    public function __construct(
+        private readonly EntityManagerInterface      $entityManager,
+        private readonly LocationClusterService      $locationClusterService,
+        private readonly Twig_Environment            $templating,
+        private readonly Security                    $security,
+        private readonly GroupService                $groupService,
+        private readonly FieldModesService           $fieldModesService,
+        private readonly CSVExportService            $CSVExportService,
+        private readonly TranslationService          $translationService,
+        private readonly UserService                 $userService,
+        private readonly FormatService               $formatService,
+        private readonly AttachmentService           $attachmentService,
+        private readonly LanguageService             $languageService,
+        private readonly TranslationService          $translation,
+        private readonly MouvementStockService       $mouvementStockService,
+        private readonly ProjectHistoryRecordService $projectHistoryRecordService,
+        private readonly FreeFieldService            $freeFieldService,
+        private readonly PackService                 $packService,
+    ){
     }
 
     public function getDataForDatatable($params = null): array {
@@ -447,7 +406,8 @@ class TrackingMovementService extends AbstractController
             ->setMainMovement($mainMovement)
             ->setPreparation($preparation)
             ->setDelivery($delivery)
-            ->setLogisticUnitParent($logisticUnitParent);
+            ->setLogisticUnitParent($logisticUnitParent)
+            ->setEvent($this->getTrackingEvent($tracking));
 
         if ($attachments) {
             foreach($attachments as $attachment) {
@@ -463,22 +423,21 @@ class TrackingMovementService extends AbstractController
 
         $pack->addTrackingMovement($tracking);
 
-        $message = $this->buildCustomLogisticUnitHistoryRecord($tracking);
-        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $tracking->getDatetime(), $tracking->getOperateur(), ucfirst($tracking->getType()->getCode()), $tracking->getEmplacement());
-
-        if (!$pack->getLastTracking()
-            || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
-            $pack->setLastTracking($tracking);
-        }
-
-        $this->treatGroupDrop($entityManager, $pack, $tracking);
+        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+            "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking),
+            "historyDate" => $tracking->getDatetime(),
+            "user" => $tracking->getOperateur(),
+            "type" => ucfirst($tracking->getType()->getCode()),
+            "location" => $tracking->getEmplacement(),
+        ]);
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
-        $this->manageTrackingLinks($entityManager, $tracking, [
+        $this->managePackLinksWithOperations($entityManager, $tracking, [
             "from" => $from,
             "receptionReferenceArticle" => $receptionReferenceArticle,
             "refOrArticle" => $refOrArticle
         ]);
+        $this->treatGroupDrop($entityManager, $pack, $tracking);
         $this->manageTrackingFiles($tracking, $fileBag);
 
         if ($ungroup) {
@@ -504,8 +463,13 @@ class TrackingMovementService extends AbstractController
                 $pack->setParent(null);
             }
             $entityManager->persist($trackingUngroup);
-            $message = $this->buildCustomLogisticUnitHistoryRecord($trackingUngroup);
-            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $trackingUngroup->getDatetime(), $trackingUngroup->getOperateur(), ucfirst($trackingUngroup->getType()->getCode()), $trackingUngroup->getEmplacement());
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                "message" => $this->buildCustomLogisticUnitHistoryRecord($trackingUngroup),
+                "historyDate" => $trackingUngroup->getDatetime(),
+                "user" => $trackingUngroup->getOperateur(),
+                "type" => ucfirst($trackingUngroup->getType()->getCode()),
+                "location" => $trackingUngroup->getEmplacement(),
+            ]);
         }
         [$_, $orderIndex] = hrtime();
         $tracking->setOrderIndex($orderIndex);
@@ -513,9 +477,9 @@ class TrackingMovementService extends AbstractController
         return $tracking;
     }
 
-    private function manageTrackingLinks(EntityManagerInterface $entityManager,
-                                         TrackingMovement $tracking,
-                                         array $options): void {
+    private function managePackLinksWithOperations(EntityManagerInterface $entityManager,
+                                                   TrackingMovement       $tracking,
+                                                   array                  $options): void {
         $from = $options['from'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $refOrArticle = $options['refOrArticle'] ?? null;
@@ -598,15 +562,6 @@ class TrackingMovementService extends AbstractController
         if (!empty($pack)) {
             $entityManager->persist($pack);
         }
-        $linkedPackLastDrop = $trackingMovement->getLinkedPackLastDrop();
-        if ($linkedPackLastDrop) {
-            $entityManager->persist($linkedPackLastDrop);
-        }
-
-        $linkedPackLastTracking = $trackingMovement->getLinkedPackLastTracking();
-        if ($linkedPackLastTracking) {
-            $entityManager->persist($linkedPackLastTracking);
-        }
 
         foreach ($trackingMovement->getAttachments() as $attachement) {
             $entityManager->persist($attachement);
@@ -614,30 +569,46 @@ class TrackingMovementService extends AbstractController
     }
 
     public function managePackLinksWithTracking(EntityManagerInterface $entityManager,
-                                                TrackingMovement $tracking): void {
+                                                TrackingMovement       $tracking): void {
 
         $pack = $tracking->getPack();
-        $lastTrackingMovements = $pack ? $pack->getTrackingMovements()->toArray() : [];
+
+        if (!$pack) {
+            return;
+        }
+
+        $lastTrackingMovements = $pack->getTrackingMovements()->toArray();
         $locationClusterRecordRepository = $entityManager->getRepository(LocationClusterRecord::class);
 
+        /** @var TrackingMovement|null $previousLastTracking */
         $previousLastTracking = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
             ? $lastTrackingMovements[1]
             : null;
 
-        // si c'est une prise ou une dépose on vide ses UL liés
-        $packsAlreadyExisting = $tracking->getLinkedPackLastDrop();
-        if ($packsAlreadyExisting) {
-            $packsAlreadyExisting->setLastDrop(null);
+        if (!$pack->getLastTracking()
+            || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
+            $pack->setLastTracking($tracking);
         }
 
-        if ($pack
-            && $tracking->isDrop()
+        if ($tracking->isDrop()
             && (!$pack->getLastDrop() || $tracking->getDatetime() >= $pack->getLastDrop()->getDatetime())) {
             $pack->setLastDrop($tracking);
         }
+        else if ($tracking->isPicking()) {
+            $pack->setLastDrop(null);
+        }
+
+        if ($tracking->isStart()
+            && (!$pack->getLastStart() || $tracking->getDatetime() >= $pack->getLastStart()->getDatetime())) {
+            $pack->setLastStart($tracking);
+        }
+        else if ($tracking->isStop()
+            && (!$pack->getLastStop() || $tracking->getDatetime() >= $pack->getLastStop()->getDatetime())) {
+            $pack->setLastStop($tracking);
+        }
 
         $location = $tracking->getEmplacement();
-        if ($pack && $location) {
+        if ($location) {
             /** @var LocationCluster $cluster */
             foreach ($location->getClusters() as $cluster) {
                 $record = $pack->getId()
@@ -678,8 +649,7 @@ class TrackingMovementService extends AbstractController
                         $cluster
                     );
 
-                    if ($previousLastTracking
-                        && $previousLastTracking->isTaking()) {
+                    if ($previousLastTracking?->isPicking()) {
                         $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
@@ -876,7 +846,6 @@ class TrackingMovementService extends AbstractController
 
     public function manageTrackingMovementsForLU(Pack $pack,
                                                  EntityManagerInterface $entityManager,
-                                                 MouvementStockService $mouvementStockService,
                                                  array $mvt,
                                                  Statut $type,
                                                  Utilisateur $nomadUser,
@@ -893,7 +862,7 @@ class TrackingMovementService extends AbstractController
             $currentArticleOptions = [];
             $currentArticleOptions["entityManager"] = $entityManager;
             if($mvt['type'] === TrackingMovement::TYPE_DEPOSE) {
-                $stockMovement = $mouvementStockService->createMouvementStock(
+                $stockMovement = $this->mouvementStockService->createMouvementStock(
                     $nomadUser,
                     $article->getEmplacement(),
                     $article->getQuantite(),
@@ -901,7 +870,7 @@ class TrackingMovementService extends AbstractController
                     MouvementStock::TYPE_TRANSFER
                 );
 
-                $mouvementStockService->finishStockMovement($stockMovement, new DateTime(), $location);
+                $this->mouvementStockService->finishStockMovement($stockMovement, new DateTime(), $location);
                 $article->setEmplacement($location);
 
                 $entityManager->persist($stockMovement);
@@ -1551,8 +1520,9 @@ class TrackingMovementService extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $autoUngroup = (bool) $settingRepository->getOneParamByLabel(Setting::AUTO_UNGROUP);
 
-        if(!$autoUngroup
-            || (($tracking->getType()->getCode() !== TrackingMovement::TYPE_DEPOSE) || !$pack->isGroup())
+        if (!$autoUngroup
+            || !$tracking->isDrop()
+            || !$pack->isGroup()
             || $pack->getChildren()->isEmpty()
         ){
             return;
@@ -1635,7 +1605,17 @@ class TrackingMovementService extends AbstractController
             ->join("\n");
     }
 
-    public function getTrackingEvent(Emplacement $trackingLocation): ?TrackingEvent {
-        // TODO
+    public function getTrackingEvent(TrackingMovement $trackingMovement): ?TrackingEvent {
+        $trackingLocation = $trackingMovement->getEmplacement();
+        if (!$trackingLocation) {
+            return null;
+        }
+
+        return match (true) {
+            $trackingMovement->isPicking() && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::STOP,
+            $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
+            $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
+            default => null
+        };
     }
 }

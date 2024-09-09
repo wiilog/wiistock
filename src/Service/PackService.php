@@ -27,6 +27,7 @@ use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
@@ -299,8 +300,13 @@ readonly class PackService {
 
                 $arrival->addPack($pack);
 
-                $message = $this->arrivageService->buildCustomLogisticUnitHistoryRecord($arrival);
-                $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage UL", $arrival->getDropLocation());
+                $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                    "message" => $this->arrivageService->buildCustomLogisticUnitHistoryRecord($arrival),
+                    "historyDate" => new DateTime(),
+                    "user" => $user,
+                    "type" => "Arrivage UL",
+                    "location" => $arrival->getDropLocation(),
+                ]);
 
                 if($arrival->getTruckArrival() || $arrival->getTruckArrivalLines()->first()){
                     $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
@@ -308,8 +314,13 @@ readonly class PackService {
                         ? $arrivalHasLine->getTruckArrival()
                         : $arrival->getTruckArrival();
 
-                    $message = $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival);
-                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $truckArrival->getCreationDate(), $user, "Arrivage Camion", $truckArrival->getUnloadingLocation());
+                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                        "message" => $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival),
+                        "historyDate" => $truckArrival->getCreationDate(),
+                        "user" => $user,
+                        "type" => "Arrivage Camion",
+                        "location" => $truckArrival->getUnloadingLocation(),
+                    ]);
                 }
             }
             else if (isset($options['orderLine'])) {
@@ -724,13 +735,22 @@ readonly class PackService {
         ];
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Pack $logisticUnit
+     * @param array{message: string, historyDate: DateTime, user: Utilisateur, type: string, location?: Emplacement} $data
+     * @return void
+     */
     public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
                                                      Pack                   $logisticUnit,
-                                                     string                 $message,
-                                                     DateTime               $historyDate,
-                                                     Utilisateur            $user,
-                                                     string                 $type,
-                                                     Emplacement            $location = null): void {
+                                                     array                  $data): void {
+
+        $message = $data["message"];
+        $historyDate = $data["historyDate"];
+        $user = $data["user"];
+        $type = $data["type"];
+        $location = $data["location"] ?? null;
+
         $logisticUnitHistoryRecord = (new LogisticUnitHistoryRecord())
             ->setMessage($message)
             ->setPack($logisticUnit)
