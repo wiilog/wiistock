@@ -585,6 +585,11 @@ class TrackingMovementService {
             ? $lastTrackingMovements[1]
             : null;
 
+        if (!$pack->getFirstTracking()
+            || $pack->getFirstTracking()->getDatetime() >= $tracking->getDatetime()) {
+            $pack->setFirstTracking($tracking);
+        }
+
         if (!$pack->getLastTracking()
             || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
             $pack->setLastTracking($tracking);

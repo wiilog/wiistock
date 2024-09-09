@@ -20,6 +20,7 @@ use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -643,13 +644,16 @@ class TrackingMovementRepository extends EntityRepository
     /**
      * @param "tracking"|"start"|"stop" $type
      */
-    public function findOneLast(string            $type,
-                                ?TrackingMovement $ignored): ?TrackingMovement {
+    public function findLastByPack(string            $type,
+                                   Pack              $pack,
+                                   ?TrackingMovement $ignored): ?TrackingMovement {
         $queryBuilder = $this->createQueryBuilder("movement")
+            ->andWhere("movement.pack = :pack")
             ->orderBy("movement.datetime", Order::Descending->value)
             ->addOrderBy("movement.orderIndex", Order::Descending->value)
             ->addOrderBy("movement.id", Order::Descending->value)
-            ->setMaxResults(1);
+            ->setMaxResults(1)
+            ->setParameter("pack", $pack);
 
         if ($ignored?->getId()) {
             $queryBuilder
@@ -672,7 +676,29 @@ class TrackingMovementRepository extends EntityRepository
                     ->setParameter("stopEvent", TrackingEvent::STOP->value);
                 break;
             default:
-                throw new \Exception("Not implemented yet");
+                throw new Exception("Not implemented yet");
+        }
+
+        /** @var TrackingMovement|null $movement */
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findFistTrackingByPack(Pack              $pack,
+                                           ?TrackingMovement $ignored): ?TrackingMovement {
+        $queryBuilder = $this->createQueryBuilder("movement")
+            ->andWhere("movement.pack = :pack")
+            ->orderBy("movement.datetime", Order::Ascending->value)
+            ->addOrderBy("movement.orderIndex", Order::Ascending->value)
+            ->addOrderBy("movement.id", Order::Ascending->value)
+            ->setMaxResults(1)
+            ->setParameter("pack", $pack);
+
+        if ($ignored?->getId()) {
+            $queryBuilder
+                ->andWhere("movement != :ignored_movement")
+                ->setParameter("ignored_movement", $ignored);
         }
 
         /** @var TrackingMovement|null $movement */

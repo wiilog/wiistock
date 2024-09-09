@@ -181,11 +181,9 @@ readonly class TrackingDelayService {
             $arrivalCreatedAt = $arrival?->getDate();
             $truckArrivalCreatedAt = $truckArrival?->getCreationDate();
 
-            // TODO verifie que l'ul n'a pas de mvt de START
-            // TODO WIIS-11880: if arrivalCreatedAt is null => get first tracking movement date
             $timerStartedAt = $truckArrivalCreatedAt
                 ?: $arrivalCreatedAt
-                ?: null;
+                ?: $pack->getFirstTracking();
 
             if ($timerStartedAt
                 && $lastStop

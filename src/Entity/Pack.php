@@ -61,6 +61,10 @@ class Pack implements PairedEntity {
 
     #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $firstTracking = null;
+
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStop = null;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TrackingMovement::class, cascade: ['remove'])]
@@ -190,7 +194,7 @@ class Pack implements PairedEntity {
     }
 
     public function addDispute(Dispute $dispute): self {
-        if(!$this->disputes->contains($dispute)) {
+        if (!$this->disputes->contains($dispute)) {
             $this->disputes[] = $dispute;
             $dispute->addPack($this);
         }
@@ -199,7 +203,7 @@ class Pack implements PairedEntity {
     }
 
     public function removeDispute(Dispute $dispute): self {
-        if($this->disputes->contains($dispute)) {
+        if ($this->disputes->contains($dispute)) {
             $this->disputes->removeElement($dispute);
             $dispute->removePack($this);
         }
@@ -223,6 +227,16 @@ class Pack implements PairedEntity {
 
     public function setLastDrop(?TrackingMovement $lastDrop): self {
         $this->lastDrop = $lastDrop;
+
+        return $this;
+    }
+
+    public function getFirstTracking(): ?TrackingMovement {
+        return $this->firstTracking;
+    }
+
+    public function setFirstTracking(?TrackingMovement $firstTracking): self {
+        $this->firstTracking = $firstTracking;
 
         return $this;
     }
@@ -252,7 +266,7 @@ class Pack implements PairedEntity {
     }
 
     public function addTrackingMovement(TrackingMovement $trackingMovement): self {
-        if(!$this->trackingMovements->contains($trackingMovement)) {
+        if (!$this->trackingMovements->contains($trackingMovement)) {
             // push on top new movement
             $trackingMovements = $this->trackingMovements->toArray();
             array_unshift($trackingMovements, $trackingMovement);
@@ -265,10 +279,10 @@ class Pack implements PairedEntity {
     }
 
     public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
-        if($this->trackingMovements->contains($trackingMovement)) {
+        if ($this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if($trackingMovement->getPack() === $this) {
+            if ($trackingMovement->getPack() === $this) {
                 $trackingMovement->setPack(null);
             }
         }
@@ -284,7 +298,7 @@ class Pack implements PairedEntity {
     }
 
     public function addDispatchPack(DispatchPack $dispatchPack): self {
-        if(!$this->dispatchPacks->contains($dispatchPack)) {
+        if (!$this->dispatchPacks->contains($dispatchPack)) {
             $this->dispatchPacks[] = $dispatchPack;
             $dispatchPack->setPack($this);
         }
@@ -293,10 +307,10 @@ class Pack implements PairedEntity {
     }
 
     public function removeDispatchPack(DispatchPack $dispatchPack): self {
-        if($this->dispatchPacks->contains($dispatchPack)) {
+        if ($this->dispatchPacks->contains($dispatchPack)) {
             $this->dispatchPacks->removeElement($dispatchPack);
             // set the owning side to null (unless already changed)
-            if($dispatchPack->getPack() === $this) {
+            if ($dispatchPack->getPack() === $this) {
                 $dispatchPack->setPack(null);
             }
         }
@@ -315,26 +329,26 @@ class Pack implements PairedEntity {
 
     public function getWeight(): ?float {
         return isset($this->weight)
-            ? ((float) $this->weight)
+            ? ((float)$this->weight)
             : null;
     }
 
     public function setWeight(?float $weight): self {
         $this->weight = isset($weight)
-            ? ((string) $weight)
+            ? ((string)$weight)
             : null;
         return $this;
     }
 
     public function getVolume(): ?float {
         return isset($this->volume)
-            ? ((float) $this->volume)
+            ? ((float)$this->volume)
             : null;
     }
 
     public function setVolume(?float $volume): self {
         $this->volume = isset($volume)
-            ? ((string) $volume)
+            ? ((string)$volume)
             : null;
         return $this;
     }
@@ -360,7 +374,7 @@ class Pack implements PairedEntity {
      * @return self
      */
     public function addLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
-        if(!$this->locationClusterRecords->contains($locationClusterRecord)) {
+        if (!$this->locationClusterRecords->contains($locationClusterRecord)) {
             $this->locationClusterRecords[] = $locationClusterRecord;
             $locationClusterRecord->setPack($this);
         }
@@ -372,10 +386,10 @@ class Pack implements PairedEntity {
      * @return self
      */
     public function removeLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
-        if($this->locationClusterRecords->contains($locationClusterRecord)) {
+        if ($this->locationClusterRecords->contains($locationClusterRecord)) {
             $this->locationClusterRecords->removeElement($locationClusterRecord);
             // set the owning side to null (unless already changed)
-            if($locationClusterRecord->getPack() === $this) {
+            if ($locationClusterRecord->getPack() === $this) {
                 $locationClusterRecord->setPack(null);
             }
         }
@@ -387,13 +401,13 @@ class Pack implements PairedEntity {
     }
 
     public function setArticle(?Article $article): self {
-        if($this->article && $this->article->getTrackingPack() !== $this) {
+        if ($this->article && $this->article->getTrackingPack() !== $this) {
             $oldArticle = $this->article;
             $this->article = null;
             $oldArticle->setTrackingPack(null);
         }
         $this->article = $article;
-        if($this->article && $this->article->getTrackingPack() !== $this) {
+        if ($this->article && $this->article->getTrackingPack() !== $this) {
             $this->article->setTrackingPack($this);
         }
         return $this;
@@ -404,12 +418,12 @@ class Pack implements PairedEntity {
     }
 
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
-        if(isset($this->referenceArticle)
+        if (isset($this->referenceArticle)
             && $this->referenceArticle !== $referenceArticle) {
             $this->referenceArticle->setTrackingPack(null);
         }
         $this->referenceArticle = $referenceArticle;
-        if(isset($this->referenceArticle)
+        if (isset($this->referenceArticle)
             && $this->referenceArticle->getTrackingPack() !== $referenceArticle->getTrackingPack()) {
             $this->referenceArticle->setTrackingPack($this);
         }
@@ -441,12 +455,12 @@ class Pack implements PairedEntity {
     }
 
     public function setParent(?Pack $parent): self {
-        if($this->parent
+        if ($this->parent
             && $this->parent !== $parent) {
             $this->parent->removeChild($this);
         }
         $this->parent = $parent;
-        if($parent) {
+        if ($parent) {
             $parent->addChild($this);
         }
 
@@ -461,7 +475,7 @@ class Pack implements PairedEntity {
     }
 
     public function addChild(Pack $child): self {
-        if(!$this->children->contains($child)) {
+        if (!$this->children->contains($child)) {
             $this->children[] = $child;
             $child->setParent($this);
         }
@@ -470,8 +484,8 @@ class Pack implements PairedEntity {
     }
 
     public function removeChild(Pack $child): self {
-        if($this->children->removeElement($child)) {
-            if($child->getParent() === $this) {
+        if ($this->children->removeElement($child)) {
+            if ($child->getParent() === $this) {
                 $child->setParent(null);
             }
         }
@@ -480,13 +494,13 @@ class Pack implements PairedEntity {
     }
 
     public function setChildren(?array $children): self {
-        foreach($this->getChildren()->toArray() as $child) {
+        foreach ($this->getChildren()->toArray() as $child) {
             $this->removeChild($child);
         }
 
         $this->children = new ArrayCollection();
 
-        foreach($children as $child) {
+        foreach ($children as $child) {
             $this->addChild($child);
         }
 
@@ -501,7 +515,7 @@ class Pack implements PairedEntity {
     }
 
     public function addChildTrackingMovement(TrackingMovement $movement): self {
-        if(!$this->childTrackingMovements->contains($movement)) {
+        if (!$this->childTrackingMovements->contains($movement)) {
             $this->childTrackingMovements[] = $movement;
             $movement->setPackParent($this);
         }
@@ -510,8 +524,8 @@ class Pack implements PairedEntity {
     }
 
     public function removeChildTrackingMovement(TrackingMovement $movement): self {
-        if($this->childTrackingMovements->removeElement($movement)) {
-            if($movement->getPackParent() === $this) {
+        if ($this->childTrackingMovements->removeElement($movement)) {
+            if ($movement->getPackParent() === $this) {
                 $movement->setPackParent(null);
             }
         }
@@ -520,13 +534,13 @@ class Pack implements PairedEntity {
     }
 
     public function setChildTrackingMovements(?array $movements): self {
-        foreach($this->getChildTrackingMovements()->toArray() as $movement) {
+        foreach ($this->getChildTrackingMovements()->toArray() as $movement) {
             $this->removeChildTrackingMovement($movement);
         }
 
         $this->childTrackingMovements = new ArrayCollection();
 
-        foreach($movements as $movement) {
+        foreach ($movements as $movement) {
             $this->addChildTrackingMovement($movement);
         }
 
@@ -544,11 +558,21 @@ class Pack implements PairedEntity {
         return [
             "code" => $this->getCode(),
             "ref_article" => $this->getCode(),
-            "nature_id" => $this->getNature() ? $this->getNature()->getId() : null,
-            "quantity" => $lastTracking ? $lastTracking->getQuantity() : 1,
-            "type" => $lastTracking && $lastTracking->getType() ? $lastTracking->getType()->getCode() : null,
-            "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : null,
-            "date" => $lastTracking ? FormatHelper::datetime($lastTracking->getDatetime()) : '',
+            "nature_id" => $this->getNature()
+                ? $this->getNature()->getId()
+                : null,
+            "quantity" => $lastTracking
+                ? $lastTracking->getQuantity()
+                : 1,
+            "type" => $lastTracking && $lastTracking->getType()
+                ? $lastTracking->getType()->getCode()
+                : null,
+            "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement()
+                ? $lastTracking->getEmplacement()->getLabel()
+                : null,
+            "date" => $lastTracking
+                ? FormatHelper::datetime($lastTracking->getDatetime())
+                : '',
         ];
     }
 
@@ -556,7 +580,9 @@ class Pack implements PairedEntity {
         return [
             "id" => $this->getId(),
             "code" => $this->getCode(),
-            "natureId" => $this->getNature() ? $this->getNature()->getId() : null,
+            "natureId" => $this->getNature()
+                ? $this->getNature()->getId()
+                : null,
             "packs" => $this->getChildren()
                 ->map(fn(Pack $pack) => $pack->serialize())
                 ->toArray(),
@@ -578,11 +604,12 @@ class Pack implements PairedEntity {
                     ->andWhere(Criteria::expr()->eq('active', true))
                     ->setMaxResults(1)
             )
-            ->first() ?: null;
+            ->first()
+            ?: null;
     }
 
     public function addPairing(Pairing $pairing): self {
-        if(!$this->pairings->contains($pairing)) {
+        if (!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
             $pairing->setPack($this);
         }
@@ -591,9 +618,9 @@ class Pack implements PairedEntity {
     }
 
     public function removePairing(Pairing $pairing): self {
-        if($this->pairings->removeElement($pairing)) {
+        if ($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
-            if($pairing->getPack() === $this) {
+            if ($pairing->getPack() === $this) {
                 $pairing->setPack(null);
             }
         }
@@ -619,13 +646,13 @@ class Pack implements PairedEntity {
     }
 
     public function setTransportDeliveryOrderPack(?TransportDeliveryOrderPack $transportDeliveryOrderPack): self {
-        if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
+        if ($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
             $oldTransportDeliveryOrderPack = $this->transportDeliveryOrderPack;
             $this->transportDeliveryOrderPack = null;
             $oldTransportDeliveryOrderPack->setPack(null);
         }
         $this->transportDeliveryOrderPack = $transportDeliveryOrderPack;
-        if($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
+        if ($this->transportDeliveryOrderPack && $this->transportDeliveryOrderPack->getPack() !== $this) {
             $this->transportDeliveryOrderPack->setPack($this);
         }
 
@@ -639,8 +666,7 @@ class Pack implements PairedEntity {
         return $this->transportHistory;
     }
 
-    public function addTransportHistory(TransportHistoryRecord $transportHistory): self
-    {
+    public function addTransportHistory(TransportHistoryRecord $transportHistory): self {
         if (!$this->transportHistory->contains($transportHistory)) {
             $this->transportHistory[] = $transportHistory;
             $transportHistory->setPack($this);
@@ -649,8 +675,7 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function removeTransportHistory(TransportHistoryRecord $transportHistory): self
-    {
+    public function removeTransportHistory(TransportHistoryRecord $transportHistory): self {
         if ($this->transportHistory->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
             if ($transportHistory->getPack() === $this) {
@@ -661,13 +686,11 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getProject(): ?Project
-    {
+    public function getProject(): ?Project {
         return $this->project;
     }
 
-    public function setProject(?Project $project): self
-    {
+    public function setProject(?Project $project): self {
         $this->project = $project;
 
         return $this;
@@ -700,12 +723,12 @@ class Pack implements PairedEntity {
     }
 
     public function setChildArticles(?iterable $childArticles): self {
-        foreach($this->getChildArticles()->toArray() as $childArticle) {
+        foreach ($this->getChildArticles()->toArray() as $childArticle) {
             $this->removeChildArticle($childArticle);
         }
 
         $this->childArticles = new ArrayCollection();
-        foreach($childArticles ?? [] as $childArticle) {
+        foreach ($childArticles ?? [] as $childArticle) {
             $this->addChildArticle($childArticle);
         }
 
@@ -739,25 +762,23 @@ class Pack implements PairedEntity {
     }
 
     public function setProjectHistoryRecords(?iterable $projectHistoryRecords): self {
-        foreach($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
+        foreach ($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
             $this->removeProjectHistoryRecord($projectHistoryRecord);
         }
 
         $this->projectHistoryRecords = new ArrayCollection();
-        foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
+        foreach ($projectHistoryRecords ?? [] as $projectHistoryRecord) {
             $this->addProjectHistoryRecord($projectHistoryRecord);
         }
 
         return $this;
     }
 
-    public function isArticleContainer(): ?bool
-    {
+    public function isArticleContainer(): ?bool {
         return $this->articleContainer;
     }
 
-    public function setArticleContainer(?bool $articleContainer): self
-    {
+    public function setArticleContainer(?bool $articleContainer): self {
         $this->articleContainer = $articleContainer;
         return $this;
     }
@@ -767,13 +788,13 @@ class Pack implements PairedEntity {
     }
 
     public function setShippingRequestPack(?ShippingRequestPack $shippingRequestPack): self {
-        if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
+        if ($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
             $oldShippingRequestPack = $this->shippingRequestPack;
             $this->shippingRequestPack = null;
             $oldShippingRequestPack->setPack(null);
         }
         $this->shippingRequestPack = $shippingRequestPack;
-        if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
+        if ($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
             $this->shippingRequestPack->setPack($this);
         }
 
@@ -812,12 +833,12 @@ class Pack implements PairedEntity {
     }
 
     public function setReceiptAssociations(?iterable $receiptAssociations): self {
-        foreach($this->getReceiptAssociations()->toArray() as $receiptAssociation) {
+        foreach ($this->getReceiptAssociations()->toArray() as $receiptAssociation) {
             $this->removeReceiptAssociation($receiptAssociation);
         }
 
         $this->receiptAssociations = new ArrayCollection();
-        foreach($receiptAssociations ?? [] as $receiptAssociation) {
+        foreach ($receiptAssociations ?? [] as $receiptAssociation) {
             $this->addReceptionAssociation($receiptAssociation);
         }
 
@@ -829,13 +850,13 @@ class Pack implements PairedEntity {
     }
 
     public function setTrackingDelay(?TrackingDelay $trackingDelay): self {
-        if($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
+        if ($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
             $oldTrackingDelay = $this->trackingDelay;
             $this->trackingDelay = null;
             $oldTrackingDelay->setPack(null);
         }
         $this->trackingDelay = $trackingDelay;
-        if($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
+        if ($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
             $this->trackingDelay->setPack($this);
         }
         return $this;
