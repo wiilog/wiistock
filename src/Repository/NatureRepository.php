@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Language;
 use App\Entity\Nature;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
@@ -121,16 +122,33 @@ class NatureRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function findDuplicates(string $label, string $language, array $except = []) {
-        return $this->createQueryBuilder("nature")
+    public function findDuplicateLabels(string $label, string $languageSlug, array $except = []) {
+        $queryBuilder = $this->createQueryBuilder('nature');
+        $exprBuilder = $queryBuilder->expr();
+
+        if (!empty($except)) {
+            $queryBuilder
+                ->andWhere("nature NOT IN (:except)")
+                ->setParameter("except", $except);
+        }
+
+        $duplicateCondition = $exprBuilder->orX(
+            $exprBuilder->andX(
+                "join_language.slug = :languageSlug",
+                "join_translations.translation = :label"
+            )
+        );
+
+        if (Language::FRENCH_SLUG) {
+            $duplicateCondition->add("nature.label LIKE :label");
+        }
+
+        return $queryBuilder
             ->join("nature.labelTranslation", "join_source")
             ->leftJoin("join_source.translations", "join_translations")
             ->leftJoin("join_translations.language", "join_language")
-            ->andWhere("nature NOT IN (:except)")
-            ->andWhere("join_language.slug = :language")
-            ->andWhere("join_translations.translation = :label")
-            ->setParameter("except", $except)
-            ->setParameter("language", $language)
+            ->andWhere($duplicateCondition)
+            ->setParameter("languageSlug", $languageSlug)
             ->setParameter("label", $label)
             ->getQuery()
             ->getResult();

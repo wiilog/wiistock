@@ -34,7 +34,10 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
             // edit values
             const languageInput = "Français"
-            cy.get(`#modalNewNature [data-cypress=${languageInput}]`).type(newNature.label);
+            cy.get(`#modalNewNature [data-cypress=${languageInput}]`)
+                .wait(400)
+                .clear()
+                .type(newNature.label);
 
             cy.typeInModalInputs(selectorModal, newNature, ['label']);
 
@@ -71,7 +74,10 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
             // edit values
             const languageInput = "Français"
-            cy.get(`#modalEditNature [data-cypress=${languageInput}]`).click().clear().type(newNatures[index].label);
+            cy.get(`#modalEditNature [data-cypress=${languageInput}]`).click()
+                .wait(400)
+                .clear()
+                .type(newNatures[index].label);
 
             cy.typeInModalInputs(selectorModal, newNatures[index], ['label']);
 
