@@ -402,23 +402,6 @@ readonly class PackService {
         return $pack;
     }
 
-    public function calcutateTruckArrivalDelay(EntityManagerInterface   $entityManager,
-                                               DateTime                 $creationDate): int {
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $workedDays = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-
-        $delayTimestamp = $this->dateTimeService->getIntervalFromDate($workedDays, $creationDate, $workFreeDays);
-
-        return (
-            ($delayTimestamp->h * 60 * 60 * 1000) + // hours in milliseconds
-            ($delayTimestamp->i * 60 * 1000) + // minutes in milliseconds
-            ($delayTimestamp->s * 1000) + // seconds in milliseconds
-            ($delayTimestamp->f)
-        );
-    }
-
     public function createMultiplePacks(EntityManagerInterface $entityManager,
                                         Arrivage               $arrivage,
                                         array                  $packByNatures,
@@ -444,15 +427,21 @@ readonly class PackService {
         if (!$arrivage->getTruckArrivalLines()->isEmpty()) {
             $truckArrivalCreationDate = $arrivage->getTruckArrivalLines()->first()->getTruckArrival()->getCreationDate();
 
-            //en millisecondes
-            $delay = $this->calcutateTruckArrivalDelay($entityManager, $truckArrivalCreationDate);
+            $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $truckArrivalCreationDate, new DateTime("now"));
+            $delay = $this->dateTimeService->convertDateIntervalToMilliseconds($interval);
         }
 
         foreach ($packByNatures as $natureId => $number) {
             if ($number) {
                 $nature = $natureRepository->find($natureId);
                 for ($i = 0; $i < $number; $i++) {
-                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null], $user);
+                    $pack = $this->createPack($entityManager, [
+                        "arrival" => $arrivage,
+                        "nature" => $nature,
+                        "project" => $project,
+                        "reception" => $reception,
+                        "truckArrivalDelay" => $delay ?? null
+                    ], $user);
                     if ($persistTrackingMovements && isset($location)) {
                         $this->trackingMovementService->persistTrackingForArrivalPack(
                             $entityManager,

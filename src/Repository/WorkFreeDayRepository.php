@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\WorkFreeDay;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
@@ -15,8 +16,9 @@ use WiiCommon\Helper\Stream;
 class WorkFreeDayRepository extends EntityRepository
 {
     public function getWorkFreeDaysToDateTime($needsFormat = false): array {
-        $workFreeDays = $this->createQueryBuilder('work_free_day')
-            ->select('work_free_day.day')
+        $workFreeDays = $this->createQueryBuilder("work_free_day")
+            ->select("work_free_day.day")
+            ->orderBy("work_free_day.day", Order::Descending)
             ->getQuery()
             ->getResult();
 

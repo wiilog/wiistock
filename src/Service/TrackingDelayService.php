@@ -16,10 +16,7 @@ readonly class TrackingDelayService {
     public function __construct(private DateTimeService $dateTimeService) {}
 
     /**
-     * @param EntityManagerInterface $entityManager
-     * @param Pack $pack
      * @param array{force?: boolean, stopTime?: boolean} $options
-     * @return void
      */
     public function persistTrackingDelay(EntityManagerInterface $entityManager,
                                          Pack                   $pack,

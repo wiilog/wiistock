@@ -56,12 +56,8 @@ class DashboardFeedCommand extends Command {
         $this->entityManager->flush();
 
         $dashboardComponentRepository = $this->entityManager->getRepository(Dashboard\Component::class);
-        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
-        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
 
         $components = $dashboardComponentRepository->findAll();
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
         $latePackComponents = [];
 
@@ -131,7 +127,7 @@ class DashboardFeedCommand extends Command {
                         break;
                     case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                     case Dashboard\ComponentType::ORDERS_TO_TREAT:
-                        $this->dashboardService->persistEntitiesToTreat($this->entityManager, $component, $daysWorked, $freeWorkDays);
+                        $this->dashboardService->persistEntitiesToTreat($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::DISPUTES_TO_TREAT:
                         $this->dashboardService->persistDisputesToTreat($this->entityManager, $component);

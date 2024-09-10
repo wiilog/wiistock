@@ -10,6 +10,7 @@ use App\Entity\Pack;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
 use DateInterval;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Twig\Environment;
@@ -115,12 +116,7 @@ readonly class EnCoursService {
      */
     public function getTimeInformation(DateInterval $movementAge, ?string $dateMaxTime, int $additionalTime = 0): array
     {
-        $ageTimespan = (
-            ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
-            ($movementAge->i * 60 * 1000) + // minutes in milliseconds
-            ($movementAge->s * 1000) + // seconds in milliseconds
-            ($movementAge->f)
-        );
+        $ageTimespan = $this->dateTimeService->convertDateIntervalToMilliseconds($movementAge);
         $information = [
             'ageTimespan' => $ageTimespan + $additionalTime,
         ];
@@ -197,7 +193,8 @@ readonly class EnCoursService {
         );
         foreach ($ongoingOnLocation as $pack) {
             $dateMvt = $pack['datetime'];
-            $movementAge = $this->dateTimeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
+            $movementAge = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $dateMvt, new DateTime("now"));
+
             $dateMaxTime = $pack['dateMaxTime'];
             $truckArrivalDelay = $useTruckArrivals ? intval($pack["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
