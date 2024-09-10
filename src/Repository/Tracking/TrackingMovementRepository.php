@@ -513,25 +513,6 @@ class TrackingMovementRepository extends EntityRepository
             ->getResult();
     }
 
-
-    public function findLastTrackingMovement($pack,?Statut $type) {
-        $qb = $this->createQueryBuilder('tracking_movement');
-        $qb->select('tracking_movement')
-            ->leftJoin('tracking_movement.pack', 'pack')
-            ->andWhere('pack.id = :pack')
-            ->setParameter('pack', $pack)
-            ->orderBy('tracking_movement.datetime', 'DESC')
-            ->setMaxResults(1);
-
-        if ($type){
-            $qb->leftJoin('tracking_movement.type', 'type')
-                ->andWhere('type.id = :type')
-                ->setParameter('type', $type);
-        }
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
     public function countByArticle(Article $article): int {
         $result = $this->createQueryBuilder("tracking_movement")
             ->select('COUNT(DISTINCT tracking_movement.id)')

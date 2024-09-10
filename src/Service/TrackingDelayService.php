@@ -23,7 +23,7 @@ readonly class TrackingDelayService {
      */
     public function persistTrackingDelay(EntityManagerInterface $entityManager,
                                          Pack                   $pack,
-                                         array                  $options =  []): void {
+                                         array                  $options = []): void {
 
         $force = $options["force"] ?? false;
         $stopTime = $options["stopTime"] ?? false;

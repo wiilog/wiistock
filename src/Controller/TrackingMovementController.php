@@ -414,10 +414,6 @@ class TrackingMovementController extends AbstractController
                 $entityManager->persist($new);
                 $entityManager->flush();
 
-                $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
-                $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
-                $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
-
                 $trackingMovement = $new;
             } else {
                 return $this->json($response);

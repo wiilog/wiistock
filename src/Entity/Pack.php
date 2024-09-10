@@ -17,8 +17,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints\Cascade;
-use Symfony\Component\Validator\Mapping\CascadingStrategy;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
 class Pack implements PairedEntity {
@@ -55,15 +53,15 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastTracking = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStart = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $firstTracking = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingMovement::class)]
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStop = null;
 

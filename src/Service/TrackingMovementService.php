@@ -34,6 +34,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -45,27 +46,56 @@ class TrackingMovementService {
 
     private ?array $freeFieldsConfig = null;
 
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(
-        private readonly EntityManagerInterface      $entityManager,
-        private readonly LocationClusterService      $locationClusterService,
-        private readonly Twig_Environment            $templating,
-        private readonly Security                    $security,
-        private readonly GroupService                $groupService,
-        private readonly FieldModesService           $fieldModesService,
-        private readonly CSVExportService            $CSVExportService,
-        private readonly TranslationService          $translationService,
-        private readonly UserService                 $userService,
-        private readonly FormatService               $formatService,
-        private readonly AttachmentService           $attachmentService,
-        private readonly LanguageService             $languageService,
-        private readonly TranslationService          $translation,
-        private readonly MouvementStockService       $mouvementStockService,
-        private readonly ProjectHistoryRecordService $projectHistoryRecordService,
-        private readonly FreeFieldService            $freeFieldService,
-        private readonly PackService                 $packService,
-    ){
-    }
+    #[Required]
+    public LocationClusterService $locationClusterService;
+
+    #[Required]
+    public Twig_Environment $templating;
+
+    #[Required]
+    public Security $security;
+
+    #[Required]
+    public GroupService $groupService;
+
+    #[Required]
+    public FieldModesService $fieldModesService;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public UserService $userService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public AttachmentService $attachmentService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public MouvementStockService $stockMovementService;
+
+    #[Required]
+    public ProjectHistoryRecordService $projectHistoryRecordService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public PackService $packService;
 
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -392,6 +422,8 @@ class TrackingMovementService {
             && $pack->getParent()
             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
 
+        [$_, $orderIndex] = hrtime();
+
         $tracking = new TrackingMovement();
         $tracking
             ->setQuantity($quantity)
@@ -401,6 +433,7 @@ class TrackingMovementService {
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
+            ->setOrderIndex($orderIndex + 1) // order index greater than the order index of the ungroup tracking movement next creation
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null)
             ->setMainMovement($mainMovement)
@@ -443,8 +476,6 @@ class TrackingMovementService {
         if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
-            [$_, $orderIndex] = hrtime();
-
             $trackingUngroup = new TrackingMovement();
             $trackingUngroup
                 ->setOrderIndex($orderIndex)
@@ -455,7 +486,7 @@ class TrackingMovementService {
                 ->setFinished($finished)
                 ->setType($type)
                 ->setPackParent($pack->getParent())
-                ->setGroupIteration($pack->getParent() ? $pack->getParent()->getGroupIteration() : null)
+                ->setGroupIteration($pack->getParent()?->getGroupIteration())
                 ->setMouvementStock($mouvementStock)
                 ->setCommentaire(!empty($commentaire) ? $commentaire : null);
             $pack->addTrackingMovement($trackingUngroup);
@@ -471,8 +502,6 @@ class TrackingMovementService {
                 "location" => $trackingUngroup->getEmplacement(),
             ]);
         }
-        [$_, $orderIndex] = hrtime();
-        $tracking->setOrderIndex($orderIndex);
 
         return $tracking;
     }
@@ -586,17 +615,17 @@ class TrackingMovementService {
             : null;
 
         if (!$pack->getFirstTracking()
-            || $pack->getFirstTracking()->getDatetime() >= $tracking->getDatetime()) {
+            || $this->compareMovements($pack->getFirstTracking(), $tracking) === 1) {
             $pack->setFirstTracking($tracking);
         }
 
         if (!$pack->getLastTracking()
-            || $pack->getLastTracking()->getDatetime() <= $tracking->getDatetime()) {
+            || $this->compareMovements($pack->getLastTracking(), $tracking) === -1) {
             $pack->setLastTracking($tracking);
         }
 
         if ($tracking->isDrop()
-            && (!$pack->getLastDrop() || $tracking->getDatetime() >= $pack->getLastDrop()->getDatetime())) {
+            && (!$pack->getLastDrop() || $this->compareMovements($pack->getLastDrop(), $tracking) === -1)) {
             $pack->setLastDrop($tracking);
         }
         else if ($tracking->isPicking()) {
@@ -604,11 +633,12 @@ class TrackingMovementService {
         }
 
         if ($tracking->isStart()
-            && (!$pack->getLastStart() || $tracking->getDatetime() >= $pack->getLastStart()->getDatetime())) {
+            && (!$pack->getLastStart() || $this->compareMovements($pack->getLastStart(), $tracking) === -1)) {
             $pack->setLastStart($tracking);
         }
-        else if ($tracking->isStop()
-            && (!$pack->getLastStop() || $tracking->getDatetime() >= $pack->getLastStop()->getDatetime())) {
+
+        if ($tracking->isStop()
+            && (!$pack->getLastStop() || $this->compareMovements($pack->getLastStop(), $tracking) === -1)) {
             $pack->setLastStop($tracking);
         }
 
@@ -867,7 +897,7 @@ class TrackingMovementService {
             $currentArticleOptions = [];
             $currentArticleOptions["entityManager"] = $entityManager;
             if($mvt['type'] === TrackingMovement::TYPE_DEPOSE) {
-                $stockMovement = $this->mouvementStockService->createMouvementStock(
+                $stockMovement = $this->stockMovementService->createMouvementStock(
                     $nomadUser,
                     $article->getEmplacement(),
                     $article->getQuantite(),
@@ -875,7 +905,7 @@ class TrackingMovementService {
                     MouvementStock::TYPE_TRANSFER
                 );
 
-                $this->mouvementStockService->finishStockMovement($stockMovement, new DateTime(), $location);
+                $this->stockMovementService->finishStockMovement($stockMovement, new DateTime(), $location);
                 $article->setEmplacement($location);
 
                 $entityManager->persist($stockMovement);
@@ -1621,6 +1651,50 @@ class TrackingMovementService {
             $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
             $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
             default => null
+        };
+    }
+
+
+    private function compareMovements(TrackingMovement $trackingMovement1,
+                                      TrackingMovement $trackingMovement2): int {
+        $firstBeforeSecond = (
+            $trackingMovement1->getDatetime() < $trackingMovement2->getDatetime()
+            || (
+                $trackingMovement1->getDatetime() == $trackingMovement2->getDatetime()
+                && (
+                    $trackingMovement1->getOrderIndex() < $trackingMovement2->getOrderIndex()
+                    // second movement not persisted in database
+                    || ($trackingMovement1->getId() && !$trackingMovement2->getId())
+                    || ( // two movement persist in database
+                        $trackingMovement1->getId()
+                        && $trackingMovement2->getId()
+                        && $trackingMovement1->getId() < $trackingMovement2->getId()
+                    )
+                )
+            )
+        );
+        $firstAfterSecond = (
+            $trackingMovement1->getDatetime() > $trackingMovement2->getDatetime()
+            || (
+                $trackingMovement1->getDatetime() == $trackingMovement2->getDatetime()
+                && (
+                    $trackingMovement1->getOrderIndex() > $trackingMovement2->getOrderIndex()
+
+                    // first movement not persisted in database
+                    || (!$trackingMovement1->getId() && $trackingMovement2->getId())
+                    || (// two movement persist in database
+                        $trackingMovement1->getId()
+                        && $trackingMovement2->getId()
+                        && $trackingMovement1->getId() > $trackingMovement2->getId()
+                    )
+                )
+            )
+        );
+
+        return match (true) {
+            $firstBeforeSecond => -1,
+            $firstAfterSecond => 1,
+            default => 0
         };
     }
 }
