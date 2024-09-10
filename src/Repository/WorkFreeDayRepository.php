@@ -18,7 +18,7 @@ class WorkFreeDayRepository extends EntityRepository
     public function getWorkFreeDaysToDateTime($needsFormat = false): array {
         $workFreeDays = $this->createQueryBuilder("work_free_day")
             ->select("work_free_day.day")
-            ->orderBy("work_free_day.day", Order::Descending)
+            ->orderBy("work_free_day.day", Order::Descending->value)
             ->getQuery()
             ->getResult();
 

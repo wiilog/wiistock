@@ -49,6 +49,8 @@ readonly class TrackingDelayService {
                 ->setElapsedTime($calculatedElapsedTime)
                 ->setCalculatedAt(new DateTime())
                 ->setTimeStopped($stopTime);
+
+            $entityManager->persist($trackingDelay);
         }
 
     }

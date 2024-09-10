@@ -39,6 +39,7 @@ class CalculateTrackingDelayCommand extends Command {
         ]);
 
         $this->trackingDelayService->persistTrackingDelay($this->entityManager, $pack, ["force" => true]);
+        $this->entityManager->flush();
 
         return 0;
     }
