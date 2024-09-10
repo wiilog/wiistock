@@ -6,6 +6,9 @@ let arrivalsTable;
 let hasDataToRefresh;
 
 $(function () {
+
+    console.log('arrivage index');
+
     hasDataToRefresh = false;
     const openNewModal = Boolean($('#openNewModal').val());
     if(openNewModal){
@@ -250,6 +253,15 @@ function createArrival(form = null) {
         const $carrierSelect = $modal.find("select[name='transporteur']");
         const $noTrackingSelect = $modal.find("select[name='noTracking']");
         const $noTruckArrivalSelect = $modal.find("select[name='noTruckArrival']");
+
+        // disable carrier select if no truck arrival is selected
+        $noTruckArrivalSelect.on('change', function () {
+            if ($noTruckArrivalSelect.val()) {
+                $carrierSelect.attr('disabled', true);
+            } else {
+                $carrierSelect.attr('disabled', false);
+            }
+        });
 
         $carrierSelect.on(`change`, function () {
             $noTrackingSelect
