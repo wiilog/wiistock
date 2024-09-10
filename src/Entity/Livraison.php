@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Tracking\TrackingMovement;
 use App\Repository\LivraisonRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;

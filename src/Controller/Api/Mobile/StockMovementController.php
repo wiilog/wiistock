@@ -9,13 +9,12 @@ use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
-use App\Service\MouvementStockService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingMovementService;
 use DateTime;
@@ -37,7 +36,6 @@ class StockMovementController extends AbstractController {
     #[Wii\RestVersionChecked]
     public function postStockMovements(Request                     $request,
                                        EmplacementDataService      $locationDataService,
-                                       MouvementStockService       $mouvementStockService,
                                        ExceptionLoggerService      $exceptionLoggerService,
                                        TrackingMovementService     $trackingMovementService,
                                        FreeFieldService            $freeFieldService,
@@ -89,7 +87,6 @@ class StockMovementController extends AbstractController {
                     $projectHistoryRecordService,
                     $projectRepository,
                     $freeFieldService,
-                    $mouvementStockService,
                     &$numberOfRowsInserted,
                     $mvt,
                     $nomadUser,
@@ -154,7 +151,6 @@ class StockMovementController extends AbstractController {
                             $trackingMovementService->manageTrackingMovementsForLU(
                                 $pack,
                                 $entityManager,
-                                $mouvementStockService,
                                 $mvt,
                                 $type,
                                 $nomadUser,

@@ -465,6 +465,7 @@
                 {% set entity = options.entity ?? null %}
                 {% set translation = entity ? entity.labelTranslation.translationIn(language.slug) %}
                 <input type="hidden" class="data" name="language-id" value="{{ language.value }}">
+                <input type="hidden" class="data" name="language-slug" value="{{ language.slug }}">
                 <input type="text" data-cypress="{{ language.label }}" class="data form-control {{ required and loop.first ? 'needed' }} data-array"
                        name="label" value="{{ translation ? translation.translation }}">
             </div>

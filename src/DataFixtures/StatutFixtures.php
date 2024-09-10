@@ -17,7 +17,7 @@ use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TransportOrder;

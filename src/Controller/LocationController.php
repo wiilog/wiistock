@@ -19,7 +19,7 @@ use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
 use App\Entity\Setting;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 

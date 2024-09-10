@@ -27,7 +27,7 @@ use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;

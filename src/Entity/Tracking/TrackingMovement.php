@@ -1,15 +1,29 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Tracking;
 
+use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
+use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\Livraison;
+use App\Entity\LocationClusterRecord;
+use App\Entity\MouvementStock;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Repository\TrackingMovementRepository;
+use App\Entity\Utilisateur;
+use App\Repository\Tracking\TrackingMovementRepository;
 use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -84,6 +98,9 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $orderIndex = 0;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
+    private ?TrackingEvent $event = null;
+
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
     private ?Reception $reception = null;
 
@@ -104,12 +121,6 @@ class TrackingMovement implements AttachmentContainer {
 
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'trackingMovements')]
     private ?ShippingRequest $shippingRequest = null;
-
-    #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
-    private ?Pack $linkedPackLastDrop = null;
-
-    #[ORM\OneToOne(mappedBy: 'lastTracking', targetEntity: Pack::class)]
-    private ?Pack $linkedPackLastTracking = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $groupIteration = null;
@@ -197,11 +208,23 @@ class TrackingMovement implements AttachmentContainer {
         );
     }
 
-    public function isTaking(): bool {
+    public function isPicking(): bool {
         return (
             $this->type
             &&  $this->type->getCode() === self::TYPE_PRISE
         );
+    }
+
+    public function isStart(): bool {
+        return $this->event === TrackingEvent::START;
+    }
+
+    public function isPause(): bool {
+        return $this->event === TrackingEvent::PAUSE;
+    }
+
+    public function isStop(): bool {
+        return $this->event === TrackingEvent::STOP;
     }
 
     public function setType(?Statut $type): self {
@@ -319,28 +342,6 @@ class TrackingMovement implements AttachmentContainer {
             : null;
     }
 
-    /**
-     * @return Pack|null
-     */
-    public function getLinkedPackLastTracking(): ?Pack {
-        return $this->linkedPackLastTracking;
-    }
-
-    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): self {
-        if($this->linkedPackLastTracking && $this->linkedPackLastTracking->getLastTracking() !== $this) {
-            $oldLinkedPackLastTracking = $this->linkedPackLastTracking;
-            $this->linkedPackLastTracking = null;
-            $oldLinkedPackLastTracking->setLastTracking(null);
-        }
-
-        $this->linkedPackLastTracking = $linkedPackLastTracking;
-
-        if($this->linkedPackLastTracking && $this->linkedPackLastTracking->getLastTracking() !== $this) {
-            $this->linkedPackLastTracking->setLastTracking($this);
-        }
-        return $this;
-    }
-
     public function getGroupIteration(): ?int {
         return $this->groupIteration;
     }
@@ -348,28 +349,6 @@ class TrackingMovement implements AttachmentContainer {
     public function setGroupIteration(int $groupIteration): self {
         $this->groupIteration = $groupIteration;
 
-        return $this;
-    }
-
-    /**
-     * @return Pack|null
-     */
-    public function getLinkedPackLastDrop(): ?Pack {
-        return $this->linkedPackLastDrop;
-    }
-
-    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): self {
-        if($this->linkedPackLastDrop && $this->linkedPackLastDrop->getLastDrop() !== $this) {
-            $oldLinkedPackLastDrop = $this->linkedPackLastDrop;
-            $this->linkedPackLastDrop = null;
-            $oldLinkedPackLastDrop->setLastDrop(null);
-        }
-
-        $this->linkedPackLastDrop = $linkedPackLastDrop;
-
-        if($this->linkedPackLastDrop && $this->linkedPackLastDrop->getLastDrop() !== $this) {
-            $this->linkedPackLastDrop->setLastDrop($this);
-        }
         return $this;
     }
 
@@ -550,6 +529,15 @@ class TrackingMovement implements AttachmentContainer {
 
     public function getOrderIndex(): ?int {
         return $this->orderIndex;
+    }
+
+    public function getEvent(): ?TrackingEvent {
+        return $this->event;
+    }
+
+    public function setEvent(?TrackingEvent $event): self {
+        $this->event = $event;
+        return $this;
     }
 
     public function serialize(FormatService $formatService): array {

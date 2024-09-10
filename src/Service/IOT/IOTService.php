@@ -30,7 +30,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Repository\ArticleRepository;

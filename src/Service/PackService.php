@@ -16,7 +16,7 @@ use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
@@ -27,6 +27,7 @@ use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
@@ -299,8 +300,13 @@ readonly class PackService {
 
                 $arrival->addPack($pack);
 
-                $message = $this->arrivageService->buildCustomLogisticUnitHistoryRecord($arrival);
-                $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $user, "Arrivage UL", $arrival->getDropLocation());
+                $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                    "message" => $this->arrivageService->buildCustomLogisticUnitHistoryRecord($arrival),
+                    "historyDate" => new DateTime(),
+                    "user" => $user,
+                    "type" => "Arrivage UL",
+                    "location" => $arrival->getDropLocation(),
+                ]);
 
                 if($arrival->getTruckArrival() || $arrival->getTruckArrivalLines()->first()){
                     $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
@@ -308,8 +314,13 @@ readonly class PackService {
                         ? $arrivalHasLine->getTruckArrival()
                         : $arrival->getTruckArrival();
 
-                    $message = $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival);
-                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, $truckArrival->getCreationDate(), $user, "Arrivage Camion", $truckArrival->getUnloadingLocation());
+                    $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                        "message" => $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival),
+                        "historyDate" => $truckArrival->getCreationDate(),
+                        "user" => $user,
+                        "type" => "Arrivage Camion",
+                        "location" => $truckArrival->getUnloadingLocation(),
+                    ]);
                 }
             }
             else if (isset($options['orderLine'])) {
@@ -391,23 +402,6 @@ readonly class PackService {
         return $pack;
     }
 
-    public function calcutateTruckArrivalDelay(EntityManagerInterface   $entityManager,
-                                               DateTime                 $creationDate): int {
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $workedDays = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-
-        $delayTimestamp = $this->dateTimeService->getIntervalFromDate($workedDays, $creationDate, $workFreeDays);
-
-        return (
-            ($delayTimestamp->h * 60 * 60 * 1000) + // hours in milliseconds
-            ($delayTimestamp->i * 60 * 1000) + // minutes in milliseconds
-            ($delayTimestamp->s * 1000) + // seconds in milliseconds
-            ($delayTimestamp->f)
-        );
-    }
-
     public function createMultiplePacks(EntityManagerInterface $entityManager,
                                         Arrivage               $arrivage,
                                         array                  $packByNatures,
@@ -433,15 +427,21 @@ readonly class PackService {
         if (!$arrivage->getTruckArrivalLines()->isEmpty()) {
             $truckArrivalCreationDate = $arrivage->getTruckArrivalLines()->first()->getTruckArrival()->getCreationDate();
 
-            //en millisecondes
-            $delay = $this->calcutateTruckArrivalDelay($entityManager, $truckArrivalCreationDate);
+            $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $truckArrivalCreationDate, new DateTime("now"));
+            $delay = $this->dateTimeService->convertDateIntervalToMilliseconds($interval);
         }
 
         foreach ($packByNatures as $natureId => $number) {
             if ($number) {
                 $nature = $natureRepository->find($natureId);
                 for ($i = 0; $i < $number; $i++) {
-                    $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null], $user);
+                    $pack = $this->createPack($entityManager, [
+                        "arrival" => $arrivage,
+                        "nature" => $nature,
+                        "project" => $project,
+                        "reception" => $reception,
+                        "truckArrivalDelay" => $delay ?? null
+                    ], $user);
                     if ($persistTrackingMovements && isset($location)) {
                         $this->trackingMovementService->persistTrackingForArrivalPack(
                             $entityManager,
@@ -724,13 +724,22 @@ readonly class PackService {
         ];
     }
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Pack $logisticUnit
+     * @param array{message: string, historyDate: DateTime, user: Utilisateur, type: string, location?: Emplacement} $data
+     * @return void
+     */
     public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
                                                      Pack                   $logisticUnit,
-                                                     string                 $message,
-                                                     DateTime               $historyDate,
-                                                     Utilisateur            $user,
-                                                     string                 $type,
-                                                     Emplacement            $location = null): void {
+                                                     array                  $data): void {
+
+        $message = $data["message"];
+        $historyDate = $data["historyDate"];
+        $user = $data["user"];
+        $type = $data["type"];
+        $location = $data["location"] ?? null;
+
         $logisticUnitHistoryRecord = (new LogisticUnitHistoryRecord())
             ->setMessage($message)
             ->setPack($logisticUnit)

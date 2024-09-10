@@ -3,7 +3,7 @@
 namespace App\Helper;
 
 use App\Entity\Language;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\Expr\Select;

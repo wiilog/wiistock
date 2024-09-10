@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Tracking;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
@@ -9,16 +9,20 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Pack;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingEvent;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 
 class TrackingMovementRepository extends EntityRepository
@@ -509,25 +513,6 @@ class TrackingMovementRepository extends EntityRepository
             ->getResult();
     }
 
-
-    public function findLastTrackingMovement($pack,?Statut $type) {
-        $qb = $this->createQueryBuilder('tracking_movement');
-        $qb->select('tracking_movement')
-            ->leftJoin('tracking_movement.pack', 'pack')
-            ->andWhere('pack.id = :pack')
-            ->setParameter('pack', $pack)
-            ->orderBy('tracking_movement.datetime', 'DESC')
-            ->setMaxResults(1);
-
-        if ($type){
-            $qb->leftJoin('tracking_movement.type', 'type')
-                ->andWhere('type.id = :type')
-                ->setParameter('type', $type);
-        }
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
     public function countByArticle(Article $article): int {
         $result = $this->createQueryBuilder("tracking_movement")
             ->select('COUNT(DISTINCT tracking_movement.id)')
@@ -540,4 +525,167 @@ class TrackingMovementRepository extends EntityRepository
 
         return $result[1] ?? 0;
     }
+
+    public function iterateEventTrackingMovementBetween(Pack      $pack,
+                                                        DateTime  $timerStartedAt,
+                                                        ?DateTime $timerStoppedAt = null): iterable {
+        $previousEventQueryBuilder = $this->createQueryBuilder("tracking_previous");
+        $exprBuilder = $previousEventQueryBuilder->expr();
+        $previousEventQueryBuilder
+            ->select("tracking_previous.event")
+            ->andWhere("tracking_previous.pack = :pack")
+            ->andWhere("tracking_previous.datetime <= tracking.datetime")
+            ->andWhere("type.code IN (:pauseTrackingTypes)")
+            ->andWhere($exprBuilder->orX(
+                "tracking_previous.datetime < tracking.datetime",
+                $exprBuilder->andX(
+                    "tracking_previous.datetime = tracking.datetime",
+                    $exprBuilder->orX(
+                        "tracking_previous.orderIndex < tracking.orderIndex",
+                        $exprBuilder->andX("tracking_previous.orderIndex = tracking.orderIndex", "tracking_previous.id < tracking.id")
+                    )
+                )
+            ))
+            ->andWhere("tracking_previous.id != tracking.id")
+            ->orderBy("tracking_previous.datetime", Order::Descending->value)
+            ->addOrderBy("tracking_previous.orderIndex", Order::Descending->value)
+            ->addOrderBy("tracking_previous.id", Order::Descending->value);
+
+        $trackingMovementsAfterPauseQueryBuilder = $this->createQueryBuilder("tracking")
+            ->innerJoin("tracking.type", "type")
+            ->andWhere("tracking.pack = :pack")
+            ->andWhere("type.code IN (:unpauseTrackingTypes)")
+            ->andWhere("tracking.datetime >= :timerStartedAt")
+            ->andWhere("FIRST({$previousEventQueryBuilder->getQuery()->getDQL()}) = :eventPause")
+            ->orderBy("tracking.datetime", Order::Ascending->value)
+            ->addOrderBy("tracking.orderIndex", Order::Ascending->value)
+            ->addOrderBy("tracking.id", Order::Ascending->value)
+            ->setParameter("unpauseTrackingTypes", [
+                TrackingMovement::TYPE_PRISE,
+                TrackingMovement::TYPE_DEPOSE,
+            ])
+            ->setParameter("pauseTrackingTypes", [
+                TrackingMovement::TYPE_PRISE,
+                TrackingMovement::TYPE_DEPOSE,
+            ])
+            ->setParameter("eventPause", TrackingEvent::PAUSE->value)
+            ->setParameter("timerStartedAt", $timerStartedAt)
+            ->setParameter("pack", $pack);
+
+        if ($timerStoppedAt) {
+            $trackingMovementsAfterPauseQueryBuilder
+                ->andWhere("tracking.datetime <= :timerStoppedAt")
+                ->setParameter("timerStoppedAt", $timerStoppedAt);
+        }
+
+        $eventTrackingMovementsQueryBuilder = $this->createQueryBuilder("tracking")
+            ->andWhere("tracking.pack = :pack")
+            ->andWhere("tracking.datetime >= :timerStartedAt")
+            ->andWhere("tracking.event IS NOT NULL")
+            ->orderBy("tracking.datetime", Order::Ascending->value)
+            ->addOrderBy("tracking.orderIndex", Order::Ascending->value)
+            ->addOrderBy("tracking.id", Order::Ascending->value)
+            ->setParameter("pack", $pack)
+            ->setParameter("timerStartedAt", $timerStartedAt);
+
+        if ($timerStoppedAt) {
+            $eventTrackingMovementsQueryBuilder
+                ->andWhere("tracking.datetime <= :timerStoppedAt")
+                ->setParameter("timerStoppedAt", $timerStoppedAt);
+        }
+
+        $trackingMovementAfterPauseIterator = $trackingMovementsAfterPauseQueryBuilder
+            ->getQuery()
+            ->toIterable();
+
+        $eventTrackingMovementIterator = $eventTrackingMovementsQueryBuilder
+            ->getQuery()
+            ->toIterable();
+
+        /** @var TrackingMovement $trackingMovement */
+        foreach ($eventTrackingMovementIterator as $trackingMovement) {
+            yield $trackingMovement;
+
+            if ($trackingMovement->getEvent() === TrackingEvent::PAUSE) {
+                $trackingMovementAfterPause = $trackingMovementAfterPauseIterator->current();
+                if ($trackingMovementAfterPause) {
+                    if (!$trackingMovementAfterPause->getEvent()) {
+                        yield $trackingMovementAfterPause;
+                    }
+                    $trackingMovementAfterPauseIterator->next();
+                }
+            }
+        }
+
+        if (empty($eventTrackingMovementIterator)) {
+            yield;
+        }
+    }
+
+    /**
+     * @param "tracking"|"start"|"stop" $type
+     */
+    public function findLastByPack(string            $type,
+                                   Pack              $pack,
+                                   ?TrackingMovement $ignored): ?TrackingMovement {
+        $queryBuilder = $this->createQueryBuilder("movement")
+            ->andWhere("movement.pack = :pack")
+            ->orderBy("movement.datetime", Order::Descending->value)
+            ->addOrderBy("movement.orderIndex", Order::Descending->value)
+            ->addOrderBy("movement.id", Order::Descending->value)
+            ->setMaxResults(1)
+            ->setParameter("pack", $pack);
+
+        if ($ignored?->getId()) {
+            $queryBuilder
+                ->andWhere("movement != :ignored_movement")
+                ->setParameter("ignored_movement", $ignored);
+        }
+
+        switch ($type) {
+            case "tracking":
+                // get the last one whatever the movement
+                break;
+            case "start":
+                $queryBuilder
+                    ->andWhere("movement.event = :startEvent")
+                    ->setParameter("startEvent", TrackingEvent::START->value);
+                break;
+            case "stop":
+                $queryBuilder
+                    ->andWhere("movement.event = :stopEvent")
+                    ->setParameter("stopEvent", TrackingEvent::STOP->value);
+                break;
+            default:
+                throw new Exception("Not implemented yet");
+        }
+
+        /** @var TrackingMovement|null $movement */
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findFistTrackingByPack(Pack              $pack,
+                                           ?TrackingMovement $ignored): ?TrackingMovement {
+        $queryBuilder = $this->createQueryBuilder("movement")
+            ->andWhere("movement.pack = :pack")
+            ->orderBy("movement.datetime", Order::Ascending->value)
+            ->addOrderBy("movement.orderIndex", Order::Ascending->value)
+            ->addOrderBy("movement.id", Order::Ascending->value)
+            ->setMaxResults(1)
+            ->setParameter("pack", $pack);
+
+        if ($ignored?->getId()) {
+            $queryBuilder
+                ->andWhere("movement != :ignored_movement")
+                ->setParameter("ignored_movement", $ignored);
+        }
+
+        /** @var TrackingMovement|null $movement */
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

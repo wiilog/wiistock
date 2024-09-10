@@ -29,7 +29,7 @@ use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
@@ -58,8 +58,6 @@ class DashboardService {
 
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
-
-    private $cacheDaysWorked;
 
     public function __construct(
         private readonly DateTimeService $dateTimeService,
@@ -176,23 +174,11 @@ class DashboardService {
         ];
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param array $locationIds
-     * @param array $daysWorked
-     * @param bool $includeDelay
-     * @param bool $includeLocationLabels
-     * @return array|null
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
     public function getDashboardCounter(EntityManagerInterface $entityManager,
                                         array $locationIds,
-                                        array $daysWorked = [],
                                         bool $includeDelay = false,
                                         bool $includeLocationLabels = false): ?array {
         $packRepository = $entityManager->getRepository(Pack::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
         if (!empty($locationIds)) {
             $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -216,9 +202,8 @@ class DashboardService {
                     ]
                 );
                 if (!empty($lastEnCours[0]) && $lastEnCours[0]['dateMaxTime']) {
-                    $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
-                    $date = $this->dateTimeService->getIntervalFromDate($daysWorked, $lastEnCoursDateTime, $workFreeDays);
+                    $date = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $lastEnCoursDateTime, new DateTime("now"));
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $lastEnCours[0]['dateMaxTime']);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
                 }
@@ -282,12 +267,10 @@ class DashboardService {
     public function persistOngoingPack(EntityManagerInterface $entityManager,
                                        Dashboard\Component $component): void {
         $config = $component->getConfig();
-        $daysWorked = $this->getDaysWorked($entityManager);
 
         $calculatedData = $this->getDashboardCounter(
             $entityManager,
             $config['locations'],
-            $daysWorked,
             (bool)$config['withTreatmentDelay'],
             (bool)$config['withLocationLabels']
         );
@@ -500,9 +483,6 @@ class DashboardService {
                                            Dashboard\Component $component): void {
 
         $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
         $config = $component->getConfig();
         $config['legends'] = [];
@@ -554,7 +534,7 @@ class DashboardService {
                         $component->getLocationCluster('secondOriginLocation')
                     )
                 ];
-            }, $workFreeDays)
+            })
         ];
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter->setData($data['chartData']);
@@ -568,11 +548,9 @@ class DashboardService {
      */
     public function persistDroppedPacks(EntityManagerInterface $entityManager,
                                         Dashboard\Component $component): void {
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         $config = $component->getConfig();
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $clusterKey = 'locations';
         $this->updateComponentLocationCluster($entityManager, $component, $clusterKey);
         $locationCluster = $component->getLocationCluster($clusterKey);
@@ -580,7 +558,7 @@ class DashboardService {
         $packsCountByDays = $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE,
             function (DateTime $date) use ($trackingMovementRepository, $locationCluster) {
                 return $trackingMovementRepository->countDropsOnLocationsOn($date, $locationCluster->getLocations()->toArray());
-        }, $workFreeDays);
+        });
 
         $chartColors = $config['chartColors'] ?? [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
 
@@ -590,26 +568,13 @@ class DashboardService {
             ->setChartColors($chartColors);
     }
 
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Dashboard\Component $component
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     * @throws Exception
-     */
-    public function persistEntriesToHandle(EntityManagerInterface $entityManager, Dashboard\Component $component): void
-    {
+    public function persistEntriesToHandle(EntityManagerInterface $entityManager,
+                                           Dashboard\Component $component): void {
 
         $config = $component->getConfig();
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-        $packsRepository = $entityManager->getRepository(Pack::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
         $naturesFilter = !empty($config['natures'])
             ? $natureRepository->findBy(['id' => $config['natures']])
@@ -647,7 +612,6 @@ class DashboardService {
                 $countByNatureBase[$this->formatService->nature($wantedNature)] = 0;
             }
             $segments = $config['segments'];
-            $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
             $lastSegmentKey = count($segments) - 1;
             $adminDelay = "$segments[$lastSegmentKey]:00";
@@ -656,8 +620,7 @@ class DashboardService {
 
             $graphData = $this->getObjectForTimeSpan($segments, function (int $beginSpan, int $endSpan)
                                                                 use (
-                                                                    $workFreeDays,
-                                                                    $daysWorked,
+                                                                    $entityManager,
                                                                     $countByNatureBase,
                                                                     &$packsOnCluster,
                                                                     $adminDelay,
@@ -668,7 +631,7 @@ class DashboardService {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    $interval = $this->dateTimeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
+                    $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $pack['firstTrackingDateTime'], new DateTime("now"));
                     $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -770,11 +733,8 @@ class DashboardService {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 
         if ($dailyRequest) {
-            $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-            $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
             $getObjectsStatisticsCallable = 'getDailyObjectsStatistics';
         } else {
-            $workFreeDays = null;
             $getObjectsStatisticsCallable = 'getWeeklyObjectsStatistics';
         }
 
@@ -784,12 +744,11 @@ class DashboardService {
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository, $arrivalStatusesFilter, $arrivalTypesFilter) {
                 return $arrivageRepository->countByDates($dateMin, $dateMax, $arrivalStatusesFilter, $arrivalTypesFilter);
-            },
-            $workFreeDays
+            }
         );
         // packs column
         if ($scale) {
-            $natureData = $this->getArrivalPacksData($entityManager, $getObjectsStatisticsCallable, $scale, $arrivalStatusesFilter, $arrivalTypesFilter, $workFreeDays, $displayPackNatures);
+            $natureData = $this->getArrivalPacksData($entityManager, $getObjectsStatisticsCallable, $scale, $arrivalStatusesFilter, $arrivalTypesFilter, $displayPackNatures);
 
             if ($natureData) {
                 $chartData['stack'] = $natureData;
@@ -816,11 +775,7 @@ class DashboardService {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $getObjectsStatisticsCallable = 'getDailyObjectsStatistics';
-
-        $chartData = $this->{$getObjectsStatisticsCallable}(
+        $chartData = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($handlingRepository, $handlingStatusesFilter, $handlingTypesFilter, $separateType, $isOperations) {
@@ -835,7 +790,6 @@ class DashboardService {
                     ]
                 );
             },
-            $workFreeDays,
             $period
         );
         if ($separateType) {
@@ -952,16 +906,12 @@ class DashboardService {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-
         $chartData = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter, $date, $separateType) {
                 return $dispatchRepository->countByDates($dateMin, $dateMax, $separateType, $dispatchStatusesFilter, $dispatchTypesFilter, $date);
             },
-            $workFreeDays,
             $period
         );
 
@@ -991,18 +941,8 @@ class DashboardService {
         }
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Dashboard\Component $component
-     * @param $daysWorked
-     * @param $freeWorkDays
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public function persistEntitiesToTreat(EntityManagerInterface $entityManager,
-                                           Dashboard\Component $component,
-                                           $daysWorked,
-                                           $freeWorkDays): void {
+                                           Dashboard\Component $component): void {
         $config = $component->getConfig();
         $entityTypes = $config['entityTypes'];
         $entityStatuses = $config['entityStatuses'];
@@ -1094,7 +1034,7 @@ class DashboardService {
                     'nonUrgentTranslationLabel' => $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
                 ]);
                 if (isset($lastDate)) {
-                    $date = $this->dateTimeService->getIntervalFromDate($daysWorked, $lastDate, $freeWorkDays);
+                    $date = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $lastDate, new DateTime("now"));
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $treatmentDelay);
                 }
                 $meter->setDelay($timeInformation['countDownLateTimespan'] ?? null);
@@ -1102,14 +1042,6 @@ class DashboardService {
         }
 
         $meter->setCount($count ?? 0);
-    }
-
-    private function getDaysWorked(EntityManagerInterface $entityManager): array {
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-        if (!isset($this->cacheDaysWorked)) {
-            $this->cacheDaysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        }
-        return $this->cacheDaysWorked;
     }
 
     public function updateComponentLocationCluster(EntityManagerInterface $entityManager,
@@ -1150,7 +1082,6 @@ class DashboardService {
      * @param EntityManagerInterface $entityManager
      * @param int $nbDaysToReturn
      * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
-     * @param array $workFreeDays Days we have to ignore
      * @param string $period
      * @return array ['d/m' => $getCounter return]
      * @throws Exception
@@ -1158,7 +1089,6 @@ class DashboardService {
     private function getDailyObjectsStatistics(EntityManagerInterface $entityManager,
                                                int $nbDaysToReturn,
                                                callable $getCounter,
-                                               array $workFreeDays = [],
                                                string $period = self::DAILY_PERIOD_PREVIOUS_DAYS): array {
 
         if (!in_array($period, [self::DAILY_PERIOD_PREVIOUS_DAYS, self::DAILY_PERIOD_NEXT_DAYS])) {
@@ -1177,7 +1107,7 @@ class DashboardService {
                 $operator = $period === self::DAILY_PERIOD_PREVIOUS_DAYS ? '-' : '+';
                 $dateToCheck = new DateTime("now " . $operator . " $dayIndex days");
 
-                if (!$this->dateTimeService->isDayInArray($dateToCheck, $workFreeDays)) {
+                if (!$this->dateTimeService->isWorkFreeDay($entityManager, $dateToCheck)) {
                     $dateDayLabel = strtolower($dateToCheck->format('l'));
 
                     if (in_array($dateDayLabel, $workedDaysLabels)) {
@@ -1254,7 +1184,6 @@ class DashboardService {
                         'date' => $date
                     ]);
                 },
-                [],
                 $period
             );
             $label = $labels[$date];
@@ -1329,7 +1258,6 @@ class DashboardService {
                                          int $scale,
                                          array $arrivalStatusesFilter,
                                          array $arrivalTypesFilter,
-                                         array $workFreeDays = null,
                                          bool $displayPackNatures = false): array {
 
         $packRepository = $entityManager->getRepository(Pack::class);
@@ -1340,8 +1268,7 @@ class DashboardService {
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($packRepository, $arrivalStatusesFilter, $arrivalTypesFilter, $displayPackNatures) {
                 return $packRepository->countPacksByDates($dateMin, $dateMax, $displayPackNatures, $arrivalStatusesFilter, $arrivalTypesFilter);
-            },
-            $workFreeDays
+            }
         );
         $naturesStack = [];
         if ($displayPackNatures) {
@@ -1423,10 +1350,6 @@ class DashboardService {
 
         $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
 
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-        $getDailyObjectsStatisticsCallable = 'getDailyObjectsStatistics';
-
         $type = match ($config['date']) {
             'validationDate'  => "de validation",
             'treatmentDate'   => "de traitement",
@@ -1434,7 +1357,7 @@ class DashboardService {
         };
         $hint = "Nombre d'" . mb_strtolower($this->translationService->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " ayant leur $type sur les jours présentés";
 
-        $chartData = $this->{$getDailyObjectsStatisticsCallable}(
+        $chartData = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($deliveryOrderRepository, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $date) {
@@ -1448,18 +1371,15 @@ class DashboardService {
                     ]
                 );
             },
-            $workFreeDays,
             $period
         );
 
         if ($config['displayDeliveryOrderContentCheckbox'] && $scale) {
             $deliveryOrderContent = $this->getDeliveryOrderContent(
                 $entityManager,
-                $getDailyObjectsStatisticsCallable,
                 $scale,
                 $deliveryOrderStatusesFilter,
                 $deliveryOrderTypesFilter,
-                $workFreeDays,
                 [
                     'displayDeliveryOrderContent' => $config['displayDeliveryOrderContent'],
                     'date' => $date,
@@ -1488,21 +1408,18 @@ class DashboardService {
     }
 
     public function getDeliveryOrderContent(EntityManagerInterface $entityManager,
-                                            string $getObjectsStatisticsCallable,
                                             int $scale,
                                             array $deliveryOrderStatusesFilter,
                                             array $deliveryOrderTypesFilter,
-                                            array $workFreeDays,
                                             array $options = []): array {
         $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
 
-        $contentCountByDay = $this->{$getObjectsStatisticsCallable}(
+        $contentCountByDay = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($deliveryOrderRepository, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $options) {
                 return $deliveryOrderRepository->countContentByDates($dateMin, $dateMax, $deliveryOrderStatusesFilter, $deliveryOrderTypesFilter, $options);
             },
-            $workFreeDays,
             $options['period']
         );
 
@@ -1550,16 +1467,12 @@ class DashboardService {
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-
         $chartData = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($productionRepository, $productionStatusesFilter, $productionTypesFilter, $date, $separateType) {
                 return $productionRepository->countByDates($dateMin, $dateMax, $separateType, $productionStatusesFilter, $productionTypesFilter, $date);
             },
-            $workFreeDays,
             $period
         );
 

@@ -2,14 +2,15 @@
 
 namespace App\Controller\Api\Mobile;
 
+use App\Annotation as Wii;
 use App\Controller\AbstractController;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Exceptions\ArticleNotAvailableException;
-use App\Repository\TrackingMovementRepository;
+use App\Repository\Tracking\TrackingMovementRepository;
 use App\Service\ExceptionLoggerService;
 use App\Service\OrdreCollecteService;
 use DateTime;
@@ -18,7 +19,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use App\Annotation as Wii;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;

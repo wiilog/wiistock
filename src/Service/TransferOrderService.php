@@ -7,7 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;

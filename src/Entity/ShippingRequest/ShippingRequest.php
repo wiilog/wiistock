@@ -8,7 +8,7 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Repository\ShippingRequest\ShippingRequestRepository;

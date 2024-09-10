@@ -9,7 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;

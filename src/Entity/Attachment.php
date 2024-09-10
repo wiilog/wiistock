@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;

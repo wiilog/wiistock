@@ -2,11 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\DaysWorked;
+use App\Entity\WorkFreeDay;
 use DateInterval;
 use DatePeriod;
 use DateTime;
-use Exception;
+use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use WiiCommon\Helper\Stream;
 
 class DateTimeService {
     const ENG_TO_FR_MONTHS = [
@@ -29,6 +32,8 @@ class DateTimeService {
     const SECONDS_IN_MINUTE = 60;
 
     const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
+
+    private array $cache = [];
 
     public function dateIntervalToSeconds(DateInterval $dateInterval): int {
         return
@@ -71,20 +76,26 @@ class DateTimeService {
      * @param string $time the time in HH:MM format
      * @return int the number of minutes
      */
-    public function calculateMinuteFrom(string $time): int
+    public function calculateMinuteFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int
     {
-        if (!preg_match("/". DateTimeService::AVERAGE_TIME_REGEX ."/", $time)) {
-            throw new \InvalidArgumentException("Le format de l'heure doit être HH:MM");
+        if (!preg_match("/". $regex ."/", $time)) {
+            throw new \InvalidArgumentException("Le format de l'heure doit être HH{$separator}MM");
         }
 
         // separate hours and minutes
-        list($hours, $minutes) = explode(':', $time);
+        list($hours, $minutes) = explode($separator, $time);
 
         $hours = (int) $hours;
         $minutes = (int) $minutes;
 
         // calculate minutes
         return $hours * DateTimeService::SECONDS_IN_MINUTE + $minutes;
+    }
+
+    public function calculateSecondsFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int
+    {
+        $minutes = $this->calculateMinuteFrom($time, $regex, $separator);
+        return $minutes * DateTimeService::SECONDS_IN_MINUTE;
     }
 
     function validateHoursFormat(string $hours): void {
@@ -152,130 +163,131 @@ class DateTimeService {
             }
         }
     }
-    public function isDayInArray(DateTime $day, array $daysToCheck): bool
-    {
-        $isDayInArray = false;
-        $dayIndex = 0;
-        $daysToCheckCount = count($daysToCheck);
+
+    public function isWorkFreeDay(EntityManagerInterface $entityManager,
+                                  DateTime $day): bool {
         $comparisonFormat = 'Y-m-d';
+        $workFreeDays = $this->getCache($entityManager, "workFreeDays");
 
         $formattedDay = $day->format($comparisonFormat);
-        while (!$isDayInArray && $dayIndex < $daysToCheckCount) {
-            $currentFormattedDay = $daysToCheck[$dayIndex]->format($comparisonFormat);
-            if ($currentFormattedDay === $formattedDay) {
-                $isDayInArray = true;
-            } else {
-                $dayIndex++;
-            }
+
+        foreach ($workFreeDays as $workFreeDay) {
+            $currentFormattedDay = $workFreeDay->format($comparisonFormat);
+            return $currentFormattedDay === $formattedDay;
         }
-        return $isDayInArray;
-    }
 
-    /**
-     * @param array $workedDays [<english day label ('l' format)> => <nb time worked>]
-     * @param DateTime $initialDate
-     * @param DateTime[] $workFreeDays
-     * @return DateInterval
-     * @throws Exception
-     */
-    public function getIntervalFromDate(array $workedDays, DateTime $initialDate, array $workFreeDays): DateInterval
-    {
-        if (count($workedDays) > 0) {
-            $now = new DateTime("now");
-            if ($now->getTimezone()->getName() !== $initialDate->getTimezone()->getName()) {
-                $currentHours = $now->format('H');
-                $currentMinutes = $now->format('i');
-                $now->setTimezone($initialDate->getTimezone());
-                $now->setTime((int)$currentHours, (int)$currentMinutes);
-            }
-            $nowIncluding = (clone $now)->setTime(23, 59, 59);
-            $interval = DateInterval::createFromDateString('1 day');
-            $period = new DatePeriod($initialDate, $interval, $nowIncluding);
-
-            $periodsWorked = [];
-            // pour chaque jour entre la date initiale et aujourd'hui, minimum un tour de boucle
-            /** @var DateTime $day */
-            foreach ($period as $day) {
-                $dayLabel = strtolower($day->format('l'));
-                if (isset($workedDays[$dayLabel])
-                    && !$this->isDayInArray($day, $workFreeDays)) {
-                    $periodsWorked = array_merge(
-                        $periodsWorked,
-                        array_map(
-                            function (string $timePeriod) use ($now, $day, $initialDate) {
-                                // we calculate delay between two given times
-                                $times = explode('-', $timePeriod);
-
-                                $time1 = explode(':', $times[0]);
-                                $begin = (clone $day)->setTime($time1[0], $time1[1], 0);
-
-                                $time2 = explode(':', $times[1]);
-                                $end = (clone $day)->setTime($time2[0], $time2[1], 0);
-                                if (($end < $initialDate) || ($now < $begin)) {
-                                    $calculatedInterval = new DateInterval('P0Y');
-                                } else {
-                                    // si la date initiale est dans la fourchette => devient la date de begin
-                                    if ($begin < $initialDate && $initialDate <= $end) {
-                                        $begin = $initialDate;
-                                    }
-
-                                    // si le DateTime 'now'  est dans la fourchette => devient la date de end
-                                    if ($begin <= $now &&
-                                        $now < $end) {
-                                        $end = $now;
-                                    }
-                                    $calculatedInterval = $begin->diff($end);
-                                }
-                                return $calculatedInterval;
-                            },
-                            explode(';', $workedDays[$dayLabel])
-                        )
-                    );
-                }
-            }
-
-            // on fait la somme de toutes les périodes calculées
-            $dateInterval = array_reduce(
-                $periodsWorked,
-                function (?DateInterval $carry, DateInterval $interval) {
-                    $f = ($carry->f + $interval->f);
-                    $s = ($carry->s + $interval->s) + intval($f / 1000);
-                    $i = ($carry->i + $interval->i) + intval($s / 60);
-                    $h = ($carry->h + $interval->h) + intval($i / 60);
-
-                    $newDateInterval = new DateInterval('P0Y');
-                    $newDateInterval->h = $h;
-                    $newDateInterval->i = $i % 60;
-                    $newDateInterval->s = $s % 60;
-                    $newDateInterval->f = $f % 1000;
-                    return $newDateInterval;
-                },
-                new DateInterval('P0Y')
-            );
-        }
-        else {
-            // age null
-            $dateInterval = new DateInterval('P0Y');
-        }
-        return $dateInterval;
-    }
-    public function calculateSecondsFrom(string $time, string $regex = self::AVERAGE_TIME_REGEX, string $separator = ":"): int
-    {
-        $minutes = $this->calculateMinuteFrom($time, $regex, $separator);
-        return $minutes * self::SECONDS_IN_MINUTE;
+        return false;
     }
 
     public function intervalToHourAndMinStr(DateInterval $delay): string {
-        return (
-            ($delay->h
-                ? "{$delay->h}h"
-                : '')
-            . ($delay->i
-                ? (strlen($delay->i) === 1
-                    ? "0{$delay->i}"
-                    : "$delay->i")
-                : '')
-        );
+        $hours = sprintf('%02d', $delay->h);
+        $minutes = sprintf('%02d', $delay->i);
+        return "{$hours}h{$minutes}";
     }
 
+    // TODO WIIS-11848
+    public function getWorkedPeriodBetweenDates(EntityManagerInterface $entityManager,
+                                                DateTime               $date1,
+                                                DateTime               $date2): DateInterval {
+        $workedDays = $this->getCache($entityManager, "workedDays");
+
+        if ($date1 <= $date2) {
+            $start = $date1;
+            $end = $date2;
+        }
+        else {
+            $start = $date2;
+            $end = $date1;
+        }
+
+        if (!empty($workedDays)) {
+            $period = new DatePeriod(
+                $start,
+                DateInterval::createFromDateString('1 day'),
+                (clone $end)->setTime(23, 59, 59)
+            );
+
+            $dateCalculation = new DateTime();
+            $dateCalculation2 = clone $dateCalculation;
+
+            // foreach days between $start and $end
+            foreach ($period as $day) {
+                $dayLabel = strtolower($day->format('l'));
+
+                if (isset($workedDays[$dayLabel])
+                    && !$this->isWorkFreeDay($entityManager, $day)) {
+
+                    foreach ($workedDays[$dayLabel] as $period) {
+                        [$startTimePeriod, $endTimePeriod] = $period;
+                        [$startHour, $startMinute] = explode(':', $startTimePeriod);
+                        [$endHour, $endMinute] = explode(':', $endTimePeriod);
+
+                        $startPeriod = (clone $day)->setTime($startHour, $startMinute);
+                        $endPeriod = (clone $day)->setTime($endHour, $endMinute);
+
+                        if ($start >= $endPeriod
+                            || $end <= $startPeriod) {
+                            continue;
+                        }
+
+                        if ($start > $startPeriod) {
+                            $startPeriod = $start;
+                        }
+
+                        if ($end < $endPeriod) {
+                            $endPeriod = $end;
+                        }
+                        $intervalToAdd = $startPeriod->diff($endPeriod);
+
+                        $dateCalculation->add($intervalToAdd);
+                    }
+                }
+            }
+
+            return $dateCalculation2->diff($dateCalculation);
+        }
+
+        return new DateInterval("P0Y");
+    }
+
+    private function getCache(EntityManagerInterface $entityManager, string $key): mixed {
+        if (!isset($this->cache[$key])) {
+            if ($key === "workedDays") {
+                $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+                $workedDays = $workedDaysRepository->findAll();
+                $this->cache[$key] = Stream::from($workedDays)
+                    ->keymap(fn(DaysWorked $dayWorked) => (
+                    $dayWorked->isWorked()
+                        ? [
+                        $dayWorked->getDay(),
+                        $this->timePeriodToArray($dayWorked->getTimes())
+                    ]
+                        : null
+                    ));
+            }
+            else if ($key === "workFreeDays") {
+                $workedDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+                $this->cache[$key] = $workedDaysRepository->getWorkFreeDaysToDateTime();
+            }
+        }
+
+        return $this->cache[$key] ?? null;
+    }
+
+    /**
+     * @return array{string, string}[]
+     */
+    private function timePeriodToArray(string $periods): array {
+        return Stream::explode(";", $periods)
+            ->map(static fn(string $period) => explode("-", $period))
+            ->toArray();
+    }
+
+    public function convertDateIntervalToMilliseconds(DateInterval $interval): int {
+        $dateTime1 = new DateTime();
+        $dateTime2 = clone $dateTime1;
+        $dateTime1->add($interval);
+
+        return ($dateTime1->getTimestamp() - $dateTime2->getTimestamp()) * 1000;
+    }
 }

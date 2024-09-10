@@ -11,7 +11,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Exceptions\NegativeQuantityException;
 use App\Service\ExceptionLoggerService;
 use App\Service\LivraisonsManagerService;

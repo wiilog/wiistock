@@ -14,7 +14,7 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -413,10 +413,6 @@ class TrackingMovementController extends AbstractController
 
                 $entityManager->persist($new);
                 $entityManager->flush();
-
-                $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
-                $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
-                $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
 
                 $trackingMovement = $new;
             } else {

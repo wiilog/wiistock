@@ -113,11 +113,42 @@ readonly class NatureService {
     }
 
     public function updateNature(EntityManagerInterface $entityManager,
-                                 Nature $nature,
-                                 array $data): void {
+                                 Nature                 $nature,
+                                 array                  $data): void {
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+
+        $natureWithSameCode = Stream::from($natureRepository->findBy(["code" => $data["code"]]))
+            ->filter(static fn(Nature $savedNature) => (!$nature->getId() || $savedNature->getId() !== $nature->getId()))
+            ->count();
+
+        if ($natureWithSameCode > 0) {
+            throw new FormException("Une nature existe déjà avec ce code");
+        }
+
+        $labels = json_decode($data['labels'], true);
+        foreach ($labels as $label) {
+            if (!empty($label["label"])) {
+                if (preg_match("[[,;]]", $label['label'])) {
+                    throw new FormException("Le libellé d'une nature ne peut pas contenir ; ou ,");
+                }
+
+                $natureWithSameLabel = $natureRepository->findDuplicateLabels(
+                    $label["label"],
+                    $label["language-id"],
+                    $nature->getId()
+                        ? [$nature->getId()]
+                        : []
+                );
+
+                if (!empty($natureWithSameLabel)) {
+                    $language = $entityManager->find(Language::class, $label["language-slug"]);
+
+                    throw new FormException("Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"");
+                }
+            }
+        }
 
         $natureManager = $data["natureManager"]
             ? $userRepository->findOneBy(["id" => $data["natureManager"]])
@@ -191,19 +222,6 @@ readonly class NatureService {
             $nature
                 ->setDisplayedOnForms(false)
                 ->setAllowedForms(null);
-        }
-
-        $labels = json_decode($data['labels'], true);
-        foreach ($labels as $label) {
-            if (preg_match("[[,;]]", $label['label'])) {
-                throw new FormException("Le libellé d'une nature ne peut pas contenir ; ou ,");
-            }
-
-            if ($natureRepository->findDuplicates($label["label"], $label["language-id"])) {
-                $language = $entityManager->find(Language::class, $label["language-id"]);
-
-                throw new FormException("Une nature existe déjà avec ce libellé dans la langue \"{$language->getLabel()}\"");
-            }
         }
 
         $labelTranslationSource = $nature->getLabelTranslation();

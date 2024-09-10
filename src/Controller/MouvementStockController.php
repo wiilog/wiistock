@@ -5,13 +5,12 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 
@@ -21,7 +20,6 @@ use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
 
 use App\Service\TranslationService;
-use App\Service\FieldModesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;

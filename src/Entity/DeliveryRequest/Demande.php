@@ -14,7 +14,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;

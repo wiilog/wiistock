@@ -26,7 +26,7 @@ use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -47,7 +47,6 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -945,6 +944,7 @@ class DispatchController extends AbstractController {
         $height = $data["height"] ?? null;
         $width = $data["width"] ?? null;
         $length = $data["length"] ?? null;
+        $now = new DateTime();
 
         $field = match (true) {
             $height !== null && !StringHelper::matchEvery($height, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
@@ -1023,8 +1023,13 @@ class DispatchController extends AbstractController {
             ->setLength($length !== null ? floatval($length) : $dispatchPack->getLength());
         $entityManager->persist($dispatchPack);
 
-        $message = $dispatchService->buildCustomLogisticUnitHistoryRecord($dispatch);
-        $packService->persistLogisticUnitHistoryRecord($entityManager, $pack, $message, new DateTime(), $dispatch->getRequester(), "Acheminement", $dispatch->getLocationFrom());
+        $packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+            "message" => $dispatchService->buildCustomLogisticUnitHistoryRecord($dispatch),
+            "historyDate" => $now,
+            "user" => $dispatch->getRequester(),
+            "type" => "Acheminement",
+            "location" => $dispatch->getLocationFrom(),
+        ]);
 
         $dispatchPack->setQuantity($quantity);
         $pack
@@ -1032,7 +1037,7 @@ class DispatchController extends AbstractController {
             ->setComment($comment)
             ->setWeight($weight ? round($weight, 3) : null)
             ->setVolume($volume ? round($volume, 6) : null);
-        $dispatch->setUpdatedAt(new DateTime());
+        $dispatch->setUpdatedAt($now);
         $success = true;
         $packCode = $pack->getCode();
         $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifiée" : "ajoutée");

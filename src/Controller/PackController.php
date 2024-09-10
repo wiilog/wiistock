@@ -17,9 +17,8 @@ use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
@@ -50,7 +49,7 @@ class PackController extends AbstractController
     public function index(EntityManagerInterface $entityManager,
                           LanguageService        $languageService,
                           PackService            $packService,
-                                                 $code):Response
+                                                 $code): Response
     {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);

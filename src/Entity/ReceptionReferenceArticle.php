@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Tracking\TrackingMovement;
 use App\Repository\ReceptionReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

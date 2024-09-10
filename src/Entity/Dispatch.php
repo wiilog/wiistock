@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\DispatchRepository;

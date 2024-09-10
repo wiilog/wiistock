@@ -20,6 +20,6 @@ class MigrationVersions
     private ?DateTime $executedAt = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?string $executionTime = null;
+    private ?int $executionTime = null;
 
 }
