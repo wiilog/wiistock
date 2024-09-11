@@ -99,6 +99,7 @@ class TrackingMovementListener implements EventSubscriber
                 default => null
             };
 
+            // todo WIIS-11846 : check if $trackingMovement == pack->getLastTracking (voir avec Pauline)
             if (!($pack?->isBasicUnit()) || !$nature) {
                 continue;
             }
