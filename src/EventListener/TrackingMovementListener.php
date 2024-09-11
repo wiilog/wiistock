@@ -10,8 +10,6 @@ use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
-use App\Entity\Pack;
-use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -117,15 +115,17 @@ class TrackingMovementListener implements EventSubscriber
                         Nouvelle nature : ' . $this->formatService->nature($nature,'-')
                     ;
 
-                    $historyRecord = $this->packService->persistLogisticUnitHistoryRecord(
-                        $unitOfWork,
-                        $pack,
-                        $message,
-                        $trackingMovement->getDatetime(),
-                        $user,
-                        "Mise a jour automatique de la nature",
-                        $trackingMovement->getEmplacement(),
-                    );
+                        $historyRecord = $this->packService->persistLogisticUnitHistoryRecord(
+                            $unitOfWork,
+                            $pack,
+                            [
+                            "message" => $message,
+                            "historyDate" => $trackingMovement->getDatetime(),
+                            "user" => $user,
+                            "type" => "Mise a jour automatique de la nature",
+                            "location" => $trackingMovement->getEmplacement()
+                            ]
+                        );
                     $unitOfWork->computeChangeSet($args->getObjectManager()->getClassMetadata(LogisticUnitHistoryRecord::class), $historyRecord);
                 }
             }

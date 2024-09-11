@@ -79,9 +79,7 @@ class TrackingDelayService {
         // In seconds
         $calculatedElapsedTime = null;
 
-        // TODO WIIS-11846 getter in Pack
-        // $isBasicUnit = $pack->isBasicUnit();
-        $isBasicUnit = true;
+        $isBasicUnit = $pack->isBasicUnit();
 
          $natureTrackingDelay = $isBasicUnit
              ? $pack?->getNature()?->getTrackingDelay()
