@@ -122,7 +122,7 @@ class TrackingMovementListener implements EventSubscriber
                             "message" => $message,
                             "historyDate" => $trackingMovement->getDatetime(),
                             "user" => $user,
-                            "type" => "Mise a jour automatique de la nature",
+                            "type" => "Mise à jour automatique de la nature",
                             "location" => $trackingMovement->getEmplacement()
                             ]
                         );
