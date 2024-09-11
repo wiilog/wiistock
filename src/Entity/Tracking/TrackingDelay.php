@@ -22,12 +22,8 @@ class TrackingDelay {
     #[ORM\Column(type: Types::BIGINT, nullable: false)]
     private ?int $elapsedTime = null;
 
-    /**
-     * @var bool|null The calculation of the elapsed time has been stopped by a tracking movement STOP or PAUSE
-     * TODO vérifier que c'est bien mis à jour ??
-     */
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
-    private ?bool $timeStopped = false;
+    #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
+    private ?TrackingEvent $lastTrackingEvent;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $calculatedAt = null;
@@ -57,15 +53,6 @@ class TrackingDelay {
         return $this;
     }
 
-    public function isTimeStopped(): ?bool {
-        return $this->timeStopped;
-    }
-
-    public function setTimeStopped(?bool $timeStopped): self {
-        $this->timeStopped = $timeStopped;
-        return $this;
-    }
-
     public function getPack(): ?Pack {
         return $this->pack;
     }
@@ -81,6 +68,28 @@ class TrackingDelay {
             $this->pack->setTrackingDelay($this);
         }
 
+        return $this;
+    }
+
+    public function isTimerStopped(): bool {
+        return (
+            $this->lastTrackingEvent === TrackingEvent::PAUSE
+            || $this->lastTrackingEvent === TrackingEvent::STOP
+        );
+    }
+
+    public function canRecalculateOnNewTracking(): bool {
+        return (
+            $this->lastTrackingEvent !== TrackingEvent::STOP
+        );
+    }
+
+    public function getEvent(): ?TrackingEvent {
+        return $this->lastTrackingEvent;
+    }
+
+    public function setEvent(?TrackingEvent $lastTrackingEvent): self {
+        $this->lastTrackingEvent = $lastTrackingEvent;
         return $this;
     }
 }

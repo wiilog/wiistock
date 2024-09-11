@@ -27,9 +27,9 @@ readonly class TrackingDelayService {
 
         $trackingDelay = $pack->getTrackingDelay();
 
-        if ($trackingDelay?->isTimeStopped() && !$force) {
-            return;
-        }
+//        if ($trackingDelay?->isTimeStopped() && !$force) {
+//            return;
+//        }
 
         $calculatedElapsedTime = $this->calculatePackElapsedTime($entityManager, $pack);
 
@@ -47,8 +47,7 @@ readonly class TrackingDelayService {
 
             $trackingDelay
                 ->setElapsedTime($calculatedElapsedTime)
-                ->setCalculatedAt(new DateTime())
-                ->setTimeStopped($stopTime);
+                ->setCalculatedAt(new DateTime());
 
             $entityManager->persist($trackingDelay);
         }
@@ -97,8 +96,9 @@ readonly class TrackingDelayService {
                     $intervalStart = clone $timerStartedAt;
                 }
 
+                // We define a start and a stop for calculate time in an interval
+                // and we restart until the end of TrackingEvents array
                 foreach ($trackingEvents as $trackingEvent) {
-                    /* On défini un start et un stop */
                     if ($intervalStart) {
                         $intervalEnd = clone $trackingEvent->getDatetime();
                     }
