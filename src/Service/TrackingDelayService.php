@@ -10,28 +10,38 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Generator;
 use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Contracts\Service\Attribute\Required;
 
-readonly class TrackingDelayService {
+class TrackingDelayService {
 
-    public function __construct(private DateTimeService $dateTimeService) {}
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public DateTimeService $dateTimeService;
 
     /**
-     * @param array{force?: boolean, stopTime?: boolean} $options
+     * @param array{force?: boolean} $options
      */
     public function persistTrackingDelay(EntityManagerInterface $entityManager,
                                          Pack                   $pack,
                                          array                  $options = []): void {
 
         $force = $options["force"] ?? false;
-        $stopTime = $options["stopTime"] ?? false;
 
         $trackingDelay = $pack->getTrackingDelay();
 
-//        if ($trackingDelay?->isTimeStopped() && !$force) {
-//            return;
-//        }
+        if (!($trackingDelay?->canRecalculateOnNewTracking())
+            && !$force) {
+            return;
+        }
 
-        $calculatedElapsedTime = $this->calculatePackElapsedTime($entityManager, $pack);
+
+
+        [
+            "lastTrackingEvent" => $lastTrackingEvent,
+            "elapsedTime" => $calculatedElapsedTime,
+        ] = $this->calculatePackElapsedTime($entityManager, $pack);
 
         if (!isset($calculatedElapsedTime)) {
             if (isset($trackingDelay)) {
@@ -47,15 +57,22 @@ readonly class TrackingDelayService {
 
             $trackingDelay
                 ->setElapsedTime($calculatedElapsedTime)
-                ->setCalculatedAt(new DateTime());
+                ->setCalculatedAt(new DateTime())
+                ->setLastTrackingEvent($lastTrackingEvent);
 
             $entityManager->persist($trackingDelay);
         }
 
     }
 
+    /**
+     * @return array{
+     *     lastTrackingEvent: TrackingEvent|null,
+     *     elapsedTime: int|null,
+     * }
+     */
     public function calculatePackElapsedTime(EntityManagerInterface $entityManager,
-                                             Pack                   $pack): ?int {
+                                             Pack                   $pack): array {
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
@@ -72,13 +89,20 @@ readonly class TrackingDelayService {
         $packHasTrackingDelay = isset($natureTrackingDelay);
 
         if (!$packHasTrackingDelay) {
-            return null;
+            return [
+                "elapsedTime" => null,
+                "lastTrackingEvent" => null,
+            ];
         }
 
         [
             "timerStartedAt" => $timerStartedAt,
             "timerStoppedAt" => $timerStoppedAt,
         ] = $this->getTimerData($pack);
+
+        // Store tracking event of the second movement of an interval
+        // ==> To get the tracking event which finish the delay calculation
+        $lastTrackingEvent = null;
 
         if (isset($timerStartedAt)) {
             $calculationDate = new DateTime();
@@ -96,9 +120,10 @@ readonly class TrackingDelayService {
                     $intervalStart = clone $timerStartedAt;
                 }
 
-                // We define a start and a stop for calculate time in an interval
+                // We define a start and a stop for calculate time in an interval,
                 // and we restart until the end of TrackingEvents array
                 foreach ($trackingEvents as $trackingEvent) {
+                    $lastTrackingEvent = null;
                     if ($intervalStart) {
                         $intervalEnd = clone $trackingEvent->getDatetime();
                     }
@@ -116,7 +141,9 @@ readonly class TrackingDelayService {
                         $intervalStart = null;
                         $intervalEnd = null;
 
-                        if ($trackingEvent->getEvent() === TrackingEvent::STOP) {
+                        $lastTrackingEvent = $trackingEvent->getEvent();
+
+                        if ($lastTrackingEvent === TrackingEvent::STOP) {
                             break;
                         }
                     }
@@ -145,7 +172,10 @@ readonly class TrackingDelayService {
             $calculatedElapsedTime = $calculationDate->getTimestamp() - $calculationDate2->getTimestamp();
         }
 
-        return $calculatedElapsedTime ?? null;
+        return [
+            "elapsedTime" => $calculatedElapsedTime ?? null,
+            "lastTrackingEvent" => $lastTrackingEvent,
+        ];
     }
 
     #[ArrayShape([
@@ -160,16 +190,7 @@ readonly class TrackingDelayService {
             $timerStartedAt = $lastStart->getDatetime();
 
             if ($lastStop
-                && (
-                    $timerStartedAt < $lastStop->getDatetime()
-                    || (
-                        $timerStartedAt == $lastStop->getDatetime()
-                        && (
-                            $lastStart->getOrderIndex() < $lastStop->getOrderIndex()
-                            || ($lastStart->getOrderIndex() === $lastStop->getOrderIndex() && $lastStart->getId() < $lastStop->getId())
-                        )
-                    )
-                )) {
+                && $this->trackingMovementService->compareMovements($lastStart, $lastStop) === -1) {
                 $timerStoppedAt = $lastStop->getDatetime();
             }
         }

@@ -84,11 +84,11 @@ class TrackingDelay {
         );
     }
 
-    public function getEvent(): ?TrackingEvent {
+    public function getLastTrackingEvent(): ?TrackingEvent {
         return $this->lastTrackingEvent;
     }
 
-    public function setEvent(?TrackingEvent $lastTrackingEvent): self {
+    public function setLastTrackingEvent(?TrackingEvent $lastTrackingEvent): self {
         $this->lastTrackingEvent = $lastTrackingEvent;
         return $this;
     }

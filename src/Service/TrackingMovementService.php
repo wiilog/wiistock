@@ -1655,8 +1655,8 @@ class TrackingMovementService {
     }
 
 
-    private function compareMovements(TrackingMovement $trackingMovement1,
-                                      TrackingMovement $trackingMovement2): int {
+    public function compareMovements(TrackingMovement $trackingMovement1,
+                                     TrackingMovement $trackingMovement2): int {
         $firstBeforeSecond = (
             $trackingMovement1->getDatetime() < $trackingMovement2->getDatetime()
             || (
