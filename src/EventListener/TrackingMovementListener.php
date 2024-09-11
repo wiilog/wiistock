@@ -92,43 +92,43 @@ class TrackingMovementListener implements EventSubscriber
 
         foreach ($this->flushedTackingMovements as $trackingMovement) {
             $pack = $trackingMovement->getPack();
-            if(isset($pack) && $pack->isBasic()) {
-                if($trackingMovement->isDrop()) {
-                    $nature = $trackingMovement->getEmplacement()?->getNewNatureOnDrop();
-                }
-                else if ($trackingMovement->isPicking()) {
-                    $nature = $trackingMovement->getEmplacement()?->getNewNatureOnPick();
-                }
 
-                if(isset($nature)) {
-                    $oldNature = $pack->getNature();
-                    $user = $trackingMovement->getOperateur();
-                    $pack->setNature($nature);
-                    $unitOfWork = $args->getObjectManager()->getUnitOfWork();
-                    $unitOfWork->recomputeSingleEntityChangeSet(
-                        $args->getObjectManager()->getClassMetadata(Pack::class),
-                        $pack
-                    );
+            $nature = match (true) {
+                $trackingMovement->isDrop() => $trackingMovement->getEmplacement()?->getNewNatureOnDrop(),
+                $trackingMovement->isPicking() => $trackingMovement->getEmplacement()?->getNewNatureOnPick(),
+                default => null
+            };
 
-                    $message =
-                        'Ancienne nature : ' . $this->formatService->nature($oldNature,'-') . '
-                        Nouvelle nature : ' . $this->formatService->nature($nature,'-')
-                    ;
-
-                        $historyRecord = $this->packService->persistLogisticUnitHistoryRecord(
-                            $unitOfWork,
-                            $pack,
-                            [
-                            "message" => $message,
-                            "historyDate" => $trackingMovement->getDatetime(),
-                            "user" => $user,
-                            "type" => "Mise à jour automatique de la nature",
-                            "location" => $trackingMovement->getEmplacement()
-                            ]
-                        );
-                    $unitOfWork->computeChangeSet($args->getObjectManager()->getClassMetadata(LogisticUnitHistoryRecord::class), $historyRecord);
-                }
+            if (!($pack?->isBasicUnit()) && !$nature) {
+                continue;
             }
+
+            $oldNature = $pack->getNature();
+            $user = $trackingMovement->getOperateur();
+            $pack->setNature($nature);
+            $unitOfWork = $args->getObjectManager()->getUnitOfWork();
+
+
+            $message = "Ancienne nature : " . $this->formatService->nature($oldNature, '-') . "\n" .
+                "Nouvelle nature : " . $this->formatService->nature($nature, '-');
+
+            $historyRecord = $this->packService->persistLogisticUnitHistoryRecord(
+                $unitOfWork,
+                $pack,
+                [
+                    "message" => $message,
+                    "historyDate" => $trackingMovement->getDatetime(),
+                    "user" => $user,
+                    "type" => "Mise à jour automatique de la nature",
+                    "location" => $trackingMovement->getEmplacement()
+                ]
+            );
+
+            $unitOfWork->computeChangeSet(
+                $args->getObjectManager()->getClassMetadata(Pack::class),
+                $pack
+            );
+            $unitOfWork->computeChangeSet($args->getObjectManager()->getClassMetadata(LogisticUnitHistoryRecord::class), $historyRecord);
         }
 
     }
