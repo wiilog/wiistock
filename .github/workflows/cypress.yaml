@@ -109,21 +109,21 @@ jobs:
 
             -   name: Upload Cypress logs artifact # run only if cypress fail
                 if: failure()
-                uses: actions/upload-artifact@v2
+                uses: actions/upload-artifact@v4
                 with:
                     name: cypress-logs
                     path: cypress_logs
 
             -   name: Upload Cypress videos artifact # run only if cypress fail
                 if: failure()
-                uses: actions/upload-artifact@v2
+                uses: actions/upload-artifact@v4
                 with:
                     name: cypress-videos
                     path: cypress_videos
 
             -   name: Upload dev.log artifact # run only if cypress fail
                 if: failure()
-                uses: actions/upload-artifact@v2
+                uses: actions/upload-artifact@v4
                 with:
                     name: dev-log-symfony
                     path: dev_log
