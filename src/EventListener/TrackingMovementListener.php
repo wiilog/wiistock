@@ -99,7 +99,7 @@ class TrackingMovementListener implements EventSubscriber
                 default => null
             };
 
-            if (!($pack?->isBasicUnit()) && !$nature) {
+            if (!($pack?->isBasicUnit()) || !$nature) {
                 continue;
             }
 
