@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 
-//TODO WIIS-11851 remove ?
+//TODO WIIS-11851 remove ? Pas sur ça peut être bien
 #[AsCommand(
     name: 'app:tracking:calculate-delay',
     description: 'This commands generate the yaml translations.'
