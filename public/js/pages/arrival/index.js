@@ -7,8 +7,6 @@ let hasDataToRefresh;
 
 $(function () {
 
-    console.log('arrivage index');
-
     hasDataToRefresh = false;
     const openNewModal = Boolean($('#openNewModal').val());
     if(openNewModal){
