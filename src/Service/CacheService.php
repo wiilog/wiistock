@@ -20,6 +20,8 @@ class CacheService
     public const COLLECTION_PURCHASE_REQUEST_PLANS = "purchase-request-plans";
     public const COLLECTION_INVENTORY_MISSION_PLANS = "inventory-mission-plans";
     public const COLLECTION_SETTINGS = "settings";
+    public const COLLECTION_WORKED_DAYS = "worded-days";
+    public const COLLECTION_WORK_FREE_DAYS = "work-free-days";
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;

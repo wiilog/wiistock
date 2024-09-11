@@ -9,9 +9,14 @@ use DatePeriod;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class DateTimeService {
+
+    #[Required]
+    private CacheService $cacheService;
+
     const ENG_TO_FR_MONTHS = [
         'Jan' => 'Janv.',
         'Feb' => 'Févr.',
@@ -257,21 +262,31 @@ class DateTimeService {
     private function getCache(EntityManagerInterface $entityManager, string $key): mixed {
         if (!isset($this->cache[$key])) {
             if ($key === "workedDays") {
-                $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-                $workedDays = $workedDaysRepository->findAll();
-                $this->cache[$key] = Stream::from($workedDays)
-                    ->keymap(fn(DaysWorked $dayWorked) => (
-                    $dayWorked->isWorked()
-                        ? [
-                        $dayWorked->getDay(),
-                        $this->timePeriodToArray($dayWorked->getTimes())
-                    ]
-                        : null
-                    ));
+                // le cacheService->get() fait un set() si le cache n'existe pas via le callback
+                $workedDays = $this->cacheService->get(CacheService::COLLECTION_WORKED_DAYS, "workedDays", function() use ($entityManager) {
+                    $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+                    $workedDays = $workedDaysRepository->findAll();
+                    return Stream::from($workedDays)
+                        ->keymap(fn(DaysWorked $dayWorked) => (
+                        $dayWorked->isWorked()
+                            ? [
+                            $dayWorked->getDay(),
+                            $this->timePeriodToArray($dayWorked->getTimes())
+                        ]
+                            : null
+                        ));
+                });
+
+                $this->cache["workedDays"] = $workedDays;
             }
             else if ($key === "workFreeDays") {
-                $workedDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-                $this->cache[$key] = $workedDaysRepository->getWorkFreeDaysToDateTime();
+                // le cacheService->get() fait un set() si le cache n'existe pas via le callback
+                $workFreeDays = $this->cacheService->get(CacheService::COLLECTION_WORK_FREE_DAYS, "workFreeDays", function() use ($entityManager) {
+                    $workedDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+                    return $workedDaysRepository->getWorkFreeDaysToDateTime();
+                });
+
+                $this->cache["workFreeDays"] = $workFreeDays;
             }
         }
 
