@@ -82,7 +82,7 @@ class PackController extends AbstractController
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
 
-        $trackingDelay = $packService->calculateTrackingDelay($logisticUnit);
+        $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
 
         return $this->render('pack/show.html.twig', [
             "logisticUnit" => $logisticUnit,

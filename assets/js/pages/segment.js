@@ -1,4 +1,4 @@
-export function addEntryTimeInterval($button, time = null, notEmptySegment = false, fromNature = false) {
+export function addEntryTimeInterval($button, time = null, notEmptySegment = false, fromNature = false, color = null) {
     const current = $button.data(`current`);
 
     if (notEmptySegment) {
@@ -10,8 +10,6 @@ export function addEntryTimeInterval($button, time = null, notEmptySegment = fal
             return false;
         }
     }
-
-    const colors = fromNature ? $button.closest('.segments-list').data(`colors`) : false;
 
     const $newSegmentInput = $(`
         <div class="segment-container interval">
@@ -40,7 +38,7 @@ export function addEntryTimeInterval($button, time = null, notEmptySegment = fal
                 </div>
                 ${fromNature
         ? `<div class="col-2">
-                        ${getInputColor('segmentColor', colors ? colors[current] : false , 'data-array')}
+                        ${getInputColor('segmentColor', color ?? false , 'data-array')}
                         </div>`
         : ''
     }
@@ -107,9 +105,10 @@ export function initializeEntryTimeIntervals($modal, fromNature = false) {
     const $segmentsList = $modal.find('.segments-list');
     if ($segmentsList.length > 0) {
         const segments = $segmentsList.data(`segments`);
+        const colors = $segmentsList.data(`colors`);
         if (segments.length > 0) {
-            for (const segment of segments) {
-                addEntryTimeInterval($button, segment, false, fromNature);
+            for (let [index, segment] of Object.entries(segments)) {
+                addEntryTimeInterval($button, segment, false, fromNature, colors[index]);
             }
         } else if (!fromNature){
             addEntryTimeInterval($button, null, false, true);

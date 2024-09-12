@@ -3,7 +3,6 @@
 
 namespace App\Service;
 
-use App\Command\CalculateTrackingDelayCommand;
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
@@ -148,7 +147,7 @@ readonly class PackService {
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
 
-        $finalTrackingDelay = $this->calculateTrackingDelay($pack);
+        $finalTrackingDelay = $this->generateTrackingDelayHtml($pack);
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -188,7 +187,7 @@ readonly class PackService {
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
-            "trackingDelay" => $finalTrackingDelay["delay"],
+            "trackingDelay" => $finalTrackingDelay,
         ];
     }
 
@@ -756,26 +755,43 @@ readonly class PackService {
         $entityManager->persist($logisticUnitHistoryRecord);
     }
 
-    public function calculateTrackingDelay(Pack $pack): ?array
+    public function generateTrackingDelayHtml(Pack $pack): ?string
     {
         $packTrackingDelay = $pack->getTrackingDelay();
-        $natureTrackingDelay = $pack->getNature()?->getTrackingDelay();
+        $nature = $pack->getNature();
+        $natureTrackingDelay = $nature?->getTrackingDelay();
         $trackingDelay = $packTrackingDelay
             ? $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime())
             : null;
 
+        $delayIsLate = false;
         if($packTrackingDelay && $natureTrackingDelay){
             $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
                 ? $pack->getTrackingDelay()->getElapsedTime()
                 : ($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay)/1000) + $pack->getTrackingDelay()->getElapsedTime();
 
             $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
-            $strDelay = $this->dateTimeService->intervalToHourAndMinStr($this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime)));
+
+            if($remainingTime < 0){
+                $trackingDelayColor = $nature->getExceededDelayColor() ?? "#000000";
+                $delayIsLate = true;
+            } else {
+                $trackingDelaySegments = $nature->getTrackingDelaySegments();
+                $trackingDelayColor = "#000000";
+
+                foreach ($trackingDelaySegments as $trackingDelaySegment){
+                    $segmentDelayInSeconds = $this->dateTimeService->calculateSecondsFrom($trackingDelaySegment["segmentMax"], Nature::TRACKING_DELAY_REGEX, "h");
+                    if($remainingTime <= $segmentDelayInSeconds){
+                        $trackingDelayColor = $trackingDelaySegment["segmentColor"];
+                    }
+                }
+            }
+
+            $strDelay = ($delayIsLate ? '-' : '').$this->dateTimeService->intervalToHourAndMinStr($this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime)));
         }
 
-        return [
-            "delay" => $strDelay ?? null,
-            "late" => isset($remainingTime) && $remainingTime < 0,
-        ];
+        return $packTrackingDelay && $natureTrackingDelay
+            ? "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>"
+            : null;
     }
 }

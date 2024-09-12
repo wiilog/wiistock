@@ -40,9 +40,7 @@
                                 }) }}
                                 {% if trackingDelay %}
                                     <div class="d-flex flex-column align-items-end">
-                                        {{ form.label(trackingDelay.delay, false, false, {
-                                            class: labelClass,
-                                        }) }}
+                                        {{ trackingDelay|raw }}
                                         {{ form.label("Temps restant", false, false, {
                                             class: labelClass,
                                         }) }}
