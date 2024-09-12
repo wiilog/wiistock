@@ -77,7 +77,7 @@ class TrackingMovementListener implements EventSubscriber
         }
     }
 
-   #[AsEventListener(event: 'onFlush')]
+    #[AsEventListener(event: 'onFlush')]
     public function onFlush(OnFlushEventArgs $args): void {
         $this->flushedTackingMovements = Stream::from($args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions())
             ->filter(static fn($entity) => $entity instanceof TrackingMovement)
