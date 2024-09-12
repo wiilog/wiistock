@@ -20,6 +20,7 @@ use App\Command\Cron\ScheduleInventoryMissionCommand;
 use App\Command\InactiveSensorsCommand;
 use App\Service\SpecificService;
 use Cron\CronBundle\Entity\CronJob;
+use Cron\CronBundle\Entity\CronReport;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -137,10 +138,14 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
     public function load(ObjectManager $manager): void {
         $cronJobRepository = $manager->getRepository(CronJob::class);
 
+        $manager->createQueryBuilder()
+            ->delete(CronReport::class, "cron_report")
+            ->getQuery()
+            ->execute();
+
         $existingCronJobs = $cronJobRepository->findAll();
         foreach ($existingCronJobs as $cronJob) {
-            exec('php bin/console cron:disable ' . $cronJob->getName());
-            exec('yes | php bin/console cron:delete ' . $cronJob->getName());
+            $manager->remove($cronJob);
         }
 
         $manager->flush();
