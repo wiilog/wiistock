@@ -9,12 +9,9 @@ use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\Tracking\TrackingMovement;
-use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Type;
-use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
-use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use Doctrine\Common\EventSubscriber;
@@ -50,10 +47,6 @@ class TrackingMovementListener implements EventSubscriber
     private array $flushedTackingMovements = [];
 
     private ?Type $trackingMovementType = null;
-
-    public function __construct(private readonly PackService $packService, private readonly FormatService $formatService)
-    {
-    }
 
     public function getSubscribedEvents(): array {
         return [
