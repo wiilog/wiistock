@@ -31,12 +31,14 @@ class SpecificService
     const CLIENT_PAELLA = 'paella';
     const CLIENT_SAUCISSON_BRIOCHE = 'saucisson_brioche';
     const CLIENT_QUENELLE = 'quenelle';
+    const CLIENT_CROUSTADE = 'croustade';
 
     public const SPECIFIC_DASHBOARD_REFRESH_RATE = [
         self::CLIENT_QUICHE => 1,
         self::CLIENT_BARBECUE => 1,
         self::CLIENT_POTEE => 1,
         self::CLIENT_BOURGUIGNON => 1,
+        self::CLIENT_CROUSTADE => 1,
     ];
 
     public const DEFAULT_DASHBOARD_REFRESH_RATE = 5;

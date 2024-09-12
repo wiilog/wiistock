@@ -243,11 +243,13 @@ class PackRepository extends EntityRepository
                         "arrival_type.label LIKE :value",
                         "child_articles_search.barCode LIKE :value"
                     ];
+
                     $queryBuilder
                         ->leftJoin('pack.arrivage', 'arrivageSearch')
                         ->leftJoin('pack.lastTracking', 'lastTrackingMovement')
-                        ->leftJoin('arrivageSearch.type','arrival_type')
+                        ->leftJoin('arrivageSearch.type', 'arrival_type')
                         ->leftJoin('pack.childArticles', 'child_articles_search');
+
                     foreach ($fields as $field) {
                         if ($field['fieldVisible'] ?? false) {
                             switch ($field['name'] ?? null) {
@@ -263,43 +265,40 @@ class PackRepository extends EntityRepository
                                     $searchParams[] = 'natureSearch.label LIKE :value';
                                     break;
                                 case "arrivage":
-                                    $queryBuilder->leftJoin('pack.arrivage', 'arrivageSearch');
                                     $searchParams[] = 'arrivageSearch.numeroArrivage LIKE :value';
                                     break;
-                                case "receiptAssociation": {
+                                case "receiptAssociation":
                                     $queryBuilder->leftJoin('pack.receiptAssociations', 'receipt_associations_search');
                                     $searchParams[] = 'receipt_associations_search.receptionNumber LIKE :value';
                                     break;
-                                }
-                                case "lastMovementDate": {
+                                case "lastMovementDate":
                                     $searchParams[] = 'lastTrackingMovement.datetime LIKE :value';
                                     break;
-                                }
-                                case "project": {
-                                    $queryBuilder->join('pack.project', 'projectSearch');
+                                case "project":
+                                    $queryBuilder->leftJoin('pack.project', 'projectSearch');
                                     $searchParams[] = 'projectSearch.code LIKE :value';
                                     break;
-                                }
-                                case "quantity": {
+                                case "quantity":
                                     $searchParams[] = 'pack.quantity LIKE :value';
                                     break;
-                                }
-                                case "truckArrivalNumber": {
+                                case "truckArrivalNumber":
                                     $queryBuilder->leftJoin('arrivageSearch.truckArrival', 'truckArrivalSearch');
                                     $searchParams[] = 'truckArrivalSearch.number LIKE :value';
 
-                                    $queryBuilder->leftJoin('arrivageSearch.truckArrivalLines', 'truckArrivalLinesSearch');
-                                    $queryBuilder->leftJoin('truckArrivalLinesSearch.truckArrival', 'truckArrivalByLinesSearch');
+                                    $queryBuilder->leftJoin('arrivageSearch.truckArrivalLines', 'truckArrivalLinesSearch')
+                                        ->leftJoin('truckArrivalLinesSearch.truckArrival', 'truckArrivalByLinesSearch');
 
                                     $searchParams[] = 'truckArrivalByLinesSearch.number LIKE :value';
                                     break;
-                                }
                             }
                         }
                     }
-                    $queryBuilder
-                        ->andWhere($queryBuilder->expr()->orX(...$searchParams))
-                        ->setParameter('value', '%' . $search . '%');
+
+                    if (!empty($searchParams)) {
+                        $queryBuilder
+                            ->andWhere($queryBuilder->expr()->orX(...$searchParams))
+                            ->setParameter('value', '%' . $search . '%');
+                    }
                 }
             }
 
@@ -814,7 +813,7 @@ class PackRepository extends EntityRepository
     public function findDuplicateCode() {
         // get all packs having a non-unique code
         return $this->createQueryBuilder("pack")
-            ->select("pack.code")
+            ->select("TRIM(pack.code) AS code")
             ->addSelect("COUNT(pack.code) AS count")
             ->groupBy("pack.code")
             ->having("COUNT(pack.code) > 1")

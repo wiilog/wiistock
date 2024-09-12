@@ -654,22 +654,6 @@ class SettingsController extends AbstractController {
                 ]
             ],
         ],
-        self::CATEGORY_PRATICAL_LINKS => [
-            "label" => "Liens pratiques",
-            "icon" => "links",
-            "menus" => [
-                self::MENU_MOBILE_APP => [
-                    "label" => "Application mobile",
-                    "route" => "mobile_app_link",
-                    "hint" => "Application mobile Android, extension de la version web, dédiée à la mobilité sur site.",
-                ],
-                self::MENU_WIISPOOL => [
-                    "label" => "Wiispool",
-                    "route" => "wiispool_link",
-                    "hint" => "Application Windows d'impression automatique de fichiers PDF.",
-                ],
-            ],
-        ],
     ];
 
     public const CATEGORY_GLOBAL = "global";
@@ -684,7 +668,6 @@ class SettingsController extends AbstractController {
     public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
     public const CATEGORY_TEMPLATES = "modeles";
-    public const CATEGORY_PRATICAL_LINKS = "liens pratiques";
 
     public const MENU_SITE_APPEARANCE = "apparence_site";
     public const MENU_WORKING_HOURS = "heures_travaillees";
@@ -761,8 +744,6 @@ class SettingsController extends AbstractController {
     public const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
 
     public const MENU_TEMPLATE_DISPATCH = "acheminement";
-    public const MENU_MOBILE_APP = "application_mobile";
-    public const MENU_WIISPOOL = "wiispool";
     public const MENU_TEMPLATE_DELIVERY = "livraison";
     public const MENU_TEMPLATE_SHIPPING = "expedition";
     public const MENU_TEMPLATE_PURCHASE = "achats";

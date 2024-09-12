@@ -107,8 +107,6 @@ class PackController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function logisticUnitContent(EntityManagerInterface $manager,
                                         Pack                    $pack,
-                                        PackService             $packService,
-                                        EntityManagerInterface  $entityManager,
                                         LanguageService         $languageService): JsonResponse {
         $longFormat = $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG;
 
