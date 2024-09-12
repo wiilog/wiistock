@@ -877,4 +877,8 @@ class Pack implements PairedEntity {
         $this->lastStop = $lastStop;
         return $this;
     }
+    public function isBasicUnit(): bool {
+        return !$this->referenceArticle && !$this->article;
+    }
+
 }

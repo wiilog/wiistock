@@ -539,13 +539,4 @@ class TrackingMovement implements AttachmentContainer {
         $this->event = $event;
         return $this;
     }
-
-    public function serialize(FormatService $formatService): array {
-        return [
-            FixedFieldEnum::quantity->value => $this->getQuantity(),
-            FixedFieldEnum::comment->value => strip_tags($this->getCommentaire()),
-            FixedFieldEnum::group->value => $formatService->pack($this->getPackParent()),
-            FixedFieldEnum::nature->value => $formatService->nature($this->pack->getNature()),
-        ];
-    }
 }
