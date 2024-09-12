@@ -188,7 +188,7 @@ readonly class PackService {
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
-            "trackingDelay" => $finalTrackingDelay,
+            "trackingDelay" => $finalTrackingDelay["delay"],
         ];
     }
 
@@ -756,20 +756,26 @@ readonly class PackService {
         $entityManager->persist($logisticUnitHistoryRecord);
     }
 
-    public function calculateTrackingDelay(Pack $pack): ?string
+    public function calculateTrackingDelay(Pack $pack): ?array
     {
         $packTrackingDelay = $pack->getTrackingDelay();
+        $natureTrackingDelay = $pack->getNature()?->getTrackingDelay();
         $trackingDelay = $packTrackingDelay
             ? $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime())
             : null;
 
-        if($packTrackingDelay){
+        if($packTrackingDelay && $natureTrackingDelay){
             $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
                 ? $pack->getTrackingDelay()->getElapsedTime()
                 : ($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay)/1000) + $pack->getTrackingDelay()->getElapsedTime();
-            return $this->dateTimeService->intervalToHourAndMinStr($this->dateTimeService->convertSecondsToDateInterval($trackingDelayInSeconds));
+
+            $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
+            $strDelay = $this->dateTimeService->intervalToHourAndMinStr($this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime)));
         }
 
-        return null;
+        return [
+            "delay" => $strDelay ?? null,
+            "late" => isset($remainingTime) && $remainingTime < 0,
+        ];
     }
 }

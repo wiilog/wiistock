@@ -34,16 +34,17 @@
                         </div>
                         <div class="specifications w-100 m-3">
                             <div class="d-flex justify-content-between align-items-start">
+                                {% set labelClass = "ref text-break font-weight-bold" %}
                                 {{ form.label(logisticUnit.code, false, false, {
-                                    class: "ref text-break font-weight-bold",
+                                    class: labelClass,
                                 }) }}
                                 {% if trackingDelay %}
                                     <div class="d-flex flex-column align-items-end">
-                                        {{ form.label(trackingDelay, false, false, {
-                                            class: "ref text-break font-weight-bold",
+                                        {{ form.label(trackingDelay.delay, false, false, {
+                                            class: labelClass,
                                         }) }}
                                         {{ form.label("Temps restant", false, false, {
-                                            class: "ref text-break font-weight-bold",
+                                            class: labelClass,
                                         }) }}
                                     </div>
                                 {% endif %}
