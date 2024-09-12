@@ -84,54 +84,11 @@ class TrackingMovementListener implements EventSubscriber
         }
     }
 
-    #[AsEventListener(event: 'onFlush')]
+   #[AsEventListener(event: 'onFlush')]
     public function onFlush(OnFlushEventArgs $args): void {
         $this->flushedTackingMovements = Stream::from($args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions())
             ->filter(static fn($entity) => $entity instanceof TrackingMovement)
             ->toArray();
-
-        foreach ($this->flushedTackingMovements as $trackingMovement) {
-            $pack = $trackingMovement->getPack();
-
-            $nature = match (true) {
-                $trackingMovement->isDrop() => $trackingMovement->getEmplacement()?->getNewNatureOnDrop(),
-                $trackingMovement->isPicking() => $trackingMovement->getEmplacement()?->getNewNatureOnPick(),
-                default => null
-            };
-
-            // todo WIIS-11846 : check if $trackingMovement == pack->getLastTracking (voir avec Pauline)
-            if (!($pack?->isBasicUnit()) || !$nature) {
-                continue;
-            }
-
-            $oldNature = $pack->getNature();
-            $user = $trackingMovement->getOperateur();
-            $pack->setNature($nature);
-            $unitOfWork = $args->getObjectManager()->getUnitOfWork();
-
-
-            $message = "Ancienne nature : " . $this->formatService->nature($oldNature, '-') . "\n" .
-                "Nouvelle nature : " . $this->formatService->nature($nature, '-');
-
-            $historyRecord = $this->packService->persistLogisticUnitHistoryRecord(
-                $unitOfWork,
-                $pack,
-                [
-                    "message" => $message,
-                    "historyDate" => $trackingMovement->getDatetime(),
-                    "user" => $user,
-                    "type" => "Mise à jour automatique de la nature",
-                    "location" => $trackingMovement->getEmplacement()
-                ]
-            );
-
-            $unitOfWork->computeChangeSet(
-                $args->getObjectManager()->getClassMetadata(Pack::class),
-                $pack
-            );
-            $unitOfWork->computeChangeSet($args->getObjectManager()->getClassMetadata(LogisticUnitHistoryRecord::class), $historyRecord);
-        }
-
     }
 
     #[AsEventListener(event: 'postFlush')]

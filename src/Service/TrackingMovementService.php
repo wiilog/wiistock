@@ -11,6 +11,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Livraison;
@@ -456,14 +457,6 @@ class TrackingMovementService {
 
         $pack->addTrackingMovement($tracking);
 
-        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-            "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking),
-            "historyDate" => $tracking->getDatetime(),
-            "user" => $tracking->getOperateur(),
-            "type" => ucfirst($tracking->getType()->getCode()),
-            "location" => $tracking->getEmplacement(),
-        ]);
-
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->managePackLinksWithOperations($entityManager, $tracking, [
             "from" => $from,
@@ -472,6 +465,16 @@ class TrackingMovementService {
         ]);
         $this->treatGroupDrop($entityManager, $pack, $tracking);
         $this->manageTrackingFiles($tracking, $fileBag);
+
+        $natureChangedData = $this->changeNatureAccordingToLocation($tracking);
+
+        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+            "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, $natureChangedData),
+            "historyDate" => $tracking->getDatetime(),
+            "user" => $tracking->getOperateur(),
+            "type" => ucfirst($tracking->getType()->getCode()),
+            "location" => $tracking->getEmplacement(),
+        ]);
 
         if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
@@ -595,6 +598,36 @@ class TrackingMovementService {
         foreach ($trackingMovement->getAttachments() as $attachement) {
             $entityManager->persist($attachement);
         }
+    }
+
+    public function changeNatureAccordingToLocation(TrackingMovement $trackingMovement): array {
+        $pack = $trackingMovement->getPack();
+        $location = $trackingMovement->getEmplacement();
+        $oldNature = $pack?->getNature();
+
+        $newNature = match (true) {
+            $trackingMovement->isDrop() => $location?->getNewNatureOnDrop(),
+            $trackingMovement->isPicking() => $location?->getNewNatureOnPick(),
+            default => null
+        };
+
+        if (!($pack?->isBasicUnit())
+            || !$newNature
+            || ($newNature->getId() === $pack?->getNature()?->getId())
+            || $pack?->getLastTracking() !== $trackingMovement
+        ) {
+            return [
+                "natureChanged" => false,
+            ];
+        }
+
+        $pack->setNature($newNature);
+
+        return [
+            "natureChanged" => true,
+            "oldNature" => $oldNature,
+            "newNature" => $newNature,
+        ];
     }
 
     public function managePackLinksWithTracking(EntityManagerInterface $entityManager,
@@ -1631,8 +1664,29 @@ class TrackingMovementService {
             ->toArray();
     }
 
-    public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement): string {
-        $values = $trackingMovement->serialize($this->formatService);
+    public function buildCustomLogisticUnitHistoryRecord(TrackingMovement   $trackingMovement,
+                                                         array              $natureChangedData = []): string {
+
+        $natureChanged = $natureChangedData["natureChanged"] ?? false;
+        $oldNature = $natureChangedData["oldNature"] ?? null;
+        $newNature = $natureChangedData["newNature"] ?? null;
+
+        $pack = $trackingMovement->getPack();
+        $packParent = $trackingMovement->getPackParent();
+
+        $values = [
+            FixedFieldEnum::quantity->value => $trackingMovement->getQuantity(),
+            FixedFieldEnum::comment->value => $this->formatService->html($trackingMovement->getCommentaire()),
+            FixedFieldEnum::group->value => $this->formatService->pack($packParent),
+        ];
+
+        if ($natureChanged) {
+            $values["Nouvelle nature"] = $this->formatService->nature($newNature);
+            $values["Ancienne nature"] = $this->formatService->nature($oldNature);
+        }
+        else {
+            $values[FixedFieldEnum::nature->value] = $this->formatService->nature($pack->getNature());
+        }
 
         return Stream::from($values)
             ->filter(static fn(?string $value) => $value)
