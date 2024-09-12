@@ -70,7 +70,9 @@ class PackController extends AbstractController
 
     #[Route('/voir/{id}', name: 'pack_show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
-    public function show(Pack $logisticUnit, EntityManagerInterface $manager): Response {
+    public function show(Pack $logisticUnit,
+                         EntityManagerInterface $manager,
+                         PackService $packService): Response {
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($logisticUnit);
 
@@ -79,6 +81,8 @@ class PackController extends AbstractController
         $truckArrival = $arrival
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
+
+        $trackingDelay = $packService->calculateTrackingDelay($logisticUnit);
 
         return $this->render('pack/show.html.twig', [
             "logisticUnit" => $logisticUnit,
@@ -91,6 +95,7 @@ class PackController extends AbstractController
                 "width" => 10,
                 "type" => 'qrcode',
             ],
+            "trackingDelay" => $trackingDelay,
         ]);
     }
 

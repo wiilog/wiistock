@@ -3,10 +3,10 @@
 
 namespace App\Service;
 
+use App\Command\CalculateTrackingDelayCommand;
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
-use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
@@ -20,14 +20,12 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
-use App\Entity\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
@@ -53,7 +51,8 @@ readonly class PackService {
                                 private UserService                 $userService) {}
 
 
-    public function getDataForDatatable($params = null) {
+    public function getDataForDatatable($params = null): array
+    {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->security->getUser();
@@ -124,7 +123,7 @@ readonly class PackService {
         ];
     }
 
-    public function dataRowPack(Pack $pack)
+    public function dataRowPack(Pack $pack): array
     {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
@@ -148,6 +147,8 @@ readonly class PackService {
         $truckArrival = $arrival
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
+
+        $finalTrackingDelay = $this->calculateTrackingDelay($pack);
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -187,10 +188,12 @@ readonly class PackService {
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
+            "trackingDelay" => $finalTrackingDelay,
         ];
     }
 
-    public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
+    public function dataRowGroupHistory(TrackingMovement $trackingMovement): array
+    {
         return [
             'group' => $trackingMovement->getPackParent() ? ($this->formatService->pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
             'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
@@ -542,6 +545,7 @@ readonly class PackService {
                 ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
                 ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
+                ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
             ],
             [],
             $columnsVisible
@@ -750,5 +754,22 @@ readonly class PackService {
             ->setUser($user);
 
         $entityManager->persist($logisticUnitHistoryRecord);
+    }
+
+    public function calculateTrackingDelay(Pack $pack): ?string
+    {
+        $packTrackingDelay = $pack->getTrackingDelay();
+        $trackingDelay = $packTrackingDelay
+            ? $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime())
+            : null;
+
+        if($packTrackingDelay){
+            $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
+                ? $pack->getTrackingDelay()->getElapsedTime()
+                : ($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay)/1000) + $pack->getTrackingDelay()->getElapsedTime();
+            return $this->dateTimeService->intervalToHourAndMinStr($this->dateTimeService->convertSecondsToDateInterval($trackingDelayInSeconds));
+        }
+
+        return null;
     }
 }
