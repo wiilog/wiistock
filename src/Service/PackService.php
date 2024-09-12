@@ -6,7 +6,6 @@ namespace App\Service;
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
-use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
@@ -20,7 +19,6 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
-use App\Entity\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
@@ -28,7 +26,6 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use Exception;
-use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
@@ -731,9 +728,9 @@ readonly class PackService {
      * @param array{message: string, historyDate: DateTime, user: Utilisateur, type: string, location?: Emplacement} $data
      * @return void
      */
-    public function persistLogisticUnitHistoryRecord(EntityManagerInterface|UnitOfWork $entityManager,
+    public function persistLogisticUnitHistoryRecord(EntityManagerInterface $entityManager,
                                                      Pack                   $logisticUnit,
-                                                     array                  $data): LogisticUnitHistoryRecord {
+                                                     array                  $data): void {
 
         $message = $data["message"];
         $historyDate = $data["historyDate"];
@@ -751,7 +748,5 @@ readonly class PackService {
             ->setUser($user);
 
         $entityManager->persist($logisticUnitHistoryRecord);
-
-        return $logisticUnitHistoryRecord;
     }
 }
