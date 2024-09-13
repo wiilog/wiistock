@@ -28,30 +28,67 @@ use Doctrine\ORM\UnitOfWork;
 use Exception;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-readonly class PackService {
-    public function __construct(private EntityManagerInterface      $entityManager,
-                                private Security                    $security,
-                                private Twig_Environment            $templating,
-                                private TrackingMovementService     $trackingMovementService,
-                                private MailerService               $mailerService,
-                                private LanguageService             $languageService,
-                                private TranslationService          $translation,
-                                private FieldModesService           $fieldModesService,
-                                private FormatService               $formatService,
-                                private ReceptionLineService        $receptionLineService,
-                                private DateTimeService             $dateTimeService,
-                                private SettingsService             $settingsService,
-                                private ArrivageService             $arrivageService,
-                                private TranslationService          $translationService,
-                                private ProjectHistoryRecordService $projectHistoryRecordService,
-                                private TruckArrivalService         $truckArrivalService,
-                                private UserService                 $userService) {}
+class PackService {
 
+    private const PACK_DEFAULT_TRACKING_DELAY_COLOR = "#000000";
 
-    public function getDataForDatatable($params = null) {
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public Security $security;
+
+    #[Required]
+    public Twig_Environment $templating;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public FieldModesService $fieldModesService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
+    #[Required]
+    public DateTimeService $dateTimeService;
+
+    #[Required]
+    public SettingsService $settingsService;
+
+    #[Required]
+    public ArrivageService $arrivageService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public ProjectHistoryRecordService $projectHistoryRecordService;
+
+    #[Required]
+    public TruckArrivalService $truckArrivalService;
+
+    #[Required]
+    public UserService $userService;
+
+    public function getDataForDatatable($params = null): array
+    {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->security->getUser();
@@ -122,7 +159,7 @@ readonly class PackService {
         ];
     }
 
-    public function dataRowPack(Pack $pack)
+    public function dataRowPack(Pack $pack): array
     {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
@@ -146,6 +183,8 @@ readonly class PackService {
         $truckArrival = $arrival
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
+
+        $finalTrackingDelay = $this->generateTrackingDelayHtml($pack);
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
@@ -185,10 +224,12 @@ readonly class PackService {
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
+            "trackingDelay" => $finalTrackingDelay,
         ];
     }
 
-    public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
+    public function dataRowGroupHistory(TrackingMovement $trackingMovement): array
+    {
         return [
             'group' => $trackingMovement->getPackParent() ? ($this->formatService->pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
             'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
@@ -540,6 +581,7 @@ readonly class PackService {
                 ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
                 ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
+                ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
             ],
             [],
             $columnsVisible
@@ -748,5 +790,48 @@ readonly class PackService {
             ->setUser($user);
 
         $entityManager->persist($logisticUnitHistoryRecord);
+    }
+
+    public function generateTrackingDelayHtml(Pack $pack): ?string
+    {
+        $packTrackingDelay = $pack->getTrackingDelay();
+        $nature = $pack->getNature();
+        $natureTrackingDelay = $nature?->getTrackingDelay();
+
+        if(!$packTrackingDelay || !$natureTrackingDelay) {
+            return null;
+        }
+
+        $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
+
+        $delayIsLate = false;
+        $elapsedTime = $pack->getTrackingDelay()->getElapsedTime();
+        $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
+            ? $elapsedTime
+            : ($elapsedTime + floor($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay) / 1000));
+
+        $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
+
+        if($remainingTime < 0){
+            $trackingDelayColor = $nature->getExceededDelayColor() ?? PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
+            $delayIsLate = true;
+        } else {
+            $trackingDelaySegments = $nature->getTrackingDelaySegments();
+            $trackingDelayColor = PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
+
+            foreach ($trackingDelaySegments as $trackingDelaySegment){
+                $segmentDelayInSeconds = $this->dateTimeService->calculateSecondsFrom($trackingDelaySegment["segmentMax"], Nature::TRACKING_DELAY_REGEX, "h");
+                if($remainingTime <= $segmentDelayInSeconds){
+                    $trackingDelayColor = $trackingDelaySegment["segmentColor"];
+                    break;
+                }
+            }
+        }
+
+        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime));
+        $formattedRemainingInterval = $this->dateTimeService->intervalToHourAndMinStr($remainingInterval);
+        $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
+
+        return "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>";
     }
 }

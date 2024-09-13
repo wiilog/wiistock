@@ -180,7 +180,7 @@ class DateTimeService {
     }
 
     public function intervalToHourAndMinStr(DateInterval $delay): string {
-        $hours = sprintf('%02d', $delay->h);
+        $hours = sprintf('%02d', ($delay->d*24) + $delay->h);
         $minutes = sprintf('%02d', $delay->i);
         return "{$hours}h{$minutes}";
     }
@@ -289,5 +289,13 @@ class DateTimeService {
         $dateTime1->add($interval);
 
         return ($dateTime1->getTimestamp() - $dateTime2->getTimestamp()) * 1000;
+    }
+
+    public function convertSecondsToDateInterval(int $seconds): DateInterval {
+        $dateTime1 = new DateTime();
+        $dateTime2 = clone $dateTime1;
+        $dateTime1->modify("+{$seconds} seconds");
+
+        return $dateTime1->diff($dateTime2);
     }
 }

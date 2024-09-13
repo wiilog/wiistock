@@ -164,10 +164,10 @@
     <div class="form-group col-12 p-0">
         {% include 'utils/segments-list.html.twig' with {
             defaultValues: [],
-            values: segmentsMax is defined and segmentsColors is defined ? [{
+            values: segmentsMax is defined and segmentsColors is defined ? {
                 segments: segmentsMax,
                 colors: segmentsColors,
-            }] : [{}],
+            } : [],
             fromNature: true,
         }%}
     </div>
