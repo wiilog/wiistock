@@ -36,10 +36,10 @@ class ImportEmplacementFixtures extends Fixture
             $emplacement = $emplacementRepository->findOneBy(['label' => $label]);
 
             if (empty($emplacement) && !isset($emplacements[$label])) {
-                $emplacement = $this->emplacementDataService->persistLocation([
+                $emplacement = $this->emplacementDataService->persistLocation($manager, [
                     FixedFieldEnum::name->name => $label,
                     FixedFieldEnum::description->name => $description,
-                ], $manager);
+                ]);
 
                 $emplacements[$label] = true;
             }

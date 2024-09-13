@@ -166,24 +166,10 @@ function switchLocations() {
                 });
             });
 
-        const newNatureOnDropProcessor = (data, errors, $form) => {
-            const allowedNatures = data.get('allowedNatures');
-            const newNatureOnDrop = data.get('newNatureOnDrop');
-
-            if (newNatureOnDrop && allowedNatures && !allowedNatures.split(',').includes(newNatureOnDrop) ) {
-                errors.push({
-                    elements: [$form.find('[name="newNatureOnDrop"]')],
-                    message: `La nature doit être présente dans les natures autorisées`,
-                    global: false,
-                });
-            }
-        }
-
         const $newLocationButton = $('.new-location');
         const $modalNewLocation = $('#modalNewLocation');
         Form
             .create($modalNewLocation)
-            .addProcessor(newNatureOnDropProcessor)
             .onOpen(() => {
                 Modal.load('location_get_form', {}, $modalNewLocation, $newLocationButton)
             })
@@ -197,7 +183,6 @@ function switchLocations() {
 
         Form
             .create('#modalEditLocation')
-            .addProcessor(newNatureOnDropProcessor)
             .submitTo(
                 POST,
                 "emplacement_edit",
