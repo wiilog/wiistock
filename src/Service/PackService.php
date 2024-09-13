@@ -27,28 +27,62 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-readonly class PackService {
-    public function __construct(private EntityManagerInterface      $entityManager,
-                                private Security                    $security,
-                                private Twig_Environment            $templating,
-                                private TrackingMovementService     $trackingMovementService,
-                                private MailerService               $mailerService,
-                                private LanguageService             $languageService,
-                                private TranslationService          $translation,
-                                private FieldModesService           $fieldModesService,
-                                private FormatService               $formatService,
-                                private ReceptionLineService        $receptionLineService,
-                                private DateTimeService             $dateTimeService,
-                                private SettingsService             $settingsService,
-                                private ArrivageService             $arrivageService,
-                                private TranslationService          $translationService,
-                                private ProjectHistoryRecordService $projectHistoryRecordService,
-                                private TruckArrivalService         $truckArrivalService,
-                                private UserService                 $userService) {}
+class PackService {
 
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public Security $security;
+
+    #[Required]
+    public Twig_Environment $templating;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public FieldModesService $fieldModesService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
+    #[Required]
+    public DateTimeService $dateTimeService;
+
+    #[Required]
+    public SettingsService $settingsService;
+
+    #[Required]
+    public ArrivageService $arrivageService;
+
+    #[Required]
+    public TranslationService $translationService;
+
+    #[Required]
+    public ProjectHistoryRecordService $projectHistoryRecordService;
+
+    #[Required]
+    public TruckArrivalService $truckArrivalService;
+
+    #[Required]
+    public UserService $userService;
 
     public function getDataForDatatable($params = null): array
     {
