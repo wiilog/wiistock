@@ -151,7 +151,7 @@ export default class Select2 {
                                         if (!alreadySelected) {
                                             const [option] = $element.parent().find('.select2-results__option')
                                                 .toArray()
-                                                .filter((element) => $(element).find('.new-item-container'));
+                                                .filter((element) => !$(element).find('.new-item-container').exists());
                                             $(option).trigger("mouseup");
                                             $element.trigger({
                                                 type: "select2:select",
