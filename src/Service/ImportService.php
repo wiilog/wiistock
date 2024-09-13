@@ -2208,12 +2208,12 @@ class ImportService
                 if (empty($defaultZoneLocation)) {
                     throw new ImportException('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
-                $location = $this->emplacementDataService->persistLocation([
+                $location = $this->emplacementDataService->persistLocation($this->entityManager, [
                     FixedFieldEnum::name->name => $data['emplacement'],
                     FixedFieldEnum::status->name => true,
                     FixedFieldEnum::isDeliveryPoint->name => false,
                     FixedFieldEnum::zone->name => $defaultZoneLocation,
-                ], $this->entityManager);
+                ]);
             }
             $articleOrRef->setEmplacement($location);
         }

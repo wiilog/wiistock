@@ -25,10 +25,10 @@ class LocationController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
-            $toInsert = $emplacementDataService->persistLocation([
+            $toInsert = $emplacementDataService->persistLocation($entityManager, [
                 FixedFieldEnum::name->name => $request->request->get('label'),
                 FixedFieldEnum::isDeliveryPoint->name => $request->request->getBoolean('isDelivery'),
-            ], $entityManager);
+            ]);
             $entityManager->flush();
 
             return $this->json([

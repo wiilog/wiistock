@@ -82,13 +82,7 @@ class LocationController extends AbstractController {
                         EmplacementDataService $emplacementDataService): Response {
         $data = $request->request;
 
-        $dateMaxTime = $data->get(FixedFieldEnum::maximumTrackingDelay->name);
-        $this->checkLocationLabel($entityManager, $data->get(FixedFieldEnum::name->name));
-        $this->checkMaxTime($dateMaxTime);
-
-        $emplacementDataService->checkValidity($data);
-
-        $emplacement = $emplacementDataService->persistLocation($data->all(), $entityManager);
+        $emplacement = $emplacementDataService->persistLocation($entityManager, $data, true);
         $entityManager->flush();
 
         $label = $emplacement->getLabel();
@@ -135,73 +129,22 @@ class LocationController extends AbstractController {
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         EmplacementDataService $emplacementDataService): Response {
+                         EmplacementDataService $locationService): Response {
         $data = $request->request;
-        if ($data->count() > 0) {
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $naturesRepository = $entityManager->getRepository(Nature::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $zoneRepository = $entityManager->getRepository(Zone::class);
-            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $dateMaxTime = $data->get(FixedFieldEnum::maximumTrackingDelay->name);
-            $locationId = $data->getInt('id');
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locationId = $data->getInt('id');
 
-            $this->checkLocationLabel($entityManager, $data->get(FixedFieldEnum::name->name), $locationId);
-            $this->checkMaxTime($dateMaxTime);
+        $location = $locationRepository->find($locationId);
+        $locationService->updateLocation($entityManager, $location, $data, true);
 
-            $zone = $zoneRepository->find($data->getInt(FixedFieldEnum::zone->name));
+        $entityManager->flush();
 
-            $signatoryIds = Stream::explode(',', $data->get(FixedFieldEnum::signatories->name))
-                    ->filterMap(fn(string $id) => trim($id) ?: null)
-                    ->toArray();
-
-            $signatories = !empty($signatoryIds)
-                ? $userRepository->findBy(['id' => $signatoryIds])
-                : [];
-
-            $emplacementDataService->checkValidity($data);
-            $email = $data->get(FixedFieldEnum::email->name);
-
-            $emplacement = $emplacementRepository->find($locationId);
-            $emplacement
-                ->setLabel($data->get(FixedFieldEnum::name->name))
-                ->setDescription($data->get(FixedFieldEnum::description->name))
-                ->setIsDeliveryPoint($data->getBoolean(FixedFieldEnum::isDeliveryPoint->name))
-                ->setIsOngoingVisibleOnMobile($data->getBoolean(FixedFieldEnum::isOngoingVisibleOnMobile->name))
-                ->setSendEmailToManagers($data->getBoolean(FixedFieldEnum::sendEmailToManagers->name))
-                ->setDateMaxTime($dateMaxTime)
-                ->setIsActive($data->getBoolean(FixedFieldEnum::status->name))
-                ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedDeliveryTypes->name))]))
-                ->setAllowedCollectTypes($typeRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedCollectTypes->name))]))
-                ->setAllowedNatures($naturesRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedNatures->name))]))
-                ->setTemperatureRanges($temperatureRangeRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedTemperatures->name))]))
-                ->setManagers($userRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::managers->name))]))
-                ->setSignatories($signatories ?? [])
-                ->setEmail($email)
-                ->setStartTrackingTimerOnPicking($data->getBoolean(FixedFieldEnum::startTrackingTimerOnPicking->name))
-                ->setPauseTrackingTimerOnDrop($data->getBoolean(FixedFieldEnum::pauseTrackingTimerOnDrop->name) )
-                ->setStopTrackingTimerOnDrop($data->getBoolean(FixedFieldEnum::stopTrackingTimerOnDrop->name))
-                ->setNewNatureOnPick(!empty($data->get(FixedFieldEnum::newNatureOnPick->name))
-                    ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnPick->name)])
-                    : null
-                )
-                ->setNewNatureOnDrop(!empty($data->get(FixedFieldEnum::newNatureOnDrop->name))
-                    ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnDrop->name)])
-                    : null
-                )
-                ->setProperty(FixedFieldEnum::zone->name, $zone);
-
-            $entityManager->flush();
-
-            $label = $emplacement->getLabel();
-            return $this->json([
-                'success' => true,
-                'msg' => "L'emplacement <strong>$label</strong> a bien été modifié"
-            ]);
-        }
-        throw new BadRequestHttpException();
+        $label = $location->getLabel();
+        return $this->json([
+            'success' => true,
+            'msg' => "L'emplacement <strong>$label</strong> a bien été modifié"
+        ]);
     }
 
     private function isLocationUsed(EntityManagerInterface $entityManager,
@@ -352,40 +295,6 @@ class LocationController extends AbstractController {
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
             $fileName
         );
-    }
-
-    private function checkLocationLabel(EntityManagerInterface $entityManager, ?string $label, $locationId = null): void {
-
-        // if $label matches the regex, it's valid
-        if (!preg_match("/" . SettingsService::CHARACTER_VALID_REGEX . "/", $label)) {
-            throw new FormException("Le nom de l'emplacement doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d’accent");
-        }
-
-        $labelTrimmed = $label ? trim($label) : null;
-        if (!empty($labelTrimmed)) {
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $emplacementAlreadyExist = $emplacementRepository->countByLabel($label, $locationId);
-            if ($emplacementAlreadyExist) {
-                throw new FormException("Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.");
-            }
-        } else {
-            throw new FormException("Vous devez donner un nom valide.");
-        }
-    }
-
-    private function checkMaxTime(?string $dateMaxTime): void {
-        if (!empty($dateMaxTime)) {
-            $matchHours = '\d+';
-            $matchMinutes = '([0-5][0-9])';
-            $matchHoursMinutes = "$matchHours:$matchMinutes";
-            $resultFormat = preg_match(
-                "/^$matchHoursMinutes$/",
-                $dateMaxTime
-            );
-            if (empty($resultFormat)) {
-                throw new FormException("Le délai saisi est invalide.");
-            }
-        }
     }
 
     #[Route("/autocomplete-locations-by-type", name: "get_locations_by_type", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]

@@ -773,10 +773,10 @@ class TransportController extends AbstractController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = $emplacementDataService->persistLocation([
+            $patient = $emplacementDataService->persistLocation($manager, [
                 FixedFieldEnum::name->name => "Patient",
                 FixedFieldEnum::description->name => "Unités logistiques livrées chez un patient",
-            ], $manager);
+            ]);
         }
 
         $comment = $data->get('comment');

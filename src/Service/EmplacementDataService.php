@@ -50,26 +50,46 @@ class EmplacementDataService {
 
     private array $labeledCacheLocations = [];
 
-    public function persistLocation(array $data, EntityManagerInterface $entityManager): Emplacement
-    {
+    public function persistLocation(EntityManagerInterface $entityManager,
+                                    ParameterBag|array     $data,
+                                    bool                   $viaUserForm = false): Emplacement {
+        $location = new Emplacement();
+        $data = !($data instanceof ParameterBag) ? new ParameterBag($data) : $data;
+
+        $this->updateLocation($entityManager, $location, $data, $viaUserForm);
+
+        $entityManager->persist($location);
+
+        return $location;
+    }
+
+    public function updateLocation(EntityManagerInterface $entityManager,
+                                   Emplacement            $location,
+                                   ParameterBag           $data,
+                                   bool                   $viaUserForm): void {
+
         $typeRepository = $entityManager->getRepository(Type::class);
         $zoneRepository = $entityManager->getRepository(Zone::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        if(!empty($data[FixedFieldEnum::zone->name])) {
-            $zone = $zoneRepository->find($data[FixedFieldEnum::zone->name]) ?? $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+        if ($viaUserForm) {
+            $this->checkValidity($entityManager, $location, $data);
+        }
+
+        if(!empty($data->get(FixedFieldEnum::zone->name))) {
+            $zone = $zoneRepository->find($data->get(FixedFieldEnum::zone->name))
+                ?? $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
         } else {
             $zone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
         }
 
-        if(!empty($data[FixedFieldEnum::signatories->name])) {
-            $signatoryIds = is_array($data[FixedFieldEnum::signatories->name])
-                ? $data[FixedFieldEnum::signatories->name]
-                : Stream::explode(',', $data[FixedFieldEnum::signatories->name])
-                    ->filter()
-                    ->map(fn(string $id) => trim($id))
+        if(!empty($data->get(FixedFieldEnum::signatories->name))) {
+            $signatoryIds = is_array($data->get(FixedFieldEnum::signatories->name))
+                ? $data->get(FixedFieldEnum::signatories->name)
+                : Stream::explode(',', $data->get(FixedFieldEnum::signatories->name, ''))
+                    ->filterMap(fn(string $id) => trim($id) ?: null)
                     ->toArray();
 
             $signatories = !empty($signatoryIds)
@@ -77,40 +97,71 @@ class EmplacementDataService {
                 : [];
         }
 
-        if (!empty($data[FixedFieldEnum::managers->name])) {
-            $managerIds = Stream::explode(",", $data[FixedFieldEnum::managers->name])
-                ->filter()
-                ->toArray();
-            if (!empty($managerIds)) {
-                $managers = $userRepository->findBy(["id" => $managerIds]);
-            }
+        $managerIds = Stream::explode(",", $data->get(FixedFieldEnum::managers->name, ''))
+            ->filterMap(fn(string $id) => trim($id) ?: null)
+            ->toArray();
+        if (!empty($managerIds)) {
+            $managers = $userRepository->findBy(["id" => $managerIds]);
         }
 
-        $location = (new Emplacement())
-            ->setLabel($data[FixedFieldEnum::name->name])
-            ->setDescription($data[FixedFieldEnum::description->name] ?? null)
-            ->setIsActive($data[FixedFieldEnum::status->name] ?? true)
-            ->setSendEmailToManagers($data[FixedFieldEnum::sendEmailToManagers->name] ?? false)
-            ->setDateMaxTime($data[FixedFieldEnum::maximumTrackingDelay->name] ?? null)
-            ->setIsDeliveryPoint($data[FixedFieldEnum::isDeliveryPoint->name] ?? null)
-            ->setIsOngoingVisibleOnMobile($data[FixedFieldEnum::isOngoingVisibleOnMobile->name] ?? false)
-            ->setAllowedDeliveryTypes(!empty($data[FixedFieldEnum::allowedDeliveryTypes->name]) ? $typeRepository->findBy(["id" => $data[FixedFieldEnum::allowedDeliveryTypes->name]]) : [])
-            ->setAllowedCollectTypes(!empty($data[FixedFieldEnum::allowedCollectTypes->name]) ? $typeRepository->findBy(["id" => $data[FixedFieldEnum::allowedCollectTypes->name]]) : [])
-            ->setAllowedNatures(!empty($data[FixedFieldEnum::allowedNatures->name]) ? $naturesRepository->findBy(["id" => $data[FixedFieldEnum::allowedNatures->name]]) : [])
+        $allowedNatureIds = Stream::explode(",", $data->get(FixedFieldEnum::allowedNatures->name, ""))
+            ->filterMap(static fn(string $id) => trim($id) ?: null)
+            ->toArray();
+
+        if (!empty($allowedNatureIds)) {
+            $allowedNatures = $naturesRepository->findBy(["id" => $allowedNatureIds]);
+        }
+
+        $allowedCollectTypeIds = Stream::explode(",", $data->get(FixedFieldEnum::allowedCollectTypes->name, ""))
+            ->filterMap(fn(string $id) => trim($id) ?: null)
+            ->toArray();
+        if (!empty($allowedCollectTypeIds)) {
+            $allowedCollectTypes = $typeRepository->findBy(["id" => $allowedCollectTypeIds]);
+        }
+
+        $allowedDeliveryTypeIds = Stream::explode(",", $data->get(FixedFieldEnum::allowedDeliveryTypes->name, ""))
+            ->filterMap(fn(string $id) => trim($id) ?: null)
+            ->toArray();
+        if (!empty($allowedDeliveryTypeIds)) {
+            $allowedDeliveryTypes = $typeRepository->findBy(["id" => $allowedDeliveryTypeIds]);
+        }
+
+        $allowedTemperatureIds = Stream::explode(",", $data->get(FixedFieldEnum::allowedTemperatures->name, ""))
+            ->filterMap(fn(string $id) => trim($id) ?: null)
+            ->toArray();
+        if (!empty($allowedTemperatureIds)) {
+            $allowedTemperatures = $temperatureRangeRepository->findBy(["id" => $allowedTemperatureIds]);
+        }
+
+        $location
+            ->setLabel($data->get(FixedFieldEnum::name->name))
+            ->setDescription($data->get(FixedFieldEnum::description->name))
+            ->setIsActive($data->getBoolean(FixedFieldEnum::status->name))
+            ->setSendEmailToManagers($data->getBoolean(FixedFieldEnum::sendEmailToManagers->name))
+            ->setDateMaxTime($data->get(FixedFieldEnum::maximumTrackingDelay->name))
+            ->setIsDeliveryPoint($data->getBoolean(FixedFieldEnum::isDeliveryPoint->name))
+            ->setIsOngoingVisibleOnMobile($data->getBoolean(FixedFieldEnum::isOngoingVisibleOnMobile->name))
+            ->setAllowedDeliveryTypes($allowedDeliveryTypes ?? [])
+            ->setAllowedCollectTypes($allowedCollectTypes ?? [])
+            ->setAllowedNatures($allowedNatures ?? [])
             ->setManagers($managers ?? [])
-            ->setTemperatureRanges(!empty($data[FixedFieldEnum::allowedTemperatures->name]) ? $temperatureRangeRepository->findBy(["id" => $data[FixedFieldEnum::allowedTemperatures->name]]) : [])
+            ->setTemperatureRanges($allowedTemperatures ?? [])
             ->setSignatories($signatories ?? [])
-            ->setEmail($data[FixedFieldEnum::email->name] ?? null)
-            ->setStartTrackingTimerOnPicking($data[FixedFieldEnum::startTrackingTimerOnPicking->name] ?? null)
-            ->setPauseTrackingTimerOnDrop($data[FixedFieldEnum::pauseTrackingTimerOnDrop->name] ?? null)
-            ->setStopTrackingTimerOnDrop($data[FixedFieldEnum::stopTrackingTimerOnDrop->name] ?? null)
-            ->setNewNatureOnPick(!empty($data[FixedFieldEnum::newNatureOnPick->name]) ? $naturesRepository->findOneBy(["id" => $data[FixedFieldEnum::newNatureOnPick->name]]) : null)
-            ->setNewNatureOnDrop(!empty($data[FixedFieldEnum::newNatureOnDrop->name]) ? $naturesRepository->findOneBy(["id" => $data[FixedFieldEnum::newNatureOnDrop->name]]) : null);
-
-        $location->setProperty(FixedFieldEnum::zone->name, $zone);
-        $entityManager->persist($location);
-
-        return $location;
+            ->setEmail($data->get(FixedFieldEnum::email->name))
+            ->setStartTrackingTimerOnPicking($data->getBoolean(FixedFieldEnum::startTrackingTimerOnPicking->name))
+            ->setPauseTrackingTimerOnDrop($data->getBoolean(FixedFieldEnum::pauseTrackingTimerOnDrop->name))
+            ->setStopTrackingTimerOnDrop($data->getBoolean(FixedFieldEnum::stopTrackingTimerOnDrop->name))
+            ->setNewNatureOnPick(
+                !empty($data->get(FixedFieldEnum::newNatureOnPick->name))
+                    ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnPick->name)])
+                    : null
+            )
+            ->setNewNatureOnDrop(
+                !empty($data->get(FixedFieldEnum::newNatureOnDrop->name))
+                    ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnDrop->name)])
+                    : null
+            )
+            ->setProperty(FixedFieldEnum::zone->name, $zone);
     }
 
     public function getEmplacementDataByParams($params = null): array {
@@ -245,28 +296,60 @@ class EmplacementDataService {
         }
 
         if (!$location) {
-            $location = $this->persistLocation([
+            $location = $this->persistLocation($entityManager, [
                 FixedFieldEnum::name->name => $label,
-            ], $entityManager);
-            $entityManager->persist($location);
+            ]);
         }
 
         return $location;
     }
 
-    public function checkValidity (ParameterBag $data): void {
-        $email = $data->get(FixedFieldEnum::email->name);
+    public function checkValidity(EntityManagerInterface $entityManager,
+                                  Emplacement            $location,
+                                  ParameterBag           $data): void {
+        $email = $data->get(FixedFieldEnum::email->name);;
         if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new FormException("L'adresse email renseignée est invalide.");
         }
 
         $allowedNatures = Stream::explode(',', $data->get(FixedFieldEnum::allowedNatures->name, ''))
-            ->filter(fn (string $id) => !empty($id))
+            ->filter()
             ->toArray();
-        $newNatureOnDrop = $data->get(FixedFieldEnum::newNatureOnDrop->name);
-        if (count($allowedNatures) && $newNatureOnDrop && !in_array($newNatureOnDrop, $allowedNatures)) {
+        $newNatureOnDrop = $data->get(FixedFieldEnum::newNatureOnDrop->name);;
+        if (!empty($allowedNatures) && $newNatureOnDrop && !in_array($newNatureOnDrop, $allowedNatures)) {
             throw new FormException("La nouvelle nature à la dépose sur emplacement doit être présente dans les natures autorisées.");
         }
 
+        $dateMaxTime = $data->get(FixedFieldEnum::maximumTrackingDelay->name);
+        if (!empty($dateMaxTime)) {
+            $matchHours = '\d+';
+            $matchMinutes = '([0-5][0-9])';
+            $matchHoursMinutes = "$matchHours:$matchMinutes";
+            $resultFormat = preg_match(
+                "/^$matchHoursMinutes$/",
+                $dateMaxTime
+            );
+            if (empty($resultFormat)) {
+                throw new FormException("Le délai saisi est invalide.");
+            }
+        }
+
+        $locationLabel = $data->get(FixedFieldEnum::name->name);
+
+        // if $label matches the regex, it's valid
+        if (!preg_match("/" . SettingsService::CHARACTER_VALID_REGEX . "/", $locationLabel)) {
+            throw new FormException("Le nom de l'emplacement doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d’accent");
+        }
+
+        $labelTrimmed = $locationLabel ? trim($locationLabel) : null;
+        if (!empty($labelTrimmed)) {
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $emplacementAlreadyExist = $emplacementRepository->countByLabel($locationLabel, $location->getId());
+            if ($emplacementAlreadyExist) {
+                throw new FormException("Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.");
+            }
+        } else {
+            throw new FormException("Vous devez donner un nom valide.");
+        }
     }
 }

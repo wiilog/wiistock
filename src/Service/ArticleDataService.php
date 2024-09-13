@@ -356,9 +356,9 @@ class ArticleDataService
             } else {
                 $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
                 if (!$location) {
-                    $location = $this->emplacementDataService->persistLocation([
+                    $location = $this->emplacementDataService->persistLocation($entityManager, [
                         FixedFieldEnum::name->name => Emplacement::LABEL_A_DETERMINER,
-                    ], $entityManager);
+                    ]);
                 }
                 $location->setIsActive(true);
             }

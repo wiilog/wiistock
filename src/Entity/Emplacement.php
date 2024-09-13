@@ -1130,7 +1130,7 @@ class Emplacement implements PairedEntity {
         return $this->managers;
     }
 
-    public function addManager(Utilisateur $manager): static {
+    public function addManager(Utilisateur $manager): self {
         if (!$this->managers->contains($manager)) {
             $this->managers->add($manager);
         }
@@ -1138,7 +1138,7 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function removeManager(Utilisateur $manager): static {
+    public function removeManager(Utilisateur $manager): self {
         $this->managers->removeElement($manager);
 
         return $this;
@@ -1154,7 +1154,7 @@ class Emplacement implements PairedEntity {
         return $this->sendEmailToManagers;
     }
 
-    public function setSendEmailToManagers(bool $sendEmailToManagers): static {
+    public function setSendEmailToManagers(bool $sendEmailToManagers): self {
         $this->sendEmailToManagers = $sendEmailToManagers;
 
         return $this;
@@ -1164,7 +1164,7 @@ class Emplacement implements PairedEntity {
         return $this->startTrackingTimerOnPicking;
     }
 
-    public function setStartTrackingTimerOnPicking(bool $startTrackingTimerOnPicking): static {
+    public function setStartTrackingTimerOnPicking(bool $startTrackingTimerOnPicking): self {
         $this->startTrackingTimerOnPicking = $startTrackingTimerOnPicking;
 
         return $this;
@@ -1174,7 +1174,7 @@ class Emplacement implements PairedEntity {
         return $this->stopTrackingTimerOnDrop;
     }
 
-    public function setStopTrackingTimerOnDrop(bool $stopTrackingTimerOnDrop): static {
+    public function setStopTrackingTimerOnDrop(bool $stopTrackingTimerOnDrop): self {
         $this->stopTrackingTimerOnDrop = $stopTrackingTimerOnDrop;
 
         return $this;
@@ -1184,7 +1184,7 @@ class Emplacement implements PairedEntity {
         return $this->pauseTrackingTimerOnDrop;
     }
 
-    public function setPauseTrackingTimerOnDrop(bool $pauseTrackingTimerOnDrop): static {
+    public function setPauseTrackingTimerOnDrop(bool $pauseTrackingTimerOnDrop): self {
         $this->pauseTrackingTimerOnDrop = $pauseTrackingTimerOnDrop;
 
         return $this;
@@ -1194,7 +1194,7 @@ class Emplacement implements PairedEntity {
         return $this->newNatureOnDrop;
     }
 
-    public function setNewNatureOnDrop(?Nature $newNatureOnDrop): static {
+    public function setNewNatureOnDrop(?Nature $newNatureOnDrop): self {
         $this->newNatureOnDrop = $newNatureOnDrop;
 
         return $this;
@@ -1204,7 +1204,7 @@ class Emplacement implements PairedEntity {
         return $this->newNatureOnPick;
     }
 
-    public function setNewNatureOnPick(?Nature $newNatureOnPick): static {
+    public function setNewNatureOnPick(?Nature $newNatureOnPick): self {
         $this->newNatureOnPick = $newNatureOnPick;
 
         return $this;
