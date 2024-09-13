@@ -31,6 +31,8 @@ use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 readonly class PackService {
+
+    const PACK_DEFAULT_TRACKING_DELAY_COLOR = "#000000";
     public function __construct(private EntityManagerInterface      $entityManager,
                                 private Security                    $security,
                                 private Twig_Environment            $templating,
@@ -760,38 +762,41 @@ readonly class PackService {
         $packTrackingDelay = $pack->getTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
-        $trackingDelay = $packTrackingDelay
-            ? $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime())
-            : null;
 
-        $delayIsLate = false;
-        if($packTrackingDelay && $natureTrackingDelay){
-            $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
-                ? $pack->getTrackingDelay()->getElapsedTime()
-                : ($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay)/1000) + $pack->getTrackingDelay()->getElapsedTime();
-
-            $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
-
-            if($remainingTime < 0){
-                $trackingDelayColor = $nature->getExceededDelayColor() ?? "#000000";
-                $delayIsLate = true;
-            } else {
-                $trackingDelaySegments = $nature->getTrackingDelaySegments();
-                $trackingDelayColor = "#000000";
-
-                foreach ($trackingDelaySegments as $trackingDelaySegment){
-                    $segmentDelayInSeconds = $this->dateTimeService->calculateSecondsFrom($trackingDelaySegment["segmentMax"], Nature::TRACKING_DELAY_REGEX, "h");
-                    if($remainingTime <= $segmentDelayInSeconds){
-                        $trackingDelayColor = $trackingDelaySegment["segmentColor"];
-                    }
-                }
-            }
-
-            $strDelay = ($delayIsLate ? '-' : '').$this->dateTimeService->intervalToHourAndMinStr($this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime)));
+        if(!$packTrackingDelay || !$natureTrackingDelay) {
+            return null;
         }
 
-        return $packTrackingDelay && $natureTrackingDelay
-            ? "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>"
-            : null;
+        $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
+
+        $delayIsLate = false;
+        $elapsedTime = $pack->getTrackingDelay()->getElapsedTime();
+        $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
+            ? $elapsedTime
+            : ($elapsedTime + floor($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay) / 1000));
+
+        $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
+
+        if($remainingTime < 0){
+            $trackingDelayColor = $nature->getExceededDelayColor() ?? PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
+            $delayIsLate = true;
+        } else {
+            $trackingDelaySegments = $nature->getTrackingDelaySegments();
+            $trackingDelayColor = PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
+
+            foreach ($trackingDelaySegments as $trackingDelaySegment){
+                $segmentDelayInSeconds = $this->dateTimeService->calculateSecondsFrom($trackingDelaySegment["segmentMax"], Nature::TRACKING_DELAY_REGEX, "h");
+                if($remainingTime <= $segmentDelayInSeconds){
+                    $trackingDelayColor = $trackingDelaySegment["segmentColor"];
+                    break;
+                }
+            }
+        }
+
+        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime));
+        $formattedRemainingInterval = $this->dateTimeService->intervalToHourAndMinStr($remainingInterval);
+        $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
+
+        return "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>";
     }
 }
