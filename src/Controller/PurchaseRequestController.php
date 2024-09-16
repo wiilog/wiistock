@@ -620,7 +620,7 @@ class PurchaseRequestController extends AbstractController
                 $message = "Le statut sélectionné n'existe pas.";
             }
 
-            if($status->isPreventStatusChangeWithoutDeliveryFees() && !$purchaseRequest->getDeliveryFee()){
+            if ($status->isPreventStatusChangeWithoutDeliveryFees() && ($purchaseRequest->getDeliveryFee() === null || $purchaseRequest->getDeliveryFee() === '')) {
                 $message = "Les frais de livraisons doivent être renseignés.";
             }
 
