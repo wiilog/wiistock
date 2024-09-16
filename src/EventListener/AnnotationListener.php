@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,30 +24,18 @@ use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController as SymfonyAbstractController;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 
 class AnnotationListener {
 
-    private $entityManager;
-    private $userService;
-    private $templating;
-    private $mobileVersion;
-    private $mobileApiService;
-
-    #[Required]
-    public RouterInterface $router;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                UserService            $userService,
-                                Environment            $templating,
-                                string                 $mobileVersion,
-                                MobileApiService       $mobileApiService) {
-        $this->entityManager = $entityManager;
-        $this->userService = $userService;
-        $this->templating = $templating;
-        $this->mobileVersion = $mobileVersion;
-        $this->mobileApiService = $mobileApiService;
+    public function __construct(
+        private EntityManagerInterface                 $entityManager,
+        private UserService                            $userService,
+        private Environment                            $templating,
+        #[Autowire("%nomade_version%")] private string $mobileVersion,
+        private MobileApiService                       $mobileApiService,
+        private RouterInterface                        $router,
+    ) {
     }
 
     public function onRequest(ControllerArgumentsEvent $event) {

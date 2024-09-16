@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use WiiCommon\Helper\Stream;
 
-readonly class PlanningService {
+class PlanningService {
 
     public const SORTING_TYPE_BY_DATE = "Date";
     public const SORTING_TYPE_BY_STATUS_STATE = "StatusState";
@@ -26,8 +26,8 @@ readonly class PlanningService {
 
 
     public function __construct(
-        private FormatService   $formatService,
-        private StatusService   $statusService,
+        private FormatService $formatService,
+        private StatusService $statusService,
     ) {}
 
     public function createCardConfig(array $displayedFieldsConfig, mixed $entity, array $fieldModes, Language|string $userLanguage, Language|string|null $defaultLanguage = null): array {
