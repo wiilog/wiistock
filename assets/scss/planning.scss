@@ -173,20 +173,7 @@
     background-color: $primary;
 }
 
-.previous-week {
-    width: 30px;
-    display: block;
-    margin-top: 15px;
-    margin-right: 10px;
-    padding-bottom: 1rem;
-
-    &:not(.d-none) {
-        display: flex;
-        align-items: center;
-    }
-}
-
-.next-week {
+.previous-period, .next-period {
     width: 30px;
     display: block;
     margin-top: 15px;
