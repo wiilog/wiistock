@@ -140,7 +140,7 @@
     <div class="form-group col-md-6 col-12">
         {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::natureTrackingDelay') %}
         {{ form.input(field.name, field.value, false, trackingDelay ?? null, {
-            tooltip: "Le format de date est le suivant : 00h00.",
+            tooltip: "Le format de date est le suivant&nbsp;: 00h00.",
             attributes: {
                 pattern: constant("App\\Entity\\Nature::TRACKING_DELAY_REGEX"),
                 "data-error-patternmismatch": "Format de date incorrect",
