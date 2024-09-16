@@ -10,6 +10,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
@@ -48,6 +49,8 @@ use WiiCommon\Helper\Stream;
 
 class ProductionRequestService
 {
+    private const MAX_REQUESTS_ON_PLANNING = 2500;
+
     private ?array $freeFieldsConfig = null;
 
     public function __construct(
@@ -1038,15 +1041,19 @@ class ProductionRequestService
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
 
         $user = $this->userService->getUser();
         $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
 
         $planningStart = $this->formatService->parseDatetime($request->query->get('startDate'));
-        $maxDays = PlanningService::NB_DAYS_ON_PLANNING;
-        $planningEnd = (clone $planningStart)->modify("+$maxDays days");
+
+        $step = $request->query->getint('step', PlanningService::NB_DAYS_ON_PLANNING);
+        $planningEnd = (clone $planningStart)->modify("+$step days");
 
         $sortingType = $request->query->get('sortingType');
+
 
         $fieldModes = $user?->getFieldModes(FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) ?? Utilisateur::DEFAULT_PRODUCTION_REQUEST_PLANNING_FIELDS_MODES;
         $displayedFieldsConfig = $this->getDisplayedFieldsConfig($external, $fieldModes);
@@ -1068,11 +1075,15 @@ class ProductionRequestService
             ->toArray();
 
         $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
-        $displayCountLines = in_array(FieldModesService::FIELD_MODE_VISIBLE_IN_DROPDOWN, $fieldModes[FixedFieldEnum::lineCount->name] ?? [])
-            || in_array(FieldModesService::FIELD_MODE_VISIBLE, $fieldModes[FixedFieldEnum::lineCount->name] ?? []);
+        if (count($productionRequests) > self::MAX_REQUESTS_ON_PLANNING) {
+            throw new FormException('Il y a trop de demandes de production pour cette période, veuillez affiner votre recherche.');
+        }
+
+        $fixedFieldParamCountLines  = $fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldEnum::lineCount->name])[0] ?? null;
+        $displayCountLines = $fixedFieldParamCountLines?->isDisplayedEdit() || $fixedFieldParamCountLines?->isDisplayedCreate();
 
         $cards = [];
-        $LinesCountByColumns = [];
+        $linesCountByColumns = [];
 
         foreach ($productionRequests as $productionRequest) {
             $cardContent = $this->planningService->createCardConfig($displayedFieldsConfig, $productionRequest, $fieldModes, $userLanguage);
@@ -1088,13 +1099,13 @@ class ProductionRequestService
                 ...$this->generateAdditionalCardConfig($entityManager, $productionRequest, $external, $sortingType),
             ]);
             if ($displayCountLines) {
-                $LinesCountByColumns[$columnId] = ($LinesCountByColumns[$columnId] ?? 0) + $productionRequest->getLineCount();
+                $linesCountByColumns[$columnId] = ($linesCountByColumns[$columnId] ?? 0) + $productionRequest->getLineCount();
             }
         }
 
         $options = [];
         if ($displayCountLines) {
-            $options["columnRightHints"] = Stream::from($LinesCountByColumns)
+            $options["columnRightHints"] = Stream::from($linesCountByColumns)
                 ->map(function (int $count) {
                     $plurialMark = $count > 1 ? 's' : '';
                     return "$count ligne$plurialMark";
@@ -1138,6 +1149,7 @@ class ProductionRequestService
         return $this->planningService->createPlanningConfig(
             $entityManager,
             $planningStart,
+            $step,
             $sortingType,
             StatusController::MODE_PRODUCTION,
             $cards,

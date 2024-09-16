@@ -3,10 +3,12 @@ import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
 import AJAX, {PUT} from "@app/ajax";
 import Planning from "@app/planning";
+import Form from "@app/form";
 import moment from "moment";
 import {displayAttachmentRequired, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 import {getUserFiltersByPage} from '@app/utils';
 
+// 5 minutes in milliseconds
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 
 global.callbackSaveFilter = callbackSaveFilter;
@@ -14,16 +16,22 @@ global.displayAttachmentRequired = displayAttachmentRequired;
 
 let planning = null;
 let external = null;
+let planningDatesForm = null;
 
 $(function () {
+    const $planningDates = $('.planning-dates')
+    const $startDate = $planningDates.find(`[name=startDate]`);
+    const $endDate = $planningDates.find(`[name=endDate]`);
+    planningDatesForm = Form.create($planningDates);
+
     external = Boolean($(`[name=external]`).val());
 
     planning = new Planning($(`.production-request-planning`), {
         route: external ? `production_request_planning_api_external`: `production_request_planning_api`,
         params: {
-            ... external ? {
-                token: $(`[name=token]`).val(),
-            } : {},
+            ... (external
+                ? { token: $(`[name=token]`).val(),}
+                : {}),
             sortingType: $(`[name="sortingType"]`).val(),
         },
         baseDate: moment().startOf(`isoWeek`),
@@ -33,7 +41,8 @@ $(function () {
         onPlanningLoaded(planning);
     });
 
-    initializePlanningNavigation();
+    initializePlanningNavigation($startDate, $endDate);
+    selectThisWeek($startDate, $endDate);
     planning.fetch();
 
     if(external) {
@@ -79,7 +88,7 @@ function initializeFilters() {
 }
 
 function onPlanningLoaded(planning) {
-    const $navigationButtons = $(`.previous-week, .next-week`);
+    const $navigationButtons = $(`.previous-period, .next-period`);
     const $expandedCards = $(`[name=expandedCards]`);
 
     Sortable.create(`.planning-card-container`, {
@@ -111,7 +120,7 @@ function onPlanningLoaded(planning) {
 
     $navigationButtons.on(`sortupdate`, function (e) {
         const $button = $(e.target);
-        if($button.is(`.previous-week, .next-week`)) {
+        if($button.is(`.previous-period, .next-period`)) {
             $button.find(`.planning-card`).remove();
         }
 
@@ -171,60 +180,77 @@ function onPlanningLoaded(planning) {
 
 }
 
-function initializePlanningNavigation() {
-    $(`.today-date`).on(`click`, function () {
-        wrapLoadingOnActionButton($(this), () => (
-            planning
-                .resetBaseDate(true)
-                .then(() => {
-                    changeNavigationButtonStates();
+function onDateInputsUpdated($startDate, $endDate) {
+    const datesData = planningDatesForm.process()
+    if (!datesData) {
+        return
+    }
 
-                    if(external) {
-                        updateRefreshRate();
-                    }
-                })
-        ));
-    });
+    const startDate = moment($startDate.val());
+    let endDate = moment($endDate.val());
 
-    $(document).on(`click`, `.decrement-date, .previous-week`, function () {
-        wrapLoadingOnActionButton($(this), () => (
-            planning.previousWeek()
-                .then(() => {
-                    changeNavigationButtonStates();
+    if (startDate.isAfter(endDate)) {
+        endDate = startDate;
+        $endDate.val(endDate.format(`YYYY-MM-DD`));
+    }
 
-                    if(external) {
-                        updateRefreshRate();
-                    }
-                })
-        ));
-    });
+    planning.baseDate = startDate;
+    planning.step = endDate.diff(planning.baseDate, `days`)+1;
 
-    $(document).on(`click`, `.increment-date, .next-week`, function () {
-        wrapLoadingOnActionButton($(this), () => (
-            planning.nextWeek()
-                .then(() => {
-                    changeNavigationButtonStates();
-
-                    if(external) {
-                        updateRefreshRate();
-                    }
-                })
-        ));
-    });
-
-    $(document).on(`change`, `[name="sortingType"]`, function ($event) {
-        planning.params.sortingType = $event.target.value;
-        planning.fetch();
-
+    return planning.fetch().then(() => {
+        changeNavigationButtonStates();
         if(external) {
             updateRefreshRate();
         }
     });
 }
 
+function selectThisWeek($startDate, $endDate) {
+    const now = moment().startOf(`isoWeek`).format(`YYYY-MM-DD`)
+    $startDate.val(now);
+    planning.step = 6;
+    $endDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
+}
+
+function initializePlanningNavigation($startDate, $endDate) {
+    $startDate.add($endDate).on(`change`, function () {
+        onDateInputsUpdated($startDate, $endDate)
+    })
+
+    $(`.today-date`).on(`click`, function () {
+        wrapLoadingOnActionButton($(this), () => {
+            selectThisWeek($startDate, $endDate)
+            return onDateInputsUpdated($startDate, $endDate)
+        });
+    });
+
+    $(document).on(`click`, `.decrement-date, .previous-period`, function () {
+        wrapLoadingOnActionButton($(this), () => {
+            $startDate.val(moment($startDate.val()).add(0-planning.step, `days`).format(`YYYY-MM-DD`));
+            $endDate.val(moment($startDate.val()).add(planning.step-1, `days`).format(`YYYY-MM-DD`));
+            return onDateInputsUpdated($startDate, $endDate)
+        });
+    });
+
+    $(document).on(`click`, `.increment-date, .next-period`, function () {
+        wrapLoadingOnActionButton($(this), () => {
+            $startDate.val(moment($startDate.val()).add(planning.step, `days`).format(`YYYY-MM-DD`));
+            $endDate.val(moment($startDate.val()).add(planning.step-1, `days`).format(`YYYY-MM-DD`));
+            return onDateInputsUpdated($startDate, $endDate)
+        });
+    });
+
+    $(document).on(`change`, `[name="sortingType"]`, function ($event) {
+        wrapLoadingOnActionButton($(this), () => {
+            planning.params.sortingType = $event.target.value;
+            return onDateInputsUpdated($startDate, $endDate)
+        });
+    });
+}
+
 function changeNavigationButtonStates() {
     $(`.today-date`)
-        .prop(`disabled`, moment().week() === planning.baseDate.week());
+        .prop(`disabled`, moment().week() === planning.baseDate.week() && planning.step === 7);
 }
 
 function initPlanningRefresh() {
