@@ -1,7 +1,7 @@
 import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
 import {saveAs} from "file-saver";
 
-import {addEntryTimeInterval, onSegmentInputChange, deleteEntryTimeInterval, initializeEntryTimeIntervals} from "@app/pages/segment";
+import {addEntryTimeInterval, onSegmentInputChange, deleteEntryTimeInterval, initializeEntryTimeIntervals, clearSegmentHourValues} from "@app/pages/segment";
 
 const MODE_EDIT = 0;
 const MODE_DISPLAY = 1;
@@ -23,6 +23,7 @@ global.deleteEntryTimeInterval  = deleteEntryTimeInterval;
 global.initializeEntryTimeIntervals  = initializeEntryTimeIntervals;
 global.renderComponent = renderComponent;
 global.hideOrShowStackButton = hideOrShowStackButton;
+global.removeUploadedFile = removeUploadedFile;
 global.MODE_DISPLAY = MODE_DISPLAY;
 global.MODE_EDIT = MODE_EDIT;
 global.MODE_EXTERNAL = MODE_EXTERNAL;

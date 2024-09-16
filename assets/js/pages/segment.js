@@ -130,7 +130,7 @@ export function onSegmentInputChange($input, isChanged = false, fromNature = fal
     }
 }
 
-function clearSegmentHourValues(value) {
+export function clearSegmentHourValues(value) {
     const cleared = (value || ``).replace(/[^\d]/g, ``);
     return cleared ? parseInt(cleared) : ``;
 }
