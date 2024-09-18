@@ -239,8 +239,6 @@ class TrackingMovementListener implements EventSubscriber
                 }
             }
         }
-
-        $entityManager->flush($firstDropRecords->toArray());
     }
 
     private function treatLastTrackingRecordLinking(array $recordIdsToIgnore,
@@ -281,8 +279,6 @@ class TrackingMovementListener implements EventSubscriber
                 }
             }
         }
-
-        $entityManager->flush($lastTrackingRecords->toArray());
     }
 
     private function treatLocationClusterMeterLinking(TrackingMovement $trackingMovement,
@@ -297,8 +293,6 @@ class TrackingMovementListener implements EventSubscriber
                 foreach ($meters as $meter) {
                     $meter->decreaseDropCounter();
                 }
-
-                $entityManager->flush($meters->toArray());
             }
         }
     }
