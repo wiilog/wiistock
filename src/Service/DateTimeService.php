@@ -15,7 +15,7 @@ use WiiCommon\Helper\Stream;
 class DateTimeService {
 
     #[Required]
-    private CacheService $cacheService;
+    public CacheService $cacheService;
 
     const ENG_TO_FR_MONTHS = [
         'Jan' => 'Janv.',
