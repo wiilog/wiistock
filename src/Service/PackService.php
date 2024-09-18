@@ -340,7 +340,7 @@ class PackService {
                 $arrival->addPack($pack);
 
                 $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-                    "message" => $this->arrivageService->buildCustomLogisticUnitHistoryRecord($arrival),
+                    "message" => $this->formatService->list($this->arrivageService->serialize($arrival)),
                     "historyDate" => new DateTime(),
                     "user" => $user,
                     "type" => "Arrivage UL",
@@ -354,7 +354,7 @@ class PackService {
                         : $arrival->getTruckArrival();
 
                     $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-                        "message" => $this->truckArrivalService->buildCustomLogisticUnitHistoryRecord($truckArrival),
+                        "message" => $this->formatService->list($this->truckArrivalService->serialize($truckArrival)),
                         "historyDate" => $truckArrival->getCreationDate(),
                         "user" => $user,
                         "type" => "Arrivage Camion",

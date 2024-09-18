@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -970,17 +971,12 @@ class ArrivageService {
         return null;
     }
 
-    public function buildCustomLogisticUnitHistoryRecord(Arrivage $arrival): string {
-        $values = $arrival->serialize();
-        $message = "";
-
-        Stream::from($values)
-            ->filter(static fn(?string $value) => $value)
-            ->each(static function (string $value, string $key) use (&$message) {
-                $message .= "$key : $value\n";
-                return $message;
-            });
-
-        return $message;
+    public function serialize(Arrivage $arrival): array {
+        return [
+            FixedFieldEnum::status->value => $this->formatService->status($arrival->getStatut()),
+            FixedFieldEnum::type->value => $this->formatService->type($arrival->getType()),
+            FixedFieldEnum::carrier->value => $this->formatService->carrier($arrival->getTransporteur()),
+            FixedFieldEnum::comment->value => $this->formatService->html($arrival->getCommentaire() ?? ''),
+        ];
     }
 }

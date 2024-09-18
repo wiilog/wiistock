@@ -456,4 +456,16 @@ class FormatService
         return $hours . "h" . $minutes;
     }
 
+    public function list(array $values, bool $ignoreEmpty = true): string {
+        return Stream::from($values)
+            ->filterMap(static function(?string $value, string $key) use ($ignoreEmpty) {
+                if ($ignoreEmpty && !$value) {
+                    return null;
+                }
+
+                $value = $value ?: "";
+                return "$key : $value";
+            })
+            ->join("\n");
+    }
 }

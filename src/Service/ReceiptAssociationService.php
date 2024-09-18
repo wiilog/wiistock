@@ -35,9 +35,6 @@ class ReceiptAssociationService
     public Security $security;
 
     #[Required]
-    public FormatService $formatService;
-
-    #[Required]
     public TrackingMovementService $trackingMovementService;
 
     #[Required]
@@ -46,7 +43,8 @@ class ReceiptAssociationService
     #[Required]
     public PackService $packService;
 
-    public function __construct(private readonly SettingsService $settingsService) {}
+    public function __construct(private SettingsService $settingsService,
+                                private FormatService $formatService) {}
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                                                $params = null): array {
@@ -208,7 +206,9 @@ class ReceiptAssociationService
             $defaultUlLocation = $defaultUlLocationId ? $locationRepository->find($defaultUlLocationId) : null;
             foreach ($logisticUnits as $logisticUnit) {
                 $this->packService->persistLogisticUnitHistoryRecord($entityManager, $logisticUnit, [
-                    "message" => $this->buildCustomLogisticUnitHistoryRecord($receptionNumbers),
+                    "message" => $this->formatService->list([
+                        "Associé à" => Stream::from($receptionNumbers)->join(', '),
+                    ]),
                     "historyDate" => $now,
                     "user" => $user,
                     "type" => "Association BR",
@@ -223,12 +223,5 @@ class ReceiptAssociationService
         }
 
         return $receiptAssociations;
-    }
-
-    public function buildCustomLogisticUnitHistoryRecord(array $receptionNumbers): string {
-        $receptionNumbersList = Stream::from($receptionNumbers)->join(', ');
-        $message = "Associé à : $receptionNumbersList";
-
-        return $message;
     }
 }

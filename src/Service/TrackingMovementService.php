@@ -1664,8 +1664,8 @@ class TrackingMovementService {
             ->toArray();
     }
 
-    public function buildCustomLogisticUnitHistoryRecord(TrackingMovement   $trackingMovement,
-                                                         array              $natureChangedData = []): string {
+    public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement,
+                                                         array            $natureChangedData = []): string {
 
         $natureChanged = $natureChangedData["natureChanged"] ?? false;
         $oldNature = $natureChangedData["oldNature"] ?? null;
@@ -1688,10 +1688,7 @@ class TrackingMovementService {
             $values[FixedFieldEnum::nature->value] = $this->formatService->nature($pack->getNature());
         }
 
-        return Stream::from($values)
-            ->filter(static fn(?string $value) => $value)
-            ->map(static fn(string $value, string $key) => "$key : $value")
-            ->join("\n");
+        return $this->formatService->list($values);
     }
 
     public function getTrackingEvent(TrackingMovement $trackingMovement): ?TrackingEvent {

@@ -241,22 +241,4 @@ class TruckArrival implements AttachmentContainer
 
         return $this;
     }
-
-    public function serialize(FormatService $formatService): array {
-        $carrierTrackingNumbers = Stream::from($this->getTrackingLines())
-            ->map(static fn(TruckArrivalLine $line) => $line->getNumber())
-            ->join(', ');
-
-        $lineHasReserve = !$this->getTrackingLines()->isEmpty() &&
-            Stream::from($this->getTrackingLines())
-                ->some(fn(TruckArrivalLine $line) => $line->getReserve());
-
-        return [
-            FixedFieldEnum::number->value =>$this->getNumber(),
-            FixedFieldEnum::carrier->value => $this->getCarrier()?->getLabel(),
-            FixedFieldEnum::driver->value => $this->getDriver()?->getPrenomNom(),
-            FixedFieldEnum::carrierTrackingNumber->value => $carrierTrackingNumbers,
-            FixedFieldEnum::carrierTrackingNumberReserve->value => $formatService->bool($lineHasReserve),
-        ];
-    }
 }

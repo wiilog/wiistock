@@ -1087,7 +1087,7 @@ class DispatchService {
             $entityManager->persist($packDispatch);
 
             $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-                "message" => $this->buildCustomLogisticUnitHistoryRecord($dispatch),
+                "message" => $this->formatService->list($this->serialize($dispatch)),
                 "historyDate" => $dispatch->getCreationDate(),
                 "user" => $dispatch->getTreatedBy() ?? $this->security->getUser(),
                 "type" => "Acheminement",
@@ -2422,17 +2422,16 @@ class DispatchService {
         return $dispatchReferenceArticle;
     }
 
-    public function buildCustomLogisticUnitHistoryRecord(Dispatch $dispatch): string {
-        $values = $dispatch->serialize($this->formatService);
-        $message = "";
-
-        Stream::from($values)
-                ->filter(static fn($value) => $value)
-                ->each(static function (string $value, string $key) use (&$message) {
-                    $message .= "$key : $value\n";
-                    return $message;
-                });
-
-        return $message;
+    public function serialize(Dispatch $dispatch): array {
+        return [
+            FixedFieldEnum::status->value => $this->formatService->status($dispatch->getStatut()),
+            FixedFieldEnum::type->value => $this->formatService->type($dispatch->getType()),
+            FixedFieldEnum::number->value => $dispatch->getNumber(),
+            FixedFieldEnum::pickLocation->value => $this->formatService->location($dispatch->getLocationFrom()),
+            FixedFieldEnum::dropLocation->value => $this->formatService->location($dispatch->getLocationTo()),
+            FixedFieldEnum::comment->value => $this->formatService->html($dispatch->getCommentaire()),
+            FixedFieldEnum::emergency->value => $dispatch->getEmergency(),
+            FixedFieldEnum::requester->value => $this->formatService->user($dispatch->getRequester()),
+        ];
     }
 }

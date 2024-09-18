@@ -1024,7 +1024,7 @@ class DispatchController extends AbstractController {
         $entityManager->persist($dispatchPack);
 
         $packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-            "message" => $dispatchService->buildCustomLogisticUnitHistoryRecord($dispatch),
+            "message" => $this->formatService->list($dispatchService->serialize($dispatch)),
             "historyDate" => $now,
             "user" => $dispatch->getRequester(),
             "type" => "Acheminement",
