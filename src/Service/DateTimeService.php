@@ -296,6 +296,62 @@ class DateTimeService {
         $dateTime2 = clone $dateTime1;
         $dateTime1->modify("+{$seconds} seconds");
 
-        return $dateTime1->diff($dateTime2);
+        return $dateTime1 < $dateTime2
+            ? $dateTime1->diff($dateTime2)
+            : $dateTime2->diff($dateTime1);
+    }
+
+    public function getDateTimeFromDateAndInterval(EntityManagerInterface $entityManager,
+                                                   DateTime $date,
+                                                   DateInterval $interval): DateTime {
+        $workedSegments = $this->getCache($entityManager, "workedDays");
+
+        $finalDate = clone $date;
+        $finalInterval = clone $interval;
+        $day = strtolower($date->format('l'));
+
+        foreach ($workedSegments[$day] as $workedSegment) {
+            [$endHour, $endMinute] = explode(':', $workedSegment[1]);
+            $endPeriod = (clone $finalDate)->setTime($endHour, $endMinute);
+            //check pour savoir si l'heure de notre date est supérieur à la borne supérieur du créneau, si elle l'est on passe au tour de boucle suivant
+            if ($date >= $endPeriod) {
+                continue;
+            }
+
+            // On défini :
+            // Si l'heure est inférieur à la borne inférieur du créneau -> on modifie notre heure avec celle de la borne inférieur
+            // Sinon on prend comme heure celle de notre date
+            [$startHour, $startMinute] = explode(':', $workedSegment[0]);
+            $startPeriod = (clone $finalDate)->setTime($startHour, $startMinute);
+            if ($date < $startPeriod) {
+                $finalDate = $startPeriod;
+            }
+
+            /// interval segment
+            $lower = $this->calculateSecondsFrom($finalDate->format("H:i"));
+            $upper = $this->calculateSecondsFrom($workedSegment[1]);
+            $intervalSegment = $upper - $lower;
+
+            $intervalDiff = ($this->convertDateIntervalToMilliseconds($finalInterval) / 1000) - $intervalSegment;
+            if ($intervalDiff <= 0) {
+                return $finalDate->add($finalInterval);
+            }
+
+            $dateTime1 = new DateTime();
+            $dateTime2 = clone $dateTime1;
+            $dateTime1->add($finalInterval)->modify("-$intervalDiff seconds");
+
+            $finalInterval = $dateTime1->diff($dateTime2);
+        }
+        $workedDays = Stream::keys($workedSegments);
+        $currentDayKey = Stream::from($workedDays)
+            ->findKey(static fn(string $workedDay) => $workedDay === $day) ?? -1;
+
+        $nextDayKey = ($currentDayKey + 1) % $workedDays->count();
+
+        $nextDay = $workedDays->offsetGet($nextDayKey);
+        $finalDate->modify("next $nextDay")->setTime(0,0);
+
+        return $this->getDateTimeFromDateAndInterval($entityManager, $finalDate, $finalInterval);
     }
 }

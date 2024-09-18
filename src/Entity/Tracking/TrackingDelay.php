@@ -31,6 +31,9 @@ class TrackingDelay {
     #[ORM\OneToOne(inversedBy: "trackingDelay", targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?DateTime $limitTreatmentDate = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -90,6 +93,18 @@ class TrackingDelay {
 
     public function setLastTrackingEvent(?TrackingEvent $lastTrackingEvent): self {
         $this->lastTrackingEvent = $lastTrackingEvent;
+        return $this;
+    }
+
+    public function getLimitTreatmentDate(): ?DateTime
+    {
+        return $this->limitTreatmentDate;
+    }
+
+    public function setLimitTreatmentDate(?DateTime $limitTreatmentDate): self
+    {
+        $this->limitTreatmentDate = $limitTreatmentDate;
+
         return $this;
     }
 }

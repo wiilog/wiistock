@@ -249,6 +249,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'receiptAssociation' => [FieldModesService::FIELD_MODE_VISIBLE],
         'truckArrivalNumber' => [FieldModesService::FIELD_MODE_VISIBLE],
         'trackingDelay' => [],
+        'limitTreatmentDate' => [],
     ];
 
     const DEFAULT_FIELDS_MODES = [

@@ -24,7 +24,6 @@ use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\UnitOfWork;
 use Exception;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -225,6 +224,9 @@ class PackService {
                 'truckArrival' => $truckArrival
             ]),
             "trackingDelay" => $finalTrackingDelay,
+            "limitTreatmentDate" => $pack->getTrackingDelay()
+                ? $this->formatService->datetime($pack->getTrackingDelay()->getLimitTreatmentDate())
+                : null,
         ];
     }
 
@@ -582,6 +584,7 @@ class PackService {
                 ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
                 ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
+                ['name' => 'limitTreatmentDate', 'title' => 'Date limite de traitement', 'className' => 'noVis'],
             ],
             [],
             $columnsVisible
