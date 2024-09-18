@@ -25,6 +25,8 @@ class UserChecker implements UserCheckerInterface
     {
         if (!$user instanceof AppUser) {
             return;
+
+
         }
 
         if (!$user->getStatus()) {
