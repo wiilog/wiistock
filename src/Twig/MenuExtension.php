@@ -18,9 +18,9 @@ class MenuExtension extends AbstractExtension
     private array $menuConfig;
 
     public function __construct(#[Autowire('%menu_config%')] array $menuConfig,
-                                private readonly CacheService      $cache,
-                                private readonly RoleService       $roleService,
-                                private readonly UserService       $userService) {
+                                private  CacheService      $cache,
+                                private  RoleService       $roleService,
+                                private  UserService       $userService) {
         $this->menuConfig = $menuConfig;
     }
 

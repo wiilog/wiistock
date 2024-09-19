@@ -11,7 +11,7 @@ use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 class BarcodeExtension extends AbstractExtension {
 
     public function __construct(
-        #[Autowire("@sgk_barcode.generator")] private readonly BarcodeGenerator $barcodeGenerator
+        #[Autowire("@sgk_barcode.generator")] private  BarcodeGenerator $barcodeGenerator
     ) {}
 
     public function getFunctions(): array {

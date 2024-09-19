@@ -11,7 +11,7 @@ use Cron\CronBundle\Entity\CronReport;
 class CronReportListener
 {
     public function __construct(
-        private readonly ExceptionLoggerService $exceptionLoggerService
+        private  ExceptionLoggerService $exceptionLoggerService
     ) {}
 
     /**

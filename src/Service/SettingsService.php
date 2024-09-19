@@ -94,7 +94,7 @@ class SettingsService {
 
     private array $settingsConstants;
 
-    public function __construct(private readonly DateTimeService $dateTimeService) {
+    public function __construct(private  DateTimeService $dateTimeService) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
             ->filter(fn($settingLabel) => is_string($settingLabel))

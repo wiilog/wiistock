@@ -46,7 +46,7 @@ class ReceiptAssociationService
     #[Required]
     public PackService $packService;
 
-    public function __construct(private readonly SettingsService $settingsService) {}
+    public function __construct(private  SettingsService $settingsService) {}
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                                                $params = null): array {
