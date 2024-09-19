@@ -799,18 +799,21 @@ class PackService {
     {
         $trackingDelayData = $this->formatTrackingDelayData($pack);
 
-        return $trackingDelayData["trackingDelayColor"] && $trackingDelayData["strDelay"]
-            ? "<span class='font-weight-bold' style='color: {$trackingDelayData["trackingDelayColor"]}'>{$trackingDelayData["strDelay"]}</span>"
+        return isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
+            ? "<span class='font-weight-bold' style='color: {$trackingDelayData["color"]}'>{$trackingDelayData["delay"]}</span>"
             : null;
     }
 
+    /**
+     * @return array{color?: string, delay?: string}
+     */
     public function formatTrackingDelayData(Pack $pack): array {
         $packTrackingDelay = $pack->getTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
 
         if(!$packTrackingDelay || !$natureTrackingDelay) {
-            return [null, null];
+            return [];
         }
 
         $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
@@ -844,8 +847,8 @@ class PackService {
         $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
 
         return [
-            "trackingDelayColor" => $trackingDelayColor,
-            "strDelay" => $strDelay,
+            "color" => $trackingDelayColor,
+            "delay" => $strDelay,
         ];
     }
 }
