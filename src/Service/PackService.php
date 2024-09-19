@@ -797,10 +797,10 @@ class PackService {
 
     public function generateTrackingDelayHtml(Pack $pack): ?string
     {
-        [$trackingDelayColor, $strDelay] = $this->formatTrackingDelayData($pack);
+        $trackingDelayData = $this->formatTrackingDelayData($pack);
 
-        return $trackingDelayColor && $strDelay
-            ? "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>"
+        return $trackingDelayData["trackingDelayColor"] && $trackingDelayData["strDelay"]
+            ? "<span class='font-weight-bold' style='color: {$trackingDelayData["trackingDelayColor"]}'>{$trackingDelayData["strDelay"]}</span>"
             : null;
     }
 
@@ -844,8 +844,8 @@ class PackService {
         $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
 
         return [
-            $trackingDelayColor,
-            $strDelay,
+            "trackingDelayColor" => $trackingDelayColor,
+            "strDelay" => $strDelay,
         ];
     }
 }
