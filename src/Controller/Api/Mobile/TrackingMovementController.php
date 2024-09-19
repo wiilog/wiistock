@@ -13,6 +13,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
+use App\Service\DateTimeService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
@@ -481,7 +482,9 @@ class TrackingMovementController extends AbstractController {
     #[Wii\RestVersionChecked]
     public function getPackData(Request                $request,
                                 EntityManagerInterface $entityManager,
-                                NatureService          $natureService): JsonResponse
+                                NatureService          $natureService,
+                                PackService            $packService,
+                                DateTimeService        $dateTimeService): JsonResponse
     {
         $code = $request->query->get('code');
         $includeNature = $request->query->getBoolean('nature');
@@ -500,6 +503,15 @@ class TrackingMovementController extends AbstractController {
             $isGroup = $pack->isGroup();
             $res['isGroup'] = $isGroup;
             $res['isPack'] = !$isGroup;
+
+            [$trackingDelayColor, $strDelay] = $packService->formatTrackingDelayData($pack);
+            $res['trackingDelayData'] = $trackingDelayColor && $strDelay
+                ? [
+                    'color' => $trackingDelayColor,
+                    'delay' => $strDelay,
+                    'limitTreatmentDate' => $this->formatService->datetime($pack->getTrackingDelay()?->getLimitTreatmentDate(), null),
+                ]
+                : [];
 
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getParent();
