@@ -118,6 +118,7 @@
                                     {{ form.select('deliveryType', 'Type', true, {
                                         type: 'deliveryType',
                                         placeholder: 'Sélectionnez un type',
+                                        items : defaultType,
                                         search: false,
                                         onChange: 'cartTypeChange($(this))',
                                     }) }}
@@ -166,6 +167,7 @@
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
+
                                         {% for type in deliveryTypes %}
                                             <div class="d-none" data-type="{{ type.id }}">
                                                 {% include 'free_field/freeFieldsEdit.html.twig' with {
@@ -211,6 +213,7 @@
                                     <div class="col-12">
                                         <div class="request-free-fields-section">
                                             <span class="toggle-collapsible wii-subtitle mt-3 expanded ">Champs libres</span>
+
                                             <div class="collapsible expanded free-fields-container row mb-2">
                                             </div>
                                         </div>
