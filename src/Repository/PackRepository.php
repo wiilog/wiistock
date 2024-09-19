@@ -48,6 +48,7 @@ class PackRepository extends EntityRepository
         'quantity' => 'quantity',
         'arrivageType' => 'arrivage',
         'project' => 'project',
+        'limitTreatmentDate' => 'limitTreatmentDate',
     ];
 
     public function countPacksByDates(DateTime $dateMin,
@@ -337,6 +338,10 @@ class PackRepository extends EntityRepository
                         $queryBuilder
                             ->leftJoin('pack.arrivage', 'order_truckArrivalNumber_pack_arrivage')
                             ->orderBy('order_truckArrivalNumber_pack_arrivage.noTracking', $order);
+                    } else if ($column === 'limitTreatmentDate') {
+                        $queryBuilder
+                            ->leftJoin('pack.trackingDelay', 'order_trackingDelay')
+                            ->orderBy('order_trackingDelay.limitTreatmentDate', $order);
                     } else {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);
