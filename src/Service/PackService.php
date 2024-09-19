@@ -797,12 +797,20 @@ class PackService {
 
     public function generateTrackingDelayHtml(Pack $pack): ?string
     {
+        [$trackingDelayColor, $strDelay] = $this->formatTrackingDelayData($pack);
+
+        return $trackingDelayColor && $strDelay
+            ? "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>"
+            : null;
+    }
+
+    public function formatTrackingDelayData(Pack $pack): array {
         $packTrackingDelay = $pack->getTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
 
         if(!$packTrackingDelay || !$natureTrackingDelay) {
-            return null;
+            return [null, null];
         }
 
         $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
@@ -835,6 +843,9 @@ class PackService {
         $formattedRemainingInterval = $this->dateTimeService->intervalToHourAndMinStr($remainingInterval);
         $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
 
-        return "<span class='font-weight-bold' style='color: {$trackingDelayColor}'>{$strDelay}</span>";
+        return [
+            $trackingDelayColor,
+            $strDelay,
+        ];
     }
 }
