@@ -54,17 +54,19 @@ class PurchaseRequestController extends AbstractController
 
     #[Route('/api', name: 'purchase_request_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
-    public function api(Request                    $request,
-                        PurchaseRequestService     $purchaseRequestService): Response {
+    public function api(Request                $request,
+                        PurchaseRequestService $purchaseRequestService): Response
+    {
         $data = $purchaseRequestService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
 
     #[Route('/voir/{id}', name: 'purchase_request_show', options: ['expose' => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS])]
-    public function show(PurchaseRequest            $request,
-                         PurchaseRequestService     $purchaseRequestService,
-                         EntityManagerInterface     $entityManager): Response {
+    public function show(PurchaseRequest        $request,
+                         PurchaseRequestService $purchaseRequestService,
+                         EntityManagerInterface $entityManager): Response
+    {
         $status = $request->getStatus();
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -88,17 +90,18 @@ class PurchaseRequestController extends AbstractController
     }
 
     #[Route('/csv', name: 'purchase_request_export', options: ['expose' => true], methods: 'GET|POST')]
-    public function export(Request                    $request,
-                           EntityManagerInterface     $entityManager,
-                           PurchaseRequestService     $purchaseRequestService,
-                           CSVExportService           $CSVExportService): Response {
+    public function export(Request                $request,
+                           EntityManagerInterface $entityManager,
+                           PurchaseRequestService $purchaseRequestService,
+                           CSVExportService       $CSVExportService): Response
+    {
         $dateMin = $request->query->get("dateMin");
         $dateMax = $request->query->get("dateMax");
 
         $dateTimeMin = DateTime::createFromFormat("Y-m-d H:i:s", $dateMin . " 00:00:00");
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
-        if(isset($dateTimeMin, $dateTimeMax)) {
+        if (isset($dateTimeMin, $dateTimeMax)) {
             $now = (new DateTime('now'))->format("d-m-Y-H-i-s");;
 
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
@@ -163,9 +166,10 @@ class PurchaseRequestController extends AbstractController
     public function delete(Request                $request,
                            UserService            $userService,
                            RefArticleDataService  $refArticleDataService,
-                           EntityManagerInterface $entityManager): Response {
+                           EntityManagerInterface $entityManager): Response
+    {
 
-        if($data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequest = $requestRepository->find($data['request']);
 
@@ -206,15 +210,16 @@ class PurchaseRequestController extends AbstractController
 
     #[Route('/{purchaseRequest}/line/api', name: 'purchase_request_lines_api', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
-    public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest, EntityManagerInterface $entityManager): Response {
+    public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest, EntityManagerInterface $entityManager): Response
+    {
         $articleRepository = $entityManager->getRepository(Article::class);
         $requestLines = $purchaseRequest->getPurchaseRequestLines();
         $rowsRC = [];
-        foreach($requestLines as $requestLine) {
+        foreach ($requestLines as $requestLine) {
             $reference = $requestLine->getReference();
             $rowsRC[] = [
                 'reference' => isset($reference) ? $reference->getReference() : "",
-                'label'=> isset($reference) ? $reference->getLibelle() : "",
+                'label' => isset($reference) ? $reference->getLibelle() : "",
                 'requestedQuantity' => $requestLine->getRequestedQuantity(),
                 'stockQuantity' => isset($reference)
                     ? ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $requestLine->getLocation()
@@ -251,7 +256,8 @@ class PurchaseRequestController extends AbstractController
     public function addPurchaseRequestLine(Request                $request,
                                            PurchaseRequestService $purchaseRequestService,
                                            EntityManagerInterface $entityManager,
-                                           PurchaseRequest        $purchaseRequest): Response {
+                                           PurchaseRequest        $purchaseRequest): Response
+    {
 
         $data = json_decode($request->getContent(), true);
 
@@ -264,24 +270,20 @@ class PurchaseRequestController extends AbstractController
             $location = $locationRepository->find($data['location']);
         }
 
-        if($reference == null){
+        if ($reference == null) {
             $errorMessage = "La référence n'existe pas";
-        }
-        else if ($requestedQuantity == null || $requestedQuantity < 1) {
+        } else if ($requestedQuantity == null || $requestedQuantity < 1) {
             $errorMessage = "La quantité ajoutée n'est pas valide";
-        }
-        else {
+        } else {
 
             $linesWithSameRef = $purchaseRequest->getPurchaseRequestLines()
-                ->filter(fn (PurchaseRequestLine $line) => $line->getReference() === $reference && ($location?->getId() === $line->getLocation()?->getId()))
+                ->filter(fn(PurchaseRequestLine $line) => $line->getReference() === $reference && ($location?->getId() === $line->getLocation()?->getId()))
                 ->toArray();
             if (!empty($linesWithSameRef)) {
                 $errorMessage = "Le couple référence emplacement a déjà été ajoutée à la demande d'achat";
-            }
-            else if (!$reference->getBuyer()) {
+            } else if (!$reference->getBuyer()) {
                 $errorMessage = "La référence doit avoir un acheteur";
-            }
-            else if ($purchaseRequest->getBuyer() && $reference->getBuyer() !== $purchaseRequest->getBuyer()) {
+            } else if ($purchaseRequest->getBuyer() && $reference->getBuyer() !== $purchaseRequest->getBuyer()) {
                 $errorMessage = "La référence doit avoir un acheteur identique à la demande d'achat";
             }
         }
@@ -295,7 +297,7 @@ class PurchaseRequestController extends AbstractController
 
         $purchaseRequestLine = $purchaseRequestService->createPurchaseRequestLine($reference, $requestedQuantity, [
             "purchaseRequest" => $purchaseRequest,
-            "location"        => $location
+            "location" => $location
         ]);
 
         $purchaseRequest->setBuyer($reference->getBuyer());
@@ -321,7 +323,8 @@ class PurchaseRequestController extends AbstractController
     public function new(EntityManagerInterface $entityManager,
                         Request                $request,
                         AttachmentService      $attachmentService,
-                        PurchaseRequestService $purchaseRequestService): Response {
+                        PurchaseRequestService $purchaseRequestService): Response
+    {
         $data = $request->request->all();
         $statusRepository = $entityManager->getRepository(Statut::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -331,7 +334,7 @@ class PurchaseRequestController extends AbstractController
         $requester = $userRepository->find($data['requester']);
         $supplier = isset($data['supplier']) ? $supplierRepository->find($data['supplier']) : null;
 
-        if($status->isPreventStatusChangeWithoutDeliveryFees() && empty($data['deliveryFee'])) {
+        if ($status->isPreventStatusChangeWithoutDeliveryFees() && ($data['deliveryFee'] === null)) {
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
@@ -383,7 +386,8 @@ class PurchaseRequestController extends AbstractController
     #[Route("/ligne/modifier", name: "purchase_request_line_edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editLine(Request                $request,
-                             EntityManagerInterface $entityManager): Response {
+                             EntityManagerInterface $entityManager): Response
+    {
         $data = json_decode($request->getContent(), true);
         $response = [];
         $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
@@ -391,23 +395,23 @@ class PurchaseRequestController extends AbstractController
         $purchaseRequestLine = $purchaseRequestLineRepository->find($data['lineId']);
 
         if (!empty($purchaseRequestLine)) {
-            if(isset($data['supplier'])){
+            if (isset($data['supplier'])) {
                 $supplierRepository = $entityManager->getRepository(Fournisseur::class);
                 $supplier = $supplierRepository->find($data['supplier']);
             }
 
-            if(isset($data['orderDate']) && $data['orderDate']) {
+            if (isset($data['orderDate']) && $data['orderDate']) {
                 $orderDate = $this->getFormatter()->parseDatetime($data['orderDate']) ?: null;
             }
 
-            if(isset($data['expectedDate']) && $data['expectedDate']) {
+            if (isset($data['expectedDate']) && $data['expectedDate']) {
                 $expectedDate = $this->getFormatter()->parseDatetime($data['expectedDate']) ?: null;
             }
 
             $purchaseRequestLine
                 ->setSupplier($supplier ?? null)
                 ->setOrderNumber($data['orderNumber'] ?? null)
-                ->setOrderedQuantity((int) $data['orderedQuantity'] ?? null)
+                ->setOrderedQuantity((int)$data['orderedQuantity'] ?? null)
                 ->setOrderDate($orderDate ?? null)
                 ->setExpectedDate($expectedDate ?? null)
                 ->setUnitPrice(floatval($data[FixedFieldEnum::unitPrice->name]));
@@ -420,6 +424,7 @@ class PurchaseRequestController extends AbstractController
         }
         return new JsonResponse($response);
     }
+
     #[Route('/api-modifier', name: 'purchase_request_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST], mode: HasPermission::IN_JSON)]
     public function editApi(Request                $request,
@@ -428,8 +433,6 @@ class PurchaseRequestController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $defaultStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::PURCHASE_REQUEST);
-
 
             $purchaseRequest = $purchaseRequestRepository->find($data['id']);
 
@@ -450,17 +453,17 @@ class PurchaseRequestController extends AbstractController
 
     #[Route('/modifier', name: 'purchase_request_edit', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST], mode: HasPermission::IN_JSON)]
-    public function edit(EntityManagerInterface     $entityManager,
-                         Request                    $request,
-                         PurchaseRequestService     $purchaseRequestService,
-                         AttachmentService          $attachmentService): Response {
+    public function edit(EntityManagerInterface $entityManager,
+                         Request                $request,
+                         PurchaseRequestService $purchaseRequestService,
+                         AttachmentService      $attachmentService): Response
+    {
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
-
-;        $post = $request->request;
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);;
+        $post = $request->request;
 
         $purchaseRequest = $purchaseRequestRepository->find($post->get('id'));
 
@@ -470,7 +473,7 @@ class PurchaseRequestController extends AbstractController
         $newStatus = $statusRepository->find($post->get('status'));
         $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
 
-        if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && $post->get('deliveryFee') === null) {
+        if ($newStatus->isPreventStatusChangeWithoutDeliveryFees() && $post->get('deliveryFee') === null) {
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
@@ -510,15 +513,16 @@ class PurchaseRequestController extends AbstractController
     #[Route('/line/remove-line', name: 'purchase_request_line_remove_line', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeLine(Request                $request,
-                               EntityManagerInterface $entityManager) {
-        if($data = json_decode($request->getContent())) {
+                               EntityManagerInterface $entityManager)
+    {
+        if ($data = json_decode($request->getContent())) {
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
 
             $purchaseRequest = $purchaseRequestRepository->find($data->request);
             $purchaseRequestLine = $purchaseRequestLineRepository->find($data->lineId);
 
-            if($purchaseRequestLine && $purchaseRequest){
+            if ($purchaseRequestLine && $purchaseRequest) {
                 $purchaseRequest->removePurchaseRequestLine($purchaseRequestLine);
                 $entityManager->remove($purchaseRequestLine);
             }
@@ -536,10 +540,11 @@ class PurchaseRequestController extends AbstractController
 
     #[Route("/{id}/consider", name: "consider_purchase_request", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT_ONGOING_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
-    public function consider(Request                    $request,
-                             EntityManagerInterface     $entityManager,
-                             PurchaseRequest            $purchaseRequest,
-                             PurchaseRequestService     $purchaseRequestService): Response {
+    public function consider(Request                $request,
+                             EntityManagerInterface $entityManager,
+                             PurchaseRequest        $purchaseRequest,
+                             PurchaseRequestService $purchaseRequestService): Response
+    {
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -547,7 +552,7 @@ class PurchaseRequestController extends AbstractController
         $status = $data['status'];
         $inProgressStatus = $statusRepository->find($status);
 
-        if($inProgressStatus->isPreventStatusChangeWithoutDeliveryFees() && !$purchaseRequest->getDeliveryFee()){
+        if ($inProgressStatus->isPreventStatusChangeWithoutDeliveryFees() && $purchaseRequest->getDeliveryFee() === null) {
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
@@ -567,10 +572,11 @@ class PurchaseRequestController extends AbstractController
 
     #[Route('/{id}/treat', name: 'treat_purchase_request', options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::EDIT_ONGOING_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
-    public function treat(Request                    $request,
-                          EntityManagerInterface     $entityManager,
-                          PurchaseRequest            $purchaseRequest,
-                          PurchaseRequestService     $purchaseRequestService): Response {
+    public function treat(Request                $request,
+                          EntityManagerInterface $entityManager,
+                          PurchaseRequest        $purchaseRequest,
+                          PurchaseRequestService $purchaseRequestService): Response
+    {
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -579,7 +585,7 @@ class PurchaseRequestController extends AbstractController
         $status = $data['status'];
         $treatedStatus = $statusRepository->find($status);
 
-        if($treatedStatus->isPreventStatusChangeWithoutDeliveryFees() && $purchaseRequest->getDeliveryFee() === null){
+        if ($treatedStatus->isPreventStatusChangeWithoutDeliveryFees() && $purchaseRequest->getDeliveryFee() === null) {
             throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
@@ -587,7 +593,7 @@ class PurchaseRequestController extends AbstractController
             throw new FormException('Des informations sont manquantes sur une ou plusieurs lignes d\'achat. <br> Impossible de terminer la demande d\'achat.');
         }
 
-        if($treatedStatus->getAutomaticReceptionCreation()) {
+        if ($treatedStatus->getAutomaticReceptionCreation()) {
             $purchaseRequestService->persistAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
         }
 
@@ -606,10 +612,10 @@ class PurchaseRequestController extends AbstractController
 
     #[Route('/{id}/valider', name: 'purchase_request_validate', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST], mode: HasPermission::IN_JSON)]
-    public function validate(PurchaseRequest            $purchaseRequest,
-                             EntityManagerInterface     $entityManager,
-                             Request                    $request,
-                             PurchaseRequestService     $purchaseRequestService): Response
+    public function validate(PurchaseRequest        $purchaseRequest,
+                             EntityManagerInterface $entityManager,
+                             Request                $request,
+                             PurchaseRequestService $purchaseRequestService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $statusRepository = $entityManager->getRepository(Statut::class);
@@ -620,7 +626,8 @@ class PurchaseRequestController extends AbstractController
                 $message = "Le statut sélectionné n'existe pas.";
             }
 
-            if ($status->isPreventStatusChangeWithoutDeliveryFees() && ($purchaseRequest->getDeliveryFee() === null || $purchaseRequest->getDeliveryFee() === '')) {
+            // if status prevent status change without delivery fees and delivery fee is not set (set 0 is allowed)
+            if ($status->isPreventStatusChangeWithoutDeliveryFees() && $purchaseRequest->getDeliveryFee() === null) {
                 $message = "Les frais de livraisons doivent être renseignés.";
             }
 
@@ -628,7 +635,7 @@ class PurchaseRequestController extends AbstractController
                 $message = "Vous ne pouvez pas valider une demande d'achat vide.";
             }
 
-            if(!empty($message)){
+            if (!empty($message)) {
                 throw new FormException($message);
             }
 
@@ -657,49 +664,50 @@ class PurchaseRequestController extends AbstractController
     #[Route('/api-references', name: 'purchase_api_references', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function apiReferences(Request                $request,
-                                  PurchaseRequestService $service): Response {
+                                  PurchaseRequestService $service): Response
+    {
 
         return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
     }
 
     #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generate_purchase_order', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
-    public function generatePurchaseOrder(PurchaseRequest           $purchaseRequest,
-                                          EntityManagerInterface    $entityManager,
-                                          PurchaseRequestService    $purchaseRequestService): JsonResponse
+    public function generatePurchaseOrder(PurchaseRequest        $purchaseRequest,
+                                          EntityManagerInterface $entityManager,
+                                          PurchaseRequestService $purchaseRequestService): JsonResponse
     {
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $now = new DateTime();
 
         // génère seulement si en cours et tableau remplis
-        if(!$purchaseRequest->isPurchaseRequestLinesFilled()){
+        if (!$purchaseRequest->isPurchaseRequestLinesFilled()) {
             throw new FormException("La demande d'achat ne peut pas être traitée");
         }
 
-        if(!$purchaseRequest->getStatus()->isTreated()){
+        if (!$purchaseRequest->getStatus()->isTreated()) {
             $nextStatus = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST))
                 ->filter(static fn(Statut $status) => $status->isPassStatusAtPurchaseOrderGeneration())
                 ->first();
 
             // if next status is not the same as current status then change status
-            if($nextStatus && $nextStatus->getId() !== $purchaseRequest->getStatus()?->getId()){
+            if ($nextStatus && $nextStatus->getId() !== $purchaseRequest->getStatus()?->getId()) {
                 $purchaseRequest->setStatus($nextStatus);
 
                 // create automatic reception if parameter is enabled
-                if($nextStatus->getAutomaticReceptionCreation()){
+                if ($nextStatus->getAutomaticReceptionCreation()) {
                     $purchaseRequestService->persistAutomaticReceptionWithStatus($entityManager, $purchaseRequest);
                 }
 
                 // set date according to status
-                switch($purchaseRequest->getStatus()->getState()) {
+                switch ($purchaseRequest->getStatus()->getState()) {
                     case Statut::IN_PROGRESS:
-                        if(!$purchaseRequest->getConsiderationDate()){
+                        if (!$purchaseRequest->getConsiderationDate()) {
                             $purchaseRequest->setConsiderationDate($now);
                         }
                         break;
                     case Statut::TREATED:
-                        if(!$purchaseRequest->getProcessingDate()){
+                        if (!$purchaseRequest->getProcessingDate()) {
                             $purchaseRequest->setProcessingDate($now);
                         }
                         break;
@@ -718,13 +726,14 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/{purchaseRequest}/purchaseOrder/{attachment}", name:"print_purchase_order", options:["expose"=>true], methods:[self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{purchaseRequest}/purchaseOrder/{attachment}", name: "print_purchase_order", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function printDeliverySlip(Attachment      $attachment,
-                                      KernelInterface $kernel): Response {
+                                      KernelInterface $kernel): Response
+    {
 
         $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;
     }
