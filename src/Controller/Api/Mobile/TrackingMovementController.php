@@ -505,10 +505,10 @@ class TrackingMovementController extends AbstractController {
             $res['isPack'] = !$isGroup;
 
             $trackingDelayData = $packService->formatTrackingDelayData($pack);
-            $res['trackingDelayData'] = $trackingDelayData["trackingDelayColor"] && $trackingDelayData["strDelay"]
+            $res['trackingDelayData'] = isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
                 ? [
-                    'color' => $trackingDelayData["trackingDelayColor"],
-                    'delay' => $trackingDelayData["strDelay"],
+                    'color' => $trackingDelayData["color"],
+                    'delay' => $trackingDelayData["delay"],
                     'limitTreatmentDate' => $this->formatService->datetime($pack->getTrackingDelay()?->getLimitTreatmentDate(), null),
                 ]
                 : [];
