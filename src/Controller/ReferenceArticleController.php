@@ -1118,7 +1118,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             $barcodesToPrint[] = [
-                'text' => $kioskService->getTextForLabel($article, $entityManager),
+                'text' => $kioskService->getTextForLabel($article),
                 'barcode' => $article->getBarCode()
             ];
             $ordreCollecte->addArticle($article);

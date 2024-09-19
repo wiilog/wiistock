@@ -60,13 +60,13 @@ class DashboardService {
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
     public function __construct(
-        private readonly DateTimeService $dateTimeService,
-        private readonly TranslationService $translationService,
-        private readonly LanguageService $languageService,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly TruckArrivalLineService $truckArrivalLineService,
-        private readonly FormatService $formatService,
-        private readonly EnCoursService $enCoursService,
+        private  DateTimeService $dateTimeService,
+        private  TranslationService $translationService,
+        private  LanguageService $languageService,
+        private  EntityManagerInterface $entityManager,
+        private  TruckArrivalLineService $truckArrivalLineService,
+        private  FormatService $formatService,
+        private  EnCoursService $enCoursService,
     ) {}
 
     public function refreshDate(EntityManagerInterface $entityManager): string {

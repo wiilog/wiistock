@@ -21,9 +21,9 @@ class WarningHeaderSetCommand extends Command
 {
     private const DEFAULT_COLOR = '#d9534f';
 
-    public function __construct(private readonly EntityManagerInterface  $entityManager,
-                                private readonly SettingsService         $settingsService,
-                                private readonly CacheService            $cacheService)
+    public function __construct(private  EntityManagerInterface  $entityManager,
+                                private  SettingsService         $settingsService,
+                                private  CacheService            $cacheService)
     {
         parent::__construct();
     }

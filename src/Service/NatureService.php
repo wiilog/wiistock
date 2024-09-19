@@ -15,11 +15,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-readonly class NatureService {
+class NatureService {
 
     public function __construct(
         private EntityManagerInterface $entityManager,

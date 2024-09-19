@@ -15,8 +15,8 @@ class CSVExportService {
 
     private bool|null $wantsUTF8 = null;
 
-    public function __construct(private readonly EntityManagerInterface $entityManager,
-                                private readonly SettingsService        $settingsService){}
+    public function __construct(private  EntityManagerInterface $entityManager,
+                                private  SettingsService        $settingsService){}
 
     /**
      * @deprecated Use CSVExportService::stream instead

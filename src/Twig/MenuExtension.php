@@ -6,6 +6,7 @@ use App\Entity\Menu;
 use App\Service\CacheService;
 use App\Service\RoleService;
 use App\Service\UserService;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use WiiCommon\Helper\Stream;
@@ -16,10 +17,10 @@ class MenuExtension extends AbstractExtension
 
     private array $menuConfig;
 
-    public function __construct(array                         $menuConfig,
-                                private readonly CacheService $cache,
-                                private readonly RoleService  $roleService,
-                                private readonly UserService  $userService) {
+    public function __construct(#[Autowire('%menu_config%')] array $menuConfig,
+                                private  CacheService      $cache,
+                                private  RoleService       $roleService,
+                                private  UserService       $userService) {
         $this->menuConfig = $menuConfig;
     }
 

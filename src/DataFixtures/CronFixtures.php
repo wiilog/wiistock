@@ -29,7 +29,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class CronFixtures extends Fixture implements FixtureGroupInterface {
 
     public function __construct(
-        private readonly SpecificService $specificService,
+        private  SpecificService $specificService,
     ) {}
 
     private const CRON_JOBS = [

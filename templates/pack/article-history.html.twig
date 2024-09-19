@@ -3,9 +3,9 @@
 
     {% if article %}
         <div class="logistic-unit-history-interstice">
-            {% if movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_DROP_LU') %}
+            {% if movement.type.code == constant('App\\Entity\\Tracking\\TrackingMovement::TYPE_DROP_LU') %}
                 <div class="logistic-unit-entry">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Entrée') }}</div>
-            {% elseif movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_PICK_LU') %}
+            {% elseif movement.type.code == constant('App\\Entity\\Tracking\\TrackingMovement::TYPE_PICK_LU') %}
                 <div class="logistic-unit-exit">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Sortie') }}</div>
             {% endif %}
             <span class="wii-small-text">{{ movement.datetime|format_helper('longDate', {short: true, time: true}) }}</span>

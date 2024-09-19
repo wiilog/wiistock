@@ -27,17 +27,17 @@ class DisputeService {
     public const PUT_LINE_RECEPTION = 'reception';
 
     public function __construct(
-        private readonly AttachmentService      $attachmentService,
-        private readonly RouterInterface        $router,
-        private readonly FormatService          $formatService,
-        private readonly LanguageService        $languageService,
-        private readonly Twig_Environment       $templating,
-        private readonly Security               $security,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly TranslationService     $translation,
-        private readonly MailerService          $mailerService,
-        private readonly FieldModesService      $fieldModesService,
-        private readonly CSVExportService       $CSVExportService
+        private  AttachmentService      $attachmentService,
+        private  RouterInterface        $router,
+        private  FormatService          $formatService,
+        private  LanguageService        $languageService,
+        private  Twig_Environment       $templating,
+        private  Security               $security,
+        private  EntityManagerInterface $entityManager,
+        private  TranslationService     $translation,
+        private  MailerService          $mailerService,
+        private  FieldModesService      $fieldModesService,
+        private  CSVExportService       $CSVExportService
     ) {}
 
     public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {

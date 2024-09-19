@@ -19,8 +19,8 @@ use WiiCommon\Helper\Stream;
     description: 'Tool to remove duplicate LU',
 )]
 class RemoveDuplicateLUCommand extends Command {
-    public function __construct(private readonly EntityManagerInterface $entityManager,
-                                private readonly FormatService          $formatService) {
+    public function __construct(private  EntityManagerInterface $entityManager,
+                                private  FormatService          $formatService) {
         parent::__construct();
     }
 

@@ -5,19 +5,15 @@ namespace App\Service;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Livraison;
-use App\Entity\PurchaseRequest;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use WiiCommon\Helper\Stream;
-use phpDocumentor\Reflection\Types\Self_;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityManagerInterface;
-use JetBrains\PhpStorm\Deprecated;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Knp\Snappy\PDF as PDFGenerator;
 use Twig\Error\LoaderError;
@@ -30,31 +26,13 @@ class PDFGeneratorService {
 
     public const MAX_LINE_LENGHT_WRAP = 30;
 
-    /** @var Twig_Environment */
-    private $templating;
-
-    /** @var $PDFGenerator */
-    private $PDFGenerator;
-
-    private $kernel;
-
-    private $entityManager;
-
-    #[Required]
-    public SettingsService $settingsService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    public function __construct(PDFGenerator           $PDFGenerator,
-                                KernelInterface        $kernel,
-                                Twig_Environment       $templating,
-                                EntityManagerInterface $entityManager)
-    {
-        $this->templating = $templating;
-        $this->PDFGenerator = $PDFGenerator;
-        $this->kernel = $kernel;
-        $this->entityManager = $entityManager;
+    public function __construct(
+        #[Autowire("@knp_snappy.pdf")] private PDFGenerator $PDFGenerator,
+        private Twig_Environment                            $templating,
+        private EntityManagerInterface                      $entityManager,
+        private SettingsService                             $settingsService,
+        private FormatService                               $formatService,
+    ) {
     }
 
     // TODO throw error if dimension do not exists

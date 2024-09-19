@@ -18,9 +18,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class WarningHeaderClearCommand extends Command
 {
 
-    public function __construct(private readonly EntityManagerInterface  $entityManager,
-                                private readonly SettingsService         $settingsService,
-                                private readonly CacheService            $cacheService)
+    public function __construct(private  EntityManagerInterface  $entityManager,
+                                private  SettingsService         $settingsService,
+                                private  CacheService            $cacheService)
     {
         parent::__construct();
     }
