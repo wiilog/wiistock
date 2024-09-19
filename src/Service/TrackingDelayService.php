@@ -126,6 +126,7 @@ class TrackingDelayService {
 
                 // We define a start and a stop for calculate time in an interval,
                 // and we restart until the end of TrackingEvents array
+                /** @var TrackingMovement $trackingEvent */
                 foreach ($trackingEvents as $trackingEvent) {
                     $lastTrackingEvent = null;
                     if ($intervalStart) {

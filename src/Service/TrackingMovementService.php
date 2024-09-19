@@ -423,7 +423,8 @@ class TrackingMovementService {
             && $pack->getParent()
             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
 
-        [$_, $orderIndex] = hrtime();
+        $orderIndexNanoseconds = hrtime(true);
+        $orderIndex = floor($orderIndexNanoseconds / 1000000);
 
         $tracking = new TrackingMovement();
         $tracking
