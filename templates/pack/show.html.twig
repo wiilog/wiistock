@@ -16,10 +16,11 @@
         <div class="row wii-column">
             <div class="col-12 col-md-6">
                 {% set nature = logisticUnit.nature %}
-                <div class="wii-box overflow-hidden details-page-header d-flex flex-column" style="border-color: {{ nature ? nature.color : 'black' }}">
+                <div class="wii-box overflow-hidden details-page-header d-flex flex-column"
+                     style="border-color: {{ nature ? nature.color : 'black' }}">
                     {% if nature %}
-                        <div class="wii-type" style="background-color: {{ logisticUnit.nature.color }}">
-                            <span class="p-1">{{ logisticUnit.nature.label }}</span>
+                        <div class="wii-type" style="background-color: {{ nature.color }}">
+                            <span class="p-1">{{ nature.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</span>
                         </div>
                     {% endif %}
                     <div class="d-flex header-wrapper bg-white">
@@ -151,7 +152,6 @@
                 </div>
 
                 {% if logisticUnit.childArticles|length > 0 or movements|length > 0 %}
-
                     <div class="wii-box">
                         <div class="header wii-title">Contenu unité logistique</div>
                         <div class="logistic-unit-content ml-0 h-auto" style="background-color: white; max-width: 100%">
@@ -180,7 +180,6 @@
                     </div>
 
                 {% endif %}
-
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">

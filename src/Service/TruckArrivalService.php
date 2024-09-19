@@ -4,6 +4,7 @@ namespace App\Service;
 
 
 use App\Entity\Action;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Reserve;
@@ -237,17 +238,21 @@ class TruckArrivalService
         ];
     }
 
-    public function buildCustomLogisticUnitHistoryRecord(TruckArrival $truckArrival): string {
-        $values = $truckArrival->serialize($this->formatService);
-        $message = "";
+    public function serialize(TruckArrival $truckArrival): array {
+        $carrierTrackingNumbers = Stream::from($truckArrival->getTrackingLines())
+            ->map(static fn(TruckArrivalLine $line) => $line->getNumber())
+            ->join(', ');
 
-        Stream::from($values)
-            ->filter(static fn(?string $value) => $value)
-            ->each(static function (string $value, string $key) use (&$message) {
-                $message .= "$key : $value\n";
-                return $message;
-            });
+        $lineHasReserve = !$truckArrival->getTrackingLines()->isEmpty() &&
+            Stream::from($truckArrival->getTrackingLines())
+                ->some(fn(TruckArrivalLine $line) => $line->getReserve());
 
-        return $message;
+        return [
+            FixedFieldEnum::number->value => $truckArrival->getNumber(),
+            FixedFieldEnum::carrier->value => $this->formatService->carrier($truckArrival->getCarrier()),
+            FixedFieldEnum::driver->value => $this->formatService->driver($truckArrival->getDriver()),
+            FixedFieldEnum::carrierTrackingNumber->value => $carrierTrackingNumbers,
+            FixedFieldEnum::carrierTrackingNumberReserve->value => $this->formatService->bool($lineHasReserve),
+        ];
     }
 }
