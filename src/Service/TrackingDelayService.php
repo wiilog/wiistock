@@ -36,8 +36,6 @@ class TrackingDelayService {
             return;
         }
 
-
-
         [
             "lastTrackingEvent" => $lastTrackingEvent,
             "elapsedTime" => $calculatedElapsedTime,
