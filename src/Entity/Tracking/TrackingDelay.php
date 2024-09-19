@@ -31,7 +31,7 @@ class TrackingDelay {
     #[ORM\OneToOne(inversedBy: "trackingDelay", targetEntity: Pack::class)]
     private ?Pack $pack = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $limitTreatmentDate = null;
 
     public function getId(): ?int {

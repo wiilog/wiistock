@@ -173,6 +173,10 @@ class DateTimeService {
 
         foreach ($workFreeDays as $workFreeDay) {
             $currentFormattedDay = $workFreeDay->format($comparisonFormat);
+            if ($formattedDay < $currentFormattedDay) {
+                continue;
+            }
+
             return $currentFormattedDay === $formattedDay;
         }
 
@@ -301,57 +305,78 @@ class DateTimeService {
             : $dateTime2->diff($dateTime1);
     }
 
-    public function getDateTimeFromDateAndInterval(EntityManagerInterface $entityManager,
-                                                   DateTime $date,
-                                                   DateInterval $interval): DateTime {
+    // TODO WIIS-11848
+    public function addWorkedIntervalToDateTime(EntityManagerInterface $entityManager,
+                                                DateTime               $startDate,
+                                                DateInterval           $workedInterval): DateTime {
         $workedSegments = $this->getCache($entityManager, "workedDays");
 
-        $finalDate = clone $date;
-        $finalInterval = clone $interval;
-        $day = strtolower($date->format('l'));
+        $day = strtolower($startDate->format('l'));
 
-        foreach ($workedSegments[$day] as $workedSegment) {
-            [$endHour, $endMinute] = explode(':', $workedSegment[1]);
-            $endPeriod = (clone $finalDate)->setTime($endHour, $endMinute);
-            //check pour savoir si l'heure de notre date est supérieur à la borne supérieur du créneau, si elle l'est on passe au tour de boucle suivant
-            if ($date >= $endPeriod) {
-                continue;
+        $finalDate = clone $startDate;
+        $finalInterval = clone $workedInterval;
+
+        if (!$this->isWorkFreeDay($entityManager, $startDate)) {
+
+            // loop over worked segment on current $date
+            foreach ($workedSegments[$day] as $workedSegment) {
+                [$workedSegmentStart, $workedSegmentEnd] = $workedSegment;
+
+                [$workedSegmentEndHour, $workedSegmentEndMinute] = explode(':', $workedSegmentEnd);
+                $currentSegmentEnd = (clone $startDate)->setTime($workedSegmentEndHour, $workedSegmentEndMinute);
+
+                // ignore if segment is before start
+                if ($startDate >= $currentSegmentEnd) {
+                    continue;
+                }
+
+                [$workedSegmentStartHour, $workedSegmentStartMinute] = explode(':', $workedSegmentStart);
+                $currentSegmentStart = (clone $startDate)->setTime($workedSegmentStartHour, $workedSegmentStartMinute);
+
+                // if start date is before currentSegment the returned hour is at least the start date or more recent
+                // else it's the start date
+                if ($startDate < $currentSegmentStart) {
+                    $finalDate = $currentSegmentStart;
+                }
+
+                /// interval segment in second
+                $lower = $this->calculateSecondsFrom($finalDate->format("H:i"));
+                $upper = $this->calculateSecondsFrom($workedSegment[1]);
+                $currentSegmentSecondDuration = $upper - $lower;
+
+                $intervalDiff = floor($this->convertDateIntervalToMilliseconds($finalInterval) / 1000) - $currentSegmentSecondDuration;
+
+                // if <= 0 then the returned datetime should be on current segment
+                if ($intervalDiff <= 0) {
+                    return $finalDate->add($finalInterval);
+                }
+
+                // else we remove segment interval from given interval
+                $dateTime1 = new DateTime();
+                $dateTime2 = clone $dateTime1;
+                $dateTime1
+                    ->add($finalInterval)
+                    ->modify("-$intervalDiff seconds");
+
+                $finalInterval = $dateTime1->diff($dateTime2);
             }
-
-            // On défini :
-            // Si l'heure est inférieur à la borne inférieur du créneau -> on modifie notre heure avec celle de la borne inférieur
-            // Sinon on prend comme heure celle de notre date
-            [$startHour, $startMinute] = explode(':', $workedSegment[0]);
-            $startPeriod = (clone $finalDate)->setTime($startHour, $startMinute);
-            if ($date < $startPeriod) {
-                $finalDate = $startPeriod;
-            }
-
-            /// interval segment
-            $lower = $this->calculateSecondsFrom($finalDate->format("H:i"));
-            $upper = $this->calculateSecondsFrom($workedSegment[1]);
-            $intervalSegment = $upper - $lower;
-
-            $intervalDiff = ($this->convertDateIntervalToMilliseconds($finalInterval) / 1000) - $intervalSegment;
-            if ($intervalDiff <= 0) {
-                return $finalDate->add($finalInterval);
-            }
-
-            $dateTime1 = new DateTime();
-            $dateTime2 = clone $dateTime1;
-            $dateTime1->add($finalInterval)->modify("-$intervalDiff seconds");
-
-            $finalInterval = $dateTime1->diff($dateTime2);
         }
+
+        // we get the next day worked according to worked days settings & work free days settings
         $workedDays = Stream::keys($workedSegments);
-        $currentDayKey = Stream::from($workedDays)
+        $currentDayKey = $workedDays
             ->findKey(static fn(string $workedDay) => $workedDay === $day) ?? -1;
 
-        $nextDayKey = ($currentDayKey + 1) % $workedDays->count();
+        do {
+            $nextDayKey = ($currentDayKey + 1) % $workedDays->count();
 
-        $nextDay = $workedDays->offsetGet($nextDayKey);
-        $finalDate->modify("next $nextDay")->setTime(0,0);
+            $nextDay = $workedDays->offsetGet($nextDayKey);
+            $finalDate
+                ->modify("next $nextDay")
+                ->setTime(0, 0);
+        }
+        while ($this->isWorkFreeDay($entityManager, $finalDate));
 
-        return $this->getDateTimeFromDateAndInterval($entityManager, $finalDate, $finalInterval);
+        return $this->addWorkedIntervalToDateTime($entityManager, $finalDate, $finalInterval);
     }
 }

@@ -56,14 +56,17 @@ class TrackingDelayService {
             }
 
             $now = new DateTime();
-            $treatmentRemainingTime = $this->dateTimeService->convertSecondsToDateInterval($pack->getNature()->getTrackingDelay() - $calculatedElapsedTime);
-            $limitTreatmentDate = $this->dateTimeService->getDateTimeFromDateAndInterval($entityManager, $now, $treatmentRemainingTime);
+            $treatmentRemainingSeconds = $pack->getNature()->getTrackingDelay() - $calculatedElapsedTime;
+            $treatmentRemainingInterval = $this->dateTimeService->convertSecondsToDateInterval($treatmentRemainingSeconds);
+            $limitTreatmentDate = $treatmentRemainingSeconds > 0
+                ? $this->dateTimeService->addWorkedIntervalToDateTime($entityManager, $now, $treatmentRemainingInterval)
+                : null;
 
             $trackingDelay
                 ->setElapsedTime($calculatedElapsedTime)
                 ->setCalculatedAt($now)
                 ->setLastTrackingEvent($lastTrackingEvent)
-                ->setLimitTreatmentDate($limitTreatmentDate);
+                ->setLimitTreatmentDate($limitTreatmentDate ?: $trackingDelay->getLimitTreatmentDate());
 
             $entityManager->persist($trackingDelay);
         }
