@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DomCrawler\Crawler;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
@@ -9,7 +10,9 @@ use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 
 class BarcodeExtension extends AbstractExtension {
 
-    public function __construct(private readonly BarcodeGenerator $barcodeGenerator) {}
+    public function __construct(
+        #[Autowire("@sgk_barcode.generator")] private  BarcodeGenerator $barcodeGenerator
+    ) {}
 
     public function getFunctions(): array {
         return [

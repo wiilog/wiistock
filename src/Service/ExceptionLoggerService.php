@@ -25,9 +25,9 @@ class ExceptionLoggerService {
     private Serializer $serializer;
 
     public function __construct(
-        private readonly HttpClientInterface $client,
-        private readonly LoggerInterface $symfonyLogger,
-        private readonly Security $security,
+        private  HttpClientInterface $client,
+        private  LoggerInterface $symfonyLogger,
+        private  Security $security,
     ) {
         $encoder = new JsonEncoder();
         $defaultContext = [

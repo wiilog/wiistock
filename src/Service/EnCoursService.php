@@ -16,7 +16,7 @@ use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 
-readonly class EnCoursService {
+class EnCoursService {
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -28,12 +28,12 @@ readonly class EnCoursService {
     private const MORNING_LAST_MINUTE_INDEX = 3;
 
     public function __construct(
-        private TrackingMovementService  $trackingMovementService,
-        private FormatService $formatService,
-        private Environment $templating,
-        private DateTimeService $dateTimeService,
-        private TranslationService $translationService,
-        private FieldModesService $fieldModesService
+        private TrackingMovementService $trackingMovementService,
+        private FormatService           $formatService,
+        private Environment             $templating,
+        private DateTimeService         $dateTimeService,
+        private TranslationService      $translationService,
+        private FieldModesService       $fieldModesService
     ) {}
 
     /**

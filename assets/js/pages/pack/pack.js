@@ -1,7 +1,10 @@
 import {getTrackingHistory} from "./show";
 import '@styles/pages/pack/timeline.scss';
+import AJAX, {POST} from "@app/ajax";
+import Flash, {ERROR, SUCCESS} from "@app/flash";
 
 global.toExport = toExport;
+global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
 
 const packsTableConfig = {
     responsive: true,
@@ -292,4 +295,19 @@ function toggleAddAllToCartButton() {
     else {
         $addAllCart.removeClass(`d-none`);
     }
+}
+
+function reloadLogisticUnitTrackingDelay(logisticUnitId) {
+    AJAX
+        .route(POST, "force_pack_tracking_delay_calculation", {logisticUnit: logisticUnitId})
+        .json()
+        .then(({success}) => {
+            if (success) {
+                Flash.add(SUCCESS, "Le délai de traitement de l'unité logistique a bien été recalculé", true, true);
+                packsTable.ajax.reload();
+            }
+            else {
+                Flash.add(ERROR, "Une erreur est survenu lors du calcul du délai de traitement de l'unité logistique", true, true);
+            }
+        });
 }

@@ -5,19 +5,13 @@ namespace App\Service\Document;
 use PhpOffice\PhpWord\Element\Table;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Contracts\Service\Attribute\Required;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class TemplateDocumentService {
 
-    #[Required]
-    public KernelInterface $kernel;
-
-    private BarcodeGenerator $barcodeGenerator;
-
-    public function __construct(BarcodeGenerator $barcodeGenerator) {
-        $this->barcodeGenerator = $barcodeGenerator;
-    }
+    public function __construct(
+        #[Autowire("@sgk_barcode.generator")] private BarcodeGenerator $barcodeGenerator,
+    ) {}
 
     /**
      * @return string Path of the generated docx

@@ -9,43 +9,22 @@ use App\Service\FormatService;
 use App\Service\PDFGeneratorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
-class KioskService
-{
+class KioskService {
 
-//    #[Required]
-//    public Generator $barcodeGenerator;
-//
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public EntityManagerInterface $manager;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    private $articleDataService;
-
-    private $PDFGeneratorService;
-
-    private $barcodeGenerator;
-
-
-
-    public function __construct(BarcodeGenerator $barcodeGenerator, ArticleDataService $articleDataService, PDFGeneratorService $PDFGeneratorService) {
-        $this->barcodeGenerator = $barcodeGenerator;
-        $this->articleDataService = $articleDataService;
-        $this->PDFGeneratorService = $PDFGeneratorService;
+    public function __construct(
+        private ArticleDataService     $articleDataService,
+        private PDFGeneratorService    $PDFGeneratorService,
+        private FormatService          $formatService,
+        private EntityManagerInterface $manager,
+        private Twig_Environment       $templating,
+    ) {
     }
 
 
-    public function getTextForLabel(Article $article, EntityManagerInterface $entityManager ) {
+    public function getTextForLabel(Article $article): string {
         $referenceArticle = $article->getReferenceArticle();
 
         $labelText = $article->getBarCode() ? $article->getBarCode() . '\n' : '';

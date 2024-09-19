@@ -25,6 +25,7 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
+use App\Service\TrackingDelayService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -447,4 +448,19 @@ class PackController extends AbstractController
             "recordsTotal" => $queryResult["total"],
         ]);
     }
+
+    #[Route("/{logisticUnit}/tracking-delay", name: "force_pack_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
+    public function postTrackingDelay(EntityManagerInterface $entityManager,
+                                      TrackingDelayService   $trackingDelayService,
+                                      Pack                   $logisticUnit): JsonResponse {
+
+        $trackingDelayService->persistTrackingDelay($entityManager, $logisticUnit, ["force" => true]);
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" =>true,
+        ]);
+    }
+
 }

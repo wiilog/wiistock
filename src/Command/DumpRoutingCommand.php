@@ -7,16 +7,18 @@ use FOS\JsRoutingBundle\Extractor\ExposedRoutesExtractorInterface;
 use FOS\JsRoutingBundle\Response\RoutesResponse;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class DumpRoutingCommand extends DumpCommand {
 
-    public function __construct(RoutesResponse $routesResponse,
-                                ExposedRoutesExtractorInterface $extractor,
-                                SerializerInterface $serializer,
-                                KernelInterface $kernel) {
-        parent::__construct($routesResponse, $extractor, $serializer, $kernel->getProjectDir());
+    public function __construct(
+        #[Autowire("@fos_js_routing.routes_response")] RoutesResponse            $routesResponse,
+        #[Autowire("@fos_js_routing.extractor")] ExposedRoutesExtractorInterface $extractor,
+        #[Autowire("@serializer")] SerializerInterface                           $serializer,
+        #[Autowire("%kernel.project_dir%")] string                               $projectDir) {
+        parent::__construct($routesResponse, $extractor, $serializer, $projectDir);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
