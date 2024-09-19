@@ -7,12 +7,12 @@ use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Nature;
-
 use App\Entity\Pack;
 use App\Service\CSVExportService;
 use App\Service\GroupService;
 use App\Service\TrackingMovementService;
-
+use App\Service\TranslationService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,25 +20,26 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use DateTime;
-use App\Service\TranslationService;
 use Throwable;
 
 
 #[Route('/groupes', name: 'group_')]
-class GroupController extends AbstractController {
+class GroupController extends AbstractController
+{
 
     #[Route("/api", name: "api", options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function api(Request         $request,
-                        GroupService    $groupService): Response {
+    public function api(Request      $request,
+                        GroupService $groupService): Response
+    {
         return $this->json($groupService->getDataForDatatable($request->request));
     }
 
     #[Route("/api-modifier", name: "edit_api", options: ['expose' => true], methods: [self::GET, self::POST])]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request                 $request,
-                            EntityManagerInterface  $manager): Response {
+    public function editApi(Request                $request,
+                            EntityManagerInterface $manager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(Pack::class);
             $natureRepository = $manager->getRepository(Nature::class);
@@ -55,7 +56,8 @@ class GroupController extends AbstractController {
 
     #[Route("/modifier", name: "edit", options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function edit(Request $request, EntityManagerInterface $manager): Response {
+    public function edit(Request $request, EntityManagerInterface $manager): Response
+    {
         $data = json_decode($request->getContent(), true);
 
         $packRepository = $manager->getRepository(Pack::class);
@@ -82,8 +84,9 @@ class GroupController extends AbstractController {
 
     #[Route("/api-degrouper", name: "ungroup_api", options: ['expose' => true], methods: [self::POST, self::GET])]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function ungroupApi(Request                  $request,
-                               EntityManagerInterface   $manager): Response {
+    public function ungroupApi(Request                $request,
+                               EntityManagerInterface $manager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(Pack::class);
             $group = $packRepository->find($data['id']);
@@ -98,9 +101,10 @@ class GroupController extends AbstractController {
 
     #[Route("/degrouper", name: "ungroup", options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function ungroup(Request $request,
+    public function ungroup(Request                $request,
                             EntityManagerInterface $manager,
-                            GroupService $groupService): Response {
+                            GroupService           $groupService): Response
+    {
         $data = json_decode($request->getContent(), true);
 
         $packRepository = $manager->getRepository(Pack::class);
@@ -128,7 +132,8 @@ class GroupController extends AbstractController {
                                  CSVExportService        $CSVExportService,
                                  TrackingMovementService $trackingMovementService,
                                  TranslationService      $translationService,
-                                 EntityManagerInterface  $entityManager): Response {
+                                 EntityManagerInterface  $entityManager): Response
+    {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -140,19 +145,19 @@ class GroupController extends AbstractController {
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $csvHeader = [
-                $translationService->translate( 'Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Numéro groupe', false),
+                $translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Numéro groupe', false),
                 $translationService->translate('Traçabilité', 'Général', 'Nature', false),
-                $translationService->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+                $translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement', false),
                 $translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL", false),
                 $translationService->translate('Traçabilité', 'Unités logistiques', 'Général', "Poids (kg)", false),
                 $translationService->translate('Traçabilité', 'Unités logistiques', 'Général', "Volume (m3)", false),
-                $translationService->translate( 'Traçabilité', 'Général', 'Issu de', false),
-                $translationService->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
-                $translationService->translate( 'Traçabilité', 'Général', 'Emplacement', false),
+                $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
+                $translationService->translate('Traçabilité', 'Général', 'Issu de (numéro)', false),
+                $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
             ];
 
             return $CSVExportService->streamResponse(
-                function($output) use ($CSVExportService, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                function ($output) use ($CSVExportService, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $groups = $packRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
 
@@ -178,8 +183,7 @@ class GroupController extends AbstractController {
                 }, 'export_groupes.csv',
                 $csvHeader
             );
-        }
-        else {
+        } else {
             throw new InvalidArgumentException('Date should be set.');
         }
     }
