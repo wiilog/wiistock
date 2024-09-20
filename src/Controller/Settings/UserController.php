@@ -37,11 +37,10 @@ use App\Entity\Action;
 #[Route('/parametrage/users')]
 class UserController extends AbstractController {
 
-    #[Route('/api-modifier', name: 'user_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api-modifier', name: 'user_api_edit', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_USERS], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
-                            EntityManagerInterface $entityManager): Response
-    {
+                            EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $languageRepository = $entityManager->getRepository(Language::class);
@@ -178,15 +177,14 @@ class UserController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/modifier", name: "user_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "user_edit", options: ["expose" => true], methods: [self::POST], condition:  self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          UserPasswordHasherInterface $encoder,
                          PasswordService $passwordService,
                          UserService $userService,
                          EntityManagerInterface $entityManager,
-                         CacheService $cacheService): Response
-    {
+                         CacheService $cacheService): Response {
         $data = $request->request;
 
         /** @var Utilisateur $loggedUser */
@@ -269,7 +267,8 @@ class UserController extends AbstractController {
             ->setDeliverer($data->get('deliverer') ?? false)
             ->setLanguage($language)
             ->setDateFormat($data->get('dateFormat'))
-            ->setDispatchBusinessUnit($data->get('dispatchBusinessUnit') ?? null);
+            ->setDispatchBusinessUnit($data->get('dispatchBusinessUnit') ?? null)
+            ->setAllowedToBeRemembered($data->getBoolean('isAllowedToBeRemembered'));
 
         $visibilityGroupsIds = is_string($data->get("visibility-group")) ? explode(',', $data->get('visibility-group')) : $data->get("visibility-group");
         if ($visibilityGroupsIds) {

@@ -236,6 +236,11 @@
                         labelClass: 'wii-field-text'
                     }) }}
                 </div>
+                <div class="form-group">
+                    {{ form.checkbox('isAllowedToBeRemembered', 'Autoriser l\'utilisation de la connexion 14 jours', false, user.isAllowedToBeRemembered, {
+                        labelClass: 'wii-field-text'
+                    }) }}
+                </div>
             </div>
         </div>
     </div>
