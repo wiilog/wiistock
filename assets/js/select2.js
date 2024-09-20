@@ -132,15 +132,36 @@ export default class Select2 {
                             $search.removeClass(`is-invalid`);
 
                             if(data.availableResults) {
-                                $element.attr("data-length", data.availableResults);
+                                $element
+                                    .data('length', data.availableResults)
+                                    .attr("data-length", data.availableResults);
                             }
 
-                            if (data.results.length === 1 && $element.is(`[data-auto-select]`)) {
-                                setTimeout(() => {
-                                    if (data.results[0].text === $search.val()) {
-                                        $element.parent().find('.select2-results__option').mouseup();
-                                    }
-                                }, 10);
+                            const searchValue = $search.val();
+                            if ($element.is(`[data-auto-select]`)
+                                && searchValue) {
+                                const resultWithoutNewItem = (data.results || []).filter(({id}) => id !== "new-item");
+
+                                if (resultWithoutNewItem.length === 1
+                                    && resultWithoutNewItem[0].text === searchValue) {
+                                    setTimeout(() => {
+                                        // prevent duplicates
+                                        const selectedData = $element.select2('data');
+                                        const alreadySelected = selectedData.findIndex(({id}) => id === searchValue) > -1;
+                                        if (!alreadySelected) {
+                                            const [option] = $element.parent().find('.select2-results__option')
+                                                .toArray()
+                                                .filter((element) => !$(element).find('.new-item-container').exists());
+                                            $(option).trigger("mouseup");
+                                            $element.trigger({
+                                                type: "select2:select",
+                                                params: {
+                                                    data: resultWithoutNewItem[0]
+                                                }
+                                            });
+                                        }
+                                    }, 50);
+                                }
                             }
                             return data;
                         }
@@ -202,12 +223,15 @@ export default class Select2 {
                 const [selected] = $element.select2('data').reverse();
                 if (selected) {
                     if (selected.id === `new-item` && search && search.length) {
-                        $element
-                             .append(new Option(search, search, true, true))
+                        $element.append(
+                            $(new Option(search, search, true, true))
+                        )
                         $element
                             .find('option[value="new-item"]')
                             .remove();
                         $element.trigger('change');
+                        const newItem = $element.select2('data').find(({id}) => id === search);
+                        newItem.isNewElement = true;
                     } else if (selected.id === `redirect-url` && selected.url) {
                         location.href = selected.url;
                         $element

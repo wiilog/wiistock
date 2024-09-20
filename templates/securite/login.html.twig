@@ -11,7 +11,7 @@
             {% if error or success %}
                 {% include 'utils/alert.html.twig' with {
                     id: 'alert-template',
-                    content: error ?? success,
+                    content: error and error != '' ? error : success,
                     color: error ? 'danger' : 'success'
                 } %}
             {% endif %}
@@ -61,7 +61,7 @@
                                 ],
                             }) }}
                         </div>
-                        <a href="{{ path('forgotten') }}"
+                        <a href="{{ path('password_forgotten') }}"
                            class="third">
                             Mot de passe oublié ?
                         </a>

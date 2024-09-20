@@ -14,6 +14,26 @@
             })
         ) }}
     </div>
+    <div class="col-auto planning-dates">
+        {{ form.inlineInputs('dates', null, true, {
+            content: [
+                {
+                    label: 'Du',
+                    name: 'startDate',
+                    value: null,
+                    type: 'date',
+                    width: '',
+                },
+                {
+                    label: 'Au',
+                    name: 'endDate',
+                    value: null,
+                    type: 'date',
+                    width: '',
+                },
+            ],
+        }) }}
+    </div>
     <div class="col-auto">
         <button class="btn btn-outline-primary today-date mr-0 h-100"
                 disabled
@@ -24,14 +44,14 @@
     <div class="col-auto">
         <button class="btn btn-outline-primary decrement-date mr-0 h-100 d-flex align-items-center has-tooltip"
                 data-loader-color="black"
-                title="Semaine précédente">
+                title="Période précédente">
             <i class="wii-icon wii-icon-arrow-left wii-icon-15px"></i>
         </button>
     </div>
     <div class="col-auto">
         <button class="btn btn-outline-primary increment-date h-100 d-flex align-items-center has-tooltip"
                 data-loader-color="black"
-                title="Semaine suivante">
+                title="Période suivante">
             <i class="wii-icon wii-icon-arrow-right wii-icon-15px"></i>
         </button>
     </div>
@@ -65,7 +85,7 @@
 {% endmacro %}
 
 {% macro previousWeekSideButton(external) %}
-    <div class="previous-week pointer d-none">
+    <div class="previous-period pointer d-none">
         <img class="has-tooltip"
             {% if not external %}
                 title="Glisser-déposer une carte pour passer à la semaine précédente."
@@ -79,7 +99,7 @@
 {% endmacro %}
 
 {% macro nextWeekSideButton(external) %}
-    <div class="next-week pointer d-none">
+    <div class="next-period pointer d-none">
         <img class="has-tooltip"
             {% if not external %}
                 title="Glisser-déposer une carte pour passer à la semaine suivante."
