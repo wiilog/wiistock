@@ -159,12 +159,19 @@ class MouvementStockController extends AbstractController
                     }
                     // article
                     else {
-                        // set quantity to new quantity and set status to actif (available)
-                        $actifStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+                        // "consommé"
+                        if($chosenArticleToMove->getStatut()->getCode() === Article::STATUT_INACTIF){
+                            $actifStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
-                        $chosenArticleToMove
-                            ->setQuantite($quantity)
-                            ->setStatut($actifStatus);
+                            $chosenArticleToMove
+                                ->setQuantite($quantity)
+                                ->setStatut($actifStatus);
+                        }
+                        // "disponible"
+                        else {
+                            $chosenArticleToMove
+                                ->setQuantite($chosenArticleToMoveStockQuantity + $quantity);
+                        }
                     }
 
                     $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
