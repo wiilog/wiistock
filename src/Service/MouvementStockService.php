@@ -24,7 +24,6 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use function PHPUnit\Framework\matches;
 
 class MouvementStockService
 {
