@@ -98,5 +98,7 @@ security:
         - { path: ^/borne/$, role: PUBLIC_ACCESS }
         - { path: ^/caisse-automatique, role: PUBLIC_ACCESS }
         - { path: /reference-article/validate-stock-entry, role: PUBLIC_ACCESS }
+        # Rule for the settings pages, the user must be authenticated with a login + password to access them
         - { path: ^/parametrage/, role: IS_AUTHENTICATED_FULLY }
+        # Rule for the other pages, the user must be authenticated to access them (login + password or remember me)
         - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }
