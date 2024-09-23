@@ -351,14 +351,8 @@ class DateTimeService {
                     return $finalDate->add($finalInterval);
                 }
 
-                // else we remove segment interval from given interval
-                $dateTime1 = new DateTime();
-                $dateTime2 = clone $dateTime1;
-                $dateTime1
-                    ->add($finalInterval)
-                    ->modify("-$intervalDiff seconds");
-
-                $finalInterval = $dateTime1->diff($dateTime2);
+                // else we set the final interval
+                $finalInterval = $this->secondsToDateInterval($intervalDiff);
             }
         }
 
