@@ -30,17 +30,16 @@ use App\Service\GeoService;
 use App\Service\IOT\IOTService;
 use App\Service\OperationHistoryService;
 use App\Service\PackService;
-use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
+use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class TransportService {
@@ -58,45 +57,25 @@ class TransportService {
         69290, 69650, 69800, 69270, 69110,
         69580, 69580, 69360, 69160, 69890,
         69120, 69200, 69390, 69100
-
     ];
 
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
+    public function __construct(
+        private UniqueNumberService     $uniqueNumberService,
+        private StatusHistoryService    $statusHistoryService,
+        private OperationHistoryService $operationHistoryService,
+        private FreeFieldService        $freeFieldService,
+        private PackService             $packService,
+        private GeoService              $geoService,
+        private FormatService           $formatService,
+        private TranslationService      $translation,
+        private RouterInterface         $router,
+        private WorkPeriodService       $workPeriodService,
+    ) {
+    }
 
-    #[Required]
-    public SettingsService $settingsService;
-
-    #[Required]
-    public StatusHistoryService $statusHistoryService;
-
-    #[Required]
-    public OperationHistoryService $operationHistoryService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public PackService $packService;
-
-    #[Required]
-    public GeoService $geoService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public IOTService $iotService;
-
-    #[Required]
-    public RouterInterface $router;
-
-    public function persistTransportRequest(EntityManagerInterface $entityManager,
-                                            Utilisateur $user,
-                                            InputBag $data,
+    public function persistTransportRequest(EntityManagerInterface    $entityManager,
+                                            Utilisateur               $user,
+                                            InputBag                  $data,
                                             ?TransportDeliveryRequest $mainDelivery = null): TransportRequest {
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -443,7 +422,7 @@ class TransportService {
         if ($transportRequest instanceof TransportDeliveryRequest) {
             $category = CategorieStatut::TRANSPORT_REQUEST_DELIVERY;
 
-            $isWorked = $this->settingsService->isWorked($entityManager, $expectedAt);
+            $isWorked = $this->workPeriodService->isOnWorkPeriod($entityManager, $expectedAt);
             if (!$isWorked || $now > $expectedAt) {
                 $code = TransportRequest::STATUS_SUBCONTRACTED;
                 $subcontracted = true;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\WorkPeriod;
 
-use App\Entity\WorkFreeDay;
+use App\Entity\WorkPeriod\WorkFreeDay;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;

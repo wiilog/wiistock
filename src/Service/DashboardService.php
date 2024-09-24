@@ -8,25 +8,24 @@ use App\Entity\ArrivalHistory;
 use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\Dashboard;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Dispute;
-use App\Entity\Handling;
 use App\Entity\Dispatch;
+use App\Entity\Dispute;
+use App\Entity\Emplacement;
+use App\Entity\Handling;
 use App\Entity\Language;
+use App\Entity\LatePack;
 use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
-use App\Entity\Dashboard\Meter as DashboardMeter;
-use App\Entity\DaysWorked;
-use App\Entity\Emplacement;
-use App\Entity\LatePack;
-use App\Entity\Nature;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ProductionRequest;
 use App\Entity\ReceiptAssociation;
-use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Tracking\TrackingMovement;
@@ -36,19 +35,20 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Urgence;
-use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Exceptions\DashboardException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
-use WiiCommon\Helper\Stream;
+use App\Service\WorkPeriod\WorkPeriodItem;
+use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use InvalidArgumentException;
+use WiiCommon\Helper\Stream;
 
 class DashboardService {
 
@@ -60,13 +60,14 @@ class DashboardService {
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
     public function __construct(
-        private  DateTimeService $dateTimeService,
-        private  TranslationService $translationService,
-        private  LanguageService $languageService,
-        private  EntityManagerInterface $entityManager,
-        private  TruckArrivalLineService $truckArrivalLineService,
-        private  FormatService $formatService,
-        private  EnCoursService $enCoursService,
+        private WorkPeriodService       $workPeriodService,
+        private DateTimeService         $dateTimeService,
+        private TranslationService      $translationService,
+        private LanguageService         $languageService,
+        private EntityManagerInterface  $entityManager,
+        private TruckArrivalLineService $truckArrivalLineService,
+        private FormatService           $formatService,
+        private EnCoursService          $enCoursService,
     ) {}
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
@@ -1095,28 +1096,22 @@ class DashboardService {
             throw new InvalidArgumentException();
         }
 
-        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
-
         $daysToReturn = [];
         $dayIndex = 0;
 
-        $workedDaysLabels = $daysWorkedRepository->getLabelWorkedDays();
+        $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
-        if (!empty($workedDaysLabels)) {
+        if (!empty($workedDays)) {
             while (count($daysToReturn) < $nbDaysToReturn) {
                 $operator = $period === self::DAILY_PERIOD_PREVIOUS_DAYS ? '-' : '+';
                 $dateToCheck = new DateTime("now " . $operator . " $dayIndex days");
 
-                if (!$this->dateTimeService->isWorkFreeDay($entityManager, $dateToCheck)) {
-                    $dateDayLabel = strtolower($dateToCheck->format('l'));
-
-                    if (in_array($dateDayLabel, $workedDaysLabels)) {
-                        if ($period === self::DAILY_PERIOD_PREVIOUS_DAYS) {
-                            array_unshift($daysToReturn, $dateToCheck);
-                        }
-                        else {
-                            $daysToReturn[] = $dateToCheck;
-                        }
+                if ($this->workPeriodService->isOnWorkPeriod($entityManager, $dateToCheck, ["onlyDayCheck" => true])) {
+                    if ($period === self::DAILY_PERIOD_PREVIOUS_DAYS) {
+                        array_unshift($daysToReturn, $dateToCheck);
+                    }
+                    else {
+                        $daysToReturn[] = $dateToCheck;
                     }
                 }
 
@@ -1214,20 +1209,15 @@ class DashboardService {
      * @param int $nbWeeksToReturn
      * @param callable $getCounter (DateTime $dateMin, DateTime $dateMax) => integer
      * @return array [('S' . weekNumber) => $getCounter return]
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function getWeeklyObjectsStatistics(EntityManagerInterface $entityManager,
                                                 int $nbWeeksToReturn,
                                                 callable $getCounter): array {
-        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
-
         $weekCountersToReturn = [];
 
-        $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
+        $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
-        if ($daysWorkedInWeek > 0) {
+        if (!empty($workedDays)) {
             for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1; $weekIndex--) {
                 $dateMin = new DateTime("monday $weekIndex weeks ago");
                 $dateMin->setTime(0, 0);

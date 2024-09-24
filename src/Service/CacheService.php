@@ -20,8 +20,7 @@ class CacheService
     public const COLLECTION_PURCHASE_REQUEST_PLANS = "purchase-request-plans";
     public const COLLECTION_INVENTORY_MISSION_PLANS = "inventory-mission-plans";
     public const COLLECTION_SETTINGS = "settings";
-    public const COLLECTION_WORKED_DAYS = "worded-days";
-    public const COLLECTION_WORK_FREE_DAYS = "work-free-days";
+    public const COLLECTION_WORK_PERIOD = "work-period";
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
@@ -32,7 +31,9 @@ class CacheService
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
-    public function get(string $namespace, string $key, ?callable $callback = null): mixed
+    public function get(string    $namespace,
+                        string    $key,
+                        ?callable $callback = null): mixed
     {
         $cacheExists = $this->filesystem->exists("$namespace/$key");
 
@@ -57,7 +58,9 @@ class CacheService
 
     }
 
-    public function set(string $namespace, string $key, mixed $value = null): void
+    public function set(string $namespace,
+                        string $key,
+                        mixed  $value = null): void
     {
         if (!$this->filesystem->isDir()) {
             $this->clear();
@@ -93,8 +96,6 @@ class CacheService
                     $fs->remove();
                 }
             }
-
         }
     }
-
 }

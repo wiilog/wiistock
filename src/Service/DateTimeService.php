@@ -2,20 +2,17 @@
 
 namespace App\Service;
 
-use App\Entity\DaysWorked;
-use App\Entity\WorkFreeDay;
+use App\Entity\WorkPeriod\WorkedDay;
+use App\Service\WorkPeriod\WorkPeriodItem;
+use App\Service\WorkPeriod\WorkPeriodService;
 use DateInterval;
 use DatePeriod;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class DateTimeService {
-
-    #[Required]
-    public CacheService $cacheService;
 
     const ENG_TO_FR_MONTHS = [
         'Jan' => 'Janv.',
@@ -38,15 +35,8 @@ class DateTimeService {
 
     const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
 
-    private array $cache = [];
+    public function __construct(private WorkPeriodService $workPeriodService) {}
 
-    public function dateIntervalToSeconds(DateInterval $dateInterval): int {
-        return
-            ($dateInterval->d * self::SECONDS_IN_DAY) +
-            ($dateInterval->h * self::SECONDS_IN_HOUR) +
-            ($dateInterval->i * self::SECONDS_IN_MINUTE) +
-            ($dateInterval->s);
-    }
 
     public function secondsToDateInterval(int $seconds): DateInterval {
 
@@ -144,6 +134,9 @@ class DateTimeService {
         }
     }
 
+    /**
+     * @param WorkedDay[] $days
+     */
     function processWorkingHours(array $workingHours, array &$days): void {
         foreach ($workingHours as $workingHour) {
             $hours = $workingHour["hours"] ?? null;
@@ -167,25 +160,8 @@ class DateTimeService {
                 }
             }
         }
-    }
 
-    public function isWorkFreeDay(EntityManagerInterface $entityManager,
-                                  DateTime $day): bool {
-        $comparisonFormat = 'Y-m-d';
-        $workFreeDays = $this->getCache($entityManager, "workFreeDays");
-
-        $formattedDay = $day->format($comparisonFormat);
-
-        foreach ($workFreeDays as $workFreeDay) {
-            $currentFormattedDay = $workFreeDay->format($comparisonFormat);
-            if ($formattedDay < $currentFormattedDay) {
-                continue;
-            }
-
-            return $currentFormattedDay === $formattedDay;
-        }
-
-        return false;
+        $this->workPeriodService->clearCaches();
     }
 
     public function intervalToHourAndMinStr(DateInterval $delay): string {
@@ -198,7 +174,7 @@ class DateTimeService {
     public function getWorkedPeriodBetweenDates(EntityManagerInterface $entityManager,
                                                 DateTime               $date1,
                                                 DateTime               $date2): DateInterval {
-        $workedDays = $this->getCache($entityManager, "workedDays");
+        $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
         if ($date1 <= $date2) {
             $start = $date1;
@@ -224,7 +200,7 @@ class DateTimeService {
                 $dayLabel = strtolower($day->format('l'));
 
                 if (isset($workedDays[$dayLabel])
-                    && !$this->isWorkFreeDay($entityManager, $day)) {
+                    && !$this->workPeriodService->isWorkFreeDay($entityManager, $day)) {
 
                     foreach ($workedDays[$dayLabel] as $period) {
                         [$startTimePeriod, $endTimePeriod] = $period;
@@ -259,49 +235,6 @@ class DateTimeService {
         return new DateInterval("P0Y");
     }
 
-    private function getCache(EntityManagerInterface $entityManager, string $key): mixed {
-        if (!isset($this->cache[$key])) {
-            if ($key === "workedDays") {
-                // le cacheService->get() fait un set() si le cache n'existe pas via le callback
-                $workedDays = $this->cacheService->get(CacheService::COLLECTION_WORKED_DAYS, "workedDays", function() use ($entityManager) {
-                    $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-                    $workedDays = $workedDaysRepository->findAll();
-                    return Stream::from($workedDays)
-                        ->keymap(fn(DaysWorked $dayWorked) => (
-                        $dayWorked->isWorked()
-                            ? [
-                            $dayWorked->getDay(),
-                            $this->timePeriodToArray($dayWorked->getTimes())
-                        ]
-                            : null
-                        ));
-                });
-
-                $this->cache["workedDays"] = $workedDays;
-            }
-            else if ($key === "workFreeDays") {
-                // le cacheService->get() fait un set() si le cache n'existe pas via le callback
-                $workFreeDays = $this->cacheService->get(CacheService::COLLECTION_WORK_FREE_DAYS, "workFreeDays", function() use ($entityManager) {
-                    $workedDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-                    return $workedDaysRepository->getWorkFreeDaysToDateTime();
-                });
-
-                $this->cache["workFreeDays"] = $workFreeDays;
-            }
-        }
-
-        return $this->cache[$key] ?? null;
-    }
-
-    /**
-     * @return array{string, string}[]
-     */
-    private function timePeriodToArray(string $periods): array {
-        return Stream::explode(";", $periods)
-            ->map(static fn(string $period) => explode("-", $period))
-            ->toArray();
-    }
-
     public function convertDateIntervalToMilliseconds(DateInterval $interval): int {
         $dateTime1 = new DateTime();
         $dateTime2 = clone $dateTime1;
@@ -324,14 +257,14 @@ class DateTimeService {
     public function addWorkedIntervalToDateTime(EntityManagerInterface $entityManager,
                                                 DateTime               $startDate,
                                                 DateInterval           $workedInterval): DateTime {
-        $workedSegments = $this->getCache($entityManager, "workedDays");
+        $workedSegments = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
         $day = strtolower($startDate->format('l'));
 
         $finalDate = clone $startDate;
         $finalInterval = clone $workedInterval;
 
-        if (!$this->isWorkFreeDay($entityManager, $startDate)) {
+        if (!$this->workPeriodService->isWorkFreeDay($entityManager, $startDate)) {
 
             // loop over worked segment on current $date
             foreach ($workedSegments[$day] as $workedSegment) {
@@ -390,7 +323,7 @@ class DateTimeService {
                 ->modify("next $nextDay")
                 ->setTime(0, 0);
         }
-        while ($this->isWorkFreeDay($entityManager, $finalDate));
+        while ($this->workPeriodService->isWorkFreeDay($entityManager, $finalDate));
 
         return $this->addWorkedIntervalToDateTime($entityManager, $finalDate, $finalInterval);
     }

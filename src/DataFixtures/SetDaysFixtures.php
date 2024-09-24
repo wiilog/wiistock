@@ -4,7 +4,7 @@
 namespace App\DataFixtures;
 
 
-use App\Entity\DaysWorked;
+use App\Entity\WorkPeriod\WorkedDay;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -14,13 +14,13 @@ class SetDaysFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $daysWorkedRepository = $manager->getRepository(DaysWorked::class);
+        $daysWorkedRepository = $manager->getRepository(WorkedDay::class);
 
         foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $index => $dayString) {
         	$day = $daysWorkedRepository->findOneBy(['day' => $dayString]);
 
         	if (!$day) {
-				$day = new DaysWorked();
+				$day = new WorkedDay();
 				$day
 					->setDisplayOrder($index + 1)
 					->setDay($dayString)

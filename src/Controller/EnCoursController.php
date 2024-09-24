@@ -5,7 +5,6 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -14,11 +13,13 @@ use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\LanguageService;
+use App\Service\WorkPeriod\WorkPeriodItem;
+use App\Service\WorkPeriod\WorkPeriodService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
 #[Route("/encours")]
@@ -122,12 +123,15 @@ class EnCoursController extends AbstractController
     }
 
     #[Route("/check-time-worked-is-defined", name: "check_time_worked_is_defined", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function checkTimeWorkedIsDefined(EntityManagerInterface $entityManager): JsonResponse
+    public function checkTimeWorkedIsDefined(EntityManagerInterface $entityManager,
+                                             WorkPeriodService      $workPeriodService): JsonResponse
     {
-        $daysRepository = $entityManager->getRepository(DaysWorked::class);
-        $nbEmptyTimes = $daysRepository->countEmptyTimes();
+        $workedDays = $workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
-        return new JsonResponse($nbEmptyTimes == 0);
+        return $this->json([
+            "success" => true,
+            "result" => !empty($workedDays),
+        ]);
 
     }
 

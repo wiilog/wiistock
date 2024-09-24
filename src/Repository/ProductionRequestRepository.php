@@ -3,14 +3,14 @@
 namespace App\Repository;
 
 use App\Entity\Attachment;
-use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
-use App\Entity\WorkFreeDay;
 use App\Entity\Utilisateur;
+use App\Entity\WorkPeriod\WorkedDay;
+use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
 use DateTime;
@@ -376,7 +376,7 @@ class ProductionRequestRepository extends EntityRepository
 
         $daysWorkedSubQuery = $this->getEntityManager()->createQueryBuilder()
             ->select("sub_daysWorked.day")
-            ->from(DaysWorked::class, "sub_daysWorked")
+            ->from(WorkedDay::class, "sub_daysWorked")
             ->andWhere("sub_daysWorked.worked = 1")
             ->getQuery()
             ->getDQL();
