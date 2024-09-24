@@ -79,7 +79,7 @@ class AttachmentService {
 
     public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files): array {
         $reflect = new ReflectionClass($attachmentEntity);
-        $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
+        $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . ($attachmentEntity->getId() ? $attachmentEntity->getId() . '/' : '');
         $addedAttachments = [];
         foreach ($files as $file) {
             $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
@@ -108,6 +108,7 @@ class AttachmentService {
             $publicPath = Attachment::MAIN_PATH . "/$dedicatedSubFolder/$filename";
             $i++;
         } while (file_exists($fullPath));
+        dump($dedicatedFolder);
         copy($uploadedFile->getPathname(), $dedicatedFolder . $filename);
 
         return $this->createAttachmentDeprecated($filename, $publicPath);
