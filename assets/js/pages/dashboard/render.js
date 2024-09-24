@@ -173,7 +173,6 @@ export function renderComponent(component, $container, data) {
         const isCardExample = $modal.exists();
         if(isCardExample && $modal.exists()) {
             resetColorPickersElementsToForm($modal, data);
-            $modal.find(`.component-numbering`).empty();
             displayLegendTranslation(data);
         }
         let $element;
@@ -1188,25 +1187,27 @@ function generateEditor(data, numberingConfig, backendNumbers) {
         numberingConfig.numbering += 1;
         numberingConfig.associations[number] = numberingConfig.numbering;
 
-        $container.append(`
-            <div class="d-flex align-items-center p-1" data-number="${number}">
-                <sup class="pt-2">(${numberingConfig.numbering})</sup>
-                <input type="number" data-no-arrow class="data form-control w-px-70 mr-2" name="fontSize-${number}" value="${fontSize}">
-                <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor-${number}" value="${textColor}">
-                <label class="text-bold-selector">
-                    <input type="checkbox" name="textBold-${number}" class="data checkbox" ${textBold}>
-                    <i></i>
-                </label>
-                <label class="text-italic-selector">
-                    <input type="checkbox" name="textItalic-${number}" class="data checkbox" ${textItalic}>
-                    <i></i>
-                </label>
-                <label class="text-underline-selector">
-                    <input type="checkbox" name="textUnderline-${number}" class="data checkbox" ${textUnderline}>
-                    <i></i>
-                </label>
-            </div>
-        `);
+        if($container.find(`[data-number=${number}]`).length === 0){
+            $container.append(`
+                <div class="d-flex align-items-center p-1" data-number="${number}">
+                    <sup class="pt-2">(${numberingConfig.numbering})</sup>
+                    <input type="number" data-no-arrow class="data form-control w-px-70 mr-2" name="fontSize-${number}" value="${fontSize}">
+                    <input type="color" class="data form-control needed w-px-50 mr-2" name="textColor-${number}" value="${textColor}">
+                    <label class="text-bold-selector">
+                        <input type="checkbox" name="textBold-${number}" class="data checkbox" ${textBold}>
+                        <i></i>
+                    </label>
+                    <label class="text-italic-selector">
+                        <input type="checkbox" name="textItalic-${number}" class="data checkbox" ${textItalic}>
+                        <i></i>
+                    </label>
+                    <label class="text-underline-selector">
+                        <input type="checkbox" name="textUnderline-${number}" class="data checkbox" ${textUnderline}>
+                        <i></i>
+                    </label>
+                </div>
+            `);
+        }
     }
 }
 
