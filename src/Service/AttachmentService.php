@@ -108,7 +108,6 @@ class AttachmentService {
             $publicPath = Attachment::MAIN_PATH . "/$dedicatedSubFolder/$filename";
             $i++;
         } while (file_exists($fullPath));
-        dump($dedicatedFolder);
         copy($uploadedFile->getPathname(), $dedicatedFolder . $filename);
 
         return $this->createAttachmentDeprecated($filename, $publicPath);
