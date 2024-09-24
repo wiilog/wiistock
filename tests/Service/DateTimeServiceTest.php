@@ -9,9 +9,11 @@ class DateTimeServiceTest extends KernelTestCase
 {
     private DateTimeService $dateTimeService;
 
-    protected function setUp(): void
-    {
-        $this->dateTimeService = new DateTimeService();
+    protected function setUp(): void {
+        self::bootKernel();
+        $container = static::getContainer();
+
+        $this->dateTimeService = $container->get(DateTimeService::class);
     }
 
     /**
