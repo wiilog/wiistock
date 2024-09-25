@@ -149,8 +149,8 @@ class TrackingMovement implements AttachmentContainer {
     private ?TrackingMovement $mainMovement = null;
 
     /**
-     * The column is filled only when the nature change during the movement.
-     * It contains the nature before the nature change
+     * The column is filled only if the movement has triggered the nature changement
+     * It contains the nature before the nature changement
      */
     #[ORM\ManyToOne(targetEntity: Nature::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]

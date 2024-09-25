@@ -10,6 +10,9 @@ use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Like a trackingMovement copy
+ */
 #[ORM\Entity(repositoryClass: TrackingDelayRecordRepository::class)]
 class TrackingDelayRecord
 {
@@ -28,7 +31,7 @@ class TrackingDelayRecord
     private ?int $delay = null;
 
     /**
-     * Is null if the movement from is a unpause movement
+     * null for unpause event
      */
     #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
     private ?TrackingEvent $trackingEvent;
@@ -38,7 +41,7 @@ class TrackingDelayRecord
     private ?Pack $pack = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]
