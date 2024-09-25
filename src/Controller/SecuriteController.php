@@ -53,11 +53,12 @@ class SecuriteController extends AbstractController {
                           Request $request,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
-        if($loggedUser && $loggedUser instanceof Utilisateur) {
+        $securityContext = $this->container->get('security.authorization_checker');
+        if ($loggedUser && $loggedUser instanceof Utilisateur && $securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
             $sessionHistoryRecordService->closeInactiveSessions($entityManager);
             $typeRepository = $entityManager->getRepository(Type::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
-            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser,  new DateTime('now'), $type, $request);
+            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $type, $request);
             $entityManager->flush();
 
             return $this->redirectToRoute('app_index');

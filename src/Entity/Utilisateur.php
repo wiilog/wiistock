@@ -313,6 +313,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: Types::BOOLEAN)]
     private ?bool $status = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
+    private bool $allowedToBeRemembered = false;
+
     #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: 'users')]
     private ?Role $role = null;
 
@@ -1893,13 +1896,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection<int, TransportRequest>
      */
-    public function getTransportRequests(): Collection
-    {
+    public function getTransportRequests(): Collection {
         return $this->transportRequests;
     }
 
-    public function addTransportRequest(TransportRequest $transportRequest): self
-    {
+    public function addTransportRequest(TransportRequest $transportRequest): self {
         if (!$this->transportRequests->contains($transportRequest)) {
             $this->transportRequests[] = $transportRequest;
             $transportRequest->setCreatedBy($this);
@@ -1908,8 +1909,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeTransportRequest(TransportRequest $transportRequest): self
-    {
+    public function removeTransportRequest(TransportRequest $transportRequest): self {
         if ($this->transportRequests->removeElement($transportRequest)) {
             // set the owning side to null (unless already changed)
             if ($transportRequest->getCreatedBy() === $this) {
@@ -1923,13 +1923,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection<int, TransportRound>
      */
-    public function getTransportRounds(): Collection
-    {
+    public function getTransportRounds(): Collection {
         return $this->transportRounds;
     }
 
-    public function addTransportRound(TransportRound $transportRound): self
-    {
+    public function addTransportRound(TransportRound $transportRound): self {
         if (!$this->transportRounds->contains($transportRound)) {
             $this->transportRounds[] = $transportRound;
             $transportRound->setDeliverer($this);
@@ -1938,8 +1936,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeTransportRound(TransportRound $transportRound): self
-    {
+    public function removeTransportRound(TransportRound $transportRound): self {
         if ($this->transportRounds->removeElement($transportRound)) {
             // set the owning side to null (unless already changed)
             if ($transportRound->getDeliverer() === $this) {
@@ -1953,13 +1950,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection<int, TransportDeliveryOrderPack>
      */
-    public function getTransportDeliveryOrderRejectedPacks(): Collection
-    {
+    public function getTransportDeliveryOrderRejectedPacks(): Collection {
         return $this->transportDeliveryOrderRejectedPacks;
     }
 
-    public function addTransportDeliveryOrderRejectedPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
-    {
+    public function addTransportDeliveryOrderRejectedPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self {
         if (!$this->transportDeliveryOrderRejectedPacks->contains($transportDeliveryOrderPack)) {
             $this->transportDeliveryOrderRejectedPacks[] = $transportDeliveryOrderPack;
             $transportDeliveryOrderPack->setRejectedBy($this);
@@ -1968,8 +1963,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeTransportDeliveryOrderRejectedPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self
-    {
+    public function removeTransportDeliveryOrderRejectedPack(TransportDeliveryOrderPack $transportDeliveryOrderPack): self {
         if ($this->transportDeliveryOrderRejectedPacks->removeElement($transportDeliveryOrderPack)) {
             // set the owning side to null (unless already changed)
             if ($transportDeliveryOrderPack->getRejectedBy() === $this) {
@@ -1980,13 +1974,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getTransportRoundStartingHour(): ?TransportRoundStartingHour
-    {
+    public function getTransportRoundStartingHour(): ?TransportRoundStartingHour {
         return $this->transportRoundStartingHour;
     }
 
-    public function setTransportRoundStartingHour(?TransportRoundStartingHour $transportRoundStartingHour): self
-    {
+    public function setTransportRoundStartingHour(?TransportRoundStartingHour $transportRoundStartingHour): self {
         $this->transportRoundStartingHour = $transportRoundStartingHour;
 
         return $this;
@@ -2018,8 +2010,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getKeptFieldValues(): Collection
-    {
+    public function getKeptFieldValues(): Collection {
         return $this->keptFieldValues;
     }
 
@@ -2036,8 +2027,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function addKeptFieldValue(KeptFieldValue $keptFieldValue): self
-    {
+    public function addKeptFieldValue(KeptFieldValue $keptFieldValue): self {
         if (!$this->keptFieldValues->contains($keptFieldValue)) {
             $this->keptFieldValues[] = $keptFieldValue;
             $keptFieldValue->setUser($this);
@@ -2046,8 +2036,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeKeptFieldValue(KeptFieldValue $keptFieldValue): self
-    {
+    public function removeKeptFieldValue(KeptFieldValue $keptFieldValue): self {
         if ($this->keptFieldValues->removeElement($keptFieldValue)) {
             // set the owning side to null (unless already changed)
             if ($keptFieldValue->getUser() === $this) {
@@ -2088,13 +2077,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection<int, SessionHistoryRecord>
      */
-    public function getSessionHistoryRecords(): Collection
-    {
+    public function getSessionHistoryRecords(): Collection {
         return $this->sessionHistoryRecords;
     }
 
-    public function addSession(SessionHistoryRecord $session): self
-    {
+    public function addSession(SessionHistoryRecord $session): self {
         if (!$this->sessionHistoryRecords->contains($session)) {
             $this->sessionHistoryRecords[] = $session;
             $session->setUser($this);
@@ -2103,8 +2090,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeSession(SessionHistoryRecord $session): self
-    {
+    public function removeSession(SessionHistoryRecord $session): self {
         if ($this->sessionHistoryRecords->removeElement($session)) {
             // set the owning side to null (unless already changed)
             if ($session->getUser() === $this) {
@@ -2148,13 +2134,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection<int, ProductionRequest>
      */
-    public function getTreatedProductionRequests(): Collection
-    {
+    public function getTreatedProductionRequests(): Collection {
         return $this->treatedProductionRequests;
     }
 
-    public function addTreatedProductionRequest(ProductionRequest $productionRequest): static
-    {
+    public function addTreatedProductionRequest(ProductionRequest $productionRequest): static {
         if (!$this->treatedProductionRequests->contains($productionRequest)) {
             $this->treatedProductionRequests->add($productionRequest);
             $productionRequest->setTreatedBy($this);
@@ -2163,8 +2147,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeTreatedProductionRequest(ProductionRequest $productionRequest): static
-    {
+    public function removeTreatedProductionRequest(ProductionRequest $productionRequest): static {
         if ($this->treatedProductionRequests->removeElement($productionRequest)) {
             // set the owning side to null (unless already changed)
             if ($productionRequest->getTreatedBy() === $this) {
@@ -2175,13 +2158,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getCreatedProductionRequests(): Collection
-    {
+    public function getCreatedProductionRequests(): Collection {
         return $this->createdProductionRequests;
     }
 
-    public function addCreatedProductionRequest(ProductionRequest $productionRequest): static
-    {
+    public function addCreatedProductionRequest(ProductionRequest $productionRequest): static {
         if (!$this->createdProductionRequests->contains($productionRequest)) {
             $this->createdProductionRequests->add($productionRequest);
             $productionRequest->setCreatedBy($this);
@@ -2190,8 +2171,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeCreatedProductionRequest(ProductionRequest $productionRequest): static
-    {
+    public function removeCreatedProductionRequest(ProductionRequest $productionRequest): static {
         if ($this->createdProductionRequests->removeElement($productionRequest)) {
             // set the owning side to null (unless already changed)
             if ($productionRequest->getTreatedBy() === $this) {
@@ -2202,4 +2182,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
+    public function isAllowedToBeRemembered(): bool {
+        return $this->allowedToBeRemembered;
+    }
+
+    public function setAllowedToBeRemembered(bool $allowedToBeRemembered): self {
+        $this->allowedToBeRemembered = $allowedToBeRemembered;
+
+        return $this;
+    }
 }
