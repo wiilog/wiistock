@@ -12,6 +12,7 @@ use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Livraison;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
@@ -23,7 +24,6 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Tracking\TrackingMovementRepository;
-use App\Service\FormatService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -158,6 +158,14 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?TrackingMovement $mainMovement = null;
+
+    /**
+     * The column is filled only if the movement has triggered the nature changement
+     * It contains the nature before the nature changement
+     */
+    #[ORM\ManyToOne(targetEntity: Nature::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Nature $oldNature = null;
 
     public function __construct() {
         $this->firstDropRecords = new ArrayCollection();
@@ -549,6 +557,18 @@ class TrackingMovement implements AttachmentContainer {
 
     public function setEvent(?TrackingEvent $event): self {
         $this->event = $event;
+        return $this;
+    }
+
+    public function getOldNature(): ?Nature
+    {
+        return $this->oldNature;
+    }
+
+    public function setOldNature(?Nature $oldNature): static
+    {
+        $this->oldNature = $oldNature;
+
         return $this;
     }
 }

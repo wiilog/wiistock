@@ -592,6 +592,7 @@ class TrackingMovementService {
         }
 
         $pack->setNature($newNature);
+        $trackingMovement->setOldNature($oldNature);
 
         return [
             "natureChanged" => true,
