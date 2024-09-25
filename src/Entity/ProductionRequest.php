@@ -87,6 +87,9 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: ProductionHistoryRecord::class, cascade: ['remove'])]
     private Collection $history;
 
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'productionRequests')]
+    private ?Emplacement $destinationLocation = null;
+
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
         $this->attachments = new ArrayCollection();
@@ -365,5 +368,17 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
             FixedFieldEnum::quantity->name => $this->getQuantity(),
             FixedFieldEnum::lineCount->name => $this->getLineCount(),
         ] + $this->getFreeFields();
+    }
+
+    public function getDestinationLocation(): ?Emplacement
+    {
+        return $this->destinationLocation;
+    }
+
+    public function setDestinationLocation(?Emplacement $destinationLocation): static
+    {
+        $this->destinationLocation = $destinationLocation;
+
+        return $this;
     }
 }

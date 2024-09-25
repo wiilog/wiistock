@@ -158,6 +158,12 @@ class Emplacement implements PairedEntity {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private ?bool $sendEmailToManagers = false;
 
+    /**
+     * @var Collection<int, ProductionRequest>
+     */
+    #[ORM\OneToMany(mappedBy: 'destinationLocation', targetEntity: ProductionRequest::class)]
+    private Collection $productionRequests;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -188,6 +194,7 @@ class Emplacement implements PairedEntity {
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
         $this->managers = new ArrayCollection();
+        $this->productionRequests = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -1147,6 +1154,36 @@ class Emplacement implements PairedEntity {
     public function setSendEmailToManagers(bool $sendEmailToManagers): static
     {
         $this->sendEmailToManagers = $sendEmailToManagers;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductionRequest>
+     */
+    public function getProductionRequests(): Collection
+    {
+        return $this->productionRequests;
+    }
+
+    public function addProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if (!$this->productionRequests->contains($productionRequest)) {
+            $this->productionRequests->add($productionRequest);
+            $productionRequest->setDestinationLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if ($this->productionRequests->removeElement($productionRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($productionRequest->getDestinationLocation() === $this) {
+                $productionRequest->setDestinationLocation(null);
+            }
+        }
 
         return $this;
     }
