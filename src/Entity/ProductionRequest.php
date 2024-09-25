@@ -88,6 +88,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     private Collection $history;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'productionRequests')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $destinationLocation = null;
 
     public function __construct() {
