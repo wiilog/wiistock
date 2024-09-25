@@ -13,6 +13,7 @@ use App\Entity\Livraison;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ProductionRequest;
 use App\Entity\Reception;
