@@ -188,7 +188,6 @@ class Emplacement implements PairedEntity {
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
         $this->managers = new ArrayCollection();
-        $this->productionRequests = new ArrayCollection();
     }
 
     public function getId(): ?int {
