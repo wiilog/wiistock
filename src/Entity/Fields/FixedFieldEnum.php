@@ -15,6 +15,7 @@ enum FixedFieldEnum: string
     case type = "Type";
     case status = "Statut";
     case dropLocation = "Emplacement de dépose";
+    case destinationLocation = "Emplacement de destination";
     case pickLocation = "Emplacement de prise";
     case location = "Emplacement";
     case lineCount = "Nombre de lignes";
