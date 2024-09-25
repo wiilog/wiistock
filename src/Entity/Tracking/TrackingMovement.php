@@ -13,6 +13,7 @@ use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Livraison;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
@@ -143,9 +144,12 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $logisticUnitParent = null;
 
-    #[ORM\ManyToOne(targetEntity: TrackingMovement::class )]
+    #[ORM\ManyToOne(targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?TrackingMovement $mainMovement = null;
+
+    #[ORM\ManyToOne(targetEntity: Nature::class)]
+    private ?Nature $oldNature = null;
 
     public function __construct() {
         $this->firstDropRecords = new ArrayCollection();
@@ -537,6 +541,18 @@ class TrackingMovement implements AttachmentContainer {
 
     public function setEvent(?TrackingEvent $event): self {
         $this->event = $event;
+        return $this;
+    }
+
+    public function getOldNature(): ?Nature
+    {
+        return $this->oldNature;
+    }
+
+    public function setOldNature(?Nature $oldNature): static
+    {
+        $this->oldNature = $oldNature;
+
         return $this;
     }
 }
