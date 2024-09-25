@@ -1,4 +1,5 @@
 {% extends 'securite/unique-form-layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Connexion{% endblock %}
 
@@ -38,7 +39,7 @@
                             <input type="text" id="inputEmail" name="_username" class="form-control"
                                    required="required" autofocus="autofocus">
                         </div>
-                        <div class="form-group mb-1">
+                        <div class="form-group mb-2">
                             <label for="inputPassword" class="form-control-label wii-field-name">Mot de passe</label>
                             <input type="password" name="_password" id="inputPassword" class="form-control" aria-describedby="passwordHelp"
                                    required="required">
@@ -47,7 +48,15 @@
                            class="third">
                             Mot de passe oublié ?
                         </a>
-                        <div class="form-group d-flex flex-column flex-md-row justify-content-between mt-3 mb-0">
+                        <div class="mt-1">
+                            <span class="toggle-collapsible"></span>
+                            <div class="collapsible free-fields-container mb-2">
+                                <div class="form-group pb-3">
+                                    {{ form.checkbox("_remember_me", "Restez connecté pendant 14 jours", false, false) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group d-flex flex-column flex-md-row justify-content-between mt-2 mb-0">
                             <a class="btn btn-outline-secondary" href="{{ url('register') }}">Créer un compte</a>
                             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAUCISSON_BRIOCHE'))
                                 or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_QUENELLE')) %}

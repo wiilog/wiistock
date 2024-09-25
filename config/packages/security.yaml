@@ -55,8 +55,7 @@ security:
 
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800 # 1 semaine
-
+                lifetime: 1209600 # 2 weeks
             entry_point: 'form_login'
             logout: true
             switch_user: true #role to use: a:2:{i:0;s:9:"ROLE_USER";i:1;s:22:"ROLE_ALLOWED_TO_SWITCH";}
@@ -99,4 +98,7 @@ security:
         - { path: ^/borne/$, role: PUBLIC_ACCESS }
         - { path: ^/caisse-automatique, role: PUBLIC_ACCESS }
         - { path: /reference-article/validate-stock-entry, role: PUBLIC_ACCESS }
-        - { path: ^/, role: IS_AUTHENTICATED_FULLY }
+        # Rule for the settings pages, the user must be authenticated with a login + password to access them
+        - { path: ^/parametrage/, role: IS_AUTHENTICATED_FULLY }
+        # Rule for the other pages, the user must be authenticated to access them (login + password or remember me)
+        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }
