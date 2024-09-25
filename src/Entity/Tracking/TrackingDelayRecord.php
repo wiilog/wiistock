@@ -21,14 +21,20 @@ class TrackingDelayRecord
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $movementDate = null;
 
+    /**
+     * The column contains the delay between the T0 and the movement date
+     */
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $delay = null;
 
-    #[ORM\Column(type: Types::INTEGER, nullable: false, enumType: TrackingEvent::class)]
+    /**
+     * Is null if the movement from is a unpause movement
+     */
+    #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
     private ?TrackingEvent $trackingEvent;
 
     #[ORM\ManyToOne(targetEntity: Pack::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Pack $pack = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
@@ -36,6 +42,7 @@ class TrackingDelayRecord
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Nature $nature = null;
 
     public function getId(): ?int
@@ -48,7 +55,7 @@ class TrackingDelayRecord
         return $this->pack;
     }
 
-    public function setPack(?Pack $pack): static
+    public function setPack(?Pack $pack): self
     {
         $this->pack = $pack;
 
@@ -60,7 +67,7 @@ class TrackingDelayRecord
         return $this->movementDate;
     }
 
-    public function setMovementDate(DateTime $movementDate): static
+    public function setMovementDate(DateTime $movementDate): self
     {
         $this->movementDate = $movementDate;
 
@@ -72,7 +79,7 @@ class TrackingDelayRecord
         return $this->location;
     }
 
-    public function setLocation(?Emplacement $location): static
+    public function setLocation(?Emplacement $location): self
     {
         $this->location = $location;
 
@@ -84,7 +91,7 @@ class TrackingDelayRecord
         return $this->nature;
     }
 
-    public function setNature(?Nature $nature): static
+    public function setNature(?Nature $nature): self
     {
         $this->nature = $nature;
 
@@ -96,7 +103,7 @@ class TrackingDelayRecord
         return $this->delay;
     }
 
-    public function setDelay(int $delay): static
+    public function setDelay(int $delay): self
     {
         $this->delay = $delay;
 
