@@ -119,6 +119,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldEnum::attachments->name, 'label' => FixedFieldEnum::attachments->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::quantity->name, 'label' => FixedFieldEnum::quantity->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::lineCount->name, 'label' => FixedFieldEnum::lineCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::destinationLocation->name, 'label' => FixedFieldEnum::destinationLocation->value, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
         ];
 
