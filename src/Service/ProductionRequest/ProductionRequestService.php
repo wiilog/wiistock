@@ -835,15 +835,6 @@ class ProductionRequestService
                 throw new ImportException("L'emplacement de dépose n'existe pas.");
             }
         }
-        // To do in WIIS-11807
-        /*if (isset($data[FixedFieldEnum::destinationLocation->name])) {
-            $destinationLocation = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::destinationLocation->name]]);
-            if ($destinationLocation) {
-                $productionRequest->setDestinationLocation($destinationLocation);
-            } else {
-                throw new ImportException("L'emplacement de destination n'existe pas.");
-            }
-        }*/
 
         if (isset($data[FixedFieldEnum::destinationLocation->name])) {
             $destinationLocation = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::destinationLocation->name]]);
