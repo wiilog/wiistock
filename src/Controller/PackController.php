@@ -17,6 +17,7 @@ use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
+use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
@@ -25,6 +26,7 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
+use App\Service\TrackingDelayRecordService;
 use App\Service\TrackingDelayService;
 use App\Service\TrackingMovementService;
 
@@ -75,6 +77,7 @@ class PackController extends AbstractController
                          EntityManagerInterface $manager,
                          PackService $packService): Response {
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+        $trackingDelayRepository = $manager->getRepository(TrackingDelayRecord::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($logisticUnit);
 
         $arrival = $logisticUnit->getArrivage();
@@ -84,12 +87,15 @@ class PackController extends AbstractController
             : null ;
 
         $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
+        $hasTrackingDelayRecords = $trackingDelayRepository->findBy(['pack' => $logisticUnit]);
+
 
         return $this->render('pack/show.html.twig', [
             "logisticUnit" => $logisticUnit,
             "movements" => $movements,
             "arrival" => $arrival,
             "truckArrival" => $truckArrival,
+            "truckDelayRecords" => Stream::from($hasTrackingDelayRecords)->count(),
             "barcode" => [
                 "code" => $logisticUnit->getCode(),
                 "height" => 10,
@@ -182,7 +188,6 @@ class PackController extends AbstractController
     }
 
     #[Route("/pack-intel/{packcode}", name: "get_pack_intel", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
-    #[Route('/pack-intel/{packCode}', name: 'get_pack_intel', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
     public function getPackIntel(EntityManagerInterface $entityManager,
                                  string                 $packCode): JsonResponse
     {
@@ -463,4 +468,17 @@ class PackController extends AbstractController
         ]);
     }
 
+
+    #[Route("/{id}/tracking-movement-api", name: "pack_movements_history_api", options: ['expose' => true], methods: [self::POST])]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
+    public function getTrackingMovementsHistory(Pack                                  $logisticUnit,
+                                                Request                               $request,
+                                                EntityManagerInterface                $entityManager,
+                                                TrackingDelayRecordService            $trackingDelayRecordService): JsonResponse
+    {
+
+        $data = $trackingDelayRecordService->getDataForDatatable($request->request, $logisticUnit);
+
+        return new JsonResponse($data);
+    }
 }

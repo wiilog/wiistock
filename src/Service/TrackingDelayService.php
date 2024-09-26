@@ -143,6 +143,9 @@ class TrackingDelayService {
                         $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
                         $calculationDate->add($interval);
 
+
+
+
                         $intervalStart = null;
                         $intervalEnd = null;
 
