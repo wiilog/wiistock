@@ -124,6 +124,23 @@
         </div>
     {% endif %}
 
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::destinationLocation').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::destinationLocation').value %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, fieldLabel, requiredOnform, {
+                type: 'location',
+                value: productionRequest.destinationLocation ? productionRequest.destinationLocation.id : null,
+                items: productionRequest.destinationLocation ? [{
+                    value: productionRequest.destinationLocation.id,
+                    label: productionRequest.destinationLocation.label
+                }],
+            }) }}
+        </div>
+    {% endif %}
+
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').name %}
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
