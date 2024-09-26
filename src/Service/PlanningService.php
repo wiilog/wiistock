@@ -3,10 +3,9 @@
 namespace App\Service;
 
 use App\Controller\Settings\StatusController;
-use App\Entity\DaysWorked;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
-use App\Entity\WorkFreeDay;
+use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -24,10 +23,10 @@ class PlanningService {
 
     public const NB_DAYS_ON_PLANNING = 7;
 
-
     public function __construct(
-        private FormatService $formatService,
-        private StatusService $statusService,
+        private WorkPeriodService $workPeriodService,
+        private FormatService     $formatService,
+        private StatusService     $statusService,
     ) {}
 
     public function createCardConfig(array $displayedFieldsConfig, mixed $entity, array $fieldModes, Language|string $userLanguage, Language|string|null $defaultLanguage = null): array {
@@ -87,18 +86,11 @@ class PlanningService {
             throw new BadRequestHttpException("Invalid sorting type");
         }
 
-        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
-        $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
-
-        $daysWorked = $daysWorkedRepository->getLabelWorkedDays();
-        $workFreeDays = $workFreeDayRepository->getWorkFreeDaysToDateTime(true);
-
         if ($sortingType === self::SORTING_TYPE_BY_DATE) {
             $planningColumns = Stream::fill(0, $step, null)
-                ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
+                ->filterMap(function ($_, int $index) use ($planningStart, $entityManager) {
                     $day = (clone $planningStart)->modify("+$index days");
-                    if (in_array(strtolower($day->format("l")), $daysWorked)
-                        && !in_array($day->format("Y-m-d"), $workFreeDays)) {
+                    if ($this->workPeriodService->isOnWorkPeriod($entityManager, $day, ["onlyDayCheck" => true])) {
                         return $day;
                     }
                     else {
@@ -130,7 +122,7 @@ class PlanningService {
         if (!empty($planningColumns)) {
 
             $planningColumnsConfig = Stream::from($planningColumns)
-                ->map( function (string $columnLabel, string $columnId) use ($options, $planningStart, $cards, $daysWorked, $workFreeDays) {
+                ->map(function (string $columnLabel, string $columnId) use ($options, $planningStart, $cards) {
                     $count = count($cards[$columnId] ?? []);
                     $pluralMark = $count > 1 ? 's' : '';
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\WorkPeriod;
 
-use App\Repository\DaysWorkedRepository;
+use App\Repository\WorkPeriod\WorkedDayRepository;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
-#[ORM\Entity(repositoryClass: DaysWorkedRepository::class)]
-class DaysWorked {
+#[ORM\Entity(repositoryClass: WorkedDayRepository::class)]
+class WorkedDay {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -50,7 +50,7 @@ class DaysWorked {
     public function getTimesArray(): array {
         return Stream::explode(';', $this->times ?? '')
             ->filter()
-            ->map(fn($day) => Stream::explode('-', $day)->toArray())
+            ->map(static fn($day) => Stream::explode('-', $day)->toArray())
             ->toArray();
     }
 

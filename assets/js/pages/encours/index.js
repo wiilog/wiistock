@@ -17,8 +17,8 @@ $(function () {
             "check_time_worked_is_defined",
         )
         .json()
-        .then((data) => {
-            if (data === false) {
+        .then(({result}) => {
+            if (result === false) {
                 showBSAlert('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', 'danger');
             }
 

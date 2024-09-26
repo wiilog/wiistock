@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
@@ -40,10 +39,11 @@ use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Entity\WorkFreeDay;
+use App\Entity\WorkPeriod\WorkedDay;
+use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
+use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -94,7 +94,10 @@ class SettingsService {
 
     private array $settingsConstants;
 
-    public function __construct(private  DateTimeService $dateTimeService) {
+    public function __construct(
+        private DateTimeService   $dateTimeService,
+        private WorkPeriodService $workPeriodService,
+    ) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
             ->filter(fn($settingLabel) => is_string($settingLabel))
@@ -480,7 +483,7 @@ class SettingsService {
                 ->map(fn($day) => $day["id"])
                 ->toArray();
 
-            $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
+            $daysWorkedRepository = $entityManager->getRepository(WorkedDay::class);
             $days = empty($ids)
                 ? []
                 : Stream::from($daysWorkedRepository->findBy(["id" => $ids]))
@@ -555,6 +558,8 @@ class SettingsService {
 
                 $entityManager->persist($day);
             }
+
+            $this->workPeriodService->clearCaches();
         }
 
         if (isset($tables["startingHours"])) {
@@ -1513,52 +1518,6 @@ class SettingsService {
                 : null;
         }
         return $defaultDeliveryLocations;
-    }
-
-    public function isWorked(EntityManagerInterface $entityManager, DateTime $toCheck, bool $timeCheck = true): bool {
-        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
-        $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
-
-        $dayIndex = $toCheck->format('N');
-        $day = strtolower(FormatHelper::ENGLISH_WEEK_DAYS[$dayIndex]);
-
-        $dayWorked = $daysWorkedRepository->findOneBy(['day' => $day]);
-        $workFreeDay = $workFreeDayRepository->findOneBy(['day' => $toCheck]);
-
-        $isWorked = false;
-
-        if (!$workFreeDay && $dayWorked->isWorked()) {
-            $hourToCheck = $toCheck->format('G');
-            $minutesToCheck = $toCheck->format('i');
-
-            if (!$timeCheck) {
-                return true;
-            }
-
-            foreach ($dayWorked->getTimesArray() as $range) {
-                [$begin, $end] = $range;
-                preg_match("/^(\d{2}):(\d{2})$/", $begin, $matches);
-                [, $beginHour, $beginMinutes] = $matches;
-
-                preg_match("/^(\d{2}):(\d{2})$/", $end, $matches);
-                [, $endHour, $endMinutes] = $matches;
-
-                $beginInPast = (
-                    ($hourToCheck > $beginHour
-                    || ($hourToCheck == $beginHour && $minutesToCheck >= $beginMinutes))
-                );
-                $endInFuture = (
-                    ($hourToCheck < $endHour
-                    || ($hourToCheck == $endHour && $minutesToCheck <= $endMinutes))
-                );
-                if ($beginInPast && $endInFuture) {
-                    $isWorked = true;
-                    break;
-                }
-            }
-        }
-
-        return $isWorked;
     }
 
     public function deleteTimeSlot(EntityManagerInterface $entityManager, CollectTimeSlot $timeSlot) {

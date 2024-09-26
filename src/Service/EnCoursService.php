@@ -4,10 +4,9 @@
 namespace App\Service;
 
 
-use App\Entity\DaysWorked;
 use App\Entity\Pack;
 use App\Entity\Utilisateur;
-use App\Entity\WorkFreeDay;
+use App\Entity\WorkPeriod\WorkedDay;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,15 +17,6 @@ use WiiCommon\Helper\Stream;
 
 class EnCoursService {
 
-    private const AFTERNOON_FIRST_HOUR_INDEX = 4;
-    private const AFTERNOON_LAST_HOUR_INDEX = 6;
-    private const AFTERNOON_FIRST_MINUTE_INDEX = 5;
-    private const AFTERNOON_LAST_MINUTE_INDEX = 7;
-    private const MORNING_FIRST_HOUR_INDEX = 0;
-    private const MORNING_LAST_HOUR_INDEX = 2;
-    private const MORNING_FIRST_MINUTE_INDEX = 1;
-    private const MORNING_LAST_MINUTE_INDEX = 3;
-
     public function __construct(
         private TrackingMovementService $trackingMovementService,
         private FormatService           $formatService,
@@ -35,76 +25,6 @@ class EnCoursService {
         private TranslationService      $translationService,
         private FieldModesService       $fieldModesService
     ) {}
-
-    /**
-     * @param DaysWorked $daysWorked the day to get the times on
-     * @return array containing each minutes and hour for each points on the day
-     * ex : 8:00-12:00;14:00-18:00 => [8, 0, 12, 0, 14, 0, 18, 0]
-     */
-    public function getTimeArrayForDayWorked(DaysWorked $daysWorked): array
-    {
-        $daysPeriod = explode(';', $daysWorked->getTimes());
-
-        if (empty($daysPeriod[1])) return [];
-
-        $afternoon = $daysPeriod[1];
-        $morning = $daysPeriod[0];
-
-        $afternoonLastHourAndMinute = explode('-', $afternoon)[1];
-        $afternoonFirstHourAndMinute = explode('-', $afternoon)[0];
-        $morningLastHourAndMinute = explode('-', $morning)[1];
-        $morningFirstHourAndMinute = explode('-', $morning)[0];
-
-        $afternoonLastHour = intval(explode(':', $afternoonLastHourAndMinute)[0]);
-        $afternoonLastMinute = intval(explode(':', $afternoonLastHourAndMinute)[1]);
-        $afternoonFirstHour = intval(explode(':', $afternoonFirstHourAndMinute)[0]);
-        $afternoonFirstMinute = intval(explode(':', $afternoonFirstHourAndMinute)[1]);
-
-        $morningLastHour = intval(explode(':', $morningLastHourAndMinute)[0]);
-        $morningLastMinute = intval(explode(':', $morningLastHourAndMinute)[1]);
-        $morningFirstHour = intval(explode(':', $morningFirstHourAndMinute)[0]);
-        $morningFirstMinute = intval(explode(':', $morningFirstHourAndMinute)[1]);
-
-        return [
-            $morningFirstHour, $morningFirstMinute, $morningLastHour, $morningLastMinute,
-            $afternoonFirstHour, $afternoonFirstMinute, $afternoonLastHour, $afternoonLastMinute
-        ];
-    }
-
-    /**
-     * @param DaysWorked $daysWorked the day to get total time on
-     * @return int the total day time including the break;
-     */
-    public function getTotalTimeInDay(DaysWorked $daysWorked): int
-    {
-        $timeArray = $this->getTimeArrayForDayWorked($daysWorked);
-        return (empty($timeArray) ? 0 : (
-                ($timeArray[self::AFTERNOON_LAST_HOUR_INDEX] * 60) + $timeArray[self::AFTERNOON_LAST_MINUTE_INDEX])
-            -
-            (($timeArray[self::MORNING_FIRST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_FIRST_MINUTE_INDEX]));
-    }
-
-    /**
-     * @param DaysWorked $daysWorked
-     * @return int the total day worked time, which is the total time minus the break time
-     */
-    public function getTimeWorkedDuringThisDayForDayWorked(DaysWorked $daysWorked): int
-    {
-        return $this->getTotalTimeInDay($daysWorked) - $this->getTimeBreakThisDayForDayWorked($daysWorked);
-    }
-
-    /**
-     * @param DaysWorked $daysWorked the day worked
-     * @return int the total break time for the param
-     */
-    public function getTimeBreakThisDayForDayWorked(DaysWorked $daysWorked): int
-    {
-        $timeArray = $this->getTimeArrayForDayWorked($daysWorked);
-        return (empty($timeArray) ? 0 : (
-                ($timeArray[self::AFTERNOON_FIRST_HOUR_INDEX] * 60) + $timeArray[self::AFTERNOON_FIRST_MINUTE_INDEX])
-            -
-            (($timeArray[self::MORNING_LAST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_LAST_MINUTE_INDEX]));
-    }
 
     /**
      * @param DateInterval $movementAge
@@ -152,11 +72,7 @@ class EnCoursService {
                                bool                   $useTruckArrivals = false): array
     {
         $packRepository = $entityManager->getRepository(Pack::class);
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $result = [];
         $dropsCounter = 0;
 
@@ -249,24 +165,6 @@ class EnCoursService {
             $encours['libelle'] ?: '',
         ];
         $CSVExportService->putLine($handle, $line);
-    }
-
-    /**
-     * @param int $milliseconds
-     * @return string
-     */
-    public function renderMillisecondsToDelay(int $milliseconds): string
-    {
-        $seconds = floor($milliseconds / 1000);
-        $totalMinutes = ($seconds / 60);
-        $minutes = floor($totalMinutes % 60);
-        $hours = floor($totalMinutes / 60);
-
-        $hoursString = ($hours > 0 ? ($hours < 10 ? '0' : '') . $hours : '00');
-        $minutesString = ($minutes > 0 ? ($minutes < 10 ? '0' : '') . $minutes : '00');
-
-        return ($hoursString . ' h ' . $minutesString . ' min');
-
     }
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {

@@ -9,7 +9,6 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\DaysWorked;
 use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
@@ -47,7 +46,8 @@ use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Entity\WorkFreeDay;
+use App\Entity\WorkPeriod\WorkedDay;
+use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
@@ -70,6 +70,7 @@ use App\Service\SpecificService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
@@ -1912,7 +1913,7 @@ class SettingsController extends AbstractController {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
-        $daysWorkedRepository = $manager->getRepository(DaysWorked::class);
+        $daysWorkedRepository = $manager->getRepository(WorkedDay::class);
 
         $data = [];
         foreach ($daysWorkedRepository->findAll() as $day) {
@@ -2061,12 +2062,14 @@ class SettingsController extends AbstractController {
 
             foreach ($workFreeDayRepository->findAll() as $day) {
                 $data[] = [
-                    "actions" => $this->canDelete() ? "
-                        <button class='btn btn-silent delete-row' data-id='{$day->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button>
-                    " : "",
-                    "day" => "<span data-timestamp='{$day->getTimestamp()}'>" . FormatHelper::longDate($day->getDay()) . "</span>",
+                    "actions" => $this->canDelete()
+                        ? "
+                            <button class='btn btn-silent delete-row' data-id='{$day->getId()}'>
+                                <i class='wii-icon wii-icon-trash text-primary'></i>
+                            </button>
+                        "
+                        : "",
+                    "day" => "<span data-timestamp='{$day->getTimestamp()}'>" . $this->getFormatter()->longDate($day->getDay()) . "</span>",
                 ];
             }
         }
@@ -2080,9 +2083,13 @@ class SettingsController extends AbstractController {
 
     #[Route('/jours-non-travailles/supprimer/{entity}', name: 'settings_off_days_delete', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
-    public function deleteOffDay(EntityManagerInterface $manager, WorkFreeDay $entity) {
+    public function deleteOffDay(EntityManagerInterface $manager,
+                                 WorkPeriodService      $workPeriodService,
+                                 WorkFreeDay            $entity): Response {
         $manager->remove($entity);
         $manager->flush();
+
+        $workPeriodService->clearCaches();
 
         return $this->json([
             "success" => true,

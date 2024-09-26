@@ -5,9 +5,7 @@
 namespace App\Command\Cron;
 
 use App\Entity\Dashboard;
-use App\Entity\DaysWorked;
 use App\Entity\Wiilock;
-use App\Entity\WorkFreeDay;
 use App\Exceptions\DashboardException;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
