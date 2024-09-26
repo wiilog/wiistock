@@ -41,7 +41,7 @@ class TrackingDelayRecord
     private ?Pack $pack = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]

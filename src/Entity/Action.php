@@ -244,6 +244,7 @@ class Action {
     const MODULE_ACCESS_DELIVERY_REQUESTS = 'Accès demandes de livraison';
     const MODULE_ACCESS_RECEIPT_ASSOCIATION = 'Accès associations BR';
     const MODULE_ACCESS_RECEPTION = 'Accès réception';
+    const MODULE_ACCESS_READING_MENU = 'Accès menu lecture';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
