@@ -228,6 +228,7 @@ class ImportService
             FixedFieldEnum::status->name,
             FixedFieldEnum::expectedAt->name,
             FixedFieldEnum::dropLocation->name,
+            FixedFieldEnum::destinationLocation->name,
             FixedFieldEnum::lineCount->name,
             FixedFieldEnum::manufacturingOrderNumber->name,
             FixedFieldEnum::productArticleCode->name,
