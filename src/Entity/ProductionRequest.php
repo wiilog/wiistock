@@ -87,14 +87,17 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: ProductionHistoryRecord::class, cascade: ['remove'])]
     private Collection $history;
 
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'productionRequests')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Emplacement $destinationLocation = null;
+
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->history = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -113,32 +116,27 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this->status;
     }
 
-    public function setStatus(?Statut $status): self
-    {
+    public function setStatus(?Statut $status): self {
         $this->status = $status;
 
         return $this;
     }
 
-    public function getManufacturingOrderNumber(): ?string
-    {
+    public function getManufacturingOrderNumber(): ?string {
         return $this->manufacturingOrderNumber;
     }
 
-    public function setManufacturingOrderNumber(?string $manufacturingOrderNumber): self
-    {
+    public function setManufacturingOrderNumber(?string $manufacturingOrderNumber): self {
         $this->manufacturingOrderNumber = $manufacturingOrderNumber;
 
         return $this;
     }
 
-    public function getEmergency(): ?string
-    {
+    public function getEmergency(): ?string {
         return $this->emergency;
     }
 
-    public function setEmergency(?string $emergency): self
-    {
+    public function setEmergency(?string $emergency): self {
         $this->emergency = $emergency;
 
         return $this;
@@ -149,68 +147,57 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this->expectedAt;
     }
 
-    public function setExpectedAt(?DateTime $expectedAt): self
-    {
+    public function setExpectedAt(?DateTime $expectedAt): self {
         $this->expectedAt = $expectedAt;
 
         return $this;
     }
 
-    public function getProjectNumber(): ?string
-    {
+    public function getProjectNumber(): ?string {
         return $this->projectNumber;
     }
 
-    public function setProjectNumber(?string $projectNumber): self
-    {
+    public function setProjectNumber(?string $projectNumber): self {
         $this->projectNumber = $projectNumber;
 
         return $this;
     }
 
-    public function getProductArticleCode(): ?string
-    {
+    public function getProductArticleCode(): ?string {
         return $this->productArticleCode;
     }
 
-    public function setProductArticleCode(?string $productArticleCode): self
-    {
+    public function setProductArticleCode(?string $productArticleCode): self {
         $this->productArticleCode = $productArticleCode;
 
         return $this;
     }
 
-    public function getQuantity(): ?int
-    {
+    public function getQuantity(): ?int {
         return $this->quantity;
     }
 
-    public function setQuantity(?int $quantity): self
-    {
+    public function setQuantity(?int $quantity): self {
         $this->quantity = $quantity;
 
         return $this;
     }
 
-    public function getDropLocation(): ?Emplacement
-    {
+    public function getDropLocation(): ?Emplacement {
         return $this->dropLocation;
     }
 
-    public function setDropLocation(?Emplacement $dropLocation): self
-    {
+    public function setDropLocation(?Emplacement $dropLocation): self {
         $this->dropLocation = $dropLocation;
 
         return $this;
     }
 
-    public function getLineCount(): ?int
-    {
+    public function getLineCount(): ?int {
         return $this->lineCount;
     }
 
-    public function setLineCount(?int $lineCount): self
-    {
+    public function setLineCount(?int $lineCount): self {
         $this->lineCount = $lineCount;
 
         return $this;
@@ -221,8 +208,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
-    {
+    public function setComment(?string $comment): self {
         $this->comment = $comment;
         $this->setCleanedComment($comment);
 
@@ -239,8 +225,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
             );
     }
 
-    public function addStatusHistory(StatusHistory $statusHistory): self
-    {
+    public function addStatusHistory(StatusHistory $statusHistory): self  {
         if (!$this->statusHistory->contains($statusHistory)) {
             $this->statusHistory[] = $statusHistory;
             $statusHistory->setProductionRequest($this);
@@ -249,8 +234,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this;
     }
 
-    public function removeStatusHistory(StatusHistory $statusHistory): self
-    {
+    public function removeStatusHistory(StatusHistory $statusHistory): self {
         if ($this->statusHistory->removeElement($statusHistory)) {
             if ($statusHistory->getProductionRequest() === $this) {
                 $statusHistory->setProductionRequest(null);
@@ -270,20 +254,17 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this->number;
     }
 
-    public function setNumber(string $number): static
-    {
+    public function setNumber(string $number): self {
         $this->number = $number;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTime
-    {
+    public function getCreatedAt(): ?DateTime {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt): static
-    {
+    public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
 
         return $this;
@@ -294,32 +275,27 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this->treatedAt;
     }
 
-    public function setTreatedAt(DateTime $treatedAt): static
-    {
+    public function setTreatedAt(DateTime $treatedAt): self {
         $this->treatedAt = $treatedAt;
 
         return $this;
     }
 
-    public function getTreatedBy(): ?Utilisateur
-    {
+    public function getTreatedBy(): ?Utilisateur {
         return $this->treatedBy;
     }
 
-    public function setTreatedBy(?Utilisateur $treatedBy): static
-    {
+    public function setTreatedBy(?Utilisateur $treatedBy): self {
         $this->treatedBy = $treatedBy;
 
         return $this;
     }
 
-    public function getCreatedBy(): ?Utilisateur
-    {
+    public function getCreatedBy(): ?Utilisateur {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?Utilisateur $createdBy): static
-    {
+    public function setCreatedBy(?Utilisateur $createdBy): self {
         $this->createdBy = $createdBy;
 
         return $this;
@@ -365,5 +341,15 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
             FixedFieldEnum::quantity->name => $this->getQuantity(),
             FixedFieldEnum::lineCount->name => $this->getLineCount(),
         ] + $this->getFreeFields();
+    }
+
+    public function getDestinationLocation(): ?Emplacement {
+        return $this->destinationLocation;
+    }
+
+    public function setDestinationLocation(?Emplacement $destinationLocation): self {
+        $this->destinationLocation = $destinationLocation;
+
+        return $this;
     }
 }
