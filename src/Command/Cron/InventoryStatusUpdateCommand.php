@@ -27,6 +27,6 @@ class InventoryStatusUpdateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $referenceArticleRepository->updateInventoryStatusQuery();
-        return 1;
+        return Command::SUCCESS;
     }
 }
