@@ -657,7 +657,7 @@ class SettingsService {
                     ? $categoryRepository->find($categoryData['categoryId'])
                     : new InventoryCategory();
 
-                if(strlen($categoryData['label']) > 31){
+                if(strlen($categoryData['label']) > 32){
                     throw new RuntimeException("Vous ne pouvez pas enregistrer de libellé de plus de 32 caractères. Veuillez raccourcir votre libellé pour enregistrer");
                 }
                 $category->setLabel($categoryData['label']);
