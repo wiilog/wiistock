@@ -30,19 +30,19 @@ yarn-error.log
 /config/generated.yaml
 /SnoreToast.lnk
 /desktop.ini
-###< wiilog/wiistock ###
 
+/supervisord.pid
 /cache
+/config/fcm-config.json
+/certs/
+/config/packages/google_apiclient.yaml
+/rector.php
+###< wiilog/wiistock ###
 
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
-
-/config/fcm-config.json
-/certs/
-/config/packages/google_apiclient.yaml
-/rector.php
 
 ###> symfony/cypress ###
 /cypress/downloads
@@ -50,3 +50,4 @@ yarn-error.log
 /cypress/screenshots
 /cypress/logs
 /cypress/fixtures/.sql
+###< symfony/cypress ###

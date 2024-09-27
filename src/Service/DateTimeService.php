@@ -256,8 +256,13 @@ class DateTimeService {
     // TODO WIIS-11848
     public function addWorkedIntervalToDateTime(EntityManagerInterface $entityManager,
                                                 DateTime               $startDate,
-                                                DateInterval           $workedInterval): DateTime {
+                                                DateInterval           $workedInterval): ?DateTime {
         $workedSegments = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
+
+        // prevent
+        if (empty($workedSegments)) {
+            return null;
+        }
 
         $day = strtolower($startDate->format('l'));
 

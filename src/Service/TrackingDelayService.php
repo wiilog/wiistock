@@ -233,7 +233,7 @@ class TrackingDelayService {
 
             $timerStartedAt = $truckArrivalCreatedAt
                 ?: $arrivalCreatedAt
-                ?: $pack->getFirstTracking();
+                ?: $pack->getFirstTracking()?->getDatetime();
 
             if ($timerStartedAt
                 && $lastStop

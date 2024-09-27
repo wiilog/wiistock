@@ -6,7 +6,7 @@ class CalculateTrackingDelayMessage {
 
     public function __construct(private string $packCode) {}
 
-    public function getPackCode(): int {
+    public function getPackCode(): string {
         return $this->packCode;
     }
 }
