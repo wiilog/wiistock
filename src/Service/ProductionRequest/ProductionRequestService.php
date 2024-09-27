@@ -820,6 +820,15 @@ class ProductionRequestService
             }
         }
 
+        if (isset($data[FixedFieldEnum::destinationLocation->name])) {
+            $destinationLocation = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::destinationLocation->name]]);
+            if ($destinationLocation) {
+                $productionRequest->setDestinationLocation($destinationLocation);
+            } else {
+                throw new ImportException("L'emplacement de destination n'existe pas.");
+            }
+        }
+
         if (isset($data[FixedFieldEnum::comment->name])) {
             $productionRequest->setComment($data[FixedFieldEnum::comment->name]);
         }
