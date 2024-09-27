@@ -13,12 +13,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 
-//TODO WIIS-11851 remove ? Pas sur ça peut être bien
 #[AsCommand(
-    name: 'app:tracking:calculate-delay',
-    description: 'This commands generate the yaml translations.'
+    name: CalculateTrackingDelayCommand::COMMAND_NAME,
+    description: 'Calculate the tracking delay of the given logistic unit and save it in database.'
 )]
 class CalculateTrackingDelayCommand extends Command {
+    public const COMMAND_NAME = 'app:tracking:calculate-delay';
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -38,7 +38,7 @@ class CalculateTrackingDelayCommand extends Command {
             "code" => $input->getArgument("code"),
         ]);
 
-        $this->trackingDelayService->persistTrackingDelay($this->entityManager, $pack, ["force" => true]);
+        $this->trackingDelayService->updateTrackingDelay($this->entityManager, $pack);
         $this->entityManager->flush();
 
         return 0;

@@ -35,7 +35,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -47,56 +46,26 @@ class TrackingMovementService {
 
     private ?array $freeFieldsConfig = null;
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public LocationClusterService $locationClusterService;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public GroupService $groupService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public MouvementStockService $stockMovementService;
-
-    #[Required]
-    public ProjectHistoryRecordService $projectHistoryRecordService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public PackService $packService;
+    public function __construct(
+        private EntityManagerInterface      $entityManager,
+        private LocationClusterService      $locationClusterService,
+        private Twig_Environment            $templating,
+        private Security                    $security,
+        private GroupService                $groupService,
+        private FieldModesService           $fieldModesService,
+        private CSVExportService            $CSVExportService,
+        private TranslationService          $translationService,
+        private UserService                 $userService,
+        private FormatService               $formatService,
+        private AttachmentService           $attachmentService,
+        private LanguageService             $languageService,
+        private TranslationService          $translation,
+        private MouvementStockService       $stockMovementService,
+        private ProjectHistoryRecordService $projectHistoryRecordService,
+        private FreeFieldService            $freeFieldService,
+        private PackService                 $packService,
+    ) {
+    }
 
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -380,14 +349,14 @@ class TrackingMovementService {
         }
     }
 
-    public function createTrackingMovement(Pack|string $packOrCode,
-                                           ?Emplacement $location,
-                                           Utilisateur $user,
-                                           DateTime $date,
-                                           bool $fromNomade,
-                                           ?bool $finished,
+    public function createTrackingMovement(Pack|string       $packOrCode,
+                                           ?Emplacement      $location,
+                                           Utilisateur       $user,
+                                           DateTime          $date,
+                                           bool              $fromNomade,
+                                           ?bool             $finished,
                                            Statut|string|int $trackingType,
-                                           array $options = []): TrackingMovement
+                                           array             $options = []): TrackingMovement
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);

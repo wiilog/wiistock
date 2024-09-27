@@ -9,37 +9,41 @@ use App\Entity\Tracking\TrackingMovement;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Generator;
-use JetBrains\PhpStorm\ArrayShape;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class TrackingDelayService {
 
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public DateTimeService $dateTimeService;
+    public function __construct(
+        private TrackingMovementService $trackingMovementService,
+        private DateTimeService         $dateTimeService,
+    ) {}
 
     /**
-     * @param array{force?: boolean} $options
+     * Persist a new TrackingDelay, update if the TrackingDelay exists or remove it for the given pack.
+     *
+     * A pack could have a TrackingDelay if it's a basic one (method Pack::isBasicUnit)
+     * and if its nature has a trackingDelay (method Nature::getTrackingDelay).
+     *
+     * @see Pack::isBasicUnit()
+     * @see Nature::getTrackingDelay()
      */
-    public function persistTrackingDelay(EntityManagerInterface $entityManager,
-                                         Pack                   $pack,
-                                         array                  $options = []): void {
+    public function updateTrackingDelay(EntityManagerInterface $entityManager,
+                                        Pack                   $pack): void {
 
-        $force = $options["force"] ?? false;
+        $isBasicUnit = $pack->isBasicUnit();
+
+        $natureTrackingDelay = $isBasicUnit
+            ? $pack->getNature()?->getTrackingDelay()
+            : null;
+        $packHasTrackingDelay = isset($natureTrackingDelay);
 
         $trackingDelay = $pack->getTrackingDelay();
 
-        if (!($trackingDelay?->canRecalculateOnNewTracking())
-            && !$force) {
-            return;
+        if ($packHasTrackingDelay) {
+            [
+                "lastTrackingEvent" => $lastTrackingEvent,
+                "elapsedTime" => $calculatedElapsedTime,
+            ] = $this->calculatePackElapsedTime($entityManager, $pack);
         }
-
-        [
-            "lastTrackingEvent" => $lastTrackingEvent,
-            "elapsedTime" => $calculatedElapsedTime,
-        ] = $this->calculatePackElapsedTime($entityManager, $pack);
 
         if (!isset($calculatedElapsedTime)) {
             if (isset($trackingDelay)) {
@@ -48,27 +52,35 @@ class TrackingDelayService {
             }
         }
         else {
-            if (!isset($trackingDelay)) {
-                $trackingDelay = new TrackingDelay();
-                $trackingDelay->setPack($pack);
-            }
+            $this->persistTrackingDelay($entityManager, $pack, $calculatedElapsedTime, $lastTrackingEvent ?? null);
+        }
+    }
 
-            $now = new DateTime();
-            $treatmentRemainingSeconds = $pack->getNature()->getTrackingDelay() - $calculatedElapsedTime;
-            $treatmentRemainingInterval = $this->dateTimeService->convertSecondsToDateInterval($treatmentRemainingSeconds);
-            $limitTreatmentDate = $treatmentRemainingSeconds > 0
-                ? $this->dateTimeService->addWorkedIntervalToDateTime($entityManager, $now, $treatmentRemainingInterval)
-                : null;
+    private function persistTrackingDelay(EntityManagerInterface $entityManager,
+                                          Pack                   $pack,
+                                          int                    $elapsedTime,
+                                          ?TrackingEvent         $lastTrackingEvent): void {
 
-            $trackingDelay
-                ->setElapsedTime($calculatedElapsedTime)
-                ->setCalculatedAt($now)
-                ->setLastTrackingEvent($lastTrackingEvent)
-                ->setLimitTreatmentDate($limitTreatmentDate ?: $trackingDelay->getLimitTreatmentDate());
-
-            $entityManager->persist($trackingDelay);
+        $trackingDelay = $pack->getTrackingDelay();
+        if (!isset($trackingDelay)) {
+            $trackingDelay = new TrackingDelay();
+            $trackingDelay->setPack($pack);
         }
 
+        $now = new DateTime();
+        $treatmentRemainingSeconds = $pack->getNature()->getTrackingDelay() - $elapsedTime;
+        $treatmentRemainingInterval = $this->dateTimeService->convertSecondsToDateInterval($treatmentRemainingSeconds);
+        $limitTreatmentDate = $treatmentRemainingSeconds > 0
+            ? $this->dateTimeService->addWorkedIntervalToDateTime($entityManager, $now, $treatmentRemainingInterval)
+            : null;
+
+        $trackingDelay
+            ->setElapsedTime($elapsedTime)
+            ->setCalculatedAt($now)
+            ->setLastTrackingEvent($lastTrackingEvent)
+            ->setLimitTreatmentDate($limitTreatmentDate ?: $trackingDelay->getLimitTreatmentDate());
+
+        $entityManager->persist($trackingDelay);
     }
 
     /**
@@ -84,20 +96,6 @@ class TrackingDelayService {
 
         // In seconds
         $calculatedElapsedTime = null;
-
-        $isBasicUnit = $pack->isBasicUnit();
-
-         $natureTrackingDelay = $isBasicUnit
-             ? $pack?->getNature()?->getTrackingDelay()
-             : null;
-        $packHasTrackingDelay = isset($natureTrackingDelay);
-
-        if (!$packHasTrackingDelay) {
-            return [
-                "elapsedTime" => null,
-                "lastTrackingEvent" => null,
-            ];
-        }
 
         [
             "timerStartedAt" => $timerStartedAt,
@@ -183,10 +181,37 @@ class TrackingDelayService {
         ];
     }
 
-    #[ArrayShape([
-        "timerStartedAt" => DateTime::class|null,
-        "timerStoppedAt" => DateTime::class|null,
-    ])]
+    /**
+     * @param array{
+     *     force?: bool,
+     *     previousTrackingEvent?: TrackingEvent,
+     *     nextTrackingEvent?: TrackingEvent
+     * } $trackingOptions If force is defined and TRUE and the above condition is TRUE, the delay is calculated
+     *                    Else we calculate the new tracking delay only if
+     *                      - elapsed time was stopped and restart by the last movement,
+     *                      - Or the last movement was a START one.
+     */
+    public function shouldCalculateTrackingDelay(TrackingMovement $trackingMovement,
+                                                 array            $trackingOptions): bool {
+        $force = $trackingOptions["force"] ?? false;
+        $previousTrackingEvent = $trackingOptions["previousTrackingEvent"] ?? null;
+        $nextTrackingEvent = $trackingOptions["nextTrackingEvent"] ?? null;
+
+        return (
+            $force
+            || ($trackingMovement->isDrop() || $trackingMovement->isPicking())
+            || ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
+            || ($previousTrackingEvent !== TrackingEvent::PAUSE && $nextTrackingEvent)
+        );
+    }
+
+
+    /**
+     * @return array{
+     *     timerStartedAt?: DateTime,
+     *     timerStoppedAt?: DateTime,
+     * }
+     */
     private function getTimerData(Pack $pack): array {
         $lastStart = $pack->getLastStart();
         $lastStop = $pack->getLastStop();
