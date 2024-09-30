@@ -259,7 +259,7 @@ class DateTimeService {
                                                 DateInterval           $workedInterval): ?DateTime {
         $workedSegments = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
-        // prevent
+        // prevent execution if worked days settings empty
         if (empty($workedSegments)) {
             return null;
         }

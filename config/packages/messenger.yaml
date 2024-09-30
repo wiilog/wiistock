@@ -10,6 +10,7 @@ framework:
         dsn: "doctrine://default"
         options:
           queue_name: "tracking-delay"
+          unique_messages: true
 
     # Route your messages to the transports
     routing:
