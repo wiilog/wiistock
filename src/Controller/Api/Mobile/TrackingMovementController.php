@@ -491,10 +491,13 @@ class TrackingMovementController extends AbstractController {
         $includeGroup = $request->query->getBoolean('group');
         $includeLocation = $request->query->getBoolean('location');
         $includeExisting = $request->query->getBoolean('existing');
-
+        $includePack = $request->query->getBoolean('pack');
+        $includeMovements = $request->query->getBoolean('movements');
         $res = ['success' => true];
 
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+
         $pack = !empty($code)
             ? $packRepository->findOneBy(['code' => $code])
             : null;
@@ -516,6 +519,16 @@ class TrackingMovementController extends AbstractController {
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getParent();
                 $res['group'] = $group ? $group->serialize() : null;
+            }
+
+            if ($includePack) {
+                $res['pack'] = $pack->serialize();
+            }
+
+            if($includeMovements) {
+                $movements = $trackingMovementRepository->findBy(['pack' => $pack], ['datetime' => 'DESC']);
+                dump($movements);
+                $res['movements'] = "";
             }
 
             if ($includeNature) {
