@@ -246,7 +246,9 @@ class ArrivageController extends AbstractController
 
         if (!empty($data['noTracking'])) {
             $trackingNumber = $data['noTracking'];
-            $newTrackingNumbers = json_decode($data['newTrackingNumbers'] ?? '[]', true);
+            $newTrackingNumbers = Stream::from(json_decode($data['newTrackingNumbers'] ?? '[]', true))
+                ->filterMap(fn($value) => trim($value) ?: null)
+                ->toArray();
             $truckArrival = isset($data["noTruckArrival"]) ? $truckArrivalRepository->find($data["noTruckArrival"]) : null;
             $emptyTrackingNumber = $trackingNumber !== "null";
             if ($emptyTrackingNumber) {
@@ -272,6 +274,8 @@ class ArrivageController extends AbstractController
                         if ($line) {
                             $line->addArrival($arrivage);
                             $arrivage->addTruckArrivalLine($line);
+                        } else {
+                            $arrivage->setTruckArrival($truckArrival);
                         }
                     }
                 } else {
