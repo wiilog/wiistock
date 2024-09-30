@@ -454,7 +454,7 @@ class PackController extends AbstractController
                                       TrackingDelayService   $trackingDelayService,
                                       Pack                   $logisticUnit): JsonResponse {
 
-        $trackingDelayService->persistTrackingDelay($entityManager, $logisticUnit, ["force" => true]);
+        $trackingDelayService->updateTrackingDelay($entityManager, $logisticUnit);
 
         $entityManager->flush();
 

@@ -10,6 +10,7 @@ use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
+use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
 use App\Service\TrackingMovementService;
@@ -20,26 +21,12 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class TrackingMovementListener implements EventSubscriber
 {
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public RouterInterface $router;
 
     /**
      * @var TrackingMovement[]
@@ -47,6 +34,15 @@ class TrackingMovementListener implements EventSubscriber
     private array $flushedTackingMovements = [];
 
     private ?Type $trackingMovementType = null;
+
+    public function __construct(
+        private MessageBusInterface     $messageBus,
+        private MailerService           $mailerService,
+        private TrackingMovementService $trackingMovementService,
+        private FreeFieldService        $freeFieldService,
+        private TranslationService      $translation,
+        private RouterInterface         $router
+    ) { }
 
     public function getSubscribedEvents(): array {
         return [
@@ -57,7 +53,7 @@ class TrackingMovementListener implements EventSubscriber
     }
 
     #[AsEventListener(event: 'preRemove')]
-    public function preRemove(TrackingMovement $movementToDelete,
+    public function preRemove(TrackingMovement   $movementToDelete,
                               PreRemoveEventArgs $lifecycleEventArgs): void
     {
         $entityManager = $lifecycleEventArgs->getObjectManager();
@@ -82,6 +78,30 @@ class TrackingMovementListener implements EventSubscriber
         $this->flushedTackingMovements = Stream::from($args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions())
             ->filter(static fn($entity) => $entity instanceof TrackingMovement)
             ->toArray();
+
+
+
+        /* TODO WIIS-11957
+        use shouldCalculateTrackingDelay to launch message dispatch
+        $this->trackingDelayService->shouldCalculateTrackingDelay($trackingMovement, [
+            "force" => $message->getForce(),
+            "previousTrackingEvent" => $message->getPreviousTrackingEvent(),
+            "nextTrackingEvent" => $message->getNextTrackingEvent(),
+        ])
+        if () {}
+        */
+
+        $treatedPacks = [];
+        foreach ($this->flushedTackingMovements as $trackingMovement) {
+            $pack = $trackingMovement->getPack();
+            $packCode = $pack->getCode();
+            $treatedPack = $treatedPacks[$packCode] ?? false;
+
+            if (!$treatedPack) {
+                $this->messageBus->dispatch(new CalculateTrackingDelayMessage($packCode));
+                $treatedPacks[$packCode] = true;
+            }
+        }
     }
 
     #[AsEventListener(event: 'postFlush')]
