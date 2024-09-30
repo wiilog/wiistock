@@ -103,7 +103,7 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => self::DEFAULT_QUANTITY])]
     private ?int $quantity = self::DEFAULT_QUANTITY;
 
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[ORM\Column(type: Types::BIGINT, nullable: true, options: ["unsigned" => true])]
     private ?int $orderIndex = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
