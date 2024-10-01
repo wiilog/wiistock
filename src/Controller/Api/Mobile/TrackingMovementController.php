@@ -11,6 +11,7 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\DateTimeService;
@@ -31,6 +32,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
@@ -484,6 +486,7 @@ class TrackingMovementController extends AbstractController {
                                 EntityManagerInterface $entityManager,
                                 NatureService          $natureService,
                                 PackService            $packService,
+                                NormalizerInterface    $normalizer,
                                 DateTimeService        $dateTimeService): JsonResponse
     {
         $code = $request->query->get('code');
@@ -522,13 +525,15 @@ class TrackingMovementController extends AbstractController {
             }
 
             if ($includePack) {
-                $res['pack'] = $pack->serialize();
+                $res['pack'] = $normalizer->normalize($pack, null, ["usage" => SerializerUsageEnum::MOBILE]);
             }
 
             if($includeMovements) {
-                $movements = $trackingMovementRepository->findBy(['pack' => $pack], ['datetime' => 'DESC']);
-                dump($movements);
-                $res['movements'] = "";
+                $movements = $trackingMovementRepository->findBy(['pack' => $pack], ['datetime' => 'DESC'], 50);
+                $normalizedMovements = Stream::from($movements)
+                    ->map(fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
+                    ->toArray();
+                $res['movements'] = $normalizedMovements;
             }
 
             if ($includeNature) {
