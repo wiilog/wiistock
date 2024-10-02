@@ -5,7 +5,6 @@ namespace App\Service;
 
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
-use App\Entity\ArrivalHistory;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
@@ -26,10 +25,10 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Generator;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -743,5 +742,87 @@ class PackService {
             ->setUser($user);
 
         $entityManager->persist($logisticUnitHistoryRecord);
+    }
+
+    public function generateTrackingDelayHtml(Pack $pack): ?string
+    {
+        $trackingDelayData = $this->formatTrackingDelayData($pack);
+
+        return isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
+            ? "<span class='font-weight-bold' style='color: {$trackingDelayData["color"]}'>{$trackingDelayData["delay"]}</span>"
+            : null;
+    }
+
+    /**
+     * @return array{color?: string, delay?: string}
+     */
+    public function formatTrackingDelayData(Pack $pack): array {
+        $packTrackingDelay = $pack->getTrackingDelay();
+        $nature = $pack->getNature();
+        $natureTrackingDelay = $nature?->getTrackingDelay();
+
+        if(!$packTrackingDelay || !$natureTrackingDelay) {
+            return [];
+        }
+
+        $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
+
+        $delayIsLate = false;
+        $elapsedTime = $pack->getTrackingDelay()->getElapsedTime();
+        $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
+            ? $elapsedTime
+            : ($elapsedTime + floor($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay) / 1000));
+
+        $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
+
+        if($remainingTime < 0){
+            $trackingDelayColor = $nature->getExceededDelayColor() ?? PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
+            $delayIsLate = true;
+        } else {
+            $trackingDelaySegments = $nature->getTrackingDelaySegments();
+            $trackingDelayColor = PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
+
+            foreach ($trackingDelaySegments as $trackingDelaySegment){
+                $segmentDelayInSeconds = $this->dateTimeService->calculateSecondsFrom($trackingDelaySegment["segmentMax"], Nature::TRACKING_DELAY_REGEX, "h");
+                if($remainingTime <= $segmentDelayInSeconds){
+                    $trackingDelayColor = $trackingDelaySegment["segmentColor"];
+                    break;
+                }
+            }
+        }
+
+        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime));
+        $formattedRemainingInterval = $this->dateTimeService->intervalToHourAndMinStr($remainingInterval);
+        $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
+
+        return [
+            "color" => $trackingDelayColor,
+            "delay" => $strDelay,
+        ];
+    }
+
+    public function keyboardPackGenerator(iterable $packs): Generator {
+        $firstElement = [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
+        ];
+
+        if (!$packs->valid()) {
+            $firstElement["highlighted"] = true;
+        }
+
+        yield $firstElement;
+
+        foreach ($packs as $pack) {
+            // if this is the first element, highlight it
+            if (!isset($firstElement["highlighted"])) {
+                $pack["highlighted"] = true;
+            }
+
+            $pack["stripped_comment"] = strip_tags($pack["comment"] ?? '');
+            $pack["lastMvtDate"] = $this->formatService->datetime(DateTime::createFromFormat('d/m/Y H:i', $pack['lastMvtDate']) ?: null, "", false, $this->security->getUser());
+
+            yield $pack;
+        }
     }
 }

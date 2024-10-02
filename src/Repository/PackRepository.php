@@ -14,13 +14,14 @@ use App\Entity\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
 use DateTimeInterface;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\Query\Expr\Join;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr\Join;
-use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 /**
@@ -624,8 +625,7 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term, array $options = [], ?bool $withoutArticle = false)
-    {
+    public function buildQueryForSelect(?string $term, array $options = [], ?bool $withoutArticle = false): Query {
         $exclude = $options['exclude'] ?? null;
         if ($exclude && !is_array($exclude)) {
             $exclude = [$exclude];
@@ -676,7 +676,15 @@ class PackRepository extends EntityRepository
             $qb->setMaxResults($limit);
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb->getQuery();
+    }
+
+    public function getForSelect(?string $term, array $options = [], ?bool $withoutArticle = false)  {
+        return self::buildQueryForSelect($term, $options, $withoutArticle)->getResult();
+    }
+
+    public function iterateForSelect(?string $term, array $options = [], ?bool $withoutArticle = false): iterable {
+        return self::buildQueryForSelect($term, $options, $withoutArticle)->toIterable();
     }
 
     /**
