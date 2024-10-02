@@ -11,6 +11,7 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\DateTimeService;
@@ -31,6 +32,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
@@ -484,6 +486,7 @@ class TrackingMovementController extends AbstractController {
                                 EntityManagerInterface $entityManager,
                                 NatureService          $natureService,
                                 PackService            $packService,
+                                NormalizerInterface    $normalizer,
                                 DateTimeService        $dateTimeService): JsonResponse
     {
         $code = $request->query->get('code');
@@ -491,10 +494,13 @@ class TrackingMovementController extends AbstractController {
         $includeGroup = $request->query->getBoolean('group');
         $includeLocation = $request->query->getBoolean('location');
         $includeExisting = $request->query->getBoolean('existing');
-
+        $includePack = $request->query->getBoolean('pack');
+        $includeMovements = $request->query->getBoolean('movements');
         $res = ['success' => true];
 
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+
         $pack = !empty($code)
             ? $packRepository->findOneBy(['code' => $code])
             : null;
@@ -516,6 +522,18 @@ class TrackingMovementController extends AbstractController {
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getParent();
                 $res['group'] = $group ? $group->serialize() : null;
+            }
+
+            if ($includePack) {
+                $res['pack'] = $normalizer->normalize($pack, null, ["usage" => SerializerUsageEnum::MOBILE]);
+            }
+
+            if($includeMovements) {
+                $movements = $trackingMovementRepository->findBy(['pack' => $pack], ['datetime' => 'DESC'], 50);
+                $normalizedMovements = Stream::from($movements)
+                    ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
+                    ->toArray();
+                $res['movements'] = $normalizedMovements;
             }
 
             if ($includeNature) {

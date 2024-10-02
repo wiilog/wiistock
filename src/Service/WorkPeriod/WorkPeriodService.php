@@ -53,14 +53,15 @@ class WorkPeriodService {
                 $workedDayRepository = $entityManager->getRepository(WorkedDay::class);
                 $workedDays = $workedDayRepository->findAll();
                 $value = Stream::from($workedDays)
-                    ->keymap(fn(WorkedDay $dayWorked) => (
-                        $dayWorked->isWorked()
+                    ->keymap(static function(WorkedDay $dayWorked) {
+                        $timesArray = $dayWorked->getTimesArray();
+                        return $dayWorked->isWorked() && !empty($timesArray)
                             ? [
                                 $dayWorked->getDay(),
-                                $dayWorked->getTimesArray()
+                                $timesArray,
                             ]
-                            : null
-                    ))
+                            : null;
+                    })
                     ->toArray();
                 break;
             case WorkPeriodItem::WORK_FREE_DAYS:
