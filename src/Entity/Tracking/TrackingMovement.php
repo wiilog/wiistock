@@ -60,9 +60,15 @@ class TrackingMovement implements AttachmentContainer {
     const SHIPPING_REQUEST_ENTITY = 'shippingRequest';
 
     /**
-     * TODO WIIS-11957
-     * Data build by tracking movement creation function (@see TrackingMovementService::createTrackingMovement())
+     * TODO WIIS-11974
+     * @var array{
+     *      previousTrackingEvent?: TrackingEvent,
+     *      nextTrackingEvent?: TrackingEvent
+     *  }
+     * Data build by tracking movement creation function createTrackingMovement
      * The data will be used in TrackingMovementListener after flush to launch message to recalculate delay.
+     *
+     * @see TrackingMovementService::createTrackingMovement()
      */
     public array $calculateTrackingDelayData = [];
 

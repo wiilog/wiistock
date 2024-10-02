@@ -13,6 +13,7 @@ use App\Entity\Type;
 use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
 use App\Service\FreeFieldService;
 use App\Service\MailerService;
+use App\Service\TrackingDelayService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use Doctrine\Common\EventSubscriber;
@@ -31,7 +32,8 @@ class TrackingMovementListener implements EventSubscriber
     /**
      * @var TrackingMovement[]
      */
-    private array $flushedTackingMovements = [];
+    private array $flushedTrackingMovementsInserted = [];
+    private array $packCodesToRecalculateTrackingDelay = [];
 
     private ?Type $trackingMovementType = null;
 
@@ -41,7 +43,8 @@ class TrackingMovementListener implements EventSubscriber
         private TrackingMovementService $trackingMovementService,
         private FreeFieldService        $freeFieldService,
         private TranslationService      $translation,
-        private RouterInterface         $router
+        private RouterInterface         $router,
+        private TrackingDelayService    $trackingDelayService,
     ) { }
 
     public function getSubscribedEvents(): array {
@@ -75,38 +78,38 @@ class TrackingMovementListener implements EventSubscriber
 
     #[AsEventListener(event: 'onFlush')]
     public function onFlush(OnFlushEventArgs $args): void {
-        $this->flushedTackingMovements = Stream::from($args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions())
-            ->filter(static fn($entity) => $entity instanceof TrackingMovement)
-            ->toArray();
+        $flushedTrackingMovementsDeleted = $args->getObjectManager()->getUnitOfWork()->getScheduledCollectionDeletions();
+        $flushedTrackingMovementsInserted = $args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions();
 
+        $this->packCodesToRecalculateTrackingDelay = [];
+        $this->flushedTrackingMovementsInserted = [];
 
+        foreach($flushedTrackingMovementsDeleted as $entity) {
+            if ($entity instanceof TrackingMovement) {
+                $pack = $entity->getPack();
+                $packCode = $pack->getCode();
+                $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
+            }
+        }
 
-        /* TODO WIIS-11957
-        use shouldCalculateTrackingDelay to launch message dispatch
-        $this->trackingDelayService->shouldCalculateTrackingDelay($trackingMovement, [
-            "force" => $message->getForce(),
-            "previousTrackingEvent" => $message->getPreviousTrackingEvent(),
-            "nextTrackingEvent" => $message->getNextTrackingEvent(),
-        ])
-        if () {}
-        */
+        foreach($flushedTrackingMovementsInserted as $entity) {
 
-        $treatedPacks = [];
-        foreach ($this->flushedTackingMovements as $trackingMovement) {
-            $pack = $trackingMovement->getPack();
-            $packCode = $pack->getCode();
-            $treatedPack = $treatedPacks[$packCode] ?? false;
+            if ($entity instanceof TrackingMovement) {
+                $this->flushedTrackingMovementsInserted[] = $entity;
 
-            if (!$treatedPack) {
-                $this->messageBus->dispatch(new CalculateTrackingDelayMessage($packCode));
-                $treatedPacks[$packCode] = true;
+                $shouldCalculateTrackingDelay = $this->trackingDelayService->shouldCalculateTrackingDelay($entity, null, null);
+                if ($shouldCalculateTrackingDelay) {
+                    $pack = $entity->getPack();
+                    $packCode = $pack->getCode();
+                    $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
+                }
             }
         }
     }
 
     #[AsEventListener(event: 'postFlush')]
     public function postFlush(PostFlushEventArgs $args): void {
-        foreach ($this->flushedTackingMovements ?? [] as $trackingMovement) {
+        foreach ($this->flushedTrackingMovementsInserted ?? [] as $trackingMovement) {
             if ($trackingMovement->isDrop()) {
                 $location = $trackingMovement->getEmplacement();
                 if ($location && $location->isSendEmailToManagers()) {
@@ -146,6 +149,11 @@ class TrackingMovementListener implements EventSubscriber
                     }
                 }
             }
+        }
+
+        $packCodesToRecalculateTrackingDelay = array_keys($this->packCodesToRecalculateTrackingDelay);
+        foreach ($packCodesToRecalculateTrackingDelay as $code) {
+            $this->messageBus->dispatch(new CalculateTrackingDelayMessage($code));
         }
     }
 
