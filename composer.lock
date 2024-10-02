@@ -5425,7 +5425,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/doctrine-messenger.git",
-                "reference": "7db2b032a4524ce13ff37c1595f2c1df65a59466"
+                "reference": "6d1c8af16e60394ca16c1af1cbac297f265c0f91"
             },
             "require": {
                 "doctrine/dbal": "^2.13|^3|^4",
@@ -5465,7 +5465,7 @@
             ],
             "description": "Symfony Doctrine Messenger Bridge",
             "homepage": "https://symfony.com",
-            "time": "2024-09-30T08:15:27+00:00"
+            "time": "2024-09-30T09:34:08+00:00"
         },
         {
             "name": "symfony/dom-crawler",
