@@ -353,6 +353,10 @@ class ReceptionService
     public function createHeaderDetailsConfig(Reception $reception): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
+        $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
+            ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
+            ->filter(static fn(PurchaseRequest $request) => $request)
+            ->first();
 
         $status = $reception->getStatut();
         $provider = $reception->getFournisseur();
@@ -365,6 +369,7 @@ class ReceptionService
         $orderNumber = $reception->getOrderNumber() ? join(", ", $reception->getOrderNumber()) : null;
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
+        $deliveryFee = $purchaseRequest->getDeliveryFee();
         $attachments = $reception->getAttachments();
         $receivers = implode(', ', array_unique(
                 $reception->getDemandes()
@@ -439,6 +444,10 @@ class ReceptionService
                 'label' => 'Utilisateur',
                 'value' => $user ?: '',
                 'show' => [ 'fieldName' => 'utilisateur' ]
+            ],
+            [
+                'label' => 'Frais de livraison',
+                'value' => $deliveryFee ?: ''
             ],
         ];
 

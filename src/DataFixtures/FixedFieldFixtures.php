@@ -164,6 +164,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_PHONE . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_DISPATCH_TYPE , 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ],
         ];
 
@@ -248,7 +249,6 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
 
         foreach($fixedFieldByType as $fieldEntity => $listFieldCodes) {
             $categoryType = $fieldEntity == FixedFieldStandard::ENTITY_CODE_DISPATCH ? CategoryType::DEMANDE_DISPATCH : null;
-
 
             $typeRepository->findByCategoryLabels([$categoryType]);
             $entityTypes = $typeRepository->findByCategoryLabels([$fieldEntity]);

@@ -143,6 +143,7 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_CUSTOMER_NAME = 'client';
     const FIELD_LABEL_CUSTOMER_PHONE = 'téléphone client';
     const FIELD_LABEL_CUSTOMER_ADDRESS = 'adresse de livraison';
+    const FIELD_LABEL_DISPATCH_TYPE = "type";
 
     const ENTITY_CODE_HANDLING = 'services';
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';

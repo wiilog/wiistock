@@ -87,7 +87,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: ProductionHistoryRecord::class, cascade: ['remove'])]
     private Collection $history;
 
-    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'productionRequests')]
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $destinationLocation = null;
 

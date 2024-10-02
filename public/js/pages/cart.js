@@ -10,7 +10,6 @@ window.addEventListener( "pageshow", function ( event ) {
 $(document).ready(() => {
 
     const $addOrCreate = $(`[name="addOrCreate"]`).closest(`.wii-radio-container`);
-
     const $purchaseRequestInfosTemplate = $(`#purchase-request-infos-template`);
     const $emptyCart = $(`.empty-cart`);
 
@@ -27,6 +26,7 @@ $(document).ready(() => {
     const requestType = $requestTypeRadio.val();
     const $cartContentContainers = $('.wii-form > .cart-content');
     const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
+
     if (containsLogisticUnits($cartContentToShow)) {
         loadLogisticUnitsCartForm($requestTypeRadio, $addOrCreate, $existingPurchase);
     }
@@ -53,6 +53,8 @@ $(document).ready(() => {
     })
 
     $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
+        let $select = $("[name=deliveryType]");
+        $select.trigger("change");
         $(`.sub-form`).addClass(`d-none`);
 
         const requestType = $('input[name="requestType"]:checked').val();
@@ -135,6 +137,9 @@ $(document).ready(() => {
             })
         ));
     });
+
+
+
 });
 
 function initializePurchaseRequestInfos($purchaseInfos, id) {
