@@ -531,7 +531,7 @@ class TrackingMovementController extends AbstractController {
             if($includeMovements) {
                 $movements = $trackingMovementRepository->findBy(['pack' => $pack], ['datetime' => 'DESC'], 50);
                 $normalizedMovements = Stream::from($movements)
-                    ->map(fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
+                    ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
                     ->toArray();
                 $res['movements'] = $normalizedMovements;
             }
