@@ -182,26 +182,19 @@ class TrackingDelayService {
     }
 
     /**
-     * @param array{
-     *     force?: bool,
-     *     previousTrackingEvent?: TrackingEvent,
-     *     nextTrackingEvent?: TrackingEvent
-     * } $trackingOptions If force is defined and TRUE and the above condition is TRUE, the delay is calculated
-     *                    Else we calculate the new tracking delay only if
-     *                      - elapsed time was stopped and restart by the last movement,
-     *                      - Or the last movement was a START one.
+     * We calculate the new tracking delay only if the new trackingMovement is a picking or a drop and if
+     *    - elapsed time was stopped and restart by the last movement,
+     *    - Or the last movement was a START one.
      */
     public function shouldCalculateTrackingDelay(TrackingMovement $trackingMovement,
-                                                 array            $trackingOptions): bool {
-        $force = $trackingOptions["force"] ?? false;
-        $previousTrackingEvent = $trackingOptions["previousTrackingEvent"] ?? null;
-        $nextTrackingEvent = $trackingOptions["nextTrackingEvent"] ?? null;
-
+                                                 ?TrackingEvent    $previousTrackingEvent,
+                                                 ?TrackingEvent    $nextTrackingEvent): bool {
         return (
-            $force
-            || ($trackingMovement->isDrop() || $trackingMovement->isPicking())
-            || ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
-            || ($previousTrackingEvent !== TrackingEvent::PAUSE && $nextTrackingEvent)
+            ($trackingMovement->isDrop() || $trackingMovement->isPicking())
+         /*   && (
+                ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
+                || ($previousTrackingEvent !== TrackingEvent::PAUSE && $nextTrackingEvent)
+            )*/
         );
     }
 
