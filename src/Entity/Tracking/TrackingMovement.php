@@ -8,7 +8,6 @@ use App\Entity\Attachment;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
-use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Livraison;
 use App\Entity\LocationClusterRecord;
@@ -156,7 +155,7 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     private ?Pack $logisticUnitParent = null;
 
-    #[ORM\ManyToOne(targetEntity: TrackingMovement::class )]
+    #[ORM\ManyToOne(targetEntity: TrackingMovement::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?TrackingMovement $mainMovement = null;
 

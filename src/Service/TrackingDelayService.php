@@ -182,6 +182,7 @@ class TrackingDelayService {
     }
 
     /**
+     * TODO WIIS-11974: add new function here
      * We calculate the new tracking delay only if the new trackingMovement is a picking or a drop and if
      *    - elapsed time was stopped and restart by the last movement,
      *    - Or the last movement was a START one.
@@ -190,6 +191,7 @@ class TrackingDelayService {
                                                  ?TrackingEvent    $previousTrackingEvent,
                                                  ?TrackingEvent    $nextTrackingEvent): bool {
         return (
+
             ($trackingMovement->isDrop() || $trackingMovement->isPicking())
          /*   && (
                 ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
