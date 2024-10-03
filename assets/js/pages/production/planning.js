@@ -267,13 +267,13 @@ function initPlanningRefresh(planning) {
         }
     }
 
-    eventSource.onerror(() => {
+    eventSource.onerror = function () {
         setInterval(function () {
             planning.fetch().then(() => {
                 updateRefreshRate();
             });
         }, EXTERNAL_PLANNING_REFRESH_RATE);
-    })
+    }
 }
 
 function updateRefreshRate() {
