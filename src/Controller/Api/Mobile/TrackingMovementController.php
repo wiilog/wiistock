@@ -26,6 +26,7 @@ use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use DateTime;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -529,7 +530,15 @@ class TrackingMovementController extends AbstractController {
             }
 
             if($includeMovements) {
-                $movements = $trackingMovementRepository->findBy(['pack' => $pack], ['datetime' => 'DESC'], 50);
+                $movements = $trackingMovementRepository->findBy(
+                    ['pack' => $pack, ''],
+                    [
+                        'datetime' => Order::Descending->value,
+                        'orderIndex' => Order::Descending->value,
+                        'id' => Order::Descending->value,
+                    ],
+                    50
+                );
                 $normalizedMovements = Stream::from($movements)
                     ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
                     ->toArray();
