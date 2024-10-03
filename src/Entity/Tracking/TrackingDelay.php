@@ -81,12 +81,6 @@ class TrackingDelay {
         );
     }
 
-    public function canRecalculateOnNewTracking(): bool {
-        return (
-            $this->lastTrackingEvent !== TrackingEvent::STOP
-        );
-    }
-
     public function getLastTrackingEvent(): ?TrackingEvent {
         return $this->lastTrackingEvent;
     }
