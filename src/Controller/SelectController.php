@@ -43,7 +43,6 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\LanguageHelper;
-use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\SettingsService;
@@ -485,7 +484,7 @@ class SelectController extends AbstractController {
     public function keyboardPack(Request                $request,
                                  EntityManagerInterface $manager,
                                  PackService            $packService,
-                                 SettingsService        $settingsService): StreamedJsonResponse {
+                                 SettingsService        $settingsService): JsonResponse|StreamedJsonResponse {
         $packRepository = $manager->getRepository(Pack::class);
         $packMustBeNew = $settingsService->getValue($manager, Setting::PACK_MUST_BE_NEW);
 
@@ -496,7 +495,7 @@ class SelectController extends AbstractController {
 
         if($packMustBeNew) {
             if($packRepository->findOneBy(["code" => $packCode])) {
-                return new StreamedJsonResponse([
+                return new JsonResponse([
                     "error" => "Cette unité logistique existe déjà en base de données",
                 ]);
             } else {
@@ -514,7 +513,7 @@ class SelectController extends AbstractController {
         }
 
         return new StreamedJsonResponse([
-            "results" => $packService->keyboardPackGenerator($results) ?? null,
+            "results" => $packService->getFormatedKeyboardPackGenerator($results) ?? null,
             "error" => $error ?? null,
         ]);
 
