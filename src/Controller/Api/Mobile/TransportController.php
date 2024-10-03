@@ -39,15 +39,15 @@ use App\Service\TranslationService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class TransportController extends AbstractController {
 
-    #[Rest\Get("/transport-rounds", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/transport-rounds", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function transportRounds(EntityManagerInterface $manager): Response
     {
@@ -62,7 +62,7 @@ class TransportController extends AbstractController {
         return $this->json($data);
     }
 
-    #[Rest\Get("/fetch-transport")]
+    #[Route("/fetch-transport", methods: [self::GET])]
     #[Wii\RestVersionChecked]
     public function fetchSingleTransport(Request $request, EntityManagerInterface $manager): Response
     {
@@ -71,7 +71,7 @@ class TransportController extends AbstractController {
         return $this->json($this->serializeTransport($manager, $transportRequest));
     }
 
-    #[Rest\Get("/fetch-round")]
+    #[Route("/fetch-round", methods: [self::GET])]
     #[Wii\RestVersionChecked]
     public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response {
         $round = $request->query->get("round") ? $manager->find(TransportRound::class, $request->query->get("round"))
@@ -364,7 +364,7 @@ class TransportController extends AbstractController {
         ];
     }
 
-    #[Rest\Get("/reject-motives")]
+    #[Route("/reject-motives", methods: [self::GET])]
     #[Wii\RestVersionChecked]
     public function rejectMotives(EntityManagerInterface $manager): Response
     {
@@ -386,7 +386,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/reject-pack")]
+    #[Route("/reject-pack", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function rejectPack(Request                 $request,
                                EntityManagerInterface  $manager,
@@ -435,7 +435,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/load-packs")]
+    #[Route("/load-packs", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function loadPacks(Request                 $request,
                               EntityManagerInterface  $manager,
@@ -472,7 +472,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/finish-round")]
+    #[Route("/finish-round", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function finishRound(Request                 $request,
                                 EntityManagerInterface  $manager,
@@ -593,7 +593,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/start-round")]
+    #[Route("/start-round", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function startRound(Request                 $request,
                                EntityManagerInterface  $manager,
@@ -716,7 +716,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Get("/has-new-packs")]
+    #[Route("/has-new-packs", methods: [self::GET])]
     #[Wii\RestVersionChecked]
     public function hasNewPacks(Request $request, EntityManagerInterface $manager): Response
     {
@@ -739,7 +739,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/finish-transport")]
+    #[Route("/finish-transport", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function finishTransport(Request                 $request,
                                     EntityManagerInterface  $manager,
@@ -903,7 +903,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/transport-failure")]
+    #[Route("/transport-failure", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function transportFailure(Request                 $request,
                                      EntityManagerInterface  $manager,
@@ -1128,7 +1128,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Post("/deposit-transport-packs")]
+    #[Route("/deposit-transport-packs", methods: [self::POST])]
     #[Wii\RestVersionChecked]
     public function depositPacks(Request                 $request,
                                  EntityManagerInterface  $manager,
@@ -1316,7 +1316,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Get("/end-round-locations")]
+    #[Route("/end-round-locations", methods: [self::GET])]
     #[Wii\RestVersionChecked]
     public function endRoundLocations(EntityManagerInterface $manager): Response
     {
@@ -1331,7 +1331,7 @@ class TransportController extends AbstractController {
         ]);
     }
 
-    #[Rest\Get("/packs-return-locations")]
+    #[Route("/packs-return-locations", methods: [self::GET])]
     #[Wii\RestVersionChecked]
     public function packsReturnLocations(EntityManagerInterface $manager): Response
     {

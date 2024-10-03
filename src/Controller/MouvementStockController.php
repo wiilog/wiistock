@@ -5,23 +5,19 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-
 use App\Entity\MouvementStock;
-use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
 use App\Service\TrackingMovementService;
-
 use App\Service\TranslationService;
-use App\Service\FieldModesService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,7 +27,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use DateTime;
 
 #[Route("/mouvement-stock")]
 class MouvementStockController extends AbstractController
@@ -109,7 +104,9 @@ class MouvementStockController extends AbstractController
         $chosenRefQuantity = $request->request->get("chosen-ref-quantity");
         $chosenRefLabel = $request->request->get("chosen-ref-label");
 
-        if ($chosenMvtType && $chosenRefQuantity!=null && $chosenRefLabel) {
+        if ($chosenMvtType
+            && $chosenRefQuantity != null
+            && $chosenRefLabel) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -127,7 +124,6 @@ class MouvementStockController extends AbstractController
             $movementBarcode = $request->request->get("chosen-ref-barcode")
                                ?: $request->request->get("chosen-art-barcode");
             $movementComment = $request->request->get("comment");
-            $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
             /** @var Article|ReferenceArticle|null $chosenArticleToMove */
             $chosenArticleToMove = (
@@ -135,10 +131,9 @@ class MouvementStockController extends AbstractController
                 ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
             );
 
-            $chosenArticleStatus = $chosenArticleToMove->getStatut();
-            $chosenArticleStatusName = $chosenArticleStatus ? $chosenArticleStatus?->getCode() : null;
-            if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])) {
-                $response['msg'] = 'Le statut de la référence ou de l\'article choisi est incorrect, il doit être actif.';
+            if (empty($chosenArticleToMove)
+                || !$mouvementStockService->isArticleMovable($chosenMvtType, $chosenArticleToMove)) {
+                $response['msg'] = 'Le statut de la référence ou de l\'article choisi est incorrect.';
             } else {
                 $now = new DateTime();
                 $emplacementTo = null;
@@ -161,9 +156,22 @@ class MouvementStockController extends AbstractController
                     if ($chosenArticleToMove instanceof ReferenceArticle) {
                         $chosenArticleToMove
                             ->setQuantiteStock($chosenArticleToMoveStockQuantity + $quantity);
-                    } else {
-                        $chosenArticleToMove
-                            ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
+                    }
+                    // article
+                    else {
+                        // "consommé"
+                        if($chosenArticleToMove->getStatut()->getCode() === Article::STATUT_INACTIF){
+                            $actifStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+
+                            $chosenArticleToMove
+                                ->setQuantite($quantity)
+                                ->setStatut($actifStatus);
+                        }
+                        // "disponible"
+                        else {
+                            $chosenArticleToMove
+                                ->setQuantite($chosenArticleToMoveStockQuantity + $quantity);
+                        }
                     }
 
                     $associatedDropTracaMvt = $trackingMovementService->createTrackingMovement(
@@ -196,12 +204,13 @@ class MouvementStockController extends AbstractController
                         if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                             $quantity = $chosenArticleToMoveAvailableQuantity;
                             $chosenArticleToMove->setEmplacement($emplacementTo);
-                        }else{
+                        } else {
                             if ($chosenArticleToMove instanceof ReferenceArticle) {
                                 $chosenArticleToMove
                                     ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
                             } else {
                                 if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
+                                    $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
                                     $chosenArticleToMove->setStatut($unavailableArticleStatus);
                                 } else {
                                     $chosenArticleToMove
@@ -222,7 +231,7 @@ class MouvementStockController extends AbstractController
                         $trackingMovementService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
 
-                        if($chosenArticleToMove instanceof Article && $chosenArticleToMove->getCurrentLogisticUnit()){
+                        if ($chosenArticleToMove instanceof Article && $chosenArticleToMove->getCurrentLogisticUnit()){
                             $associatedPickLUTracaMvt = $trackingMovementService->createTrackingMovement(
                                 $chosenArticleToMove->getBarCode(),
                                 $emplacementFrom,

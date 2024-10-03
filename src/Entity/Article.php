@@ -120,8 +120,7 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Dispute::class, mappedBy: 'articles', cascade: ['remove'])]
     private Collection $disputes;
 
-    #[ORM\OneToOne(mappedBy: 'article', targetEntity: Pack::class)]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\OneToOne(mappedBy: 'article', targetEntity: Pack::class, cascade: ['remove'])]
     private ?Pack $trackingPack = null;
 
     #[ORM\ManyToMany(targetEntity: TransferRequest::class, mappedBy: 'articles')]

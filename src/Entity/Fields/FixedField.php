@@ -92,6 +92,7 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
             FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
             FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+            FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH,
         ],
         FixedFieldStandard::ENTITY_CODE_DEMANDE => [
             FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
@@ -109,6 +110,9 @@ abstract class FixedField {
     ];
 
     public const ALWAYS_DISPLAYED_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_DISPATCH => [
+            FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH,
+        ],
         FixedFieldStandard::ENTITY_CODE_RECEPTION => [
             FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
         ],

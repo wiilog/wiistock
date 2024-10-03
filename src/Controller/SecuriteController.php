@@ -53,11 +53,12 @@ class SecuriteController extends AbstractController {
                           Request $request,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
-        if($loggedUser && $loggedUser instanceof Utilisateur) {
+        $securityContext = $this->container->get('security.authorization_checker');
+        if ($loggedUser && $loggedUser instanceof Utilisateur && $securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
             $sessionHistoryRecordService->closeInactiveSessions($entityManager);
             $typeRepository = $entityManager->getRepository(Type::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
-            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser,  new DateTime('now'), $type, $request);
+            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $type, $request);
             $entityManager->flush();
 
             return $this->redirectToRoute('app_index');
@@ -75,7 +76,6 @@ class SecuriteController extends AbstractController {
         }
 
         return $this->render('securite/login.html.twig', [
-            'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
             'success' => $success
@@ -151,7 +151,7 @@ class SecuriteController extends AbstractController {
     #[Route("/change-password-in-bdd", name: "change_password_in_bdd", options: ["expose" => true], methods: [ self::POST], condition: "request.isXmlHttpRequest()")]
     public function change_password_in_bdd(Request $request,
                                            EntityManagerInterface $entityManager): Response {
-        $data = $request->query->all();
+        $data = $request->request->all();
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['token' => $data['token']]);
 
         $response = [];
@@ -197,48 +197,30 @@ class SecuriteController extends AbstractController {
         return $this->redirectToRoute('login');
     }
 
-    #[Route("/oubli", name: "forgotten")]
-    public function forgot(): Response {
-        return $this->render('securite/resetPassword.html.twig');
+    #[Route("/mot-de-passe-oublie", name: "password_forgotten")]
+    public function passwordForgotten(): Response {
+        return $this->render('securite/password_forgotten.html.twig');
     }
 
-    #[Route("/verifier-email", name: "check_email", options: ["expose" => true], methods: [ self::POST], condition: "request.isXmlHttpRequest()")]
-    public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
-
+    #[Route("/reset-password", name: "reset_password_request", options: ["expose" => true], methods: [ self::POST ], condition: self::IS_XML_HTTP_REQUEST)]
+    public function resetPasswordRequest(Request $request, EntityManagerInterface $entityManager): Response {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $email = $request->query->get('email');
+        $email = $request->request->get('email');
 
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return $this->json([
-                "success" => false,
-                "msg" => "L'adresse email renseignée est invalide.",
-            ]);
-        }
-
-        $user = $userRepository->findOneBy(['email' => $email]);
+        $user = $email
+            ? $userRepository->findOneBy(['email' => $email])
+            : null;
         if($user) {
             if($user->getStatus()) {
                 $token = $this->passwordService->generateToken(80);
                 $this->passwordService->sendToken($token, $email);
-
-                $response = [
-                    'success' => true,
-                    'msg' => "Un lien pour réinitialiser le mot de passe de votre compte vient d'être envoyé sur votre adresse email."
-                ];
-            } else {
-                $response = [
-                    'success' => false,
-                    'msg' => "Votre compte est inactif, veuillez contacter l'administrateur de votre application."
-                ];
             }
-        } else {
-            $response = [
-                'success' => false,
-                'msg' => "L'adresse email renseignée n'est liée à aucun utilisateur."
-            ];
         }
 
-        return $this->json($response);
+        return $this->json([
+            'success' => true,
+            'msg' => "Un lien pour réinitialiser votre mot de passe vient d'être envoyé sur votre adresse email si elle correspond à un compte valide.",
+        ]);
     }
 
 }

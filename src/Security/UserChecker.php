@@ -28,14 +28,17 @@ class UserChecker implements UserCheckerInterface
         }
 
         if (!$user->getStatus()) {
-            throw new CustomUserMessageAccountStatusException('Votre compte est désactivé. Veuillez contacter votre administrateur.', [], self::ACCOUNT_DISABLED_CODE);
+            throw new CustomUserMessageAccountStatusException("Votre compte est désactivé. Veuillez contacter votre administrateur.", [], self::ACCOUNT_DISABLED_CODE);
         }
         $this->sessionService->closeInactiveSessions($this->entityManager);
         if (!$this->sessionService->isLoginPossible($this->entityManager, $user)) {
-            throw new CustomUserMessageAccountStatusException('Le nombre de licences utilisées en cours sur cette instance a déjà été atteint.', [], self::NO_MORE_SESSION_AVAILABLE);
+            throw new CustomUserMessageAccountStatusException("Le nombre de licences utilisées en cours sur cette instance a déjà été atteint.", [], self::NO_MORE_SESSION_AVAILABLE);
+        }
+
+        if (($_POST["_remember_me"] ?? false) === "on" && !$user->isAllowedToBeRemembered()) {
+            throw new CustomUserMessageAccountStatusException("Vous n'êtes pas autorisé à rester connecté.", [], self::ACCOUNT_DISABLED_CODE);
         }
     }
-
 
     public function checkPostAuth(UserInterface $user): void
     {

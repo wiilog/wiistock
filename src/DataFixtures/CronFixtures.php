@@ -20,16 +20,17 @@ use App\Command\Cron\ScheduleInventoryMissionCommand;
 use App\Command\InactiveSensorsCommand;
 use App\Service\SpecificService;
 use Cron\CronBundle\Entity\CronJob;
+use Cron\CronBundle\Entity\CronReport;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class CronFixtures extends Fixture implements FixtureGroupInterface {
 
-    #[Required]
-    public SpecificService $specificService;
+    public function __construct(
+        private readonly SpecificService $specificService,
+    ) {}
 
     private const CRON_JOBS = [
         [
@@ -51,8 +52,10 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'command' => DashboardFeedCommand::COMMAND_NAME,
             'schedule' => [
                 SpecificService::CLIENT_BARBECUE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_BARBECUE] .' * * * *',
+                SpecificService::CLIENT_BOURGUIGNON => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_BOURGUIGNON] .' * * * *',
                 SpecificService::CLIENT_POTEE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_POTEE] . ' * * * *',
                 SpecificService::CLIENT_QUICHE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_QUICHE] . ' * * * *',
+                SpecificService::CLIENT_CROUSTADE => '*/' . SpecificService::SPECIFIC_DASHBOARD_REFRESH_RATE[SpecificService::CLIENT_CROUSTADE] . ' * * * *',
                 'default' => '*/' . SpecificService::DEFAULT_DASHBOARD_REFRESH_RATE. ' * * * *',
             ],
             'description' => '',
@@ -135,6 +138,11 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
 
     public function load(ObjectManager $manager): void {
         $cronJobRepository = $manager->getRepository(CronJob::class);
+
+        $manager->createQueryBuilder()
+            ->delete(CronReport::class, "cron_report")
+            ->getQuery()
+            ->execute();
 
         $existingCronJobs = $cronJobRepository->findAll();
         foreach ($existingCronJobs as $cronJob) {

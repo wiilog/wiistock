@@ -44,7 +44,12 @@ class CartController extends AbstractController {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        $defaultTypeParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+        $defaultType = null;
 
+        if(!empty($defaultTypeParam->getElements())){
+            $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
+        }
         $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
@@ -101,6 +106,7 @@ class CartController extends AbstractController {
             "purchaseRequests" => $purchaseRequests,
             "defaultDeliveryLocations" => $defaultDeliveryLocations,
             "deliveryTypes" => $deliveryTypes,
+            "defaultType" => $defaultType,
             "collectTypes" => $collectTypes,
             "referencesByBuyer" => $referencesByBuyer,
             "deliveryFieldsParam" => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),

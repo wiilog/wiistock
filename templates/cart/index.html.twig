@@ -112,12 +112,16 @@
 
                         <div class="sub-form create-delivery mt-3 {{ app.user.cart.articles is empty ? 'd-none' }}">
                             <div class="section mt-3">Ma nouvelle demande de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</div>
-
                             <div class="row mt-2">
                                 <div class="col-md-6 col-12 mb-2">
                                     {{ form.select('deliveryType', 'Type', true, {
                                         type: 'deliveryType',
                                         placeholder: 'Sélectionnez un type',
+                                        items : [{
+                                        label: defaultType.label,
+                                        value: defaultType.id,
+                                        selected: true,
+                                    }],
                                         search: false,
                                         onChange: 'cartTypeChange($(this))',
                                     }) }}
@@ -128,7 +132,6 @@
                                         placeholder: 'Sélectionnez un emplacement',
                                         includeParams: '[name=deliveryType]',
                                         minLength: restrictedDeliveryLocations ? 0 : 1,
-                                        disabled: true,
                                     }) }}
                                 </div>
 
@@ -159,10 +162,8 @@
                                         {{ form.select(fieldCode, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'), fieldRequired, {
                                             type: 'user',
                                         }) }}
-
                                     </div>
                                 {% endif %}
-
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">

@@ -79,7 +79,7 @@ class AttachmentService {
 
     public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files): array {
         $reflect = new ReflectionClass($attachmentEntity);
-        $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
+        $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . ($attachmentEntity->getId() ? $attachmentEntity->getId() . '/' : '');
         $addedAttachments = [];
         foreach ($files as $file) {
             $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);

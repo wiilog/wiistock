@@ -1,6 +1,6 @@
-<div class="row planning-container planning-container-7">
+<div class="row planning-container planning-container-7 flex-nowrap">
     {% set allCards = cards ?? [] %}
-    {% if planningColumns is not empty %}
+    {% if planningColumns is defined and planningColumns is not empty %}
         {% for column in planningColumns %}
             {% set columnLeftInfo = column.columnLeftInfo ?? null %}
             {% set columnRightInfo = column.columnRightInfo ?? null %}
@@ -48,7 +48,7 @@
     {% else %}
         <div class="col-12 d-flex">
             <div class="d-flex flex-fill justify-content-center align-items-center">
-                <span>Aucun jour travaillé sur cette semaine</span>
+                <span>Aucun jour travaillé sur cette période</span>
             </div>
         </div>
     {% endif %}

@@ -13,7 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\StringHelper;
 
 class GroupService {
 
@@ -50,8 +49,12 @@ class GroupService {
         $filtreSupRepository = $this->manager->getRepository(FiltreSup::class);
         $packRepository = $this->manager->getRepository(Pack::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::GROUPS_MODE);
+        $currentUser = $this->security->getUser();
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::GROUPS_MODE, [
+            'fields' => $this->packService->getPackListColumnVisibleConfig($currentUser),
+        ]);
 
         $packs = $queryResult['data'];
 

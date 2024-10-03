@@ -969,7 +969,7 @@ function initializeInventoryCategoriesTable(){
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
+            label: `<input type='text' name='label' maxlength="31" class='form-control data needed'  data-global-error="Libellé"/>`,
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
         },
     });

@@ -78,6 +78,10 @@ Encore
     .addEntry('warning-header', './assets/js/warning-header.js')
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
     .addEntry('pack', './assets/js/pages/pack/pack.js')
+    .addEntry('encours-index', '/assets/js/pages/encours/index.js')
+    .addEntry('security-login', './assets/js/pages/security/login.js')
+    .addEntry('security-password-forgotten', '/assets/js/pages/security/password-forgotten.js')
+    .addEntry('security-reset-password', '/assets/js/pages/security/reset-password.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

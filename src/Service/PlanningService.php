@@ -80,6 +80,7 @@ readonly class PlanningService {
 
     public function createPlanningConfig(EntityManagerInterface $entityManager,
                                          DateTime               $planningStart,
+                                         int                    $step,
                                          string                 $sortingType,
                                          string                 $statusMode,
                                          array                  $cards,
@@ -95,7 +96,7 @@ readonly class PlanningService {
         $workFreeDays = $workFreeDayRepository->getWorkFreeDaysToDateTime(true);
 
         if ($sortingType === self::SORTING_TYPE_BY_DATE) {
-            $planningColums = Stream::fill(0, $this::NB_DAYS_ON_PLANNING, null)
+            $planningColumns = Stream::fill(0, $step, null)
                 ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
                     $day = (clone $planningStart)->modify("+$index days");
                     if (in_array(strtolower($day->format("l")), $daysWorked)
@@ -107,35 +108,39 @@ readonly class PlanningService {
                     }
                 })
                 ->keymap(function (DateTime $day) {
-                    return [$day->format(self::PLANNING_COLUMN_DATE_FORMAT), $this->formatService->longDate($day, ["short" => true, "year" => false])];
+                    return [
+                        $day->format(self::PLANNING_COLUMN_DATE_FORMAT),
+                        $this->formatService->longDate($day, ["short" => true, "year" => false]),
+                    ];
                 })
                 ->toArray();
         } else if($sortingType === self::SORTING_TYPE_BY_STATUS_STATE) {
             if (!in_array($statusMode, StatusController::MODES)) {
                 throw new BadRequestHttpException("Invalid status mode");
             }
-            $planningColums = Stream::from($this->statusService->getStatusStatesValues($statusMode))
-                ->sort(fn($firstStatusState, $secondStatusState) => $firstStatusState['id'] - $secondStatusState['id'])
+            $planningColumns = Stream::from($this->statusService->getStatusStatesValues($statusMode))
+                ->sort(static fn($firstStatusState, $secondStatusState) => $firstStatusState['id'] - $secondStatusState['id'])
                 ->keymap(static fn(array $status) => [
                     $status['id'],
                     $status['label']
-                ]);
+                ])
+                ->toArray();
         } else {
             throw new BadRequestHttpException("Invalid sorting type");
         }
 
-        if (!empty($planningColums)) {
+        if (!empty($planningColumns)) {
 
-            $planningColumnsConfig = Stream::from($planningColums)
+            $planningColumnsConfig = Stream::from($planningColumns)
                 ->map( function (string $columnLabel, string $columnId) use ($options, $planningStart, $cards, $daysWorked, $workFreeDays) {
                     $count = count($cards[$columnId] ?? []);
-                    $plurialMark = $count > 1 ? 's' : '';
+                    $pluralMark = $count > 1 ? 's' : '';
 
                     $config = [
                         "columnLeftInfo" => $columnLabel,
                         "cardSelector" => $columnId,
                         "columnClasses" => ["forced"],
-                        "columnLeftHint" => "<span class='font-weight-bold'>$count demande$plurialMark</span>",
+                        "columnLeftHint" => "<span class='font-weight-bold'>$count demande$pluralMark</span>",
                         "countLines" => $countLinesByDate[$columnId] ?? 0,
 
                     ];
@@ -157,6 +162,6 @@ readonly class PlanningService {
                 "cards" => $cards,
             ];
         }
-        return []; // TODO
+        return [];
     }
 }

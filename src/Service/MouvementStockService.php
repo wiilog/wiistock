@@ -20,6 +20,7 @@ use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -341,5 +342,20 @@ class MouvementStockService
             ["title" => "Commentaire", "name" => "comment", "orderable" => false, 'searchable' => true],
         ];
         return $this->fieldModesService->getArrayConfig($fieldConfig, [], $columnsVisible);
+    }
+
+    public function isArticleMovable(string                   $movementType,
+                                     ReferenceArticle|Article $article): bool {
+        $expectedStatuses = match(true) {
+            $article instanceof Article => match($movementType) {
+                MouvementStock::TYPE_ENTREE => [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE, Article::STATUT_INACTIF],
+                MouvementStock::TYPE_SORTIE, MouvementStock::TYPE_TRANSFER => [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE],
+                default => null,
+            },
+            $article instanceof ReferenceArticle => [ReferenceArticle::STATUT_ACTIF],
+            default => throw new RuntimeException("Unavailable article"),
+        };
+
+        return in_array($article->getStatut()?->getCode(), $expectedStatuses);
     }
 }

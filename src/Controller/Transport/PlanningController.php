@@ -34,7 +34,7 @@ class PlanningController extends AbstractController
         $data = $request->query;
         $transportOrderRepository = $manager->getRepository(TransportOrder::class);
 
-        $currentDate = DateTime::createFromFormat('Y-m-d', $data?->get('date')) ?: new DateTime();
+        $currentDate = DateTime::createFromFormat('Y-m-d', $data?->get('startDate')) ?: new DateTime();
 
         if (!$currentDate) {
             throw new RuntimeException('Invalid date');

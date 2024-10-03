@@ -24,18 +24,18 @@ use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use App\Annotation as Wii;
 
-#[Rest\Route("/api/mobile")]
+#[Route("/api/mobile")]
 class PreparationOrderController extends AbstractController {
 
-    #[Rest\Post("/finishPrepa", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/finishPrepa", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function finishPrepa(Request                    $request,
                                 ExceptionLoggerService     $exceptionLoggerService,
@@ -278,7 +278,7 @@ class PreparationOrderController extends AbstractController {
         return new JsonResponse($resData, $statusCode);
     }
 
-    #[Rest\Post("/beginPrepa", condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/beginPrepa", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function beginPrepa(Request                $request,
                                EntityManagerInterface $entityManager)
