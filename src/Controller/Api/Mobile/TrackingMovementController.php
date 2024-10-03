@@ -531,7 +531,7 @@ class TrackingMovementController extends AbstractController {
 
             if($includeMovements) {
                 $movements = $trackingMovementRepository->findBy(
-                    ['pack' => $pack, ''],
+                    ['pack' => $pack],
                     [
                         'datetime' => Order::Descending->value,
                         'orderIndex' => Order::Descending->value,

@@ -36,7 +36,7 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
             "quantity" => $pack->getQuantity(),
             "nature" => $this->formatService->nature($pack->getNature(), null),
             "location" => $this->formatService->location($lastTracking?->getEmplacement()),
-            "date" => $this->formatService->datetime($lastTracking->getDatetime()),
+            "date" => $this->formatService->datetime($lastTracking?->getDatetime()),
         ];
     }
 }
