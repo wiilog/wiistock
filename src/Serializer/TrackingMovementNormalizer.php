@@ -13,6 +13,10 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
 
     use NormalizerAwareTrait;
 
+    private const SUPPORTED_USAGES = [
+        SerializerUsageEnum::MOBILE,
+    ];
+
     public function __construct(private FormatService $formatService) {}
 
     public function normalize(mixed $object, string $format = null, array $context = []): array {
@@ -25,8 +29,14 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         };
     }
 
-    public function supportsNormalization(mixed $data, ?string $format = null): bool{
-        return $data instanceof TrackingMovement;
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool{
+        return $data instanceof TrackingMovement && in_array($context["usage"], self::SUPPORTED_USAGES);
+    }
+
+    public function getSupportedTypes(?string $format): array {
+        return [
+            TrackingMovement::class => true,
+        ];
     }
 
     public function normalizeForMobile (TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
