@@ -13,6 +13,10 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
     use NormalizerAwareTrait;
 
+    private const SUPPORTED_USAGES = [
+        SerializerUsageEnum::MOBILE,
+    ];
+
     public function __construct(private FormatService $formatService) {}
 
     public function normalize(mixed $object, string $format = null, array $context = []): array {
@@ -25,8 +29,14 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
         };
     }
 
-    public function supportsNormalization(mixed $data, string $format = null): bool {
-        return $data instanceof Pack;
+    public function supportsNormalization(mixed $data, string $format = null, array $context = []): bool {
+        return $data instanceof Pack && in_array($context["usage"], self::SUPPORTED_USAGES);
+    }
+
+    public function getSupportedTypes(?string $format): array {
+        return [
+            Pack::class => true,
+        ];
     }
 
     public function normalizeForMobile (Pack $pack, string $format = null, array $context = []): array {
