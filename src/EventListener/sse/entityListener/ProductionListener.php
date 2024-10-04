@@ -49,6 +49,9 @@ class ProductionListener {
     }
 
     public function postFlush(): void {
+        if (empty($this->productionRequestDates)) {
+            return;
+        }
         $this->serverSentEventService->sendEvent(
             ServerSentEventService::PRODUCTION_REQUEST_UPDATE_TOPIC,
             [
