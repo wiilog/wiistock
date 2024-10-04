@@ -3,6 +3,8 @@
 namespace App\Service;
 
 
+use Exception;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
 
@@ -11,9 +13,10 @@ class ServerSentEventService {
     public const DASHBOARD_FEED_TOPIC = "dashboard-feed";
     public const PRODUCTION_REQUEST_UPDATE_TOPIC = "production-request-update";
 
-
     public function __construct(
         private readonly HubInterface $hub,
+        private readonly ExceptionLoggerService $logger,
+        private readonly RequestStack $requestStack
     ){}
 
 
@@ -28,6 +31,11 @@ class ServerSentEventService {
             $private
         );
 
-        $this->hub->publish($update);
+        try {
+            $this->hub->publish($update);
+        } catch (Exception $e) {
+            $request = $this->requestStack->getCurrentRequest();
+            $this->logger->sendLog($e, $request);
+        }
     }
 }
