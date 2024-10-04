@@ -157,6 +157,10 @@ class NatureService {
             ? $this->dateTimeService->calculateSecondsFrom($data['natureTrackingDelay'], Nature::TRACKING_DELAY_REGEX, "h")
             : null;
 
+        if ($data['natureTrackingDelay'] && !($trackingDelayInSeconds > 0)) {
+            throw new FormException("Le délai de traitement minimale de la nature est de 1min");
+        }
+
         $segmentsMax = Stream::explode(",", $data['segments'] ?? "")
             ->filter()
             ->toArray();
