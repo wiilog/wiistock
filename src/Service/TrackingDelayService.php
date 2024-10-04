@@ -106,7 +106,16 @@ class TrackingDelayService {
         // ==> To get the tracking event which finish the delay calculation
         $lastTrackingEvent = null;
 
-        if (!isset($timerStartedAt)) {
+        $lastStop = $pack->getLastStop();
+
+        $packHasStopEvent = (
+            isset($timerStartedAt)
+            && $lastStop
+            && $lastStop->getDatetime() > $timerStartedAt
+        );
+
+        if (!isset($timerStartedAt)
+            || $packHasStopEvent) {
             return null;
         }
 
