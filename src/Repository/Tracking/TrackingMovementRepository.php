@@ -23,7 +23,7 @@ use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
-
+use \Generator;
 
 class TrackingMovementRepository extends EntityRepository
 {
@@ -526,6 +526,9 @@ class TrackingMovementRepository extends EntityRepository
         return $result[1] ?? 0;
     }
 
+    /**
+     * @return Generator<TrackingMovement>
+     */
     public function iterateEventTrackingMovementBetween(Pack      $pack,
                                                         DateTime  $timerStartedAt,
                                                         ?DateTime $timerStoppedAt = null): iterable {

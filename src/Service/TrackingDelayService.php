@@ -28,38 +28,35 @@ class TrackingDelayService {
      */
     public function updateTrackingDelay(EntityManagerInterface $entityManager,
                                         Pack                   $pack): void {
+        $data = $this->calculateTrackingDelayData($entityManager, $pack);
 
-        $isBasicUnit = $pack->isBasicUnit();
-
-        $natureTrackingDelay = $isBasicUnit
-            ? $pack->getNature()?->getTrackingDelay()
-            : null;
-        $packHasTrackingDelay = isset($natureTrackingDelay);
-
-        $trackingDelay = $pack->getTrackingDelay();
-
-        if ($packHasTrackingDelay) {
-            [
-                "lastTrackingEvent" => $lastTrackingEvent,
-                "elapsedTime" => $calculatedElapsedTime,
-            ] = $this->calculatePackElapsedTime($entityManager, $pack);
-        }
+        $lastTrackingEvent = $data['lastTrackingEvent'] ?? null;
+        $limitTreatmentDate = $data['limitTreatmentDate'] ?? null;
+        $calculatedElapsedTime = $data['elapsedTime'] ?? null;
 
         if (!isset($calculatedElapsedTime)) {
+            $trackingDelay = $pack->getTrackingDelay();
             if (isset($trackingDelay)) {
                 $pack->setTrackingDelay(null);
                 $entityManager->remove($trackingDelay);
             }
         }
         else {
-            $this->persistTrackingDelay($entityManager, $pack, $calculatedElapsedTime, $lastTrackingEvent ?? null);
+            $this->persistTrackingDelay(
+                $entityManager,
+                $pack,
+                $calculatedElapsedTime,
+                $lastTrackingEvent ?? null,
+                $limitTreatmentDate ?? null
+            );
         }
     }
 
     private function persistTrackingDelay(EntityManagerInterface $entityManager,
                                           Pack                   $pack,
                                           int                    $elapsedTime,
-                                          ?TrackingEvent         $lastTrackingEvent): void {
+                                          ?TrackingEvent         $lastTrackingEvent,
+                                          ?DateTime              $limitTreatmentDate): void {
 
         $trackingDelay = $pack->getTrackingDelay();
         if (!isset($trackingDelay)) {
@@ -68,34 +65,37 @@ class TrackingDelayService {
         }
 
         $now = new DateTime();
-        $treatmentRemainingSeconds = $pack->getNature()->getTrackingDelay() - $elapsedTime;
-        $treatmentRemainingInterval = $this->dateTimeService->convertSecondsToDateInterval($treatmentRemainingSeconds);
-        $limitTreatmentDate = $treatmentRemainingSeconds > 0
-            ? $this->dateTimeService->addWorkedIntervalToDateTime($entityManager, $now, $treatmentRemainingInterval)
-            : null;
 
         $trackingDelay
             ->setElapsedTime($elapsedTime)
             ->setCalculatedAt($now)
             ->setLastTrackingEvent($lastTrackingEvent)
-            ->setLimitTreatmentDate($limitTreatmentDate ?: $trackingDelay->getLimitTreatmentDate());
+            ->setLimitTreatmentDate($limitTreatmentDate);
 
         $entityManager->persist($trackingDelay);
     }
 
     /**
-     * @return array{
-     *     lastTrackingEvent: TrackingEvent|null,
-     *     elapsedTime: int|null,
+     * @return null|array{
+     *     lastTrackingEvent?: TrackingEvent|null,
+     *     limitTreatmentDate?: DateTime|null,
+     *     elapsedTime?: int|null,
      * }
      */
-    public function calculatePackElapsedTime(EntityManagerInterface $entityManager,
-                                             Pack                   $pack): array {
+    private function calculateTrackingDelayData(EntityManagerInterface $entityManager,
+                                                Pack                   $pack): array|null {
 
-        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $isBasicUnit = $pack->isBasicUnit();
 
-        // In seconds
-        $calculatedElapsedTime = null;
+        $natureTrackingDelay = $isBasicUnit
+            ? $pack->getNature()?->getTrackingDelay()
+            : null;
+
+        $packHasTrackingDelay = isset($natureTrackingDelay);
+
+        if (!$packHasTrackingDelay) {
+            return null;
+        }
 
         [
             "timerStartedAt" => $timerStartedAt,
@@ -106,79 +106,147 @@ class TrackingDelayService {
         // ==> To get the tracking event which finish the delay calculation
         $lastTrackingEvent = null;
 
-        if (isset($timerStartedAt)) {
-            $calculationDate = new DateTime();
-            $calculationDate2 = clone $calculationDate;
+        if (!isset($timerStartedAt)) {
+            return null;
+        }
 
-            /** @var Generator<TrackingMovement> $trackingEvents */
-            $trackingEvents = $trackingMovementRepository->iterateEventTrackingMovementBetween($pack, $timerStartedAt, $timerStoppedAt);
+        // date for calculate sum of all found worked intervals
+        $calculationDate = new DateTime();
+        $calculationDate2 = clone $calculationDate;
 
-            $firstTracking = $trackingEvents->current();
+        // begin limitTreatmentDate on date which start the timer
+        // we will increment it with all worked intervals found (nature tracking delay as max)
+        $remainingNatureDelay = $natureTrackingDelay;
+        $limitTreatmentDate = clone $timerStartedAt;
 
-            if ($firstTracking) {
-                $intervalStart = null;
-                $intervalEnd = null;
-                if ($firstTracking->getEvent() !== TrackingEvent::START) {
-                    $intervalStart = clone $timerStartedAt;
+        $segments = $this->iteratePackTrackingSegmentsBetween($entityManager, $pack, $timerStartedAt, $timerStoppedAt);
+
+        foreach ($segments as $segment) {
+            [
+                "start" => $intervalStart,
+                "end" => $intervalEnd,
+            ] = $segment;
+
+            $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
+            $calculationDate->add($workedInterval);
+
+            // increment limit treatment date while nature tracking delay is positive
+            if ($remainingNatureDelay > 0) {
+                $elapsedSeconds = floor($this->dateTimeService->convertDateIntervalToMilliseconds($workedInterval) / 1000);
+
+                if ($remainingNatureDelay > $elapsedSeconds) {
+                    $remainingNatureDelay -= $elapsedSeconds;
+                    $limitTreatmentDate->add($workedInterval);
                 }
-
-                // We define a start and a stop for calculate time in an interval,
-                // and we restart until the end of TrackingEvents array
-                /** @var TrackingMovement $trackingEvent */
-                foreach ($trackingEvents as $trackingEvent) {
-                    $lastTrackingEvent = null;
-                    if ($intervalStart) {
-                        $intervalEnd = clone $trackingEvent->getDatetime();
-                    }
-                    else {
-                        if ($trackingEvent->getEvent() === TrackingEvent::STOP) {
-                            break;
-                        }
-                        $intervalStart = clone $trackingEvent->getDatetime();
-                    }
-
-                    if ($intervalStart && $intervalEnd) {
-                        $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
-                        $calculationDate->add($interval);
-
-                        $intervalStart = null;
-                        $intervalEnd = null;
-
-                        $lastTrackingEvent = $trackingEvent->getEvent();
-
-                        if ($lastTrackingEvent === TrackingEvent::STOP) {
-                            break;
-                        }
-                    }
-                }
-
-                if ($intervalStart && !$intervalEnd) {
-                    $intervalEnd = $timerStoppedAt ? (clone $timerStoppedAt) : new DateTime("now");
-                    $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
-                    $calculationDate->add($interval);
-
-                    $intervalStart = null;
-                    $intervalEnd = null;
+                else {
+                    $remainingDelay = $this->dateTimeService->convertSecondsToDateInterval($remainingNatureDelay);
+                    $limitTreatmentDate->add($remainingDelay);
+                    $remainingNatureDelay = 0;
                 }
             }
-            else { // no movements
-                $intervalStart = $timerStartedAt;
-                $intervalEnd = $timerStoppedAt ?? new DateTime();
+        }
 
-                $elapsedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
-                $calculationDate->add($elapsedInterval);
-
-                $intervalStart = null;
-                $intervalEnd = null;
-            }
-
-            $calculatedElapsedTime = $calculationDate->getTimestamp() - $calculationDate2->getTimestamp();
+        // If the pack tracking delay is positive, then the limit treatment date is in the future
+        // We calculate it now
+        // Else the limit treatment date is already the final one
+        $calculatedElapsedTime = $calculationDate->getTimestamp() - $calculationDate2->getTimestamp();
+        $remainingNatureDelay = $natureTrackingDelay - $calculatedElapsedTime;
+        if ($remainingNatureDelay > 0) {
+            $remainingNatureDelayInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingNatureDelay);
+            $limitTreatmentDate = $this->dateTimeService->addWorkedIntervalToDateTime($entityManager, $limitTreatmentDate, $remainingNatureDelayInterval);
         }
 
         return [
             "elapsedTime" => $calculatedElapsedTime ?? null,
+            "limitTreatmentDate" => $limitTreatmentDate ?? null,
             "lastTrackingEvent" => $lastTrackingEvent,
         ];
+    }
+
+    /**
+     * Set of all tracking segments between two dates.
+     * We get list of tracking movement which affect tracking elapsed time of a Pack.
+     * Then we map it as date an ordered.
+     * Each couple dates make this "tracking segment".
+     *
+     * @return Generator<array{
+     *     start: DateTime,
+     *     end: DateTime
+     * }>
+     */
+    private function iteratePackTrackingSegmentsBetween(EntityManagerInterface $entityManager,
+                                                        Pack                   $pack,
+                                                        DateTime               $start,
+                                                        ?DateTime              $end): iterable {
+
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+
+        $trackingEvents = $trackingMovementRepository->iterateEventTrackingMovementBetween($pack, $start, $end);
+
+        $firstTracking = $trackingEvents->current();
+
+        if ($firstTracking) {
+            $intervalStart = null;
+            $intervalEnd = null;
+            if ($firstTracking->getEvent() !== TrackingEvent::START) {
+                $intervalStart = clone $start;
+            }
+
+            // We define a start and a stop for calculate time in an interval,
+            // and we restart until the end of TrackingEvents array
+            /** @var TrackingMovement $trackingEvent */
+            foreach ($trackingEvents as $trackingEvent) {
+                $lastTrackingEvent = null;
+                if ($intervalStart) {
+                    $intervalEnd = clone $trackingEvent->getDatetime();
+                }
+                else {
+                    if ($trackingEvent->getEvent() === TrackingEvent::STOP) {
+                        break;
+                    }
+                    $intervalStart = clone $trackingEvent->getDatetime();
+                }
+
+                if ($intervalStart && $intervalEnd) {
+                    yield [
+                        "start" => $intervalStart,
+                        "end" => $intervalEnd,
+                    ];
+
+                    $intervalStart = null;
+                    $intervalEnd = null;
+
+                    $lastTrackingEvent = $trackingEvent->getEvent();
+
+                    if ($lastTrackingEvent === TrackingEvent::STOP) {
+                        break;
+                    }
+                }
+            }
+
+            if ($intervalStart && !$intervalEnd) {
+                $intervalEnd = $end ? (clone $end) : new DateTime("now");
+                yield [
+                    "start" => $intervalStart,
+                    "end" => $intervalEnd,
+                ];
+
+                $intervalStart = null;
+                $intervalEnd = null;
+            }
+        }
+        else { // no movements
+            $intervalStart = $start;
+            $intervalEnd = $end ?? new DateTime();
+
+            yield [
+                "start" => $intervalStart,
+                "end" => $intervalEnd,
+            ];
+
+            $intervalStart = null;
+            $intervalEnd = null;
+        }
     }
 
     /**
