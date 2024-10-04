@@ -5,7 +5,6 @@ namespace App\Service;
 
 use App\Controller\FieldModesController;
 use App\Entity\Arrivage;
-use App\Entity\ArrivalHistory;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
@@ -26,10 +25,10 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Generator;
 use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -743,5 +742,25 @@ class PackService {
             ->setUser($user);
 
         $entityManager->persist($logisticUnitHistoryRecord);
+    }
+
+    public function getFormatedKeyboardPackGenerator(iterable $packs): Generator {
+        $firstElement = [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
+        ];
+
+        $firstElement["highlighted"] = !$packs->valid();
+        yield $firstElement;
+
+        foreach ($packs as $pack) {
+            // if this is the first element, highlight it
+            $pack["highlighted"] = !isset($firstElement["highlighted"]);
+
+            $pack["stripped_comment"] = $this->formatService->html($pack["comment"] ?? '');
+            $pack["lastMvtDate"] = $this->formatService->datetime(DateTime::createFromFormat('d/m/Y H:i', $pack['lastMvtDate']) ?: null);
+
+            yield $pack;
+        }
     }
 }

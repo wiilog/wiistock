@@ -42,14 +42,15 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Service\LanguageService;
-use DateTime;
+use App\Service\PackService;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedJsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
 
@@ -480,11 +481,12 @@ class SelectController extends AbstractController {
     }
 
     #[Route("/select/keyboard/pack", name: "ajax_select_keyboard_pack", options: ["expose" => true])]
-    public function keyboardPack(Request $request, EntityManagerInterface $manager): Response
-    {
-        $settingsRepository = $manager->getRepository(Setting::class);
+    public function keyboardPack(Request                $request,
+                                 EntityManagerInterface $manager,
+                                 PackService            $packService,
+                                 SettingsService        $settingsService): JsonResponse|StreamedJsonResponse {
         $packRepository = $manager->getRepository(Pack::class);
-        $packMustBeNew = $settingsRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
+        $packMustBeNew = $settingsService->getValue($manager, Setting::PACK_MUST_BE_NEW);
 
         $packCode = $request->query->get("term");
         if($request->query->has("searchPrefix")) {
@@ -493,45 +495,28 @@ class SelectController extends AbstractController {
 
         if($packMustBeNew) {
             if($packRepository->findOneBy(["code" => $packCode])) {
-                return $this->json([
-                    "error" => "Cette unité logistique existe déjà en base de données"
+                return new JsonResponse([
+                    "error" => "Cette unité logistique existe déjà en base de données",
                 ]);
             } else {
                 $results = [];
             }
         } else {
-            $results = $packRepository->getForSelect(
+            $limit = $request->query->get('limit') ?: 1000;
+            $results = $packRepository->iterateForSelect(
                 $packCode,
-                ['exclude'=> $request->query->all("pack")]
+                [
+                    'exclude'=> $request->query->all("pack"),
+                    'limit' => $limit,
+                ]
             );
-            foreach($results as &$result) {
-                $result["stripped_comment"] = strip_tags($result["comment"]);
-                $result["lastMvtDate"] = FormatHelper::datetime(DateTime::createFromFormat('d/m/Y H:i', $result['lastMvtDate']) ?: null, "", false, $this->getUser());
-            }
         }
 
-        array_unshift($results, [
-            "id" => "new-item",
-            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
-        ]);
-
-        if(isset($results[1])) {
-            $results[1]["highlighted"] = true;
-        } else {
-            $results[0]["highlighted"] = true;
-
-            if(!$packMustBeNew) {
-                $results[1] = [
-                    "id" => "no-result",
-                    "text" => "Aucun résultat",
-                    "disabled" => true,
-                ];
-            }
-        }
-        return $this->json([
-            "results" => $results ?? null,
+        return new StreamedJsonResponse([
+            "results" => $packService->getFormatedKeyboardPackGenerator($results) ?? null,
             "error" => $error ?? null,
         ]);
+
     }
 
     #[Route("/select/business-unit",name: "ajax_select_business_unit",options: ["expose" => true], methods: ["GET"])]
