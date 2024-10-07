@@ -23,6 +23,7 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
@@ -715,12 +716,16 @@ class ArrivageController extends AbstractController
             $arrivage = $arrivageRepository->find($data['arrivage']);
 
             $canBeDeleted = ($arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0);
+            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+            $tracking = $trackingMovementRepository->findBy([
+                "pack" => $arrivage->getPacks()->toArray(),
+            ]);
 
             if ($canBeDeleted) {
-                foreach ($arrivage->getPacks() as $pack) {
-                    foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
-                        $entityManager->remove($arrivageMvtTraca);
-                    }
+                foreach($tracking as $track) {
+                    $entityManager->remove($track);
+                }
+                foreach($arrivage->getPacks() as $pack) {
 
                     $pack->getTrackingMovements()->clear();
 

@@ -12,11 +12,12 @@ use App\Entity\Reception;
 use App\Entity\ReceptionLine;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
-use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -629,8 +630,7 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term, array $options = [], ?bool $withoutArticle = false)
-    {
+    public function getQueryBuilderForSelect(?string $term, array $options = [], ?bool $withoutArticle = false): QueryBuilder {
         $exclude = $options['exclude'] ?? null;
         if ($exclude && !is_array($exclude)) {
             $exclude = [$exclude];
@@ -681,7 +681,15 @@ class PackRepository extends EntityRepository
             $qb->setMaxResults($limit);
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
+    }
+
+    public function getForSelect(?string $term, array $options = [], ?bool $withoutArticle = false)  {
+        return self::getQueryBuilderForSelect($term, $options, $withoutArticle)->getQuery()->getResult();
+    }
+
+    public function iterateForSelect(?string $term, array $options = [], ?bool $withoutArticle = false): iterable {
+        return self::getQueryBuilderForSelect($term, $options, $withoutArticle)->getQuery()->toIterable();
     }
 
     /**
