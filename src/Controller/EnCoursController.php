@@ -159,7 +159,7 @@ class EnCoursController extends AbstractController
                 foreach ($data as $line) {
                     $encoursService->putOngoingPackLine($output, $CSVExportService, $line);
                 }
-            }, "Export_encours_" . $emplacement->getLabel() . ".csv", $headers);
+            }, "Export_encours_" . str_replace('/','', $emplacement->getLabel()) . ".csv", $headers);
     }
 
     #[Route("/check-location-delay", name: "check_location_delay", options: ["expose" => true], methods: "POST")]
