@@ -143,8 +143,8 @@
             {% endif %}
             {% for dispatchPack in dispatch.dispatchPacks %}
                 {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
-                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
-                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+                {% set packLastAction = dispatchPack.pack.lastAction ?? '' %}
+                {% set packLocationLastAction = packLastAction.emplacement ?? '' %}
                 {% set dispatchReferenceArticles = dispatchPack.dispatchReferenceArticles is not empty ? dispatchPack.dispatchReferenceArticles : [null] %}
 
                 {% for dispatchReferenceArticle in dispatchReferenceArticles %}
@@ -287,8 +287,8 @@
             {% endif %}
             {% for dispatchPack in dispatch.dispatchPacks %}
                 {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.labelIn(language, getDefaultLanguage()) : '' %}
-                {% set packLastTracking = dispatchPack.pack.lastTracking ?? '' %}
-                {% set packLocationLastTracking = packLastTracking.emplacement ?? '' %}
+                {% set packLastAction = dispatchPack.pack.lastAction ?? '' %}
+                {% set packLocationLastAction = packLastAction.emplacement ?? '' %}
                 <tr>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -304,15 +304,15 @@
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.datetime|date('d/m/Y H:i:s') : '-' }}
+                        {{ packLastAction ? packLastAction.datetime|date('d/m/Y H:i:s') : '-' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLocationLastTracking ? packLocationLastTracking.label : '-' }}
+                        {{ packLocationLastAction ? packLocationLastAction.label : '-' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ packLastTracking ? packLastTracking.operateur.username : '-' }}
+                        {{ packLastAction ? packLastAction.operateur.username : '-' }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">

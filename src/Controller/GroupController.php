@@ -164,9 +164,9 @@ class GroupController extends AbstractController
                     foreach ($groups as $groupData) {
                         /** @var Pack $group */
                         $group = $groupData['group'];
-                        $trackingData = $trackingMovementService->getFromColumnData($group->getLastTracking());
-                        $trackingLocation = $group->getLastTracking() ? $group->getLastTracking()->getEmplacement() : null;
-                        $trackingDate = $group->getLastTracking() ? $group->getLastTracking()->getDatetime() : null;
+                        $trackingData = $trackingMovementService->getFromColumnData($group->getLastAction());
+                        $trackingLocation = $group->getLastAction() ? $group->getLastAction()->getEmplacement() : null;
+                        $trackingDate = $group->getLastAction() ? $group->getLastAction()->getDatetime() : null;
 
                         $CSVExportService->putLine($output, [
                             $group->getCode(),

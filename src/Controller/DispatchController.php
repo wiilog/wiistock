@@ -911,7 +911,7 @@ class DispatchController extends AbstractController {
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => null,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => null,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => null,
-                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE => null,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => null,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => null,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => null,

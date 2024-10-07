@@ -318,7 +318,7 @@ class TrackingMovementService {
 
                 foreach ($packCodes as $packCode) {
                     $pack = $this->packService->persistPack($entityManager, $packCode, 1, null);
-                    $location = $location ?? ($pack->getLastTracking() ? $pack->getLastTracking()->getEmplacement() : null);
+                    $location = $location ?? ($pack->getLastAction() ? $pack->getLastAction()->getEmplacement() : null);
 
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $pack,
@@ -584,7 +584,7 @@ class TrackingMovementService {
         if (!($pack?->isBasicUnit())
             || !$newNature
             || ($newNature->getId() === $pack?->getNature()?->getId())
-            || $pack?->getLastTracking() !== $trackingMovement
+            || $pack?->getLastAction() !== $trackingMovement
         ) {
             return [
                 "natureChanged" => false,
@@ -613,27 +613,27 @@ class TrackingMovementService {
         $lastTrackingMovements = $pack->getTrackingMovements()->toArray();
         $locationClusterRecordRepository = $entityManager->getRepository(LocationClusterRecord::class);
 
-        /** @var TrackingMovement|null $previousLastTracking */
-        $previousLastTracking = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
+        /** @var TrackingMovement|null $previousLastAction */
+        $previousLastAction = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
             ? $lastTrackingMovements[1]
             : null;
 
-        if (!$pack->getFirstTracking()
-            || $this->compareMovements($pack->getFirstTracking(), $tracking) === 1) {
-            $pack->setFirstTracking($tracking);
+        if (!$pack->getFirstAction()
+            || $this->compareMovements($pack->getFirstAction(), $tracking) === 1) {
+            $pack->setFirstAction($tracking);
         }
 
-        if (!$pack->getLastTracking()
-            || $this->compareMovements($pack->getLastTracking(), $tracking) === -1) {
-            $pack->setLastTracking($tracking);
+        if (!$pack->getLastAction()
+            || $this->compareMovements($pack->getLastAction(), $tracking) === -1) {
+            $pack->setLastAction($tracking);
         }
 
         if ($tracking->isDrop()
-            && (!$pack->getLastDrop() || $this->compareMovements($pack->getLastDrop(), $tracking) === -1)) {
-            $pack->setLastDrop($tracking);
+            && (!$pack->getLastOngoingDrop() || $this->compareMovements($pack->getLastOngoingDrop(), $tracking) === -1)) {
+            $pack->setLastOngoingDrop($tracking);
         }
         else if ($tracking->isPicking()) {
-            $pack->setLastDrop(null);
+            $pack->setLastOngoingDrop(null);
         }
 
         if ($tracking->isStart()
@@ -677,8 +677,8 @@ class TrackingMovementService {
                     // IF not equals then we set firstDrop
                     // ELSE that is to say the pack come from the location cluster
                     if (!$previousRecordLastTracking
-                        || !$previousLastTracking
-                        || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
+                        || !$previousLastAction
+                        || ($previousRecordLastTracking->getId() !== $previousLastAction->getId())) {
                         $record->setFirstDrop($tracking);
                     }
                     $this->locationClusterService->setMeter(
@@ -688,8 +688,8 @@ class TrackingMovementService {
                         $cluster
                     );
 
-                    if ($previousLastTracking?->isPicking()) {
-                        $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
+                    if ($previousLastAction?->isPicking()) {
+                        $locationPreviousLastTracking = $previousLastAction->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {

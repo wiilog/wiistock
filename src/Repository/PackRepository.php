@@ -36,10 +36,6 @@ class PackRepository extends EntityRepository
     public const PACKS_MODE = 'packs';
     public const GROUPS_MODE = 'groups';
 
-    public const GET_LAST_DROP_IN_LU = 0;
-    public const GET_REF_ARTICLE_FROM_PACK = 1;
-    public const GET_REF_ARTICLE_FROM_STOCK_MOVEMENT = 2;
-
     private const DtToDbLabels = [
         'packNum' => 'code',
         'packNature' => 'packNature',
@@ -100,15 +96,15 @@ class PackRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('pack.code AS code')
             ->addSelect('join_nature.label AS nature')
-            ->addSelect('join_tracking_movement.datetime AS lastMvtDate')
-            ->addSelect('join_tracking_movement.id AS fromTo')
+            ->addSelect('join_last_action.datetime AS lastMvtDate')
+            ->addSelect('join_last_action.id AS fromTo')
             ->addSelect('join_location.label AS location')
-            ->andWhere('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
+            ->andWhere('join_last_action.datetime BETWEEN :dateMin AND :dateMax')
             ->andWhere('pack.groupIteration IS NULL')
-            ->leftJoin('pack.lastTracking', 'join_tracking_movement')
-            ->leftJoin('join_tracking_movement.emplacement', 'join_location')
+            ->leftJoin('pack.lastAction', 'join_last_action')
+            ->leftJoin('join_last_action.emplacement', 'join_location')
             ->leftJoin('pack.nature', 'join_nature');
-        return QueryBuilderHelper::addTrackingEntities($queryBuilder, 'join_tracking_movement')
+        return QueryBuilderHelper::addTrackingEntities($queryBuilder, 'join_last_action')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax)
             ->getQuery()
@@ -120,7 +116,7 @@ class PackRepository extends EntityRepository
         return $this->createQueryBuilder("pack")
             ->select("pack AS group")
             ->addSelect("COUNT(child.id) AS packCounter")
-            ->leftJoin("pack.lastTracking", "movement")
+            ->leftJoin("pack.lastAction", "movement")
             ->leftJoin("pack.children", "child")
             ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
             ->andWhere('pack.groupIteration IS NOT NULL')
@@ -178,20 +174,20 @@ class PackRepository extends EntityRepository
                 case 'emplacement':
                     $emplacementValue = explode(',', $filter['value']);
                     $queryBuilder
-                        ->join('pack.lastTracking', 'mFilter0')
+                        ->join('pack.lastAction', 'mFilter0')
                         ->join('mFilter0.emplacement', 'e')
                         ->andWhere('e.id IN (:location)')
                         ->setParameter('location', $emplacementValue, Connection::PARAM_INT_ARRAY);
                     break;
                 case 'dateMin':
                     $queryBuilder
-                        ->join('pack.lastTracking', 'mFilter1')
+                        ->join('pack.lastAction', 'mFilter1')
                         ->andWhere('mFilter1.datetime >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
                     $queryBuilder
-                        ->join('pack.lastTracking', 'mFilter2')
+                        ->join('pack.lastAction', 'mFilter2')
                         ->andWhere('mFilter2.datetime <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
@@ -248,7 +244,7 @@ class PackRepository extends EntityRepository
 
                     $queryBuilder
                         ->leftJoin('pack.arrivage', 'arrivageSearch')
-                        ->leftJoin('pack.lastTracking', 'lastTrackingMovement')
+                        ->leftJoin('pack.lastAction', 'search_last_action')
                         ->leftJoin('arrivageSearch.type', 'arrival_type')
                         ->leftJoin('pack.childArticles', 'child_articles_search');
 
@@ -259,8 +255,8 @@ class PackRepository extends EntityRepository
                                     $searchParams[] = 'pack.code LIKE :value';
                                     break;
                                 case "location":
-                                    $queryBuilder->leftJoin('lastTrackingMovement.emplacement', 'locationSearch');
-                                    $searchParams[] = 'locationSearch.label LIKE :value';
+                                    $queryBuilder->leftJoin('search_last_action.emplacement', 'search_last_action_location');
+                                    $searchParams[] = 'search_last_action_location.label LIKE :value';
                                     break;
                                 case "nature":
                                     $queryBuilder->leftJoin('pack.nature', 'natureSearch');
@@ -274,7 +270,7 @@ class PackRepository extends EntityRepository
                                     $searchParams[] = 'receipt_associations_search.receptionNumber LIKE :value';
                                     break;
                                 case "lastMovementDate":
-                                    $searchParams[] = 'lastTrackingMovement.datetime LIKE :value';
+                                    $searchParams[] = 'search_last_action.datetime LIKE :value';
                                     break;
                                 case "project":
                                     $queryBuilder->leftJoin('pack.project', 'projectSearch');
@@ -310,15 +306,15 @@ class PackRepository extends EntityRepository
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']] ?? 'id';
                     if ($column === 'location') {
                         $queryBuilder
-                            ->leftJoin('pack.lastTracking', 'order_packLocation_pack_lastTracking')
-                            ->leftJoin('order_packLocation_pack_lastTracking.emplacement', 'order_packLocation_pack_lastTracking_emplacement')
-                            ->orderBy('order_packLocation_pack_lastTracking_emplacement.label', $order);
+                            ->leftJoin('pack.lastAction', 'order_packLocation_pack_lastAction')
+                            ->leftJoin('order_packLocation_pack_lastAction.emplacement', 'order_packLocation_pack_lastAction_emplacement')
+                            ->orderBy('order_packLocation_pack_lastAction_emplacement.label', $order);
                     } else if ($column === 'nature') {
                         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], ['nature'], ["order" => $order]);
                     } else if ($column === 'LastMovementDate') {
                         $queryBuilder
-                            ->leftJoin('pack.lastTracking', 'order_packLastDate_pack_lastTracking')
-                            ->orderBy('order_packLastDate_pack_lastTracking.datetime', $order);
+                            ->leftJoin('pack.lastAction', 'order_packLastDate_pack_lastAction')
+                            ->orderBy('order_packLastDate_pack_lastAction.datetime', $order);
                     } else if ($column === 'origin') {
                         $queryBuilder
                             ->leftJoin('pack.arrivage', 'order_packOrigin_pack_arrivage')
@@ -389,8 +385,8 @@ class PackRepository extends EntityRepository
             ->leftJoin('pack.nature', 'nature')
             ->leftJoin('pack.arrivage', 'pack_arrival')
             ->leftJoin('pack.article', 'article')
-            ->innerJoin('pack.lastDrop', 'lastDrop')
-            ->innerJoin('lastDrop.emplacement', 'emplacement')
+            ->innerJoin('pack.lastOngoingDrop', 'lastOngoingDrop')
+            ->innerJoin('lastOngoingDrop.emplacement', 'emplacement')
             ->andWhere('pack.groupIteration IS NULL');
 
         if ($fromOnGoing) {
@@ -401,8 +397,8 @@ class PackRepository extends EntityRepository
                 ->leftJoin('pack.article', 'join_article')
                 ->leftJoin("join_article.articleFournisseur", "join_article_supplierArticle")
                 ->leftJoin("join_article_supplierArticle.referenceArticle", "join_article_referenceArticle")
-                ->leftJoin("pack.lastTracking", "join_tracking_movement");
-            $queryBuilder = QueryBuilderHelper::addTrackingEntities($queryBuilder, "join_tracking_movement");
+                ->leftJoin("pack.lastAction", "join_last_action");
+            $queryBuilder = QueryBuilderHelper::addTrackingEntities($queryBuilder, "join_last_action");
         }
 
         if (!empty($locations)) {
@@ -415,7 +411,7 @@ class PackRepository extends EntityRepository
         if (!empty($dateBracket)) {
             $queryBuilder
                 ->andWhere(
-                    $queryBuilderExpr->between('lastDrop.datetime', ':dateFrom', ':dateTo')
+                    $queryBuilderExpr->between('lastOngoingDrop.datetime', ':dateFrom', ':dateTo')
                 )
                 ->setParameter('dateFrom', $dateBracket['minDate'])
                 ->setParameter('dateTo', $dateBracket['maxDate']);
@@ -428,7 +424,7 @@ class PackRepository extends EntityRepository
                 ->setParameter('natures', $natures);
         }
 
-        $queryBuilder->orderBy('lastDrop.datetime', $order);
+        $queryBuilder->orderBy('lastOngoingDrop.datetime', $order);
 
         if ($onlyLate) {
             $queryBuilder
@@ -501,15 +497,15 @@ class PackRepository extends EntityRepository
         return Stream::from(
             $queryBuilder
                 ->select('pack.code AS ref_article')
-                ->addSelect('join_type_last_drop.code AS type')
+                ->addSelect('join_type_last_ongoing_drop.code AS type')
                 ->addSelect('join_location.label AS ref_emplacement')
-                ->addSelect('join_last_drop.datetime AS date')
-                ->addSelect('join_last_drop.quantity AS quantity')
+                ->addSelect('join_last_ongoing_drop.datetime AS date')
+                ->addSelect('join_last_ongoing_drop.quantity AS quantity')
                 ->addSelect('join_nature.id AS nature_id')
-                ->join('pack.lastDrop', 'join_last_drop')
+                ->join('pack.lastOngoingDrop', 'join_last_ongoing_drop')
                 ->leftJoin('pack.nature', 'join_nature')
-                ->join('join_last_drop.type', 'join_type_last_drop')
-                ->join('join_last_drop.emplacement', 'join_location')
+                ->join('join_last_ongoing_drop.type', 'join_type_last_ongoing_drop')
+                ->join('join_last_ongoing_drop.emplacement', 'join_location')
                 ->andWhere('pack.groupIteration IS NULL')
                 ->andWhere($exprBuilder->in('pack.id', ':packIds'))
                 ->setParameter('packIds', $packIds)
@@ -649,16 +645,16 @@ class PackRepository extends EntityRepository
             ->addSelect("pack.weight AS weight")
             ->addSelect("pack.volume AS volume")
             ->addSelect("pack.comment AS comment")
-            ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i') AS lastMvtDate")
-            ->addSelect("last_tracking_location.label AS lastLocation")
-            ->addSelect("last_tracking_location.id AS lastLocationId")
-            ->addSelect("last_tracking_user.username AS operator")
+            ->addSelect("DATE_FORMAT(last_action.datetime, '%d/%m/%Y %H:%i') AS lastMvtDate")
+            ->addSelect("last_action_location.label AS lastLocation")
+            ->addSelect("last_action_location.id AS lastLocationId")
+            ->addSelect("last_action_user.username AS operator")
             ->addSelect("nature.defaultQuantityForDispatch AS defaultQuantityForDispatch")
             ->andWhere("pack.code LIKE :term")
             ->leftJoin("pack.nature", "nature")
-            ->leftJoin("pack.lastTracking", "last_tracking")
-            ->leftJoin("last_tracking.emplacement", "last_tracking_location")
-            ->leftJoin("last_tracking.operateur", "last_tracking_user")
+            ->leftJoin("pack.lastAction", "last_action")
+            ->leftJoin("last_action.emplacement", "last_action_location")
+            ->leftJoin("last_action.operateur", "last_action_user")
             ->setParameter("term", "%$term%");
 
         if ($exclude) {
@@ -703,10 +699,10 @@ class PackRepository extends EntityRepository
         }
 
         $subQuery = $this->createQueryBuilder('pack')
-            ->addSelect('DATEDIFF(NOW(), IF(dropGroupLocation.id IS NULL, lastDrop.datetime, MIN(movement.datetime))) AS packWaitingDays')
-            ->innerJoin('pack.lastDrop', 'lastDrop')
+            ->addSelect('DATEDIFF(NOW(), IF(dropGroupLocation.id IS NULL, lastOngoingDrop.datetime, MIN(movement.datetime))) AS packWaitingDays')
+            ->innerJoin('pack.lastOngoingDrop', 'lastOngoingDrop')
             ->innerJoin('pack.arrivage', 'arrival')
-            ->innerJoin('lastDrop.emplacement', 'dropLocation')
+            ->innerJoin('lastOngoingDrop.emplacement', 'dropLocation')
             ->leftJoin('dropLocation.locationGroup', 'dropGroupLocation')
             ->innerJoin('pack.trackingMovements', 'movement')
             ->innerJoin('movement.emplacement', 'movementLocation')
@@ -794,9 +790,9 @@ class PackRepository extends EntityRepository
             ->addSelect("pack_project.code AS project")
             ->addSelect("join_nature.code AS natureCode")
             ->addSelect("join_nature.color AS natureColor")
-            ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i:%s') AS lastTrackingDate")
-            ->join("pack.lastTracking", "last_tracking")
-            ->join("last_tracking.emplacement", "pack_location")
+            ->addSelect("DATE_FORMAT(last_action.datetime, '%d/%m/%Y %H:%i:%s') AS lastActionDate")
+            ->join("pack.lastAction", "last_action")
+            ->join("last_action.emplacement", "pack_location")
             ->leftJoin("pack.childArticles", "child_articles")
             ->leftJoin("pack.project", "pack_project")
             ->leftJoin("pack.nature", 'join_nature')

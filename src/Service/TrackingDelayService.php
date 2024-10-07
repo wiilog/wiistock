@@ -264,11 +264,12 @@ class TrackingDelayService {
      *    - elapsed time was stopped and restart by the last movement,
      *    - Or the last movement was a START one.
      */
-    public function shouldCalculateTrackingDelay(TrackingMovement $trackingMovement,
-                                                 ?TrackingEvent    $previousTrackingEvent,
-                                                 ?TrackingEvent    $nextTrackingEvent): bool {
+    public function shouldCalculateTrackingDelay(Pack           $pack,
+                                                 ?TrackingEvent $previousTrackingEvent,
+                                                 ?TrackingEvent $nextTrackingEvent): bool {
         return (
-
+            true
+            /*$pack
             ($trackingMovement->isDrop() || $trackingMovement->isPicking())
          /*   && (
                 ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
@@ -305,7 +306,7 @@ class TrackingDelayService {
 
             $timerStartedAt = $truckArrivalCreatedAt
                 ?: $arrivalCreatedAt
-                ?: $pack->getFirstTracking()?->getDatetime();
+                ?: $pack->getFirstAction()?->getDatetime();
 
             if ($timerStartedAt
                 && $lastStop

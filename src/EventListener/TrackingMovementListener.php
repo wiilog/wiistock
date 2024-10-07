@@ -163,19 +163,19 @@ class TrackingMovementListener implements EventSubscriber
 
         $pack = $movementToDelete->getPack();
 
-        $lastDropToUpdate = (
-            !$pack->getLastDrop()
-            || $pack->getLastDrop()->getId() === $movementToDelete->getId()
+        $lastOngoingDropToUpdate = (
+            !$pack->getLastOngoingDrop()
+            || $pack->getLastOngoingDrop()->getId() === $movementToDelete->getId()
         );
 
-        $firstTrackingToUpdate = (
-            $pack->getFirstTracking()
-            && $pack->getFirstTracking()->getId() === $movementToDelete->getId()
+        $firstActionToUpdate = (
+            $pack->getFirstAction()
+            && $pack->getFirstAction()->getId() === $movementToDelete->getId()
         );
 
-        $lastTrackingToUpdate = (
-            $pack->getLastTracking()
-            && $pack->getLastTracking()->getId() === $movementToDelete->getId()
+        $lastActionToUpdate = (
+            $pack->getLastAction()
+            && $pack->getLastAction()->getId() === $movementToDelete->getId()
         );
 
         $lastStartToUpdate = (
@@ -188,12 +188,12 @@ class TrackingMovementListener implements EventSubscriber
             && $pack->getLastStop()->getId() === $movementToDelete->getId()
         );
 
-        $firstTracking = $firstTrackingToUpdate
-            ? $trackingMovementRepository->findFistTrackingByPack($pack, $movementToDelete)
+        $firstAction = $firstActionToUpdate
+            ? $trackingMovementRepository->findFistActionByPack($pack, $movementToDelete)
             : null;
 
-        $lastTracking = ($lastTrackingToUpdate || $lastDropToUpdate)
-            ? $trackingMovementRepository->findLastByPack("tracking", $pack, $movementToDelete)
+        $lastAction = ($lastActionToUpdate || $lastOngoingDropToUpdate)
+            ? $trackingMovementRepository->findLastByPack("action", $pack, $movementToDelete)
             : null;
 
         $lastStart = $lastStartToUpdate
@@ -206,16 +206,16 @@ class TrackingMovementListener implements EventSubscriber
 
         // set movements
 
-        if ($firstTrackingToUpdate) {
-            $pack->setFirstTracking($firstTracking);
+        if ($firstActionToUpdate) {
+            $pack->setFirstAction($firstAction);
         }
 
-        if ($lastTrackingToUpdate) {
-            $pack->setLastTracking($lastTracking);
+        if ($lastActionToUpdate) {
+            $pack->setLastAction($lastAction);
         }
 
-        if ($lastDropToUpdate && $lastTracking?->isDrop()) {
-            $pack->setLastDrop($lastTracking);
+        if ($lastOngoingDropToUpdate && $lastAction?->isDrop()) {
+            $pack->setLastOngoingDrop($lastAction);
         }
 
         if ($lastStartToUpdate) {

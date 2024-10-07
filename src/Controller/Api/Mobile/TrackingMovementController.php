@@ -160,7 +160,7 @@ class TrackingMovementController extends AbstractController {
                             $article = $articleRepository->findOneBy(['barCode' => $mvt['ref_article']]);
                             $createdPriseMvt = $trackingMovementService->createTrackingMovement(
                                 $mvt['ref_article'],
-                                $article->getCurrentLogisticUnit()->getLastDrop()->getEmplacement(),
+                                $article->getCurrentLogisticUnit()->getLastOngoingDrop()->getEmplacement(),
                                 $nomadUser,
                                 $date,
                                 true,
@@ -349,13 +349,13 @@ class TrackingMovementController extends AbstractController {
                     $options = ['disableUngrouping' => true];
 
                     if ($isMovementFinished) {
-                        $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
+                        $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastAction());
                     }
 
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
                         if ($isMovementFinished) {
-                            $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($child->getLastTracking());
+                            $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($child->getLastAction());
                         }
 
                         $trackingMovement = $trackingMovementService->createTrackingMovement(
@@ -553,7 +553,7 @@ class TrackingMovementController extends AbstractController {
             }
 
             if ($includeLocation) {
-                $location = $pack->getLastTracking()?->getEmplacement();
+                $location = $pack->getLastAction()?->getEmplacement();
                 $res["location"] = $location?->getId();
             }
 

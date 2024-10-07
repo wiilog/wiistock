@@ -45,12 +45,12 @@ class LocationClusterRepository extends EntityRepository {
             ->innerJoin('record.pack', 'join_logisticUnit')
             ->innerJoin('record.firstDrop', 'join_firstDrop')
             ->innerJoin('record.lastTracking', 'join_lastTracking')
-            ->innerJoin('join_logisticUnit.lastDrop', 'join_lastDrop')
-            ->innerJoin('join_lastDrop.emplacement', 'join_lastDropLocation')
+            ->innerJoin('join_logisticUnit.lastOngoingDrop', 'join_lastOngoingDrop')
+            ->innerJoin('join_lastOngoingDrop.emplacement', 'join_lastOngoingDropLocation')
             ->innerJoin('join_lastTracking.emplacement', 'join_currentLocation')
             ->andWhere('record.active = true')
             ->andWhere('cluster = :locationCluster')
-            ->andWhere('join_lastDropLocation.id IN (:clusterLocations)')
+            ->andWhere('join_lastOngoingDropLocation.id IN (:clusterLocations)')
             ->setParameter('clusterLocations', $locationCluster->getLocations())
             ->setParameter('locationCluster', $locationCluster);
 

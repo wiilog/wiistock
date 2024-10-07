@@ -162,7 +162,7 @@ class PreparationOrderController extends AbstractController {
                                 if ($lu != null) {
                                     $pickTrackingMovement = $trackingMovementService->createTrackingMovement(
                                         $lu,
-                                        $lu->getLastDrop()->getEmplacement(),
+                                        $lu->getLastOngoingDrop()->getEmplacement(),
                                         $nomadUser,
                                         $dateEnd,
                                         true,
@@ -187,7 +187,7 @@ class PreparationOrderController extends AbstractController {
                                     $entityManager->persist($pickTrackingMovement);
                                     $entityManager->persist($DropTrackingMovement);
 
-                                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
+                                    $lu->setLastOngoingDrop($DropTrackingMovement)->setLastAction($DropTrackingMovement);
                                 }
                             }
                         }

@@ -154,7 +154,7 @@ class PreparationController extends AbstractController
                     ? [
                         "packId" => $logisticUnit?->getId(),
                         "code" => $logisticUnit?->getCode() ?? null,
-                        "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                        "location" => $this->formatService->location($logisticUnit?->getLastOngoingDrop()?->getEmplacement()),
                         "project" => $logisticUnit?->getProject()?->getCode() ?? null,
                         "nature" => $this->formatService->nature($logisticUnit?->getNature()),
                         "color" => $logisticUnit?->getNature()?->getColor() ?? null,

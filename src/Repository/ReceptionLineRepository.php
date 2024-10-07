@@ -30,7 +30,7 @@ class ReceptionLineRepository extends EntityRepository {
             ->select('line.id AS id')
             ->addSelect('join_pack.id AS packId')
             ->addSelect('join_pack.code AS packCode')
-            ->addSelect('join_locationLastDrop.label AS packLocation')
+            ->addSelect('join_locationLastOngoingDrop.label AS packLocation')
             ->addSelect('join_project.code AS packProject')
             ->addSelect('join_nature.label AS packNature')
             ->addSelect('join_nature.color AS packColor')
@@ -47,8 +47,8 @@ class ReceptionLineRepository extends EntityRepository {
             ->addSelect('join_receptionReferenceArticle.unitPrice AS unitPrice')
             ->leftJoin('line.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
-            ->leftJoin('join_pack.lastDrop', 'join_lastDrop')
-            ->leftJoin('join_lastDrop.emplacement', 'join_locationLastDrop')
+            ->leftJoin('join_pack.lastOngoingDrop', 'join_lastOngoingDrop')
+            ->leftJoin('join_lastOngoingDrop.emplacement', 'join_locationLastOngoingDrop')
             ->leftJoin('join_pack.project', 'join_project')
             ->leftJoin('line.receptionReferenceArticles', 'join_receptionReferenceArticle')
             ->leftJoin('join_receptionReferenceArticle.referenceArticle', 'join_referenceArticle')
@@ -61,7 +61,7 @@ class ReceptionLineRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere($exprBuilder->orX(
                     'join_pack.code LIKE :search',
-                    'join_locationLastDrop.label LIKE :search',
+                    'join_locationLastOngoingDrop.label LIKE :search',
                     'join_project.code LIKE :search',
                     'join_referenceArticle.reference LIKE :search',
                     'join_receptionReferenceArticle.commande LIKE :search',

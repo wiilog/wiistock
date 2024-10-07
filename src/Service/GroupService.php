@@ -77,7 +77,7 @@ class GroupService {
             ]),
             "details" => $this->template->render("group/table/details.html.twig", [
                 "group" => $pack,
-                "last_movement" => $pack->getLastTracking(),
+                "last_movement" => $pack->getLastAction(),
                 "formatter" => $this->formatService
             ]),
         ];

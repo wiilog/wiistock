@@ -40,13 +40,13 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
     }
 
     public function normalizeForMobile (Pack $pack, string $format = null, array $context = []): array {
-        $lastTracking = $pack->getLastTracking();
+        $lastAction = $pack->getLastAction();
         return [
             "code" => $pack->getCode(),
             "quantity" => $pack->getQuantity(),
             "nature" => $this->formatService->nature($pack->getNature(), null),
-            "location" => $this->formatService->location($lastTracking?->getEmplacement()),
-            "date" => $this->formatService->datetime($lastTracking?->getDatetime()),
+            "location" => $this->formatService->location($lastAction?->getEmplacement()),
+            "date" => $this->formatService->datetime($lastAction?->getDatetime()),
         ];
     }
 }

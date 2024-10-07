@@ -1735,7 +1735,7 @@ class ReceptionController extends AbstractController {
             $referenceArticle = $articleArray['refArticle'];
 
             $pack = $receptionReferenceArticle->getReceptionLine()->getPack();
-            $location = isset($data['pack']) ? $pack?->getLastDrop()?->getEmplacement() : null;
+            $location = isset($data['pack']) ? $pack?->getLastOngoingDrop()?->getEmplacement() : null;
 
             if (isset($location) && !$location->ableToBeDropOff($pack)) {
                 throw new FormException("Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel());
@@ -1752,7 +1752,7 @@ class ReceptionController extends AbstractController {
                 $articleArray["prix"] = $receptionReferenceArticle->getUnitPrice();
             }
 
-            $articleDropLocation = $pack?->getLastDrop()?->getEmplacement() ?: $receptionLocation;
+            $articleDropLocation = $pack?->getLastOngoingDrop()?->getEmplacement() ?: $receptionLocation;
             if (!$articleDropLocation) {
                 throw new FormException("Aucun emplacement trouvé pour réceptionner les articles");
             }
@@ -2124,7 +2124,7 @@ class ReceptionController extends AbstractController {
             ->toArray();
 
         $receptionLocation = $reception->getLocation()?->getId();
-        $packLocation = $pack?->getLastDrop()?->getEmplacement()?->getId();
+        $packLocation = $pack?->getLastOngoingDrop()?->getEmplacement()?->getId();
 
         return $this->json([
            'template' => $this->renderView('reception/show/packing/articles_template.html.twig', [

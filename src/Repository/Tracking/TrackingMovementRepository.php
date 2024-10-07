@@ -19,6 +19,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -341,7 +342,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('join_pack.childArticles', 'join_pack_child_articles')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
-            ->innerJoin(Pack::class, "join_packLastTracking", Join::WITH, "join_packLastTracking.lastTracking = tracking_movement") // check if it's the last tracking pick
+            ->innerJoin(Pack::class, "join_packLastAction", Join::WITH, "join_packLastAction.lastAction = tracking_movement") // check if it's the last tracking pick
             ->andWhere('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')
             ->andWhere('tracking_movement.finished = :finished')
@@ -626,7 +627,7 @@ class TrackingMovementRepository extends EntityRepository
     }
 
     /**
-     * @param "tracking"|"start"|"stop" $type
+     * @param "action"|"start"|"stop" $type
      */
     public function findLastByPack(string            $type,
                                    Pack              $pack,
@@ -646,7 +647,7 @@ class TrackingMovementRepository extends EntityRepository
         }
 
         switch ($type) {
-            case "tracking":
+            case "action":
                 // get the last one whatever the movement
                 break;
             case "start":
@@ -663,14 +664,13 @@ class TrackingMovementRepository extends EntityRepository
                 throw new Exception("Not implemented yet");
         }
 
-        /** @var TrackingMovement|null $movement */
         return $queryBuilder
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function findFistTrackingByPack(Pack              $pack,
-                                           ?TrackingMovement $ignored): ?TrackingMovement {
+    public function findFistActionByPack(Pack              $pack,
+                                         ?TrackingMovement $ignored): ?TrackingMovement {
         $queryBuilder = $this->createQueryBuilder("movement")
             ->andWhere("movement.pack = :pack")
             ->orderBy("movement.datetime", Order::Ascending->value)
@@ -685,7 +685,6 @@ class TrackingMovementRepository extends EntityRepository
                 ->setParameter("ignored_movement", $ignored);
         }
 
-        /** @var TrackingMovement|null $movement */
         return $queryBuilder
             ->getQuery()
             ->getOneOrNullResult();

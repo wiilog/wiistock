@@ -51,7 +51,11 @@ class Pack implements PairedEntity {
 
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
-    private ?TrackingMovement $lastTracking = null;
+    private ?TrackingMovement $lastAction = null;
+
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $firstAction = null;
 
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
@@ -239,12 +243,12 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getLastTracking(): ?TrackingMovement {
-        return $this->lastTracking;
+    public function getLastAction(): ?TrackingMovement {
+        return $this->lastAction;
     }
 
-    public function setLastTracking(?TrackingMovement $lastTracking): self {
-        $this->lastTracking = $lastTracking;
+    public function setLastAction(?TrackingMovement $lastAction): self {
+        $this->lastAction = $lastAction;
 
         return $this;
     }
@@ -552,7 +556,7 @@ class Pack implements PairedEntity {
     }
 
     private function serializePack(): array {
-        $lastTracking = $this->getLastTracking();
+        $lastAction = $this->getLastAction();
         return [
             "code" => $this->getCode(),
             "ref_article" => $this->getCode(),

@@ -56,8 +56,8 @@ class SubLineFixedField extends FixedField {
     const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT = 'comment';
     const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_COMMENT = 'commentaire';
 
-    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE = 'lastTrackingDate';
-    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE = 'date dernier mouvement';
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE = 'lastActionDate';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE = 'date dernier mouvement';
 
     const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION = 'lastLocation';
     const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION = 'dernier emplacement';
@@ -85,7 +85,7 @@ class SubLineFixedField extends FixedField {
         self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
             SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
             SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
-            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE,
             SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
         ],
     ];

@@ -8,6 +8,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -147,14 +148,14 @@ class LivraisonsManagerService
             $inactiveArticleStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $articleLines = $preparation->getArticleLines();
 
+            /** @var Pack[] $packs */
             $packs = stream::from($articleLines)
-                ->map(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
-                ->filter()
+                ->filterMap(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit())
                 ->unique()
                 ->toArray();
 
             foreach ($packs as $pack) {
-                $currentPackLocation = $pack->getLastDrop()?->getEmplacement();
+                $currentPackLocation = $pack->getLastOngoingDrop()?->getEmplacement();
                 if (!$currentPackLocation) {
                     throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles.");
                 }
@@ -237,8 +238,8 @@ class LivraisonsManagerService
                     ]
                 );
                 $pack
-                    ->setLastDrop($dropMovement['movement'])
-                    ->setLastTracking($dropMovement['movement']);
+                    ->setLastOngoingDrop($dropMovement['movement'])
+                    ->setLastAction($dropMovement['movement']);
             }
 
             /** @var PreparationOrderArticleLine $articleLine */

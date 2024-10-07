@@ -196,7 +196,7 @@ class DashboardService {
                     $locationIds,
                     [
                         'isCount' => false,
-                        'field' => 'lastDrop.datetime, emplacement.dateMaxTime',
+                        'field' => 'lastOngoingDrop.datetime, emplacement.dateMaxTime',
                         'limit' => 1,
                         'onlyLate' => true,
                         'order' => 'asc'

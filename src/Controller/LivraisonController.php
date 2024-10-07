@@ -168,7 +168,7 @@ class LivraisonController extends AbstractController {
                     ? [
                         "packId" => $logisticUnit->getId(),
                         "code" => $logisticUnit->getCode(),
-                        "location" => $this->formatService->location($logisticUnit->getLastDrop()?->getEmplacement()),
+                        "location" => $this->formatService->location($logisticUnit->getLastOngoingDrop()?->getEmplacement()),
                         "project" => $logisticUnit->getProject()?->getCode(),
                         "nature" => $this->formatService->nature($logisticUnit->getNature()),
                         "color" => $logisticUnit?->getNature()?->getColor(),

@@ -215,13 +215,13 @@ class PreparationsManagerService
             /** @var Pack $lu */
             foreach (array_unique($ulToMove) as $lu) {
                 if ($lu != null) {
-                    $lastLuDropLocation = $lu->getLastDrop()?->getEmplacement();
+                    $lastLuDropLocation = $lu->getLastOngoingDrop()?->getEmplacement();
                     if (!$lastLuDropLocation) {
                         throw new FormException("L'unité logistique que vous souhaitez déplacer n'a pas d'emplacement initial. Vous devez déposer votre unité logistique sur un emplacement avant d'y déposer vos articles.");
                     }
                     $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
                         $lu,
-                        $lu->getLastDrop()->getEmplacement(),
+                        $lu->getLastOngoingDrop()->getEmplacement(),
                         $user,
                         $now,
                         false,
@@ -248,7 +248,7 @@ class PreparationsManagerService
                     $entityManager->persist($pickTrackingMovement);
                     $entityManager->persist($DropTrackingMovement);
 
-                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
+                    $lu->setLastOngoingDrop($DropTrackingMovement)->setLastAction($DropTrackingMovement);
                 }
             }
         }

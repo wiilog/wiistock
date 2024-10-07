@@ -359,7 +359,7 @@ class CartController extends AbstractController {
                     ? [
                         "packId" => $article->getCurrentLogisticUnit()?->getId(),
                         "code" => $article->getCurrentLogisticUnit()?->getCode() ?? null,
-                        "location" => $article->getCurrentLogisticUnit()?->getLastDrop()?->getEmplacement()?->getLabel() ?? null,
+                        "location" => $article->getCurrentLogisticUnit()?->getLastOngoingDrop()?->getEmplacement()?->getLabel() ?? null,
                         "project" => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? null,
                         "nature" => $article->getCurrentLogisticUnit()?->getNature()?->getLabel() ?? null,
                         "color" => $article->getCurrentLogisticUnit()?->getNature()?->getColor() ?? null,

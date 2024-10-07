@@ -78,7 +78,7 @@ class EnCoursService {
 
         $fields = [
             "pack.code AS code",
-            "lastDrop.datetime AS datetime",
+            "lastOngoingDrop.datetime AS datetime",
             "emplacement.dateMaxTime AS dateMaxTime",
             "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
