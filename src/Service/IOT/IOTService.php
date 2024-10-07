@@ -1012,6 +1012,10 @@ class IOTService
                 } elseif ($payload && str_starts_with($payload, '49')) {
                     return self::ACS_PRESENCE;
                 }
+            case IOTService::ENGINKO_LW22CCM:
+                if (str_starts_with($config['value']['payload'], "15")) {
+                    return self::ACS_EVENT;
+                }
         }
         return 'Évenement non trouvé';
     }
