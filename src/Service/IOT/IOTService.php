@@ -951,7 +951,7 @@ class IOTService
                     return [
                         self::DATA_TYPE_TEMPERATURE => $temperature,
                         //Relative humidity is an unsigned integer corresponding to twice the percentage of humidity.
-                        self::DATA_TYPE_HYGROMETRY => $this->convertHexToSignedNumber($hexHygrometry, true) / 2,
+                        self::DATA_TYPE_HYGROMETRY => hexdec($hexHygrometry) / 2,
                     ];
                 }
         }
