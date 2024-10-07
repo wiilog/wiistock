@@ -115,7 +115,7 @@
                 items: productionRequest.dropLocation ? [{
                     value: productionRequest.dropLocation.id,
                     label: productionRequest.dropLocation.label
-                }],
+                }] : [],
                 additionalAttributes: [
                     {name: "data-other-params"},
                     {name: "data-other-params-typeDispatchDropLocation", value: productionRequest.type ? productionRequest.type.id : ""},
@@ -136,7 +136,7 @@
                 items: productionRequest.destinationLocation ? [{
                     value: productionRequest.destinationLocation.id,
                     label: productionRequest.destinationLocation.label
-                }],
+                }] : [],
             }) }}
         </div>
     {% endif %}

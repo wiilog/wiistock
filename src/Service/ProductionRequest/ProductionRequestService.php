@@ -328,11 +328,8 @@ class ProductionRequestService
 
         if ($data->has(FixedFieldEnum::destinationLocation->name)) {
             $destinationLocation = $data->get(FixedFieldEnum::destinationLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::destinationLocation->name)) : null;
-        } else {
-            $destinationLocation = $productionRequest->getDestinationLocation();
+            $productionRequest->setDestinationLocation($destinationLocation);
         }
-        $productionRequest->setDestinationLocation($destinationLocation);
-
         if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)) {
             $productionRequest->setManufacturingOrderNumber($data->get(FixedFieldEnum::manufacturingOrderNumber->name));
         }
