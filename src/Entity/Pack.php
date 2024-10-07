@@ -12,6 +12,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
+use App\Service\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -45,26 +46,57 @@ class Pack implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Nature::class, inversedBy: 'packs')]
     private ?Nature $nature = null;
 
+    /**
+     * TrackingMovement of type Drop.
+     * Not null if the last tracking movement (With the most recent date) is a drop else null.
+     * Used to know current location of the pack/
+     */
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $lastOngoingDrop = null;
+
+    /**
+     * TrackingMovement of type Drop.
+     * Last of this type in all database for this Pack.
+     */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastDrop = null;
 
+    /**
+     * TrackingMovement of type Picking.
+     * Last of this type in all database for this Pack.
+     */
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?TrackingMovement $lastPicking = null;
+
+    /**
+     * TrackingMovement of any available types with the most recent datetime.
+     */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastAction = null;
 
+    /**
+     * TrackingMovement of any available types with the oldest datetime.
+     */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $firstAction = null;
 
+    /**
+     * TrackingMovement which trigger START tracking event with the most recent datetime.
+     * @see TrackingMovementService::getTrackingEvent()
+     */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStart = null;
 
-    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
-    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
-    private ?TrackingMovement $firstTracking = null;
-
+    /**
+     * TrackingMovement which trigger STOP tracking event with the most recent datetime.
+     * @see TrackingMovementService::getTrackingEvent()
+     */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?TrackingMovement $lastStop = null;
@@ -223,22 +255,22 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getLastDrop(): ?TrackingMovement {
-        return $this->lastDrop;
+    public function getLastOngoingDrop(): ?TrackingMovement {
+        return $this->lastOngoingDrop;
     }
 
-    public function setLastDrop(?TrackingMovement $lastDrop): self {
-        $this->lastDrop = $lastDrop;
+    public function setLastOngoingDrop(?TrackingMovement $lastOngoingDrop): self {
+        $this->lastOngoingDrop = $lastOngoingDrop;
 
         return $this;
     }
 
-    public function getFirstTracking(): ?TrackingMovement {
-        return $this->firstTracking;
+    public function getFirstAction(): ?TrackingMovement {
+        return $this->firstAction;
     }
 
-    public function setFirstTracking(?TrackingMovement $firstTracking): self {
-        $this->firstTracking = $firstTracking;
+    public function setFirstAction(?TrackingMovement $firstAction): self {
+        $this->firstAction = $firstAction;
 
         return $this;
     }
@@ -560,21 +592,13 @@ class Pack implements PairedEntity {
         return [
             "code" => $this->getCode(),
             "ref_article" => $this->getCode(),
-            "nature_id" => $this->getNature()
-                ? $this->getNature()->getId()
-                : null,
-            "quantity" => $lastTracking
-                ? $lastTracking->getQuantity()
+            "nature_id" => $this->getNature()?->getId(),
+            "quantity" => $lastAction
+                ? $lastAction->getQuantity()
                 : 1,
-            "type" => $lastTracking && $lastTracking->getType()
-                ? $lastTracking->getType()->getCode()
-                : null,
-            "ref_emplacement" => $lastTracking && $lastTracking->getEmplacement()
-                ? $lastTracking->getEmplacement()->getLabel()
-                : null,
-            "date" => $lastTracking
-                ? FormatHelper::datetime($lastTracking->getDatetime())
-                : '',
+            "type" => $lastAction?->getType()?->getCode(),
+            "ref_emplacement" => $lastAction?->getEmplacement()?->getLabel(),
+            "date" => FormatHelper::datetime($lastAction?->getDatetime(), ''),
         ];
     }
 
@@ -582,9 +606,7 @@ class Pack implements PairedEntity {
         return [
             "id" => $this->getId(),
             "code" => $this->getCode(),
-            "natureId" => $this->getNature()
-                ? $this->getNature()->getId()
-                : null,
+            "natureId" => $this->getNature()?->getId(),
             "packs" => $this->getChildren()
                 ->map(fn(Pack $pack) => $pack->serialize())
                 ->toArray(),
@@ -883,6 +905,31 @@ class Pack implements PairedEntity {
     }
     public function isBasicUnit(): bool {
         return !$this->referenceArticle && !$this->article;
+    }
+
+    public function shouldHaveTrackingDelay(): bool {
+        return (
+            $this->isBasicUnit()
+            && $this->nature?->getTrackingDelay()
+        );
+    }
+
+    public function getLastDrop(): ?TrackingMovement {
+        return $this->lastDrop;
+    }
+
+    public function setLastDrop(?TrackingMovement $lastDrop): self {
+        $this->lastDrop = $lastDrop;
+        return $this;
+    }
+
+    public function getLastPicking(): ?TrackingMovement {
+        return $this->lastPicking;
+    }
+
+    public function setLastPicking(?TrackingMovement $lastPicking): self {
+        $this->lastPicking = $lastPicking;
+        return $this;
     }
 
 }

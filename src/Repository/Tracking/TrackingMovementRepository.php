@@ -627,7 +627,7 @@ class TrackingMovementRepository extends EntityRepository
     }
 
     /**
-     * @param "action"|"start"|"stop" $type
+     * @param "action"|"picking"|"drop"|"start"|"stop" $type
      */
     public function findLastByPack(string            $type,
                                    Pack              $pack,
@@ -649,6 +649,18 @@ class TrackingMovementRepository extends EntityRepository
         switch ($type) {
             case "action":
                 // get the last one whatever the movement
+                break;
+            case "picking":
+                $queryBuilder
+                    ->andWhere("join_type.code = :picking_type")
+                    ->join("movement.type", "join_type")
+                    ->setParameter("picking_type", TrackingMovement::TYPE_PRISE);
+                break;
+            case "drop":
+                $queryBuilder
+                    ->andWhere("join_type.code = :drop_type")
+                    ->join("movement.type", "join_type")
+                    ->setParameter("drop_type", TrackingMovement::TYPE_DEPOSE);
                 break;
             case "start":
                 $queryBuilder
