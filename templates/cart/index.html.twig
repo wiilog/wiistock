@@ -118,8 +118,8 @@
                                         type: 'deliveryType',
                                         placeholder: 'Sélectionnez un type',
                                         items : [{
-                                        label: defaultType.label,
-                                        value: defaultType.id,
+                                        label: defaultType ? defaultType.label : null,
+                                        value: defaultType ? defaultType.id : null,
                                         selected: true,
                                     }],
                                         search: false,
