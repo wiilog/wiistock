@@ -24,6 +24,8 @@ readonly class PlanningService {
 
     public const NB_DAYS_ON_PLANNING = 7;
 
+    public const PLANNING_COLUMN_DATE_FORMAT = "Y-m-d";
+
 
     public function __construct(
         private FormatService   $formatService,
@@ -98,7 +100,7 @@ readonly class PlanningService {
                 ->filterMap(function ($_, int $index) use ($planningStart, $daysWorked, $workFreeDays) {
                     $day = (clone $planningStart)->modify("+$index days");
                     if (in_array(strtolower($day->format("l")), $daysWorked)
-                        && !in_array($day->format("Y-m-d"), $workFreeDays)) {
+                        && !in_array($day->format(self::PLANNING_COLUMN_DATE_FORMAT), $workFreeDays)) {
                         return $day;
                     }
                     else {
@@ -107,8 +109,8 @@ readonly class PlanningService {
                 })
                 ->keymap(function (DateTime $day) {
                     return [
-                        $day->format('Y-m-d'),
-                        $this->formatService->longDate($day, ["short" => true, "year" => false])
+                        $day->format(self::PLANNING_COLUMN_DATE_FORMAT),
+                        $this->formatService->longDate($day, ["short" => true, "year" => false]),
                     ];
                 })
                 ->toArray();

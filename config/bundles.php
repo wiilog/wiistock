@@ -17,6 +17,7 @@ return [
     Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['all' => true],
     FOS\JsRoutingBundle\FOSJsRoutingBundle::class => ['all' => true],
     SGK\BarcodeBundle\SGKBarcodeBundle::class => ['all' => true],
-    Nbgrp\OneloginSamlBundle\NbgrpOneloginSamlBundle::class => ['all' => !empty($_SERVER['APP_SAML_ENABLED'])],
+    Nbgrp\OneloginSamlBundle\NbgrpOneloginSamlBundle::class => ['all' => false],
     Cron\CronBundle\CronCronBundle::class => ['all' => true],
+    Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true],
 ];

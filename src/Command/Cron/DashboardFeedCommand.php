@@ -10,6 +10,9 @@ use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
 use App\Exceptions\DashboardException;
 use App\Service\DashboardService;
+use App\Service\DashboardSettingsService;
+use App\Service\ServerSentEventService;
+use App\Service\UserService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,17 +30,13 @@ use Throwable;
 class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
-    private EntityManagerInterface $entityManager;
-    private DashboardService $dashboardService;
-    private WiilockService $wiilockService;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                DashboardService $dashboardService,
-                                WiilockService $wiilockService) {
+    public function __construct(private EntityManagerInterface            $entityManager,
+                                private readonly DashboardService         $dashboardService,
+                                private readonly ServerSentEventService   $serverSenteventService,
+                                private readonly UserService              $userService,
+                                private readonly WiilockService           $wiilockService,
+                                private readonly DashboardSettingsService $dashboardSettingsService,) {
         parent::__construct();
-        $this->entityManager = $entityManager;
-        $this->dashboardService = $dashboardService;
-        $this->wiilockService = $wiilockService;
     }
 
     /**
@@ -171,6 +170,15 @@ class DashboardFeedCommand extends Command {
 
         $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
         $this->entityManager->flush();
+
+        $this->serverSenteventService->sendEvent(
+            ServerSentEventService::DASHBOARD_FEED_TOPIC,
+            [
+                "dashboards" => $this->dashboardSettingsService->serialize($this->entityManager, $this->userService->getUser(), 1),
+                "refreshed" => $this->dashboardService->refreshDate($this->entityManager),
+            ],
+            true
+        );
 
         return 0;
     }

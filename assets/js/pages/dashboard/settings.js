@@ -101,18 +101,30 @@ function loadDashboards(m, refreshRate) {
         $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
             $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
         });
-    }
-    else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
-        setInterval(function () {
-            $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
-                dashboards = JSON.parse(response.dashboards);
-                currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
+    } else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
+        eventSource.onmessage = function(event) {
+            const results = JSON.parse(event.data);
+            parseResultAndUpdateDashboard(results)
+        }
 
-                renderCurrentDashboard();
-                renderDashboardPagination();
-                renderRefreshDate(response.refreshed);
-            })
-        }, refreshRate * 60 * 1000);
+        eventSource.onerror = function () {
+            setInterval(function () {
+                $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
+                    parseResultAndUpdateDashboard(response)
+                })
+            }, refreshRate * 60 * 1000);
+        }
+    }
+}
+
+function parseResultAndUpdateDashboard(results) {
+    if (results) {
+        dashboards = JSON.parse(results.dashboards);
+        currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
+
+        renderCurrentDashboard();
+        renderDashboardPagination();
+        renderRefreshDate(results.refreshed);
     }
 }
 
