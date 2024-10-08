@@ -117,11 +117,13 @@
                                     {{ form.select('deliveryType', 'Type', true, {
                                         type: 'deliveryType',
                                         placeholder: 'Sélectionnez un type',
-                                        items : [{
-                                        label: defaultType.label,
-                                        value: defaultType.id,
-                                        selected: true,
-                                    }],
+                                        items :defaultType
+                                            ? [{
+                                                label: defaultType.label,
+                                                value: defaultType.id,
+                                                selected: true,
+                                            }]
+                                            : [],
                                         search: false,
                                         onChange: 'cartTypeChange($(this))',
                                     }) }}
