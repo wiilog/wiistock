@@ -3,6 +3,7 @@
 namespace App\Tests\Service;
 
 use App\Service\DateTimeService;
+use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -113,7 +114,7 @@ class DateTimeServiceTest extends KernelTestCase
     {
         return array(
             "monday" => [
-                ["09:00","19:00"],
+                ["08:00","18:00"],
             ],
             "tuesday" => [
                 ["08:00","12:00"],
@@ -179,7 +180,7 @@ class DateTimeServiceTest extends KernelTestCase
         );
     }
 
-    /** Get worked period in one day with worked period [09:00 - 19:00]
+    /** Get worked period in one day with worked period [08:00 - 18:00]
      * Must return 36000000 millisecond (10 hours)
      * */
     public function testGetWorkedPeriodBetweenDatesWithoutBreak() : void
@@ -267,5 +268,62 @@ class DateTimeServiceTest extends KernelTestCase
             0,
             $this->dateTimeService->convertDateIntervalToMilliseconds($this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $date1, $date2))
         );
+    }
+
+    /** Add worked period of 5 hours at date with worked period [08:00 - 12:00;13:00 - 17:00]
+     * Must return same day at 14:00:00
+     * */
+    public function testAddWorkedIntervalToDateTimeWithBreak() : void
+    {
+        $this->deleteCacheWorkedPeriod();
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
+        $dateinterval = new DateInterval('PT5H');
+        $this->assertEquals("2024-10-08 14:00:00",$this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+
+    }
+
+    /** Add worked period 5 hours at date with worked period [08:00 - 18:00]
+     * Must return same day at 13:00:00
+     * */
+    public function testAddWorkedIntervalToDateTimeWithoutBreak() : void
+    {
+        $this->deleteCacheWorkedPeriod();
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
+        $dateinterval = new DateInterval('PT5H');
+        $this->assertEquals("2024-10-07 13:00:00",$this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+
+    }
+
+    /** Add worked period 5 hours at date with worked period [08:00 - 18:00]
+     * Must return same day at 13:00:00
+     * */
+    public function testAddWorkedMoreThanDayHoursIntervalToDateTime() : void
+    {
+        $this->deleteCacheWorkedPeriod();
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
+        $dateinterval = new DateInterval('PT9H');
+        $this->assertEquals("2024-10-09 09:00:00",$this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+
+    }
+
+    public function testAddWorkedIntervalToDateTimeDuringUnworkedDay() : void
+    {
+        $this->deleteCacheWorkedPeriod();
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
+        $dateinterval = new DateInterval('PT9H');
+        $this->assertEquals("2024-10-11 09:00:00", $this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+    }
+
+    public function testAddWorkedIntervalToDateTimeDuringFreeDay() : void
+    {
+        $this->deleteCacheWorkedPeriod();
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriod());
+        $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
+        $dateinterval = new DateInterval('PT11H');
+        $this->assertEquals("2024-10-09 09:00:00", $this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
     }
 }
