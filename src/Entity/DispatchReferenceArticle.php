@@ -46,6 +46,9 @@ class DispatchReferenceArticle implements AttachmentContainer
     #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
     private ?bool $ADR = null;
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $associatedDocumentTypes = null;
+
     public function __construct() {
         $this->attachments = new ArrayCollection();
     }
@@ -151,6 +154,18 @@ class DispatchReferenceArticle implements AttachmentContainer
     public function setADR(bool $ADR): self
     {
         $this->ADR = $ADR;
+
+        return $this;
+    }
+
+    public function getAssociatedDocumentTypes(): ?array
+    {
+        return $this->associatedDocumentTypes;
+    }
+
+    public function setAssociatedDocumentTypes(?array $associatedDocumentTypes): self
+    {
+        $this->associatedDocumentTypes = $associatedDocumentTypes;
 
         return $this;
     }
