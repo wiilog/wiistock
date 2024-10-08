@@ -6,6 +6,7 @@ namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use WiiCommon\Helper\Stream;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
@@ -32,8 +33,16 @@ final class Version20241007121103 extends AbstractMigration
 
        foreach ($associatedDocumentTypesAndReference as $associatedDocumentTypeAndReference) {
            $referenceId = $associatedDocumentTypeAndReference['reference_id'];
-           $associatedDocumentTypes = json_encode(explode(',', $associatedDocumentTypeAndReference['reference_associated_document_types']));
-           $this->addSql("UPDATE dispatch_reference_article SET associated_document_types = '{$associatedDocumentTypes}' WHERE dispatch_reference_article.reference_article_id = '{$referenceId}'");
+           $associatedDocumentTypes = Stream::explode(',', $associatedDocumentTypeAndReference['reference_associated_document_types'])
+               ->filter()
+               ->toArray();
+
+           if(!empty($associatedDocumentTypes)){
+               $this->addSql("UPDATE dispatch_reference_article SET associated_document_types = :associatedDocumentTypes WHERE dispatch_reference_article.reference_article_id = :referenceId", [
+                   "associatedDocumentTypes" => json_encode($associatedDocumentTypes),
+                   "referenceId" => $referenceId,
+               ]);
+           }
        }
 
        $this->addSql("UPDATE reference_article
