@@ -105,6 +105,7 @@ class ProductionRequestService
             ['title' => FixedFieldEnum::status->value, 'name' => FixedFieldEnum::status->name],
             ['title' => FixedFieldEnum::expectedAt->value, 'name' => FixedFieldEnum::expectedAt->name],
             ['title' => FixedFieldEnum::dropLocation->value, 'name' => FixedFieldEnum::dropLocation->name],
+            ['title' => FixedFieldEnum::destinationLocation->value, 'name' => FixedFieldEnum::destinationLocation->name],
             ['title' => FixedFieldEnum::lineCount->value, 'name' => FixedFieldEnum::lineCount->name],
             ['title' => FixedFieldEnum::manufacturingOrderNumber->value, 'name' => FixedFieldEnum::manufacturingOrderNumber->name],
             ['title' => FixedFieldEnum::productArticleCode->value, 'name' => FixedFieldEnum::productArticleCode->name],
@@ -239,6 +240,7 @@ class ProductionRequestService
             FixedFieldEnum::status->name => $this->formatService->status($productionRequest->getStatus()),
             FixedFieldEnum::expectedAt->name => $this->formatService->datetime($productionRequest->getExpectedAt()),
             FixedFieldEnum::dropLocation->name => $this->formatService->location($productionRequest->getDropLocation()),
+            FixedFieldEnum::destinationLocation->name => $this->formatService->location($productionRequest->getDestinationLocation()),
             FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
             FixedFieldEnum::manufacturingOrderNumber->name => $productionRequest->getManufacturingOrderNumber(),
             FixedFieldEnum::productArticleCode->name => $productionRequest->getProductArticleCode(),
@@ -324,6 +326,10 @@ class ProductionRequestService
         }
         $productionRequest->setDropLocation($dropLocation);
 
+        if ($data->has(FixedFieldEnum::destinationLocation->name)) {
+            $destinationLocation = $data->get(FixedFieldEnum::destinationLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::destinationLocation->name)) : null;
+            $productionRequest->setDestinationLocation($destinationLocation);
+        }
         if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)) {
             $productionRequest->setManufacturingOrderNumber($data->get(FixedFieldEnum::manufacturingOrderNumber->name));
         }
@@ -496,6 +502,12 @@ class ProductionRequestService
 
             ],
             [
+                'label' => FixedFieldEnum::destinationLocation->value,
+                'value' => $this->formatService->location($productionRequest->getDestinationLocation()),
+                'show' => ['fieldName' => FixedFieldEnum::destinationLocation->name],
+
+            ],
+            [
                 'label' => FixedFieldEnum::lineCount->value,
                 'value' => $productionRequest->getLineCount(),
                 'show' => ['fieldName' => FixedFieldEnum::lineCount->name],
@@ -585,6 +597,7 @@ class ProductionRequestService
             $productionRequest[FixedFieldEnum::status->name],
             $productionRequest[FixedFieldEnum::expectedAt->name],
             $productionRequest[FixedFieldEnum::dropLocation->name],
+            $productionRequest[FixedFieldEnum::destinationLocation->name],
             $productionRequest[FixedFieldEnum::lineCount->name],
             $productionRequest[FixedFieldEnum::manufacturingOrderNumber->name],
             $productionRequest[FixedFieldEnum::productArticleCode->name],
@@ -906,6 +919,14 @@ class ProductionRequestService
                 "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
                     "label" => $field->value,
                     "value" => $this->formatService->location($productionRequest->getDropLocation()),
+                ],
+            ],
+            [
+                "field" => FixedFieldEnum::destinationLocation,
+                "type" => "rows",
+                "getDetails" => fn(ProductionRequest $productionRequest, FixedFieldEnum $field) => [
+                    "label" => $field->value,
+                    "value" => $this->formatService->location($productionRequest->getDestinationLocation()),
                 ],
             ],
             [

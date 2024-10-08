@@ -142,6 +142,7 @@ class ProductionRequestRepository extends EntityRepository
                         FixedFieldEnum::status->name => "search_status.nom LIKE :search_value",
                         FixedFieldEnum::expectedAt->name => "DATE_FORMAT(production_request.expectedAt, '%d/%m/%Y') LIKE :search_value",
                         FixedFieldEnum::dropLocation->name => "search_dropLocation.label LIKE :search_value",
+                        FixedFieldEnum::destinationLocation->name => "search_destinationLocation.label LIKE :search_value",
                         FixedFieldEnum::lineCount->name => "production_request.lineCount LIKE :search_value",
                         FixedFieldEnum::manufacturingOrderNumber->name => "production_request.manufacturingOrderNumber LIKE :search_value",
                         FixedFieldEnum::productArticleCode->name => "production_request.productArticleCode LIKE :search_value",
@@ -158,6 +159,7 @@ class ProductionRequestRepository extends EntityRepository
                         ->leftJoin('production_request.treatedBy', 'search_treatedBy')
                         ->innerJoin('production_request.createdBy', 'search_createdBy')
                         ->leftJoin('production_request.dropLocation', 'search_dropLocation')
+                        ->leftJoin('production_request.destinationLocation', 'search_destinationLocation')
                         ->innerJoin('production_request.type', 'search_type');
                 }
             }
@@ -192,6 +194,10 @@ class ProductionRequestRepository extends EntityRepository
                     } else if ($column === FixedFieldEnum::dropLocation->name) {
                         $qb
                             ->leftJoin('production_request.dropLocation', 'location')
+                            ->orderBy('location.label', $order);
+                    } else if ($column === FixedFieldEnum::destinationLocation->name) {
+                        $qb
+                            ->leftJoin('production_request.destinationLocation', 'location')
                             ->orderBy('location.label', $order);
                     } else if ($column === FixedFieldEnum::lineCount->name) {
                         $qb->orderBy('production_request.lineCount', $order);
