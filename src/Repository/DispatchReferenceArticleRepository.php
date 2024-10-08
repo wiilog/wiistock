@@ -47,7 +47,7 @@ class DispatchReferenceArticleRepository extends EntityRepository
             ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."length"\')) AS length')
             ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."weight"\')) AS weight')
             ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."volume"\')) AS volume')
-            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."associatedDocumentTypes"\')) AS associatedDocumentTypes')
+            ->addSelect('dispatch_reference_article.associatedDocumentTypes AS associatedDocumentTypes')
             ->addSelect('dispatch_reference_article.sealingNumber AS sealingNumber')
             ->addSelect('dispatch_reference_article.serialNumber AS serialNumber')
             ->addSelect('dispatch_reference_article.batchNumber AS batchNumber')

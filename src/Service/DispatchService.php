@@ -1535,7 +1535,7 @@ class DispatchService {
                     "volumeref" => $description['volume'] ?? '',
                     "photoref" => $dispatchReferenceArticle->getAttachments()->isEmpty() ? 'Non' : 'Oui',
                     "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
-                    "documentsref" => $description['associatedDocumentTypes'] ?? '',
+                    "documentsref" => $dispatchReferenceArticle->getAssociatedDocumentTypes() ?? '',
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null, "Non"),
                     // keep line breaking in docx
@@ -1916,7 +1916,6 @@ class DispatchService {
             'width' =>  $data['width'] ?: ($oldDescription['width'] ?? null),
             'height' =>  $data['height'] ?: ($oldDescription['height'] ?? null),
             'weight' => $data['weight'],
-            'associatedDocumentTypes' => $data['associatedDocumentTypes'],
         ]);
 
         $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
@@ -2395,6 +2394,9 @@ class DispatchService {
             ->setSealingNumber($data['sealing'] ?? null)
             ->setSerialNumber($data['series'] ?? null)
             ->setComment($data['comment'] ?? null)
+            ->setAssociatedDocumentTypes($data['associatedDocumentTypes']
+                ? explode(',', $data['associatedDocumentTypes'])
+                : null)
             ->setAdr(isset($data['adr']) && boolval($data['adr']));
 
         $this->attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatchReferenceArticle]);
@@ -2410,7 +2412,6 @@ class DispatchService {
             'height' => $data['height'] ?? null,
             'length' => $data['length'] ?? null,
             'weight' => $data['weight'] ?? null,
-            'associatedDocumentTypes' => $data['associatedDocumentTypes'] ?? null,
         ];
         $this->refArticleDataService->updateDescriptionField($entityManager, $referenceArticle, $description);
 

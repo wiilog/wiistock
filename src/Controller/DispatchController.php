@@ -41,6 +41,7 @@ use App\Service\NotificationService;
 use App\Service\PackService;
 use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -1815,6 +1816,7 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function editReferenceApi(DispatchReferenceArticle $dispatchReferenceArticle,
                                      RefArticleDataService    $refArticleDataService,
+                                     SettingsService          $settingsService,
                                      EntityManagerInterface   $entityManager): JsonResponse
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -1839,6 +1841,18 @@ class DispatchController extends AbstractController {
             ])
             ->toArray();
 
+        $associatedDocumentTypesStr = $settingsService->getValue($entityManager, Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->map(fn($associatedDocumentType) => [
+                    "label" => $associatedDocumentType,
+                    "value" => $associatedDocumentType,
+                    "selected" => in_array($associatedDocumentType, $dispatchReferenceArticle->getAssociatedDocumentTypes()),
+                ])
+                ->toArray()
+            : [];
+
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
@@ -1846,6 +1860,7 @@ class DispatchController extends AbstractController {
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
             'natures' => $natureItems,
             'packs' => $packs,
+            'associatedDocumentTypes' => $associatedDocumentTypes,
         ]);
 
         return new JsonResponse($html);
@@ -1856,6 +1871,7 @@ class DispatchController extends AbstractController {
     public function addReferenceApi(Dispatch               $dispatch,
                                     ?Pack                  $pack,
                                     RefArticleDataService  $refArticleDataService,
+                                    SettingsService        $settingsService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -1877,11 +1893,23 @@ class DispatchController extends AbstractController {
             ];
         }
 
+        $associatedDocumentTypesStr = $settingsService->getValue($entityManager, Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypes = $associatedDocumentTypesStr
+            ? Stream::explode(',', $associatedDocumentTypesStr)
+                ->filter()
+                ->map(fn($associatedDocumentType) => [
+                    "label" => $associatedDocumentType,
+                    "value" => $associatedDocumentType,
+                ])
+                ->toArray()
+            : [];
+
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
             'packs' => $packs,
             'pack' => $pack,
+            'associatedDocumentTypes' => $associatedDocumentTypes,
         ]);
 
         return new JsonResponse([
