@@ -71,6 +71,7 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_dispatchReferenceArticle.sealingNumber AS sealingNumber')
             ->addSelect('join_dispatchReferenceArticle.serialNumber AS serialNumber')
             ->addSelect('join_dispatchReferenceArticle.comment AS comment')
+            ->addSelect('join_dispatchReferenceArticle.associatedDocumentTypes AS associatedDocumentTypes')
             ->addSelect('join_referenceArticle.description AS description')
             ->addSelect('join_dispatchReferenceArticle.ADR AS ADR')
 
@@ -182,7 +183,7 @@ class DispatchPackRepository extends EntityRepository {
                                         && filter_var($reference["description"]["outFormatEquipment"], FILTER_VALIDATE_BOOLEAN)
                                             ? 'Oui'
                                             : 'Non',
-                                    "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
+                                    "associatedDocumentTypes" => $reference["associatedDocumentTypes"] ?? '',
                                     "comment" => $reference["comment"],
                                     "attachments" => $attachmentsByReference[$reference["dispatchReferenceArticleId"]] ?? [],
                                 ]

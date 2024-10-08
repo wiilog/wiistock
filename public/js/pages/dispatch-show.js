@@ -803,11 +803,6 @@ function refArticleChanged($select) {
         $modalAddReference.find("[name=width]").val(description["width"]);
         $modalAddReference.find("[name=length]").val(description["length"]);
         $modalAddReference.find("[name=volume]").val(description["volume"]).prop("disabled", true);
-        const associatedDocumentTypes = description["associatedDocumentTypes"] ? description["associatedDocumentTypes"].split(',') : [];
-        const $associatedDocumentTypesSelect = $modalAddReference.find("[name=associatedDocumentTypes]");
-        $associatedDocumentTypesSelect
-            .val(associatedDocumentTypes)
-            .trigger('change');
 
         registerVolumeChanges();
     }
