@@ -1957,7 +1957,8 @@ class DispatchService {
             ->setSerialNumber($data['serialNumber'])
             ->setSealingNumber($data['sealingNumber'])
             ->setComment($data['comment'])
-            ->setADR(isset($data['adr']) && boolval($data['adr']));
+            ->setADR(isset($data['adr']) && boolval($data['adr']))
+            ->setAssociatedDocumentTypes(Stream::explode(',', $data['associatedDocumentTypes'])->filter()->toArray());
 
         $maxNbFilesSubmitted = 10;
         $fileCounter = 1;
