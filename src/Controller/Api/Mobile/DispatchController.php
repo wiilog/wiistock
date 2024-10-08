@@ -613,7 +613,7 @@ class DispatchController extends AbstractController
                     'weight' => $ref->getReferenceArticle()->getDescription()['weight'] ?? null,
                     'volume' => $ref->getReferenceArticle()->getDescription()['volume'] ?? null,
                     'adr' => $ref->isADR() ? 'Oui' : 'Non',
-                    'associatedDocumentTypes' => $ref->getReferenceArticle()->getDescription()['associatedDocumentTypes'] ?? null,
+                    'associatedDocumentTypes' => null,
                     'comment' => $ref->getCleanedComment() ?: $ref->getComment(),
                     'photos' => json_encode($photos)
                 ];
@@ -641,7 +641,7 @@ class DispatchController extends AbstractController
                 'length' => $description['length'] ?? '',
                 'volume' => $description['volume'] ?? '',
                 'weight' => $description['weight'] ?? '',
-                'associatedDocumentTypes' => $description['associatedDocumentTypes'] ?? '',
+                'associatedDocumentTypes' => '',
                 'exists' => true,
             ];
         } else {

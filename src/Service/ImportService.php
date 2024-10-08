@@ -1262,7 +1262,7 @@ class ImportService
         $outFormatEquipment = $outFormatEquipmentData ?? $original['outFormatEquipment'] ?? null;
         $volume = $data['volume'] ?? $original['volume'] ?? null;
         $weight = $data['weight'] ?? $original['weight'] ?? null;
-        $associatedDocumentTypesStr = $data['associatedDocumentTypes'] ?? $original['associatedDocumentTypes'] ?? null;
+        $associatedDocumentTypesStr = $data['associatedDocumentTypes'] ?? null;
         $associatedDocumentTypes = $associatedDocumentTypesStr
             ? Stream::explode(',', $associatedDocumentTypesStr)
                 ->filter()
@@ -1321,7 +1321,6 @@ class ImportService
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
             "volume" => $volume,
             "weight" => $weight,
-            "associatedDocumentTypes" => $associatedDocumentTypes->join(','),
         ];
         $refArt
             ->setDescription($description);

@@ -1193,15 +1193,7 @@ class RefArticleDataService
 
     public function getDescriptionConfig(EntityManagerInterface $entityManager, bool $isFromDispatch = false): array
     {
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
-        $associatedDocumentTypes = $associatedDocumentTypesStr
-            ? Stream::explode(',', $associatedDocumentTypesStr)
-                ->filter()
-                ->toArray()
-            : [];
-
-        $config = [
+        return [
             "Matériel hors format" => [
                 "name" => "outFormatEquipment",
                 "type" => "bool",
@@ -1217,13 +1209,6 @@ class RefArticleDataService
                 "name" => "weight",
                 "type" => "number",
                 "step" => "0.01",
-                "persisted" => true,
-                "required" => $isFromDispatch,
-            ],
-            "Types de documents associés" => [
-                "name" => "associatedDocumentTypes",
-                "type" => "select",
-                "values" => $associatedDocumentTypes,
                 "persisted" => true,
                 "required" => $isFromDispatch,
             ],
@@ -1254,7 +1239,6 @@ class RefArticleDataService
                 "required" => $isFromDispatch,
             ],
         ];
-        return $config;
     }
 
     public function updateDescriptionField(EntityManagerInterface $entityManager,
