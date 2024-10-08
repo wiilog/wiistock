@@ -173,7 +173,7 @@ class DateTimeService {
         return "{$hours}h{$minutes}";
     }
 
-    // TODO WIIS-11848
+
     public function getWorkedPeriodBetweenDates(EntityManagerInterface $entityManager,
                                                 DateTime               $date1,
                                                 DateTime               $date2): DateInterval {
