@@ -173,7 +173,11 @@ class DateTimeService {
         return "{$hours}h{$minutes}";
     }
 
-
+    /**
+     * Calculate worked period between the two input date.
+     * The set of worked days and work free days are used to define this period.
+     * Returned period is defined as a DateInterval
+     */
     public function getWorkedPeriodBetweenDates(EntityManagerInterface $entityManager,
                                                 DateTime               $date1,
                                                 DateTime               $date2): DateInterval {
@@ -256,10 +260,14 @@ class DateTimeService {
             : $dateTime2->diff($dateTime1);
     }
 
-    // TODO WIIS-11848
-    public function addWorkedIntervalToDateTime(EntityManagerInterface $entityManager,
-                                                DateTime               $startDate,
-                                                DateInterval           $workedInterval): ?DateTime {
+    /**
+     * Add a worked period to an input date.
+     * The set of worked days and work free days are used to define this period.
+     * Returned date is a copy and the given date is a clone.
+     */
+    public function addWorkedPeriodToDateTime(EntityManagerInterface $entityManager,
+                                              DateTime               $startDate,
+                                              DateInterval           $workedInterval): ?DateTime {
         $workedSegments = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
         // prevent execution if worked days settings empty
@@ -327,6 +335,6 @@ class DateTimeService {
         }
         while ($this->workPeriodService->isWorkFreeDay($entityManager, $finalDate));
 
-        return $this->addWorkedIntervalToDateTime($entityManager, $finalDate, $finalInterval);
+        return $this->addWorkedPeriodToDateTime($entityManager, $finalDate, $finalInterval);
     }
 }
