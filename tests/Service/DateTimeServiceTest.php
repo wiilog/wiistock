@@ -240,7 +240,7 @@ class DateTimeServiceTest extends KernelTestCase
         );
     }
 
-    /** Get worked period between date during free day period
+    /** Get worked period between date during free day period (2024-10-08)
      * Must return 0 millisecond
      * */
     public function testGetWorkedPeriodBetweenDatesWithFreeDay() : void
@@ -296,8 +296,8 @@ class DateTimeServiceTest extends KernelTestCase
 
     }
 
-    /** Add worked period 5 hours at date with worked period [08:00 - 18:00]
-     * Must return same day at 13:00:00
+    /** Add worked period 9 hours at date with worked period [08:00 - 12:00;13:00 - 17:00]
+     * Must return next day at 09:00:00
      * */
     public function testAddWorkedMoreThanDayHoursIntervalToDateTime() : void
     {
@@ -309,6 +309,9 @@ class DateTimeServiceTest extends KernelTestCase
 
     }
 
+    /** Add worked period 9 hours at date with next day as unworked period (thursday)
+     * Must skip one day (thursday) and return friday at 09:00:00
+     * */
     public function testAddWorkedIntervalToDateTimeDuringUnworkedDay() : void
     {
         $this->deleteCacheWorkedPeriod();
@@ -318,6 +321,9 @@ class DateTimeServiceTest extends KernelTestCase
         $this->assertEquals("2024-10-11 09:00:00", $this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
     }
 
+    /** Add worked period 11 hours at date with next day as free period (2024-10-08)
+     * Must skip one day (2024-10-08) and return 2024-10-09 at 09:00:00
+     * */
     public function testAddWorkedIntervalToDateTimeDuringFreeDay() : void
     {
         $this->deleteCacheWorkedPeriod();
