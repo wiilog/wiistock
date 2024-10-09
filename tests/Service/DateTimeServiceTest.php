@@ -279,7 +279,7 @@ class DateTimeServiceTest extends KernelTestCase
         $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $dateinterval = new DateInterval('PT5H');
-        $this->assertEquals("2024-10-08 14:00:00",$this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+        $this->assertEquals("2024-10-08 14:00:00",$this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
 
     }
 
@@ -292,7 +292,7 @@ class DateTimeServiceTest extends KernelTestCase
         $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
         $dateinterval = new DateInterval('PT5H');
-        $this->assertEquals("2024-10-07 13:00:00",$this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+        $this->assertEquals("2024-10-07 13:00:00",$this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
 
     }
 
@@ -305,7 +305,7 @@ class DateTimeServiceTest extends KernelTestCase
         $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $dateinterval = new DateInterval('PT9H');
-        $this->assertEquals("2024-10-09 09:00:00",$this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+        $this->assertEquals("2024-10-09 09:00:00",$this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
 
     }
 
@@ -318,7 +318,7 @@ class DateTimeServiceTest extends KernelTestCase
         $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
         $dateinterval = new DateInterval('PT9H');
-        $this->assertEquals("2024-10-11 09:00:00", $this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+        $this->assertEquals("2024-10-11 09:00:00", $this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
     }
 
     /** Add worked period 11 hours at date with next day as free period (2024-10-08)
@@ -330,6 +330,6 @@ class DateTimeServiceTest extends KernelTestCase
         $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriod());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
         $dateinterval = new DateInterval('PT11H');
-        $this->assertEquals("2024-10-09 09:00:00", $this->dateTimeService->addWorkedIntervalToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
+        $this->assertEquals("2024-10-09 09:00:00", $this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
     }
 }
