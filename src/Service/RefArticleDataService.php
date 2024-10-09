@@ -108,6 +108,9 @@ class RefArticleDataService
     public EntityManagerInterface $entityManager;
 
     #[Required]
+    public SettingsService $settingsService;
+
+    #[Required]
     public RouterInterface $router;
 
     #[Required]
@@ -544,6 +547,8 @@ class RefArticleDataService
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
         }
 
+        $settingManageDeliveriesWithoutStockQuantity = $this->settingsService->getValue($this->entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
+
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
             ->map(function (ArticleFournisseur $articleFournisseur) {
                 return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getCodeReference() : '';
@@ -612,7 +617,7 @@ class RefArticleDataService
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
                 "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
-                "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
+                "showAddRefToCart" => ($refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0) || $settingManageDeliveriesWithoutStockQuantity,
                 "hasArticles" => !empty($refArticle->getAssociatedArticles()),
             ]),
             "colorClass" => (

@@ -41,7 +41,7 @@
                 <div class="cart-reference-quantity nowrap">
                     {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: quantityLabel}, true, null, {
                         min: 1,
-                        max: maxIsAvailableQuantity ? reference.quantiteDisponible : null,
+                        max: maxIsAvailableQuantity ? not setting_value('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY') ? reference.quantiteDisponible : null,
                         labelClass: 'd-flex flex-column align-items-center',
                         error: 'global',
                         disabled: disabled,
