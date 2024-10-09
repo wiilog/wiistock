@@ -244,6 +244,7 @@ class Import extends ScheduledTask {
             FixedFieldEnum::type->name => FixedFieldEnum::type->value,
             FixedFieldEnum::expectedAt->name => FixedFieldEnum::expectedAt->value,
             FixedFieldEnum::dropLocation->name => FixedFieldEnum::dropLocation->value,
+            FixedFieldEnum::destinationLocation->name => FixedFieldEnum::destinationLocation->value,
             FixedFieldEnum::lineCount->name => FixedFieldEnum::lineCount->value,
             FixedFieldEnum::manufacturingOrderNumber->name => FixedFieldEnum::manufacturingOrderNumber->value,
             FixedFieldEnum::productArticleCode->name => FixedFieldEnum::productArticleCode->value,
