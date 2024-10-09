@@ -1,26 +1,26 @@
 DROP TABLE IF EXISTS TEMP_non_worked_days;
 DROP TABLE IF EXISTS TEMP_worked_days;
 
-CREATE TABLE TEMP_worked_days SELECT IF(days_worked.day = 'monday', 'lundi',
-                                        IF(days_worked.day = 'tuesday', 'mardi',
-                                           IF(days_worked.day = 'wednesday', 'mercredi',
-                                              IF(days_worked.day = 'thursday', 'jeudi',
-                                                 IF(days_worked.day = 'friday', 'vendredi',
-                                                    IF(days_worked.day = 'saturday', 'samedi',
-                                                       IF(days_worked.day = 'sunday', 'dimanche', NULL))))))) AS jour,
-                                     IF(days_worked.worked = 1, 'oui', 'non')                                 AS travaille,
-                                     IF(days_worked.times != '',
-                                        IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', 1), '-', 1),
-                                           SUBSTRING_INDEX(days_worked.times, '-', 1)), NULL)                 AS horaire1,
-                                     IF(days_worked.times != '',
-                                        IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', 1), '-', -1),
-                                           SUBSTRING_INDEX(days_worked.times, '-', -1)), NULL)                AS horaire2,
-                                     IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', -1), '-', 1),
+CREATE TABLE TEMP_worked_days SELECT IF(worked_day.day = 'monday', 'lundi',
+                                        IF(worked_day.day = 'tuesday', 'mardi',
+                                           IF(worked_day.day = 'wednesday', 'mercredi',
+                                              IF(worked_day.day = 'thursday', 'jeudi',
+                                                 IF(worked_day.day = 'friday', 'vendredi',
+                                                    IF(worked_day.day = 'saturday', 'samedi',
+                                                       IF(worked_day.day = 'sunday', 'dimanche', NULL))))))) AS jour,
+                                     IF(worked_day.worked = 1, 'oui', 'non')                                 AS travaille,
+                                     IF(worked_day.times != '',
+                                        IF(LOCATE(';', worked_day.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(worked_day.times, ';', 1), '-', 1),
+                                           SUBSTRING_INDEX(worked_day.times, '-', 1)), NULL)                 AS horaire1,
+                                     IF(worked_day.times != '',
+                                        IF(LOCATE(';', worked_day.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(worked_day.times, ';', 1), '-', -1),
+                                           SUBSTRING_INDEX(worked_day.times, '-', -1)), NULL)                AS horaire2,
+                                     IF(LOCATE(';', worked_day.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(worked_day.times, ';', -1), '-', 1),
                                         NULL)                                                                 AS horaire3,
-                                     IF(LOCATE(';', days_worked.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(days_worked.times, ';', -1), '-', -1),
+                                     IF(LOCATE(';', worked_day.times) > 0, SUBSTRING_INDEX(SUBSTRING_INDEX(worked_day.times, ';', -1), '-', -1),
                                         NULL)                                                                 AS horaire4
 
-                              FROM days_worked;
+                              FROM worked_day;
 
 CREATE TABLE TEMP_non_worked_days SELECT day AS jour
                                   FROM work_free_day;

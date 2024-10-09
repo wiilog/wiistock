@@ -28,7 +28,7 @@ SELECT truck_arrival_line.number as no_tracking,
                                     SELECT DATE(next)
                                     FROM DATES
                                     WHERE (SELECT COUNT(day) FROM work_free_day WHERE day = DATE_FORMAT(next, '%Y-%m-%d') LIMIT 1) = 0
-                                    AND (SELECT day FROM days_worked WHERE worked = 1 AND LCASE(days_worked.day) = LCASE(DAYNAME(next))) IS NOT NULL
+                                    AND (SELECT day FROM worked_day WHERE worked = 1 AND LCASE(worked_day.day) = LCASE(DAYNAME(next))) IS NOT NULL
                                     AND next > truck_arrival.creation_date
                                     ORDER BY next
                                     LIMIT 1
@@ -38,7 +38,7 @@ SELECT truck_arrival_line.number as no_tracking,
                                         SELECT DATE(next)
                                         FROM DATES
                                         WHERE (SELECT COUNT(day) FROM work_free_day WHERE day = DATE_FORMAT(next, '%Y-%m-%d') LIMIT 1) = 0
-                                        AND (SELECT day FROM days_worked WHERE worked = 1 AND LCASE(days_worked.day) = LCASE(DAYNAME(next))) IS NOT NULL
+                                        AND (SELECT day FROM worked_day WHERE worked = 1 AND LCASE(worked_day.day) = LCASE(DAYNAME(next))) IS NOT NULL
                                         AND next > truck_arrival.creation_date
                                         ORDER BY next
                                         LIMIT 1

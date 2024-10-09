@@ -60,10 +60,10 @@ FROM dispatch
          LEFT JOIN dispatch_pack ON dispatch.id = dispatch_pack.dispatch_id
          LEFT JOIN pack ON dispatch_pack.pack_id = pack.id
          LEFT JOIN nature ON pack.nature_id = nature.id
-         LEFT JOIN tracking_movement AS dernier_emplacement ON pack.last_drop_id = dernier_emplacement.id
+         LEFT JOIN tracking_movement AS last_ongoing_drop ON pack.last_ongoing_drop_id = last_ongoing_drop.id
          LEFT JOIN emplacement AS dernier_emplacement_colis
-                   ON dernier_emplacement.emplacement_id = dernier_emplacement_colis.id
-         LEFT JOIN tracking_movement AS dernier_mouvement ON pack.last_tracking_id = dernier_mouvement.id
+                   ON last_ongoing_drop.emplacement_id = dernier_emplacement_colis.id
+         LEFT JOIN tracking_movement AS dernier_mouvement ON pack.last_action_id = dernier_mouvement.id
          LEFT JOIN utilisateur AS operateur ON dernier_mouvement.operateur_id = operateur.id
          LEFT JOIN dispatch_reference_article ON dispatch_pack.id = dispatch_reference_article.dispatch_pack_id
          LEFT JOIN reference_article ON dispatch_reference_article.reference_article_id = reference_article.id
