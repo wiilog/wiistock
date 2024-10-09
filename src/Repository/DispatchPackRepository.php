@@ -36,8 +36,8 @@ class DispatchPackRepository extends EntityRepository {
             ->join('dispatch_pack.pack', 'pack')
             ->join('dispatch_pack.dispatch', 'dispatch')
             ->leftJoin('pack.nature', 'nature')
-            ->leftJoin('pack.lastTracking', 'packLastTracking')
-            ->leftJoin('packLastTracking.emplacement', 'packLastLocation')
+            ->leftJoin('pack.lastAction', 'packLastAction')
+            ->leftJoin('packLastAction.emplacement', 'packLastLocation')
             ->where('dispatch.id IN (:dispatchIds)')
             ->setParameter('dispatchIds', $dispatchIds);
         return $queryBuilder
@@ -59,7 +59,7 @@ class DispatchPackRepository extends EntityRepository {
             ->addSelect('join_pack.id AS packId')
             ->addSelect('join_pack.code AS packCode')
 
-            ->addSelect('join_locationLastDrop.label AS packLocation')
+            ->addSelect('join_locationLastOngoingDrop.label AS packLocation')
             ->addSelect('join_nature.label AS packNature')
             ->addSelect('join_nature.color AS packColor')
 
@@ -76,8 +76,8 @@ class DispatchPackRepository extends EntityRepository {
 
             ->leftJoin('dispatch_pack.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
-            ->leftJoin('join_pack.lastDrop', 'join_lastDrop')
-            ->leftJoin('join_lastDrop.emplacement', 'join_locationLastDrop')
+            ->leftJoin('join_pack.lastOngoingDrop', 'join_lastOngoingDrop')
+            ->leftJoin('join_lastOngoingDrop.emplacement', 'join_locationLastOngoingDrop')
 
             ->leftJoin('dispatch_pack.dispatchReferenceArticles', 'join_dispatchReferenceArticle')
             ->leftJoin('join_dispatchReferenceArticle.referenceArticle', 'join_referenceArticle')
@@ -92,7 +92,7 @@ class DispatchPackRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere($exprBuilder->orX(
                     'join_pack.code LIKE :search',
-                    'join_locationLastDrop.label LIKE :search',
+                    'join_locationLastOngoingDrop.label LIKE :search',
                     'join_project.code LIKE :search',
                     'join_referenceArticle.reference LIKE :search',
                 ))

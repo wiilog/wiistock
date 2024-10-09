@@ -55,7 +55,7 @@
                                 </div>
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
-                                    <span class="wii-field-name">Emplacement <span class="wii-body-text ml-2">{{ logisticUnit.lastDrop ? logisticUnit.lastDrop.emplacement | format_helper('location') }}</span></span>
+                                    <span class="wii-field-name">Emplacement <span class="wii-body-text ml-2">{{ logisticUnit.lastOngoingDrop ? logisticUnit.lastOngoingDrop.emplacement | format_helper('location') }}</span></span>
                                 </div>
                             </div>
                         </div>

@@ -404,7 +404,7 @@ class PackController extends AbstractController
     public function getLocation(Request                 $request,
                                 EntityManagerInterface  $entityManager): JsonResponse {
         $pack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('pack')]);
-        $location = $pack?->getLastDrop()?->getEmplacement();
+        $location = $pack?->getLastOngoingDrop()?->getEmplacement();
         return $this->json([
             'success' => true,
             'location' => $location?->getId(),

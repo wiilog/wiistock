@@ -914,7 +914,7 @@ class ShippingRequestController extends AbstractController {
                 // mvt prise UL
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $logisticUnitParent,
-                    $logisticUnitParent->getLastDrop()->getEmplacement(),
+                    $logisticUnitParent->getLastOngoingDrop()->getEmplacement(),
                     $user,
                     $dateNow,
                     false,

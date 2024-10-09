@@ -76,6 +76,11 @@ class TrackingDelayService {
     }
 
     /**
+     * Return array of data calculated in the function:
+     *  - The elapsed time of the pack to be treated,
+     *  - the limit treatment date of the pack according to its nature
+     *  - the lastTrackingEvent of a movement on the pack
+     *
      * @return null|array{
      *     lastTrackingEvent?: TrackingEvent|null,
      *     limitTreatmentDate?: DateTime|null,
@@ -84,16 +89,7 @@ class TrackingDelayService {
      */
     private function calculateTrackingDelayData(EntityManagerInterface $entityManager,
                                                 Pack                   $pack): array|null {
-
-        $isBasicUnit = $pack->isBasicUnit();
-
-        $natureTrackingDelay = $isBasicUnit
-            ? $pack->getNature()?->getTrackingDelay()
-            : null;
-
-        $packHasTrackingDelay = isset($natureTrackingDelay);
-
-        if (!$packHasTrackingDelay) {
+        if (!$pack->shouldHaveTrackingDelay()) {
             return null;
         }
 
@@ -125,6 +121,7 @@ class TrackingDelayService {
 
         // begin limitTreatmentDate on date which start the timer
         // we will increment it with all worked intervals found (nature tracking delay as max)
+        $natureTrackingDelay = $pack->getNature()?->getTrackingDelay();
         $remainingNatureDelay = $natureTrackingDelay;
         $limitTreatmentDate = clone $timerStartedAt;
 
@@ -259,21 +256,22 @@ class TrackingDelayService {
     }
 
     /**
-     * TODO WIIS-11974: add new function here
-     * We calculate the new tracking delay only if the new trackingMovement is a picking or a drop and if
-     *    - elapsed time was stopped and restart by the last movement,
-     *    - Or the last movement was a START one.
+     * We calculate the new tracking delay only if
+     *    - the tracking pack should have a tracking delay
+     *    - AND the new trackingMovement is a picking or a drop
+     *    - AND the elapsed time was stopped and restart by the last movement OR the last movement was a START one.
      */
-    public function shouldCalculateTrackingDelay(TrackingMovement $trackingMovement,
-                                                 ?TrackingEvent    $previousTrackingEvent,
-                                                 ?TrackingEvent    $nextTrackingEvent): bool {
+    public function shouldCalculateTrackingDelay(TrackingMovement $tracking): bool {
+        $nextType = $tracking->calculateTrackingDelayData["nextType"] ?? null;
+        $previousTrackingEvent = $tracking->calculateTrackingDelayData["previousTrackingEvent"] ?? null;
+        $nextTrackingEvent = $tracking->calculateTrackingDelayData["nextTrackingEvent"] ?? null;
         return (
-
-            ($trackingMovement->isDrop() || $trackingMovement->isPicking())
-         /*   && (
+            $tracking->getPack()?->shouldHaveTrackingDelay()
+            && in_array($nextType, [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])
+            && (
                 ($previousTrackingEvent === TrackingEvent::PAUSE && $nextTrackingEvent !== TrackingEvent::PAUSE)
                 || ($previousTrackingEvent !== TrackingEvent::PAUSE && $nextTrackingEvent)
-            )*/
+            )
         );
     }
 
@@ -292,7 +290,7 @@ class TrackingDelayService {
             $timerStartedAt = $lastStart->getDatetime();
 
             if ($lastStop
-                && $this->trackingMovementService->compareMovements($lastStart, $lastStop) === -1) {
+                && $this->trackingMovementService->compareMovements($lastStart, $lastStop) === TrackingMovementService::COMPARE_A_BEFORE_B) {
                 $timerStoppedAt = $lastStop->getDatetime();
             }
         }
@@ -305,7 +303,7 @@ class TrackingDelayService {
 
             $timerStartedAt = $truckArrivalCreatedAt
                 ?: $arrivalCreatedAt
-                ?: $pack->getFirstTracking()?->getDatetime();
+                ?: $pack->getFirstAction()?->getDatetime();
 
             if ($timerStartedAt
                 && $lastStop

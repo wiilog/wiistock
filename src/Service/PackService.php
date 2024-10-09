@@ -187,7 +187,7 @@ class PackService {
         $finalTrackingDelay = $this->generateTrackingDelayHtml($pack);
 
         /** @var TrackingMovement $lastPackMovement */
-        $lastPackMovement = $pack->getLastTracking();
+        $lastPackMovement = $pack->getLastAction();
         return [
             'actions' => $this->templating->render('pack/datatablePackRow.html.twig', [
                 'pack' => $pack,
@@ -520,7 +520,7 @@ class PackService {
                 default => ''
             };
             $arrival = $pack->getArrivage();
-            $lastDrop = $pack->getLastDrop();
+            $lastOngoingDrop = $pack->getLastOngoingDrop();
 
             $this->mailerService->sendMail(
                 $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR. "Unité logistique non récupéré$titleSuffix",
@@ -528,8 +528,8 @@ class PackService {
                     'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
                     'pack' => $this->formatService->pack($pack),
-                    'emplacement' => $lastDrop->getEmplacement(),
-                    'date' => $lastDrop->getDatetime(),
+                    'emplacement' => $lastOngoingDrop->getEmplacement(),
+                    'date' => $lastOngoingDrop->getDatetime(),
                     'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),

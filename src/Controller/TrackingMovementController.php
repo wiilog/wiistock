@@ -565,7 +565,7 @@ class TrackingMovementController extends AbstractController
             ]);
         }
 
-        $location = $pack?->getLastTracking()?->getEmplacement();
+        $location = $pack?->getLastAction()?->getEmplacement();
 
         return $this->json([
             "success" => true,

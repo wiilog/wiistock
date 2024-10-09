@@ -79,8 +79,8 @@ class ReceiptAssociationService
             'id' => $receiptAssocation["id"],
             'creationDate' => $this->formatService->datetime($receiptAssocation["creationDate"], "", false, $user),
             'logisticUnit' => $receiptAssocation["logisticUnit"] ?? "",
-            'lastTrackingDate' => $this->formatService->datetime($receiptAssocation["lastTrackingDate"]),
-            'lastTrackingLocation' => $receiptAssocation["lastTrackingLocation"] ?? "",
+            'lastActionDate' => $this->formatService->datetime($receiptAssocation["lastActionDate"]),
+            'lastLocation' => $receiptAssocation["lastActionLocation"] ?? "",
             'receptionNumber' => $receiptAssocation["receptionNumber"],
             'user' => $receiptAssocation["user"],
             'Actions' => $this->templating->render('receipt_association/datatableRowActions.html.twig', [
@@ -96,8 +96,8 @@ class ReceiptAssociationService
             $receiptAssociation['logisticUnit'],
             $receiptAssociation['receptionNumber'],
             $receiptAssociation['user'],
-            $receiptAssociation['lastTrackingDate'],
-            $receiptAssociation['lastTrackingLocation'],
+            $receiptAssociation['lastActionDate'],
+            $receiptAssociation['lastActionLocation'],
         ];
 
         $this->CSVExportService->putLine($output, $row);
@@ -195,7 +195,7 @@ class ReceiptAssociationService
             //prise UL
             $pickMvt = $this->trackingMovementService->createTrackingMovement(
                 $pack,
-                $pack->getLastTracking()?->getEmplacement(),
+                $pack->getLastAction()?->getEmplacement(),
                 $user,
                 $now,
                 false,

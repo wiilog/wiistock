@@ -40,6 +40,10 @@ use WiiCommon\Helper\Stream;
 
 class TrackingMovementService {
 
+    public const COMPARE_A_BEFORE_B = -1;
+    public const COMPARE_A_AFTER_B = 1;
+    public const COMPARE_A_EQUALS_B = 0;
+
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
     public array $stockStatuses = [];
@@ -318,7 +322,7 @@ class TrackingMovementService {
 
                 foreach ($packCodes as $packCode) {
                     $pack = $this->packService->persistPack($entityManager, $packCode, 1, null);
-                    $location = $location ?? ($pack->getLastTracking() ? $pack->getLastTracking()->getEmplacement() : null);
+                    $location = $location ?? ($pack->getLastAction() ? $pack->getLastAction()->getEmplacement() : null);
 
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $pack,
@@ -396,6 +400,7 @@ class TrackingMovementService {
         $orderIndex = floor($orderIndexNanoseconds / 1000000);
 
         $tracking = new TrackingMovement();
+
         $tracking
             ->setQuantity($quantity)
             ->setEmplacement($location)
@@ -410,8 +415,17 @@ class TrackingMovementService {
             ->setMainMovement($mainMovement)
             ->setPreparation($preparation)
             ->setDelivery($delivery)
-            ->setLogisticUnitParent($logisticUnitParent)
-            ->setEvent($this->getTrackingEvent($tracking));
+            ->setLogisticUnitParent($logisticUnitParent);
+
+        // must be after movement initialization
+        // after set type & location
+        $tracking->setEvent($this->getTrackingEvent($tracking));
+
+        $tracking->calculateTrackingDelayData = [
+            "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
+            "nextTrackingEvent"     => $tracking->getEvent(),
+            "nextType"              => $tracking->getType()?->getCode(),
+        ];
 
         if ($attachments) {
             foreach($attachments as $attachment) {
@@ -584,7 +598,7 @@ class TrackingMovementService {
         if (!($pack?->isBasicUnit())
             || !$newNature
             || ($newNature->getId() === $pack?->getNature()?->getId())
-            || $pack?->getLastTracking() !== $trackingMovement
+            || $pack?->getLastAction() !== $trackingMovement
         ) {
             return [
                 "natureChanged" => false,
@@ -613,36 +627,52 @@ class TrackingMovementService {
         $lastTrackingMovements = $pack->getTrackingMovements()->toArray();
         $locationClusterRecordRepository = $entityManager->getRepository(LocationClusterRecord::class);
 
-        /** @var TrackingMovement|null $previousLastTracking */
-        $previousLastTracking = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
+        /** @var TrackingMovement|null $previousLastAction */
+        $previousLastAction = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
             ? $lastTrackingMovements[1]
             : null;
 
-        if (!$pack->getFirstTracking()
-            || $this->compareMovements($pack->getFirstTracking(), $tracking) === 1) {
-            $pack->setFirstTracking($tracking);
+        if (!$pack->getFirstAction()
+            || $this->compareMovements($pack->getFirstAction(), $tracking) === TrackingMovementService::COMPARE_A_AFTER_B) {
+            $pack->setFirstAction($tracking);
         }
 
-        if (!$pack->getLastTracking()
-            || $this->compareMovements($pack->getLastTracking(), $tracking) === -1) {
-            $pack->setLastTracking($tracking);
+        if (!$pack->getLastAction()
+            || $this->compareMovements($pack->getLastAction(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B) {
+            $pack->setLastAction($tracking);
+        }
+
+        if ($tracking->isPicking()
+            && (
+                !$pack->getLastPicking()
+                || $this->compareMovements($pack->getLastPicking(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+            )) {
+            $pack->setLastPicking($tracking);
         }
 
         if ($tracking->isDrop()
-            && (!$pack->getLastDrop() || $this->compareMovements($pack->getLastDrop(), $tracking) === -1)) {
+            && (
+                !$pack->getLastDrop()
+                || $this->compareMovements($pack->getLastDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+            )) {
             $pack->setLastDrop($tracking);
         }
+
+        if ($tracking->isDrop()
+            && (!$pack->getLastOngoingDrop() || $this->compareMovements($pack->getLastOngoingDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
+            $pack->setLastOngoingDrop($tracking);
+        }
         else if ($tracking->isPicking()) {
-            $pack->setLastDrop(null);
+            $pack->setLastOngoingDrop(null);
         }
 
         if ($tracking->isStart()
-            && (!$pack->getLastStart() || $this->compareMovements($pack->getLastStart(), $tracking) === -1)) {
+            && (!$pack->getLastStart() || $this->compareMovements($pack->getLastStart(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
             $pack->setLastStart($tracking);
         }
 
         if ($tracking->isStop()
-            && (!$pack->getLastStop() || $this->compareMovements($pack->getLastStop(), $tracking) === -1)) {
+            && (!$pack->getLastStop() || $this->compareMovements($pack->getLastStop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
             $pack->setLastStop($tracking);
         }
 
@@ -677,8 +707,8 @@ class TrackingMovementService {
                     // IF not equals then we set firstDrop
                     // ELSE that is to say the pack come from the location cluster
                     if (!$previousRecordLastTracking
-                        || !$previousLastTracking
-                        || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
+                        || !$previousLastAction
+                        || ($previousRecordLastTracking->getId() !== $previousLastAction->getId())) {
                         $record->setFirstDrop($tracking);
                     }
                     $this->locationClusterService->setMeter(
@@ -688,8 +718,8 @@ class TrackingMovementService {
                         $cluster
                     );
 
-                    if ($previousLastTracking?->isPicking()) {
-                        $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
+                    if ($previousLastAction?->isPicking()) {
+                        $locationPreviousLastTracking = $previousLastAction->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
@@ -1677,46 +1707,66 @@ class TrackingMovementService {
     }
 
 
-    public function compareMovements(TrackingMovement $trackingMovement1,
-                                     TrackingMovement $trackingMovement2): int {
-        $firstBeforeSecond = (
-            $trackingMovement1->getDatetime() < $trackingMovement2->getDatetime()
+    public function compareMovements(TrackingMovement $trackingMovementA,
+                                     TrackingMovement $trackingMovementB): int {
+        $ABeforeB = (
+            $trackingMovementA->getDatetime() < $trackingMovementB->getDatetime()
             || (
-                $trackingMovement1->getDatetime() == $trackingMovement2->getDatetime()
+                $trackingMovementA->getDatetime() == $trackingMovementB->getDatetime()
                 && (
-                    $trackingMovement1->getOrderIndex() < $trackingMovement2->getOrderIndex()
+                    $trackingMovementA->getOrderIndex() < $trackingMovementB->getOrderIndex()
                     // second movement not persisted in database
-                    || ($trackingMovement1->getId() && !$trackingMovement2->getId())
+                    || ($trackingMovementA->getId() && !$trackingMovementB->getId())
                     || ( // two movement persist in database
-                        $trackingMovement1->getId()
-                        && $trackingMovement2->getId()
-                        && $trackingMovement1->getId() < $trackingMovement2->getId()
+                        $trackingMovementA->getId()
+                        && $trackingMovementB->getId()
+                        && $trackingMovementA->getId() < $trackingMovementB->getId()
                     )
                 )
             )
         );
-        $firstAfterSecond = (
-            $trackingMovement1->getDatetime() > $trackingMovement2->getDatetime()
+        $AAfterB = (
+            $trackingMovementA->getDatetime() > $trackingMovementB->getDatetime()
             || (
-                $trackingMovement1->getDatetime() == $trackingMovement2->getDatetime()
+                $trackingMovementA->getDatetime() == $trackingMovementB->getDatetime()
                 && (
-                    $trackingMovement1->getOrderIndex() > $trackingMovement2->getOrderIndex()
+                    $trackingMovementA->getOrderIndex() > $trackingMovementB->getOrderIndex()
 
                     // first movement not persisted in database
-                    || (!$trackingMovement1->getId() && $trackingMovement2->getId())
+                    || (!$trackingMovementA->getId() && $trackingMovementB->getId())
                     || (// two movement persist in database
-                        $trackingMovement1->getId()
-                        && $trackingMovement2->getId()
-                        && $trackingMovement1->getId() > $trackingMovement2->getId()
+                        $trackingMovementA->getId()
+                        && $trackingMovementB->getId()
+                        && $trackingMovementA->getId() > $trackingMovementB->getId()
                     )
                 )
             )
         );
 
-        return match (true) {
-            $firstBeforeSecond => -1,
-            $firstAfterSecond => 1,
-            default => 0
+        return match(true) {
+            $ABeforeB => self::COMPARE_A_BEFORE_B,
+            $AAfterB  => self::COMPARE_A_AFTER_B,
+            default   => self::COMPARE_A_EQUALS_B,
+        };
+    }
+
+    /**
+     * Return more recent movement between $pack->getLastDrop() and $pack->getLastPicking().
+     * If the two movements are not distinguishable we return in priority the last drop.
+     *
+     * @see Pack::getLastDrop()
+     * @see Pack::getLastPicking()
+     */
+    public function getLastPackMovement(Pack $pack): ?TrackingMovement {
+        if (!$pack->getLastDrop() || !$pack->getLastPicking()) {
+            return $pack->getLastDrop() ?: $pack->getLastPicking();
+        }
+
+        $compareRes = $this->compareMovements($pack->getLastPicking(), $pack->getLastDrop());
+
+        return match($compareRes) {
+            self::COMPARE_A_AFTER_B  => $pack->getLastPicking(),
+            default                  => $pack->getLastDrop(), // self::COMPARE_A_BEFORE_B or self::COMPARE_A_EQUALS_B or any other value
         };
     }
 }

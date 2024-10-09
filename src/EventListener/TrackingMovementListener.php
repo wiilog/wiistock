@@ -78,8 +78,9 @@ class TrackingMovementListener implements EventSubscriber
 
     #[AsEventListener(event: 'onFlush')]
     public function onFlush(OnFlushEventArgs $args): void {
-        $flushedTrackingMovementsDeleted = $args->getObjectManager()->getUnitOfWork()->getScheduledCollectionDeletions();
-        $flushedTrackingMovementsInserted = $args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions();
+        $unitOfWork = $args->getObjectManager()->getUnitOfWork();
+        $flushedTrackingMovementsDeleted = $unitOfWork->getScheduledCollectionDeletions();
+        $flushedTrackingMovementsInserted = $unitOfWork->getScheduledEntityInsertions();
 
         $this->packCodesToRecalculateTrackingDelay = [];
         $this->flushedTrackingMovementsInserted = [];
@@ -88,20 +89,24 @@ class TrackingMovementListener implements EventSubscriber
             if ($entity instanceof TrackingMovement) {
                 $pack = $entity->getPack();
                 $packCode = $pack->getCode();
-                $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
+                if ($packCode) {
+                    $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
+                }
             }
         }
 
         foreach($flushedTrackingMovementsInserted as $entity) {
-
             if ($entity instanceof TrackingMovement) {
                 $this->flushedTrackingMovementsInserted[] = $entity;
 
-                $shouldCalculateTrackingDelay = $this->trackingDelayService->shouldCalculateTrackingDelay($entity, null, null);
+                $shouldCalculateTrackingDelay = $this->trackingDelayService->shouldCalculateTrackingDelay($entity);
+
                 if ($shouldCalculateTrackingDelay) {
                     $pack = $entity->getPack();
                     $packCode = $pack->getCode();
-                    $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
+                    if ($packCode) {
+                        $this->packCodesToRecalculateTrackingDelay[$packCode] = true;
+                    }
                 }
             }
         }
@@ -163,19 +168,29 @@ class TrackingMovementListener implements EventSubscriber
 
         $pack = $movementToDelete->getPack();
 
+        $lastOngoingDropToUpdate = (
+            !$pack->getLastOngoingDrop()
+            || $pack->getLastOngoingDrop()->getId() === $movementToDelete->getId()
+        );
+
+        $firstActionToUpdate = (
+            $pack->getFirstAction()
+            && $pack->getFirstAction()->getId() === $movementToDelete->getId()
+        );
+
         $lastDropToUpdate = (
-            !$pack->getLastDrop()
-            || $pack->getLastDrop()->getId() === $movementToDelete->getId()
+            $pack->getLastDrop()
+            && $pack->getLastDrop()->getId() === $movementToDelete->getId()
         );
 
-        $firstTrackingToUpdate = (
-            $pack->getFirstTracking()
-            && $pack->getFirstTracking()->getId() === $movementToDelete->getId()
+        $lastPickingToUpdate = (
+            $pack->getLastPicking()
+            && $pack->getLastPicking()->getId() === $movementToDelete->getId()
         );
 
-        $lastTrackingToUpdate = (
-            $pack->getLastTracking()
-            && $pack->getLastTracking()->getId() === $movementToDelete->getId()
+        $lastActionToUpdate = (
+            $pack->getLastAction()
+            && $pack->getLastAction()->getId() === $movementToDelete->getId()
         );
 
         $lastStartToUpdate = (
@@ -188,12 +203,12 @@ class TrackingMovementListener implements EventSubscriber
             && $pack->getLastStop()->getId() === $movementToDelete->getId()
         );
 
-        $firstTracking = $firstTrackingToUpdate
-            ? $trackingMovementRepository->findFistTrackingByPack($pack, $movementToDelete)
+        $firstAction = $firstActionToUpdate
+            ? $trackingMovementRepository->findFistActionByPack($pack, $movementToDelete)
             : null;
 
-        $lastTracking = ($lastTrackingToUpdate || $lastDropToUpdate)
-            ? $trackingMovementRepository->findLastByPack("tracking", $pack, $movementToDelete)
+        $lastAction = ($lastActionToUpdate || $lastOngoingDropToUpdate)
+            ? $trackingMovementRepository->findLastByPack("action", $pack, $movementToDelete)
             : null;
 
         $lastStart = $lastStartToUpdate
@@ -204,18 +219,34 @@ class TrackingMovementListener implements EventSubscriber
             ? $trackingMovementRepository->findLastByPack("stop", $pack, $movementToDelete)
             : null;
 
+        $lastPicking = $lastPickingToUpdate
+            ? $trackingMovementRepository->findLastByPack("picking", $pack, $movementToDelete)
+            : null;
+
+        $lastDrop = $lastDropToUpdate
+            ? $trackingMovementRepository->findLastByPack("drop", $pack, $movementToDelete)
+            : null;
+
         // set movements
 
-        if ($firstTrackingToUpdate) {
-            $pack->setFirstTracking($firstTracking);
+        if ($firstActionToUpdate) {
+            $pack->setFirstAction($firstAction);
         }
 
-        if ($lastTrackingToUpdate) {
-            $pack->setLastTracking($lastTracking);
+        if ($lastActionToUpdate) {
+            $pack->setLastAction($lastAction);
         }
 
-        if ($lastDropToUpdate && $lastTracking?->isDrop()) {
-            $pack->setLastDrop($lastTracking);
+        if ($lastPickingToUpdate) {
+            $pack->setLastPicking($lastPicking);
+        }
+
+        if ($lastDropToUpdate) {
+            $pack->setLastDrop($lastDrop);
+        }
+
+        if ($lastOngoingDropToUpdate && $lastAction?->isDrop()) {
+            $pack->setLastOngoingDrop($lastAction);
         }
 
         if ($lastStartToUpdate) {

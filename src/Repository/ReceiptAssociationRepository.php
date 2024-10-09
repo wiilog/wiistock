@@ -39,13 +39,13 @@ class ReceiptAssociationRepository extends EntityRepository
             ->select("receipt_association.id AS id")
             ->addSelect("receipt_association.creationDate AS creationDate")
             ->addSelect("join_logisticUnits.code AS logisticUnit")
-            ->addSelect("join_logisticUnitLastTracking.datetime AS lastTrackingDate")
-            ->addSelect("join_logisticUnitLastTrackingLocation.label AS lastTrackingLocation")
+            ->addSelect("join_logisticUnitLastAction.datetime AS lastActionDate")
+            ->addSelect("join_logisticUnitLastActionLocation.label AS lastActionLocation")
             ->addSelect("receipt_association.receptionNumber AS receptionNumber")
             ->addSelect("join_user.username AS user")
             ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
-            ->leftJoin("join_logisticUnits.lastTracking", "join_logisticUnitLastTracking")
-            ->leftJoin("join_logisticUnitLastTracking.emplacement", "join_logisticUnitLastTrackingLocation")
+            ->leftJoin("join_logisticUnits.lastAction", "join_logisticUnitLastAction")
+            ->leftJoin("join_logisticUnitLastAction.emplacement", "join_logisticUnitLastActionLocation")
             ->leftJoin("receipt_association.user", "join_user");
 
         $countTotal = QueryBuilderHelper::count($qb, 'receipt_association', false);
@@ -122,17 +122,17 @@ class ReceiptAssociationRepository extends EntityRepository
                         $qb
                             ->leftJoin('receipt_association.logisticUnits', 'order_pack')
                             ->orderBy('order_pack.code', $order);
-                    } else if ($column === 'lastTrackingLocation') {
+                    } else if ($column === 'lastActionLocation') {
                         $qb
                             ->leftJoin('receipt_association.logisticUnits', 'order_pack')
-                            ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
-                            ->leftJoin('pack_lastTracking.emplacement', 'lastTracking_location')
-                            ->orderBy('lastTracking_location.label', $order);
-                    } else if ($column === 'lastTrackingDate') {
+                            ->leftJoin('order_pack.lastAction', 'pack_lastAction')
+                            ->leftJoin('pack_lastAction.emplacement', 'lastAction_location')
+                            ->orderBy('lastAction_location.label', $order);
+                    } else if ($column === 'lastActionDate') {
                         $qb
                             ->leftJoin('receipt_association.logisticUnits', 'order_pack')
-                            ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
-                            ->orderBy('pack_lastTracking.datetime', $order);
+                            ->leftJoin('order_pack.lastAction', 'pack_lastAction')
+                            ->orderBy('pack_lastAction.datetime', $order);
                     } else if (property_exists(ReceiptAssociation::class, $column)) {
                         $qb->orderBy("receipt_association.$column", $order);
                     }
@@ -182,12 +182,12 @@ class ReceiptAssociationRepository extends EntityRepository
             ->addSelect('receipt_association.receptionNumber AS receptionNumber')
             ->addSelect('join_user.username AS user')
             ->addSelect('join_logisticUnits.code AS logisticUnit')
-            ->addSelect("DATE_FORMAT(join_lastTracking.datetime, '$dateFormat') AS lastTrackingDate")
-            ->addSelect('join_location.label AS lastTrackingLocation')
+            ->addSelect("DATE_FORMAT(join_lastAction.datetime, '$dateFormat') AS lastActionDate")
+            ->addSelect('join_location.label AS lastActionLocation')
             ->leftJoin('receipt_association.user', 'join_user')
             ->leftJoin('receipt_association.logisticUnits', 'join_logisticUnits')
-            ->leftJoin('join_logisticUnits.lastTracking', 'join_lastTracking')
-            ->leftJoin('join_lastTracking.emplacement', 'join_location')
+            ->leftJoin('join_logisticUnits.lastAction', 'join_lastAction')
+            ->leftJoin('join_lastAction.emplacement', 'join_location')
             ->andWhere('receipt_association.creationDate BETWEEN :dateMin AND :dateMax');
 
         return $queryBuilder

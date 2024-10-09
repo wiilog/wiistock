@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\TruckArrivalLine;
 use App\Exceptions\FormException;
+use App\Service\WorkPeriod\WorkPeriodItem;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -131,6 +132,15 @@ class TruckArrivalLineService
 
         $nextWorkedDay = clone $dateLine;
         $nextWorkedDay->setTime(0, 0, 0);
+        $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
+
+        /**
+         * Prevent infinite loop
+         */
+        if(empty($workedDays)){
+           return false;
+        }
+
         do {
             $nextWorkedDay->modify('+1 day');
         } while (!$this->workPeriodService->isOnWorkPeriod($entityManager, $nextWorkedDay, ["onlyDayCheck" => true]));

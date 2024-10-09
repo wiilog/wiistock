@@ -24,6 +24,8 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Tracking\TrackingMovementRepository;
+use App\Service\TrackingDelayService;
+use App\Service\TrackingMovementService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -58,15 +60,16 @@ class TrackingMovement implements AttachmentContainer {
     const SHIPPING_REQUEST_ENTITY = 'shippingRequest';
 
     /**
-     * TODO WIIS-11974
      * @var array{
      *      previousTrackingEvent?: TrackingEvent,
-     *      nextTrackingEvent?: TrackingEvent
+     *      nextTrackingEvent?: TrackingEvent,
+     *      nextType?: string,
      *  }
      * Data build by tracking movement creation function createTrackingMovement
      * The data will be used in TrackingMovementListener after flush to launch message to recalculate delay.
      *
      * @see TrackingMovementService::createTrackingMovement()
+     * @see TrackingDelayService::shouldCalculateTrackingDelay()
      */
     public array $calculateTrackingDelayData = [];
 

@@ -78,19 +78,22 @@ class RemoveDuplicateLUCommand extends Command {
         return Command::SUCCESS;
     }
 
+    /**
+     * @param Pack[] $lus
+     */
     private function createTableConfig( array $lus, FormatService $formatService, PackRepository $luRepository): array {
         $header = ['Id', 'Dernier mouvement', 'nature', 'Emplacement', 'nb d\'ul enfants'];
         $table = [];
 
         foreach ($lus as $lu) {
-            $lastTracking = $lu->getLastTracking();
-            $lastDrop = $lu->getLastDrop();
+            $lastAction = $lu->getLastAction();
+            $lastOngoingDrop = $lu->getLastOngoingDrop();
             $nbChildren = $luRepository->count(["parent" => $lu]);
             $table[] = [
                 $lu->getId(),
-                $lastTracking?->getDatetime()?->format('Y-m-d H:i:s') ?: 'N/A',
+                $lastAction?->getDatetime()?->format('Y-m-d H:i:s') ?: 'N/A',
                 $formatService->nature($lu->getNature()),
-                $formatService->location($lastDrop?->getEmplacement()),
+                $formatService->location($lastOngoingDrop?->getEmplacement()),
                 $nbChildren,
             ];
         }

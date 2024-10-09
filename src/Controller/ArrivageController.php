@@ -1240,7 +1240,7 @@ class ArrivageController extends AbstractController
         $rows = [];
         /** @var Pack $pack */
         foreach ($packs as $pack) {
-            $mouvement = $pack->getLastTracking();
+            $mouvement = $pack->getLastAction();
             $rows[] = [
                 'nature' => $this->getFormatter()->nature($pack->getNature()),
                 'code' => $pack->getCode(),

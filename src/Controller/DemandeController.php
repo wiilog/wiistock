@@ -55,7 +55,6 @@ class DemandeController extends AbstractController
     #[Route("/compareStock", name: "compare_stock", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
     public function compareStock(Request                $request,
                                  DeliveryRequestService $demandeLivraisonService,
-                                 FreeFieldService       $champLibreService,
                                  EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
@@ -378,7 +377,7 @@ class DemandeController extends AbstractController
                     ? [
                         "packId" => $logisticUnit?->getId(),
                         "code" => $logisticUnit?->getCode() ?? null,
-                        "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                        "location" => $this->formatService->location($logisticUnit?->getLastOngoingDrop()?->getEmplacement()),
                         "project" => $logisticUnit?->getProject()?->getCode() ?? null,
                         "nature" => $this->formatService->nature($logisticUnit?->getNature()),
                         "color" => $logisticUnit?->getNature()?->getColor() ?? null,

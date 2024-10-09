@@ -790,7 +790,7 @@ class DispatchService {
             $user = $this->userService->getUser();
 
             $pack = $dispatchPack->getPack();
-            $lastTracking = $pack->getLastTracking();
+            $lastAction = $pack->getLastAction();
             $code = $pack->getCode();
             $quantity = $dispatchPack->getQuantity();
             $nature = $pack->getNature();
@@ -800,9 +800,9 @@ class DispatchService {
                 'decimalSeparator' => '.',
             ]);
             $comment = $pack->getComment();
-            $lastMvtDate = $lastTracking && $lastTracking->getDatetime() ? $lastTracking->getDatetime()->format("{$user->getDateFormat()} H:i") : null;
-            $lastLocation = $lastTracking ? $this->formatService->location($lastTracking->getEmplacement()) : null;
-            $operator = $lastTracking ? $this->formatService->user($lastTracking->getOperateur()) : null;
+            $lastMvtDate = $lastAction && $lastAction->getDatetime() ? $lastAction->getDatetime()->format("{$user->getDateFormat()} H:i") : null;
+            $lastLocation = $lastAction ? $this->formatService->location($lastAction->getEmplacement()) : null;
+            $operator = $lastAction ? $this->formatService->user($lastAction->getOperateur()) : null;
             $status = $dispatchPack->isTreated()
                 ? $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Traité')
                 : $this->translationService->translate('Demande', 'Acheminements', 'Général', 'À traiter');
@@ -977,7 +977,7 @@ class DispatchService {
                         'oneLineWysiwyg' => true,
                         'inputClass' => $creationMode,
                     ]),
-                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $lastLocation ?? "<span class='lastLocation'></span>",
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $operator ?? "<span class='operator'></span>",
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => $status ?? "<span class='status'></span>",
@@ -1054,7 +1054,7 @@ class DispatchService {
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $weight,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $volume,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => "<div class='ql-editor'>$comment</div>",
-                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $lastMvtDate,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE => $lastMvtDate,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $lastLocation,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $operator,
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => $status,
@@ -1151,9 +1151,9 @@ class DispatchService {
                     "packQuantity" => $dispatch["packQuantity"],
                     "quantityToDispatch" => $dispatch["dispatchPackQuantity"],
                     SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $dispatch["packWeight"],
-                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $dispatch["packLastTrackingDate"],
-                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $dispatch["packLastTrackingLocation"],
-                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $dispatch["packLastTrackingOperator"],
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE => $dispatch["packLastActionDate"],
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $dispatch["packLastActionLocation"],
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $dispatch["packLastActionOperator"],
                     default => null
                 };
             }
@@ -1913,7 +1913,7 @@ class DispatchService {
         $reference->setCommentaire($data['comment']);
 
         $oldDescription = $reference->getDescription();
-        $this->refArticleDataService->updateDescriptionField($entityManager, $reference, [
+        $this->refArticleDataService-> updateDescriptionField($entityManager, $reference, [
             'outFormatEquipment' => $data['outFormatEquipment'],
             'manufacturerCode' => $data['manufacturerCode'],
             'volume' =>  $data['volume'],
@@ -2020,7 +2020,7 @@ class DispatchService {
             ["name" => 'nature', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature'), "alwaysVisible" => true],
             ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)'), "alwaysVisible" => true],
             ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire', "alwaysVisible" => true],
-            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), "alwaysVisible" => true],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), "alwaysVisible" => true],
             ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement'), "alwaysVisible" => true],
             ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur'), "alwaysVisible" => true],
             ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut', "alwaysVisible" => true],
@@ -2139,7 +2139,7 @@ class DispatchService {
                         SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)', false),
                         SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)', false),
                         SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
-                        SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
+                        SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_ACTION_DATE => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
                         SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
                         SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
                         default => $field->getFieldLabel()

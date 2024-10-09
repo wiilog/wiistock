@@ -15,6 +15,6 @@ exec("crontab " . CRONTAB_TMP_FILE);
 
 // Launch cron daemon
 exec("crond -d 0");
-exec("supervisord -c /project/supervisord.conf");
+exec("supervisord --configuration /project/supervisord.conf --pidfile /tmp/supervisord.pid");
 
 echo "Starting cron" . PHP_EOL;

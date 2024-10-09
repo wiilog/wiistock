@@ -499,7 +499,7 @@ class ShippingRequestService {
                         'nature' => $this->formatService->nature($pack->getNature()),
                         'code' => $pack->getCode() ?? null,
                         'size' => $shippingRequestPack->getSize() ?? '/',
-                        'location' => $this->formatService->location($pack->getLastDrop()?->getEmplacement()),
+                        'location' => $this->formatService->location($pack->getLastOngoingDrop()?->getEmplacement()),
                         'color' => $pack?->getNature()?->getColor() ?? null,
                     ],
                     'references' => $referenceData,
