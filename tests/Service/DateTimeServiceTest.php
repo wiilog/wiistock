@@ -18,6 +18,28 @@ class DateTimeServiceTest extends KernelTestCase
 
     private String $localPathCacheFreeDay = './cache/work-period/workFreeDay';
 
+    private array $arrayWorkedPeriod = array(
+
+        "monday" => [
+            ["08:00","18:00"],
+        ],
+        "tuesday" => [
+            ["08:00","12:00"],
+            ["13:00","17:00"]
+        ],
+        "wednesday" => [
+            ["08:00","12:00"],
+            ["13:00","17:00"]
+        ],
+        "friday" => [
+            ["08:00","12:00"],
+            ["13:00","16:00"],
+            ["17:00","19:00"]
+        ],
+    );
+    private array $arrayWorkedPeriodEmpty = array();
+
+
     protected function setUp(): void {
         self::bootKernel();
         $container = static::getContainer();
@@ -30,7 +52,6 @@ class DateTimeServiceTest extends KernelTestCase
      */
     public function testCalculateMinuteFromWithValidTimes(string $time, int $expectedMinutes): void
     {
-        var_dump(exec("ls ./cache"));
         $this->assertEquals($expectedMinutes, $this->dateTimeService->calculateMinuteFrom($time));
     }
 
@@ -110,32 +131,6 @@ class DateTimeServiceTest extends KernelTestCase
             unlink($this->localPathCacheFreeDay);
         }
     }
-    private function arrayWorkedPeriod() : array
-    {
-        return array(
-            "monday" => [
-                ["08:00","18:00"],
-            ],
-            "tuesday" => [
-                ["08:00","12:00"],
-                ["13:00","17:00"]
-            ],
-            "wednesday" => [
-                ["08:00","12:00"],
-                ["13:00","17:00"]
-            ],
-            "friday" => [
-                ["08:00","12:00"],
-                ["13:00","16:00"],
-                ["17:00","19:00"]
-            ],
-        );
-    }
-
-    private function arrayWorkedPeriodEmpty() : array
-    {
-        return array();
-    }
 
     private function arrayFreePeriod() : array
     {
@@ -156,7 +151,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithBreak() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
         $this->assertEquals(
@@ -171,7 +166,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWith2Breaks() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-11 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-12 08:00:00');
         $this->assertEquals(
@@ -186,7 +181,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithoutBreak() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $this->assertEquals(
@@ -201,7 +196,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenUnversedDates() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $this->assertEquals(
@@ -216,7 +211,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenSameDates() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $this->assertEquals(
@@ -231,7 +226,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesDuringUnworkedDay() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-10 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-11 08:00:00');
         $this->assertEquals(
@@ -246,7 +241,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithFreeDay() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriod());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriod());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
         $this->assertEquals(
@@ -261,7 +256,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithoutWorkedDay() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriodEmpty(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriodEmpty, $this->arrayFreePeriodEmpty());
         $date1 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $date2 = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
         $this->assertEquals(
@@ -276,7 +271,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeWithBreak() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $dateinterval = new DateInterval('PT5H');
         $this->assertEquals("2024-10-08 14:00:00",$this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
@@ -289,7 +284,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeWithoutBreak() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
         $dateinterval = new DateInterval('PT5H');
         $this->assertEquals("2024-10-07 13:00:00",$this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
@@ -302,7 +297,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedMoreThanDayHoursIntervalToDateTime() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-08 08:00:00');
         $dateinterval = new DateInterval('PT9H');
         $this->assertEquals("2024-10-09 09:00:00",$this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
@@ -315,7 +310,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeDuringUnworkedDay() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriodEmpty());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriodEmpty());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-09 08:00:00');
         $dateinterval = new DateInterval('PT9H');
         $this->assertEquals("2024-10-11 09:00:00", $this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
@@ -327,7 +322,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeDuringFreeDay() : void
     {
         $this->deleteCacheWorkedPeriod();
-        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod(), $this->arrayFreePeriod());
+        $this->createCacheWorkedPeriod($this->arrayWorkedPeriod, $this->arrayFreePeriod());
         $date = DateTime::createFromFormat('Y-m-d H:i:s','2024-10-07 08:00:00');
         $dateinterval = new DateInterval('PT11H');
         $this->assertEquals("2024-10-09 09:00:00", $this->dateTimeService->addWorkedPeriodToDateTime($this->entityManager, $date, $dateinterval)->format("Y-m-d H:i:s"));
