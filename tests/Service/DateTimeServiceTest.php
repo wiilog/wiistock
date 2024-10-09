@@ -18,7 +18,7 @@ class DateTimeServiceTest extends KernelTestCase
 
     private String $localPathCacheFreeDay = './cache/work-period/workFreeDay';
 
-    private array $arrayWorkedPeriod = array(
+    private array $arrayWorkedPeriod = [
 
         "monday" => [
             ["08:00","18:00"],
@@ -36,8 +36,8 @@ class DateTimeServiceTest extends KernelTestCase
             ["13:00","16:00"],
             ["17:00","19:00"]
         ],
-    );
-    private array $arrayWorkedPeriodEmpty = array();
+   ] ;
+    private array $arrayWorkedPeriodEmpty = [];
 
 
     protected function setUp(): void {
@@ -134,15 +134,15 @@ class DateTimeServiceTest extends KernelTestCase
 
     private function arrayFreePeriod() : array
     {
-        return array(
+        return [
             DateTime::createFromFormat('Y-m-d','2024-10-08'),
             DateTime::createFromFormat('Y-m-d','2024-12-25'),
-        );
+        ];
     }
 
     private function arrayFreePeriodEmpty() : array
     {
-        return array();
+        return [];
     }
 
     /** Get worked period in one day with worked period [08:00 - 12:00;13:00 - 17:00]
