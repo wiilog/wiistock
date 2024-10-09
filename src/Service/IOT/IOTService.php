@@ -74,6 +74,7 @@ class IOTService
     const DEMO_ACTION = 'demo-action';
     const YOKOGAWA_XS550_XS110A = 'yokogawa-xs550-xs110A';
     const MULTITECH_GATEWAY = 'gateway_multitech';
+    const ENGINKO_LW22CCM = 'enginko-lw22ccm';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 8,
@@ -90,6 +91,7 @@ class IOTService
         self::INEO_TRK_ZON => 0,
         self::YOKOGAWA_XS550_XS110A => 8,
         self::MULTITECH_GATEWAY => 0,
+        self::ENGINKO_LW22CCM => 8,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -109,6 +111,7 @@ class IOTService
         self::INEO_TRK_ZON => Sensor::ZONE,
         self::YOKOGAWA_XS550_XS110A => Sensor::TEMPERATURE,
         self::MULTITECH_GATEWAY => Sensor::GATEWAY,
+        self::ENGINKO_LW22CCM => Sensor::TEMPERATURE_HYGROMETRY,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -126,6 +129,7 @@ class IOTService
         self::INEO_TRK_TRACER => 'à l\'action',
         self::YOKOGAWA_XS550_XS110A => 'x minutes',
         self::MULTITECH_GATEWAY =>'x minutes',
+        self::ENGINKO_LW22CCM => 'x minutes',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -928,6 +932,28 @@ class IOTService
                 } else {
                     return [];
                 }
+            case IOTService::ENGINKO_LW22CCM:
+                if (str_starts_with($payload, "15")) {
+                    $hexTemperature = substr($payload, 12, 4);
+                    $hexHygrometry = substr($payload, 16, 2);
+
+                    // The temperature is represented by a signed integer with the least significant byte first. The temperature is expressed in hundreds of a °C degree.
+                    // Convert the hex string to an integer (little-endian)
+                    $int = unpack('v', hex2bin($hexTemperature))[1];
+
+                    // If the integer is greater than 32767, it is a negative value
+                    if ($int > 32767) {
+                        $int -= 65536;
+                    }
+
+                    // Convert the value to °C by dividing by 100
+                    $temperature = $int / 100;
+                    return [
+                        self::DATA_TYPE_TEMPERATURE => $temperature,
+                        //Relative humidity is an unsigned integer corresponding to twice the percentage of humidity.
+                        self::DATA_TYPE_HYGROMETRY => hexdec($hexHygrometry) / 2,
+                    ];
+                }
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -985,6 +1011,10 @@ class IOTService
                     return self::ACS_EVENT;
                 } elseif ($payload && str_starts_with($payload, '49')) {
                     return self::ACS_PRESENCE;
+                }
+            case IOTService::ENGINKO_LW22CCM:
+                if (str_starts_with($config['value']['payload'], "15")) {
+                    return self::ACS_EVENT;
                 }
         }
         return 'Évenement non trouvé';
@@ -1056,7 +1086,13 @@ class IOTService
                 } else {
                     return -1;
                 }
-
+            case IOTService::ENGINKO_LW22CCM:
+                if (str_starts_with($payload, "15")) {
+                    $battery = substr($payload, 18, 2);
+                    return hexdec($battery);
+                } else {
+                    return -1;
+                }
         }
         return -1;
     }
@@ -1361,6 +1397,7 @@ class IOTService
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
             IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
             IOTService::YOKOGAWA_XS550_XS110A => str_starts_with($payload,'20') || str_starts_with($payload,'21') || str_starts_with($payload,'40'),
+            IOTService::ENGINKO_LW22CCM => str_starts_with($payload, '15'),
             default => true,
         };
     }
