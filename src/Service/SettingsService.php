@@ -496,6 +496,12 @@ class SettingsService {
                         $hours)) {
                     throw new RuntimeException("Les heures doivent être comprises entre 00:00 et 23:59");
                 }
+                else if ($hours) {
+                    $detailHours = preg_split("/-+|;+/", $hours);
+                    if (intval($detailHours[0]) >= intval($detailHours[2])) {
+                        $hours = $detailHours[2] . "-" . $detailHours[3] . ";" . $detailHours[0] . "-" . $detailHours[1] ;
+                    }
+                }
                 if (!empty($workingHour['id'])) {
                     $day = $days[$workingHour["id"]]
                         ->setTimes($hours)
