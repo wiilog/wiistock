@@ -685,7 +685,9 @@ class PackRepository extends EntityRepository
     }
 
     public function iterateForSelect(?string $term, array $options = [], ?bool $withoutArticle = false): iterable {
-        return self::getQueryBuilderForSelect($term, $options, $withoutArticle)->getQuery()->toIterable();
+        return self::getQueryBuilderForSelect($term, $options, $withoutArticle)
+            ->getQuery()
+            ->toIterable();
     }
 
     /**
