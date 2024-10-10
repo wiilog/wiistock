@@ -1,4 +1,4 @@
-import AJAX, {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
 
@@ -142,7 +142,10 @@ function ajaxGetAndFillArticle($select) {
 
             setMaxQuantity($select);
 
-            ajaxEditArticle($modal.find('[name="article"]'));
+            const $article = $modal.find('[name="article"]');
+            if ($article.exists()) {
+                ajaxEditArticle($article);
+            }
         }, 'json');
     }
 }
@@ -208,6 +211,7 @@ function validateLivraison(livraisonId, $button) {
 }
 
 function ajaxEditArticle(select) {
+    console.log("cacoucacou")
     let path = Routing.generate('article_show', true);
     let params = {id: select.val(), isADemand: 1};
 
@@ -614,4 +618,16 @@ function loadTable() {
         loadLogisticUnitList(requestId);
         pageInitialized = true;
     }
+}
+
+function getQuantityRefArticle(refArticleId) {
+    return AJAX
+        .route(
+            GET,
+            "get_quantity_ref_article",
+            {
+                referenceArticle: refArticleId,
+            }
+        )
+        .json()
 }

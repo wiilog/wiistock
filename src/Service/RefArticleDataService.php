@@ -617,7 +617,7 @@ class RefArticleDataService
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
                 "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
-                "showAddRefToCart" => ($refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0) || $settingManageDeliveriesWithoutStockQuantity,
+                "showAddRefToCart" => $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF || $settingManageDeliveriesWithoutStockQuantity,
                 "hasArticles" => !empty($refArticle->getAssociatedArticles()),
             ]),
             "colorClass" => (

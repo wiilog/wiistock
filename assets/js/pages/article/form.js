@@ -1,5 +1,6 @@
 import '@styles/details-page.scss';
-import {GET, POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
+import Form from "@app/form";
 import Routing from '@app/fos-routing';
 
 $(function () {
