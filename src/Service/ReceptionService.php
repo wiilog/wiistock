@@ -369,7 +369,7 @@ class ReceptionService
         $orderNumber = $reception->getOrderNumber() ? join(", ", $reception->getOrderNumber()) : null;
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
-        $deliveryFee = $purchaseRequest->getDeliveryFee();
+        $deliveryFee = $purchaseRequest?->getDeliveryFee();
         $attachments = $reception->getAttachments();
         $receivers = implode(', ', array_unique(
                 $reception->getDemandes()
