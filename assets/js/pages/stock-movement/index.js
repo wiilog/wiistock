@@ -9,18 +9,6 @@ global.getQuantityRefArticle = getQuantityRefArticle;
 let $modalNewMvtStock = $('#modalNewMvtStock');
 let tableMvt = null;
 
-export function getQuantityRefArticle(refArticleId) {
-    return AJAX
-        .route(
-            GET,
-            "get_quantity_ref_article",
-            {
-                referenceArticle: refArticleId,
-            }
-        )
-        .json()
-}
-
 $(function() {
     initDateTimePicker();
     $('.select2').select2();
@@ -224,4 +212,16 @@ function deleteMvtStock(id) {
         },
         table: tableMvt,
     })
+}
+
+function getQuantityRefArticle(refArticleId) {
+    return AJAX
+        .route(
+            GET,
+            "get_quantity_ref_article",
+            {
+                referenceArticle: refArticleId,
+            }
+        )
+        .json()
 }

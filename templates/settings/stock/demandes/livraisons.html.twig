@@ -17,7 +17,7 @@
     </div>
     <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(setting('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), 'Ne pas gérer les quantités en stock', false, setting_value('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), {
-            tooltip: 'Aucun contrôle de quantité ne sera effectué sur aucune des étapes de la<br>livraison. Des articles seront générés automatiquement à la validation<br>de la demande de livraison',
+            tooltip: 'Aucun contrôle de quantité ne sera effectué sur aucune des étapes de la<br>livraison. Des articles seront générés automatiquement à la validation<br>de la demande de livraison. Ce paramétrage fonctionne également avec les références gérées à la référence.',
         }) }}
     </div>
 </div>
