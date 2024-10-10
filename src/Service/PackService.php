@@ -25,8 +25,8 @@ use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Iterator;
 use RuntimeException;
-use Generator;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -853,7 +853,7 @@ class PackService {
         ];
     }
 
-    public function getFormatedKeyboardPackGenerator(iterable $packs): Generator {
+    public function getFormatedKeyboardPackGenerator(Iterator $packs): Iterator {
         $firstElement = [
             "id" => "new-item",
             "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
@@ -862,14 +862,17 @@ class PackService {
         $firstElement["highlighted"] = !$packs->valid();
         yield $firstElement;
 
-        foreach ($packs as $pack) {
-            // if this is the first element, highlight it
-            $pack["highlighted"] = !isset($firstElement["highlighted"]);
+        if ($packs->valid()) {
+            foreach ($packs as $pack) {
+                // if this is the first element, highlight it
+                $pack["highlighted"] = !isset($firstElement["highlighted"]);
 
-            $pack["stripped_comment"] = $this->formatService->html($pack["comment"] ?? '');
-            $pack["lastMvtDate"] = $this->formatService->datetime(DateTime::createFromFormat('d/m/Y H:i', $pack['lastMvtDate']) ?: null);
+                $pack["stripped_comment"] = $this->formatService->html($pack["comment"] ?? '');
+                $pack["lastMvtDate"] = $this->formatService->datetime(DateTime::createFromFormat('d/m/Y H:i', $pack['lastMvtDate'])
+                    ?: null);
 
-            yield $pack;
+                yield $pack;
+            }
         }
     }
 }

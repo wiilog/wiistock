@@ -513,7 +513,7 @@ class SelectController extends AbstractController {
         }
 
         return new StreamedJsonResponse([
-            "results" => $packService->getFormatedKeyboardPackGenerator($results) ?? null,
+            "results" => $packService->getFormatedKeyboardPackGenerator($results) ?? [],
             "error" => $error ?? null,
         ]);
 
