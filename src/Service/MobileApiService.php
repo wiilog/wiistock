@@ -104,6 +104,9 @@ class MobileApiService {
                 if (!empty($dispatchReference['comment'])) {
                     $dispatchReference['comment'] = substr(strip_tags($dispatchReference['comment']), 0, 200);
                 }
+                $dispatchReference['associatedDocumentTypes'] = Stream::from($dispatchReference['associatedDocumentTypes'] ?: [])
+                    ->join(',') ?: null;
+
                 return $dispatchReference;
             })
             ->toArray();
