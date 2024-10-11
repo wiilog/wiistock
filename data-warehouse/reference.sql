@@ -64,10 +64,6 @@ SELECT reference_article.id,
           JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."weight"')))
                                                                  AS poids,
 
-       IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."associatedDocumentTypes"')) = '',
-          null,
-          JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."associatedDocumentTypes"')))
-                                                                 AS types_documents_associes,
        IF(reference_article.dangerous_goods = 1, 'oui', 'non')   AS marchandise_dangeureuse,
        reference_article.onu_code                                AS code_onu,
        reference_article.product_class                           AS classe_produit,
@@ -122,7 +118,6 @@ GROUP BY reference_article.id,
          hauteur,
          volume,
          poids,
-         types_documents_associes,
          marchandise_dangeureuse,
          code_onu,
          classe_produit,
