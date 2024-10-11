@@ -189,7 +189,6 @@ CREATE TABLE dw_reference_article
     hauteur                  varchar(255),
     volume                   varchar(255),
     poids                    varchar(255),
-    types_documents_associes varchar(255),
     marchandise_dangeureuse  varchar(255),
     code_onu                 varchar(255),
     classe_produit           varchar(255),
@@ -333,7 +332,8 @@ CREATE TABLE dw_acheminement
     nom_client                   varchar(255),
     adresse_client               varchar(255),
     telephone_client             varchar(255),
-    destinataire_client          varchar(255)
+    destinataire_client          varchar(255),
+    types_documents_associes     varchar(255)
 );
 
 CREATE TABLE dw_acheminement_statut

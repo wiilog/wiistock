@@ -44,7 +44,8 @@ SELECT dispatch.id                                          AS id,
        dispatch.customer_name                               AS nom_client,
        dispatch.customer_address                            AS adresse_client,
        dispatch.customer_phone                              AS telephone_client,
-       dispatch.customer_recipient                          AS destinataire_client
+       dispatch.customer_recipient                          AS destinataire_client,
+       dispatch_reference_article.associated_document_types AS types_documents_associes
 
 FROM dispatch
 
@@ -109,4 +110,5 @@ GROUP BY id,
          nom_client,
          adresse_client,
          telephone_client,
-         destinataire_client
+         destinataire_client,
+         types_documents_associes
