@@ -270,15 +270,21 @@ class DateTimeService {
                                               DateInterval           $workedInterval): ?DateTime {
         $workedSegments = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
+        $finalDate = clone $startDate;
+        $finalInterval = clone $workedInterval;
+
         // prevent execution if worked days settings empty
         if (empty($workedSegments)) {
             return null;
         }
 
+        $dateIntervalMillisecond = $this->convertDateIntervalToMilliseconds($finalInterval);
+        if ($dateIntervalMillisecond === 0) {
+            return $finalDate;
+        }
+
         $day = strtolower($startDate->format('l'));
 
-        $finalDate = clone $startDate;
-        $finalInterval = clone $workedInterval;
 
         if (!$this->workPeriodService->isWorkFreeDay($entityManager, $startDate)) {
 
@@ -326,9 +332,10 @@ class DateTimeService {
             ->findKey(static fn(string $workedDay) => $workedDay === $day) ?? -1;
 
         do {
-            $nextDayKey = ($currentDayKey + 1) % $workedDays->count();
+            $currentDayKey = ($currentDayKey + 1) % $workedDays->count();
+            $nextDay = $workedDays->offsetGet($currentDayKey);
 
-            $nextDay = $workedDays->offsetGet($nextDayKey);
+            $nextDay = $workedDays->offsetGet($currentDayKey);
             $finalDate
                 ->modify("next $nextDay")
                 ->setTime(0, 0);
