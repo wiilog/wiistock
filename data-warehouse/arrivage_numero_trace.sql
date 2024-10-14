@@ -10,7 +10,7 @@ WITH RECURSIVE DATES AS
 
 SELECT truck_arrival_line.number as no_tracking,
        truck_arrival.number as no_arrivage_camion,
-       IF(reserve.type = 'qualite', 'Oui', 'Non') as reserve_qualite,
+       IF(reserve.kind = 'qualite', 'Oui', 'Non') as reserve_qualite,
        IF(
            (
                (SELECT COUNT(*) FROM truck_arrival_line_arrivage WHERE truck_arrival_line_arrivage.truck_arrival_line_id = truck_arrival_line.id) = 0
