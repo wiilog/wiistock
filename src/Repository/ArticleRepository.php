@@ -1422,4 +1422,14 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findDuplicateCode(){
+        return $this->createQueryBuilder('article')
+            ->select('article.barCode')
+            ->addSelect('COUNT(article.barCode) as count')
+            ->groupBy('article.barCode')
+            ->having('COUNT(article.barCode) > 1')
+            ->getQuery()
+            ->getResult();
+    }
 }
