@@ -831,7 +831,7 @@ class PackRepository extends EntityRepository
     {
         // get all packs having a non-unique code
         return $this->createQueryBuilder("pack")
-            ->select("TRIM(pack.code) AS code")
+            ->select("pack.code AS code")
             ->addSelect("COUNT(pack.code) AS count")
             ->groupBy("pack.code")
             ->having("COUNT(pack.code) > 1")

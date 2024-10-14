@@ -3,7 +3,9 @@
 namespace App\Command;
 
 use App\Entity\Pack;
+use App\Entity\Tracking\TrackingMovement;
 use App\Repository\PackRepository;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\FormatService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -11,6 +13,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Serializer\SerializerInterface;
 use WiiCommon\Helper\Stream;
 
 
@@ -19,18 +22,20 @@ use WiiCommon\Helper\Stream;
     description: 'Tool to remove duplicate LU',
 )]
 class RemoveDuplicateLUCommand extends Command {
-    public function __construct(private  EntityManagerInterface $entityManager,
-                                private  FormatService          $formatService) {
+    public function __construct(private EntityManagerInterface $entityManager,
+                                private SerializerInterface    $serializer,
+                                private FormatService          $formatService) {
         parent::__construct();
     }
 
     protected function configure(): void {}
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $luRepository = $this->entityManager->getRepository(Pack::class);
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
         $duplicateLUsData = $luRepository->findDuplicateCode();
         $io = new SymfonyStyle($input, $output);
+        $deletedEntities = [];
 
         // if there are no duplicate LUs, show a message in the console output
         if (empty($duplicateLUsData)) {
@@ -42,40 +47,90 @@ class RemoveDuplicateLUCommand extends Command {
 
         foreach ($duplicateLUsData as $duplicateLUData) {
             $index = 1;
-            do {
-                $lus = $luRepository->findBy(['code' => $duplicateLUData['code']]);
-                $io->section("ULs dupliquées : {$duplicateLUData['code']}");
-                // show the duplicate LUs in the console output
-                $io->table(...$this->createTableConfig($lus, $this->formatService, $luRepository));
 
-                // ask the user to choose the LU to rename
-                $chosenLU = $io->choice('Quel UL voulez-vous renommer ? (id)', Stream::from($lus)->map(fn(Pack $lu) => $lu->getId())->toArray());
-                $newCodeIsValid = false;
-                do {
-                    // ask the user to enter the new code
-                    $newCode = $io->ask('Entrez le nouveau code', $duplicateLUData['code'].'_'.$index++);
+            $lus = $luRepository->findBy(['code' => $duplicateLUData['code']]);
+            $io->section("ULs dupliquées : {$duplicateLUData['code']}");
+            // show the duplicate LUs in the console output
+            $io->table(...$this->createTableConfig($lus, $this->formatService, $luRepository));
 
-                    // check if the new code is already used
-                    $newCodeIsValid = count($luRepository->findBy(['code' => $newCode])) === 0;
-                    if ($newCodeIsValid === false) {
-                        $io->error("Le code {$newCode} est déjà utilisé");
-                        $newCode = null;
-                    }
-                } while ($newCodeIsValid === false);
+            $firstMovements = Stream::from($lus)
+                ->map(fn(Pack $lu) => $lu->getTrackingMovements()->first())
+                ->filter() // remove null values
+                ->toArray();
 
-                // update the chosen LU with the new code
-                $lu = $luRepository->find($chosenLU);
-                $lu->setCode($newCode);
-                $this->entityManager->flush();
+            // if anny of the duplicate LUs has a tracking movement
+            if (empty($firstMovements)) {
+                // we keep one lu
+                // remove one element of $lus
+                $luToKeep = array_shift($lus);
+                $io->text("On garde l'UL avec l'id : {$luToKeep->getId()}");
 
-                $io->success("UL {$chosenLU} renommée en {$newCode}");
-                $io->newLine();
+                // remove the other LUs
+                Stream::from($lus)
+                    ->each(function(Pack $lu) use (&$deletedEntities) {
+                        $deletedEntities = $this->remove($lu, $deletedEntities);
+                    });
+            }
+            // if there is only one tracking movement, we can delete the other LUs
+            elseif (count($firstMovements) === 1) {
+                $firstMovement = $firstMovements[array_key_first($firstMovements)];
+                $io->text("Le mouvement de traca le plus ancien est : {$firstMovement->getDatetime()->format('Y-m-d H:i:s')}");
 
-            } while (count($luRepository->findBy(['code' => $duplicateLUData['code']])) > 1);
+                Stream::from($lus)
+                    ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->first() !== $firstMovement)
+                    ->each(function (Pack $lu) use (&$deletedEntities) {
+                        $deletedEntities = $this->remove($lu, $deletedEntities);
+                    });
+            }
+            // if there are multiple tracking movements
+            elseif (count($firstMovements) > 1) {
+                $io->text('Il y a plusieurs mouvements de traca');
+
+                // remove the LUs that do not have a tracking movement
+                Stream::from($lus)
+                    ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->isEmpty())
+                    ->each(function (Pack $lu) use (&$deletedEntities) {
+                        $deletedEntities = $this->remove($lu, $deletedEntities);
+                    });
+
+                // serialize the first movements to compare them
+                $firstMovements = Stream::from($firstMovements)
+                   ->map(fn($firstMovement) => json_encode($this->serializer->normalize($firstMovement, null, ["usage" => SerializerUsageEnum::MOBILE])))
+                   ->unique();
+
+                //if every LU  have the same first movement
+                if(count($firstMovements) === 1) {
+                    $io->text('Tous les ULs ont le même premier mouvement');
+
+                    // in this situation it should be one lu with many movements and the other with one movement
+                    // we can remove the LUs with one movement
+                    Stream::from($lus)
+                        ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->count() === 1)
+                        ->each(function (Pack $lu) use (&$deletedEntities) {
+                            $deletedEntities = $this->remove($lu, $deletedEntities);
+                        });
+                }
+            }
         }
 
+        dump(json_encode($deletedEntities));
+        // save the changes in the database after removing the duplicate LUs
+        $this->entityManager->flush();
 
         return Command::SUCCESS;
+    }
+
+    private function remove(Pack $lu, $deletedEntities): array {
+        Stream::from($lu->getTrackingMovements())
+            ->each( function (TrackingMovement $trackingMovement) use (&$deletedEntities) {
+                $deletedEntities['trackingMovement'][] = $this->serializer->normalize($trackingMovement, null, ["usage" => SerializerUsageEnum::MOBILE]);
+                $this->entityManager->remove($trackingMovement);
+            });
+
+        $deletedEntities['lu'][] = $this->serializer->normalize($lu, null, ["usage" => SerializerUsageEnum::MOBILE]);
+        $this->entityManager->remove($lu);
+
+        return $deletedEntities;
     }
 
     /**
