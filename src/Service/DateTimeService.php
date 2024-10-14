@@ -335,7 +335,6 @@ class DateTimeService {
             $currentDayKey = ($currentDayKey + 1) % $workedDays->count();
             $nextDay = $workedDays->offsetGet($currentDayKey);
 
-            $nextDay = $workedDays->offsetGet($currentDayKey);
             $finalDate
                 ->modify("next $nextDay")
                 ->setTime(0, 0);
