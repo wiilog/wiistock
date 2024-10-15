@@ -590,8 +590,8 @@ class TrackingMovementService {
         $oldNature = $pack?->getNature();
 
         $newNature = match (true) {
-            $trackingMovement->isDrop() => $location?->getNewNatureOnDrop(),
-            $trackingMovement->isPicking() => $location?->getNewNatureOnPick(),
+            $trackingMovement->isDrop() && $location?->isEnableNewNatureOnDrop() => $location?->getNewNatureOnDrop(),
+            $trackingMovement->isPicking() && $location?->isEnableNewNatureOnPick() => $location?->getNewNatureOnPick(),
             default => null
         };
 

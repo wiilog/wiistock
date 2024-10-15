@@ -187,13 +187,23 @@
 </div>
 <div class="row my-2">
     <div class="form-group col-md-6 col-12 my-1">
+        {{ form.checkbox('EnableNewNatureOnPick', 'Activer le changement de nature à la prise', false, location.enableNewNatureOnPick, {
+            tooltip: "Si vous cochez l'activation de ce paramètre sans remplir de nature, celle-ci se videra sur l'UL au mouvement de prise.",
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12 my-1">
+        {{ form.checkbox('EnableNewNatureOnDrop', 'Activer le changement de nature à la dépose', false, location.enableNewNatureOnDrop, {
+            tooltip: "Si vous cochez l'activation de ce paramètre sans remplir de nature, celle-ci se videra sur l'UL au mouvement de dépose.",
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12 ">
         {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::newNatureOnPick') %}
         {{ form.select(field.name, field.value, false, {
             type: 'nature',
             items: location.newNatureOnPick ? [{value: location.newNatureOnPick.id, label: location.newNatureOnPick.label}] : [],
         }) }}
     </div>
-    <div class="form-group col-md-6 col-12 my-1">
+    <div class="form-group col-md-6 col-12 ">
         {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::newNatureOnDrop') %}
         {{ form.select(field.name, field.value, false, {
             type: 'nature',
