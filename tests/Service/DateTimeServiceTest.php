@@ -13,11 +13,10 @@ use Symfony\Flex\Cache;
 
 class DateTimeServiceTest extends KernelTestCase
 {
-    private const Local_Path_Cache_Day = 'work-period';
-    private const File_Name_Worked_Day = 'workedDay';
-    private const File_Name_Free_Day = 'workFreeDay';
-    public const Array_Worked_Period = [
-
+    private const LOCAL_PATH_CACHE_DAY = 'work-period';
+    private const FILE_NAME_WORKED_DAY = 'workedDay';
+    private const FILE_NAME_FREE_DAY = 'workFreeDay';
+    private const ARRAY_WORKED_PERIOD = [
         "monday" => [
             ["08:00","18:00"],
         ],
@@ -35,14 +34,14 @@ class DateTimeServiceTest extends KernelTestCase
             ["17:00","19:00"]
         ],
     ] ;
-    public const Array_Worked_Period_Broken = [
-
+    private const ARRAY_WORKED_PERIOD_BROKEN = [
         "monday" => [
             ["14:00","16:00"],
             ["08:00","10:00"]
         ],
     ];
-    private const Array_Worked_Period_Empty = [];
+    private const ARRAY_WORKED_PERIOD_EMPTY = [];
+
     private DateTimeService $dateTimeService;
     private EntityManagerInterface $entityManager;
     private CacheService $cacheService;
@@ -132,7 +131,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithBreak(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', '2024-10-08 17:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', '2024-10-08 17:00:00',
             "PT8H"
         );
     }
@@ -143,7 +142,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWith2Breaks(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-11 08:00:00', '2024-10-11 19:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-11 08:00:00', '2024-10-11 19:00:00',
             "PT9H"
         );
     }
@@ -154,7 +153,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithoutBreak(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-07 08:00:00', '2024-10-07 18:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-07 08:00:00', '2024-10-07 18:00:00',
             "PT10H"
         );
     }
@@ -165,7 +164,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenUnversedDates(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 17:00:00', '2024-10-08 08:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 17:00:00', '2024-10-08 08:00:00',
             "PT8H"
         );
     }
@@ -176,7 +175,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenSameDates(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', '2024-10-08 08:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', '2024-10-08 08:00:00',
             "PT0H"
         );
     }
@@ -187,7 +186,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesDuringUnworkedDay(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-10 08:00:00', '2024-10-10 17:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-10 08:00:00', '2024-10-10 17:00:00',
             "PT0H"
         );
     }
@@ -198,7 +197,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithFreeDay(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-08 08:00:00', '2024-10-08 17:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-08 08:00:00', '2024-10-08 17:00:00',
             "PT0H"
         );
     }
@@ -209,7 +208,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesUnworkedDayAndWork(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-10 08:00:00', '2024-10-11 10:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-10 08:00:00', '2024-10-11 10:00:00',
             "PT2H"
         );
     }
@@ -220,7 +219,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithFreeDayAndWork(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-08 08:00:00', '2024-10-09 10:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-08 08:00:00', '2024-10-09 10:00:00',
             "PT2H"
         );
     }
@@ -231,7 +230,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesWithoutWorkedDay(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period_Empty, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', '2024-10-08 17:00:00',
+            self::ARRAY_WORKED_PERIOD_EMPTY, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', '2024-10-08 17:00:00',
             "PT0H"
         );
     }
@@ -243,7 +242,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesBetween2Days(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 18:00:00', '2024-10-09 08:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 18:00:00', '2024-10-09 08:00:00',
             "PT0H"
         );
     }
@@ -254,7 +253,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesHourWithoutWork(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 21:00:00', '2024-10-08 23:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 21:00:00', '2024-10-08 23:00:00',
             "PT0H"
         );
     }
@@ -265,7 +264,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesHourWithWork(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 21:00:00', '2024-10-09 23:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 21:00:00', '2024-10-09 23:00:00',
             "PT8H"
         );
     }
@@ -276,7 +275,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesDifferentWeek(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 07:00:00', '2024-10-16 23:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 07:00:00', '2024-10-16 23:00:00',
             "PT51H"
         );
 
@@ -288,7 +287,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesDifferentWeekWithFree(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-08 07:00:00', '2024-10-16 23:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-08 07:00:00', '2024-10-16 23:00:00',
             "PT43H"
         );
     }
@@ -299,7 +298,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDates2HalfDays(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 13:00:00', '2024-10-09 10:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 13:00:00', '2024-10-09 10:00:00',
             "PT6H"
         );
     }
@@ -310,7 +309,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDates2hoursInDayWithBreak(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 10:00:00', '2024-10-08 14:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 10:00:00', '2024-10-08 14:00:00',
             "PT3H"
         );
     }
@@ -321,7 +320,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDates2hoursInDayWithoutBreak(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-07 10:00:00', '2024-10-07 14:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-07 10:00:00', '2024-10-07 14:00:00',
             "PT4H"
         );
     }
@@ -332,7 +331,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesBrokenWorkedDay(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period_Broken, $this->arrayFreePeriodEmpty(), '2024-10-07 08:00:00', '2024-10-07 18:00:00',
+            self::ARRAY_WORKED_PERIOD_BROKEN, $this->arrayFreePeriodEmpty(), '2024-10-07 08:00:00', '2024-10-07 18:00:00',
             "PT4H"
         );
     }
@@ -343,7 +342,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDates1HourDiffDay(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 10:30:00', '2024-10-09 11:30:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 10:30:00', '2024-10-09 11:30:00',
             "PT9H"
         );
     }
@@ -354,7 +353,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDates1DayDiffWeek(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 10:00:00', '2024-10-16 14:00:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 10:00:00', '2024-10-16 14:00:00',
             "PT46H"
         );
     }
@@ -365,7 +364,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testGetWorkedPeriodBetweenDatesStrangeHour(): void
     {
         $this->testGetWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:21:00', '2024-10-09 15:37:00',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:21:00', '2024-10-09 15:37:00',
             "PT14H16M"
         );
     }
@@ -376,7 +375,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeWithBreak(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT5H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT5H',
             "2024-10-08 14:00:00"
         );
     }
@@ -387,7 +386,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeWith2Breaks(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-11 08:00:00', 'PT8H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-11 08:00:00', 'PT8H',
             "2024-10-11 18:00:00"
         );
     }
@@ -398,7 +397,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeWithoutBreak(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-07 08:00:00', 'PT5H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-07 08:00:00', 'PT5H',
             "2024-10-07 13:00:00"
         );
 
@@ -410,7 +409,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedMoreThanDayHoursIntervalToDateTime(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT9H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT9H',
             "2024-10-09 09:00:00"
         );
     }
@@ -421,7 +420,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeDuringUnworkedDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-09 08:00:00', 'PT9H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-09 08:00:00', 'PT9H',
             "2024-10-11 09:00:00"
         );
     }
@@ -432,7 +431,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeDuringFreeDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-07 08:00:00', 'PT11H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-07 08:00:00', 'PT11H',
             "2024-10-09 09:00:00"
         );
     }
@@ -443,7 +442,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAdd0WorkedIntervalToDateTimeWithFreeDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-08 08:00:00', 'PT0H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-08 08:00:00', 'PT0H',
             "2024-10-08 08:00:00"
         );
     }
@@ -454,7 +453,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAdd0WorkedIntervalToDateTime(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT0H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT0H',
             "2024-10-08 08:00:00"
         );
     }
@@ -465,7 +464,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeWithoutWorkedDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period_Empty, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT5H',
+            self::ARRAY_WORKED_PERIOD_EMPTY, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT5H',
             null
         );
     }
@@ -476,7 +475,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeSkipUnworkedDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-09 18:00:00', 'PT11H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-09 18:00:00', 'PT11H',
             "2024-10-14 10:00:00"
         );
     }
@@ -487,7 +486,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeSkipFreeDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-07 18:00:00', 'PT10H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-07 18:00:00', 'PT10H',
             "2024-10-11 10:00:00"
         );
     }
@@ -498,7 +497,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeAfterEndOfDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 19:00:00', 'PT2H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 19:00:00', 'PT2H',
             "2024-10-09 10:00:00"
         );
     }
@@ -509,7 +508,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeBigAdd(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 07:00:00', 'PT51H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 07:00:00', 'PT51H',
             "2024-10-16 17:00:00"
         );
     }
@@ -520,7 +519,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeBigAddWithFreeDay(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriod(), '2024-10-08 07:00:00', 'PT43H',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriod(), '2024-10-08 07:00:00', 'PT43H',
             "2024-10-16 17:00:00"
         );
     }
@@ -531,7 +530,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeLittleAdd(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT2S',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:00:00', 'PT2S',
             "2024-10-08 08:00:02"
         );
     }
@@ -542,7 +541,7 @@ class DateTimeServiceTest extends KernelTestCase
     public function testAddWorkedIntervalToDateTimeStrangeHour(): void
     {
         $this->testAddWorkedPeriod(
-            $this::Array_Worked_Period, $this->arrayFreePeriodEmpty(), '2024-10-08 08:21:00', 'PT14H16M',
+            self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), '2024-10-08 08:21:00', 'PT14H16M',
             "2024-10-09 15:37:00"
         );
     }
@@ -578,8 +577,8 @@ class DateTimeServiceTest extends KernelTestCase
 
     private function createCacheWorkedPeriod(array $arrayWordedDay, array $arrayFreeDay): void
     {
-        $this->cacheService->set($this::Local_Path_Cache_Day, $this::File_Name_Worked_Day, $arrayWordedDay);
-        $this->cacheService->set($this::Local_Path_Cache_Day, $this::File_Name_Free_Day, $arrayFreeDay);
+        $this->cacheService->set(self::LOCAL_PATH_CACHE_DAY, self::FILE_NAME_WORKED_DAY, $arrayWordedDay);
+        $this->cacheService->set(self::LOCAL_PATH_CACHE_DAY, self::FILE_NAME_FREE_DAY, $arrayFreeDay);
     }
 
     private function arrayFreePeriod(): array
