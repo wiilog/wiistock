@@ -112,7 +112,7 @@ class DateTimeService {
         }
     }
 
-    function checkForOverlaps(array $timeSlots): void {
+    function checkForOverlaps(iterable $timeSlots): void {
         $timeRanges = [];
 
         foreach ($timeSlots as $timeSlot) {
@@ -140,17 +140,20 @@ class DateTimeService {
     function processWorkingHours(array $workingHours, array &$days): void {
         foreach ($workingHours as $workingHour) {
             $hours = $workingHour["hours"] ?? null;
+            $timeSlots = null;
 
             if ($hours) {
                 $this->validateHoursFormat($hours);
 
-                $timeSlots = explode(';', $hours);
+                $timeSlots = Stream::explode(";", $hours)
+                    ->sort();
+
                 $this->checkForOverlaps($timeSlots);
             }
 
             if (!empty($workingHour['id'])) {
                 $day = $days[$workingHour["id"]]
-                    ->setTimes($hours)
+                    ->setTimes($timeSlots?->join(";"))
                     ->setWorked($workingHour["worked"]);
 
                 if ($day->isWorked() && !$day->getTimes()) {
