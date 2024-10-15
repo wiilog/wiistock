@@ -577,7 +577,7 @@ class ArticleController extends AbstractController {
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             $deliveryRequest = $requestRepository->find($data['deliveryRequestId']);
 
-            $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+            $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
 
             if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */

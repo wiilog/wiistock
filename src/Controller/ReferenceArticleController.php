@@ -51,7 +51,6 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -582,7 +581,7 @@ class ReferenceArticleController extends AbstractController
     public function getQuantityByRefArticleId(SettingsService        $settingsService,
                                               EntityManagerInterface $entityManager,
                                               ReferenceArticle       $referenceArticle): JsonResponse {
-        $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
+        $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
         $quantity = false;
 
         if ($needsQuantitiesCheck) {
