@@ -1,6 +1,7 @@
+
 {% import 'form.html.twig' as form %}
 
-{% include 'settings/fixed_field_elements.html.twig' with {
+ {% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY'),
     field: emergency.field,
     elementsType: emergency.elementsType,
@@ -14,11 +15,19 @@
             leur caractère obligatoire.
         </div>
     </div>
-    <table id="table-production-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
+    <div class="wii-section-title">Entête</div>
+    <div class="row p-3">
+        <div class="col-12 mb-3 wii-small-text">
+            {% block filters %}
+                {{ form.switch('type', null, false, types, {expanded: true}) }}
+            {% endblock %}
+        </div>
+    </div>
+    <table id="table-production-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
         {% include 'datatable/main-header.html.twig' with {
-            creationColumns: 2,
-            cells: 6,
-            needsFilterColumn: true,
+            cells: 5,
+            needsFilterColumn: false,
         } %}
     </table>
 </div>
+

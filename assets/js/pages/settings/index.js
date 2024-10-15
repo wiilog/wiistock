@@ -87,6 +87,7 @@ const initializers = {
     stock_receptions_champs_fixes: initializeReceptionFixedFields,
     stock_demandes_champs_fixes: initializeDemandesFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
+    trace_production_champs_fixes: initializeProductionFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
@@ -1365,28 +1366,38 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 }
 
 function initializeProductionFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-production-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `production`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const $typeInputs = $container.find(`[name=type]`);
+    const selectorTable = `#table-production-fixed-fields`;
+    $typeInputs
+        .on(`change`, function() {
+            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: `production`, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                ],
+            });
+        })
+        .first()
+        .trigger(`change`);
 }
+
+
 
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');
