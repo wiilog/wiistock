@@ -1540,7 +1540,7 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_PRODUCTION => [
                 self::MENU_FULL_SETTINGS => [
-                    self::MENU_CONFIGURATIONS => function() use ($settingRepository, $userRepository) {
+                    self::MENU_CONFIGURATIONS => function() use ($settingRepository, $userRepository, $fixedFieldByTypeRepository) {
                         $notificationEmailUsers = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
                         $users = $notificationEmailUsers
                             ? $userRepository->findBy(["id" => explode(",", $notificationEmailUsers)])
@@ -1554,6 +1554,9 @@ class SettingsController extends AbstractController {
                                     "selected" => true,
                                 ])
                                 ->toArray(),
+                            "productionFixedFieldsFilterable" => Stream::from($fixedFieldByTypeRepository->findBy(['entityCode'=> FixedFieldStandard::ENTITY_CODE_PRODUCTION]))
+                                ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_PRODUCTION]))
+                                ->toArray(),
                         ];
                     },
                     self::MENU_STATUSES => function() {
@@ -1566,20 +1569,22 @@ class SettingsController extends AbstractController {
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PRODUCTION),
                         ];
                     },
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
-                        $field = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository) {
+                        $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
+                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
 
                         return [
+                            'types' => $types,
                             "emergency" => [
-                                "field" => $field->getId(),
-                                "elementsType" => $field->getElementsType(),
-                                "elements" => Stream::from($field->getElements())
+                                "field" => $emergencyField?->getId(),
+                                "elementsType" => $emergencyField?->getElementsType(),
+                                "elements" => $emergencyField ? Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
-                                    ->toArray(),
+                                    ->toArray() : []
                             ],
                         ];
                     },
