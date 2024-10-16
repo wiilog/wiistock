@@ -344,12 +344,13 @@ function removePackInDispatchModal($button) {
 function onExistingOrNotChanged($input) {
     const $modal = $input.closest('.modal');
     const value = parseInt($input.val());
-    const $dispatchDetais = $modal.find(`.dispatch-details`);
+    const $dispatchDetails = $modal.find(`.dispatch-details`);
     const $existingDispatchContainer = $modal.find(`.existing-dispatch`);
     const $newDispatchContainer = $modal.find(`.new-dispatch`);
     const $existingDispatch = $existingDispatchContainer.find(`select[name=existingDispatch]`);
+
     if(value === 0) {
-        $dispatchDetais.empty();
+        $dispatchDetails.empty();
         $existingDispatch
             .val(null)
             .trigger(SELECT2_TRIGGER_CHANGE)

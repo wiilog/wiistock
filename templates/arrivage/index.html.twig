@@ -75,12 +75,14 @@
 
                 <div class="dispatch-mode-container d-none">
                     <button type="button"
-                            class="btn btn-outline-primary cancel" disabled>
+                            class="btn btn-outline-primary cancel d-inline-flex align-items-center"
+                            disabled>
                         {{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Annuler acheminer') }}
                     </button>
                     <button type="button"
-                            class="btn btn-primary validate" disabled>
-                        <span class="wii-icon wii-icon-check-white mr-2 align-self-center"></span>
+                            class="btn btn-primary validate d-inline-flex align-items-center"
+                            disabled>
+                        <span class="wii-icon wii-icon-check-white mr-2"></span>
                         {{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Valider arrivages UL à acheminer') }}
                     </button>
                 </div>

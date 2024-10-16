@@ -1618,7 +1618,6 @@ class DispatchController extends AbstractController {
                     $entityManager,
                     $types,
                     count($arrivals) === 1 ? $arrivals[0] : null,
-                    true,
                     $packs
                 ),
             )

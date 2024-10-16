@@ -239,7 +239,6 @@ class DispatchService {
     public function getNewDispatchConfig(EntityManagerInterface $entityManager,
                                          array $types,
                                          ?Arrivage $arrival = null,
-                                         bool $fromArrival = false,
                                          array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
@@ -268,7 +267,6 @@ class DispatchService {
             'types' => $types,
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $packs,
-            'fromArrival' => $fromArrival,
             'arrival' => $arrival,
             'existingDispatches' => Stream::from($existingDispatches)
                 ->map(fn(Dispatch $dispatch) => [
