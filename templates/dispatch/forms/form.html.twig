@@ -1,19 +1,5 @@
 {% import 'form.html.twig' as form %}
-
-{% macro dataAttributesFieldbyType(fieldsParam, fieldCode) %}
-    {% for ParamName, types in fieldsParam[fieldCode] is defined ? fieldsParam[fieldCode] : [] %}
-        {% if ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT')] %}
-            data-displayed-type
-        {% elseif ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT')] %}
-            data-required-type
-        {% else %}
-            data-{{ ParamName }}-type
-        {% endif %}
-        ="{{ types }}"
-    {% endfor %}
-{% endmacro %}
-
-{% import _self as macros %}
+{% import 'utils/fixed-field-by-type.html.twig' as macros %}
 
 {% set displayAction = dispatch.id ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
 {% set requiredAction = dispatch.id ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
