@@ -387,6 +387,13 @@ class SettingsService {
 
             $updated[] = Setting::MAX_SESSION_TIME;
         }
+
+        if ($request->request->has(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY)
+            && $request->request->get(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY)) {
+            if (!$this->getValue($entityManager, Setting::DEFAULT_LOCATION_RECEPTION)) {
+                throw new FormException("Veuillez d'abord définir un emplacement de réception par défaut dans les paramètres Stock | Réceptions | Réceptions - Statuts avant de renseigner cette option.");
+            }
+        }
     }
 
     /**

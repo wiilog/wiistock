@@ -35,7 +35,6 @@ use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
-use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,7 +51,7 @@ use WiiCommon\Helper\Stream;
 class DemandeController extends AbstractController
 {
 
-    #[Route("/compareStock", name: "compare_stock", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/compareStock", name: "compare_stock", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function compareStock(Request                $request,
                                  DeliveryRequestService $demandeLivraisonService,
                                  EntityManagerInterface $entityManager): Response {
@@ -63,7 +62,7 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/api-modifier", name: "demandeLivraison_api_edit", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier", name: "demandeLivraison_api_edit", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
                             SettingsService $settingsService,
