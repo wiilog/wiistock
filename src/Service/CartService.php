@@ -18,15 +18,14 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Twig\Environment;
 use Symfony\Component\Routing\RouterInterface;
-use WiiCommon\Helper\StringHelper;
+use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 class CartService {
 
@@ -193,7 +192,7 @@ class CartService {
             $type = $typeRepository->find($data['deliveryType']);
             $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
-            $receiver = $utilisateurRepository->findOneBy(['email' => $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE]]);
+            $receiver = $utilisateurRepository->findOneBy(['email' => $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE] ?? null]);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
