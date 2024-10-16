@@ -192,7 +192,12 @@ class CartService {
             $type = $typeRepository->find($data['deliveryType']);
             $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
-            $receiver = $utilisateurRepository->findOneBy(['email' => $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE] ?? null]);
+
+            $receiverUsername = $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE] ?? null;
+            if ($receiverUsername) {
+                $receiver = $utilisateurRepository->findOneBy(['username' => $receiverUsername]);
+            }
+
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
@@ -216,7 +221,7 @@ class CartService {
                 ->setCommentaire($data['comment'] ?? null)
                 ->setProject($project)
                 ->setStatut($draft)
-                ->setReceiver($receiver);
+                ->setReceiver($receiver ?? null);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);
