@@ -165,7 +165,10 @@ class ProductionRequestController extends AbstractController
                         ProductionRequestService $productionRequestService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
 
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
+        $post = $request->request;
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $type = $typeRepository->find($post->get(FixedFieldEnum::type->value));
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true, null, $type);
 
         $quantityToGenerate = $data->getInt('quantityToGenerate');
         if ($quantityToGenerate !== 1 && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST)) {
