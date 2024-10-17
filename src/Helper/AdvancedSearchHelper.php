@@ -85,9 +85,10 @@ class AdvancedSearchHelper {
                             $endPosition = $startPosition + strlen($part);
                             $highlightedPart = substr($value, $startPosition, strlen($part));
 
+                            $color = self::HIGHLIGHT_COLOR;
                             $value = substr_replace(
                                 $value,
-                                sprintf("<span style='background-color: %s'>$highlightedPart</span>", self::HIGHLIGHT_COLOR),
+                                "<span style='background-color: {$color}'>$highlightedPart</span>",
                                 $startPosition,
                                 $endPosition - $startPosition
                             );
