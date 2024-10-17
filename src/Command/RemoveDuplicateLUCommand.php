@@ -75,7 +75,6 @@ class RemoveDuplicateLUCommand extends Command {
             if (!$input->getOption('dry-run')) {
                 $this->entityManager->flush();
             }
-
         }
 
         foreach ($duplicateGroupeData as $duplicateLUData) {
@@ -118,132 +117,140 @@ class RemoveDuplicateLUCommand extends Command {
             ->filter() // remove null values
             ->toArray();
 
-        // if anny of the duplicate LUs has a tracking movement
-        if (empty($firstMovements)) {
-            // we keep one lu
-            // remove one element of $lus
-            $luToKeep = array_shift($lus);
+        $notGroupLu = Stream::from($lus)->filter(fn(Pack $lu) => !$luRepository->count(['parent' => $lu]))->toArray();
+        // if there is only one LU with children
+        if (count($lus) - count($notGroupLu) === 1) {
             if ($input->getOption('details')) {
-                $io->warning("Aucun mouvement de traca pour les ULs dupliquées");
-                $io->text("On garde l'UL avec l'id : {$luToKeep->getId()}");
+                $io->warning('Il y a un seul UL avec des enfants');
+                $io->text('On garde l\'UL avec des enfants');
+            }
+            // we keep the LU with children
+            foreach ($notGroupLu as $lu) {
+                $editedEntities = $this->remove($lu, $editedEntities, $io);
+            }
+        } // if there are two groups in the duplicate LUs
+        elseif (count($lus) - count($notGroupLu) > 1) {
+            if ($input->getOption('details')) {
+                $io->warning('Il y des groupes en double');
+                $io->text('On renomme le groupe dupliqué');
             }
 
-            // remove the other LUs
+            // we will rename de duplicate group
+            // wee keep the main group
+            // and rename the other group
+            // like Groupe, Groupe_1, Groupe_2
             Stream::from($lus)
-                ->each(function (Pack $lu) use ($io, &$editedEntities) {
-                    $editedEntities = $this->remove($lu, $editedEntities, $io);
+                ->sort(function (Pack $a, Pack $b) {
+                    return $a->getLastAction()?->getDatetime() <=> $b->getLastAction()?->getDatetime();
+                })
+                ->reverse()
+                ->each(function (Pack $lu, $index) use ($io, $luRepository, &$editedEntities) {
+                    if ($index !== 0) {
+                        $lu->setCode($lu->getCode() . "_$index");
+                    }
+                    $editedEntities['renamedGroup'][] = $this->serializer->normalize($lu, null, ["usage" => SerializerUsageEnum::MOBILE]);
                 });
-        } // if there is only one tracking movement, we can delete the other LUs
-        elseif (Stream::from($lus)->every(fn(Pack $lu) => $lu->getTrackingMovements()->count() === 1)) {
-            $firstMovement = $firstMovements[array_key_first($firstMovements)];
-            if ($input->getOption('details')) {
-                $io->warning('Il y a un seul mouvement de traca pour les ULs dupliquées');
-                $io->text("on garde l'UL avec le mouvement de traca : ");
-                $io->table(...$this->createTableMovementConfig([$firstMovement], $this->formatService));
+
+            if ($input->getOption('interact')) {
+                $io->confirm('continuer ?');
             }
 
-            Stream::from($lus)
-                ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->first() !== $firstMovement)
-                ->each(function (Pack $lu) use ($io, &$editedEntities) {
-                    $editedEntities = $this->remove($lu, $editedEntities, $io);
-                });
-        } // if there are multiple tracking movements
-        elseif (count($firstMovements) > 1) {
-            if ($input->getOption('details')) {
-                $io->warning('Il y a plusieurs mouvements de traca');
-            }
 
-            // remove the LUs that do not have a tracking movement
-            Stream::from($lus)
-                ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->isEmpty())
-                ->each(function (Pack $lu) use ($io, &$editedEntities) {
-                    $editedEntities = $this->remove($lu, $editedEntities, $io);
-                });
-
-            // serialize the first movements to compare them
-            $firstMovementsSerialized = Stream::from($firstMovements)
-                ->map(fn($firstMovement) => json_encode(
-                    $this
-                        ->serializer
-                        ->normalize($firstMovement, null, ["usage" => SerializerUsageEnum::MOBILE])
-                ))
-                ->unique();
-            $notGroupLu = Stream::from($lus)->filter(fn(Pack $lu) => !$luRepository->count(['parent' => $lu]))->toArray();
-            // if there is only one LU with children
-            if (count($lus) - count($notGroupLu) === 1) {
+        } else {
+            // if anny of the duplicate LUs has a tracking movement
+            if (empty($firstMovements)) {
+                // we keep one lu
+                // remove one element of $lus
+                $luToKeep = array_shift($lus);
                 if ($input->getOption('details')) {
-                    $io->warning('Il y a un seul UL avec des enfants');
-                    $io->text('On garde l\'UL avec des enfants');
-                }
-                // we keep the LU with children
-                foreach ($notGroupLu as $lu) {
-                    $editedEntities = $this->remove($lu, $editedEntities, $io);
-                }
-            } // if there are two groups in the duplicate LUs
-            elseif (count($lus) - count($notGroupLu) > 1) {
-                if ($input->getOption('details')) {
-                    $io->warning('Il y des groupes en double');
-                    $io->text('On renomme le groupe dupliqué');
+                    $io->warning("Aucun mouvement de traca pour les ULs dupliquées");
+                    $io->text("On garde l'UL avec l'id : {$luToKeep->getId()}");
                 }
 
-                // we will rename de duplicate group
-                // wee keep the main group
-                // and rename the other group
-                // like Groupe, Groupe_1, Groupe_2
+                // remove the other LUs
                 Stream::from($lus)
-                    ->sort(function (Pack $a, Pack $b) {
-                        return $a->getLastAction()?->getDatetime() <=> $b->getLastAction()?->getDatetime();
-                    })
-                    ->reverse()
-                    ->each(function (Pack $lu, $index) use ($io, $luRepository, &$editedEntities) {
-                        if ($index !== 0) {
-                            $lu->setCode($lu->getCode() . "_$index");
-                        }
-                        $editedEntities['renamedGroup'][] = $this->serializer->normalize($lu, null, ["usage" => SerializerUsageEnum::MOBILE]);
+                    ->each(function (Pack $lu) use ($io, &$editedEntities) {
+                        $editedEntities = $this->remove($lu, $editedEntities, $io);
                     });
-            } // if all the LUs have the same first movement
-            else if (count($firstMovementsSerialized) === 1 ) {
-                // there no LU with children
-                // in this situation it should be one lu with many movements and the other with one movement
-                // we can remove the LUs with one movement
+            } // if there is only one tracking movement, we can delete the other LUs
+            elseif (Stream::from($lus)->every(fn(Pack $lu) => $lu->getTrackingMovements()->count() === 1)) {
+                $firstMovement = $firstMovements[array_key_first($firstMovements)];
                 if ($input->getOption('details')) {
-                    $io->warning('Tous les ULs ont le même premier mouvement');
-                    $io->text('Il n\'y a pas d\'UL avec des enfants');
-                    $io->text('On garde l\'UL avec le plus de mouvements');
+                    $io->warning('Il y a un seul mouvement de traca pour les ULs dupliquées');
+                    $io->text("on garde l'UL avec le mouvement de traca : ");
+                    $io->table(...$this->createTableMovementConfig([$firstMovement], $this->formatService));
                 }
 
-
-                $luSorted = Stream::from($lus)
-                    ->sort(fn(Pack $a, Pack $b) => $a->getTrackingMovements()->count() <=> $b->getTrackingMovements()->count())
-                    ->reverse()
-                    ->toArray();
-               array_shift($luSorted);
-               foreach ($luSorted as $lu) {
-                   $editedEntities = $this->remove($lu, $editedEntities, $io);
-               };
-            } // if the LUs do not have the same first movement
-            else {
+                Stream::from($lus)
+                    ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->first() !== $firstMovement)
+                    ->each(function (Pack $lu) use ($io, &$editedEntities) {
+                        $editedEntities = $this->remove($lu, $editedEntities, $io);
+                    });
+            } // if there are multiple tracking movements
+            elseif (count($firstMovements) > 1) {
                 if ($input->getOption('details')) {
-                    $io->warning('le uls n\'ont pas le même premier mouvement');
-                    $io->table(...$this->createTableMovementConfig($firstMovements, $this->formatService));
-                    $io->text('On garde l\'UL avec le plus récent mouvement');
+                    $io->warning('Il y a plusieurs mouvements de traca');
                 }
 
-                // we keep the LU with the most recent movement
-                $lastMovements = Stream::from($lus)
-                    ->map(callback: fn(Pack $lu) => Stream::from($lu->getTrackingMovements()) // get the first tracking movement of each LU
-                    ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
-                        ->last()
-                    )
-                    ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
-                    ->last();
+                // remove the LUs that do not have a tracking movement
+                Stream::from($lus)
+                    ->filter(fn(Pack $lu) => $lu->getTrackingMovements()->isEmpty())
+                    ->each(function (Pack $lu) use ($io, &$editedEntities) {
+                        $editedEntities = $this->remove($lu, $editedEntities, $io);
+                    });
 
-                $luToDel = Stream::from($lus)
-                    ->filter(fn(Pack $lu) => $lu !== $lastMovements->getPack())
-                    ->toArray();
+                // serialize the first movements to compare them
+                $firstMovementsSerialized = Stream::from($firstMovements)
+                    ->map(fn($firstMovement) => json_encode(
+                        $this
+                            ->serializer
+                            ->normalize($firstMovement, null, ["usage" => SerializerUsageEnum::MOBILE])
+                    ))
+                    ->unique();
+                // if all the LUs have the same first movement
+                if (count($firstMovementsSerialized) === 1 ) {
+                    // there no LU with children
+                    // in this situation it should be one lu with many movements and the other with one movement
+                    // we can remove the LUs with one movement
+                    if ($input->getOption('details')) {
+                        $io->warning('Tous les ULs ont le même premier mouvement');
+                        $io->text('Il n\'y a pas d\'UL avec des enfants');
+                        $io->text('On garde l\'UL avec le plus de mouvements');
+                    }
 
-                foreach ($luToDel as $lu) {
-                    $editedEntities = $this->remove($lu, $editedEntities, $io);
+
+                    $luSorted = Stream::from($lus)
+                        ->sort(fn(Pack $a, Pack $b) => $a->getTrackingMovements()->count() <=> $b->getTrackingMovements()->count())
+                        ->reverse()
+                        ->toArray();
+                    array_shift($luSorted);
+                    foreach ($luSorted as $lu) {
+                        $editedEntities = $this->remove($lu, $editedEntities, $io);
+                    };
+                } // if the LUs do not have the same first movement
+                else {
+                    if ($input->getOption('details')) {
+                        $io->warning('le uls n\'ont pas le même premier mouvement');
+                        $io->table(...$this->createTableMovementConfig($firstMovements, $this->formatService));
+                        $io->text('On garde l\'UL avec le plus récent mouvement');
+                    }
+
+                    // we keep the LU with the most recent movement
+                    $lastMovements = Stream::from($lus)
+                        ->map(callback: fn(Pack $lu) => Stream::from($lu->getTrackingMovements()) // get the first tracking movement of each LU
+                        ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
+                            ->last()
+                        )
+                        ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
+                        ->last();
+
+                    $luToDel = Stream::from($lus)
+                        ->filter(fn(Pack $lu) => $lu !== $lastMovements->getPack())
+                        ->toArray();
+
+                    foreach ($luToDel as $lu) {
+                        $editedEntities = $this->remove($lu, $editedEntities, $io);
+                    }
                 }
             }
         }
