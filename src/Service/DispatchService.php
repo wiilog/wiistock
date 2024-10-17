@@ -1525,6 +1525,7 @@ class DispatchService {
                 $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
                 $referenceArticle = $dispatchReferenceArticle->getReferenceArticle();
                 $description = $referenceArticle->getDescription() ?: [];
+                $associatedDocumentTypes = Stream::from($dispatchReferenceArticle->getAssociatedDocumentTypes() ?? [])->join(',');
                 return [
                     "UL" => $dispatchPack->getPack()->getCode(),
                     "natureul" => $this->formatService->nature($dispatchPack->getPack()->getNature()),
@@ -1538,7 +1539,7 @@ class DispatchService {
                     "volumeref" => $description['volume'] ?? '',
                     "photoref" => $dispatchReferenceArticle->getAttachments()->isEmpty() ? 'Non' : 'Oui',
                     "adrref" => $dispatchReferenceArticle->isADR() ? 'Oui' : 'Non' ,
-                    "documentsref" => $dispatchReferenceArticle->getAssociatedDocumentTypes() ?? '',
+                    "documentsref" => $associatedDocumentTypes,
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null, "Non"),
                     // keep line breaking in docx

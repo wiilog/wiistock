@@ -205,7 +205,7 @@
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
                             {{ dispatchReferenceArticle and dispatchReferenceArticle.associatedDocumentTypes
-                                ? dispatchReferenceArticle.associatedDocumentTypes
+                                ? dispatchReferenceArticle.associatedDocumentTypes|join(',')
                                 : ''
                             }}
                         </td>
