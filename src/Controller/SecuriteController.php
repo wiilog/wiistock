@@ -85,14 +85,12 @@ class SecuriteController extends AbstractController {
     #[Route("/register", name: "register")]
     public function register(Request                $request,
                              PasswordService        $passwordService,
-                             TranslationService     $translationService,
                              EntityManagerInterface $entityManager): Response {
         $session = $request->getSession();
         $user = new Utilisateur();
 
         $form = $this->createForm(UtilisateurType::class, $user);
         $roleRepository = $entityManager->getRepository(Role::class);
-        $utilisateur = $entityManager->getRepository(Utilisateur::class);
 
         $form->handleRequest($request);
         if($form->isSubmitted() && $form->isValid()) {
@@ -112,18 +110,7 @@ class SecuriteController extends AbstractController {
                 $entityManager->persist($user);
                 $entityManager->flush();
 
-                $userMailByRole = $utilisateur->getUserMailByIsMailSendRole();
-                if(!empty($userMailByRole)) {
-                    $this->mailerService->sendMail(
-                        $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Notification de création d\'un compte utilisateur',
-                        $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
-                            'user' => $user->getUsername(),
-                            'mail' => $user->getEmail(),
-                            'title' => 'Création d\'un nouvel utilisateur'
-                        ]),
-                        $userMailByRole
-                    );
-                }
+                $this->userService->notifyUserCreation($entityManager, $user);
 
                 $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
 

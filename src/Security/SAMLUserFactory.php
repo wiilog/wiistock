@@ -59,18 +59,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
-            $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
-            if(!empty($userMailByRole)) {
-                $this->mailerService->sendMail(
-                    $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Notification de création d\'un compte utilisateur',
-                    $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
-                        'user' => $user->getUsername(),
-                        'mail' => $user->getEmail(),
-                        'title' => 'Création d\'un nouvel utilisateur'
-                    ]),
-                    $userMailByRole
-                );
-            }
+            $this->userService->notifyUserCreation($this->entityManager, $user);
         }
         return $user;
     }

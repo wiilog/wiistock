@@ -175,21 +175,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }
     }
 
-    public function getUserMailByIsMailSendRole()
-    {
-        $result = $this->createQueryBuilder('utilisateur')
-            ->select('utilisateur.email AS email')
-            ->join('utilisateur.role','role' )
-            ->where('role.isMailSendAccountCreation = :isMailSend')
-            ->setParameter('isMailSend', true)
-            ->getQuery()
-            ->execute();
-
-        return array_map(function (array $userMail) {
-            return $userMail['email'];
-        }, $result);
-    }
-
     public function getUserMailByReferenceValidatorAction()
     {
         $result = $this->createQueryBuilder('utilisateur')

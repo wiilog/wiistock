@@ -32,7 +32,7 @@ class Role {
     #[ORM\ManyToMany(targetEntity: 'Action', mappedBy: 'roles')]
     private Collection $actions;
 
-    #[ORM\OneToMany(targetEntity: 'Utilisateur', mappedBy: 'role')]
+    #[ORM\OneToMany(mappedBy: 'role', targetEntity: Utilisateur::class)]
     private Collection $users;
 
     #[ORM\Column(type: 'boolean')]
@@ -102,7 +102,7 @@ class Role {
     }
 
     /**
-     * @return Collection|Utilisateur[]
+     * @return Collection<Utilisateur>
      */
     public function getUsers(): Collection {
         return $this->users;
