@@ -148,7 +148,7 @@ $(function() {
             if($number.is(`.active`)) {
                 $number.removeClass(`active`);
                 $container.find(`.logistic-unit-content`).remove();
-                packsTable.columns.adjust().draw();
+                isLoading = false;
             } else {
                 const logisticUnitId = $number.data(`id`);
                 AJAX.route(`GET`, `logistic_unit_content`, {pack: logisticUnitId})
