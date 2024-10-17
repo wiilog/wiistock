@@ -319,15 +319,17 @@ class ProductionRequestService
             throw new FormException("Vous devez ajouter une pièce jointe pour passer à ce statut");
         }
 
+        $dropLocationName = $data->get(FixedFieldEnum::dropLocation->name);
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
-            $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
+            $dropLocation = $dropLocationName ? $locationRepository->find($dropLocationName) : null;
         } else {
             $dropLocation = $productionRequest->getDropLocation() ?: $productionRequest->getType()?->getDropLocation();
         }
         $productionRequest->setDropLocation($dropLocation);
 
+        $destinationLocationName = $data->get(FixedFieldEnum::destinationLocation->name);
         if ($data->has(FixedFieldEnum::destinationLocation->name)) {
-            $destinationLocation = $data->get(FixedFieldEnum::destinationLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::destinationLocation->name)) : null;
+            $destinationLocation = $destinationLocationName ? $locationRepository->find($destinationLocationName) : null;
             $productionRequest->setDestinationLocation($destinationLocation);
         }
         if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)) {
