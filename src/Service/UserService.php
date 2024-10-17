@@ -17,6 +17,7 @@ use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\Role;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ShippingRequest\ShippingRequest;
@@ -29,34 +30,18 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
-class UserService
-{
-
-    #[Required]
-    public TranslationService $translation;
-
+class UserService {
     public const MIN_MOBILE_KEY_LENGTH = 14;
     public const MAX_MOBILE_KEY_LENGTH = 24;
 
-     /**
-     * @var Twig_Environment
-     */
-    private $templating;
-
-	private $entityManager;
-    private $roleService;
-    private $security;
-
-    public function __construct(Twig_Environment $templating,
-                                RoleService $roleService,
-                                EntityManagerInterface $entityManager,
-                                Security $security)
-    {
-        $this->security = $security;
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->roleService = $roleService;
+    public function __construct(private Twig_Environment       $templating,
+                                private TranslationService     $translation,
+                                private RoleService            $roleService,
+                                private MailerService          $mailerService,
+                                private EntityManagerInterface $entityManager,
+                                private Security               $security) {
     }
 
     public static function CreateMobileLoginKey(int $length = self::MIN_MOBILE_KEY_LENGTH): string {
@@ -248,6 +233,28 @@ class UserService
 
     public function getUserFCMChannel(Utilisateur $user): string {
         return 'user-' . $user->getId();
+    }
+
+    public function notifyUserCreation(EntityManagerInterface $entityManager,
+                                       Utilisateur            $newUser): void {
+
+        $roleRepository = $entityManager->getRepository(Role::class);
+        $rolesToSendEmail = $roleRepository->findBy(['isMailSendAccountCreation' => true]);
+        $userToSendEmail = Stream::from($rolesToSendEmail)
+            ->flatMap(static fn(Role $role) => $role->getUsers()->toArray())
+            ->toArray();
+
+        if (!empty($userToSendEmail)) {
+            $this->mailerService->sendMail(
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Notification de création d\'un compte utilisateur',
+                $this->templating->render('mails/contents/mailNewUser.html.twig', [
+                    'user' => $newUser,
+                    'title' => 'Création d\'un nouvel utilisateur'
+                ]),
+                $userToSendEmail
+            );
+        }
+
     }
 
 }
