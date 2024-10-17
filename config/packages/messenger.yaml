@@ -6,8 +6,11 @@ framework:
 
     transports:
       # https://symfony.com/doc/current/messenger.html#transport-configuration
+
       async_tracking_delay:
         dsn: "doctrine://default"
+        retry_strategy:
+          max_retries: 0
         options:
           queue_name: "tracking-delay"
           unique_messages: true
