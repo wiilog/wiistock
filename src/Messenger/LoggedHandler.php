@@ -4,6 +4,7 @@ namespace App\Messenger;
 
 use App\Service\ExceptionLoggerService;
 use Exception;
+use ReflectionClass;
 use Throwable;
 
 abstract class LoggedHandler {
@@ -16,8 +17,10 @@ abstract class LoggedHandler {
         }
         catch(Throwable $exception) {
             // add message in sent exception
-            $serializedMessage = json_encode($message->normalize());
+            $reflexMessage = new ReflectionClass($message);
+            $serializedMessage = $reflexMessage->getName() . " " . json_encode($message->normalize());
             $sentException = new Exception($serializedMessage, 0, $exception);
+
             $this->loggerService->sendLog($sentException);
         }
     }
