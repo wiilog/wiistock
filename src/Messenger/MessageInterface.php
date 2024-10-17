@@ -2,7 +2,8 @@
 
 namespace App\Messenger;
 
-interface MessageInterface
-{
+interface MessageInterface {
+
+    public function normalize(): array;
 
 }

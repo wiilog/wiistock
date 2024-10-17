@@ -16,7 +16,7 @@ abstract class LoggedHandler {
         }
         catch(Throwable $exception) {
             // add message in sent exception
-            $serializedMessage = serialize($message);
+            $serializedMessage = json_encode($message->normalize());
             $sentException = new Exception($serializedMessage, 0, $exception);
             $this->loggerService->sendLog($sentException);
         }
