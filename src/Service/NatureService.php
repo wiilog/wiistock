@@ -12,9 +12,8 @@ use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\MakerBundle\Str;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -207,7 +206,7 @@ class NatureService {
             }
 
             if($data[Nature::TRANSPORT_COLLECT_CODE]) {
-                $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = $data['transportCollectTypes'];
+                $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = explode(',', $data['transportCollectTypes']);
             }
 
             if($data[Nature::DISPATCH_CODE]) {
@@ -215,7 +214,7 @@ class NatureService {
             }
 
             if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
-                $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
+                $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = explode(',', $data['transportDeliveryTypes']);
             }
 
             $nature
