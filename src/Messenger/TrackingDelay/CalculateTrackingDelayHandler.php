@@ -4,6 +4,7 @@ namespace App\Messenger\TrackingDelay;
 
 use App\Entity\Pack;
 use App\Messenger\LoggedHandler;
+use App\Messenger\MessageInterface;
 use App\Service\ExceptionLoggerService;
 use App\Service\TrackingDelayService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +29,7 @@ class CalculateTrackingDelayHandler extends LoggedHandler
     /**
      * @param CalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
      */
-    protected function process($message): void {
+    protected function process(MessageInterface $message): void {
         $packCode = $message->getPackCode();
 
         $packRepository = $this->entityManager->getRepository(Pack::class);

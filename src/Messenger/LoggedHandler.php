@@ -9,7 +9,7 @@ abstract class LoggedHandler
 {
     public function __construct(private ExceptionLoggerService $loggerService) {}
 
-    protected function handle(mixed $message): void {
+    protected function handle(MessageInterface $message): void {
         try {
             $this->process($message);
         }
@@ -17,6 +17,6 @@ abstract class LoggedHandler
             $this->loggerService->sendLog($exception);
         }
     }
-    abstract protected function process(mixed $message): void;
+    abstract protected function process(MessageInterface $message): void;
 
 }
