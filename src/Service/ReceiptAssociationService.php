@@ -80,7 +80,7 @@ class ReceiptAssociationService
             'creationDate' => $this->formatService->datetime($receiptAssocation["creationDate"], "", false, $user),
             'logisticUnit' => $receiptAssocation["logisticUnit"] ?? "",
             'lastActionDate' => $this->formatService->datetime($receiptAssocation["lastActionDate"]),
-            'lastLocation' => $receiptAssocation["lastActionLocation"] ?? "",
+            'lastActionLocation' => $receiptAssocation["lastActionLocation"] ?? "",
             'receptionNumber' => $receiptAssocation["receptionNumber"],
             'user' => $receiptAssocation["user"],
             'Actions' => $this->templating->render('receipt_association/datatableRowActions.html.twig', [
