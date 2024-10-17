@@ -98,11 +98,11 @@
     {% set hide = not nature.displayedOnForms ? 'd-none' %}
     <div class="col entities-container ml-3 {{ hide }}">
         {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
-            {% set checked = index in nature.allowedForms|keys %}
+            {% set checked = index in (nature.allowedForms ?? [])|keys %}
             <div class="d-flex mb-1 entity-item">
                 <div class="form-group col-4 d-flex align-items-center mb-2">
                     <label class="font-size-mini pointer wii-field-text">
-                        <input class="checkbox data-array mr-2" {{ checked ? 'checked' }}
+                        <input class="checkbox data mr-2" {{ checked ? 'checked' }}
                                type="checkbox" name="{{ index }}" data-identifier="{{ entity.label }}" onclick="toggleTypes($(this));">
                         {{ entity.label }}
                     </label>

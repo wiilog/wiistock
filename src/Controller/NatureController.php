@@ -5,23 +5,20 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Service\DateTimeService;
 use App\Service\NatureService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 
 #[Route("/nature", name: "nature_")]
@@ -44,17 +41,17 @@ class NatureController extends AbstractController {
         ]);
     }
 
-    #[Route("/api", name: "api", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: self::POST, condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, NatureService $natureService): Response {
+    public function api(Request $request, NatureService $natureService): JsonResponse {
         return $this->json($natureService->getDataForDatatable($request->request));
     }
 
-    #[Route("/new", name: "new", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[Route("/new", name: "new", options: ["expose" => true], methods: self::POST, condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
-                        NatureService          $natureService): Response {
+                        NatureService          $natureService): JsonResponse {
 
         $data = $request->request->all();
         $labelTranslationSource = new TranslationSource();
@@ -74,12 +71,12 @@ class NatureController extends AbstractController {
         ]);
     }
 
-    #[Route("/api-edit", name: "api_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-edit", name: "api_edit", options: ["expose" => true], methods: [self::POST, self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiEdit(Request                $request,
                             EntityManagerInterface $manager,
                             DateTimeService        $dateTimeService,
-                            TranslationService     $translationService): Response {
+                            TranslationService     $translationService): JsonResponse {
         $data = $request->query->all();
         $natureRepository = $manager->getRepository(Nature::class);
         $typeRepository = $manager->getRepository(Type::class);
