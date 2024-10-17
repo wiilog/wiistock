@@ -1,0 +1,12 @@
+{% macro dataAttributesFieldbyType(fieldsParam, fieldCode) %}
+    {% for ParamName, types in fieldsParam[fieldCode] is defined ? fieldsParam[fieldCode] : [] %}
+        {% if ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT')] %}
+            data-displayed-type
+        {% elseif ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT')] %}
+            data-required-type
+        {% else %}
+            data-{{ ParamName }}-type
+        {% endif %}
+        ="{{ types }}"
+    {% endfor %}
+{% endmacro %}

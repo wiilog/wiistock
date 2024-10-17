@@ -125,6 +125,7 @@ function onProductionRequestTypeChange($select){
         $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
     }
     $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
+    changeAttributByType($select);
 }
 
 function initNewProductionRequest() {

@@ -18,5 +18,25 @@
         <div class="col-12 my-1">
             {{ form.checkbox(setting('COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY'), "Si urgence détectée, demandeur en copie de l'email de notification", false, setting_value('COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY')) }}
         </div>
+        <div class="wii-section-title">Filtres via champs fixes sur la page production</div>
+        <div class="wii-section">
+            <div class="row">
+                <div class="col-12 my-1">
+                    Permet de filtrer la page liste des OF via les champs fixes sélectionnés.
+                </div>
+                <div class="col-12 my-1">
+                    {% set productionFixedFieldsInFilter = setting_value('PRODUCTION_FIXED_FIELDS_ON_FILTERS')|split(',') %}
+                    {{ form.select(setting('PRODUCTION_FIXED_FIELDS_ON_FILTERS'), '', false, {
+                        type: '',
+                        items: productionFixedFieldsFilterable|map((fixedField) => ({
+                            value : fixedField.fieldCode,
+                            label : fixedField.fieldLabel,
+                            selected: fixedField.fieldCode in productionFixedFieldsInFilter
+                        })),
+                        multiple: true,
+                    }) }}
+                </div>
+            </div>
+        </div>
     </div>
 </div>

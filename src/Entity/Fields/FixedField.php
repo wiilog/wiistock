@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class FixedField {
     public const ENTITY_CODES_MANAGE_BY_TYPE = [
         FixedFieldStandard::ENTITY_CODE_DISPATCH,
+        FixedFieldStandard::ENTITY_CODE_PRODUCTION,
     ];
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
