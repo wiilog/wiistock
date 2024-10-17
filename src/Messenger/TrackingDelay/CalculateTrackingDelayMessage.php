@@ -20,7 +20,6 @@ class CalculateTrackingDelayMessage implements UniqueMessage, MessageInterface {
     public function normalize(): array {
         return [
             "packCode" => $this->getPackCode(),
-            "uniqueKey" => $this->getUniqueKey(),
         ];
     }
 }
