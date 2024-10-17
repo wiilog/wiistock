@@ -30,12 +30,14 @@ use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Repository\Tracking\TrackingMovementRepository;
+use App\Serializer\SerializerUsageEnum;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -54,6 +56,7 @@ class TrackingMovementService {
     public function __construct(
         private EntityManagerInterface      $entityManager,
         private LocationClusterService      $locationClusterService,
+        private NormalizerInterface         $normalizer,
         private Twig_Environment            $templating,
         private Security                    $security,
         private GroupService                $groupService,
@@ -896,26 +899,28 @@ class TrackingMovementService {
 
     public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        return Stream::from(
-            $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
-        )
-            ->filterMap(function (array $picking) use ($trackingMovementRepository) {
-                $id = $picking['id'];
-                unset($picking['id']);
+        return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true))
+            ->filterMap(function (TrackingMovement $tracking) use ($trackingMovementRepository) {
+                $picking = $this->normalizer->normalize($tracking, null, ["usage" => SerializerUsageEnum::MOBILE_DROP_MENU]);
+                dump($picking);
+                $trackingPack = $tracking->getPack();
 
-                $isGroup = $picking['isGroup'] == '1';
-
-                if ($isGroup) {
-                    $tracking = $trackingMovementRepository->find($id);
+                if ($trackingPack->isGroup()) {
                     $subPacks = $tracking
                         ->getPack()
                         ->getChildren()
                         ->map(fn(Pack $pack) => $pack->serialize());
                 }
 
+                $trackingDelayData = $this->packService->formatTrackingDelayData($trackingPack);
+
+                $picking["trackingDelay"] = $trackingDelayData["delay"];
+                $picking["trackingDelayColor"] = $trackingDelayData["color"];
+                $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
+
                 $picking['subPacks'] = $subPacks ?? [];
 
-                return (!$isGroup || !empty($subPacks)) ? $picking : null;
+                return (!$trackingPack->isGroup() || !empty($subPacks)) ? $picking : null;
             })
             ->toArray();
     }

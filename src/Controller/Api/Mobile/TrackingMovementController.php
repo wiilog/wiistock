@@ -544,7 +544,7 @@ class TrackingMovementController extends AbstractController {
                     50
                 );
                 $normalizedMovements = Stream::from($movements)
-                    ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
+                    ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE_READING_MENU]))
                     ->toArray();
                 $res['movements'] = $normalizedMovements;
             }

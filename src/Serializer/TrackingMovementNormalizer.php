@@ -2,19 +2,22 @@
 
 namespace App\Serializer;
 
+use App\Entity\Article;
 use App\Entity\Tracking\TrackingMovement;
 use App\Service\FormatService;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use WiiCommon\Helper\Stream;
 
 class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
     use NormalizerAwareTrait;
 
     private const SUPPORTED_USAGES = [
-        SerializerUsageEnum::MOBILE,
+        SerializerUsageEnum::MOBILE_READING_MENU,
+        SerializerUsageEnum::MOBILE_DROP_MENU,
     ];
 
     public function __construct(private FormatService $formatService) {}
@@ -24,12 +27,14 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         $trackingMovement = $object;
 
         return match ($context["usage"]) {
-            SerializerUsageEnum::MOBILE => $this->normalizeForMobile($trackingMovement, $format, $context),
+            SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobile($trackingMovement, $format, $context),
+            SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobilePicking($trackingMovement, $format, $context),
             default => throw new Exception("Invalid usage"),
         };
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool{
+        dump($context);
         return $data instanceof TrackingMovement && in_array($context["usage"], self::SUPPORTED_USAGES);
     }
 
@@ -48,6 +53,29 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
             "operator" => $this->formatService->user($trackingMovement->getOperateur()),
             "comment" => $this->formatService->html($trackingMovement->getCommentaire()),
             "quantity" => $trackingMovement->getQuantity(),
+        ];
+    }
+
+    public function normalizeForMobilePicking (TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
+        $pack = $trackingMovement->getPack();
+
+        return [
+            "id" => $trackingMovement->getId(),
+            "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
+            "date" => $trackingMovement->getUniqueIdForMobile(),
+            "ref_emplacement" => $this->formatService->location($trackingMovement->getEmplacement()),
+            "nature_id" => $trackingMovement->getPack()?->getNature()->getId(),
+            "operateur" => $this->formatService->user($trackingMovement->getOperateur()),
+            "comment" => $this->formatService->html($trackingMovement->getCommentaire()),
+            "quantity" => $trackingMovement->getQuantity(),
+            "ref_article" => $this->formatService->pack($pack),
+            "finished" => $trackingMovement->isFinished(),
+            "fromStock" => !empty($trackingMovement->getMouvementStock()) || $pack->isArticleContainer(),
+            "isGroup" => $pack->isGroup(),
+            "packParent" => $trackingMovement->getPackParent()?->getCode(),
+            "articles" => Stream::from($pack->getChildArticles())
+                ->map(static fn(Article $article) => $article->getBarCode())
+                ->join(";"),
         ];
     }
 }
