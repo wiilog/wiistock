@@ -25,7 +25,10 @@ class CalculateTrackingDelayHandler extends LoggedHandler
         $this->handle($message);
     }
 
-    function process(CalculateTrackingDelayMessage $message): void {
+    /**
+     * @param CalculateTrackingDelayMessage $message Not typed in php to implement LoggedHandler
+     */
+    protected function process($message): void {
         $packCode = $message->getPackCode();
 
         $packRepository = $this->entityManager->getRepository(Pack::class);

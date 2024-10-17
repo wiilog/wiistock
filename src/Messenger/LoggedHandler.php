@@ -2,22 +2,21 @@
 
 namespace App\Messenger;
 
-use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
 use App\Service\ExceptionLoggerService;
-use Exception;
+use Throwable;
 
 abstract class LoggedHandler
 {
     public function __construct(private ExceptionLoggerService $loggerService) {}
 
-    protected function handle(CalculateTrackingDelayMessage $message): void {
+    protected function handle(mixed $message): void {
         try {
             $this->process($message);
         }
-        catch(Exception $exception) {
+        catch(Throwable $exception) {
             $this->loggerService->sendLog($exception);
         }
     }
-    abstract function process(CalculateTrackingDelayMessage $message): void;
+    abstract protected function process(mixed $message): void;
 
 }
