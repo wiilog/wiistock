@@ -193,12 +193,12 @@ class ProductionRequestRepository extends EntityRepository
                         $qb->orderBy('production_request.expectedAt', $order);
                     } else if ($column === FixedFieldEnum::dropLocation->name) {
                         $qb
-                            ->leftJoin('production_request.dropLocation', 'location')
-                            ->orderBy('location.label', $order);
+                            ->leftJoin('production_request.dropLocation', 'order_drop_location')
+                            ->orderBy('order_drop_location.label', $order);
                     } else if ($column === FixedFieldEnum::destinationLocation->name) {
                         $qb
-                            ->leftJoin('production_request.destinationLocation', 'location')
-                            ->orderBy('location.label', $order);
+                            ->leftJoin('production_request.destinationLocation', 'order_destination_location')
+                            ->orderBy('order_destination_location.label', $order);
                     } else if ($column === FixedFieldEnum::lineCount->name) {
                         $qb->orderBy('production_request.lineCount', $order);
                     } else if ($column === FixedFieldEnum::manufacturingOrderNumber->name) {
