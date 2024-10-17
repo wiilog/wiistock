@@ -51,6 +51,7 @@
                                 {% for filterField in filterFields %}
                                     {% if filterField is instanceof('App\\Entity\\FreeField\\FreeField') %}
                                         {% include "free_field/freeFieldsEdit.html.twig" with {
+                                            freeFieldManagementRules,
                                             freeFields: [filterField],
                                             freeFieldValues: null,
                                             actionType: "new",

@@ -6,10 +6,12 @@ use App\Controller\AbstractController;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryStationLine;
 use App\Entity\FreeField\FreeField;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Service\DeliveryRequestService;
@@ -64,6 +66,8 @@ class DeliveryStationController extends AbstractController
         }
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldManagementRuleRepository = $entityManager->getRepository(FreeFieldManagementRule::class);
+        $deliveryFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
 
         $mobileLoginKey = $request->query->get('mobileLoginKey');
         $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $token]);
@@ -77,6 +81,7 @@ class DeliveryStationController extends AbstractController
                 str_replace("@typelivraison", "<strong>{$line->getDeliveryType()->getLabel()}</strong>", $line->getWelcomeMessage()));
 
             return $this->render('delivery_station/form.html.twig', [
+                'freeFieldManagementRules' => $deliveryFreeFieldManagementRules,
                 'filterFields' => $filterFields,
                 'form' => true,
                 'line' => $line,
@@ -221,13 +226,16 @@ class DeliveryStationController extends AbstractController
     #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
     public function getFreeFields(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
+        $freeFieldManagementRuleRepository = $entityManager->getRepository(FreeFieldManagementRule::class);
         $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $request->query->get('token')]);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($line->getDeliveryType(), CategorieCL::DEMANDE_LIVRAISON);
 
+        $deliveryFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
         return $this->json([
             'empty' => empty($freeFields),
             'template' => !empty($freeFields) ?
                 $this->renderView('free_field/freeFieldsEdit.html.twig', [
+                    'freeFieldManagementRules' => $deliveryFreeFieldManagementRules,
                     'freeFields' => $freeFields,
                     'freeFieldValues' => [],
                     'colType' => "col-6",
