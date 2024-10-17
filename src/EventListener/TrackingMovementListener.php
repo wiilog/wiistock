@@ -24,7 +24,6 @@ use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\RouterInterface;
-use WiiCommon\Helper\Stream;
 
 class TrackingMovementListener implements EventSubscriber
 {

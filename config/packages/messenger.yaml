@@ -2,7 +2,7 @@ framework:
   messenger:
 
     # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
-    failure_transport: failed_default
+    # failure_transport: failed_default
 
     transports:
       # https://symfony.com/doc/current/messenger.html#transport-configuration
@@ -14,7 +14,6 @@ framework:
         options:
           queue_name: "tracking-delay"
           unique_messages: true
-      failed_default: 'doctrine://default?queue_name=failed_default'
 
     # Route your messages to the transports
     routing:
