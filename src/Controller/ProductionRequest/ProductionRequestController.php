@@ -139,14 +139,14 @@ class ProductionRequestController extends AbstractController
                          Request $request,
                          ProductionRequest        $productionRequest,
                          ProductionRequestService $productionRequestService): Response {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
 
         $openModal = $request->query->get('open-modal');
 
         return $this->render("production_request/show/index.html.twig", [
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::emergency->name),
+            "fieldsParam" => $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT, FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT]),
+            "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "productionRequest" => $productionRequest,
             "hasRightDeleteProductionRequest" => $productionRequestService->hasRightToDelete($productionRequest),
             "hasRightEditProductionRequest" => $productionRequestService->hasRightToEdit($productionRequest),
@@ -167,7 +167,8 @@ class ProductionRequestController extends AbstractController
 
         $post = $request->request;
         $typeRepository = $entityManager->getRepository(Type::class);
-        $type = $typeRepository->find($post->get(FixedFieldEnum::type->value));
+        $typeValue = strtolower(FixedFieldEnum::type->value);
+        $type = $typeRepository->find($post->get($typeValue));
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true, null, $type);
 
         $quantityToGenerate = $data->getInt('quantityToGenerate');
