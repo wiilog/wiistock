@@ -208,7 +208,7 @@ class NatureService {
             if($data[Nature::TRANSPORT_COLLECT_CODE]) {
                 $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = Stream::explode(',', $data['transportCollectTypes'])
                     ->filter()
-                    ->toArray();
+                    ->values();
             }
 
             if($data[Nature::DISPATCH_CODE]) {
@@ -218,7 +218,7 @@ class NatureService {
             if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
                 $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = Stream::explode(',', $data['transportDeliveryTypes'] ?? '')
                     ->filter()
-                    ->toArray();
+                    ->values();
             }
 
             $nature
