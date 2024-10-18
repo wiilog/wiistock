@@ -68,8 +68,8 @@ final class Version20241016143730 extends AbstractMigration implements Container
         $entityManager->flush();
 
         $this->addSql("INSERT INTO setting (label, value) VALUES (':label', ':value')", [
-            "deliveryWaybillSetting" => Setting::PRODUCTION_FIXED_FIELDS_ON_FILTERS,
-            "value" => join(',', $onFilerFields),
+            ":label" => Setting::PRODUCTION_FIXED_FIELDS_ON_FILTERS,
+            ":value" => join(',', $onFilerFields),
         ]);
     }
 
