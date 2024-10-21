@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Repository\PackRepository;
@@ -259,6 +260,7 @@ class RemoveDuplicateLUCommand extends Command {
     private function remove(Pack $lu, $editedEntities, $io): array {
         global $input;
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+        $locationClusterRecordRepository = $this->entityManager->getRepository(LocationClusterRecord::class);
 
         $mvtToDelete = Stream::from($lu->getTrackingMovements(), $trackingMovementRepository->findBy(["packParent" => $lu]));
         if ($input->getOption('details')) {
@@ -267,7 +269,14 @@ class RemoveDuplicateLUCommand extends Command {
         }
 
         $mvtToDelete
-            ->each(function (TrackingMovement $trackingMovement) use (&$editedEntities, $io) {
+            ->each(function (TrackingMovement $trackingMovement) use ($locationClusterRecordRepository, &$editedEntities, $io) {
+                Stream::from($locationClusterRecordRepository->findBy(["lastTracking" => $trackingMovement]))
+                    ->each(function (LocationClusterRecord $locationClusterRecord) use ($io, &$editedEntities) {
+                        $editedEntities['deletedLocationClusterRecord'][] = [
+                            "id" => $locationClusterRecord->getId(),
+                        ];
+                        $this->entityManager->remove($locationClusterRecord);
+                    });
                 $editedEntities['deletedTrackingMovement'][] = $this->serializer->normalize($trackingMovement, null, ["usage" => SerializerUsageEnum::MOBILE]);
                 $this->entityManager->remove($trackingMovement);
             });
