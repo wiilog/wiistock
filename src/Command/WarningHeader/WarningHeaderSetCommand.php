@@ -40,10 +40,8 @@ class WarningHeaderSetCommand extends Command
         $message = $input->getOption('message');
         $color = $input->getOption('color');
 
-        $messageHash = hash('sha256', $message);
-
         if ($message) {
-            $output->writeln("Updated warning header message to \"$messageHash\"");
+            $output->writeln("Warning header message pushed successfully");
         } else {
             throw new RuntimeCommandException('No message provided, clearing warning header message');
         }
@@ -52,7 +50,7 @@ class WarningHeaderSetCommand extends Command
             [
                 "color" => $color ?? self::DEFAULT_COLOR,
                 "message" => $message,
-                "messageHash" => $messageHash
+                "messageHash" => hash('sha256', $message)
             ]
         );
 
