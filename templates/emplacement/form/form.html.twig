@@ -187,12 +187,12 @@
 </div>
 <div class="row my-2">
     <div class="form-group col-md-6 col-12 my-1">
-        {{ form.checkbox('EnableNewNatureOnPick', 'Activer le changement de nature à la prise', false, location.enableNewNatureOnPick, {
+        {{ form.checkbox('EnableNewNatureOnPick', 'Activer le changement de nature à la prise', false, location.newNatureOnPickEnabled, {
             tooltip: "Si vous cochez l'activation de ce paramètre sans remplir de nature, celle-ci se videra sur l'UL au mouvement de prise.",
         }) }}
     </div>
     <div class="form-group col-md-6 col-12 my-1">
-        {{ form.checkbox('EnableNewNatureOnDrop', 'Activer le changement de nature à la dépose', false, location.enableNewNatureOnDrop, {
+        {{ form.checkbox('EnableNewNatureOnDrop', 'Activer le changement de nature à la dépose', false, location.newNatureOnDropEnabled, {
             tooltip: "Si vous cochez l'activation de ce paramètre sans remplir de nature, celle-ci se videra sur l'UL au mouvement de dépose.",
         }) }}
     </div>

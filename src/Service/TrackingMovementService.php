@@ -588,31 +588,42 @@ class TrackingMovementService {
         $pack = $trackingMovement->getPack();
         $location = $trackingMovement->getEmplacement();
         $oldNature = $pack?->getNature();
+        $returnData = [];
 
-        $newNature = match (true) {
-            $trackingMovement->isDrop() && $location?->isEnableNewNatureOnDrop() => $location?->getNewNatureOnDrop(),
-            $trackingMovement->isPicking() && $location?->isEnableNewNatureOnPick() => $location?->getNewNatureOnPick(),
-            default => null
-        };
+        if(($pack?->isBasicUnit() || $pack?->getLastAction() === $trackingMovement)){
+            $isNatureChangeEnabled  = match (true) {
+                $trackingMovement->isDrop() => $location?->isNewNatureOnDropEnabled(),
+                $trackingMovement->isPicking() => $location?->isNewNatureOnDropEnabled(),
+            };
 
-        if (!($pack?->isBasicUnit())
-            || !$newNature
-            || ($newNature->getId() === $pack?->getNature()?->getId())
-            || $pack?->getLastAction() !== $trackingMovement
-        ) {
-            return [
+            if ($isNatureChangeEnabled) {
+                $newNature = match (true) {
+                    $trackingMovement->isDrop() => $location?->getNewNatureOnDrop(),
+                    $trackingMovement->isPicking() => $location?->getNewNatureOnPick(),
+                    default => null
+                };
+
+                if ($newNature?->getId() === $pack?->getNature()?->getId()) {
+                    $returnData = [
+                        "natureChanged" => false,
+                    ];
+                } else {
+                    $pack->setNature($newNature);
+                    $trackingMovement->setOldNature($oldNature);
+
+                    $returnData =[
+                        "natureChanged" => true,
+                        "oldNature" => $oldNature,
+                        "newNature" => $newNature,
+                    ];
+                }
+            }
+        } else {
+            $returnData =[
                 "natureChanged" => false,
             ];
         }
-
-        $pack->setNature($newNature);
-        $trackingMovement->setOldNature($oldNature);
-
-        return [
-            "natureChanged" => true,
-            "oldNature" => $oldNature,
-            "newNature" => $newNature,
-        ];
+        return $returnData;
     }
 
     public function managePackLinksWithTracking(EntityManagerInterface $entityManager,

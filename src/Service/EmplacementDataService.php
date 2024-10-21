@@ -162,8 +162,8 @@ class EmplacementDataService {
                     : null
             )
             ->setProperty(FixedFieldEnum::zone->name, $zone)
-            ->setEnableNewNatureOnPick($data->getBoolean("EnableNewNatureOnPick"))
-            ->setEnableNewNatureOnDrop($data->getBoolean("EnableNewNatureOnDrop"));
+            ->setNewNatureOnPickEnabled($data->getBoolean("EnableNewNatureOnPick"))
+            ->setNewNatureOnDropEnabled($data->getBoolean("EnableNewNatureOnDrop"));
     }
 
     public function getEmplacementDataByParams($params = null): array {

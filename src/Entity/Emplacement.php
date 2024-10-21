@@ -176,10 +176,10 @@ class Emplacement implements PairedEntity {
     private ?Nature $newNatureOnPick = null;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
-    private bool $enableNewNatureOnPick = false;
+    private bool $newNatureOnPickEnabled = false;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
-    private bool $enableNewNatureOnDrop = false;
+    private bool $newNatureOnDropEnabled = false;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -1216,22 +1216,22 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
-    public function isEnableNewNatureOnPick(): bool {
-        return $this->enableNewNatureOnPick;
+    public function isNewNatureOnPickEnabled(): bool {
+        return $this->newNatureOnPickEnabled;
     }
 
-    public function setEnableNewNatureOnPick(bool $enableNewNatureOnPick): self {
-        $this->enableNewNatureOnPick = $enableNewNatureOnPick;
+    public function setNewNatureOnPickEnabled(bool $newNatureOnPickEnabled): self {
+        $this->newNatureOnPickEnabled = $newNatureOnPickEnabled;
 
         return $this;
     }
 
-    public function isEnableNewNatureOnDrop(): bool {
-        return $this->enableNewNatureOnDrop;
+    public function isNewNatureOnDropEnabled(): bool {
+        return $this->newNatureOnDropEnabled;
     }
 
-    public function setEnableNewNatureOnDrop(bool $enableNewNatureOnDrop): self {
-        $this->enableNewNatureOnDrop = $enableNewNatureOnDrop;
+    public function setNewNatureOnDropEnabled(bool $newNatureOnDropEnabled): self {
+        $this->newNatureOnDropEnabled = $newNatureOnDropEnabled;
 
         return $this;
     }
