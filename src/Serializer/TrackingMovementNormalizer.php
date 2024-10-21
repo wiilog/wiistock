@@ -34,8 +34,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool{
-        dump($context);
-        return $data instanceof TrackingMovement && in_array($context["usage"], self::SUPPORTED_USAGES);
+        return $data instanceof TrackingMovement && in_array($context["usage"] ?? null, self::SUPPORTED_USAGES);
     }
 
     public function getSupportedTypes(?string $format): array {
@@ -64,7 +63,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
             "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
             "date" => $trackingMovement->getUniqueIdForMobile(),
             "ref_emplacement" => $this->formatService->location($trackingMovement->getEmplacement()),
-            "nature_id" => $trackingMovement->getPack()?->getNature()->getId(),
+            "nature_id" => $trackingMovement->getPack()?->getNature()?->getId(),
             "operateur" => $this->formatService->user($trackingMovement->getOperateur()),
             "comment" => $this->formatService->html($trackingMovement->getCommentaire()),
             "quantity" => $trackingMovement->getQuantity(),
