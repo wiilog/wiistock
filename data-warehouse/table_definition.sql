@@ -150,7 +150,7 @@ CREATE TABLE dw_reception
     urgence_reception        varchar(3),
     numero_demande_achat     varchar(255),
     arrivage_id              integer,
-frais    prix_unitaire            float,
+    prix_unitaire            float,
     frais_livraison          float
 );
 
