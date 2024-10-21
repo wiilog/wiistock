@@ -902,7 +902,6 @@ class TrackingMovementService {
         return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true))
             ->filterMap(function (TrackingMovement $tracking) use ($trackingMovementRepository) {
                 $picking = $this->normalizer->normalize($tracking, null, ["usage" => SerializerUsageEnum::MOBILE_DROP_MENU]);
-                dump($picking);
                 $trackingPack = $tracking->getPack();
 
                 if ($trackingPack->isGroup()) {
