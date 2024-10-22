@@ -303,8 +303,7 @@ class TrackingMovementRepository extends EntityRepository
      */
     public function getPickingByOperatorAndNotDropped(Utilisateur $operator,
                                                       string $type,
-                                                      array $filterDemandeCollecteIds = [],
-                                                      bool $includeMovementId = false) {
+                                                      array $filterDemandeCollecteIds = []) {
         $queryBuilder = $this->createQueryBuilder('tracking_movement');
 
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)

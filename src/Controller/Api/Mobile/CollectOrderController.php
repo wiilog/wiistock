@@ -13,6 +13,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Repository\Tracking\TrackingMovementRepository;
 use App\Service\ExceptionLoggerService;
 use App\Service\OrdreCollecteService;
+use App\Service\TrackingMovementService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
@@ -59,10 +60,11 @@ class CollectOrderController extends AbstractController {
 
     #[Route("/finishCollecte", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
-    public function finishCollecte(Request                $request,
-                                   ExceptionLoggerService $exceptionLoggerService,
-                                   OrdreCollecteService   $ordreCollecteService,
-                                   EntityManagerInterface $entityManager)
+    public function finishCollecte(Request                   $request,
+                                   ExceptionLoggerService    $exceptionLoggerService,
+                                   OrdreCollecteService      $ordreCollecteService,
+                                   TrackingMovementService   $trackingMovementService,
+                                   EntityManagerInterface    $entityManager)
     {
         $nomadUser = $this->getUser();
 
@@ -87,6 +89,7 @@ class CollectOrderController extends AbstractController {
             try {
                 $entityManager->transactional(function ()
                 use (
+                    $trackingMovementService,
                     $entityManager,
                     $collecteArray,
                     $collecte,
@@ -152,7 +155,8 @@ class CollectOrderController extends AbstractController {
                         'id_collecte' => $collecte->getId(),
                     ];
 
-                    $newTakings = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
+                    $newTakings = $trackingMovementService->getMobileUserPicking(
+                        $entityManager,
                         $nomadUser,
                         TrackingMovementRepository::MOUVEMENT_TRACA_STOCK,
                         [$collecte->getId()]
