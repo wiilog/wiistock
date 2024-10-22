@@ -343,7 +343,7 @@ class MobileController extends AbstractController {
             $inventoryMissions = $inventoryMissionRepository->getInventoryMissions();
             $inventoryLocationsZone = $inventoryLocationMissionRepository->getInventoryLocationZones();
             // prises en cours
-            $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
+            $stockTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
         }
 
         $projects = Stream::from($projectRepository->findAll())
@@ -410,7 +410,7 @@ class MobileController extends AbstractController {
         }
 
         if ($rights['movement']) {
-            $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
+            $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true);
             $trackingFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
         }
 
