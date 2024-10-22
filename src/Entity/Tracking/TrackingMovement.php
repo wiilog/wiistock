@@ -48,6 +48,7 @@ class TrackingMovement implements AttachmentContainer {
     const TYPE_EMPTY_ROUND = 'passage à vide';
     const TYPE_DROP_LU = 'dépose dans UL';
     const TYPE_PICK_LU = 'prise dans UL';
+    const TYPE_INIT_TRACKING_DELAY = 'init délai traça';
     const DEFAULT_TYPE = self::TYPE_PRISE_DEPOSE;
 
     const DISPATCH_ENTITY = 'dispatch';
