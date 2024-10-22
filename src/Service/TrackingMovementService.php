@@ -897,11 +897,14 @@ class TrackingMovementService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {
+    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user, string $type, array $filterDemandeCollecteIds = [], $includeMovementId = false): array {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true))
-            ->filterMap(function (TrackingMovement $tracking) use ($trackingMovementRepository) {
-                $picking = $this->normalizer->normalize($tracking, null, ["usage" => SerializerUsageEnum::MOBILE_DROP_MENU]);
+        return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, $type, $filterDemandeCollecteIds))
+            ->filterMap(function (TrackingMovement $tracking) use ($includeMovementId, $trackingMovementRepository) {
+                $picking = $this->normalizer->normalize($tracking, null, [
+                    "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
+                    "includeMovementId" => $includeMovementId,
+                ]);
                 $trackingPack = $tracking->getPack();
 
                 if ($trackingPack->isGroup()) {

@@ -59,7 +59,9 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         $pack = $trackingMovement->getPack();
 
         return [
-            "id" => $trackingMovement->getId(),
+            ...($context["includeMovementId"]
+                ? ["id" => $trackingMovement->getId()]
+                : []),
             "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
             "date" => $trackingMovement->getUniqueIdForMobile(),
             "ref_emplacement" => $this->formatService->location($trackingMovement->getEmplacement()),
