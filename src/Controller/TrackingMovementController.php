@@ -82,7 +82,7 @@ class TrackingMovementController extends AbstractController
         return $this->render('tracking_movement/index.html.twig', [
             'statuts' => $statuses,
             'form_statuses' => Stream::from($mvtStatuses)
-                ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
+                ->filter(fn(Statut $status) => !in_array($status->getCode(), [TrackingMovement::TYPE_PICK_LU, TrackingMovement::TYPE_INIT_TRACKING_DELAY]))
                 ->toArray(),
             'fields' => $fields,
             'filterArticle' => $article,
