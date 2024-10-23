@@ -140,6 +140,9 @@ class TrackingMovementController extends AbstractController
             ]);
         }
 
+        $user = $this->getUser();
+        $format = $user && $user->getDateFormat() ? "{$user->getDateFormat()} H:i" : "d/m/Y H:i";
+
         if ($quantity < 1) {
             throw new FormException("La quantité doit être supérieure à 0.");
         }
@@ -147,8 +150,6 @@ class TrackingMovementController extends AbstractController
         if($isNow) {
             $date = new DateTime();
         } else {
-            $user = $this->getUser();
-            $format = $user && $user->getDateFormat() ? "{$user->getDateFormat()} H:i" : "d/m/Y H:i";
             $date = $this->formatService->parseDatetime($post->get("datetime"), [$format]) ?: new DateTime();
         }
 
@@ -214,35 +215,60 @@ class TrackingMovementController extends AbstractController
                         ]);
                     }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
-                        $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
-                            $entityManager,
-                            $codeToPack[$pack] ?? $pack,
-                            $pickingLocation,
-                            $operator,
-                            $date,
-                            true,
-                            TrackingMovement::TYPE_PRISE,
-                            $forced,
-                            [
-                                'commentaire' => $commentaire,
-                                'quantity' => $quantity,
-                            ]
-                        );
+                        $now = new DateTime();
+                        $manualDelayStart = $this->formatService->parseDatetime($post->get('manualDelayStart'), ["Y-m-d"])
+                            ->setTime($now->format('H'), $now->format('i'));
 
-                        if ($pickingRes['success']) {
-                            array_push($createdMovements, ...$pickingRes['movements']);
+                        $pickingMovements = [
+                            $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                                $entityManager,
+                                $codeToPack[$pack] ?? $pack,
+                                $pickingLocation,
+                                $operator,
+                                $date,
+                                true,
+                                TrackingMovement::TYPE_PRISE,
+                                $forced,
+                                [
+                                    'commentaire' => $commentaire,
+                                    'quantity' => $quantity,
+                                    'needStartEvent' => !$manualDelayStart,
+                                ]
+                            ),
+                            ...($manualDelayStart
+                                ? [$trackingMovementService->persistTrackingMovementForPackOrGroup(
+                                    $entityManager,
+                                    $codeToPack[$pack] ?? $pack,
+                                    $pickingLocation,
+                                    $operator,
+                                    $manualDelayStart,
+                                    true,
+                                    TrackingMovement::TYPE_INIT_TRACKING_DELAY,
+                                    $forced,
+                                    [
+                                        'commentaire' => $commentaire,
+                                        'quantity' => $quantity,
+                                    ]
+                                )]
+                                : [])
+                        ];
 
-                            $codeToPack = Stream::from($pickingRes['movements'])
-                                ->keymap(static function(TrackingMovement $movement) {
-                                    $pack = $movement->getPack();
 
-                                    return [$pack->getCode(), $pack];
-                                })
-                                ->concat($codeToPack, true)
-                                ->toArray();
-                        }
-                        else {
-                            return $this->json($this->treatPersistTrackingError($pickingRes));
+                        foreach ($pickingMovements as $pickingRes) {
+                            if ($pickingRes['success']) {
+                                array_push($createdMovements, ...$pickingRes['movements']);
+
+                                $codeToPack = Stream::from($pickingRes['movements'])
+                                    ->keymap(static function (TrackingMovement $movement) {
+                                        $pack = $movement->getPack();
+
+                                        return [$pack->getCode(), $pack];
+                                    })
+                                    ->concat($codeToPack, true)
+                                    ->toArray();
+                            } else {
+                                return $this->json($this->treatPersistTrackingError($pickingRes));
+                            }
                         }
                     }
 

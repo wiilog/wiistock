@@ -239,6 +239,13 @@ class TrackingMovement implements AttachmentContainer {
         );
     }
 
+    public function isInitTrackingDelay(): bool {
+        return (
+            $this->type
+            &&  $this->type->getCode() === self::TYPE_INIT_TRACKING_DELAY
+        );
+    }
+
     public function isStart(): bool {
         return $this->event === TrackingEvent::START;
     }
