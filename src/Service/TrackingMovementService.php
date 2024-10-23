@@ -391,6 +391,8 @@ class TrackingMovementService {
         $parent = $options['parent'] ?? null;
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
+        $needsStartEvent = $options['needStartEvent'] ?? true;
+
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
         $ungroup = !$disableUngrouping
             && $pack->getParent()
@@ -419,7 +421,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking));
+        $tracking->setEvent($this->getTrackingEvent($tracking, $needsStartEvent));
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -1692,14 +1694,14 @@ class TrackingMovementService {
         return $this->formatService->list($values);
     }
 
-    public function getTrackingEvent(TrackingMovement $trackingMovement): ?TrackingEvent {
+    public function getTrackingEvent(TrackingMovement $trackingMovement, bool $needStartEvent): ?TrackingEvent {
         $trackingLocation = $trackingMovement->getEmplacement();
         if (!$trackingLocation) {
             return null;
         }
 
         return match (true) {
-            $trackingMovement->isPicking() && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
+            (($trackingMovement->isPicking() && $needStartEvent) || $trackingMovement->isInitTrackingDelay()) && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
             $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
             $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
             default => null

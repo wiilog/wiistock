@@ -20,6 +20,14 @@
 
     {% include 'tracking_movement/form/fieldQuantity.html.twig' %}
 
+    {% if isPickMovement %}
+        <div class="form-group col-12">
+            {{ form.input('manualDelayStart', 'Début de délai manuel', false, null, {
+                type: 'date',
+            }) }}
+        </div>
+    {% endif %}
+
     {{ form.hidden('is-mass', 1)}}
 </div>
 
