@@ -50,6 +50,7 @@ global.changeSettingsAssoBR = changeSettingsAssoBR;
 global.changeReceiverInput = changeReceiverInput;
 global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
+const PRODUCTION = "production"
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
 let menu = $(`input#menu`).val();
@@ -87,6 +88,7 @@ const initializers = {
     stock_receptions_champs_fixes: initializeReceptionFixedFields,
     stock_demandes_champs_fixes: initializeDemandesFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
+    trace_production_champs_fixes: initializeProductionFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
@@ -804,9 +806,10 @@ function initializeHandlingFixedFields($container, canEdit) {
 }
 
 function initializeLocationByTypeForDeliveries() {
-    initDeliveryRequestDefaultLocations();
+    initDefault();
     $('.new-type-association-button').on('click', function () {
-        newTypeAssociation($(this));
+        const $modal = $('#modal-fixed-field-destinationdemande');
+        newTypeAssociation($modal, $(this));
     });
 
     $('.delete-association-line').on('click', function () {
@@ -830,39 +833,60 @@ function initializeLocationByTypeForDeliveries() {
     });
 }
 
-function initDeliveryRequestDefaultLocations() {
-    const $deliveryTypeSettings = $(`input[name=deliveryTypeSettings]`);
-    const deliveryTypeSettingsValues = JSON.parse($deliveryTypeSettings.val());
+function initDefault(category = undefined) {
+    let $typeSettings;
+    let $lastTypeSelect;
+    let $modal;
+    if(category === PRODUCTION) {
+        $typeSettings = $(`input[name=productionTypeSettings]`);
+        $lastTypeSelect = $('select[name=selectExpectedType]').last();
+        $modal = $('#modal-fixed-field-expectedat')
+    }
+    else{
+        $typeSettings = $(`input[name=deliveryTypeSettings]`);
+        $lastTypeSelect = $('select[name=deliveryType]').last();
+        $modal = $('#modal-fixed-field-destinationdemande')
+    }
+
+    const productionTypeSettingsValues = JSON.parse($typeSettings.val());
     const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
-
-    deliveryTypeSettingsValues.forEach(item => {
-        newTypeAssociation($buttonNewTypeAssociation, item.type, item.location, true);
-        updateAlreadyDefinedTypes();
+    console.log(productionTypeSettingsValues);
+    productionTypeSettingsValues.forEach(item => {
+        newTypeAssociation($modal, $buttonNewTypeAssociation,item.type, item.delay, true, category);
+        updateAlreadyDefinedTypes(undefined, category);
     });
-    const $lastDeliveryTypeSelect = $('select[name=deliveryType]').last();
 
-    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastDeliveryTypeSelect.data('length') < 1);
+    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastTypeSelect.data('length') < 1);
 }
 
-function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
-    const $modal = $('#modal-fixed-field-destinationdemande');
+function newTypeAssociation($modal, $button, type = undefined, delay = undefined, firstLoad = false, category = undefined) {
     const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
-
+    let selectType;
+    let categoryInput;
     let allFilledSelect = true;
-    $settingTypeAssociation.find(`select[name=deliveryRequestLocation]`).each(function() {
+
+    if(category === PRODUCTION) {
+         selectType = `select[name=selectExpectedType]`;
+         categoryInput =  `input[name=inputDelay]`;
+    }else{
+         selectType = `select[name=deliveryRequestLocation]`;
+        categoryInput = `select[name=deliveryRequestLocation]`;
+    }
+    $settingTypeAssociation.find(selectType).each(function() {
         if(!$(this).val()) {
             allFilledSelect = false;
         }
     });
 
     if (firstLoad || allFilledSelect) {
-        $button.prop(`disabled`, false);
+        $button.removeAttr("disabled")
         $settingTypeAssociation.append($typeTemplate.html());
-        if(firstLoad && location && type) {
-            const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
-            const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
-            appendSelectOptions($typeSelect, $locationSelect, type, location);
+        updateAlreadyDefinedTypes(undefined, category);
+        if(firstLoad && delay && type) {
+            const $typeSelect = $settingTypeAssociation.last().find(selectType);
+            const $categoryInput = $settingTypeAssociation.last().find(categoryInput);
+            appendSelectOptions($typeSelect, $categoryInput, type, delay);
         }
     } else {
         showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
@@ -889,24 +913,35 @@ function onTypeChange($select) {
     $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || $select.data("length") <= 1);
 }
 
-function removeAssociationLine($button) {
+function removeAssociationLine($button, category = undefined) {
+    let select;
+    if(category === PRODUCTION){
+        select = 'select[name=selectExpectedType]'
+    }else{
+        select = 'select[name=deliveryType]'
+    }
     const $typeAssociationContainer = $('.type-association-container');
-    const $currentDeliveryTypeSelect = $button.parent().closest('.delivery-type-container').find('select[name=deliveryType]');
+    const $currentProductionTypeSelect = $button.parent().closest('.production-type-container').find(select);
 
     if($typeAssociationContainer.length === 1) {
         showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
     } else {
         $button.parent().parent(`.type-association-container`).remove();
-        updateAlreadyDefinedTypes($currentDeliveryTypeSelect.val());
+        updateAlreadyDefinedTypes($currentProductionTypeSelect.val(), category);
         $('.new-type-association-button').prop(`disabled`, false);
     }
 }
 
-function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
+function updateAlreadyDefinedTypes(withdrawedValue = undefined, category = undefined) {
     const $settingTypeAssociation = $('.setting-type-association');
-
+    let select;
+    if(category === PRODUCTION) {
+        select = `select[name=selectExpectedType]`
+    }else{
+        select = `select[name=deliveryType]`
+    }
     let types = [];
-    $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
+    $settingTypeAssociation.find(select).each(function() {
         if(withdrawedValue !== $(this).val()) {
             types.push($(this).val());
         }
@@ -914,7 +949,6 @@ function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
 
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
-
 function initializeInventoryFrequenciesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
@@ -1123,14 +1157,20 @@ function initializeVisibilityGroup($container, canEdit) {
     });
 }
 
-function appendSelectOptions(typeSelect, locationSelect, type, location) {
+function appendSelectOptions(typeSelect, categorySelect, type, association) {
+
     typeSelect
         .append(new Option(type.label, type.id, false, true))
         .trigger(`change`);
 
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
+    if(categorySelect.label){
+        categorySelect
+            .append(new Option(association.label, association.id, false, true))
+            .trigger(`change`);
+    }else{
+        categorySelect.last().val(association);
+    }
+
 }
 
 function triggerReminderEmails($button) {
@@ -1364,29 +1404,59 @@ function initializeEmergenciesFixedFields($container, canEdit) {
     });
 }
 
+
+
 function initializeProductionFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-production-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `production`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
+    initDefault(PRODUCTION);
+    $('.new-type-association-button').on('click', function () {
+        const $modal = $('#modal-fixed-field-expectedat');
+        newTypeAssociation($modal, $(this), undefined, undefined, false, PRODUCTION);
     });
+
+    $('.delete-association-line').on('click', function () {
+        removeADelayType($(this), PRODUCTION);
+    });
+
+    $(document).arrive('.delete-association-line', function () {
+        $(this).on('click', function () {
+            removeADelayType($(this), PRODUCTION);
+        });
+    });
+
+    const $typeInputs = $container.find(`[name=type]`);
+    const selectorTable = `#table-production-fixed-fields`;
+    $typeInputs
+        .on(`change`, function() {
+            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: `production`, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                ],
+            });
+        })
+        .first()
+        .trigger(`change`);
+
+    initializeType();
 }
+
+
 
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');

@@ -1,7 +1,9 @@
 {% import 'form.html.twig' as form %}
+{% import 'utils/fixed-field-by-type.html.twig' as macros %}
 
 {% set displayAction = displayAction ?? (productionRequest.id ? 'displayedEdit' : 'displayedCreate') %}
 {% set requiredAction = requiredAction ?? (productionRequest.id ? 'requiredEdit' : 'requiredCreate') %}
+{% set typeCanChange =  productionRequest.id ? false : true %}
 
 {{ form.input('id', null, false, productionRequest.id, {
     type: 'hidden',
@@ -73,7 +75,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.manufacturingOrderNumber) }}
         </div>
@@ -83,7 +87,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.productArticleCode) }}
         </div>
@@ -93,7 +99,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set canEditExpectedAt = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
             {% set requiredOnform = canEditExpectedAt and fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d H:i') : null, {
@@ -107,7 +115,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, fieldLabel, requiredOnform, {
                 type: 'location',
@@ -145,7 +155,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.quantity, {
                 type: 'number',
@@ -158,7 +170,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::lineCount').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.lineCount, {
                 type: 'number',
@@ -170,7 +184,9 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence'), requiredOnform, {
                 items: emergencies|map(item => ({
@@ -190,7 +206,9 @@
     {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.projectNumber) }}
         </div>
@@ -224,7 +242,9 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.wysiwyg(fieldCode, trans('Général', null, 'Modale', 'Commentaire'), requiredOnform, productionRequest.comment) }}
         </div>
@@ -233,7 +253,9 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
                 isNew: productionRequest.id is null,
                 addPhotoButton: true,

@@ -13,6 +13,7 @@ use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
@@ -1541,7 +1542,7 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_PRODUCTION => [
                 self::MENU_FULL_SETTINGS => [
-                    self::MENU_CONFIGURATIONS => function() use ($settingRepository, $userRepository) {
+                    self::MENU_CONFIGURATIONS => function() use ($settingRepository, $userRepository, $fixedFieldByTypeRepository) {
                         $notificationEmailUsers = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
                         $users = $notificationEmailUsers
                             ? $userRepository->findBy(["id" => explode(",", $notificationEmailUsers)])
@@ -1555,6 +1556,9 @@ class SettingsController extends AbstractController {
                                     "selected" => true,
                                 ])
                                 ->toArray(),
+                            "productionFixedFieldsFilterable" => Stream::from($fixedFieldByTypeRepository->findBy(['entityCode'=> FixedFieldStandard::ENTITY_CODE_PRODUCTION]))
+                                ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_PRODUCTION]))
+                                ->toArray(),
                         ];
                     },
                     self::MENU_STATUSES => function() {
@@ -1567,21 +1571,43 @@ class SettingsController extends AbstractController {
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PRODUCTION),
                         ];
                     },
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
-                        $field = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository, $typeRepository) {
+                        $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
+                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
+                        $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
+                        $allKey =  Stream::keys($expectedAtField->getElements())
+                            ->toArray();
+                        $allUsedType = $typeRepository->findBy(["id"=>$allKey]);
+                        $allElements = $expectedAtField->getElements();
 
+                        $formatedElements= Stream::from($allUsedType)
+                            ->map(fn(Type $type) => [
+                                "type"=> [
+                                    "label" => $type->getLabel(),
+                                    "id" => $type->getId(),
+                                ],
+                                "delay" => $allElements[$type->getId()],
+                            ])
+                            ->toArray();
                         return [
+                            'types' => $types,
+                            "expectedAt" => [
+                                "field" => $expectedAtField?->getId(),
+                                "elementsType" => $expectedAtField?->getElementsType(),
+                                "elements" => $formatedElements
+                                ],
                             "emergency" => [
-                                "field" => $field->getId(),
-                                "elementsType" => $field->getElementsType(),
-                                "elements" => Stream::from($field->getElements())
+                                "field" => $emergencyField?->getId(),
+                                "elementsType" => $emergencyField?->getElementsType(),
+                                "elements" => $emergencyField ? Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
-                                    ->toArray(),
+                                    ->toArray() : []
                             ],
+                            "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
                         ];
                     },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
@@ -1842,6 +1868,32 @@ class SettingsController extends AbstractController {
             } else {
                 $field->setElements(explode(",", $elements));
             }
+        } else if ($field->getElementsType() == FixedFieldStandard::ELEMENTS_EXPECTED_AT_BY_TYPE) {
+            $typeId = $request->request->get("selectExpectedType");
+            $delays = $request->request->get("inputDelay");
+            $delayArray = explode(",", $delays);
+            foreach ($delayArray as $delay){
+                if ($delay
+                    && !preg_match("/^([0-9]{2,3}):([0-9]\d)$/",
+                        $delay)) {
+                    throw new FormException("Le délai doit être au format HH:MM ou au format HHH:MM");
+                } else if ($delay
+                    && !preg_match("/^([0-9]{2,3}):([0-5]\d)$/",
+                        $delay)) {
+                    throw new FormException("Le maximum de minute est 59");
+                }
+            }
+            if($typeId && $delays) {
+                $typeArray = explode(",", $typeId);
+                $delayArray = explode(",", $delays);
+                $elements = [];
+                for($i = 0; $i<count($typeArray); $i++) {
+                    $elements += [$typeArray[$i]=>$delayArray[$i]];
+                }
+                $field->setElements($elements);
+
+            }
+
         } elseif ($field->getElementsType() == FixedFieldStandard::ELEMENTS_TYPE_USER) {
             $lines = $request->request->has("lines") ? json_decode($request->request->get("lines"), true) : [];
             $elements = [];
@@ -1898,7 +1950,6 @@ class SettingsController extends AbstractController {
                 ]);
             }
         }
-
         $manager->flush();
 
         return $this->json([
