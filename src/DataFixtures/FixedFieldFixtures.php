@@ -157,7 +157,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
                 ['code' => FixedFieldEnum::manufacturingOrderNumber->name, 'label' => FixedFieldEnum::manufacturingOrderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
-                ['code' => FixedFieldEnum::expectedAt->name, 'label' => FixedFieldEnum::expectedAt->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::expectedAt->name, 'label' => FixedFieldEnum::expectedAt->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_EXPECTED_AT_BY_TYPE, 'values' => [], 'elements' => []],
                 ['code' => FixedFieldEnum::projectNumber->name, 'label' => FixedFieldEnum::projectNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldEnum::productArticleCode->name, 'label' => FixedFieldEnum::productArticleCode->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldEnum::dropLocation->name, 'label' => FixedFieldEnum::dropLocation->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],

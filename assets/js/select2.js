@@ -5,6 +5,7 @@ import Routing from '@app/fos-routing';
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
     deliveryType: `ajax_select_delivery_type`,
+    selectExpectedType : `ajax_select_delay_type`,
     collectType: `ajax_select_collect_type`,
     referenceType: `ajax_select_reference_type`,
     dispatchType: `ajax_select_dispatch_type`,
@@ -60,6 +61,7 @@ const ROUTES = {
 const INSTANT_SELECT_TYPES = {
     handlingType: true,
     deliveryType: true,
+    selectExpectedType: true,
     collectType: true,
     dispatchType: true,
     productionRequestType: true,

@@ -845,6 +845,20 @@ function initDeliveryRequestDefaultLocations() {
     $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastDeliveryTypeSelect.data('length') < 1);
 }
 
+function initProductionDelayDefault() {
+    const $productionTypeSettings = $(`input[name=productionTypeSettings]`);
+    const productionTypeSettingsValues = JSON.parse($productionTypeSettings.val());
+    const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
+
+    productionTypeSettingsValues.forEach(item => {
+        newTypeDelay($buttonNewTypeAssociation, item.type, item.delay, true);
+        updateAlreadyDefinedTypesProduction();
+    });
+    const $lastProductionTypeSelect = $('select[name=selectExpectedType]').last();
+
+    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastProductionTypeSelect.data('length') < 1);
+}
+
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
     const $modal = $('#modal-fixed-field-destinationdemande');
     const $settingTypeAssociation = $modal.find(`.setting-type-association`);
@@ -857,6 +871,7 @@ function newTypeAssociation($button, type = undefined, location = undefined, fir
         }
     });
 
+
     if (firstLoad || allFilledSelect) {
         $button.prop(`disabled`, false);
         $settingTypeAssociation.append($typeTemplate.html());
@@ -864,6 +879,32 @@ function newTypeAssociation($button, type = undefined, location = undefined, fir
             const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
             const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
             appendSelectOptions($typeSelect, $locationSelect, type, location);
+        }
+    } else {
+        showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
+    }
+}
+
+function newTypeDelay($button, type = undefined, delay = undefined, firstLoad = false) {
+    const $modal = $('#modal-fixed-field-expectedat');
+    const $settingTypeAssociation = $modal.find(`.setting-type-association`);
+    const $typeTemplate = $(`#type-template`);
+
+    let allFilledSelect = true;
+    $settingTypeAssociation.find(`select[name=selectExpectedType]`).each(function() {
+        if(!$(this).val()) {
+            allFilledSelect = false;
+        }
+    });
+
+    if (firstLoad || allFilledSelect) {
+        $button.removeAttr("disabled")
+        $settingTypeAssociation.append($typeTemplate.html());
+        updateAlreadyDefinedTypesProduction();
+        if(firstLoad && delay && type) {
+            const $typeSelect = $settingTypeAssociation.last().find(`select[name=selectExpectedType]`);
+            const $delaySelect = $settingTypeAssociation.last().find(`input[name=inputDelay]`);
+            appendSelectOptions($typeSelect, $delaySelect, type, delay);
         }
     } else {
         showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
@@ -903,9 +944,34 @@ function removeAssociationLine($button) {
     }
 }
 
+function removeADelayType($button) {
+    console.log("try");
+    const $typeAssociationContainer = $('.type-association-container');
+    const $currentProductionTypeSelect = $button.parent().closest('.production-type-container').find('select[name=selectExpectedType]');
+
+    if($typeAssociationContainer.length === 1) {
+        showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
+    } else {
+        $button.parent().parent(`.type-association-container`).remove();
+        updateAlreadyDefinedTypesProduction($currentProductionTypeSelect.val());
+        $('.new-type-association-button').prop(`disabled`, false);
+    }
+}
+
+function updateAlreadyDefinedTypesProduction(withdrawedValue = undefined) {
+    const $settingTypeAssociation = $('.setting-type-association');
+    let types = [];
+    $settingTypeAssociation.find(`select[name=selectExpectedType]`).each(function() {
+        if(withdrawedValue !== $(this).val()) {
+            types.push($(this).val());
+        }
+    });
+
+    $('input[name=alreadyDefinedTypes]').val(types.join(';'));
+}
+
 function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
     const $settingTypeAssociation = $('.setting-type-association');
-
     let types = [];
     $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
         if(withdrawedValue !== $(this).val()) {
@@ -915,7 +981,6 @@ function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
 
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
-
 function initializeInventoryFrequenciesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
@@ -1125,13 +1190,19 @@ function initializeVisibilityGroup($container, canEdit) {
 }
 
 function appendSelectOptions(typeSelect, locationSelect, type, location) {
+
     typeSelect
         .append(new Option(type.label, type.id, false, true))
         .trigger(`change`);
 
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
+    if(location.label){
+        locationSelect
+            .append(new Option(location.label, location.id, false, true))
+            .trigger(`change`);
+    }else{
+        locationSelect.last().val(location);
+    }
+
 }
 
 function triggerReminderEmails($button) {
@@ -1365,7 +1436,24 @@ function initializeEmergenciesFixedFields($container, canEdit) {
     });
 }
 
+
+
 function initializeProductionFixedFields($container, canEdit) {
+    initProductionDelayDefault();
+    $('.new-type-association-button').on('click', function () {
+        newTypeDelay($(this));
+    });
+
+    $('.delete-association-line').on('click', function () {
+        removeADelayType($(this));
+    });
+
+    $(document).arrive('.delete-association-line', function () {
+        $(this).on('click', function () {
+            removeADelayType($(this));
+        });
+    });
+
     const $typeInputs = $container.find(`[name=type]`);
     const selectorTable = `#table-production-fixed-fields`;
     $typeInputs
@@ -1395,6 +1483,8 @@ function initializeProductionFixedFields($container, canEdit) {
         })
         .first()
         .trigger(`change`);
+
+    initializeType();
 }
 
 
