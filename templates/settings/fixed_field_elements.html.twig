@@ -72,6 +72,54 @@
                         </div>
                     </div>
                 </div>
+                    {% elseif elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_EXPECTED_AT_BY_TYPE') %}
+                        <div class="wii-section mt-2">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row setting-type-association">
+                                        {{ form.hidden("productionTypeSettings", elements | json_encode) }}
+                                        {{ form.hidden("alreadyDefinedTypes", "") }}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="row justify-content-end">
+                                        <div class="col-auto">
+                                             <button class="btn btn-sm btn-primary new-type-association-button d-flex align-items-center" {{ not (productionTypesCount - elements | length) ? 'data-keep-disabled' }} disabled>
+                                                <span class="wii-icon wii-icon-plus mr-1"></span>
+                                                Ajouter un délai
+                                             </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <template id="type-template">
+                            <div class="d-flex col-12 mb-3 type-association-container">
+                                <div class="d-flex align-items-center w-100 production-type-container">
+                                    {{ form.select('selectExpectedType', 'Type', true, {
+                                        type: 'selectExpectedType',
+                                        inputClass: 'form-control data-array',
+                                        includeParams: '[name=alreadyDefinedTypes]',
+                                        includeParamsParent: '.setting-type-association',
+                                        additionalAttributes :[{
+                                            name: 'data-other-params'
+                                        }]
+                                    }) }}
+                                </div>
+                                <div class="d-flex align-items-center w-100">
+                                    {{ form.input('inputDelay', 'Délai', true, null, {
+                                        inputClass: 'ml-2 form-control data-array',
+                                        placeholder: 'HHH:MM',
+                                    }) }}
+                                </div>
+                                <div class="d-flex align-items-end">
+                                    <div class="btn btn-outline-primary delete-association-line d-flex align-items-center ml-2"
+                                         title="Supprimer la ligne" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
+                                        <i class="wii-icon wii-icon-trash"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
             {% elseif elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_TYPE') %}
                 <div class="modal-body pt-0">
                     <div class="wii-section-title">Type par défaut</div>
@@ -91,8 +139,8 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="row setting-type-association">
-                                <input type="hidden" value="{{ elements }}" name="deliveryTypeSettings">
-                                <input type="hidden" value="" name="alreadyDefinedTypes">
+                                {{ form.hidden("deliveryTypeSettings", elements) }}
+                                {{ form.hidden("alreadyDefinedTypes", "") }}
                             </div>
                         </div>
                         <div class="col-12">
