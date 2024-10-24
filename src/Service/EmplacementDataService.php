@@ -161,7 +161,9 @@ class EmplacementDataService {
                     ? $naturesRepository->findOneBy(["id" => $data->get(FixedFieldEnum::newNatureOnDrop->name)])
                     : null
             )
-            ->setProperty(FixedFieldEnum::zone->name, $zone);
+            ->setProperty(FixedFieldEnum::zone->name, $zone)
+            ->setNewNatureOnPickEnabled($data->getBoolean("enableNewNatureOnPick"))
+            ->setNewNatureOnDropEnabled($data->getBoolean("enableNewNatureOnDrop"));
     }
 
     public function getEmplacementDataByParams($params = null): array {

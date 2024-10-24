@@ -175,6 +175,12 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Nature $newNatureOnPick = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private bool $newNatureOnPickEnabled = false;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private bool $newNatureOnDropEnabled = false;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -1206,6 +1212,26 @@ class Emplacement implements PairedEntity {
 
     public function setNewNatureOnPick(?Nature $newNatureOnPick): self {
         $this->newNatureOnPick = $newNatureOnPick;
+
+        return $this;
+    }
+
+    public function isNewNatureOnPickEnabled(): bool {
+        return $this->newNatureOnPickEnabled;
+    }
+
+    public function setNewNatureOnPickEnabled(bool $newNatureOnPickEnabled): self {
+        $this->newNatureOnPickEnabled = $newNatureOnPickEnabled;
+
+        return $this;
+    }
+
+    public function isNewNatureOnDropEnabled(): bool {
+        return $this->newNatureOnDropEnabled;
+    }
+
+    public function setNewNatureOnDropEnabled(bool $newNatureOnDropEnabled): self {
+        $this->newNatureOnDropEnabled = $newNatureOnDropEnabled;
 
         return $this;
     }
