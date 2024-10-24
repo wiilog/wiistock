@@ -50,6 +50,7 @@ global.changeSettingsAssoBR = changeSettingsAssoBR;
 global.changeReceiverInput = changeReceiverInput;
 global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
+const PRODUCTION = "production"
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
 let menu = $(`input#menu`).val();
@@ -836,7 +837,7 @@ function initDefault(category = undefined) {
     let $typeSettings;
     let $lastTypeSelect;
     let $modal;
-    if(category === "production") {
+    if(category === PRODUCTION) {
         $typeSettings = $(`input[name=productionTypeSettings]`);
         $lastTypeSelect = $('select[name=selectExpectedType]').last();
         $modal = $('#modal-fixed-field-expectedat')
@@ -849,10 +850,10 @@ function initDefault(category = undefined) {
 
     const productionTypeSettingsValues = JSON.parse($typeSettings.val());
     const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
-
+    console.log(productionTypeSettingsValues);
     productionTypeSettingsValues.forEach(item => {
         newTypeAssociation($modal, $buttonNewTypeAssociation,item.type, item.delay, true, category);
-        updateAlreadyDefinedTypesProduction();
+        updateAlreadyDefinedTypes(undefined, category);
     });
 
     $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastTypeSelect.data('length') < 1);
@@ -865,7 +866,7 @@ function newTypeAssociation($modal, $button, type = undefined, delay = undefined
     let categoryInput;
     let allFilledSelect = true;
 
-    if(category === "production") {
+    if(category === PRODUCTION) {
          selectType = `select[name=selectExpectedType]`;
          categoryInput =  `input[name=inputDelay]`;
     }else{
@@ -881,7 +882,7 @@ function newTypeAssociation($modal, $button, type = undefined, delay = undefined
     if (firstLoad || allFilledSelect) {
         $button.removeAttr("disabled")
         $settingTypeAssociation.append($typeTemplate.html());
-        updateAlreadyDefinedTypesProduction();
+        updateAlreadyDefinedTypes(undefined, category);
         if(firstLoad && delay && type) {
             const $typeSelect = $settingTypeAssociation.last().find(selectType);
             const $categoryInput = $settingTypeAssociation.last().find(categoryInput);
@@ -912,49 +913,35 @@ function onTypeChange($select) {
     $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || $select.data("length") <= 1);
 }
 
-function removeAssociationLine($button) {
+function removeAssociationLine($button, category = undefined) {
+    let select;
+    if(category === PRODUCTION){
+        select = 'select[name=selectExpectedType]'
+    }else{
+        select = 'select[name=deliveryType]'
+    }
     const $typeAssociationContainer = $('.type-association-container');
-    const $currentDeliveryTypeSelect = $button.parent().closest('.delivery-type-container').find('select[name=deliveryType]');
+    const $currentProductionTypeSelect = $button.parent().closest('.production-type-container').find(select);
 
     if($typeAssociationContainer.length === 1) {
         showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
     } else {
         $button.parent().parent(`.type-association-container`).remove();
-        updateAlreadyDefinedTypes($currentDeliveryTypeSelect.val());
+        updateAlreadyDefinedTypes($currentProductionTypeSelect.val(), category);
         $('.new-type-association-button').prop(`disabled`, false);
     }
 }
 
-function removeADelayType($button) {
-    console.log("try");
-    const $typeAssociationContainer = $('.type-association-container');
-    const $currentProductionTypeSelect = $button.parent().closest('.production-type-container').find('select[name=selectExpectedType]');
-
-    if($typeAssociationContainer.length === 1) {
-        showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
-    } else {
-        $button.parent().parent(`.type-association-container`).remove();
-        updateAlreadyDefinedTypesProduction($currentProductionTypeSelect.val());
-        $('.new-type-association-button').prop(`disabled`, false);
+function updateAlreadyDefinedTypes(withdrawedValue = undefined, category = undefined) {
+    const $settingTypeAssociation = $('.setting-type-association');
+    let select;
+    if(category === PRODUCTION) {
+        select = `select[name=selectExpectedType]`
+    }else{
+        select = `select[name=deliveryType]`
     }
-}
-
-function updateAlreadyDefinedTypesProduction(withdrawedValue = undefined) {
-    const $settingTypeAssociation = $('.setting-type-association');
     let types = [];
-    $settingTypeAssociation.find(`select[name=selectExpectedType]`).each(function() {
-        if(withdrawedValue !== $(this).val()) {
-            types.push($(this).val());
-        }
-    });
-
-    $('input[name=alreadyDefinedTypes]').val(types.join(';'));
-}
-
-function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
-    const $settingTypeAssociation = $('.setting-type-association');
-    let types = [];
-    $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
+    $settingTypeAssociation.find(select).each(function() {
         if(withdrawedValue !== $(this).val()) {
             types.push($(this).val());
         }
@@ -1420,19 +1407,19 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 
 
 function initializeProductionFixedFields($container, canEdit) {
-    initDefault("production");
+    initDefault(PRODUCTION);
     $('.new-type-association-button').on('click', function () {
         const $modal = $('#modal-fixed-field-expectedat');
-        newTypeAssociation($modal, $(this), undefined, undefined, false, "production");
+        newTypeAssociation($modal, $(this), undefined, undefined, false, PRODUCTION);
     });
 
     $('.delete-association-line').on('click', function () {
-        removeADelayType($(this));
+        removeADelayType($(this), PRODUCTION);
     });
 
     $(document).arrive('.delete-association-line', function () {
         $(this).on('click', function () {
-            removeADelayType($(this));
+            removeADelayType($(this), PRODUCTION);
         });
     });
 
