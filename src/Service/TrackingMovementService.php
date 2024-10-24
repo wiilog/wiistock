@@ -592,15 +592,16 @@ class TrackingMovementService {
 
         if(($pack?->isBasicUnit() || $pack?->getLastAction() === $trackingMovement)){
             $isNatureChangeEnabled  = match (true) {
-                $trackingMovement->isDrop() => $location?->isNewNatureOnDropEnabled(),
-                $trackingMovement->isPicking() => $location?->isNewNatureOnDropEnabled(),
+                $trackingMovement->isDrop()    => $location?->isNewNatureOnDropEnabled(),
+                $trackingMovement->isPicking() => $location?->isNewNatureOnPickEnabled(),
+                default                        => false,
             };
 
             if ($isNatureChangeEnabled) {
                 $newNature = match (true) {
-                    $trackingMovement->isDrop() => $location?->getNewNatureOnDrop(),
+                    $trackingMovement->isDrop()    => $location?->getNewNatureOnDrop(),
                     $trackingMovement->isPicking() => $location?->getNewNatureOnPick(),
-                    default => null
+                    default                        => null,
                 };
 
                 if ($newNature?->getId() === $pack?->getNature()?->getId()) {
