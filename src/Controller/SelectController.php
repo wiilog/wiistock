@@ -183,6 +183,34 @@ class SelectController extends AbstractController {
         ]);
     }
 
+    #[Route("/select/types/delais", name: "ajax_select_delay_type", options: ["expose" => true])]
+    public function selectExpectedType(Request $request, EntityManagerInterface $manager): Response {
+        $alreadyDefinedTypes = [];
+        if($request->query->has('alreadyDefinedTypes')) {
+            $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
+        } else if($request->query->has('selectExpectedType')) {
+            $parameters = $request->query->all();
+            if (is_array($parameters['selectExpectedType'] ?? null)) {
+                $alreadyDefinedTypes = $request->query->all('selectExpectedType');
+            }
+            else {
+                $alreadyDefinedTypes = [$request->query->get('selectExpectedType')];
+            }
+        }
+
+        $typeRepository = $manager->getRepository(Type::class);
+        $results = $typeRepository->getForSelect(
+            CategoryType::PRODUCTION,
+            $request->query->get("term"),
+            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
+        );
+
+        return $this->json([
+            "results" => $results,
+            "availableResults" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
+        ]);
+    }
+
     #[Route("/select/types/collectes", name: "ajax_select_collect_type", options: ["expose" => true])]
     public function collectType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
