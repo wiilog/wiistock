@@ -47,6 +47,7 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
+use EmptyIterator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -499,7 +500,7 @@ class SelectController extends AbstractController {
                     "error" => "Cette unité logistique existe déjà en base de données",
                 ]);
             } else {
-                $results = [];
+                $results = new EmptyIterator();
             }
         } else {
             $limit = $request->query->get('limit') ?: 1000;
