@@ -9,16 +9,15 @@
     fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
+{% include 'settings/fixed_field_elements.html.twig' with {
+ modal: constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').name,
+ field: expectedAt.field,
+ elementsType: expectedAt.elementsType,
+ elements: expectedAt.elements,
+ fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
+ types : types
+} %}
 
- {% include 'settings/fixed_field_elements.html.twig' with {
-     modal: constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').name,
-     field: expectedAt.field,
-     elementsType: expectedAt.elementsType,
-     elements: expectedAt.elements,
-     fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
-     types : types
- } %}
-}
 <div class="wii-section">
     <div class="row">
         <div class="col-12 mb-3 wii-small-text">
