@@ -6,6 +6,7 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -90,6 +91,9 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $destinationLocation = null;
+
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ['persist'])]
+    private ?TrackingMovement $lastTracking = null;
 
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
@@ -349,6 +353,18 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
 
     public function setDestinationLocation(?Emplacement $destinationLocation): self {
         $this->destinationLocation = $destinationLocation;
+
+        return $this;
+    }
+
+    public function getLastTracking(): ?TrackingMovement
+    {
+        return $this->lastTracking;
+    }
+
+    public function setLastTracking(?TrackingMovement $lastTracking): self
+    {
+        $this->lastTracking = $lastTracking;
 
         return $this;
     }
