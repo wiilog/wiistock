@@ -3,8 +3,10 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\ShippingRequest\ShippingRequest;
@@ -18,7 +20,6 @@ use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -123,6 +124,7 @@ class StatusController extends AbstractController
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
                 $displayOnSchedule = $status->isDisplayedOnSchedule() ? "checked" : "";
+                $createDropMovementOnDropLocation = $status->isCreateDropMovementOnDropLocation() ? "checked" : "";
                 $requiredAttachment = $status->isRequiredAttachment() ? "checked" : "";
                 $preventStatusChangeWithoutDeliveryFees = $status->isPreventStatusChangeWithoutDeliveryFees() ? "checked" : "";
                 $passStatusAtPurchaseOrderGeneration = $status->isPassStatusAtPurchaseOrderGeneration() ? "checked" : "";
@@ -132,6 +134,16 @@ class StatusController extends AbstractController
                             "label" => $user->getUsername(),
                             "value" => $user->getId(),
                             "selected" => true,
+                        ])
+                        ->toArray()
+                    : [];
+                $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+                $generateDispatchRequestOnStatusChange = $status->getGenerateDispatchRequestOnStatusChange() ?
+                    Stream::from($types)
+                        ->map(fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                            "selected" => $type->getId() === $status->getGenerateDispatchRequestOnStatusChange()?->getId(),
                         ])
                         ->toArray()
                     : [];
@@ -158,10 +170,16 @@ class StatusController extends AbstractController
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data' {$automaticReceptionCreation}/></div>",
                     "displayedOnSchedule" => "<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data $displayOnSchedule' $displayOnSchedule/></div>",
+                    "createDropMovementOnDropLocation" => "<div class='checkbox-container'><input type='checkbox' name='createDropMovementOnDropLocation' class='form-control data $createDropMovementOnDropLocation' $createDropMovementOnDropLocation/></div>",
                     "notifiedUsers" => $formService->macro("select", "notifiedUsers", null, false, [
                         "type" => "user",
                         "multiple" => true,
                         "items" => $notifiedUsers,
+                    ]),
+                    "generateDispatchRequestOnStatusChange" => $formService->macro("select", "generateDispatchRequestOnStatusChange", null, false, [
+                        "type" => "dispatchType",
+                        "multiple" => false,
+                        "items" => $generateDispatchRequestOnStatusChange,
                     ]),
                     "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
                     "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
@@ -188,9 +206,11 @@ class StatusController extends AbstractController
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
                     "displayedOnSchedule" => $this->formatService->bool($status->isDisplayedOnSchedule()),
+                    "createDropMovementOnDropLocation" => $this->formatService->bool($status->isCreateDropMovementOnDropLocation()),
                     "notifiedUsers" => Stream::from($status->getNotifiedUsers())
                         ->map(static fn(Utilisateur $user) => $user->getUsername())
                         ->join(", "),
+                    "generateDispatchRequestOnStatusChange" => $this->formatService->type($status->getGenerateDispatchRequestOnStatusChange()),
                     "requiredAttachment" => $this->formatService->bool($status->isRequiredAttachment()),
                     "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
                     "passStatusAtPurchaseOrderGeneration" => $this->formatService->bool($status->isPassStatusAtPurchaseOrderGeneration()),

@@ -146,6 +146,12 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedOnSchedule = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $createDropMovementOnDropLocation = null;
+
+    #[ORM\OneToOne(targetEntity: Type::class)]
+    private ?Type $generateDispatchRequestOnStatusChange = null;
+
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     #[ORM\JoinTable("status_notification_user")]
     #[ORM\JoinColumn(name: "status_id", referencedColumnName: "id")]
@@ -887,6 +893,17 @@ class Statut {
         return $this;
     }
 
+    public function getGenerateDispatchRequestOnStatusChange(): ?Type
+    {
+        return $this->generateDispatchRequestOnStatusChange;
+    }
+
+    public function setGenerateDispatchRequestOnStatusChange(?Type $generateDispatchRequestOnStatusChange): self {
+        $this->generateDispatchRequestOnStatusChange = $generateDispatchRequestOnStatusChange;
+
+        return $this;
+    }
+
     public function getNotifiedUsers(): Collection {
         return $this->notifiedUsers;
     }
@@ -926,6 +943,16 @@ class Statut {
 
     public function setDisplayOnSchedule(?bool $displayedOnSchedule): self {
         $this->displayedOnSchedule = $displayedOnSchedule;
+
+        return $this;
+    }
+
+    public function isCreateDropMovementOnDropLocation(): ?bool {
+        return $this->createDropMovementOnDropLocation;
+    }
+
+    public function setCreateDropMovementOnDropLocation(?bool $createDropMovementOnDropLocation): self {
+        $this->createDropMovementOnDropLocation = $createDropMovementOnDropLocation;
 
         return $this;
     }

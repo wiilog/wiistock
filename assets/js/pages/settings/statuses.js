@@ -237,6 +237,16 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             modes: [MODE_PRODUCTION]
         },
         {
+            data: `createDropMovementOnDropLocation`,
+            title: `<div class='small-column'>Création d’un mouvement de dépose sur l’emplacement de dépose</div>`,
+            modes: [MODE_PRODUCTION]
+        },
+        {
+            data: `generateDispatchRequestOnStatusChange`,
+            title: `<div class='small-column'>Proposition de générer une demande d'acheminement</div>`,
+            modes: [MODE_PRODUCTION]
+        },
+        {
             data: `notifiedUsers`,
             title: `<div class='small-column'>Utilisateur(s) à notifier</div>`,
             modes: [MODE_PRODUCTION]
@@ -299,7 +309,9 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         passStatusAtPurchaseOrderGeneration: `<div class='checkbox-container'><input type='checkbox' name='passStatusAtPurchaseOrderGeneration' class='form-control data'/></div>`,
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
+        createDropMovementOnDropLocation: `<div class='checkbox-container'><input type='checkbox' name='createDropMovementOnDropLocation' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
+        generateDispatchRequestOnStatusChange: `<select name='generateDispatchRequestOnStatusChange' class='form-control data' data-s2='dispatchType'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
