@@ -44,6 +44,15 @@ class Type {
 
     const LABEL_AVERAGE_TIME = 'Temps moyen';
 
+    const CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE = 'manufacturingOrder';
+    const CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_VALUE = 'productionRequest';
+
+    const CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_LABEL = 'N° OF';
+    const CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_LABEL = 'N° demande de production';
+
+    const CREATE_DROP_MOVEMENT_BY_ID_FIELD_LABEL = "Création d'un mouvement de dépose de l'identifiant";
+    CONST CREATED_IDENTIFIER_NATURE_FIELD_LABEL = "Nature de l'identifiant créé";
+
     const DEFAULT_COLOR = "#3353D7";
 
     #[ORM\Id]
@@ -164,6 +173,12 @@ class Type {
 
     #[ORM\Column(type: TYPES::STRING, length: 5, nullable: true)]
     private ?string $averageTime = null;
+
+    #[ORM\Column(type: TYPES::STRING, nullable: true)]
+    private ?string $createDropMovementById = null;
+
+    #[ORM\ManyToOne(targetEntity: Nature::class, cascade: ["persist"])]
+    private ?Nature $createdIdentifierNature = null;
 
     public function __construct() {
         $this->referenceArticles = new ArrayCollection();
@@ -913,6 +928,26 @@ class Type {
 
     public function setAverageTime(?string $averageTime): self {
         $this->averageTime = $averageTime;
+
+        return $this;
+    }
+
+    public function getCreateDropMovementById(): ?string {
+        return $this->createDropMovementById;
+    }
+
+    public function setCreateDropMovementById(?string $createDropMovementById): self {
+        $this->createDropMovementById = $createDropMovementById;
+
+        return $this;
+    }
+
+    public function getCreatedIdentifierNature(): ?Nature {
+        return $this->createdIdentifierNature;
+    }
+
+    public function setCreatedIdentifierNature(?Nature $createdIdentifierNature): self {
+        $this->createdIdentifierNature = $createdIdentifierNature;
 
         return $this;
     }
