@@ -892,7 +892,17 @@ class SettingsService {
                 ->setReusableStatuses($data["reusableStatuses"] ?? false)
                 ->setActive($data["active"] ?? true)
                 ->setColor($data["color"] ?? null)
-                ->setAverageTime($data["averageTime"] ?? null);
+                ->setAverageTime($data["averageTime"] ?? null)
+                ->setCreateDropMovementById($data["createDropMovementById"] ?? null);
+
+            if(isset($data["createdIdentifierNature"])) {
+                $natureRepository = $entityManager->getRepository(Nature::class);
+                $nature = $natureRepository->findOneBy([
+                    "id" => $data["createdIdentifierNature"]
+                ]);
+                $type->setCreatedIdentifierNature($nature);
+            }
+
 
             $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
             if ($defaultTranslation) {

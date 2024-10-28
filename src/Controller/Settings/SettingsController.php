@@ -49,7 +49,6 @@ use App\Entity\VisibilityGroup;
 use App\Entity\WorkPeriod\WorkedDay;
 use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\SettingRepository;
@@ -2219,6 +2218,7 @@ class SettingsController extends AbstractController {
 
             if(in_array($categoryLabel, [CategoryType::PRODUCTION, CategoryType::DEMANDE_DISPATCH])) {
                 $locationRepository = $this->manager->getRepository(Emplacement::class);
+                $natureRepository = $this->manager->getRepository(Nature::class);
 
                 $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
                 $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
@@ -2228,6 +2228,34 @@ class SettingsController extends AbstractController {
                             "label" => $location->getLabel(),
                             "selected" => true,
                         ])
+                        ->toArray()
+                    : [];
+
+                $createDropMovementByIdItems = [
+                    ["value" => Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE, "label" => Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_LABEL],
+                    ["value" => Type::CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_VALUE, "label" => Type::CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_LABEL],
+                ];
+
+                $createDropMovementByIdItems = Stream::from($createDropMovementByIdItems)
+                    ->map(function ($item) use ($type) {
+                        return [
+                            "value" => $item["value"],
+                            "label" => $item["label"],
+                            "selected" => $type && $item["value"] === $type->getCreateDropMovementById(),
+                        ];
+                    })
+                    ->toArray();
+
+                $createdIdentifierNature = $natureRepository->findAll();
+                $createdIdentifierNature = $type && $type->getCreatedIdentifierNature()
+                    ? Stream::from($createdIdentifierNature)
+                        ->map(function ($nature) use ($type) {
+                            return [
+                                "value" => $nature->getId(),
+                                "label" => $nature->getLabel(),
+                                "selected" => $nature->getId() === $type?->getCreatedIdentifierNature()?->getId(),
+                            ];
+                        })
                         ->toArray()
                     : [];
 
@@ -2243,7 +2271,22 @@ class SettingsController extends AbstractController {
                             "multiple" => true,
                             "items" => $suggestedDropLocationOptions,
                         ]),
-                    ]
+                    ],
+                    [
+                        "label" => "Création d'un mouvement de dépose de l'identifiant",
+                        "value" => $formService->macro("select", "createDropMovementById", null, false, [
+                            "multiple" => false,
+                            "items" => $createDropMovementByIdItems,
+                        ]),
+                    ],
+                    [
+                        "label" => "Nature de l'identifiant créé",
+                        "value" => $formService->macro("select", "createdIdentifierNature", null, false, [
+                            "type" => "nature",
+                            "multiple" => false,
+                            "items" => $createdIdentifierNature,
+                        ]),
+                    ],
                 ]);
             }
 
@@ -2298,7 +2341,7 @@ class SettingsController extends AbstractController {
                             "attributes" => [
                                 "data-parent" => "body"
                             ],
-                            "items" => Stream::from($emergencies)
+                            "createDropMovementByIdItems" => Stream::from($emergencies)
                                 ->map(fn(string $emergency) => [
                                     "label" => $emergency,
                                     "value" => $emergency,
@@ -2426,6 +2469,13 @@ class SettingsController extends AbstractController {
                         ->join(', ')
                     : '';
 
+                $createdIdentifierNatureValue = $type?->getCreatedIdentifierNature() ?? null;
+                $createDropMovementById = match ($type?->getCreateDropMovementById()) {
+                    Type::CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_VALUE => Type::CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_LABEL,
+                    Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE => Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_LABEL,
+                    default => null,
+                };
+
                 $data = array_merge($data, [
                     [
                         "label" => "Emplacement de dépose par défaut",
@@ -2434,6 +2484,14 @@ class SettingsController extends AbstractController {
                     [
                         "label" => "Emplacement(s) de dépose suggéré(s)",
                         "value" => $suggestedDropLocations,
+                    ],
+                    [
+                        "label" => Type::CREATE_DROP_MOVEMENT_BY_ID_FIELD_LABEL,
+                        "value" => $createDropMovementById,
+                    ],
+                    [
+                        "label" => Type::CREATED_IDENTIFIER_NATURE_FIELD_LABEL,
+                        "value" => $this->formatService->nature($createdIdentifierNatureValue),
                     ],
                 ]);
             }
