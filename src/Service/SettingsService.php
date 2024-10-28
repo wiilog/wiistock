@@ -1169,11 +1169,17 @@ class SettingsService {
                         ->setDisplayOrder($statusData['order'] ?? 0)
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
                         ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
+                        ->setCreateDropMovementOnDropLocation($statusData['createDropMovementOnDropLocation'] ?? false)
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
                         ->setColor($statusData['color'] ?? null)
                         ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false)
                         ->setPassStatusAtPurchaseOrderGeneration($statusData['passStatusAtPurchaseOrderGeneration'] ?? false);
+
+                    if(isset($statusData['generateDispatchRequestOnStatusChange'])){
+                        $dispatchRequestType = $typeRepository->findOneBy(['id' => $statusData['generateDispatchRequestOnStatusChange']]);
+                        $status->setGenerateDispatchRequestOnStatusChange($dispatchRequestType);
+                    }
 
                     if($hasRightGroupedSignature){
                         $status
