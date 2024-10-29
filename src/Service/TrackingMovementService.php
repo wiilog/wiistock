@@ -392,8 +392,6 @@ class TrackingMovementService {
         $parent = $options['parent'] ?? null;
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
-        $needsStartEvent = $options['needStartEvent'] ?? true;
-
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
         $ungroup = !$disableUngrouping
             && $pack->getParent()
@@ -422,7 +420,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking, $needsStartEvent));
+        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE));
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -480,6 +478,9 @@ class TrackingMovementService {
                 ->setMainMovement($mainMovement)
                 ->setLogisticUnitParent($logisticUnitParent);
             $pack->addTrackingMovement($trackingInitDelay);
+
+            $tracking->setEvent($this->getTrackingEvent($tracking, true));
+            $this->managePackLinksWithTracking($entityManager, $trackingInitDelay);
 
             $entityManager->persist($trackingInitDelay);
 
