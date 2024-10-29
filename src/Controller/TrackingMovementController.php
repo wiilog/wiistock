@@ -216,11 +216,11 @@ class TrackingMovementController extends AbstractController
                     }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
                         $now = new DateTime();
-                        $manualDelayStart = $this->formatService->parseDatetime($post->get('manualDelayStart'), ["Y-m-d"])
-                            ->setTime($now->format('H'), $now->format('i'));
+                        $manualDelayStart = $post->get('manualDelayStart') ?
+                            $this->formatService->parseDatetime($post->get('manualDelayStart'), ["Y-m-d"])->setTime($now->format('H'), $now->format('i'))
+                            : null;
 
-                        $pickingMovements = [
-                            $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                        $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                                 $entityManager,
                                 $codeToPack[$pack] ?? $pack,
                                 $pickingLocation,
@@ -232,43 +232,24 @@ class TrackingMovementController extends AbstractController
                                 [
                                     'commentaire' => $commentaire,
                                     'quantity' => $quantity,
-                                    'needStartEvent' => !$manualDelayStart,
+                                    'manualDelayStart' => $manualDelayStart,
                                 ]
-                            ),
-                            ...($manualDelayStart
-                                ? [$trackingMovementService->persistTrackingMovementForPackOrGroup(
-                                    $entityManager,
-                                    $codeToPack[$pack] ?? $pack,
-                                    $pickingLocation,
-                                    $operator,
-                                    $manualDelayStart,
-                                    true,
-                                    TrackingMovement::TYPE_INIT_TRACKING_DELAY,
-                                    $forced,
-                                    [
-                                        'commentaire' => $commentaire,
-                                        'quantity' => $quantity,
-                                    ]
-                                )]
-                                : [])
-                        ];
+                            );
 
 
-                        foreach ($pickingMovements as $pickingRes) {
-                            if ($pickingRes['success']) {
-                                array_push($createdMovements, ...$pickingRes['movements']);
+                        if ($pickingRes['success']) {
+                            array_push($createdMovements, ...$pickingRes['movements']);
 
-                                $codeToPack = Stream::from($pickingRes['movements'])
-                                    ->keymap(static function (TrackingMovement $movement) {
-                                        $pack = $movement->getPack();
+                            $codeToPack = Stream::from($pickingRes['movements'])
+                                ->keymap(static function (TrackingMovement $movement) {
+                                    $pack = $movement->getPack();
 
-                                        return [$pack->getCode(), $pack];
-                                    })
-                                    ->concat($codeToPack, true)
-                                    ->toArray();
-                            } else {
-                                return $this->json($this->treatPersistTrackingError($pickingRes));
-                            }
+                                    return [$pack->getCode(), $pack];
+                                })
+                                ->concat($codeToPack, true)
+                                ->toArray();
+                        } else {
+                            return $this->json($this->treatPersistTrackingError($pickingRes));
                         }
                     }
 

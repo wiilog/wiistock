@@ -154,6 +154,10 @@ class TrackingMovementController extends AbstractController {
                         $options['natureId'] = $mvt['nature_id'] ?? null;
                         $options['quantity'] = $mvt['quantity'] ?? null;
 
+                        $options['manualDelayStart'] = $type->getCode() === TrackingMovement::TYPE_PRISE && $mvt['manualDelayStart']
+                            ? $this->formatService->parseDatetime($mvt['manualDelayStart'])
+                            : null;
+
                         $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
 
                         if ($createTakeAndDrop) {

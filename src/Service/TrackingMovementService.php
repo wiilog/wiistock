@@ -386,6 +386,7 @@ class TrackingMovementService {
         $preparation = $options['preparation'] ?? null;
         $delivery = $options['delivery'] ?? null;
         $logisticUnitParent = $options['logisticUnitParent'] ?? null;
+        $manualDelayStart = $options['manualDelayStart'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -461,6 +462,35 @@ class TrackingMovementService {
             "type" => ucfirst($tracking->getType()->getCode()),
             "location" => $tracking->getEmplacement(),
         ]);
+
+        if($manualDelayStart){
+            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_INIT_TRACKING_DELAY);
+
+            $trackingInitDelay = new TrackingMovement();
+            $trackingInitDelay
+                ->setOrderIndex($orderIndex)
+                ->setQuantity($pack->getQuantity())
+                ->setOperateur($user)
+                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
+                ->setDatetime($manualDelayStart)
+                ->setFinished($finished)
+                ->setType($type)
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null)
+                ->setEmplacement($location)
+                ->setMainMovement($mainMovement)
+                ->setLogisticUnitParent($logisticUnitParent);
+            $pack->addTrackingMovement($trackingInitDelay);
+
+            $entityManager->persist($trackingInitDelay);
+
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                "message" => $this->buildCustomLogisticUnitHistoryRecord($trackingInitDelay),
+                "historyDate" => $trackingInitDelay->getDatetime(),
+                "user" => $trackingInitDelay->getOperateur(),
+                "type" => ucfirst($trackingInitDelay->getType()->getCode()),
+                "location" => $trackingInitDelay->getEmplacement(),
+            ]);
+        }
 
         if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
