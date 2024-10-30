@@ -49,6 +49,7 @@ class TrackingMovement implements AttachmentContainer {
     const TYPE_EMPTY_ROUND = 'passage à vide';
     const TYPE_DROP_LU = 'dépose dans UL';
     const TYPE_PICK_LU = 'prise dans UL';
+    const TYPE_INIT_TRACKING_DELAY = 'init délai traça';
     const DEFAULT_TYPE = self::TYPE_PRISE_DEPOSE;
 
     const DISPATCH_ENTITY = 'dispatch';
@@ -241,6 +242,13 @@ class TrackingMovement implements AttachmentContainer {
         return (
             $this->type
             &&  $this->type->getCode() === self::TYPE_PRISE
+        );
+    }
+
+    public function isInitTrackingDelay(): bool {
+        return (
+            $this->type
+            &&  $this->type->getCode() === self::TYPE_INIT_TRACKING_DELAY
         );
     }
 

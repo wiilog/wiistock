@@ -30,12 +30,14 @@ use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Repository\Tracking\TrackingMovementRepository;
+use App\Serializer\SerializerUsageEnum;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -54,6 +56,7 @@ class TrackingMovementService {
     public function __construct(
         private EntityManagerInterface      $entityManager,
         private LocationClusterService      $locationClusterService,
+        private NormalizerInterface         $normalizer,
         private Twig_Environment            $templating,
         private Security                    $security,
         private GroupService                $groupService,
@@ -398,6 +401,7 @@ class TrackingMovementService {
         $preparation = $options['preparation'] ?? null;
         $delivery = $options['delivery'] ?? null;
         $logisticUnitParent = $options['logisticUnitParent'] ?? null;
+        $manualDelayStart = $options['manualDelayStart'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -431,7 +435,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking));
+        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE));
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -471,6 +475,38 @@ class TrackingMovementService {
             "type" => ucfirst($tracking->getType()->getCode()),
             "location" => $tracking->getEmplacement(),
         ]);
+
+        if($manualDelayStart){
+            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_INIT_TRACKING_DELAY);
+
+            $trackingInitDelay = new TrackingMovement();
+            $trackingInitDelay
+                ->setOrderIndex($orderIndex)
+                ->setQuantity($pack->getQuantity())
+                ->setOperateur($user)
+                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
+                ->setDatetime($manualDelayStart)
+                ->setFinished($finished)
+                ->setType($type)
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null)
+                ->setEmplacement($location)
+                ->setMainMovement($mainMovement)
+                ->setLogisticUnitParent($logisticUnitParent);
+            $pack->addTrackingMovement($trackingInitDelay);
+
+            $tracking->setEvent($this->getTrackingEvent($tracking, true));
+            $this->managePackLinksWithTracking($entityManager, $trackingInitDelay);
+
+            $entityManager->persist($trackingInitDelay);
+
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                "message" => $this->buildCustomLogisticUnitHistoryRecord($trackingInitDelay),
+                "historyDate" => $trackingInitDelay->getDatetime(),
+                "user" => $trackingInitDelay->getOperateur(),
+                "type" => ucfirst($trackingInitDelay->getType()->getCode()),
+                "location" => $trackingInitDelay->getEmplacement(),
+            ]);
+        }
 
         if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
@@ -861,28 +897,37 @@ class TrackingMovementService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {
+    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user, string $type, array $filterDemandeCollecteIds = [], $includeMovementId = false): array {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        return Stream::from(
-            $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT, [], true)
-        )
-            ->filterMap(function (array $picking) use ($trackingMovementRepository) {
-                $id = $picking['id'];
-                unset($picking['id']);
+        return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, $type, $filterDemandeCollecteIds))
+            ->filterMap(function (TrackingMovement $tracking) use ($includeMovementId, $trackingMovementRepository) {
+                $trackingPack = $tracking->getPack();
 
-                $isGroup = $picking['isGroup'] == '1';
-
-                if ($isGroup) {
-                    $tracking = $trackingMovementRepository->find($id);
+                if ($trackingPack->isGroup()) {
                     $subPacks = $tracking
                         ->getPack()
                         ->getChildren()
                         ->map(fn(Pack $pack) => $pack->serialize());
                 }
 
-                $picking['subPacks'] = $subPacks ?? [];
+                $trackingDelayData = $this->packService->formatTrackingDelayData($trackingPack);
 
-                return (!$isGroup || !empty($subPacks)) ? $picking : null;
+                if(!$trackingPack->isGroup() || !empty($subPacks)){
+                    $picking = $this->normalizer->normalize($tracking, null, [
+                        "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
+                        "includeMovementId" => $includeMovementId,
+                    ]);
+
+                    $picking["trackingDelay"] = $trackingDelayData["delay"];
+                    $picking["trackingDelayColor"] = $trackingDelayData["color"];
+                    $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
+
+                    $picking['subPacks'] = $subPacks ?? [];
+
+                    return $picking;
+                } else {
+                    return null;
+                }
             })
             ->toArray();
     }
@@ -1713,14 +1758,14 @@ class TrackingMovementService {
         return $this->formatService->list($values);
     }
 
-    public function getTrackingEvent(TrackingMovement $trackingMovement): ?TrackingEvent {
+    public function getTrackingEvent(TrackingMovement $trackingMovement, bool $needStartEvent): ?TrackingEvent {
         $trackingLocation = $trackingMovement->getEmplacement();
         if (!$trackingLocation) {
             return null;
         }
 
         return match (true) {
-            $trackingMovement->isPicking() && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
+            (($trackingMovement->isPicking() && $needStartEvent) || $trackingMovement->isInitTrackingDelay()) && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
             $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
             $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
             default => null
