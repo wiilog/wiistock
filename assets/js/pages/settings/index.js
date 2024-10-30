@@ -839,10 +839,10 @@ function initializeLocationByTypeForDeliveries() {
 
 function initDefault(data, $modal) {
     const $lastTypeSelect = $modal.find('select.type-to-associate').last();
-    const productionTypeSettingsValues = data;
     const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
-    productionTypeSettingsValues.forEach(item => {
-        newTypeAssociation($modal, $buttonNewTypeAssociation,item.type, item.delay, true);
+
+    data.forEach(item => {
+        newTypeAssociation($modal, $buttonNewTypeAssociation,item.type, item.value, true);
         updateAlreadyDefinedTypes(undefined);
     });
 
@@ -852,7 +852,7 @@ function initDefault(data, $modal) {
     );
 }
 
-function newTypeAssociation($modal, $button, type = undefined, delay = undefined, firstLoad = false) {
+function newTypeAssociation($modal, $button, type = undefined, value = undefined, firstLoad = false) {
     const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
     const $selectsType = $settingTypeAssociation.find('select.type-to-associate');
@@ -864,8 +864,19 @@ function newTypeAssociation($modal, $button, type = undefined, delay = undefined
         $button.removeAttr("disabled")
         $settingTypeAssociation.append($typeTemplate.html());
         updateAlreadyDefinedTypes(undefined);
-        if(firstLoad && delay && type) {
-            appendSelectOptions($selectsType, $associatedElementsInputs, type, delay);
+
+        if(firstLoad && value && type) {
+            const $assciationLine = $settingTypeAssociation.find('.type-association-container').last();
+            const $typeSelect = $assciationLine.find('.type-to-associate');
+            const $associatedElement = $assciationLine.find('.associated-element');
+            $typeSelect.append(`<option value="${type.id}" selected>${type.label}</option>`);
+            $typeSelect.trigger('change');
+            if($associatedElement.is('select')) {
+                $associatedElement.append(`<option value="${value.id}" selected>${value.label}</option>`);
+                $associatedElement.trigger('change');
+            } else {
+                $associatedElement.val(value);
+            }
         }
     } else {
         showBSAlert(`Tous les champs doivent être renseignés`, `danger`);
@@ -1122,20 +1133,6 @@ function initializeVisibilityGroup($container, canEdit) {
         table.addRow(true);
         changePageTitle($container.find('.wii-title'), true);
     });
-}
-
-function appendSelectOptions(typeSelect, categorySelect, type, association) {
-    typeSelect
-        .append(new Option(type.label, type.id, false, true))
-        .trigger(`change`);
-
-    if(categorySelect.label){
-        categorySelect
-            .append(new Option(association.label, association.id, false, true))
-            .trigger(`change`);
-    }else{
-        categorySelect.last().val(association);
-    }
 }
 
 function triggerReminderEmails($button) {

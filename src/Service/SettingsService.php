@@ -1522,7 +1522,7 @@ class SettingsService {
 
             if (isset($location) && $typeOption) {
                 $defaultDeliveryLocations[] = [
-                    'location' => [
+                    'value' => [
                         'id' => $location->getId(),
                         'label' => $location->getLabel(),
                     ],
