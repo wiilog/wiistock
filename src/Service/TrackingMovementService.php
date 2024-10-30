@@ -386,6 +386,7 @@ class TrackingMovementService {
         $preparation = $options['preparation'] ?? null;
         $delivery = $options['delivery'] ?? null;
         $logisticUnitParent = $options['logisticUnitParent'] ?? null;
+        $manualDelayStart = $options['manualDelayStart'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -419,7 +420,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking));
+        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE));
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -459,6 +460,38 @@ class TrackingMovementService {
             "type" => ucfirst($tracking->getType()->getCode()),
             "location" => $tracking->getEmplacement(),
         ]);
+
+        if($manualDelayStart){
+            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_INIT_TRACKING_DELAY);
+
+            $trackingInitDelay = new TrackingMovement();
+            $trackingInitDelay
+                ->setOrderIndex($orderIndex)
+                ->setQuantity($pack->getQuantity())
+                ->setOperateur($user)
+                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
+                ->setDatetime($manualDelayStart)
+                ->setFinished($finished)
+                ->setType($type)
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null)
+                ->setEmplacement($location)
+                ->setMainMovement($mainMovement)
+                ->setLogisticUnitParent($logisticUnitParent);
+            $pack->addTrackingMovement($trackingInitDelay);
+
+            $tracking->setEvent($this->getTrackingEvent($tracking, true));
+            $this->managePackLinksWithTracking($entityManager, $trackingInitDelay);
+
+            $entityManager->persist($trackingInitDelay);
+
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                "message" => $this->buildCustomLogisticUnitHistoryRecord($trackingInitDelay),
+                "historyDate" => $trackingInitDelay->getDatetime(),
+                "user" => $trackingInitDelay->getOperateur(),
+                "type" => ucfirst($trackingInitDelay->getType()->getCode()),
+                "location" => $trackingInitDelay->getEmplacement(),
+            ]);
+        }
 
         if ($ungroup) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
@@ -1704,14 +1737,14 @@ class TrackingMovementService {
         return $this->formatService->list($values);
     }
 
-    public function getTrackingEvent(TrackingMovement $trackingMovement): ?TrackingEvent {
+    public function getTrackingEvent(TrackingMovement $trackingMovement, bool $needStartEvent): ?TrackingEvent {
         $trackingLocation = $trackingMovement->getEmplacement();
         if (!$trackingLocation) {
             return null;
         }
 
         return match (true) {
-            $trackingMovement->isPicking() && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
+            (($trackingMovement->isPicking() && $needStartEvent) || $trackingMovement->isInitTrackingDelay()) && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
             $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
             $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
             default => null

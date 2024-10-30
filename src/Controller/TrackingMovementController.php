@@ -82,7 +82,7 @@ class TrackingMovementController extends AbstractController
         return $this->render('tracking_movement/index.html.twig', [
             'statuts' => $statuses,
             'form_statuses' => Stream::from($mvtStatuses)
-                ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
+                ->filter(fn(Statut $status) => !in_array($status->getCode(), [TrackingMovement::TYPE_PICK_LU, TrackingMovement::TYPE_INIT_TRACKING_DELAY]))
                 ->toArray(),
             'fields' => $fields,
             'filterArticle' => $article,
@@ -140,6 +140,9 @@ class TrackingMovementController extends AbstractController
             ]);
         }
 
+        $user = $this->getUser();
+        $format = $user && $user->getDateFormat() ? "{$user->getDateFormat()} H:i" : "d/m/Y H:i";
+
         if ($quantity < 1) {
             throw new FormException("La quantité doit être supérieure à 0.");
         }
@@ -147,8 +150,6 @@ class TrackingMovementController extends AbstractController
         if($isNow) {
             $date = new DateTime();
         } else {
-            $user = $this->getUser();
-            $format = $user && $user->getDateFormat() ? "{$user->getDateFormat()} H:i" : "d/m/Y H:i";
             $date = $this->formatService->parseDatetime($post->get("datetime"), [$format]) ?: new DateTime();
         }
 
@@ -214,34 +215,40 @@ class TrackingMovementController extends AbstractController
                         ]);
                     }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
+                        $now = new DateTime();
+                        $manualDelayStart = $post->get('manualDelayStart') ?
+                            $this->formatService->parseDatetime($post->get('manualDelayStart'), ["Y-m-d"])->setTime($now->format('H'), $now->format('i'))
+                            : null;
+
                         $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
-                            $entityManager,
-                            $codeToPack[$pack] ?? $pack,
-                            $pickingLocation,
-                            $operator,
-                            $date,
-                            true,
-                            TrackingMovement::TYPE_PRISE,
-                            $forced,
-                            [
-                                'commentaire' => $commentaire,
-                                'quantity' => $quantity,
-                            ]
-                        );
+                                $entityManager,
+                                $codeToPack[$pack] ?? $pack,
+                                $pickingLocation,
+                                $operator,
+                                $date,
+                                true,
+                                TrackingMovement::TYPE_PRISE,
+                                $forced,
+                                [
+                                    'commentaire' => $commentaire,
+                                    'quantity' => $quantity,
+                                    'manualDelayStart' => $manualDelayStart,
+                                ]
+                            );
+
 
                         if ($pickingRes['success']) {
                             array_push($createdMovements, ...$pickingRes['movements']);
 
                             $codeToPack = Stream::from($pickingRes['movements'])
-                                ->keymap(static function(TrackingMovement $movement) {
+                                ->keymap(static function (TrackingMovement $movement) {
                                     $pack = $movement->getPack();
 
                                     return [$pack->getCode(), $pack];
                                 })
                                 ->concat($codeToPack, true)
                                 ->toArray();
-                        }
-                        else {
+                        } else {
                             return $this->json($this->treatPersistTrackingError($pickingRes));
                         }
                     }
