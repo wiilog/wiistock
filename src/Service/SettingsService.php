@@ -892,7 +892,19 @@ class SettingsService {
                 ->setReusableStatuses($data["reusableStatuses"] ?? false)
                 ->setActive($data["active"] ?? true)
                 ->setColor($data["color"] ?? null)
-                ->setAverageTime($data["averageTime"] ?? null);
+                ->setAverageTime($data["averageTime"] ?? null)
+                ->setCreateDropMovementById($data["createDropMovementById"] ?? null);
+
+            if(isset($data["createdIdentifierNature"])) {
+                $natureRepository = $entityManager->getRepository(Nature::class);
+                $nature = $natureRepository->findOneBy([
+                    "id" => $data["createdIdentifierNature"]
+                ]);
+                $type->setCreatedIdentifierNature($nature);
+            } else {
+                $type->setCreatedIdentifierNature(null);
+            }
+
 
             $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
             if ($defaultTranslation) {
@@ -1114,6 +1126,14 @@ class SettingsService {
                     throw new FormException('Un seul statut peut être sélectionné pour le passage du statut à la génération de la commande');
                 }
 
+                // check if "createDropMovementOnDropLocation" attributes is true only one time
+                $countCreateDropMovementOnDropLocation = Stream::from($statusesData)
+                    ->filter(fn(array $statusData) => ($statusData['createDropMovementOnDropLocation'] ?? null) === "1")
+                    ->count();
+                if ($countCreateDropMovementOnDropLocation > 1) {
+                    throw new FormException("Un seul statut peut être sélectionné pour la création d'un mouvement de dépose sur l'emplacement de dépose");
+                }
+
                 foreach ($statusesData as $statusData) {
                     // check if "passStatusAtPurchaseOrderGeneration" attributes have valid status (only DRAFT and NOT_TREATED)
                     if($statusData['passStatusAtPurchaseOrderGeneration'] ?? false == "1"){
@@ -1169,11 +1189,17 @@ class SettingsService {
                         ->setDisplayOrder($statusData['order'] ?? 0)
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
                         ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
+                        ->setCreateDropMovementOnDropLocation($statusData['createDropMovementOnDropLocation'] ?? false)
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
                         ->setColor($statusData['color'] ?? null)
                         ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false)
                         ->setPassStatusAtPurchaseOrderGeneration($statusData['passStatusAtPurchaseOrderGeneration'] ?? false);
+
+                    if(isset($statusData['generateDispatchRequestOnStatusChange'])){
+                        $dispatchRequestType = $typeRepository->findOneBy(['id' => $statusData['generateDispatchRequestOnStatusChange']]);
+                        $status->setGenerateDispatchRequestOnStatusChange($dispatchRequestType);
+                    }
 
                     if($hasRightGroupedSignature){
                         $status

@@ -6,6 +6,7 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -91,10 +92,18 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $destinationLocation = null;
 
+    #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ['persist'])]
+    private ?TrackingMovement $lastTracking = null;
+
+    #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
+
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->history = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
+
     }
 
     public function getId(): ?int {
@@ -349,6 +358,57 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
 
     public function setDestinationLocation(?Emplacement $destinationLocation): self {
         $this->destinationLocation = $destinationLocation;
+
+        return $this;
+    }
+
+    public function getLastTracking(): ?TrackingMovement
+    {
+        return $this->lastTracking;
+    }
+
+    public function setLastTracking(?TrackingMovement $lastTracking): self
+    {
+        $this->lastTracking = $lastTracking;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setProductionRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->removeElement($trackingMovement)) {
+            if($trackingMovement->getProductionRequest() === $this) {
+                $trackingMovement->setProductionRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setTrackingMovements(?iterable $trackingMovements): self {
+        foreach($this->getTrackingMovements()->toArray() as $trackingMovement) {
+            $this->removeTrackingMovement($trackingMovement);
+        }
+
+        $this->trackingMovements = new ArrayCollection();
+        foreach ($trackingMovements ?? [] as $trackingMovement) {
+            $this->addTrackingMovement($trackingMovement);
+        }
 
         return $this;
     }

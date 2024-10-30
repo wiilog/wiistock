@@ -20,6 +20,7 @@ use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ProductionRequest;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
@@ -189,6 +190,17 @@ class TrackingMovementService {
                 $data['from'] = is_array($movement)
                     ? $movement['entityNumber']
                     : $movement->getShippingRequest()->getNumber();
+            }
+            else if (($movement instanceof TrackingMovement && $movement->getProductionRequest())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::PRODUCTION_REQUEST_ENTITY)) {
+                $data['entityPath'] = 'production_request_show';
+                $data['fromLabel'] = 'Production';
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getProductionRequest()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getProductionRequest()->getNumber();
             }
         }
         return $data;
@@ -561,22 +573,19 @@ class TrackingMovementService {
         }
 
         if (isset($from)) {
-            if ($from instanceof Reception) {
-                $tracking->setReception($from);
-            } else if ($from instanceof Arrivage) {
-                $tracking->setArrivage($from);
-            } else if ($from instanceof Dispatch) {
-                $tracking->setDispatch($from);
-            } else if ($from instanceof Demande) {
-                $tracking->setDeliveryRequest($from);
-            } else if ($from instanceof Preparation) {
-                $tracking->setPreparation($from);
-            } else if ($from instanceof Livraison) {
-                $tracking->setDelivery($from);
-            } else if ($from instanceof ShippingRequest) {
-                $tracking->setShippingRequest($from);
-            }
+            match (get_class($from)) {
+                Reception::class => $tracking->setReception($from),
+                Arrivage::class => $tracking->setArrivage($from),
+                Dispatch::class => $tracking->setDispatch($from),
+                Demande::class => $tracking->setDeliveryRequest($from),
+                Preparation::class => $tracking->setPreparation($from),
+                Livraison::class => $tracking->setDelivery($from),
+                ShippingRequest::class => $tracking->setShippingRequest($from),
+                ProductionRequest::class => $tracking->setProductionRequest($from),
+                default => null,
+            };
         }
+
 
         if (isset($receptionReferenceArticle)) {
             $tracking->setReceptionReferenceArticle($receptionReferenceArticle);

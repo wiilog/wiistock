@@ -174,9 +174,9 @@ class ProductionRequestController extends AbstractController
 
         $productionRequests = [];
         for ($i = 0; $i < $quantityToGenerate; $i++) {
-            $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files, false);
-            $productionRequests[] = $productionRequest;
-            $entityManager->persist($productionRequest);
+            $productionRequestData = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
+            $productionRequests[] = $productionRequestData['productionRequest'];
+            $entityManager->persist($productionRequestData['productionRequest']);
         }
 
         $entityManager->flush();
@@ -408,12 +408,19 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
         }
 
-        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
+        $data = $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files, true);
 
         $entityManager->flush();
 
         if ($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        }
+
+        if($data['errors']) {
+            return $this->json([
+                "success" => true,
+                "msg" => $data['errors'],
+            ]);
         }
 
         return $this->json([

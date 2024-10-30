@@ -15,6 +15,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ProductionRequest;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -59,6 +60,7 @@ class TrackingMovement implements AttachmentContainer {
     const DELIVERY_ORDER_ENTITY = 'deliveryOrder';
     const DELIVERY_REQUEST_ENTITY = 'deliveryRequest';
     const SHIPPING_REQUEST_ENTITY = 'shippingRequest';
+    const PRODUCTION_REQUEST_ENTITY = 'productionRequest';
 
     /**
      * @var array{
@@ -137,6 +139,10 @@ class TrackingMovement implements AttachmentContainer {
 
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'trackingMovements')]
     private ?ShippingRequest $shippingRequest = null;
+
+    #[ORM\ManyToOne(targetEntity: ProductionRequest::class, inversedBy: 'trackingMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?ProductionRequest $productionRequest = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $groupIteration = null;
@@ -551,6 +557,15 @@ class TrackingMovement implements AttachmentContainer {
 
     public function getShippingRequest(): ?ShippingRequest {
         return $this->shippingRequest;
+    }
+
+    public function setProductionRequest(?ProductionRequest $productionRequest): self {
+        $this->productionRequest = $productionRequest;
+        return $this;
+    }
+
+    public function getProductionRequest(): ?ProductionRequest {
+        return $this->productionRequest;
     }
 
     public function setOrderIndex(?int $orderIndex): self {

@@ -14,9 +14,12 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
+use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -30,9 +33,11 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\OperationHistoryService;
+use App\Service\PackService;
 use App\Service\PlanningService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -54,25 +59,27 @@ class ProductionRequestService
     private ?array $freeFieldsConfig = null;
 
     public function __construct(
-        private  TranslationService      $translation,
-        private  StatusHistoryService    $statusHistoryService,
-        private  UserService             $userService,
-        private  MailerService           $mailerService,
-        private  CSVExportService        $CSVExportService,
-        private  OperationHistoryService $operationHistoryService,
-        private  UniqueNumberService     $uniqueNumberService,
-        private  AttachmentService       $attachmentService,
-        private  EntityManagerInterface $entityManager,
-        private  FreeFieldService       $freeFieldService,
-        private  Twig_Environment       $templating,
-        private  RouterInterface        $router,
-        private  FormatService          $formatService,
-        private  Security               $security,
-        private  FieldModesService      $fieldModesService,
-        private  PlanningService        $planningService,
-        private  SettingsService        $settingsService,
-        private  LanguageService        $languageService,
-        private  DateTimeService        $dateTimeService,
+        private TranslationService      $translation,
+        private StatusHistoryService    $statusHistoryService,
+        private UserService             $userService,
+        private MailerService           $mailerService,
+        private CSVExportService        $CSVExportService,
+        private OperationHistoryService $operationHistoryService,
+        private UniqueNumberService     $uniqueNumberService,
+        private AttachmentService       $attachmentService,
+        private EntityManagerInterface  $entityManager,
+        private FreeFieldService        $freeFieldService,
+        private Twig_Environment        $templating,
+        private RouterInterface         $router,
+        private FormatService           $formatService,
+        private Security                $security,
+        private FieldModesService       $fieldModesService,
+        private PlanningService         $planningService,
+        private SettingsService         $settingsService,
+        private LanguageService         $languageService,
+        private DateTimeService         $dateTimeService,
+        private TrackingMovementService $trackingMovementService,
+        private PackService             $packService,
     )
     {
     }
@@ -264,7 +271,8 @@ class ProductionRequestService
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
                                             FileBag                $fileBag,
-                                            bool $fromUpdateStatus = false): ProductionRequest {
+                                            bool $fromUpdateStatus = false): array
+    {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -297,12 +305,70 @@ class ProductionRequestService
             }
         }
 
+        $errors = [];
+        $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
+
+        if ($status->isCreateDropMovementOnDropLocation()) {
+            $natureIsAllowedOnDropLocation = $productionRequest->getDropLocation()?->isAllowedNature($productionRequest->getStatus()->getType()?->getCreatedIdentifierNature());
+
+            if (!$natureIsAllowedOnDropLocation) {
+                $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
+            }
+
+            $location = $productionRequest->getDropLocation();
+            $type = $productionRequest->getStatus()->getType();
+            $identifier = $type->getCreateDropMovementById();
+            $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
+            $packOrCode = $identifier === Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE
+                ? $productionRequest->getManufacturingOrderNumber()
+                : $productionRequest->getNumber();
+
+            $trackingMovement = $this->trackingMovementService->createTrackingMovement(
+                $packOrCode,
+                $location,
+                $currentUser,
+                $now,
+                false,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                [
+                    'quantity' => $productionRequest->getQuantity() ?? null,
+                    'from' => $productionRequest,
+                    'natureId' => $nature?->getId(),
+                ]
+            );
+
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $trackingMovement->getPack(), [
+                "message" => $this->formatService->list([
+                    "Associé à" => "{$productionRequest->getNumber()}",
+                ]),
+                "historyDate" => $now,
+                "user" => $currentUser,
+                "type" => 'Production',
+                "location" => $location,
+            ]);
+
+            $customHistoryMessage = $this->buildCustomProductionHistoryMessageForDispatch($currentUser, $trackingMovement->getPack(), $nature, $location);
+            $this->operationHistoryService->persistProductionHistory(
+                $entityManager,
+                $productionRequest,
+                OperationHistoryService::TYPE_ADD_DISPATCH,
+                [
+                    "user" => $currentUser,
+                    "date" => $now,
+                    "message" => $customHistoryMessage
+                ]
+            );
+
+            $productionRequest->setLastTracking($trackingMovement);
+        }
+
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
         if ($data->has(FixedFieldEnum::status->name)) {
             $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
             $productionRequest->setStatus($status);
 
-            if($status->isTreated()){
+            if ($status->isTreated()) {
                 $productionRequest
                     ->setTreatedAt($now);
             }
@@ -377,7 +443,10 @@ class ProductionRequestService
             $addedAttachments
         );
 
-        return $productionRequest;
+        return [
+            'productionRequest' => $productionRequest,
+            'errors' => $errors
+        ];
     }
 
     public function persistHistoryRecords(EntityManagerInterface $entityManager,
@@ -518,6 +587,21 @@ class ProductionRequestService
 
         return $config;
     }
+
+    public function buildCustomProductionHistoryMessageForDispatch(Utilisateur $user, Pack $pack, Nature $nature, Emplacement $location): string {
+        return sprintf(
+            "<br/><strong>Unité logistique</strong> : %s<br/>" .
+            "<strong>Nature</strong> : %s<br/>" .
+            "<strong>Emplacement</strong> : %s<br/>" .
+            "<strong>Utilisateur</strong> : %s a créé une demande d'acheminement.<br/>" .
+            "<strong>Numéro d'acheminement</strong> : todo prochaine tâche",
+            $pack->getCode(),
+            $nature->getCode(),
+            $location->getLabel(),
+            $user->getUsername()
+        );
+    }
+
 
     public function buildCustomProductionHistoryMessage(ProductionRequest $productionRequest,
                                                         array             $oldValues): string {

@@ -16,7 +16,6 @@ use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,6 +59,7 @@ class OperationHistoryService {
     public const TYPE_CANCELLED = "CANCELLED";
     public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
     public const TYPE_REQUEST_EDITED_DETAILS = "REQUEST_EDITED_DETAILS";
+    public const TYPE_ADD_DISPATCH = "ADD_DISPATCH";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}.{message}",
@@ -88,6 +88,7 @@ class OperationHistoryService {
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
         self::TYPE_REQUEST_EDITED => "La demande a été modifiée",
         self::TYPE_REQUEST_EDITED_DETAILS => "{user} a modifié les informations suivantes : {message}",
+        self::TYPE_ADD_DISPATCH => "{user} à créer un mouvement de traçabilité. {message}",
     ];
 
     #[Required]
@@ -293,6 +294,7 @@ class OperationHistoryService {
             self::TYPE_REQUEST_EDITED,
             self::TYPE_REQUEST_EDITED_DETAILS,
             self::TYPE_REQUEST_AFFECTED_ROUND,
+            self::TYPE_ADD_DISPATCH,
             self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
 
             self::TYPE_DROP_REJECTED_PACK,
