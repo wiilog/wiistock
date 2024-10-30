@@ -146,10 +146,11 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedOnSchedule = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
-    private ?bool $createDropMovementOnDropLocation = null;
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private ?bool $createDropMovementOnDropLocation = false;
 
-    #[ORM\OneToOne(targetEntity: Type::class)]
+    #[ORM\ManyToOne(targetEntity: Type::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Type $generateDispatchRequestOnStatusChange = null;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
@@ -951,7 +952,7 @@ class Statut {
         return $this->createDropMovementOnDropLocation;
     }
 
-    public function setCreateDropMovementOnDropLocation(?bool $createDropMovementOnDropLocation): self {
+    public function setCreateDropMovementOnDropLocation(bool $createDropMovementOnDropLocation): self {
         $this->createDropMovementOnDropLocation = $createDropMovementOnDropLocation;
 
         return $this;
