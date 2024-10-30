@@ -14,6 +14,8 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
+use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -77,7 +79,7 @@ class ProductionRequestService
         private LanguageService         $languageService,
         private DateTimeService         $dateTimeService,
         private TrackingMovementService $trackingMovementService,
-        private PackService             $packService
+        private PackService             $packService,
     )
     {
     }
@@ -313,18 +315,18 @@ class ProductionRequestService
                 $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
             }
 
+            $location = $productionRequest->getDropLocation();
             $type = $productionRequest->getStatus()->getType();
             $identifier = $type->getCreateDropMovementById();
+            $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
             $packOrCode = $identifier === Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE
                 ? $productionRequest->getManufacturingOrderNumber()
                 : $productionRequest->getNumber();
 
-            $user = $this->userService->getUser();
-
             $trackingMovement = $this->trackingMovementService->createTrackingMovement(
                 $packOrCode,
-                $productionRequest->getDropLocation(),
-                $user,
+                $location,
+                $currentUser,
                 $now,
                 false,
                 true,
@@ -332,7 +334,7 @@ class ProductionRequestService
                 [
                     'quantity' => $productionRequest->getQuantity() ?? null,
                     'from' => $productionRequest,
-                    'natureId' => $type->getCreatedIdentifierNature()->getId(),
+                    'natureId' => $nature?->getId(),
                 ]
             );
 
@@ -341,10 +343,22 @@ class ProductionRequestService
                     "Associé à" => "{$productionRequest->getNumber()}",
                 ]),
                 "historyDate" => $now,
-                "user" => $user,
+                "user" => $currentUser,
                 "type" => 'Production',
-                "location" => $productionRequest->getDropLocation(),
+                "location" => $location,
             ]);
+
+            $customHistoryMessage = $this->buildCustomProductionHistoryMessageForDispatch($currentUser, $trackingMovement->getPack(), $nature, $location);
+            $this->operationHistoryService->persistProductionHistory(
+                $entityManager,
+                $productionRequest,
+                OperationHistoryService::TYPE_ADD_DISPATCH,
+                [
+                    "user" => $currentUser,
+                    "date" => $now,
+                    "message" => $customHistoryMessage
+                ]
+            );
 
             $productionRequest->setLastTracking($trackingMovement);
         }
@@ -354,7 +368,7 @@ class ProductionRequestService
             $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
             $productionRequest->setStatus($status);
 
-            if($status->isTreated()){
+            if ($status->isTreated()) {
                 $productionRequest
                     ->setTreatedAt($now);
             }
@@ -573,6 +587,21 @@ class ProductionRequestService
 
         return $config;
     }
+
+    public function buildCustomProductionHistoryMessageForDispatch(Utilisateur $user, Pack $pack, Nature $nature, Emplacement $location): string {
+        return sprintf(
+            "<br/><strong>Unité logistique</strong> : %s<br/>" .
+            "<strong>Nature</strong> : %s<br/>" .
+            "<strong>Emplacement</strong> : %s<br/>" .
+            "<strong>Utilisateur</strong> : %s a créé une demande d'acheminement.<br/>" .
+            "<strong>Numéro d'acheminement</strong> : todo prochaine tâche",
+            $pack->getCode(),
+            $nature->getCode(),
+            $location->getLabel(),
+            $user->getUsername()
+        );
+    }
+
 
     public function buildCustomProductionHistoryMessage(ProductionRequest $productionRequest,
                                                         array             $oldValues): string {
