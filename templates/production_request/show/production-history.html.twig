@@ -1,6 +1,7 @@
 {% for line in history %}
     {% set record = line.record %}
     {% set icon = line.icon %}
+
     <div class="history-line">
         <div class="history-content {{ loop.last ? 'last' }}">
             <div class="wii-small-text date">{{ record.date|format_helper('longDate', {short: true, time: true}) }}</div>
