@@ -303,34 +303,12 @@ class TrackingMovementRepository extends EntityRepository
      */
     public function getPickingByOperatorAndNotDropped(Utilisateur $operator,
                                                       string $type,
-                                                      array $filterDemandeCollecteIds = [],
-                                                      bool $includeMovementId = false) {
-        $queryBuilder = $this->createQueryBuilder('tracking_movement')
-            ->select('join_pack.code AS ref_article')
-            ->addSelect('join_trackingType.nom AS type')
-            ->addSelect('tracking_movement.quantity AS quantity')
-            ->addSelect('tracking_movement.freeFields')
-            ->addSelect('join_operator.username AS operateur')
-            ->addSelect('join_location.label AS ref_emplacement')
-            ->addSelect('tracking_movement.uniqueIdForMobile AS date')
-            ->addSelect('join_pack_nature.id AS nature_id')
-            ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL OR join_pack.articleContainer = 1 THEN 1 ELSE 0 END) AS fromStock')
-            ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup')
-            ->addSelect('join_packParent.code AS packParent')
-            ->addSelect("GROUP_CONCAT(join_pack_child_articles.barCode SEPARATOR ';') AS articles");
-
-        if ($includeMovementId) {
-            $queryBuilder->addSelect('tracking_movement.id');
-        }
+                                                      array $filterDemandeCollecteIds = []) {
+        $queryBuilder = $this->createQueryBuilder('tracking_movement');
 
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
             ? 'join_stockMovement.id IS NOT NULL'
-            : 'join_stockMovement.id IS NULL'; // MOUVEMENT_TRACA_DEFAULT
-
-        if ($type === self::MOUVEMENT_TRACA_STOCK) {
-            $queryBuilder->addSelect('join_stockMovement.quantity');
-        }
+            : 'join_stockMovement.id IS NULL';
 
         $queryBuilder
             ->join('tracking_movement.type', 'join_trackingType')
@@ -348,14 +326,6 @@ class TrackingMovementRepository extends EntityRepository
             ->andWhere('tracking_movement.finished = :finished')
             ->andWhere('join_pack_article.currentLogisticUnit IS NULL')
             ->andWhere($typeCondition)
-            ->addGroupBy("join_pack")
-            ->addGroupBy('join_trackingType')
-            ->addGroupBy('tracking_movement')
-            ->addGroupBy('join_operator')
-            ->addGroupBy('join_location')
-            ->addGroupBy('join_pack_nature')
-            ->addGroupBy('join_packParent')
-            ->addGroupBy('join_stockMovement')
             ->setParameter('operator', $operator)
             ->setParameter('priseType', TrackingMovement::TYPE_PRISE)
             ->setParameter('finished', false);
@@ -364,7 +334,6 @@ class TrackingMovementRepository extends EntityRepository
             $queryBuilder
                 ->join('join_stockMovement.collecteOrder', 'join_stockMovement_collectOrder')
                 ->andWhere('join_stockMovement_collectOrder.id IN (:collecteOrderId)')
-                ->addGroupBy('join_stockMovement_collectOrder')
                 ->setParameter('collecteOrderId', $filterDemandeCollecteIds, Connection::PARAM_STR_ARRAY);
         }
 

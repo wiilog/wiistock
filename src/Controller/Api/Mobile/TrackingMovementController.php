@@ -11,6 +11,7 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
@@ -431,7 +432,7 @@ class TrackingMovementController extends AbstractController {
 
             $entityManager->flush();
 
-            $res['tracking'] = $trackingMovementService->getMobileUserPicking($entityManager, $operator);
+            $res['tracking'] = $trackingMovementService->getMobileUserPicking($entityManager, $operator, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT);
         } catch (Throwable $throwable) {
             $res['success'] = false;
             $res['message'] = "Une erreur est survenue lors de l'enregistrement d'un mouvement";
@@ -544,7 +545,7 @@ class TrackingMovementController extends AbstractController {
                     50
                 );
                 $normalizedMovements = Stream::from($movements)
-                    ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE]))
+                    ->map(static fn(TrackingMovement $movement) => $normalizer->normalize($movement, null, ["usage" => SerializerUsageEnum::MOBILE_READING_MENU]))
                     ->toArray();
                 $res['movements'] = $normalizedMovements;
             }
