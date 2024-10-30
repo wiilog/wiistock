@@ -174,9 +174,9 @@ class ProductionRequestController extends AbstractController
 
         $productionRequests = [];
         for ($i = 0; $i < $quantityToGenerate; $i++) {
-            $data = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files, false);
-            $productionRequests[] = $data['productionRequest'];
-            $entityManager->persist($data['productionRequest']);
+            $productionRequestData = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
+            $productionRequests[] = $productionRequestData['productionRequest'];
+            $entityManager->persist($productionRequestData['productionRequest']);
         }
 
         $entityManager->flush();

@@ -20,6 +20,9 @@ final class Version20241028135617 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if(!$schema->getTable('type')->hasColumn('create_drop_movement_by_id')){
+            $this->addSql("ALTER TABLE type ADD create_drop_movement_by_id VARCHAR(255) DEFAULT FALSE");
+        }
 
         $conn = $this->connection;
         $categoryId = $conn->fetchOne('SELECT id FROM category_type WHERE label = :category_label', [
@@ -27,9 +30,9 @@ final class Version20241028135617 extends AbstractMigration
         ]);
 
         $this->addSql(
-            'UPDATE type SET create_drop_movement_by_id = :createdDropMovementById WHERE category_id = :category_id',
+            'UPDATE type SET create_drop_movement_by_id = :createDropMovementById WHERE category_id = :category_id',
             [
-                'createdDropMovementById' => Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE,
+                'createDropMovementById' => Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE,
                 'category_id' => $categoryId,
             ]
         );

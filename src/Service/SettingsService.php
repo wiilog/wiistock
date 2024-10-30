@@ -901,6 +901,8 @@ class SettingsService {
                     "id" => $data["createdIdentifierNature"]
                 ]);
                 $type->setCreatedIdentifierNature($nature);
+            } else {
+                $type->setCreatedIdentifierNature(null);
             }
 
 

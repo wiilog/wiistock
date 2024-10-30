@@ -391,12 +391,23 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     }
 
     public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
-        if($this->trackingMovements->contains($trackingMovement)) {
-            $this->trackingMovements->removeElement($trackingMovement);
-            // set the owning side to null (unless already changed)
+        if($this->trackingMovements->removeElement($trackingMovement)) {
             if($trackingMovement->getProductionRequest() === $this) {
                 $trackingMovement->setProductionRequest(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function setTrackingMovements(?iterable $trackingMovements): self {
+        foreach($this->getTrackingMovements()->toArray() as $trackingMovement) {
+            $this->removeTrackingMovement($trackingMovement);
+        }
+
+        $this->trackingMovements = new ArrayCollection();
+        foreach ($trackingMovements ?? [] as $trackingMovement) {
+            $this->addTrackingMovement($trackingMovement);
         }
 
         return $this;
