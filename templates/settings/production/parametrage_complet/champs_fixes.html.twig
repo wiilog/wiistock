@@ -1,7 +1,7 @@
 
 {% import 'form.html.twig' as form %}
 
- {% include 'settings/fixed_field_elements.html.twig' with {
+{% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY'),
     field: emergency.field,
     elementsType: emergency.elementsType,

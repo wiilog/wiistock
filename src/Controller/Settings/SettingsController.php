@@ -1572,8 +1572,9 @@ class SettingsController extends AbstractController {
                     },
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $fixedFieldByTypeRepository, $typeRepository) {
                         $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
-                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
                         $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
+                        $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
+
                         $allKey =  Stream::keys($expectedAtField->getElements())
                             ->toArray();
                         $allUsedType = $typeRepository->findBy(["id"=>$allKey]);
