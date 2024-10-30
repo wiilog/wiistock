@@ -398,7 +398,6 @@ class TrackingMovementService {
         $preparation = $options['preparation'] ?? null;
         $delivery = $options['delivery'] ?? null;
         $logisticUnitParent = $options['logisticUnitParent'] ?? null;
-        $nature = $options['nature'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;

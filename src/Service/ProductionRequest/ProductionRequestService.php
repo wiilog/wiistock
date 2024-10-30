@@ -31,6 +31,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\MailerService;
 use App\Service\OperationHistoryService;
+use App\Service\PackService;
 use App\Service\PlanningService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
@@ -76,6 +77,7 @@ class ProductionRequestService
         private LanguageService         $languageService,
         private DateTimeService         $dateTimeService,
         private TrackingMovementService $trackingMovementService,
+        private PackService             $packService
     )
     {
     }
@@ -303,9 +305,10 @@ class ProductionRequestService
 
         $errors = [];
         $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
-        $natureIsAllowedOnDropLocation = $productionRequest->getDropLocation()?->isAllowedNature($productionRequest->getStatus()->getType()?->getCreatedIdentifierNature());
 
         if ($status->isCreateDropMovementOnDropLocation()) {
+            $natureIsAllowedOnDropLocation = $productionRequest->getDropLocation()?->isAllowedNature($productionRequest->getStatus()->getType()?->getCreatedIdentifierNature());
+
             if (!$natureIsAllowedOnDropLocation) {
                 $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
             }
@@ -316,10 +319,12 @@ class ProductionRequestService
                 ? $productionRequest->getManufacturingOrderNumber()
                 : $productionRequest->getNumber();
 
+            $user = $this->userService->getUser();
+
             $trackingMovement = $this->trackingMovementService->createTrackingMovement(
                 $packOrCode,
                 $productionRequest->getDropLocation(),
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -331,9 +336,18 @@ class ProductionRequestService
                 ]
             );
 
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $trackingMovement->getPack(), [
+                "message" => $this->formatService->list([
+                    "Associé à" => "{$productionRequest->getNumber()}",
+                ]),
+                "historyDate" => $now,
+                "user" => $user,
+                "type" => 'Production',
+                "location" => $productionRequest->getDropLocation(),
+            ]);
+
             $productionRequest->setLastTracking($trackingMovement);
         }
-
 
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
         if ($data->has(FixedFieldEnum::status->name)) {
