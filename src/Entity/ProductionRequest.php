@@ -95,10 +95,15 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ['persist'])]
     private ?TrackingMovement $lastTracking = null;
 
+    #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
+
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
         $this->attachments = new ArrayCollection();
         $this->history = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
+
     }
 
     public function getId(): ?int {
@@ -365,6 +370,34 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     public function setLastTracking(?TrackingMovement $lastTracking): self
     {
         $this->lastTracking = $lastTracking;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setProductionRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getProductionRequest() === $this) {
+                $trackingMovement->setProductionRequest(null);
+            }
+        }
 
         return $this;
     }

@@ -1124,6 +1124,14 @@ class SettingsService {
                     throw new FormException('Un seul statut peut être sélectionné pour le passage du statut à la génération de la commande');
                 }
 
+                // check if "createDropMovementOnDropLocation" attributes is true only one time
+                $countCreateDropMovementOnDropLocation = Stream::from($statusesData)
+                    ->filter(fn(array $statusData) => ($statusData['createDropMovementOnDropLocation'] ?? null) === "1")
+                    ->count();
+                if ($countCreateDropMovementOnDropLocation > 1) {
+                    throw new FormException("Un seul statut peut être sélectionné pour la création d'un mouvement de dépose sur l'emplacement de dépose");
+                }
+
                 foreach ($statusesData as $statusData) {
                     // check if "passStatusAtPurchaseOrderGeneration" attributes have valid status (only DRAFT and NOT_TREATED)
                     if($statusData['passStatusAtPurchaseOrderGeneration'] ?? false == "1"){

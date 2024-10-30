@@ -10,13 +10,13 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\Nature;
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\Tracking\TrackingMovement;
-use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -414,6 +414,7 @@ class PackService {
                                                        $quantity,
                                                        $natureId = null,
                                 bool                   $onlyPack = false): Pack {
+
         $packRepository = $entityManager->getRepository(Pack::class);
 
         $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;

@@ -17,6 +17,7 @@ use App\Entity\Menu;
 use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -33,6 +34,7 @@ use App\Service\OperationHistoryService;
 use App\Service\PlanningService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -54,25 +56,26 @@ class ProductionRequestService
     private ?array $freeFieldsConfig = null;
 
     public function __construct(
-        private  TranslationService      $translation,
-        private  StatusHistoryService    $statusHistoryService,
-        private  UserService             $userService,
-        private  MailerService           $mailerService,
-        private  CSVExportService        $CSVExportService,
-        private  OperationHistoryService $operationHistoryService,
-        private  UniqueNumberService     $uniqueNumberService,
-        private  AttachmentService       $attachmentService,
-        private  EntityManagerInterface $entityManager,
-        private  FreeFieldService       $freeFieldService,
-        private  Twig_Environment       $templating,
-        private  RouterInterface        $router,
-        private  FormatService          $formatService,
-        private  Security               $security,
-        private  FieldModesService      $fieldModesService,
-        private  PlanningService        $planningService,
-        private  SettingsService        $settingsService,
-        private  LanguageService        $languageService,
-        private  DateTimeService        $dateTimeService,
+        private TranslationService      $translation,
+        private StatusHistoryService    $statusHistoryService,
+        private UserService             $userService,
+        private MailerService           $mailerService,
+        private CSVExportService        $CSVExportService,
+        private OperationHistoryService $operationHistoryService,
+        private UniqueNumberService     $uniqueNumberService,
+        private AttachmentService       $attachmentService,
+        private EntityManagerInterface  $entityManager,
+        private FreeFieldService        $freeFieldService,
+        private Twig_Environment        $templating,
+        private RouterInterface         $router,
+        private FormatService           $formatService,
+        private Security                $security,
+        private FieldModesService       $fieldModesService,
+        private PlanningService         $planningService,
+        private SettingsService         $settingsService,
+        private LanguageService         $languageService,
+        private DateTimeService         $dateTimeService,
+        private TrackingMovementService $trackingMovementService,
     )
     {
     }
@@ -264,7 +267,8 @@ class ProductionRequestService
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
                                             FileBag                $fileBag,
-                                            bool $fromUpdateStatus = false): ProductionRequest {
+                                            bool $fromUpdateStatus = false): array
+    {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -296,6 +300,40 @@ class ProductionRequestService
                 $productionRequest->setType($type);
             }
         }
+
+        $errors = [];
+        $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
+        $natureIsAllowedOnDropLocation = $productionRequest->getDropLocation()?->isAllowedNature($productionRequest->getStatus()->getType()?->getCreatedIdentifierNature());
+
+        if ($status->isCreateDropMovementOnDropLocation()) {
+            if (!$natureIsAllowedOnDropLocation) {
+                $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
+            }
+
+            $type = $productionRequest->getStatus()->getType();
+            $identifier = $type->getCreateDropMovementById();
+            $packOrCode = $identifier === Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE
+                ? $productionRequest->getManufacturingOrderNumber()
+                : $productionRequest->getNumber();
+
+            $trackingMovement = $this->trackingMovementService->createTrackingMovement(
+                $packOrCode,
+                $productionRequest->getDropLocation(),
+                $this->userService->getUser(),
+                $now,
+                false,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                [
+                    'quantity' => $productionRequest->getQuantity() ?? null,
+                    'from' => $productionRequest,
+                    'natureId' => $type->getCreatedIdentifierNature()->getId(),
+                ]
+            );
+
+            $productionRequest->setLastTracking($trackingMovement);
+        }
+
 
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
         if ($data->has(FixedFieldEnum::status->name)) {
@@ -377,7 +415,10 @@ class ProductionRequestService
             $addedAttachments
         );
 
-        return $productionRequest;
+        return [
+            'productionRequest' => $productionRequest,
+            'errors' => $errors
+        ];
     }
 
     public function persistHistoryRecords(EntityManagerInterface $entityManager,
