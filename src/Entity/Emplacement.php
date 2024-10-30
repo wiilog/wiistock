@@ -455,6 +455,10 @@ class Emplacement implements PairedEntity {
         return $this->allowedNatures;
     }
 
+    public function isAllowedNature(Nature $nature): bool {
+        return $this->allowedNatures->contains($nature) || $this->allowedNatures->isEmpty();
+    }
+
     public function addAllowedNature(Nature $allowedNature): self {
         if(!$this->allowedNatures->contains($allowedNature)) {
             $this->allowedNatures[] = $allowedNature;
