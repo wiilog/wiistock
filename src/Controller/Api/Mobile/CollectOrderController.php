@@ -64,7 +64,7 @@ class CollectOrderController extends AbstractController {
                                    ExceptionLoggerService    $exceptionLoggerService,
                                    OrdreCollecteService      $ordreCollecteService,
                                    TrackingMovementService   $trackingMovementService,
-                                   EntityManagerInterface    $entityManager)
+                                   EntityManagerInterface    $entityManager): JsonResponse
     {
         $nomadUser = $this->getUser();
 

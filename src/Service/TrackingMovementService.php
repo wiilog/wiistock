@@ -847,10 +847,6 @@ class TrackingMovementService {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, $type, $filterDemandeCollecteIds))
             ->filterMap(function (TrackingMovement $tracking) use ($includeMovementId, $trackingMovementRepository) {
-                $picking = $this->normalizer->normalize($tracking, null, [
-                    "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
-                    "includeMovementId" => $includeMovementId,
-                ]);
                 $trackingPack = $tracking->getPack();
 
                 if ($trackingPack->isGroup()) {
@@ -862,13 +858,22 @@ class TrackingMovementService {
 
                 $trackingDelayData = $this->packService->formatTrackingDelayData($trackingPack);
 
-                $picking["trackingDelay"] = $trackingDelayData["delay"];
-                $picking["trackingDelayColor"] = $trackingDelayData["color"];
-                $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
+                if(!$trackingPack->isGroup() || !empty($subPacks)){
+                    $picking = $this->normalizer->normalize($tracking, null, [
+                        "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
+                        "includeMovementId" => $includeMovementId,
+                    ]);
 
-                $picking['subPacks'] = $subPacks ?? [];
+                    $picking["trackingDelay"] = $trackingDelayData["delay"];
+                    $picking["trackingDelayColor"] = $trackingDelayData["color"];
+                    $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
 
-                return (!$trackingPack->isGroup() || !empty($subPacks)) ? $picking : null;
+                    $picking['subPacks'] = $subPacks ?? [];
+
+                    return $picking;
+                } else {
+                    return null;
+                }
             })
             ->toArray();
     }
