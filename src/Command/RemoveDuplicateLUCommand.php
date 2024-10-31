@@ -119,6 +119,7 @@ class RemoveDuplicateLUCommand extends Command {
             ->toArray();
 
         $notGroupLu = Stream::from($lus)->filter(fn(Pack $lu) => !$luRepository->count(['parent' => $lu]))->toArray();
+
         // if there is only one LU with children
         if (count($lus) - count($notGroupLu) === 1) {
             if ($input->getOption('details')) {
@@ -253,6 +254,24 @@ class RemoveDuplicateLUCommand extends Command {
                         $editedEntities = $this->remove($lu, $editedEntities, $io);
                     }
                 }
+            } else {
+                if ($input->getOption('details')) {
+                    $io->warning('Il y a un seul mouvement de traca pour les ULs dupliquées');
+                    $io->text('On garde l\'UL avec le mouvement de traca');
+                }
+
+                // if there is only one tracking movement, we can delete the other LUs
+                $lusToDelete = Stream::from($lus)
+                    ->sort(fn(Pack $a, Pack $b) => $a->getTrackingMovements()->count() <=> $b->getTrackingMovements()->count())
+                    ->reverse()
+                    ->toArray();
+
+                array_shift($lusToDelete);
+
+                Stream::from($lusToDelete)
+                    ->each(function (Pack $lu) use ($io, &$editedEntities) {
+                        $editedEntities = $this->remove($lu, $editedEntities, $io);
+                    });
             }
         }
     }
