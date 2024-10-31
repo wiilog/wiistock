@@ -23,7 +23,7 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
-use App\Entity\TrackingMovement;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
