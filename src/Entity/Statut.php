@@ -151,7 +151,7 @@ class Statut {
 
     #[ORM\ManyToOne(targetEntity: Type::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Type $generateDispatchRequestOnStatusChange = null;
+    private ?Type $typeForGeneratedDispatchOnStatusChange = null;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     #[ORM\JoinTable("status_notification_user")]
@@ -894,13 +894,13 @@ class Statut {
         return $this;
     }
 
-    public function getGenerateDispatchRequestOnStatusChange(): ?Type
+    public function getTypeForGeneratedDispatchOnStatusChange(): ?Type
     {
-        return $this->generateDispatchRequestOnStatusChange;
+        return $this->typeForGeneratedDispatchOnStatusChange;
     }
 
-    public function setGenerateDispatchRequestOnStatusChange(?Type $generateDispatchRequestOnStatusChange): self {
-        $this->generateDispatchRequestOnStatusChange = $generateDispatchRequestOnStatusChange;
+    public function setTypeForGeneratedDispatchOnStatusChange(?Type $typeForGeneratedDispatchOnStatusChange): self {
+        $this->typeForGeneratedDispatchOnStatusChange = $typeForGeneratedDispatchOnStatusChange;
 
         return $this;
     }

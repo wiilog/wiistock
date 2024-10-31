@@ -1196,9 +1196,9 @@ class SettingsService {
                         ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false)
                         ->setPassStatusAtPurchaseOrderGeneration($statusData['passStatusAtPurchaseOrderGeneration'] ?? false);
 
-                    if(isset($statusData['generateDispatchRequestOnStatusChange'])){
-                        $dispatchRequestType = $typeRepository->findOneBy(['id' => $statusData['generateDispatchRequestOnStatusChange']]);
-                        $status->setGenerateDispatchRequestOnStatusChange($dispatchRequestType);
+                    if(isset($statusData['typeForGeneratedDispatchOnStatusChange'])){
+                        $dispatchRequestType = $typeRepository->findOneBy(['id' => $statusData['typeForGeneratedDispatchOnStatusChange']]);
+                        $status->setTypeForGeneratedDispatchOnStatusChange($dispatchRequestType);
                     }
 
                     if($hasRightGroupedSignature){

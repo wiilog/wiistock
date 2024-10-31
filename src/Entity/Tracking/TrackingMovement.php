@@ -141,7 +141,6 @@ class TrackingMovement implements AttachmentContainer {
     private ?ShippingRequest $shippingRequest = null;
 
     #[ORM\ManyToOne(targetEntity: ProductionRequest::class, inversedBy: 'trackingMovements')]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?ProductionRequest $productionRequest = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
