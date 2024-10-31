@@ -94,7 +94,7 @@ class RemoveDuplicateLUCommand extends Command {
             }
         }
 
-        dump(json_encode($editedEntities));
+        $io->text(json_encode($editedEntities));
         // save the changes in the database after removing the duplicate LUs
         if (!$input->getOption('dry-run')) {
             $this->entityManager->flush();
