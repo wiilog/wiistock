@@ -392,7 +392,12 @@ class ProductionRequestService
             $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
 
             if (!$nature) {
-                throw new FormException('Vous devez paramétrer "Nature de l\'identifiant créé" pour créer le mouvement de déspose sur l\'emplacement de dépose.');
+                throw new FormException('Vous devez paramétrer "Nature de l\'identifiant créé" pour créer le mouvement de dépose sur l\'emplacement de dépose.');
+            }
+
+            $location = $productionRequest->getDropLocation();
+            if (!$location) {
+                throw new FormException('Vous devez remplir le champ "Emplacement de dépose" pour créer le mouvement de dépose sur l\'emplacement de dépose.');
             }
 
             $natureIsAllowedOnDropLocation = $productionRequest->getDropLocation()?->isAllowedNature($nature);
@@ -401,15 +406,11 @@ class ProductionRequestService
                 $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
             }
 
-            $location = $productionRequest->getDropLocation();
             $type = $productionRequest->getStatus()->getType();
             $identifier = $type->getCreateDropMovementById();
-            $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
             $packOrCode = $identifier === Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE
                 ? $productionRequest->getManufacturingOrderNumber()
                 : $productionRequest->getNumber();
-
-            dump($packOrCode);
 
             $trackingMovement = $this->trackingMovementService->createTrackingMovement(
                 $packOrCode,
@@ -436,7 +437,7 @@ class ProductionRequestService
                 "location" => $location,
             ]);
 
-            $customHistoryMessage = $this->buildCustomProductionHistoryMessageForDispatch($currentUser, $trackingMovement->getPack(), $nature, $location);
+            $customHistoryMessage = $this->buildCustomProductionHistoryMessageForDispatch($trackingMovement->getPack(), $nature, $location);
             $this->operationHistoryService->persistProductionHistory(
                 $entityManager,
                 $productionRequest,
@@ -596,17 +597,14 @@ class ProductionRequestService
         return $config;
     }
 
-    public function buildCustomProductionHistoryMessageForDispatch(Utilisateur $user, Pack $pack, Nature $nature, Emplacement $location): string {
+    public function buildCustomProductionHistoryMessageForDispatch(Pack $pack, Nature $nature, Emplacement $location): string {
         return sprintf(
             "<br/><strong>Unité logistique</strong> : %s<br/>" .
             "<strong>Nature</strong> : %s<br/>" .
-            "<strong>Emplacement</strong> : %s<br/>" .
-            "<strong>Utilisateur</strong> : %s a créé une demande d'acheminement.<br/>" .
-            "<strong>Numéro d'acheminement</strong> : todo prochaine tâche",
+            "<strong>Emplacement</strong> : %s<br/>",
             $pack->getCode(),
             $nature->getCode(),
             $location->getLabel(),
-            $user->getUsername()
         );
     }
 
