@@ -416,7 +416,6 @@ class TrackingMovementService {
         $orderIndex = floor($orderIndexNanoseconds / 1000000);
 
         $tracking = new TrackingMovement();
-
         $tracking
             ->setQuantity($quantity)
             ->setEmplacement($location)
@@ -435,7 +434,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE));
+        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE && !$manualDelayStart));
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -494,7 +493,7 @@ class TrackingMovementService {
                 ->setLogisticUnitParent($logisticUnitParent);
             $pack->addTrackingMovement($trackingInitDelay);
 
-            $tracking->setEvent($this->getTrackingEvent($tracking, true));
+            $trackingInitDelay->setEvent($this->getTrackingEvent($trackingInitDelay, true));
             $this->managePackLinksWithTracking($entityManager, $trackingInitDelay);
 
             $entityManager->persist($trackingInitDelay);
