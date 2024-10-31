@@ -129,7 +129,7 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Preparation $preparation = null;
 
-    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements', )]
+    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Livraison $delivery = null;
 
