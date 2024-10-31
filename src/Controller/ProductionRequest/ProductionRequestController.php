@@ -207,6 +207,14 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Accès refusé");
         }
 
+        if(!empty($productionRequest->getTrackingMovements())){
+            return $this->json([
+                "success" => false,
+                "msg" => "Erreur : Cette demande est liée à un ou plusieurs mouvements de traçabilité.
+                Vous devez supprimer les mouvements de traçabilité, puis supprimer la demande",
+            ]);
+        }
+
         $attachmentService->removeAttachments($entityManager, $productionRequest);
 
         $entityManager->remove($productionRequest);

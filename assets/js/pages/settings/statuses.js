@@ -242,7 +242,7 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             modes: [MODE_PRODUCTION]
         },
         {
-            data: `generateDispatchRequestOnStatusChange`,
+            data: `typeForGeneratedDispatchOnStatusChange`,
             title: `<div class='small-column'>Proposition de générer une demande d'acheminement</div>`,
             modes: [MODE_PRODUCTION]
         },
@@ -311,7 +311,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
         createDropMovementOnDropLocation: `<div class='checkbox-container'><input type='checkbox' name='createDropMovementOnDropLocation' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
-        generateDispatchRequestOnStatusChange: `<select name='generateDispatchRequestOnStatusChange' class='form-control data' data-s2='dispatchType'></select>`,
+        typeForGeneratedDispatchOnStatusChange: `<select name='typeForGeneratedDispatchOnStatusChange' class='form-control data' data-s2='dispatchType'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };

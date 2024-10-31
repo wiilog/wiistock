@@ -138,12 +138,12 @@ class StatusController extends AbstractController
                         ->toArray()
                     : [];
                 $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
-                $generateDispatchRequestOnStatusChange = $status->getGenerateDispatchRequestOnStatusChange() ?
+                $typeForGeneratedDispatchOnStatusChange = $status->getTypeForGeneratedDispatchOnStatusChange() ?
                     Stream::from($types)
                         ->map(fn(Type $type) => [
                             "label" => $type->getLabel(),
                             "value" => $type->getId(),
-                            "selected" => $type->getId() === $status->getGenerateDispatchRequestOnStatusChange()?->getId(),
+                            "selected" => $type->getId() === $status->getTypeForGeneratedDispatchOnStatusChange()?->getId(),
                         ])
                         ->toArray()
                     : [];
@@ -176,10 +176,10 @@ class StatusController extends AbstractController
                         "multiple" => true,
                         "items" => $notifiedUsers,
                     ]),
-                    "generateDispatchRequestOnStatusChange" => $formService->macro("select", "generateDispatchRequestOnStatusChange", null, false, [
+                    "typeForGeneratedDispatchOnStatusChange" => $formService->macro("select", "typeForGeneratedDispatchOnStatusChange", null, false, [
                         "type" => "dispatchType",
                         "multiple" => false,
-                        "items" => $generateDispatchRequestOnStatusChange,
+                        "items" => $typeForGeneratedDispatchOnStatusChange,
                     ]),
                     "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
                     "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
@@ -210,7 +210,7 @@ class StatusController extends AbstractController
                     "notifiedUsers" => Stream::from($status->getNotifiedUsers())
                         ->map(static fn(Utilisateur $user) => $user->getUsername())
                         ->join(", "),
-                    "generateDispatchRequestOnStatusChange" => $this->formatService->type($status->getGenerateDispatchRequestOnStatusChange()),
+                    "typeForGeneratedDispatchOnStatusChange" => $this->formatService->type($status->getTypeForGeneratedDispatchOnStatusChange()),
                     "requiredAttachment" => $this->formatService->bool($status->isRequiredAttachment()),
                     "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
                     "passStatusAtPurchaseOrderGeneration" => $this->formatService->bool($status->isPassStatusAtPurchaseOrderGeneration()),
