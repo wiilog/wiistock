@@ -214,9 +214,8 @@ class TrackingMovementController extends AbstractController
                         ]);
                     }
                     if(in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_PRISE_DEPOSE])){
-                        $now = new DateTime();
                         $manualDelayStart = $post->get('manualDelayStart') ?
-                            $this->formatService->parseDatetime($post->get('manualDelayStart'), ["Y-m-d"])->setTime($now->format('H'), $now->format('i'))
+                            $this->formatService->parseDatetime($post->get('manualDelayStart'), ["Y-m-d"])
                             : null;
 
                         $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
