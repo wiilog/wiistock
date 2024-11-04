@@ -232,6 +232,10 @@ class ProductionRequestRepository extends EntityRepository
             }
         }
 
+        if($options['dispatchMode']) {
+            $qb->orderBy("production_request.createdAt", "DESC");
+        }
+
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $filtered,

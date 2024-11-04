@@ -84,7 +84,11 @@ class ProductionRequestService
     {
     }
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, string $page, bool $forExport = false): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager,
+                                            ?Utilisateur $currentUser,
+                                            string $page,
+                                            bool $forExport = false,
+                                            bool $dispatchMode = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
@@ -92,7 +96,15 @@ class ProductionRequestService
 
         $columns = [];
 
-        if (!$forExport) {
+        if($dispatchMode) {
+            $columns[] = [
+                'title' => "<input type='checkbox' class='checkbox check-all'>",
+                'name' => 'actions',
+                'alwaysVisible' => true,
+                'orderable' => false,
+                'class' => 'noVis'
+            ];
+        } else if (!$forExport) {
             $columns[] = ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
         }
 
@@ -104,6 +116,7 @@ class ProductionRequestService
         }
 
         $columns = array_merge($columns, [
+            ['name' => 'isDispatched', 'visible' => true, 'orderable' => false],
             ['title' => FixedFieldEnum::number->value, 'name' => FixedFieldEnum::number->name],
             ['title' => FixedFieldEnum::createdAt->value, 'name' => FixedFieldEnum::createdAt->name],
             ['title' => FixedFieldEnum::createdBy->value, 'name' => FixedFieldEnum::createdBy->name],
@@ -129,6 +142,7 @@ class ProductionRequestService
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
 
         $fromDashboard = $request->query->getBoolean('fromDashboard');
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         if (!$fromDashboard) {
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
@@ -161,6 +175,7 @@ class ProductionRequestService
             $this->fieldModesService,
             [
                 'user' => $this->security->getUser(),
+                'dispatchMode' => $dispatchMode,
             ]
         );
 
@@ -168,7 +183,9 @@ class ProductionRequestService
 
         $rows = [];
         foreach ($productionRequests as $shipping) {
-            $rows[] = $this->dataRowProduction($entityManager, $shipping);
+            $rows[] = $this->dataRowProduction($entityManager, $shipping, [
+                'dispatchMode' => $dispatchMode,
+            ]);
         }
 
         return [
@@ -178,7 +195,9 @@ class ProductionRequestService
         ];
     }
 
-    public function dataRowProduction(EntityManagerInterface $entityManager, ProductionRequest $productionRequest): array
+    public function dataRowProduction(EntityManagerInterface $entityManager,
+                                      ProductionRequest $productionRequest,
+                                      array $options = []): array
     {
         $typeColor = $productionRequest->getType()->getColor();
 
@@ -198,7 +217,35 @@ class ProductionRequestService
         ]);
 
         $row = [
-            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+            FixedFieldEnum::number->name => $productionRequest->getNumber() ?? '',
+            FixedFieldEnum::createdAt->name => $this->formatService->datetime($productionRequest->getCreatedAt()),
+            FixedFieldEnum::createdBy->name => $this->formatService->user($productionRequest->getCreatedBy()),
+            FixedFieldEnum::treatedBy->name => $this->formatService->user($productionRequest->getTreatedBy()),
+            FixedFieldEnum::type->name => "
+                <div class='d-flex align-items-center'>
+                    <span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>
+                    {$this->formatService->type($productionRequest->getType())}
+                </div>
+            ",
+            FixedFieldEnum::status->name => $this->formatService->status($productionRequest->getStatus()),
+            FixedFieldEnum::expectedAt->name => $this->formatService->datetime($productionRequest->getExpectedAt()),
+            FixedFieldEnum::dropLocation->name => $this->formatService->location($productionRequest->getDropLocation()),
+            FixedFieldEnum::destinationLocation->name => $this->formatService->location($productionRequest->getDestinationLocation()),
+            FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
+            FixedFieldEnum::manufacturingOrderNumber->name => $productionRequest->getManufacturingOrderNumber(),
+            FixedFieldEnum::productArticleCode->name => $productionRequest->getProductArticleCode(),
+            FixedFieldEnum::quantity->name => $productionRequest->getQuantity(),
+            FixedFieldEnum::emergency->name => $productionRequest->getEmergency() ?: 'Non',
+            FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
+            FixedFieldEnum::comment->name => $productionRequest->getComment(),
+        ];
+
+        $row['isDispatched'] = $productionRequest->getDispatch() ? '<i class="fas fa-exchange-alt"></i>' : '';
+        if(isset($options['dispatchMode']) && $options['dispatchMode']) {
+            $disabled = $productionRequest->getDispatch() ? 'disabled' : '';
+            $row['actions'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$productionRequestId' $disabled></td>";
+        } else {
+            $row['actions'] = $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
                     [
                         'title' => 'Détails',
@@ -233,29 +280,8 @@ class ProductionRequestService
                         ],
                     ],
                 ],
-            ]),
-            FixedFieldEnum::number->name => $productionRequest->getNumber() ?? '',
-            FixedFieldEnum::createdAt->name => $this->formatService->datetime($productionRequest->getCreatedAt()),
-            FixedFieldEnum::createdBy->name => $this->formatService->user($productionRequest->getCreatedBy()),
-            FixedFieldEnum::treatedBy->name => $this->formatService->user($productionRequest->getTreatedBy()),
-            FixedFieldEnum::type->name => "
-                <div class='d-flex align-items-center'>
-                    <span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>
-                    {$this->formatService->type($productionRequest->getType())}
-                </div>
-            ",
-            FixedFieldEnum::status->name => $this->formatService->status($productionRequest->getStatus()),
-            FixedFieldEnum::expectedAt->name => $this->formatService->datetime($productionRequest->getExpectedAt()),
-            FixedFieldEnum::dropLocation->name => $this->formatService->location($productionRequest->getDropLocation()),
-            FixedFieldEnum::destinationLocation->name => $this->formatService->location($productionRequest->getDestinationLocation()),
-            FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
-            FixedFieldEnum::manufacturingOrderNumber->name => $productionRequest->getManufacturingOrderNumber(),
-            FixedFieldEnum::productArticleCode->name => $productionRequest->getProductArticleCode(),
-            FixedFieldEnum::quantity->name => $productionRequest->getQuantity(),
-            FixedFieldEnum::emergency->name => $productionRequest->getEmergency() ?: 'Non',
-            FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-            FixedFieldEnum::comment->name => $productionRequest->getComment(),
-        ];
+            ]);
+        }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);

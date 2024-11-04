@@ -98,6 +98,10 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
+    #[ORM\OneToOne(targetEntity: Dispatch::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Dispatch $dispatch = null;
+
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
         $this->attachments = new ArrayCollection();
@@ -409,6 +413,18 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         foreach ($trackingMovements ?? [] as $trackingMovement) {
             $this->addTrackingMovement($trackingMovement);
         }
+
+        return $this;
+    }
+
+    public function getDispatch(): ?Dispatch
+    {
+        return $this->dispatch;
+    }
+
+    public function setDispatch(?Dispatch $dispatch): self
+    {
+        $this->dispatch = $dispatch;
 
         return $this;
     }

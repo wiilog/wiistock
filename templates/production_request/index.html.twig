@@ -18,29 +18,57 @@
 {% endblock %}
 
 {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT_PRODUCTION_REQUEST')) %}
+{% set hasRightToCreateDispatch = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto btn-group dispatch-button-container">
-                {% include "utils/action-buttons/header-buttons.html.twig" with {
-                    actions: [
-                        {
-                            hasRight: hasRightToExport,
-                            title: "Exporter au format CSV",
-                            icon : "fa fa-file-csv",
-                            class: "export-button",
-                        },
-                        {
-                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
-                            icon: "fa fa-cog",
-                            attributes: {
-                                "data-toggle": "modal",
-                                "data-target": "#modalFieldModes",
+            <div class="col-auto ml-auto">
+                <div class="dispatch-button-container">
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: hasRightToExport,
+                                title: "Exporter au format CSV",
+                                icon : "fa fa-file-csv",
+                                class: "export-button",
                             },
-                        }
-                    ]
-                } %}
+                            {
+                                title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                                icon: "fa fa-cog",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalFieldModes",
+                                },
+                            },
+                            {
+                                hasRight: hasRightToCreateDispatch,
+                                title: "Acheminer",
+                                icon: "fas fa-exchange-alt",
+                                class: "dispatch-button",
+                            }
+                        ]
+                    } %}
+                </div>
+                <div class="dispatch-mode-container d-none">
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                title: "Annuler acheminer",
+                                class: "cancel",
+                                buttonClass: "btn btn-outline-primary",
+                            },
+                        ]
+                    } %}
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                title: "Valider production à acheminer",
+                                class: "validate",
+                            },
+                        ]
+                    } %}
+                </div>
             </div>
         </div>
         <div class="row">
