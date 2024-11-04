@@ -87,7 +87,6 @@ class TrackingMovementController extends AbstractController
             'fields' => $fields,
             'filterArticle' => $article,
             'type' => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
-            "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
             "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),
         ]);
