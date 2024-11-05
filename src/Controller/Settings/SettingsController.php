@@ -1205,6 +1205,7 @@ class SettingsController extends AbstractController {
                         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
                         return [
+                            "category" => CategoryType::DEMANDE_LIVRAISON,
                             "receiver" => [
                                 "field" => $receiver->getId(),
                                 "elementsType" => $receiver->getElementsType(),
@@ -1607,6 +1608,7 @@ class SettingsController extends AbstractController {
                                     ->toArray() : []
                             ],
                             "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
+                            "category" => CategoryType::PRODUCTION
                         ];
                     },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [

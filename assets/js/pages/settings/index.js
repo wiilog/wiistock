@@ -680,32 +680,11 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    const $typeInputs = $container.find(`[name=type]`);
+    const $typeInputs = $container.find(`.typeChoice input[name=type]`);
     const selectorTable = `#table-dispatch-fixed-fields`;
     $typeInputs
         .on(`change`, function() {
-            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
-            $container.find(selectorTable).DataTable().destroy();
-            EditableDatatable.create(selectorTable, {
-                route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),
-                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-                save: SAVE_MANUALLY,
-                ordering: false,
-                paging: false,
-                onEditStart: () => {
-                    $managementButtons.removeClass('d-none');
-                },
-                onEditStop: () => {
-                    $managementButtons.addClass('d-none');
-                },
-                columns: [
-                    {data: `label`, title: `Champ fixe`},
-                    {data: `displayedCreate`, title: `Afficher`},
-                    {data: `requiredCreate`, title: `Obligatoire`},
-                    {data: `displayedEdit`, title: `Afficher`},
-                    {data: `requiredEdit`, title: `Obligatoire`},
-                ],
-            });
+            ChangeDatatableByType($(this),'acheminements', $container, selectorTable, canEdit);
         })
         .first()
         .trigger(`change`);
@@ -1384,33 +1363,12 @@ function initializeProductionFixedFields($container, canEdit) {
         removeAssociationLine($(this));
     });
 
-    //const $typeInputs = $container.find(`typeChoice input[name=type]`); // à mettre en place
-    const $typeInputs = $container.find(`input[name=type]`);
+    const $typeInputs = $container.find(`.typeChoice input[name=type]`);
     const selectorTable = `#table-production-fixed-fields`;
+
     $typeInputs
         .on(`change`, function() {
-            const $selectedType = $(this);
-            $container.find(selectorTable).DataTable().destroy();
-            EditableDatatable.create(selectorTable, {
-                route: Routing.generate('settings_fixed_field_api', {entity: `production`, type: $selectedType.val()}),
-                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-                save: SAVE_MANUALLY,
-                ordering: false,
-                paging: false,
-                onEditStart: () => {
-                    $managementButtons.removeClass('d-none');
-                },
-                onEditStop: () => {
-                    $managementButtons.addClass('d-none');
-                },
-                columns: [
-                    {data: `label`, title: `Champ fixe`},
-                    {data: `displayedCreate`, title: `Afficher`},
-                    {data: `requiredCreate`, title: `Obligatoire`},
-                    {data: `displayedEdit`, title: `Afficher`},
-                    {data: `requiredEdit`, title: `Obligatoire`},
-                ],
-            });
+            ChangeDatatableByType($(this),'production', $container, selectorTable, canEdit);
         })
         .first()
         .trigger(`change`);
@@ -1418,7 +1376,30 @@ function initializeProductionFixedFields($container, canEdit) {
     initializeType();
 }
 
-
+function ChangeDatatableByType($typeInputs, $entity, $container, selectorTable, canEdit){
+    const $selectedType = $typeInputs;
+    $container.find(selectorTable).DataTable().destroy();
+    EditableDatatable.create(selectorTable, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `production`, type: $selectedType.val()}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+        ],
+    });
+}
 
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');
