@@ -4,9 +4,7 @@ namespace App\Entity;
 
 use App\Controller\FieldModesController;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\IOT\SensorWrapper;
@@ -29,7 +27,6 @@ use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-use WiiCommon\Helper\Stream;
 
 #[UniqueEntity(fields: "email", message: "Cette adresse email est déjà utilisée.")]
 #[UniqueEntity(fields: "username", message: "Ce nom d'utilisateur est déjà utilisé.")]
@@ -284,7 +281,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     #[Assert\NotBlank(message: 'Le champ ne peut pas être vide.')]
     private ?string $username = null;
 
