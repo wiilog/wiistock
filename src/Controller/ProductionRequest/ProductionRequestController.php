@@ -94,7 +94,7 @@ class ProductionRequestController extends AbstractController
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
             "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "fields" => $fields,
-            "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager)->getContent(),
+            "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager, $request)->getContent(),
             "dateChoices" => $dateChoices,
             "types" => $types,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
@@ -112,10 +112,14 @@ class ProductionRequestController extends AbstractController
 
     #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
+    public function apiColumns(ProductionRequestService $service,
+                               EntityManagerInterface $entityManager,
+                               Request $request): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_LIST);
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
+
+        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser, FieldModesController::PAGE_PRODUCTION_REQUEST_LIST, false, $dispatchMode);
 
         return new JsonResponse($columns);
     }
