@@ -8,7 +8,6 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Pack;
-use App\Entity\Statut;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -19,7 +18,6 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -88,8 +86,6 @@ class TrackingMovementRepository extends EntityRepository
         $qb = $this->createQueryBuilder('tracking_movement')
             ->groupBy('tracking_movement.id');
 
-        $countTotal = QueryBuilderHelper::count($qb, 'tracking_movement');
-
         if($params->get('article')) {
             $qb
                 ->leftJoin('tracking_movement.pack', 'from_article_join_pack')
@@ -110,8 +106,8 @@ class TrackingMovementRepository extends EntityRepository
                         $emplacementValue = explode(':', $filter['value']);
                         $qb
                             ->join('tracking_movement.emplacement', 'filter_location')
-                            ->andWhere('filter_location.label = :location')
-                            ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
+                            ->andWhere('filter_location.id = :location')
+                            ->setParameter('location', $emplacementValue[0] ?? $filter['value']);
                         break;
                     case 'utilisateurs':
                         $value = explode(',', $filter['value']);
@@ -130,17 +126,14 @@ class TrackingMovementRepository extends EntityRepository
                             ->andWhere('tracking_movement.datetime <= :dateMax')
                             ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                         break;
-                    case 'UL':
+                    case 'logisticUnits':
+                        $packs = Stream::explode(",", $filter["value"])
+                            ->map(fn(string $pack) =>(int)explode(':', $pack)[0])
+                            ->toArray();
                         $qb
-                            ->leftJoin('tracking_movement.pack', 'filter_pack')
-                            ->leftJoin('filter_pack.article', 'filter_pack_article')
-                            ->leftJoin('tracking_movement.logisticUnitParent', 'code_filter_logistic_unit')
-                            ->andWhere('IF(code_filter_logistic_unit.id IS NOT NULL,
-                                            code_filter_logistic_unit.code,
-                                            (IF (filter_pack_article.currentLogisticUnit IS NOT NULL,
-                                                NULL,
-                                                filter_pack.code))) LIKE :filter_code')
-                            ->setParameter('filter_code', '%' . $filter['value'] . '%');
+                            ->leftJoin("tracking_movement.pack", "filter_pack")
+                            ->andWhere("filter_pack.id IN (:packs)")
+                            ->setParameter("packs", $packs);
                         break;
                     case FiltreSup::FIELD_ARTICLE:
                         $value = explode(':', $filter['value'])[0];
@@ -273,8 +266,6 @@ class TrackingMovementRepository extends EntityRepository
             $qb->addOrderBy("tracking_movement.orderIndex", "DESC");
         }
 
-        // compte éléments filtrés
-        $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
         $qb
             ->select('tracking_movement');
 
@@ -290,8 +281,6 @@ class TrackingMovementRepository extends EntityRepository
 
         return [
             'data' => $query?->getResult(),
-            'count' => $countFiltered,
-            'total' => $countTotal
         ];
     }
 
