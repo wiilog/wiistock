@@ -34,6 +34,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
+#[ORM\Index(fields: ["datetime"], name: "datetime_idx")]
 class TrackingMovement implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
