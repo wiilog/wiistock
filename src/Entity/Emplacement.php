@@ -26,6 +26,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
+#[ORM\Index(fields: ["label"], name: "label_idx")]
 class Emplacement implements PairedEntity {
 
     use SensorMessageTrait;

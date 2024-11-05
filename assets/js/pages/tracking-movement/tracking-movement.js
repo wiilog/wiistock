@@ -109,6 +109,8 @@ function initTrackingMovementTable(columns) {
         responsive: true,
         serverSide: true,
         processing: true,
+        info: false,
+        pagingType: "simple",
         order: [['date', "desc"]],
         ajax: {
             url: Routing.generate('tracking_movement_api', true),
