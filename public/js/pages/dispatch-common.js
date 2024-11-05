@@ -95,7 +95,7 @@ function onDispatchTypeChange($select) {
 
     $typeDispatchPickLocation.val($select.val());
     $typeDispatchDropLocation.val($select.val());
-    showInputByType($select);
+    showAndRequireInputByType($select);
 }
 
 function onExistingOrNotChanged($input) {
