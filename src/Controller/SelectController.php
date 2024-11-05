@@ -145,71 +145,6 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    #[Route("/select/types/livraisons", name: "ajax_select_delivery_type", options: ["expose" => true])]
-    public function deliveryType(Request $request, EntityManagerInterface $manager): Response {
-        $alreadyDefinedTypes = [];
-        if($request->query->has('alreadyDefinedTypes')) {
-            $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
-        } else if($request->query->has('deliveryType')) {
-            $parameters = $request->query->all();
-            if (is_array($parameters['deliveryType'] ?? null)) {
-                $alreadyDefinedTypes = $request->query->all('deliveryType');
-            }
-            else {
-                $alreadyDefinedTypes = [$request->query->get('deliveryType')];
-            }
-        }
-
-        $allTypesOption = [];
-        if($request->query->has('all-types-option') && $request->query->getBoolean('all-types-option') && !in_array('all', $alreadyDefinedTypes)) {
-            $allTypesOption = [[
-                'id' => 'all',
-                'text' => 'Tous les types'
-            ]];
-        }
-
-        $typeRepository = $manager->getRepository(Type::class);
-        $results = $typeRepository->getForSelect(
-            CategoryType::DEMANDE_LIVRAISON,
-            $request->query->get("term"),
-            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
-        );
-
-        $results = array_merge($results, $allTypesOption);
-
-        return $this->json([
-            "results" => $results,
-            "availableResults" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
-        ]);
-    }
-
-    #[Route("/select/types/delais", name: "ajax_select_delay_type", options: ["expose" => true])]
-    public function selectExpectedType(Request $request, EntityManagerInterface $manager): Response {
-        $alreadyDefinedTypes = [];
-        if($request->query->has('alreadyDefinedTypes')) {
-            $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
-        } else if($request->query->has('selectExpectedType')) {
-            $parameters = $request->query->all();
-            if (is_array($parameters['selectExpectedType'] ?? null)) {
-                $alreadyDefinedTypes = $request->query->all('selectExpectedType');
-            }
-            else {
-                $alreadyDefinedTypes = [$request->query->get('selectExpectedType')];
-            }
-        }
-
-        $typeRepository = $manager->getRepository(Type::class);
-        $results = $typeRepository->getForSelect(
-            CategoryType::PRODUCTION,
-            $request->query->get("term"),
-            ['alreadyDefinedTypes' => $alreadyDefinedTypes]
-        );
-
-        return $this->json([
-            "results" => $results,
-            "availableResults" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
-        ]);
-    }
 
     #[Route("/select/types/collectes", name: "ajax_select_collect_type", options: ["expose" => true])]
     public function collectType(Request $request, EntityManagerInterface $manager): Response {
@@ -238,18 +173,53 @@ class SelectController extends AbstractController {
     #[Route("/select/types", name: "ajax_select_types", options: ["expose" => true])]
     public function types(Request                $request,
                           EntityManagerInterface $entityManager): Response {
+
         $typeRepository = $entityManager->getRepository(Type::class);
+        if($request->query->has('category')) {
+            $category = $request->query->get('category');
+            $alreadyDefinedTypes = [];
+            if ($request->query->has('alreadyDefinedTypes')) {
+                $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
+            } else if ($request->query->has('types')) {
+                $parameters = $request->query->all();
+                if (is_array($parameters['types'] ?? null)) {
+                    $alreadyDefinedTypes = $request->query->all('types');
+                } else {
+                    $alreadyDefinedTypes = [$request->query->get('types')];
+                }
+            }
 
-        $categoryType = $request->query->get('categoryType');
+            $allTypesOption = [];
+            if($request->query->has('all-types-option') && $request->query->getBoolean('all-types-option') && !in_array('all', $alreadyDefinedTypes)) {
+                $allTypesOption = [[
+                    'id' => 'all',
+                    'text' => 'Tous les types'
+                ]];
+            }
 
-        $results = $typeRepository->getForSelect(
-            $categoryType,
-            $request->query->get("term")
-        );
+            $results = $typeRepository->getForSelect(
+                $category,
+                $request->query->get("term"),
+                ['alreadyDefinedTypes' => $alreadyDefinedTypes]
+            );
 
-        return $this->json([
-            "results" => $results,
-        ]);
+            $results = array_merge($results, $allTypesOption);
+
+            return $this->json([
+                "results" => $results,
+                "availableResults" => $typeRepository->countAvailableForSelect($category, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
+            ]);
+        }else {
+            $categoryType = $request->query->get('categoryType');
+            $results = $typeRepository->getForSelect(
+                $categoryType,
+                $request->query->get("term")
+            );
+
+            return $this->json([
+                "results" => $results,
+            ]);
+        }
     }
 
     #[Route("/select/statuts", name: "ajax_select_status", options: ["expose" => true])]

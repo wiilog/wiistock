@@ -97,13 +97,14 @@
                     <div class="d-flex col-12 mb-3 type-association-container">
                         <div class="w-100">
                             {{ form.select('type', 'Type', true, {
-                                type: 'selectExpectedType',
+                                type: 'types',
                                 inputClass: 'form-control data-array type-to-associate',
                                 includeParams: '[name=alreadyDefinedTypes]',
                                 includeParamsParent: '.setting-type-association',
-                                additionalAttributes :[{
-                                    name: 'data-other-params'
-                                },]
+                                additionalAttributes :[
+                                    {name: 'data-other-params'},
+                                    {name: 'data-other-params-category', value: category}
+                                ,]
                             }) }}
                         </div>
                         <div class="w-100 ml-2">
@@ -159,14 +160,14 @@
                     <div class="d-flex col-12 mb-3 type-association-container">
                         <div class="d-flex align-items-center w-100 delivery-type-container">
                             {{ form.select('deliveryType', 'Type', true, {
-                                type: 'deliveryType',
+                                type: 'types',
                                 inputClass: 'form-control data-array type-to-associate',
                                 includeParams: '[name=alreadyDefinedTypes]',
                                 includeParamsParent: '.setting-type-association',
-                                additionalAttributes :[{
-                                    name: 'data-other-params-all-types-option',
-                                    value: 1
-                                }]
+                                additionalAttributes :[
+                                    {name: 'data-other-params-all-types-option', value: 1},
+                                    {name: 'data-other-params-category', value: category}
+                                ]
                             }) }}
                         </div>
                         <div class="d-flex align-items-center w-100">
