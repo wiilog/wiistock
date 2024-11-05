@@ -1575,18 +1575,17 @@ class SettingsController extends AbstractController {
                         $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
                         $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
 
-                        $allKey =  Stream::keys($expectedAtField->getElements())
-                            ->toArray();
-                        $allUsedType = $typeRepository->findBy(["id"=>$allKey]);
-                        $allElements = $expectedAtField->getElements();
+                        $allTypeId =  Stream::keys($expectedAtField->getElements())->toArray();
+                        $allUsedType = $typeRepository->findBy(["id"=>$allTypeId]);
+                        $delayByType = $expectedAtField->getElements();
 
-                        $formatedElements= Stream::from($allUsedType)
+                        $formatedDelayByType= Stream::from($allUsedType)
                             ->map(fn(Type $type) => [
                                 "type"=> [
                                     "label" => $type->getLabel(),
                                     "id" => $type->getId(),
                                 ],
-                                "value" => $allElements[$type->getId()],
+                                "value" => $delayByType[$type->getId()],
                             ])
                             ->toArray();
                         return [
@@ -1594,8 +1593,8 @@ class SettingsController extends AbstractController {
                             "expectedAt" => [
                                 "field" => $expectedAtField?->getId(),
                                 "elementsType" => $expectedAtField?->getElementsType(),
-                                "elements" => $formatedElements
-                                ],
+                                "elements" => $formatedDelayByType
+                            ],
                             "emergency" => [
                                 "field" => $emergencyField?->getId(),
                                 "elementsType" => $emergencyField?->getElementsType(),
@@ -1886,12 +1885,10 @@ class SettingsController extends AbstractController {
             if($typeId && $delays) {
                 $typeArray = explode(",", $typeId);
                 $delayArray = explode(",", $delays);
-                $elements = [];
-                for($i = 0; $i<count($typeArray); $i++) {
-                    $elements += [$typeArray[$i]=>$delayArray[$i]];
-                }
+                $elements = Stream::from($typeArray)
+                ->keymap(fn(string $type, int $index) => [$type, $delayArray[$index]])
+                ->toArray();
                 $field->setElements($elements);
-
             }
 
         } elseif ($field->getElementsType() == FixedFieldStandard::ELEMENTS_TYPE_USER) {

@@ -1215,8 +1215,8 @@ function onTypeChange($select) {
     }
 }
 
-function changeAttributByType($select) {
-    const $modal = $select.closest('.modal');
+function showInputByType($typeSelect) {
+    const $modal = $typeSelect.closest('.modal');
     // find all fixed fields that can be configurable
     const $fields = $modal.find('[data-displayed-type]');
 
@@ -1228,10 +1228,10 @@ function changeAttributByType($select) {
         .prop('required', false)
 
     // find all fields that should be displayed
-    const $fieldsToDisplay = $fields.filter(`[data-displayed-type~="${$select.val()}"]`);
+    const $fieldsToDisplay = $fields.filter(`[data-displayed-type~="${$typeSelect.val()}"]`);
 
     // find all fields that should be required
-    const $fieldsRequired = $fieldsToDisplay.filter(`[data-required-type~="${$select.val()}"]`);
+    const $fieldsRequired = $fieldsToDisplay.filter(`[data-required-type~="${$typeSelect.val()}"]`);
 
     // add required symbol to all required fields
     $fieldsRequired.find('.field-label')

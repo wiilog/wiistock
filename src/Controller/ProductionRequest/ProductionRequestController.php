@@ -167,8 +167,8 @@ class ProductionRequestController extends AbstractController
 
         $post = $request->request;
         $typeRepository = $entityManager->getRepository(Type::class);
-        $typeValue = strtolower(FixedFieldEnum::type->value);
-        $type = $typeRepository->find($post->get($typeValue));
+        $typeValue = FixedFieldEnum::type->name;
+        $type = $typeRepository->find($post->getInt($typeValue));
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true, null, $type);
 
         $quantityToGenerate = $data->getInt('quantityToGenerate');

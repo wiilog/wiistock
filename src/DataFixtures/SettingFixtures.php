@@ -151,9 +151,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_NEW_REFERENCE_TYPE => [
                 'default' => null,
             ],
-            Setting::PRODUCTION_NEW_REFERENCE_TYPE => [
-                'default' => null,
-            ],
             Setting::DISPATCH_NEW_REFERENCE_STATUS => [
                 'default' => null,
             ],
