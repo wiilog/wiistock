@@ -805,7 +805,7 @@ function initializeHandlingFixedFields($container, canEdit) {
 }
 
 function initializeLocationByTypeForDeliveries() {
-    initDefault(
+    initAssociationAlreadyDefined(
         JSON.parse(
             $(`input[name=deliveryTypeSettings]`).val()
         ),
@@ -837,7 +837,7 @@ function initializeLocationByTypeForDeliveries() {
     });
 }
 
-function initDefault(data, $modal) {
+function initAssociationAlreadyDefined(data, $modal) {
     const $lastTypeSelect = $modal.find('select.type-to-associate').last();
     const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
 
@@ -1370,7 +1370,7 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 
 function initializeProductionFixedFields($container, canEdit) {
     const $modalExpectedAtDelayByTypeSetting = $('#modal-fixed-field-expectedat');
-    initDefault(
+    initAssociationAlreadyDefined(
         JSON.parse(
             $(`[name="productionTypeSettings"]`).val()
         ),
@@ -1384,11 +1384,12 @@ function initializeProductionFixedFields($container, canEdit) {
         removeAssociationLine($(this));
     });
 
-    const $typeInputs = $container.find(`[name=type]`);
+    //const $typeInputs = $container.find(`typeChoice input[name=type]`); // à mettre en place
+    const $typeInputs = $container.find(`input[name=type]`);
     const selectorTable = `#table-production-fixed-fields`;
     $typeInputs
         .on(`change`, function() {
-            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
+            const $selectedType = $(this);
             $container.find(selectorTable).DataTable().destroy();
             EditableDatatable.create(selectorTable, {
                 route: Routing.generate('settings_fixed_field_api', {entity: `production`, type: $selectedType.val()}),
