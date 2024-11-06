@@ -64,7 +64,7 @@ $(function () {
         const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
         const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
 
-        initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch);
+        initDispatchCreateForm($modalNewDispatch, 'arrivals', arrivalsToDispatch);
         if (arrivalsToDispatch.length > 0) {
             $modalNewDispatch.modal(`show`);
         }

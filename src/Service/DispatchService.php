@@ -21,6 +21,7 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
@@ -238,8 +239,9 @@ class DispatchService {
 
     public function getNewDispatchConfig(EntityManagerInterface $entityManager,
                                          array $types,
-                                         ?Arrivage $arrival = null,
-                                         array $packs = []): array {
+                                         $entity = null,
+                                         array $packs = [],
+                                         array $entityIds = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -267,7 +269,9 @@ class DispatchService {
             'types' => $types,
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $packs,
-            'arrival' => $arrival,
+            'entity' => $entity,
+            'isArrival' => $entity instanceof Arrivage,
+            'entityIds' => Stream::from($entityIds)->json(),
             'existingDispatches' => Stream::from($existingDispatches)
                 ->map(fn(Dispatch $dispatch) => [
                     'id' => $dispatch->getId(),

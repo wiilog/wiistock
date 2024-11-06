@@ -1,4 +1,12 @@
-function initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch) {
+function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatch) {
+    $(document).on(`change`, `#modalNewDispatch input[name=existingOrNot]`, function () {
+        onExistingOrNotChanged($(this));
+    });
+
+    $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
+        onExistingDispatchSelected($(this));
+    });
+
     Form
         .create($modalNewDispatch)
         .on('change', '[name=customerName]', (event) => {
@@ -13,13 +21,16 @@ function initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch) {
             initNewDispatchEditor($modalNewDispatch);
             Modal
                 .load(
-                    'create_from_arrivals_template',
-                    {arrivals: arrivalsToDispatch},
+                    'create_from_entities_template',
+                    {
+                        entityIds: entitiesToDispatch,
+                        entityType,
+                    },
                     $modalNewDispatch,
                     $modalNewDispatch.find(`.modal-body`),
                     {
                         onOpen: () => {
-                            $modalNewDispatch.find('[name=type]').trigger('change')
+                            $modalNewDispatch.find('[name=type]').trigger('change');
                             Camera
                                 .init(
                                     $modalNewDispatch.find(`.take-picture-modal-button`),
@@ -35,7 +46,7 @@ function initDispatchCreateForm($modalNewDispatch, arrivalsToDispatch) {
             {
                 success: ({redirect}) => window.location.href = redirect,
             }
-        )
+        );
 }
 
 function initNewDispatchEditor(modal) {
@@ -122,4 +133,43 @@ function onDispatchTypeChange($select) {
         .addClass('d-none');
     // show the fields that should be displayed
     $fieldsToDisplay.removeClass('d-none');
+}
+
+function onExistingOrNotChanged($input) {
+    const $modal = $input.closest('.modal');
+    const value = parseInt($input.val());
+    const $dispatchDetails = $modal.find(`.dispatch-details`);
+    const $existingDispatchContainer = $modal.find(`.existing-dispatch`);
+    const $newDispatchContainer = $modal.find(`.new-dispatch`);
+    const $existingDispatch = $existingDispatchContainer.find(`select[name=existingDispatch]`);
+
+    if(value === 0) {
+        $dispatchDetails.empty();
+        $existingDispatch
+            .val(null)
+            .trigger(SELECT2_TRIGGER_CHANGE)
+            .removeClass(`needed data`);
+        $newDispatchContainer.removeClass(`d-none`);
+        $existingDispatchContainer.addClass(`d-none`);
+        $newDispatchContainer
+            .find(`.needed-save`)
+            .addClass(`needed data`);
+    } else {
+        $existingDispatchContainer.removeClass(`d-none`);
+        $newDispatchContainer.addClass(`d-none`);
+        $newDispatchContainer
+            .find(`.needed`)
+            .removeClass(`needed data`)
+            .addClass('needed-save');
+        $existingDispatch.addClass(`needed data`);
+    }
+}
+
+function onExistingDispatchSelected($select) {
+    const $modal = $select.closest('.modal');
+    $.get(Routing.generate(`get_dispatch_details`, {id: $select.val()}, true)).then(({content}) => {
+        $modal.find(`.dispatch-details`)
+            .empty()
+            .append(content);
+    });
 }

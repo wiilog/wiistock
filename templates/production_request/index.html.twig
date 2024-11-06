@@ -103,10 +103,24 @@
 
     {% include 'production_request/modal/duplicate.html.twig' %}
 
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalNewDispatch',
+        size: 'modal-xl',
+        header: {
+            title: trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Demande d\'acheminement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        }
+    } %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('production-index') }}
+    <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('filters') }}
 {% endblock %}
