@@ -388,7 +388,6 @@ class TrackingMovementController extends AbstractController
         $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $trackingMovement]);
 
         if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
-            $entityManager->remove($trackingMovement);
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
@@ -413,6 +412,7 @@ class TrackingMovementController extends AbstractController
                 $entityManager->persist($new);
                 $entityManager->flush();
 
+                $entityManager->remove($trackingMovement);
                 $trackingMovement = $new;
             } else {
                 return $this->json($response);
