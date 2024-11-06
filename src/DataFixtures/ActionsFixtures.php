@@ -576,30 +576,34 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             $subMenuLabelToLower = $subMenu ? mb_strtolower($subMenu->getLabel()) : null;
             $actionLabelToLower = mb_strtolower($action->getLabel());
 
-            if($action->getDashboard()) {
-                continue;
+            if ($menuLabelToLower === self::SUB_MENU_DASHBOARD) {
+                if(!$action->getDashboard()) {
+                    $manager->remove($action);
+                    $this->output->writeln("Suppression du droit :  $menuLabelToLower / $subMenuLabelToLower / $actionLabelToLower");
+                }
             }
+            else {
+                if ($subMenuLabelToLower !== null) {
+                    if (!isset($menusToLower[$menuLabelToLower][$subMenuLabelToLower])) {
+                        $manager->remove($subMenu);
+                        $this->output->writeln("Suppression du sous-menu :  $menuLabelToLower / $subMenuLabelToLower");
+                    }
 
-            if($subMenuLabelToLower !== null) {
-                if(!isset($menusToLower[$menuLabelToLower][$subMenuLabelToLower])) {
-                    $manager->remove($subMenu);
-                    $this->output->writeln("Suppression du sous-menu :  $menuLabelToLower / $subMenuLabelToLower");
+                    $rights = $menusToLower[$menuLabelToLower][$subMenuLabelToLower] ?? [];
+                }
+                else {
+                    if (!isset($menusToLower[$menuLabelToLower])) {
+                        $manager->remove($menu);
+                        $this->output->writeln("Suppression du menu :  $menuLabelToLower");
+                    }
+
+                    $rights = $menusToLower[$menuLabelToLower] ?? [];
                 }
 
-                $rights = $menusToLower[$menuLabelToLower][$subMenuLabelToLower] ?? [];
-            } else {
-                if(!isset($menusToLower[$menuLabelToLower])) {
-                    $manager->remove($menu);
-                    $this->output->writeln("Suppression du menu :  $menuLabelToLower");
+                if (!in_array($actionLabelToLower, $rights)) {
+                    $manager->remove($action);
+                    $this->output->writeln("Suppression du droit :  $menuLabelToLower / $subMenuLabelToLower / $actionLabelToLower");
                 }
-
-                $rights = $menusToLower[$menuLabelToLower] ?? [];
-            }
-
-
-            if(!in_array($actionLabelToLower, $rights)) {
-                $manager->remove($action);
-                $this->output->writeln("Suppression du droit :  $menuLabelToLower / $subMenuLabelToLower / $actionLabelToLower");
             }
         }
     }

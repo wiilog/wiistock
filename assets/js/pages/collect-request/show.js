@@ -54,10 +54,10 @@ $(function (){
 function ajaxGetCollecteArticle(select, collect) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');
-    let modalNewArticle = '#modalNewArticle';
+    let $modalFooter = $( '#modalNewArticle').find('.modal-footer');
     let data = {};
     data['referenceArticle'] = $(select).val();
-
+    $modalFooter.addClass('d-none');
     let path = Routing.generate('collecte_article_by_refArticle', {collect});
     let params = JSON.stringify(data);
     $.post(path, params).then((data) => {
@@ -66,11 +66,11 @@ function ajaxGetCollecteArticle(select, collect) {
             $editNewArticle.html(data.modif);
             Wiistock.registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
         }
-        $(modalNewArticle).find('.modal-footer').removeClass('d-none');
         toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
         Select2Old.location($('.ajax-autocomplete-location-edit'));
         Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
         $('.list-multiple').select2();
+        $modalFooter.removeClass('d-none');
     });
     $selection.html('');
     $editNewArticle.html('');
