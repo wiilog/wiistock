@@ -10,6 +10,7 @@
     <div class="row wii-form">
         <div class="form-group col-4">
             {% set settingTypeArticle = setting_value('ARTICLE_TYPE', 'App\\Entity\\Type') %}
+{#            TODO WIIS-11994 #}
             {{ form.select(setting('ARTICLE_TYPE'), 'Type', false, {
                 type: 'types',
                 placeholder: 'Sélectionnez un type',

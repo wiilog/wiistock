@@ -287,10 +287,9 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
                         data-s2='types' data-parent="body"
                         data-no-search
                         data-min-length="0"
-                        data-include-params-parent='tr'
-                        data-include-params='input[name=categoryType]'>
+                        data-other-params
+                        data-other-params-category='${categoryType}'>
                 </select>
-                <input type='hidden' name='categoryType' value='${categoryType}'/>
             `
             : null,
         comment: `<input type='text' name='comment' class='form-control data'/>`,
