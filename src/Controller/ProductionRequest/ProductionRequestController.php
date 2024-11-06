@@ -140,12 +140,22 @@ class ProductionRequestController extends AbstractController
                          ProductionRequest        $productionRequest,
                          ProductionRequestService $productionRequestService): Response {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
+        $productionType = $productionRequest->getType();
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
+        ]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($productionType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($productionType),
+            ]])
+            ->toArray();
 
         $openModal = $request->query->get('open-modal');
 
         return $this->render("production_request/show/index.html.twig", [
-            "fieldsParam" => $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT, FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT]),
+            "fieldsParam" => $fieldsParam,
             "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "productionRequest" => $productionRequest,
             "hasRightDeleteProductionRequest" => $productionRequestService->hasRightToDelete($productionRequest),

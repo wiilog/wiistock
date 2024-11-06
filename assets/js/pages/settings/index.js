@@ -684,7 +684,7 @@ function initializeDispatchFixedFields($container, canEdit) {
     const selectorTable = `#table-dispatch-fixed-fields`;
     $typeInputs
         .on(`change`, function() {
-            ChangeDatatableByType($(this),'acheminements', $container, selectorTable, canEdit);
+            InitFixedFieldByTypeSettings($(this),`acheminements`, $container, selectorTable, canEdit);
         })
         .first()
         .trigger(`change`);
@@ -1368,7 +1368,7 @@ function initializeProductionFixedFields($container, canEdit) {
 
     $typeInputs
         .on(`change`, function() {
-            ChangeDatatableByType($(this),'production', $container, selectorTable, canEdit);
+            InitFixedFieldByTypeSettings($(this),`production`, $container, selectorTable, canEdit);
         })
         .first()
         .trigger(`change`);
@@ -1376,11 +1376,11 @@ function initializeProductionFixedFields($container, canEdit) {
     initializeType();
 }
 
-function ChangeDatatableByType($typeInputs, $entity, $container, selectorTable, canEdit){
+function InitFixedFieldByTypeSettings($typeInputs, entity, $container, selectorTable, canEdit){
     const $selectedType = $typeInputs;
     $container.find(selectorTable).DataTable().destroy();
     EditableDatatable.create(selectorTable, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `production`, type: $selectedType.val()}),
+        route: Routing.generate('settings_fixed_field_api', {entity: entity, type: $selectedType.val()}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
