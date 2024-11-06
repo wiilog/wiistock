@@ -1870,7 +1870,7 @@ class SettingsController extends AbstractController {
                 $field->setElements(explode(",", $elements));
             }
         } else if ($field->getElementsType() == FixedFieldStandard::ELEMENTS_EXPECTED_AT_BY_TYPE) {
-            $typeId = $request->request->get("type");
+            $typeId = $request->request->get("allType");
             $delays = $request->request->get("inputDelay");
             $delayArray = explode(",", $delays);
             foreach ($delayArray as $delay){
