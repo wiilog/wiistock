@@ -26,6 +26,7 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DateTimeService;
 use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
@@ -33,6 +34,7 @@ use App\Service\OperationHistoryService;
 use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\UserService;
+use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -90,6 +92,18 @@ class ProductionRequestController extends AbstractController
 
         $dateChoices = FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class];
 
+        $expectedAt = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::expectedAt->name);
+        $today = date("Y-m-d H:i");
+
+        $expectedAtDate = Stream::from($expectedAt)
+            ->map(fn (string $delay) => [
+                "date" =>  date_add(new \DateTime($today),
+                    new DateInterval('PT'.explode(":", $delay)[0].'H'.explode(":", $delay)[1].'M'))
+                    ->format('Y-m-d H:i:s'),
+            ])
+            ->toArray();
+
+
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
             "fieldsParam" => $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]),
@@ -108,6 +122,7 @@ class ProductionRequestController extends AbstractController
             "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
+            "expectedAtDate" => $expectedAtDate,
         ]);
     }
 
@@ -140,6 +155,9 @@ class ProductionRequestController extends AbstractController
                          ProductionRequest        $productionRequest,
                          ProductionRequestService $productionRequestService): Response {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
+        $expectedAt = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::expectedAt->name);
+        $today = date("Y-m-d H:i");
         $productionType = $productionRequest->getType();
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
 
@@ -154,6 +172,15 @@ class ProductionRequestController extends AbstractController
 
         $openModal = $request->query->get('open-modal');
 
+        $expectedAt = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::expectedAt->name);
+        $createDate = $productionRequest->getCreatedAt()->format("Y-m-d H:i");
+        if($expectedAt[$productionType->getId()]) {
+            $delay = $expectedAt[$productionType->getId()];
+            $expectedAtDate = date_add(new \DateTime($createDate),
+                new DateInterval('PT' . explode(":", $delay)[0] . 'H' . explode(":", $delay)[1] . 'M'))->format('Y-m-d H:i:s');
+            $expectedAtDate = str_replace(" ", "T", $expectedAtDate);
+        }
+
         return $this->render("production_request/show/index.html.twig", [
             "fieldsParam" => $fieldsParam,
             "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
@@ -164,6 +191,7 @@ class ProductionRequestController extends AbstractController
             "attachments" => $productionRequest->getAttachments(),
             "freeFields" => $freeFields,
             "openModal" => $openModal,
+            "expectedAtDate" => $expectedAtDate ?: null,
         ]);
     }
 
@@ -176,6 +204,15 @@ class ProductionRequestController extends AbstractController
                         FixedFieldService        $fieldsParamService): JsonResponse {
 
         $post = $request->request;
+
+        $typeRequest = $post->get("type");
+        $expectedDate = $post->get("expectedAt");
+        $linkTypeExpectedDate =  $post->get("expected-date-value");
+        $dateByType = json_decode($linkTypeExpectedDate, true)[$typeRequest]["date"];
+        if(new DateTime($dateByType) > new DateTime($expectedDate)){
+            throw new FormException("Il n'est pas possible d'enregistrer une date attendu inférieur à ". str_replace("T", " ", $expectedDate));
+        }
+
         $typeRepository = $entityManager->getRepository(Type::class);
         $typeValue = FixedFieldEnum::type->name;
         $type = $typeRepository->find($post->getInt($typeValue));
