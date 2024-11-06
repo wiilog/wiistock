@@ -417,6 +417,10 @@ class ProductionRequestService
         if ($status->isCreateDropMovementOnDropLocation()) {
             $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
 
+            if(!$productionRequest->getManufacturingOrderNumber()){
+                throw new FormException('Le numéro d’OF est obligatoire pour créer le mouvement de traçabilité');
+            }
+
             if (!$nature) {
                 throw new FormException('Vous devez paramétrer "Nature de l\'identifiant créé" pour créer le mouvement de dépose sur l\'emplacement de dépose.');
             }
