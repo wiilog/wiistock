@@ -85,6 +85,18 @@ export function showAndRequireInputByType($typeSelect) {
     // find all fixed fields that can be configurable
     const $fields = $modal.find('[data-displayed-type]');
 
+    const $expectedDateInput = $modal.find('input[name=expectedAt]');
+    const $expectedDateHidden = $modal.find('input[name=expected-date-value]');
+
+    if($expectedDateInput && $expectedDateHidden && $typeSelect.val()) {
+        const data = JSON.parse($expectedDateHidden.val());
+
+        if(Object.keys(data).includes($typeSelect.val())) {
+            const tmpString = data[$typeSelect.val()]["date"]
+            $expectedDateInput[0].min = tmpString.replace(" ", "T")
+        }
+    }
+
     // remove required symbol from all fields
     $fields.find('.required-symbol')
         .remove();
