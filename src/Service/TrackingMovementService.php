@@ -94,6 +94,7 @@ class TrackingMovementService {
 
         return [
             'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
         ];
     }
 

@@ -17,9 +17,9 @@ final class Version20241104100031 extends AbstractMigration
     }
 
     public function up(Schema $schema): void {
-        $this->addSql('CREATE INDEX label_idx ON emplacement (label)');
-        $this->addSql('CREATE INDEX code_idx ON pack (code)');
-        $this->addSql('CREATE INDEX datetime_idx ON tracking_movement (datetime)');
+        $this->addSql('CREATE INDEX IDX_WIILOG_LABEL ON emplacement (label)');
+        $this->addSql('CREATE INDEX IDX_WIILOG_CODE ON pack (code)');
+        $this->addSql('CREATE INDEX IDX_WIILOG_DATETIME ON tracking_movement (datetime)');
     }
 
     public function down(Schema $schema): void {}

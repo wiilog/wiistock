@@ -20,7 +20,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
-#[ORM\Index(fields: ["code"], name: "code_idx",)]
+#[ORM\Index(fields: ["code"], name: "IDX_WIILOG_CODE",)]
 class Pack implements PairedEntity {
 
     use SensorMessageTrait;

@@ -105,8 +105,12 @@ class TrackingMovementRepository extends EntityRepository
                     case 'emplacement':
                         $emplacementValue = explode(':', $filter['value']);
                         $qb
-                            ->join('tracking_movement.emplacement', 'filter_location')
-                            ->andWhere('filter_location.id = :location')
+                            ->innerJoin(
+                                'tracking_movement.emplacement',
+                                'filter_location',
+                                Join::WITH,
+                                'filter_location.id = :location'
+                            )
                             ->setParameter('location', $emplacementValue[0] ?? $filter['value']);
                         break;
                     case 'utilisateurs':
@@ -128,11 +132,15 @@ class TrackingMovementRepository extends EntityRepository
                         break;
                     case 'logisticUnits':
                         $packs = Stream::explode(",", $filter["value"])
-                            ->map(fn(string $pack) =>(int)explode(':', $pack)[0])
+                            ->map(static fn(string $pack) => (int)explode(':', $pack)[0])
                             ->toArray();
                         $qb
-                            ->leftJoin("tracking_movement.pack", "filter_pack")
-                            ->andWhere("filter_pack.id IN (:packs)")
+                            ->innerJoin(
+                                "tracking_movement.pack",
+                                "filter_pack",
+                                Join::WITH,
+                                "filter_pack.id  IN (:packs)"
+                            )
                             ->setParameter("packs", $packs);
                         break;
                     case FiltreSup::FIELD_ARTICLE:
@@ -266,6 +274,8 @@ class TrackingMovementRepository extends EntityRepository
             $qb->addOrderBy("tracking_movement.orderIndex", "DESC");
         }
 
+        // compte éléments filtrés
+        $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
         $qb
             ->select('tracking_movement');
 
@@ -280,6 +290,7 @@ class TrackingMovementRepository extends EntityRepository
         $query = $qb->getQuery();
 
         return [
+            'count' => $countFiltered,
             'data' => $query?->getResult(),
         ];
     }
