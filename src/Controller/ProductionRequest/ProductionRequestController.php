@@ -132,7 +132,7 @@ class ProductionRequestController extends AbstractController
         return $this->json($productionRequestService->getDataForDatatable($entityManager, $request));
     }
 
-    #[Route("/voir/{id}", name: "show")]
+    #[Route("/voir/{id}", name: "show", options: ["expose" => true])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function show(EntityManagerInterface   $entityManager,
                          ProductionRequest        $productionRequest,
@@ -283,8 +283,6 @@ class ProductionRequestController extends AbstractController
                          ProductionRequest        $productionRequest,
                          FixedFieldService        $fieldsParamService): JsonResponse {
 
-        $statusRepository = $entityManager->getRepository(Statut::class);
-
         $productionRequestService->checkRoleForEdition($productionRequest);
 
         $currentUser = $this->getUser();
@@ -297,12 +295,20 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
         }
 
-        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
+        $dataProductionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
 
         $entityManager->flush();
 
         if($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        }
+
+        if($dataProductionRequest['needModalConfirmationForGenerateDispatch']) {
+            return $this->json([
+                "success" => true,
+                "needModalConfirmationForGenerateDispatch" => $dataProductionRequest['needModalConfirmationForGenerateDispatch'],
+                "msg" => "La demande de production a été modifiée avec succès.",
+            ]);
         }
 
         return $this->json([
@@ -432,6 +438,14 @@ class ProductionRequestController extends AbstractController
             return $this->json([
                 "success" => true,
                 "msg" => $data['errors'],
+            ]);
+        }
+
+        if($data['needModalConfirmationForGenerateDispatch']) {
+            return $this->json([
+                "success" => true,
+                "needModalConfirmationForGenerateDispatch" => $data['needModalConfirmationForGenerateDispatch'],
+                "msg" => "La demande de production a été modifiée avec succès.",
             ]);
         }
 

@@ -412,7 +412,13 @@ class ProductionRequestService
         );
 
         $errors = [];
+        $needModalConfirmationForGenerateDispatch = false;
         $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
+
+        if($status->getTypeForGeneratedDispatchOnStatusChange()
+            && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
+            $needModalConfirmationForGenerateDispatch = boolval($status->getTypeForGeneratedDispatchOnStatusChange());
+        }
 
         if ($status->isCreateDropMovementOnDropLocation()) {
             $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
@@ -480,7 +486,8 @@ class ProductionRequestService
 
         return [
             'productionRequest' => $productionRequest,
-            'errors' => $errors
+            'errors' => $errors,
+            'needModalConfirmationForGenerateDispatch' => $needModalConfirmationForGenerateDispatch
         ];
     }
 

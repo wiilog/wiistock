@@ -2,6 +2,7 @@ import {DELETE, POST} from "@app/ajax";
 import Form from "@app/form";
 import Camera from "@app/camera";
 import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
 
 export function displayAttachmentRequired($select) {
     const $modal = $select.closest(`.modal`);
@@ -36,12 +37,35 @@ export function openModalUpdateProductionRequestStatus($container, $modalUpdateP
             routeParams: {
                 productionRequest,
             },
-            success: () => {
-                successCallback()
+            success: (response) => {
+                if(response.needModalConfirmationForGenerateDispatch) {
+                    modalConfirmDeleteProductionRequest(productionRequest)
+                } else {
+                    successCallback()
+                }
             }
         });
 
     $modalUpdateProductionRequestStatus.modal(`show`);
+}
+
+export function modalConfirmDeleteProductionRequest(productionRequestId){
+    Modal.confirm({
+        message: `Voulez-vous générer une demande d'acheminement ?`,
+        validateButton: {
+            label: 'Créer la demande',
+            click: () => {
+                redirectAfterValidateConfirmModal(productionRequestId);
+            },
+        },
+        cancelButton: {
+            label: 'Annuler',
+        },
+    })
+}
+
+function redirectAfterValidateConfirmModal(productionRequestId){
+    window.location.href = Routing.generate('production_request_show', {'id' : productionRequestId, 'open-modal': 'new'})
 }
 
 export function initDeleteProductionRequest(){
