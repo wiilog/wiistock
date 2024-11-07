@@ -1637,7 +1637,7 @@ class DispatchController extends AbstractController {
                     $entities = $productionRepository->findBy(['id' => $entityIds]);
                     $packs = Stream::from($entities)
                         ->flatMap(static fn(ProductionRequest $productionRequest) => $productionRequest->getLastTracking()
-                            ? $productionRequest->getLastTracking()->getPack()
+                            ? [$productionRequest->getLastTracking()->getPack()]
                             : []
                         )
                         ->toArray();
