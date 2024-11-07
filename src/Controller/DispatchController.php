@@ -631,8 +631,10 @@ class DispatchController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-        $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+            $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
+        }
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
