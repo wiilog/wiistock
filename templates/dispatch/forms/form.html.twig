@@ -30,13 +30,13 @@
     {{ form.hidden('keepModalOpenAndClearAfterSubmit', keepModalOpenAndClearAfterSubmit) }}
 {% endif %}
 
-{% if not isArrival %}
+{% if isArrival is defined and not isArrival %}
     {{ form.hidden('production', entityIds) }}
 {% endif %}
 <div class="row">
     <div class="col-md-4 col-12">
         {% set uniqueType = types is defined and types|length == 1 %}
-        {% set entityIsDefined =  not isArrival and entity is defined and entity is not null %}
+        {% set entityIsDefined = isArrival is defined and entity is defined and not isArrival and entity is not null %}
         {{ form.select(constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH'), trans('Demande', 'Général', 'Type', false), true, {
             inputClass: 'needs-default',
             disabled: dispatch.id,
