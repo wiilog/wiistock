@@ -1237,7 +1237,7 @@ class SettingsController extends AbstractController {
                             "locationByType" => [
                                 "field" => $defaultLocationByType?->getId(),
                                 "elementsType" => $defaultLocationByType?->getElementsType(),
-                                "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
+                                "elements" => $this->settingsService->getDefaultDeliveryLocationsByType($this->manager),
                             ],
                             "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         ];
@@ -1599,13 +1599,15 @@ class SettingsController extends AbstractController {
                             "emergency" => [
                                 "field" => $emergencyField?->getId(),
                                 "elementsType" => $emergencyField?->getElementsType(),
-                                "elements" => $emergencyField ? Stream::from($emergencyField->getElements())
-                                    ->map(fn(string $element) => [
-                                        "label" => $element,
-                                        "value" => $element,
-                                        "selected" => true,
-                                    ])
-                                    ->toArray() : []
+                                "elements" => $emergencyField
+                                    ? Stream::from($emergencyField->getElements())
+                                        ->map(fn(string $element) => [
+                                            "label" => $element,
+                                            "value" => $element,
+                                            "selected" => true,
+                                        ])
+                                    ->toArray()
+                                    : []
                             ],
                             "productionTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::PRODUCTION, []),
                             "category" => CategoryType::PRODUCTION
@@ -1888,8 +1890,8 @@ class SettingsController extends AbstractController {
                 $typeArray = explode(",", $typeId);
                 $delayArray = explode(",", $delays);
                 $elements = Stream::from($typeArray)
-                ->keymap(fn(string $type, int $index) => [$type, $delayArray[$index]])
-                ->toArray();
+                    ->keymap(static fn(string $type, int $index) => [$type, $delayArray[$index]])
+                    ->toArray();
                 $field->setElements($elements);
             }
 

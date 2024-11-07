@@ -101,7 +101,7 @@
                                 inputClass: 'form-control data-array type-to-associate',
                                 includeParams: '[name=alreadyDefinedTypes]',
                                 includeParamsParent: '.setting-type-association',
-                                additionalAttributes :[
+                                additionalAttributes: [
                                     {name: 'data-other-params'},
                                     {name: 'data-other-params-category', value: category}
                                 ,]
@@ -140,14 +140,14 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="row setting-type-association">
-                                {{ form.hidden("deliveryTypeSettings", elements) }}
+                                {{ form.hidden("deliveryTypeSettings", elements | json_encode) }}
                                 {{ form.hidden("alreadyDefinedTypes", "") }}
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="row justify-content-end">
                                 <div class="col-auto">
-                                    <button class="btn btn-sm btn-primary new-type-association-button d-flex align-items-center" {{ not (deliveryTypesCount - elements | json_decode | length) ? 'data-keep-disabled' }} disabled>
+                                    <button class="btn btn-sm btn-primary new-type-association-button d-flex align-items-center" {{ not (deliveryTypesCount - elements | length) ? 'data-keep-disabled' }} disabled>
                                         <span class="wii-icon wii-icon-plus mr-1"></span>
                                         Ajouter un emplacement
                                     </button>
@@ -164,7 +164,7 @@
                                 inputClass: 'form-control data-array type-to-associate',
                                 includeParams: '[name=alreadyDefinedTypes]',
                                 includeParamsParent: '.setting-type-association',
-                                additionalAttributes :[
+                                additionalAttributes: [
                                     {name: 'data-other-params-all-types-option', value: 1},
                                     {name: 'data-other-params-category', value: category}
                                 ]

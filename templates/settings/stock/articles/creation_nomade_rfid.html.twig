@@ -10,13 +10,15 @@
     <div class="row wii-form">
         <div class="form-group col-4">
             {% set settingTypeArticle = setting_value('ARTICLE_TYPE', 'App\\Entity\\Type') %}
-{#            TODO WIIS-11994 #}
             {{ form.select(setting('ARTICLE_TYPE'), 'Type', false, {
                 type: 'types',
                 placeholder: 'Sélectionnez un type',
-                includeParams: '[name=categoryType]',
                 search: true,
                 value: settingTypeArticle ? settingTypeArticle.id : null,
+                additionalAttributes: [
+                    {name: 'data-other-params'},
+                    {name: 'data-other-params-category', value: "article"}
+                    ],
                 items: settingTypeArticle ? {
                     0: {
                         'value': settingTypeArticle.id,
@@ -103,6 +105,5 @@
                 } : null,
             }  ) }}
         </div>
-        <input hidden value="article" name="categoryType"/>
     </div>
 </div>

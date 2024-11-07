@@ -175,8 +175,8 @@ class SelectController extends AbstractController {
                           EntityManagerInterface $entityManager): Response {
 
         $typeRepository = $entityManager->getRepository(Type::class);
-        if($request->query->has('category')) {
-            $category = $request->query->get('category');
+        $categoryType = $request->query->get('category');
+
             $alreadyDefinedTypes = [];
             if ($request->query->has('alreadyDefinedTypes')) {
                 $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
@@ -198,28 +198,17 @@ class SelectController extends AbstractController {
             }
 
             $results = $typeRepository->getForSelect(
-                $category,
-                $request->query->get("term"),
-                ['alreadyDefinedTypes' => $alreadyDefinedTypes]
+                $categoryType,
+                term: $request->query->get("term"),
+                options: $alreadyDefinedTypes ? ['alreadyDefinedTypes' => $alreadyDefinedTypes] : null
             );
 
             $results = array_merge($results, $allTypesOption);
 
             return $this->json([
                 "results" => $results,
-                "availableResults" => $typeRepository->countAvailableForSelect($category, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
+                "availableResults" => $typeRepository->countAvailableForSelect($categoryType, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
             ]);
-        }else {
-            $categoryType = $request->query->get('categoryType');
-            $results = $typeRepository->getForSelect(
-                $categoryType,
-                $request->query->get("term")
-            );
-
-            return $this->json([
-                "results" => $results,
-            ]);
-        }
     }
 
     #[Route("/select/statuts", name: "ajax_select_status", options: ["expose" => true])]

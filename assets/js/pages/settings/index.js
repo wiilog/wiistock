@@ -680,14 +680,8 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    const $typeInputs = $container.find(`.typeChoice input[name=type]`);
     const selectorTable = `#table-dispatch-fixed-fields`;
-    $typeInputs
-        .on(`change`, function() {
-            InitFixedFieldByTypeSettings($(this),`acheminements`, $container, selectorTable, canEdit);
-        })
-        .first()
-        .trigger(`change`);
+            initFixedFieldByTypeSettings(`acheminements`, $container, selectorTable, canEdit).trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
@@ -792,7 +786,7 @@ function initializeLocationByTypeForDeliveries() {
 
     $('.new-type-association-button').on('click', function () {
         const $modal = $('#modal-fixed-field-destinationdemande');
-        newTypeAssociation($modal, $(this));
+        newTypeAssociation($(this));
     });
 
     $('.delete-association-line').on('click', function () {
@@ -821,7 +815,7 @@ function initAssociationAlreadyDefined(data, $modal) {
     const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
 
     data.forEach(item => {
-        newTypeAssociation($modal, $buttonNewTypeAssociation,item.type, item.value, true);
+        newTypeAssociation($buttonNewTypeAssociation,item.type, item.value, true);
         updateAlreadyDefinedTypes(undefined);
     });
 
@@ -831,7 +825,8 @@ function initAssociationAlreadyDefined(data, $modal) {
     );
 }
 
-function newTypeAssociation($modal, $button, type = undefined, value = undefined, firstLoad = false) {
+function newTypeAssociation($button, type = undefined, value = undefined, firstLoad = false) {
+    const $modal = $button.closest('.modal')
     const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
     const $selectsType = $settingTypeAssociation.find('select.type-to-associate');
@@ -1355,50 +1350,46 @@ function initializeProductionFixedFields($container, canEdit) {
         ),
         $modalExpectedAtDelayByTypeSetting);
 
-    $('.new-type-association-button').on('click', function () {
-        newTypeAssociation($modalExpectedAtDelayByTypeSetting, $(this), undefined, undefined, false);
+    $('.new-type-association-button').off('click').on('click', function () {
+        newTypeAssociation($(this), undefined, undefined, false);
     });
 
-    $(document).on('click', '.delete-association-line', function () {
+    $(document).off('click', '.delete-association-line').on('click', '.delete-association-line', function () {
         removeAssociationLine($(this));
     });
-
-    const $typeInputs = $container.find(`.typeChoice input[name=type]`);
     const selectorTable = `#table-production-fixed-fields`;
-
-    $typeInputs
-        .on(`change`, function() {
-            InitFixedFieldByTypeSettings($(this),`production`, $container, selectorTable, canEdit);
-        })
-        .first()
-        .trigger(`change`);
-
-    initializeType();
+    initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit).first().trigger( "change" );
 }
 
-function InitFixedFieldByTypeSettings($typeInputs, entity, $container, selectorTable, canEdit){
-    const $selectedType = $typeInputs;
-    $container.find(selectorTable).DataTable().destroy();
-    EditableDatatable.create(selectorTable, {
-        route: Routing.generate('settings_fixed_field_api', {entity: entity, type: $selectedType.val()}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-        ],
-    });
+function initFixedFieldByTypeSettings(entity, $container, selectorTable, canEdit){
+    const $typeInputs = $container.find(`.typeChoice input[name=type]`);
+    $typeInputs
+        .off('change')
+        .on(`change`, function() {
+            const $selectedType = $(this);
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: entity, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                ],
+            });
+        })
+    return $typeInputs
 }
 
 function changeDisplayRefArticleTable($checkbox) {

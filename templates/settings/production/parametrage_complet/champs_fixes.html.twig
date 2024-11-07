@@ -10,13 +10,14 @@
 } %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
- modal: constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').name,
- field: expectedAt.field,
- elementsType: expectedAt.elementsType,
- elements: expectedAt.elements,
- fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
- types : types,
- category : category,
+    modal: constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').name,
+    field: expectedAt.field,
+    elementsType: expectedAt.elementsType,
+    elements: expectedAt.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
+    types : types,
+    category : category,
+    productionTypesCount : productionTypesCount,
 } %}
 
 <div class="wii-section">

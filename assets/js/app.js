@@ -30,7 +30,7 @@ import Wiistock from './general';
 import Modal from './modal';
 import WysiwygManager from './wysiwyg-manager';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
-import {showAndRequireInputByType} from './show-hide-filed';
+import {showAndRequireInputByType} from './utils';
 
 import '../scss/app.scss';
 
@@ -66,7 +66,7 @@ importFieldModes();
 
 function importWiistock() {
     global.LOADING_CLASS = LOADING_CLASS;
-    global.showAndRequireInputByType = showAndRequireInputByType; // TODO WIIS-12102
+    global.showAndRequireInputByType = showAndRequireInputByType; // TODO WIIS-12102 remove when public go to asset js
     global.Wiistock = Wiistock;
     global.Modal = Modal;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
