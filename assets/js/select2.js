@@ -59,7 +59,6 @@ const ROUTES = {
 const INSTANT_SELECT_TYPES = {
     handlingType: true,
     deliveryType: true,
-    selectExpectedType: true,
     collectType: true,
     dispatchType: true,
     productionRequestType: true,
