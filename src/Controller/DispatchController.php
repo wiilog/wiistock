@@ -40,6 +40,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\PackService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -243,15 +244,16 @@ class DispatchController extends AbstractController {
 
     #[Route("/creer", name: "dispatch_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_ACHE])]
-    public function new(Request                $request,
-                        FreeFieldService       $freeFieldService,
-                        DispatchService        $dispatchService,
-                        AttachmentService      $attachmentService,
-                        EntityManagerInterface $entityManager,
-                        TranslationService     $translationService,
-                        UniqueNumberService    $uniqueNumberService,
-                        RedirectService        $redirectService,
-                        StatusHistoryService   $statusHistoryService): Response {
+    public function new(Request                  $request,
+                        FreeFieldService         $freeFieldService,
+                        DispatchService          $dispatchService,
+                        AttachmentService        $attachmentService,
+                        EntityManagerInterface   $entityManager,
+                        TranslationService       $translationService,
+                        UniqueNumberService      $uniqueNumberService,
+                        RedirectService          $redirectService,
+                        StatusHistoryService     $statusHistoryService,
+                        ProductionRequestService $productionRequestService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -281,12 +283,7 @@ class DispatchController extends AbstractController {
             $dispatchService->manageDispatchPacks($existingDispatch, $packs, $entityManager);
 
             if($productionIds){
-                $productionRepository = $entityManager->getRepository(ProductionRequest::class);
-                $productions = $productionRepository->findBy(["id" => json_decode($productionIds)]);
-
-                foreach ($productions as $production) {
-                    $production->setDispatch($existingDispatch);
-                }
+                $productionRequestService->linkProductionsAndDispatch($entityManager, json_decode($productionIds) ?? [], $existingDispatch);
             }
 
             $entityManager->flush();
@@ -395,12 +392,7 @@ class DispatchController extends AbstractController {
             ->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
 
         if($productionIds){
-            $productionRepository = $entityManager->getRepository(ProductionRequest::class);
-            $productions = $productionRepository->findBy(["id" => json_decode($productionIds)]);
-
-            foreach ($productions as $production) {
-                $production->setDispatch($dispatch);
-            }
+            $productionRequestService->linkProductionsAndDispatch($entityManager, json_decode($productionIds) ?? [], $dispatch);
         }
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
@@ -1633,7 +1625,7 @@ class DispatchController extends AbstractController {
                         ->flatMap(static fn(Arrivage $arrival) => $arrival->getPacks()->toArray())
                         ->toArray();
                     break;
-                case 'productions': //TODO VOIR AVEC PAULZER
+                case 'productions':
                     $entities = $productionRepository->findBy(['id' => $entityIds]);
                     $packs = Stream::from($entities)
                         ->flatMap(static fn(ProductionRequest $productionRequest) => $productionRequest->getLastTracking()

@@ -8,6 +8,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -1342,4 +1343,14 @@ class ProductionRequestService
         ];
     }
 
+    public function linkProductionsAndDispatch(EntityManagerInterface $entityManager,
+                                               array $productionsIdsToLink,
+                                               Dispatch $dispatch): void {
+        $productionRepository = $entityManager->getRepository(ProductionRequest::class);
+        $productions = $productionRepository->findBy(["id" => $productionsIdsToLink]);
+
+        foreach ($productions as $production) {
+            $production->setDispatch($dispatch);
+        }
+    }
 }
