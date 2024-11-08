@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
@@ -1351,6 +1352,27 @@ class ProductionRequestService
 
         foreach ($productions as $production) {
             $production->setDispatch($dispatch);
+
+            $packCodeMessage = !$dispatch->getDispatchPacks()->isEmpty()
+                ? "<strong>UL</strong> :" . Stream::from($dispatch->getDispatchPacks())
+                    ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getCode())
+                    ->filter()
+                    ->join(', ')
+                : "";
+
+            $customHistoryMessage = "<br><strong>Numéro d'acheminement</strong> : {$dispatch->getNumber()}
+                <br>$packCodeMessage";
+
+            $this->operationHistoryService->persistProductionHistory(
+                $entityManager,
+                $production,
+                OperationHistoryService::TYPE_CREATE_DISPATCH,
+                [
+                    "user" => $production->getCreatedBy(),
+                    "date" => $dispatch->getCreationDate(),
+                    "message" => $customHistoryMessage
+                ]
+            );
         }
     }
 }
