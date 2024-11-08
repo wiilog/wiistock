@@ -1,7 +1,7 @@
 import AJAX, {GET} from "@app/ajax";
 import Form from "@app/form";
 import Camera from "@app/camera"
-import {displayAttachmentRequired, openModalUpdateProductionRequestStatus, initDeleteProductionRequest} from '@app/pages/production/form'
+import {displayAttachmentRequired, initDeleteProductionRequest, modalConfirmDeleteProductionRequest, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 
 global.displayAttachmentRequired = displayAttachmentRequired;
 
@@ -20,8 +20,12 @@ $(function () {
             routeParams: {
                 productionRequest: productionRequestId
             },
-            success: () => {
-                window.location.reload();
+            success: (response) => {
+                if(response.needModalConfirmationForGenerateDispatch) {
+                    modalConfirmDeleteProductionRequest(productionRequestId)
+                } else {
+                    window.location.reload();
+                }
             }
         });
 

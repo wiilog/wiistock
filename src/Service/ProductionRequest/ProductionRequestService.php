@@ -43,6 +43,7 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -484,8 +485,12 @@ class ProductionRequestService
 
         return [
             'productionRequest' => $productionRequest,
-            'errors' => $errors
+            'errors' => $errors,
         ];
+    }
+
+    public function checkNeedModalConfirmationForGenerateDispatch(ProductionRequest $productionRequest, UserService $userService): Boolean {
+        return $productionRequest->getStatus()->getTypeForGeneratedDispatchOnStatusChange() && $userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE);
     }
 
     public function persistHistoryRecords(EntityManagerInterface $entityManager,
