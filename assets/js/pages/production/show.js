@@ -6,8 +6,17 @@ import {displayAttachmentRequired, initDeleteProductionRequest, modalConfirmDele
 global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
-    const $modalEditProductionRequest = $('#modalEditProductionRequest');
+    const $openModal = $('input[name=open-modal]');
     const productionRequestId = $(`[name=productionRequestId]`).val();
+
+    if($openModal.val() === 'new') {
+        let $modalNewDispatch = $("#modalNewDispatch");
+        initDispatchCreateForm($modalNewDispatch, 'productions', [productionRequestId]);
+        if (productionRequestId) {
+            $modalNewDispatch.modal(`show`);
+        }
+    }
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
     Form
         .create($modalEditProductionRequest)
         .onOpen(() => {

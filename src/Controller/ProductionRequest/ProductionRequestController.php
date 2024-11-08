@@ -135,10 +135,13 @@ class ProductionRequestController extends AbstractController
     #[Route("/voir/{id}", name: "show", options: ["expose" => true])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function show(EntityManagerInterface   $entityManager,
+                         Request $request,
                          ProductionRequest        $productionRequest,
                          ProductionRequestService $productionRequestService): Response {
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
+
+        $openModal = $request->query->get('open-modal');
 
         return $this->render("production_request/show/index.html.twig", [
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
@@ -149,6 +152,7 @@ class ProductionRequestController extends AbstractController
             "detailsConfig" => $productionRequestService->createHeaderDetailsConfig($productionRequest),
             "attachments" => $productionRequest->getAttachments(),
             "freeFields" => $freeFields,
+            "openModal" => $openModal,
         ]);
     }
 

@@ -489,7 +489,7 @@ class ProductionRequestService
         ];
     }
 
-    public function checkNeedModalConfirmationForGenerateDispatch(ProductionRequest $productionRequest, UserService $userService): Boolean {
+    public function checkNeedModalConfirmationForGenerateDispatch(ProductionRequest $productionRequest, UserService $userService): bool {
         return $productionRequest->getStatus()->getTypeForGeneratedDispatchOnStatusChange() && $userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE);
     }
 
