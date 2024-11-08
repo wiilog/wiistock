@@ -58,6 +58,7 @@ export function initUserPage($container) {
     $container.on(`click`, `.add-secondary-email`, function() {
         const $modal = $(this).closest(`.modal`);
 
+        removeSecondaryMail()
         $modal.find(`.secondary-email.d-none`).first().removeClass(`d-none`);
 
         if(!$modal.find(`.secondary-email.d-none`).exists()) {
@@ -98,4 +99,38 @@ function editRowUser(button) {
     }, 'json');
 
     modal.find(submit).attr('value', id);
+}
+
+function removeSecondaryMail(){
+
+    $(document).arrive('input[name=moreThanTwoEmail]', function () {
+            const $addEmail = $('.add-secondary-email');
+            $addEmail.addClass("d-none");
+
+    });
+
+    $('.delete-mail-line').on('click', function () {
+        removeMailLine($(this));
+    });
+
+    $(document).arrive('.delete-mail-line', function () {
+        $(this).on('click', function () {
+            removeMailLine($(this));
+        });
+    });
+}
+
+function removeMailLine($button){
+    const $secondaryEmailContainer = $('.secondary-email');
+    const $currentEmail = $button.closest('.secondary-email');
+    const $addEmail = $('.add-secondary-email');
+
+    if($secondaryEmailContainer.length === 1) {
+        showBSAlert('Au moins un email secondaire est nécessaire', 'danger')
+    } else {
+        $currentEmail.addClass("d-none");
+        $addEmail.removeClass("d-none");
+        const $inputEmail = $button.closest('.secondary-email').find('input[name=secondaryEmails]')
+        $inputEmail.val("");
+    }
 }
