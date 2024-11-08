@@ -281,6 +281,7 @@ class ProductionRequestController extends AbstractController
                          Request                  $request,
                          ProductionRequestService $productionRequestService,
                          ProductionRequest        $productionRequest,
+                         UserService              $userService,
                          FixedFieldService        $fieldsParamService): JsonResponse {
 
         $productionRequestService->checkRoleForEdition($productionRequest);
@@ -295,7 +296,7 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Vous ne pouvez pas modifier le statut de la demande de production car elle est déjà traitée.");
         }
 
-        $dataProductionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
 
         $entityManager->flush();
 
@@ -303,10 +304,10 @@ class ProductionRequestController extends AbstractController
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
         }
 
-        if($dataProductionRequest['needModalConfirmationForGenerateDispatch']) {
+        if ($productionRequestService->checkNeedModalConfirmationForGenerateDispatch($productionRequest, $userService)) {
             return $this->json([
                 "success" => true,
-                "needModalConfirmationForGenerateDispatch" => $dataProductionRequest['needModalConfirmationForGenerateDispatch'],
+                "needModalConfirmationForGenerateDispatch" => true,
                 "msg" => "La demande de production a été modifiée avec succès.",
             ]);
         }
@@ -406,6 +407,7 @@ class ProductionRequestController extends AbstractController
     public function updateStatus(EntityManagerInterface   $entityManager,
                                  ProductionRequest        $productionRequest,
                                  Request                  $request,
+                                 UserService              $userService,
                                  ProductionRequestService $productionRequestService): JsonResponse {
 
         $productionRequestService->checkRoleForEdition($productionRequest);
@@ -441,10 +443,10 @@ class ProductionRequestController extends AbstractController
             ]);
         }
 
-        if($data['needModalConfirmationForGenerateDispatch']) {
+        if ($productionRequestService->checkNeedModalConfirmationForGenerateDispatch($productionRequest, $userService)) {
             return $this->json([
                 "success" => true,
-                "needModalConfirmationForGenerateDispatch" => $data['needModalConfirmationForGenerateDispatch'],
+                "needModalConfirmationForGenerateDispatch" => true,
                 "msg" => "La demande de production a été modifiée avec succès.",
             ]);
         }

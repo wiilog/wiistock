@@ -43,6 +43,7 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -412,13 +413,7 @@ class ProductionRequestService
         );
 
         $errors = [];
-        $needModalConfirmationForGenerateDispatch = false;
         $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
-
-        if($status->getTypeForGeneratedDispatchOnStatusChange()
-            && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
-            $needModalConfirmationForGenerateDispatch = boolval($status->getTypeForGeneratedDispatchOnStatusChange());
-        }
 
         if ($status->isCreateDropMovementOnDropLocation()) {
             $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
@@ -487,8 +482,11 @@ class ProductionRequestService
         return [
             'productionRequest' => $productionRequest,
             'errors' => $errors,
-            'needModalConfirmationForGenerateDispatch' => $needModalConfirmationForGenerateDispatch
         ];
+    }
+
+    public function checkNeedModalConfirmationForGenerateDispatch(ProductionRequest $productionRequest, UserService $userService): Boolean {
+        return $productionRequest->getStatus()->getTypeForGeneratedDispatchOnStatusChange() && $userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE);
     }
 
     public function persistHistoryRecords(EntityManagerInterface $entityManager,
