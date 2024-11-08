@@ -45,36 +45,52 @@
                             type: 'email',
                         }) }}
                     </div>
-                    {% if secondary_emails | length < 2 %}
+                        {% if secondary_emails | length >= 2  %}
+                        {{ form.hidden("moreThanTwoEmail", "") }}
+                        {% endif %}
                         <div class="col-12" style="text-align: right">
                             <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none" style="font-size: 0.8rem">Ajouter un email</span>
                         </div>
-                    {% endif %}
+
                 </div>
 
                 {% for email in secondary_emails %}
                     {% set label = 'Email ' ~ (loop.index + 1) %}
-                    <div class="form-group row">
-                        <div class="col-12">
+                    <div class="form-group secondary-email">
+                        <div class="col-12 d-flex">
                             {{ form.input('secondaryEmails', label, true, email, {
                                 type: 'email',
                                 inputClass: 'data-array',
                             }) }}
+                            <div class="d-flex align-items-end">
+                                <div class="btn btn-outline-primary delete-mail-line d-flex align-items-center ml-2"
+                                     title="Supprimer email secondaire" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
+                                    <i class="wii-icon wii-icon-trash"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
 
-                {% for i in range(secondary_emails | length + 1, 2) %}
-                    {% set label = 'Email ' ~ (i +  1) %}
-                    <div class="form-group row secondary-email d-none">
-                        <div class="col-12">
-                            {{ form.input('secondaryEmails', label, true, '', {
-                                type: 'email',
-                                inputClass: 'data-array',
-                            }) }}
+                {% if secondary_emails | length < 2 %}
+                    {% for i in range(secondary_emails | length + 1, 2)%} {# génère les nouveaux inputs email vide avec un maximum de 2 génération #}
+                        {% set label = 'Email ' ~ (i +  1) %}
+                        <div class="form-group secondary-email d-none">
+                            <div class="col-12 d-flex">
+                                {{ form.input('secondaryEmails', label, true, '', {
+                                    type: 'email',
+                                    inputClass: 'data-array',
+                                }) }}
+                                <div class="d-flex align-items-end">
+                                    <div class="btn btn-outline-primary delete-mail-line d-flex align-items-center ml-2"
+                                         title="Supprimer email secondaire" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
+                                        <i class="wii-icon wii-icon-trash"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% endif %}
 
                 <div class="form-group row">
                     <div class="col-12">
