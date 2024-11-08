@@ -98,7 +98,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
-    #[ORM\OneToOne(targetEntity: Dispatch::class)]
+    #[ORM\ManyToOne(targetEntity: Dispatch::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Dispatch $dispatch = null;
 

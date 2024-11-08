@@ -23,6 +23,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -273,9 +274,20 @@ class DispatchController extends AbstractController {
             }
         }
 
+        $productionIds = $post->get('production');
+
         if($post->getBoolean('existingOrNot')) {
             $existingDispatch = $entityManager->find(Dispatch::class, $post->getInt('existingDispatch'));
             $dispatchService->manageDispatchPacks($existingDispatch, $packs, $entityManager);
+
+            if($productionIds){
+                $productionRepository = $entityManager->getRepository(ProductionRequest::class);
+                $productions = $productionRepository->findBy(["id" => json_decode($productionIds)]);
+
+                foreach ($productions as $production) {
+                    $production->setDispatch($existingDispatch);
+                }
+            }
 
             $entityManager->flush();
 
@@ -381,6 +393,15 @@ class DispatchController extends AbstractController {
             ->setCustomerPhone($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH))
             ->setCustomerRecipient($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
             ->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
+
+        if($productionIds){
+            $productionRepository = $entityManager->getRepository(ProductionRequest::class);
+            $productions = $productionRepository->findBy(["id" => json_decode($productionIds)]);
+
+            foreach ($productions as $production) {
+                $production->setDispatch($dispatch);
+            }
+        }
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
             "initiatedBy" => $currentUser
@@ -1590,35 +1611,55 @@ class DispatchController extends AbstractController {
         return $response;
     }
 
-    #[Route("/create-form-arrivals-template", name: "create_from_arrivals_template", options: ["expose" => true], methods: self::GET)]
-    public function createFromArrivalTemplate(Request                $request,
+    #[Route("/create-form-entities-template", name: "create_from_entities_template", options: ["expose" => true], methods: self::GET)]
+    public function createFromEntitiesTemplate(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService): JsonResponse
     {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $productionRepository = $entityManager->getRepository(ProductionRequest::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $arrivalsIds = $request->query->all('arrivals');
-        $arrivals = !empty($arrivalsIds)
-            ? $arrivageRepository->findBy(['id' => $arrivalsIds])
-            : [];
+        $entityIds = $request->query->all('entityIds');
+        $entityType = $request->query->get('entityType');
+
+        $entities = [];
+        $packs = [];
+        if(!empty($entityIds)){
+           switch($entityType) {
+                case 'arrivals':
+                    $entities = $arrivageRepository->findBy(['id' => $entityIds]);
+                    $packs = Stream::from($entities)
+                        ->flatMap(static fn(Arrivage $arrival) => $arrival->getPacks()->toArray())
+                        ->toArray();
+                    break;
+                case 'productions': //TODO VOIR AVEC PAULZER
+                    $entities = $productionRepository->findBy(['id' => $entityIds]);
+                    $packs = Stream::from($entities)
+                        ->flatMap(static fn(ProductionRequest $productionRequest) => $productionRequest->getLastTracking()
+                            ? [$productionRequest->getLastTracking()->getPack()]
+                            : []
+                        )
+                        ->toArray();
+                    break;
+                default:
+                    break;
+            }
+        }
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
-        $packs = Stream::from($arrivals)
-            ->flatMap(static fn(Arrivage $arrival) => $arrival->getPacks()->toArray())
-            ->toArray();
-
         return $this->json([
             'success' => true,
-            'html' => $this->renderView('dispatch/forms/formFromArrival.html.twig',
+            'html' => $this->renderView('dispatch/forms/formFromEntity.html.twig',
                 $dispatchService->getNewDispatchConfig(
                     $entityManager,
                     $types,
-                    count($arrivals) === 1 ? $arrivals[0] : null,
-                    $packs
+                    count($entities) === 1 ? $entities[0] : null,
+                    $packs,
+                    $entityIds,
                 ),
             )
         ]);

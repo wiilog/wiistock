@@ -1,14 +1,6 @@
 let arrivageUrgentLoading = false;
 
 $(function () {
-    $(document).on(`change`, `#modalNewDispatch input[name=existingOrNot]`, function () {
-        onExistingOrNotChanged($(this));
-    });
-
-    $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
-        onExistingDispatchSelected($(this));
-    });
-
     $(document)
         .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
             const $recipient = $(this);

@@ -77,6 +77,17 @@ $(function () {
     });
 
     const $productionsTable = $(`#tableProductions`);
+    let $modalNewDispatch = $("#modalNewDispatch");
+
+    $dispatchModeContainer.find(`.validate`).on(`click`, function () {
+        const $checkedCheckboxes = $productionsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        const productionsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+
+        initDispatchCreateForm($modalNewDispatch, 'productions', productionsToDispatch);
+        if (productionsToDispatch.length > 0) {
+            $modalNewDispatch.modal(`show`);
+        }
+    });
 
     $(document).arrive(`.check-all`, function () {
         $(this).on(`click`, function () {
