@@ -298,10 +298,12 @@ class ProductionRequestRepository extends EntityRepository
             ->addSelect("production_request.emergency AS " . FixedFieldEnum::emergency->name)
             ->addSelect("production_request.projectNumber AS " . FixedFieldEnum::projectNumber->name)
             ->addSelect("production_request.comment AS " . FixedFieldEnum::comment->name)
+            ->addSelect("join_destinationLocation.label AS " . FixedFieldEnum::destinationLocation->name)
             ->addSelect("production_request.freeFields AS freeFields")
             ->innerJoin("production_request.createdBy", "join_createdBy")
             ->leftJoin("production_request.treatedBy", "join_treatedBy")
             ->leftJoin("production_request.dropLocation", "join_dropLocation")
+            ->leftJoin("production_request.destinationLocation", "join_destinationLocation")
             ->andWhere("production_request.$referenceDate BETWEEN :dateMin AND :dateMax")
             ->setParameter("dateMin", $dateMin)
             ->setParameter("dateMax", $dateMax);

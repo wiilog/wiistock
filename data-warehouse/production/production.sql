@@ -8,8 +8,10 @@ SELECT production_request.id                                                    
        production_request.cleaned_comment                                        AS commentaire,
        IF(production_request_attachment.attachment_id IS NOT NULL, 'Oui', 'Non') AS piece_jointe,
        production_request.quantity                                               AS quantite,
-       production_request.line_count                                             AS nombre_lignes
+       production_request.line_count                                             AS nombre_lignes,
+       destination_location.label                                                AS emplacement_destination
 FROM production_request
          LEFT JOIN emplacement ON production_request.drop_location_id = emplacement.id
          LEFT JOIN production_request_attachment
                    ON production_request.id = production_request_attachment.production_request_id
+         LEFT JOIN emplacement destination_location ON production_request.destination_location_id = emplacement.id
