@@ -336,7 +336,7 @@ class TruckArrivalController extends AbstractController
 
         $arrivalRepository = $entityManager->getRepository(Arrivage::class);
         $countArrivals = $arrivalRepository->count(['truckArrival' => $truckArrival->getId()]);
-        if ( $arrivalRepository->count(['truckArrival' => $truckArrival->getId()])) {
+        if ($countArrivals) {
             throw new FormException("Cet arrivage camion est lié à $countArrivals arrivage(s) UL et ne peut pas être supprimé.");
         }
 
