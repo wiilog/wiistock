@@ -9,6 +9,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -52,7 +53,7 @@ class ProductionRequestController extends AbstractController
                           EntityManagerInterface   $entityManager,
                           ProductionRequestService $productionRequestService,
                           StatusService          $statusService): Response {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -91,8 +92,8 @@ class ProductionRequestController extends AbstractController
 
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            "fieldsParam" => $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]),
+            "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager, $request)->getContent(),
             "dateChoices" => $dateChoices,
@@ -138,14 +139,24 @@ class ProductionRequestController extends AbstractController
                          Request $request,
                          ProductionRequest        $productionRequest,
                          ProductionRequestService $productionRequestService): Response {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $productionType = $productionRequest->getType();
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
+        ]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($productionType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($productionType),
+            ]])
+            ->toArray();
 
         $openModal = $request->query->get('open-modal');
 
         return $this->render("production_request/show/index.html.twig", [
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::emergency->name),
+            "fieldsParam" => $fieldsParam,
+            "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "productionRequest" => $productionRequest,
             "hasRightDeleteProductionRequest" => $productionRequestService->hasRightToDelete($productionRequest),
             "hasRightEditProductionRequest" => $productionRequestService->hasRightToEdit($productionRequest),
@@ -164,7 +175,11 @@ class ProductionRequestController extends AbstractController
                         ProductionRequestService $productionRequestService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
 
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
+        $post = $request->request;
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $typeValue = FixedFieldEnum::type->name;
+        $type = $typeRepository->find($post->getInt($typeValue));
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true, null, $type);
 
         $quantityToGenerate = $data->getInt('quantityToGenerate');
         if ($quantityToGenerate !== 1 && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST)) {

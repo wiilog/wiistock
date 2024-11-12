@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField\FreeField;
@@ -1522,7 +1523,7 @@ class SettingsService {
 
             if (isset($location) && $typeOption) {
                 $defaultDeliveryLocations[] = [
-                    'location' => [
+                    'value' => [
                         'id' => $location->getId(),
                         'label' => $location->getLabel(),
                     ],
@@ -1532,6 +1533,40 @@ class SettingsService {
             }
         }
         return $defaultDeliveryLocations;
+    }
+
+    public function getDefaultProductionExpectedAtByType(EntityManagerInterface $entityManager): array {
+
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
+        $savedTypeIds = Stream::keys($expectedAtField->getElements())->toArray();
+        $savedTypes = !empty($savedTypeIds) ? $typeRepository->findBy(["id" => $savedTypeIds]) : [];
+        $delayByType = $expectedAtField->getElements();
+
+        if(isset($delayByType["all"])){
+            $allTypes = [[
+                "type"=> [
+                    "label" => "Tous les types",
+                    "id" => "all",
+                ],
+                "value" => $delayByType["all"],
+            ]];
+        }
+
+        return Stream::from(
+            Stream::from($savedTypes)
+                ->map(fn(Type $type) => [
+                    "type"=> [
+                        "label" => $type->getLabel(),
+                        "id" => $type->getId(),
+                    ],
+                    "value" => $delayByType[$type->getId()],
+                ]),
+                $allTypes ?? []
+        )
+            ->toArray();
+
     }
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {

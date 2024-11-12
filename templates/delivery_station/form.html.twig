@@ -63,12 +63,14 @@
                                         <div class="col-md-4 col-12 w-100 my-2">
                                             {{ form.select('type', 'Type', false, {
                                                 type: 'types',
-                                                includeParams: '[name=categoryType]',
                                                 includeParamsParent: '.reference-choice-container',
+                                                additionalAttributes: [
+                                                    {name: 'data-other-params'},
+                                                    {name: 'data-other-params-category', value: constant('App\\Entity\\CategoryType::ARTICLE')}
+                                                ],
                                                 search: true,
                                             }) }}
                                         </div>
-                                        <input type="hidden" name="categoryType" value="{{ constant('App\\Entity\\CategoryType::ARTICLE') }}">
                                     {% endif %}
                                 {% endfor %}
                             {% else %}

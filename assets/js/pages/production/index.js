@@ -5,6 +5,7 @@ import Routing from '@app/fos-routing';
 import {displayAttachmentRequired, initDeleteProductionRequest, initModalNewProductionRequest} from './form'
 import {getUserFiltersByPage} from '@app/utils';
 import {initDataTable} from "@app/datatable";
+import {showAndRequireInputByType} from "@app/utils";
 
 let tableProduction;
 
@@ -185,6 +186,7 @@ function onProductionRequestTypeChange($select){
         $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
     }
     $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
+    showAndRequireInputByType($select);
 }
 
 function initNewProductionRequest() {
