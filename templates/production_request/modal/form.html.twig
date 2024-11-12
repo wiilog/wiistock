@@ -10,7 +10,7 @@
 }) }}
 <div class="row">
     {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::type')%}
-    <div class="col-6 mb-2">
+    <div class="col-md-6 col-12 mb-2">
         {{ form.select(field.name, field.value, true, {
             type: 'productionRequestType',
             placeholder: 'Sélectionnez un type',
@@ -33,7 +33,7 @@
     </div>
 
     {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::status')%}
-    <div class="col-6 mb-2">
+    <div class="col-md-6 col-12 mb-2">
         {{ form.select(field.name, field.value, true, {
             type: 'status',
             disabled: isDuplication is defined and isDuplication ? false : not productionRequest.type or (productionRequest.status and productionRequest.status.treated),
@@ -133,7 +133,7 @@
     {% if displayOnform %}
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, field.name) }}
-            class="form-group col-md-4 mb-2 {{ typeCanChange ? "d-none" : "" }}">
+            class="form-group col-md-4 col-12 mb-2 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(field.name, requiredAction) %}
             {{ form.select(field.name, field.value, requiredOnform, {
                 type: 'location',
