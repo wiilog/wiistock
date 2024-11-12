@@ -681,7 +681,8 @@ function initializeDemandesFixedFields($container, canEdit) {
 
 function initializeDispatchFixedFields($container, canEdit) {
     const selectorTable = `#table-dispatch-fixed-fields`;
-            initFixedFieldByTypeSettings(`acheminements`, $container, selectorTable, canEdit).trigger(`change`);
+    const $typeInput = initFixedFieldByTypeSettings(`acheminements`, $container, selectorTable, canEdit);
+    $typeInput.trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
@@ -1350,22 +1351,27 @@ function initializeProductionFixedFields($container, canEdit) {
         ),
         $modalExpectedAtDelayByTypeSetting);
 
-    $('.new-type-association-button').off('click').on('click', function () {
-        newTypeAssociation($(this), undefined, undefined, false);
-    });
+    $('.new-type-association-button')
+        .off('click.new-type-association-button')
+        .on('click.new-type-association-button', function () {
+            newTypeAssociation($(this), undefined, undefined, false);
+        });
 
-    $(document).off('click', '.delete-association-line').on('click', '.delete-association-line', function () {
-        removeAssociationLine($(this));
-    });
+    $(document)
+        .off('click.new-type-association-button', '.delete-association-line')
+        .on('click.new-type-association-button', '.delete-association-line', function () {
+            removeAssociationLine($(this));
+        });
     const selectorTable = `#table-production-fixed-fields`;
-    initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit).first().trigger( "change" );
+    const $typeInputs = initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit);
+    $typeInputs.trigger( "change" );
 }
 
 function initFixedFieldByTypeSettings(entity, $container, selectorTable, canEdit){
     const $typeInputs = $container.find(`.typeChoice input[name=type]`);
     $typeInputs
-        .off('change')
-        .on(`change`, function() {
+        .off('change.initFixedFieldByTypeSettings')
+        .on(`change.initFixedFieldByTypeSettings`, function() {
             const $selectedType = $(this);
             $container.find(selectorTable).DataTable().destroy();
             EditableDatatable.create(selectorTable, {
@@ -1388,8 +1394,8 @@ function initFixedFieldByTypeSettings(entity, $container, selectorTable, canEdit
                     {data: `requiredEdit`, title: `Obligatoire`},
                 ],
             });
-        })
-    return $typeInputs
+        });
+    return $typeInputs;
 }
 
 function changeDisplayRefArticleTable($checkbox) {
