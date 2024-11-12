@@ -20,23 +20,24 @@ import Snow from 'quill/themes/snow';
 import 'arrive';
 import firebase from "firebase/app";
 import "firebase/messaging";
-import "./flash";
-import "./ajax";
-import "./utils";
+import "@app/flash";
+import "@app/ajax";
+import "@app/utils";
+import '@app/tooltips';
+import '@app/select2';
+
+import {showAndRequireInputByType} from '@app/utils';
+
 import Camera from "@app/camera"
+import Form from "@app/form";
+import BrowserSupport from '@app/support';
+import Wiistock from '@app/general';
+import Modal from '@app/modal';
+import WysiwygManager from '@app/wysiwyg-manager';
+import {LOADING_CLASS, wrapLoadingOnActionButton} from '@app/loading';
 
-import BrowserSupport from './support';
-import Wiistock from './general';
-import Modal from './modal';
-import WysiwygManager from './wysiwyg-manager';
-import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
-import {showAndRequireInputByType} from './utils';
+import '@styles/app.scss';
 
-import '../scss/app.scss';
-
-import './tooltips';
-import './select2';
-import Form from "./form";
 import {extendsDateSort, initDataTable, initSearchDate, initDatatablePlugin} from "@app/datatable";
 import {initFieldModes} from "@app/field-modes";
 
