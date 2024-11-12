@@ -1576,25 +1576,12 @@ class SettingsController extends AbstractController {
                         $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
                         $types = $this->typeGenerator(CategoryType::PRODUCTION, true);
 
-                        $allTypeId =  Stream::keys($expectedAtField->getElements())->toArray();
-                        $allUsedType = $typeRepository->findBy(["id"=>$allTypeId]);
-                        $delayByType = $expectedAtField->getElements();
-
-                        $formatedDelayByType= Stream::from($allUsedType)
-                            ->map(fn(Type $type) => [
-                                "type"=> [
-                                    "label" => $type->getLabel(),
-                                    "id" => $type->getId(),
-                                ],
-                                "value" => $delayByType[$type->getId()],
-                            ])
-                            ->toArray();
                         return [
                             'types' => $types,
                             "expectedAt" => [
                                 "field" => $expectedAtField?->getId(),
                                 "elementsType" => $expectedAtField?->getElementsType(),
-                                "elements" => $formatedDelayByType
+                                "elements" => $this->settingsService->getDefaultProductionExpectedAtByType($this->manager)
                             ],
                             "emergency" => [
                                 "field" => $emergencyField?->getId(),
