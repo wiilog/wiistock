@@ -54,7 +54,7 @@
                     label: type | format_helper('type'),
                     selected: uniqueType,
                     'pick-location-id': entityIsDefined and entity.dropLocation ? entity.dropLocation.id : (type.pickLocation ? type.pickLocation.id),
-                    'pick-location-label': entityIsDefined and entity.dropLocation ? entity.dropLocation.id : (type.pickLocation ? type.pickLocation.label),
+                    'pick-location-label': entityIsDefined and entity.dropLocation ? entity.dropLocation.label : (type.pickLocation ? type.pickLocation.label),
                     'drop-location-id': entityIsDefined and entity.destinationLocation ? entity.destinationLocation.id : (type.dropLocation ? type.dropLocation.id),
                     'drop-location-label': entityIsDefined and entity.destinationLocation ? entity.destinationLocation.label : (type.dropLocation ? type.dropLocation.label),
                     'suggested-drop-locations': type.suggestedDropLocations | join(''),
