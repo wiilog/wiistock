@@ -682,7 +682,7 @@ function initializeDemandesFixedFields($container, canEdit) {
 function initializeDispatchFixedFields($container, canEdit) {
     const selectorTable = `#table-dispatch-fixed-fields`;
     const $typeInput = initFixedFieldByTypeSettings(`acheminements`, $container, selectorTable, canEdit);
-    $typeInput.trigger(`change`);
+    $typeInput.first().trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
@@ -1364,7 +1364,7 @@ function initializeProductionFixedFields($container, canEdit) {
         });
     const selectorTable = `#table-production-fixed-fields`;
     const $typeInputs = initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit);
-    $typeInputs.trigger( "change" );
+    $typeInputs.first().trigger( "change" );
 }
 
 function initFixedFieldByTypeSettings(entity, $container, selectorTable, canEdit){
