@@ -274,11 +274,6 @@ class TrackingMovementRepository extends EntityRepository
             $qb->addOrderBy("tracking_movement.orderIndex", "DESC");
         }
 
-        // compte éléments filtrés
-        $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
-        $qb
-            ->select('tracking_movement');
-
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));
         }
@@ -287,11 +282,19 @@ class TrackingMovementRepository extends EntityRepository
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $query = $qb->getQuery();
+        $query = $qb
+            ->addSelect("COUNT_OVER(tracking_movement.id) AS __query_count")
+            ->getQuery();
+
+        $queryResult = $query?->getResult();
+        $countFiltered = $queryResult[0]['__query_count'] ?? 0;
+        $data = Stream::from($queryResult)
+            ->map(fn($row) => $row[0])
+            ->toArray();
 
         return [
             'count' => $countFiltered,
-            'data' => $query?->getResult(),
+            'data' => $data,
         ];
     }
 
