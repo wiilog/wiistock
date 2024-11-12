@@ -200,7 +200,7 @@ class SelectController extends AbstractController {
         $results = $typeRepository->getForSelect(
             $categoryType,
             term: $request->query->get("term"),
-            options: $alreadyDefinedTypes ? ['alreadyDefinedTypes' => $alreadyDefinedTypes] : null
+            options: $alreadyDefinedTypes ? ['alreadyDefinedTypes' => $alreadyDefinedTypes] : []
         );
 
         $results = array_merge($results, $allTypesOption);
