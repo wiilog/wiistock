@@ -87,7 +87,7 @@ class Pack implements PairedEntity {
 
     /**
      * TrackingMovement which trigger START tracking event with the most recent datetime.
-     * @see TrackingMovementService::getTrackingEvent()
+     * @see TrackingMovementService::setTrackingEvent()
      */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
@@ -95,7 +95,7 @@ class Pack implements PairedEntity {
 
     /**
      * TrackingMovement which trigger STOP tracking event with the most recent datetime.
-     * @see TrackingMovementService::getTrackingEvent()
+     * @see TrackingMovementService::setTrackingEvent()
      */
     #[ORM\OneToOne(targetEntity: TrackingMovement::class, cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
