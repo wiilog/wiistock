@@ -85,9 +85,9 @@ final class Version20241022084427 extends AbstractMigration {
             $this->addSql('DELETE FROM fixed_field_standard WHERE id = :id', ['id' => $fieldsStandard['id']]);
         }
 
-        $this->addSql("INSERT INTO setting (label, value) VALUES (':label', ':value')", [
-            ":label" => Setting::PRODUCTION_FIXED_FIELDS_ON_FILTERS,
-            ":value" => join(',', $onFilerFields),
+        $this->addSql("INSERT INTO setting (label, value) VALUES (:label, :value)", [
+            "label" => Setting::PRODUCTION_FIXED_FIELDS_ON_FILTERS,
+            "value" => join(',', $onFilerFields),
         ]);
     }
 
