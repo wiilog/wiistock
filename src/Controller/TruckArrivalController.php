@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Chauffeur;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
@@ -16,6 +17,7 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\PDFGeneratorService;
@@ -328,21 +330,23 @@ class TruckArrivalController extends AbstractController
                  ->count()
             : 0;
 
-        if ($hasLinesAssociatedToArrival === 0) {
-            $entityManager->remove($truckArrival);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'redirect' => $this->generateUrl('truck_arrival_index'),
-                'msg' => "L'arrivage camion a bien été supprimé."
-            ]);
-        } else {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Cette arrivage camion contient au moins un numéro de tracking transporteur lié à au moins un arrivage UL, vous ne pouvez pas le supprimer."
-            ]);
+        if ($hasLinesAssociatedToArrival !== 0) {
+            throw new FormException("Cette arrivage camion contient au moins un numéro de tracking transporteur lié à au moins un arrivage UL, vous ne pouvez pas le supprimer.");
         }
+
+        $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+        $countArrivals = $arrivalRepository->count(['truckArrival' => $truckArrival->getId()]);
+        if ( $arrivalRepository->count(['truckArrival' => $truckArrival->getId()])) {
+            throw new FormException("Cet arrivage camion est lié à $countArrivals arrivage(s) UL et ne peut pas être supprimé.");
+        }
+
+        $entityManager->remove($truckArrival);
+        $entityManager->flush();
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('truck_arrival_index'),
+            'msg' => "L'arrivage camion a bien été supprimé."
+        ]);
     }
 
     #[Route('/add-tracking-number', name: 'add_tracking_number', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
