@@ -69,6 +69,7 @@ class TriggerActionController extends AbstractController
                     IOTService::INEO_SENS_ACS_TEMP,
                     IOTService::KOOVEA_TAG,
                     IOTService::YOKOGAWA_XS550_XS110A,
+                    IOTService::ENGINKO_LW22CCM,
                 ])) {
                     // temp and temp && hygro
                     $triggerActionConfigs = [
