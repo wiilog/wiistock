@@ -54,7 +54,7 @@ export function initUserPage($container) {
     let $submitDeleteUser = $("#submitDeleteUser");
     let pathDeleteUser = Routing.generate('user_delete', true);
     InitModal($modalDeleteUser, $submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
-    initRemoveSecondaryMails()
+    initRemoveSecondaryMails();
     $container.on(`click`, `.add-secondary-email`, function() {
         const $modal = $(this).closest(`.modal`);
 
@@ -123,11 +123,11 @@ function removeMailLine($button){
     const $addEmail = $('.add-secondary-email');
 
     if($secondaryEmailContainer.length === 1) {
-        showBSAlert('Au moins un email secondaire est nécessaire', 'danger')
+        Flash.add(ERROR, 'Au moins un email secondaire est nécessaire');
     } else {
         $currentEmail.addClass("d-none");
         $addEmail.removeClass("d-none");
-        const $inputEmail = $button.closest('.secondary-email').find('input[name=secondaryEmails]')
+        const $inputEmail = $button.closest('.secondary-email').find('input[name=secondaryEmails]');
         $inputEmail.val("");
     }
 }
