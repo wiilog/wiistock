@@ -435,6 +435,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL => [
                 'default' => false,
             ],
+            Setting::DISPLAY_MANUAL_DELAY_START => [
+                'default' => 0,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

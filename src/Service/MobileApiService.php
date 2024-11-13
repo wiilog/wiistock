@@ -224,6 +224,7 @@ class MobileApiService {
             "displayReferenceCodeAndScan" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
             "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getValue($entityManager,Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
             "displayWarningWrongLocation" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
+            "displayManualDelayStart" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_MANUAL_DELAY_START) == 1,
         ])
             ->toArray();
     }

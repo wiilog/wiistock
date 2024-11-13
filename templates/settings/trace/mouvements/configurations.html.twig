@@ -10,6 +10,9 @@
                 tooltip: "L'activation de ce paramètre impactera l'application web et mobile.",
             }) }}
         </div>
+        <div class="col-md-6 col-12 d-flex align-items-center my-1">
+            {{ form.checkbox(setting('DISPLAY_MANUAL_DELAY_START'), 'Afficher le champ "Début de délai manuel"', false, setting_value('DISPLAY_MANUAL_DELAY_START')) }}
+        </div>
     </div>
 </div>
 <div class="wii-section-title">Mails de relance</div>
