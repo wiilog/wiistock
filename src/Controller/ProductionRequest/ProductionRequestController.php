@@ -175,8 +175,10 @@ class ProductionRequestController extends AbstractController
             $productionRequest->getCreatedAt()
         );
 
+        dump($expectedAtSettings);
         $currentExpectedAtSetting = $expectedAtSettings[$productionRequest->getType()->getId()]
-            ?? $expectedAtSettings["all"];
+            ?? $expectedAtSettings["all"]
+            ?? null;
 
         return $this->render("production_request/show/index.html.twig", [
             "fieldsParam" => $fieldsParam,
