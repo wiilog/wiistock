@@ -49,10 +49,9 @@
                         <div class="row filter-fields-container">
                             {% if filterFields is not empty %}
                                 {% for filterField in filterFields %}
-                                    {% if filterField is instanceof('App\\Entity\\FreeField\\FreeField') %}
+                                    {% if filterField is instanceof('App\\Entity\\FreeField\\FreeFieldManagementRule') %}
                                         {% include "free_field/freeFieldsEdit.html.twig" with {
-                                            freeFieldManagementRules,
-                                            freeFields: [filterField],
+                                            freeFieldManagementRules: [filterField],
                                             freeFieldValues: null,
                                             actionType: "new",
                                             disabledNeeded: true,
