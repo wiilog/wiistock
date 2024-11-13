@@ -21,14 +21,14 @@ class LoginSuccessListener implements EventSubscriberInterface{
     ){}
 
     public function onLoginSuccess(LoginSuccessEvent $event): void {
-        $sessionid =$this->requestStack->getSession()->getId();
+        $sessionId = $this->requestStack->getSession()->getId();
         $user = $event->getUser();
         if ($user instanceof Utilisateur) {
             $entityManager = $this->entityManager;
             $this->sessionHistoryRecordService->closeInactiveSessions($entityManager);
             $typeRepository = $entityManager->getRepository(Type::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
-            $this->sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $user, new DateTime('now'), $type, $sessionid);
+            $this->sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $user, new DateTime('now'), $type, $sessionId);
             $entityManager->flush();
        }
     }
