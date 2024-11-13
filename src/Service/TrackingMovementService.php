@@ -908,8 +908,8 @@ class TrackingMovementService {
                         "includeMovementId" => $includeMovementId,
                     ]);
 
-                    $picking["trackingDelay"] = $trackingDelayData["delay"];
-                    $picking["trackingDelayColor"] = $trackingDelayData["color"];
+                    $picking["trackingDelay"] = $trackingDelayData["delay"] ?? null;
+                    $picking["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
                     $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
 
                     $picking['subPacks'] = $subPacks ?? [];
