@@ -45,7 +45,6 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -99,16 +98,17 @@ class ProductionRequestService
 
         $columns = [];
 
-        if($dispatchMode) {
+        if ($dispatchMode || !$forExport) {
             $columns[] = [
-                'title' => "<input type='checkbox' class='checkbox check-all'>",
+                'title' => $dispatchMode ? "<input type='checkbox' class='checkbox check-all'>" : null,
                 'name' => 'actions',
                 'alwaysVisible' => true,
                 'orderable' => false,
                 'class' => 'noVis'
             ];
-        } else if (!$forExport) {
-            $columns[] = ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+            if (!$forExport) {
+                $columns[] = ['name' => 'isDispatched', 'visible' => true, 'orderable' => false];
+            }
         }
 
         if ($page === FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) {
@@ -119,7 +119,6 @@ class ProductionRequestService
         }
 
         $columns = array_merge($columns, [
-            ['name' => 'isDispatched', 'visible' => true, 'orderable' => false],
             ['title' => FixedFieldEnum::number->value, 'name' => FixedFieldEnum::number->name],
             ['title' => FixedFieldEnum::createdAt->value, 'name' => FixedFieldEnum::createdAt->name],
             ['title' => FixedFieldEnum::createdBy->value, 'name' => FixedFieldEnum::createdBy->name],
