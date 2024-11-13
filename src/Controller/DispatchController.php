@@ -1647,6 +1647,13 @@ class DispatchController extends AbstractController {
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
+        $defaultType = null;
+
+        if(count($entities) === 1 && $entities[0] instanceof ProductionRequest) {
+            /** @var ProductionRequest $productionRequest */
+            $defaultType = $entities[0]->getStatus()->getTypeForGeneratedDispatchOnStatusChange();
+        }
+
         return $this->json([
             'success' => true,
             'html' => $this->renderView('dispatch/forms/formFromEntity.html.twig',
@@ -1657,7 +1664,8 @@ class DispatchController extends AbstractController {
                     $packs,
                     $entityIds,
                 ),
-            )
+            ),
+            'defaultType' => $defaultType->getId(),
         ]);
     }
 
