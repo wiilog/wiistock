@@ -25,9 +25,11 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
+use App\Service\ReceiptAssociationService;
 use App\Service\TrackingDelayService;
 use App\Service\TrackingMovementService;
 
+use App\Service\TruckArrivalService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -134,6 +136,8 @@ class PackController extends AbstractController
     public function printCSVPacks(Request                   $request,
                                   CSVExportService          $CSVExportService,
                                   TrackingMovementService   $trackingMovementService,
+                                  ReceiptAssociationService $associationService,
+                                  TruckArrivalService       $truckService,
                                   TranslationService        $translation,
                                   EntityManagerInterface    $entityManager): StreamedResponse
     {
@@ -155,10 +159,13 @@ class PackController extends AbstractController
                 $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
                 $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
                 $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Association', false),
+                $translation->translate( 'Traçabilité', 'Général', 'Arrivage Camion', false),
+
             ];
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
+                function ($output) use ($associationService, $truckService, $CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
 
@@ -168,9 +175,14 @@ class PackController extends AbstractController
                             'entityId' => $pack['entityId'],
                             'entityNumber' => $pack['entityNumber'],
                         ];
+
+                        $truckArrival = $truckService->getFromColumnData($entityManager, $pack['id']);
+                        $receipt = $associationService->getFromColumnData($entityManager, $pack['id']);
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMovement);
                         $pack['fromLabel'] = $mvtData['fromLabel'];
                         $pack['fromTo'] = $mvtData['from'];
+                        $pack['receptionNumber'] = $receipt;
+                        $pack['truckArrival'] = $truckArrival;
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }
                 }, 'export_UL.csv',
@@ -361,7 +373,9 @@ class PackController extends AbstractController
             FormatHelper::datetime($pack['lastMvtDate'], "", false, $this->getUser()),
             $pack['fromLabel'],
             $pack['fromTo'],
-            $pack['location']
+            $pack['location'],
+            $pack['receptionNumber'],
+            $pack['truckArrival']
         ];
         $csvService->putLine($handle, $line);
     }

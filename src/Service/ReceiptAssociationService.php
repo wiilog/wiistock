@@ -73,6 +73,25 @@ class ReceiptAssociationService
         ];
     }
 
+    public function getFromColumnData(EntityManagerInterface $entityManager, int $id): string
+    {
+        $allReceiptNumber = "";
+        $receipt = $entityManager->createQueryBuilder()
+        ->select("receipt_association.receptionNumber")
+        ->from(ReceiptAssociation::class, 'receipt_association')
+        ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
+        ->where("join_logisticUnits.id = :id")
+        ->setParameter("id", $id)
+        ->getQuery()
+        ->getArrayResult();
+
+        foreach ($receipt as $r) {
+            $allReceiptNumber =  $allReceiptNumber . $r["receptionNumber"];
+        }
+
+        return $allReceiptNumber;
+    }
+
     public function dataRowReceiptAssociation(array $receiptAssocation, Utilisateur $user): array
     {
         return [

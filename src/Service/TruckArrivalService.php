@@ -7,6 +7,8 @@ use App\Entity\Action;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Pack;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Reserve;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
@@ -254,5 +256,18 @@ class TruckArrivalService
             FixedFieldEnum::carrierTrackingNumber->value => $carrierTrackingNumbers,
             FixedFieldEnum::carrierTrackingNumberReserve->value => $this->formatService->bool($lineHasReserve),
         ];
+    }
+
+    public function getFromColumnData(EntityManagerInterface $entityManager, int $id): ?string
+    {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $pack = $packRepository->find($id);
+        $arrival = $pack->getArrivage();
+
+        $truckArrival = $arrival
+            ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
+            : null ;
+
+        return $truckArrival?->getNumber();
     }
 }

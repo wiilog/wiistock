@@ -95,6 +95,7 @@ class PackRepository extends EntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('pack.code AS code')
+            ->addSelect('pack.id AS id')
             ->addSelect('join_nature.label AS nature')
             ->addSelect('join_last_action.datetime AS lastMvtDate')
             ->addSelect('join_last_action.id AS fromTo')
