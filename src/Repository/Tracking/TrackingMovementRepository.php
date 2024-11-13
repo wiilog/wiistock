@@ -289,7 +289,7 @@ class TrackingMovementRepository extends EntityRepository
         $queryResult = $query?->getResult();
         $countFiltered = $queryResult[0]['__query_count'] ?? 0;
         $data = Stream::from($queryResult)
-            ->map(fn($row) => $row[0])
+            ->map(static fn($row) => $row[0])
             ->toArray();
 
         return [
