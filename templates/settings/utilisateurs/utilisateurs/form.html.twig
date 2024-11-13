@@ -46,9 +46,9 @@
                             type: 'email',
                         }) }}
                     </div>
-                        <div class="col-12" style="text-align: right">
-                            <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none {{ secondary_emails | length >= max_secondary_mail ? "d-none"}}" style="font-size: 0.8rem">Ajouter un email</span>
-                        </div>
+                    <div class="col-12" style="text-align: right">
+                        <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none {{ secondary_emails | length >= max_secondary_mail ? "d-none"}}" style="font-size: 0.8rem">Ajouter un email</span>
+                    </div>
                 </div>
 
                 {% for i in range(1, max_secondary_mail)%} {# init new email input empty with a max of 2 input #}
