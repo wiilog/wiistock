@@ -30,14 +30,13 @@ function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatc
                     $modalNewDispatch.find(`.modal-body`),
                     {
                         onOpen: (response) => {
-                            const $type = $modalNewDispatch.find('[name=type]')
+                            const $type = $modalNewDispatch.find('[name=type]');
 
-                            if (response.defaultType) {
-                                $modalNewDispatch.find('[name=type]').trigger('change');
-                                $type.val(response.defaultType)
+                            if (response.defaultTypeId) {
+                                $type.val(response.defaultTypeId)
                             }
 
-                            $type.trigger('change')
+                            $type.trigger('change');
 
                             Camera
                                 .init(
