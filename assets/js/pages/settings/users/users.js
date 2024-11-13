@@ -54,11 +54,10 @@ export function initUserPage($container) {
     let $submitDeleteUser = $("#submitDeleteUser");
     let pathDeleteUser = Routing.generate('user_delete', true);
     InitModal($modalDeleteUser, $submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
-
+    initRemoveSecondaryMails()
     $container.on(`click`, `.add-secondary-email`, function() {
         const $modal = $(this).closest(`.modal`);
 
-        removeSecondaryMail()
         $modal.find(`.secondary-email.d-none`).first().removeClass(`d-none`);
 
         if(!$modal.find(`.secondary-email.d-none`).exists()) {
@@ -101,21 +100,19 @@ function editRowUser(button) {
     modal.find(submit).attr('value', id);
 }
 
-function removeSecondaryMail(){
+function initRemoveSecondaryMails(){
 
-    $(document).arrive('input[name=moreThanTwoEmail]', function () {
-            const $addEmail = $('.add-secondary-email');
-            $addEmail.addClass("d-none");
-
-    });
-
-    $('.delete-mail-line').on('click', function () {
-        removeMailLine($(this));
+    $('.delete-mail-line')
+        .off('click.initRemoveSecondaryMails')
+        .on('click.initRemoveSecondaryMails', function () {
+            removeMailLine($(this));
     });
 
     $(document).arrive('.delete-mail-line', function () {
-        $(this).on('click', function () {
-            removeMailLine($(this));
+        $(this)
+            .off('click.initRemoveSecondaryMails')
+            .on('click.initRemoveSecondaryMails', function () {
+                removeMailLine($(this));
         });
     });
 }
