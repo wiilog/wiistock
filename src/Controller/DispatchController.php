@@ -1224,8 +1224,10 @@ class DispatchController extends AbstractController {
                     ? $payload->all('files')
                     : [];
 
-                $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
-                $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
+                if ($payload->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+                    $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
+                    $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
+                }
 
                 $entityManager->flush();
             } else {
