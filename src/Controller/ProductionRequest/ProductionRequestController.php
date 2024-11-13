@@ -26,15 +26,14 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\DateTimeService;
 use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
 use App\Service\ProductionRequest\ProductionRequestService;
+use App\Service\SettingsService;
 use App\Service\StatusService;
 use App\Service\UserService;
-use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -51,10 +50,11 @@ class ProductionRequestController extends AbstractController
 {
     #[Route('/index', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function index(Request $request,
+    public function index(Request                  $request,
                           EntityManagerInterface   $entityManager,
+                          SettingsService          $settingsService,
                           ProductionRequestService $productionRequestService,
-                          StatusService          $statusService): Response {
+                          StatusService            $statusService): Response {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
         /** @var Utilisateur $currentUser */
@@ -65,7 +65,6 @@ class ProductionRequestController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         // data from request
         $query = $request->query;
@@ -92,17 +91,12 @@ class ProductionRequestController extends AbstractController
 
         $dateChoices = FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class];
 
-        $expectedAt = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::expectedAt->name);
-        $today = date("Y-m-d H:i");
-
-        $expectedAtDate = Stream::from($expectedAt)
-            ->map(fn (string $delay) => [
-                "date" =>  date_add(new \DateTime($today),
-                    new DateInterval('PT'.explode(":", $delay)[0].'H'.explode(":", $delay)[1].'M'))
-                    ->format('Y-m-d H:i:s'),
-            ])
-            ->toArray();
-
+        $expectedAtSettings = $settingsService->getMinDateByTypesSettings(
+            $entityManager,
+            FixedFieldStandard::ENTITY_CODE_PRODUCTION,
+            FixedFieldEnum::expectedAt,
+            new DateTime()
+        );
 
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
@@ -113,16 +107,17 @@ class ProductionRequestController extends AbstractController
             "dateChoices" => $dateChoices,
             "types" => $types,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
-                ->reduce(function($status, $item) {
-                    $status[$item['id']] = $item['label'];
-                    return $status;
-                }, []),
+                ->keymap(static fn($item) => [
+                    $item['id'],
+                    $item['label']
+                ])
+                ->toArray(),
             "typesFilter" => $typesFilter,
             "statusFilter" => $statusesFilter,
             "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
-            "expectedAtDate" => $expectedAtDate,
+            "expectedAtSettings" => $expectedAtSettings,
         ]);
     }
 
@@ -151,15 +146,16 @@ class ProductionRequestController extends AbstractController
     #[Route("/voir/{id}", name: "show", options: ["expose" => true])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function show(EntityManagerInterface   $entityManager,
-                         Request $request,
+                         Request                  $request,
                          ProductionRequest        $productionRequest,
+                         SettingsService          $settingsService,
                          ProductionRequestService $productionRequestService): Response {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
-        $expectedAt = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::expectedAt->name);
-        $today = date("Y-m-d H:i");
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
         $productionType = $productionRequest->getType();
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
+
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
 
         $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
             "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
@@ -172,14 +168,15 @@ class ProductionRequestController extends AbstractController
 
         $openModal = $request->query->get('open-modal');
 
-        $expectedAt = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::expectedAt->name);
-        $createDate = $productionRequest->getCreatedAt()->format("Y-m-d H:i");
-        if($expectedAt[$productionType->getId()]) {
-            $delay = $expectedAt[$productionType->getId()];
-            $expectedAtDate = date_add(new \DateTime($createDate),
-                new DateInterval('PT' . explode(":", $delay)[0] . 'H' . explode(":", $delay)[1] . 'M'))->format('Y-m-d H:i:s');
-            $expectedAtDate = str_replace(" ", "T", $expectedAtDate);
-        }
+        $expectedAtSettings = $settingsService->getMinDateByTypesSettings(
+            $entityManager,
+            FixedFieldStandard::ENTITY_CODE_PRODUCTION,
+            FixedFieldEnum::expectedAt,
+            $productionRequest->getCreatedAt()
+        );
+
+        $currentExpectedAtSetting = $expectedAtSettings[$productionRequest->getType()->getId()]
+            ?? $expectedAtSettings["all"];
 
         return $this->render("production_request/show/index.html.twig", [
             "fieldsParam" => $fieldsParam,
@@ -191,7 +188,9 @@ class ProductionRequestController extends AbstractController
             "attachments" => $productionRequest->getAttachments(),
             "freeFields" => $freeFields,
             "openModal" => $openModal,
-            "expectedAtDate" => $expectedAtDate ?: null,
+            "expectedAtSettings" => [
+                $productionRequest->getType()->getId() => $currentExpectedAtSetting
+            ],
         ]);
     }
 
@@ -205,14 +204,6 @@ class ProductionRequestController extends AbstractController
 
         $post = $request->request;
 
-        $typeRequest = $post->get("type");
-        $expectedDate = $post->get("expectedAt");
-        $linkTypeExpectedDate =  $post->get("expected-date-value");
-        $dateByType = json_decode($linkTypeExpectedDate, true)[$typeRequest]["date"];
-        if(new DateTime($dateByType) > new DateTime($expectedDate)){
-            throw new FormException("Il n'est pas possible d'enregistrer une date attendu inférieur à ". str_replace("T", " ", $expectedDate));
-        }
-
         $typeRepository = $entityManager->getRepository(Type::class);
         $typeValue = FixedFieldEnum::type->name;
         $type = $typeRepository->find($post->getInt($typeValue));
@@ -222,7 +213,6 @@ class ProductionRequestController extends AbstractController
         if ($quantityToGenerate !== 1 && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST)) {
             throw new FormException("Vous n'avez pas les droits pour générer plusieurs demandes de production.");
         }
-
 
         if ($quantityToGenerate < 1) {
             throw new FormException("La quantité à générer doit être supérieure à 0.");

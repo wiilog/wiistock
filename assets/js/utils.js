@@ -1,6 +1,6 @@
 import moment from 'moment';
 import Flash from '@app/flash';
-import AJAX, {GET, POST} from '@app/ajax';
+import AJAX, {GET} from '@app/ajax';
 
 export const MAX_UPLOAD_FILE_SIZE = 10000000;
 export const MAX_IMAGE_PIXELS = 1000000;
@@ -84,18 +84,6 @@ export function showAndRequireInputByType($typeSelect) {
     const $modal = $typeSelect.closest('.modal');
     // find all fixed fields that can be configurable
     const $fields = $modal.find('[data-displayed-type]');
-
-    const $expectedDateInput = $modal.find('input[name=expectedAt]');
-    const $expectedDateHidden = $modal.find('input[name=expected-date-value]');
-
-    if($expectedDateInput && $expectedDateHidden && $typeSelect.val()) {
-        const data = JSON.parse($expectedDateHidden.val());
-
-        if(Object.keys(data).includes($typeSelect.val())) {
-            const tmpString = data[$typeSelect.val()]["date"]
-            $expectedDateInput[0].min = tmpString.replace(" ", "T")
-        }
-    }
 
     // remove required symbol from all fields
     $fields.find('.required-symbol')

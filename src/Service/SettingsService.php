@@ -45,6 +45,7 @@ use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\WorkPeriod\WorkPeriodService;
+use DateInterval;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1624,6 +1625,21 @@ class SettingsService {
         }
 
         return $selectOptions;
+    }
+
+    public function getMinDateByTypesSettings(EntityManagerInterface $entityManager,
+                                              string                 $entity,
+                                              FixedFieldEnum         $field,
+                                              DateTime               $init): array {
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        return Stream::from($fixedFieldByTypeRepository->getElements($entity, $field->name))
+            ->map(static fn(string $delay) => explode(":", $delay))
+            ->map(static fn(array $delay) => (
+                (clone $init)
+                    ->add(new DateInterval("PT$delay[0]H$delay[1]M"))
+                    ->format('Y-m-d\TH:i')
+            ))
+            ->toArray();
     }
 
 }

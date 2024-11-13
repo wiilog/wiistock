@@ -300,7 +300,7 @@ class ProductionRequestService
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
                                             FileBag                $fileBag,
-                                            bool $fromUpdateStatus = false): array
+                                            bool                   $fromUpdateStatus = false): array
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -378,7 +378,26 @@ class ProductionRequestService
         }
 
         if ($data->has(FixedFieldEnum::expectedAt->name)) {
-            $productionRequest->setExpectedAt($this->formatService->parseDatetime($data->get(FixedFieldEnum::expectedAt->name)));
+            $expectedAtSettings = $this->settingsService->getMinDateByTypesSettings(
+                $entityManager,
+                FixedFieldStandard::ENTITY_CODE_PRODUCTION,
+                FixedFieldEnum::expectedAt,
+                $productionRequest->getId() ? $productionRequest->getCreatedAt() : new DateTime()
+            );
+            $currentExpectedAtMinStr = $expectedAtSettings[$productionRequest->getType()->getId()]
+                ?? $expectedAtSettings["all"]
+                ?? null;
+
+            $expectedAt = $this->formatService->parseDatetime($data->get(FixedFieldEnum::expectedAt->name));
+
+            if ($currentExpectedAtMinStr && $expectedAt) {
+                $currentExpectedAtMin = $this->formatService->parseDatetime($currentExpectedAtMinStr);
+                if ($currentExpectedAtMin > $expectedAt) {
+                    throw new FormException("Il n'est pas possible d'enregistrer une date attendue inférieure à ". $this->formatService->datetime($currentExpectedAtMin));
+                }
+            }
+
+            $productionRequest->setExpectedAt($expectedAt);
         }
 
         if ($data->has(FixedFieldEnum::projectNumber->name)) {
