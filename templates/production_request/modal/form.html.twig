@@ -24,11 +24,12 @@
                     'selected': true
                 }
             } : null,
-            additionalAttributes: productionRequest.type ? [] : [
-                { name: 'onChange', value: 'onProductionRequestTypeChange($(this))' },
-                { name: 'data-other-params'},
-                { name: 'data-other-params-with-drop-location', value: 'true' }
-            ],
+            additionalAttributes: productionRequest.type
+                ? []
+                : [
+                    { name: 'data-other-params'},
+                    { name: 'data-other-params-with-drop-location', value: 'true' }
+                ],
         }) }}
     </div>
 
@@ -94,20 +95,19 @@
     {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt') %}
     {% set displayOnform = fieldsParam|isFieldRequired(field.name, displayAction) %}
     {% if displayOnform %}
-        {% set dateMin = null %}
-        {% if expectedAtDate is not iterable%}
-            {% set dateMin = expectedAtDate %}
-        {% endif%}
+        {% if not productionRequest.id %}
+            {{ form.hidden("expectedAtSettings", expectedAtSettings | json_encode) }}
+        {% endif %}
+
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, field.name) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
-            {{ form.hidden("expected-date-value", expectedAtDate | json_encode) }}
             {% set canEditExpectedAt = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(field.name, requiredAction) %}
             {{ form.input(field.name, field.value, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d H:i') : null, {
                 type: 'datetime-local',
                 disabled: not canEditExpectedAt,
-                min : dateMin
+                min: productionRequest.id and productionRequest.type ? (expectedAtSettings[productionRequest.type.id] ?? null)
             }) }}
         </div>
     {% endif %}
