@@ -175,7 +175,6 @@ class ProductionRequestController extends AbstractController
             $productionRequest->getCreatedAt()
         );
 
-        dump($expectedAtSettings);
         $currentExpectedAtSetting = $expectedAtSettings[$productionRequest->getType()->getId()]
             ?? $expectedAtSettings["all"]
             ?? null;
@@ -225,13 +224,28 @@ class ProductionRequestController extends AbstractController
         }
 
         $productionRequests = [];
+        $needModalConfirmationForGenerateDispatch = false;
         for ($i = 0; $i < $quantityToGenerate; $i++) {
-            $productionRequestData = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
-            $productionRequests[] = $productionRequestData['productionRequest'];
-            $entityManager->persist($productionRequestData['productionRequest']);
+            ['productionRequest' => $productionRequest] = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
+            $productionRequests[] = $productionRequest;
+            $entityManager->persist($productionRequest);
+
+            if ($productionRequestService->checkNeedModalConfirmationForGenerateDispatch($productionRequest, $userService)) {
+                $needModalConfirmationForGenerateDispatch = true;
+            }
         }
 
         $entityManager->flush();
+
+        // can only have one production request because duplication doesn't work with this parameter (for now)
+        if ($needModalConfirmationForGenerateDispatch && count($productionRequests) === 1) {
+            return $this->json([
+                "success" => true,
+                "needModalConfirmationForGenerateDispatch" => true,
+                'msg' => "Votre demande de production a bien été créée.",
+                'productionRequestId' => $productionRequests[0]->getId(),
+            ]);
+        }
 
         foreach ($productionRequests as $productionRequest) {
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
