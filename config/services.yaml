@@ -108,5 +108,9 @@ services:
       - { name: 'doctrine.orm.entity_listener', event: 'postPersist', lazy: true, entity: 'Cron\CronBundle\Entity\CronReport' }
       - { name: 'doctrine.event_listener', event: 'postFlush', lazy: true, entity: 'Cron\CronBundle\Entity\CronReport' }
 
+  App\EventListener\LoginSuccessListener:
+    tags:
+      - { name: 'kernel.event_listener', event: 'security.login_success', method: 'onLoginSuccess', priority: 10 }
+
   saml_user_factory:
     class: App\Security\SAMLUserFactory
