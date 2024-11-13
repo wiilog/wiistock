@@ -74,7 +74,12 @@ class DeliveryStationController extends AbstractController
 
         if($line) {
             $filterFields = Stream::from($line->getFilters())
-                ->map(static fn(string $filterField) => intval($filterField) ? $freeFieldRepository->find($filterField) : $filterField)
+                ->map(static fn(string $filterField) => intval($filterField)
+                    ? (new FreeFieldManagementRule())
+                    ->setFreeField($freeFieldRepository->find($filterField))
+                    ->setDisplayedCreate(true)
+                    : $filterField
+                )
                 ->toArray();
 
             $homeMessage = str_replace("@groupevisibilite", "<strong>{$line->getVisibilityGroup()->getLabel()}</strong>",
@@ -191,7 +196,7 @@ class DeliveryStationController extends AbstractController
             if ($isReferenceByArticle) {
                 $articleRepository = $entityManager->getRepository(Article::class);
                 $article = $articleRepository->findOneByReferenceAndStockManagement($initialReference);
-                $location = $article->getEmplacement();
+                $location = $article?->getEmplacement();
             } else {
                 $location = $initialReference->getEmplacement();
             }
