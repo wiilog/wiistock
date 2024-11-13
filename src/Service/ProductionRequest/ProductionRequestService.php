@@ -45,7 +45,6 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -419,9 +418,20 @@ class ProductionRequestService
 
         if ($status->isCreateDropMovementOnDropLocation()) {
             $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
+            $type = $productionRequest->getStatus()->getType();
+            $identifier = $type->getCreateDropMovementById();
 
-            if(!$productionRequest->getManufacturingOrderNumber()){
-                throw new FormException('Le numéro d’OF est obligatoire pour créer le mouvement de traçabilité');
+            switch ($identifier) {
+                case Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE:
+                    if (!$productionRequest->getManufacturingOrderNumber()) {
+                        throw new FormException('Le numéro d’OF est obligatoire pour créer le mouvement de traçabilité');
+                    }
+                    break;
+                case Type::CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_VALUE:
+                    if (!$productionRequest->getNumber()) {
+                        throw new FormException('Le numéro de demande de production est obligatoire pour créer le mouvement de traçabilité');
+                    }
+                    break;
             }
 
             if (!$nature) {
@@ -439,8 +449,6 @@ class ProductionRequestService
                 $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
             }
 
-            $type = $productionRequest->getStatus()->getType();
-            $identifier = $type->getCreateDropMovementById();
             $packOrCode = $identifier === Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE
                 ? $productionRequest->getManufacturingOrderNumber()
                 : $productionRequest->getNumber();
