@@ -378,7 +378,6 @@ class TrackingMovementService {
                                            array             $options = []): TrackingMovement
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
-        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $type = $this->getTrackingType($entityManager, $trackingType);
 
@@ -413,11 +412,12 @@ class TrackingMovementService {
             && $pack->getParent()
             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
 
-        $orderIndexNanoseconds = hrtime(true);
-        $orderIndex = floor($orderIndexNanoseconds / 1000000);
+        $orderIndex = $options["orderIndex"]
+            ?? floor(hrtime(true) / 1000000);
 
         $tracking = new TrackingMovement();
         $tracking
+            ->setPack($pack)
             ->setQuantity($quantity)
             ->setEmplacement($location)
             ->setOperateur($user)
@@ -425,7 +425,7 @@ class TrackingMovementService {
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
-            ->setOrderIndex($orderIndex + 1) // order index greater than the order index of the ungroup tracking movement next creation
+            ->setOrderIndex($orderIndex + 2) // order index greater than the order index of the ungroup tracking movement next creation
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null)
             ->setMainMovement($mainMovement)
@@ -435,7 +435,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE && !$manualDelayStart));
+        $this->setTrackingEvent($tracking, (bool) $manualDelayStart);
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -454,8 +454,6 @@ class TrackingMovementService {
             $tracking->setPackParent($parent);
             $tracking->setGroupIteration($groupIteration ?: $parent->getGroupIteration());
         }
-
-        $pack->addTrackingMovement($tracking);
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->managePackLinksWithOperations($entityManager, $tracking, [
@@ -477,7 +475,7 @@ class TrackingMovementService {
         ]);
 
         if($manualDelayStart){
-            $trackingInitDelay = self::createTrackingMovement(
+            $this->createTrackingMovement(
                 $pack,
                 $location,
                 $user,
@@ -494,13 +492,13 @@ class TrackingMovementService {
                     'mouvementStock' => $mouvementStock,
                     'mainMovement' => $mainMovement,
                     'logisticUnitParent' => $logisticUnitParent,
+                    'orderIndex' => $orderIndex
                 ]
             );
-            $trackingInitDelay->setEvent($this->getTrackingEvent($trackingInitDelay, true));
         }
 
         if ($ungroup) {
-            self::createTrackingMovement(
+            $this->createTrackingMovement(
                 $pack,
                 $location,
                 $user,
@@ -520,6 +518,7 @@ class TrackingMovementService {
                     'removeFromGroup' => true,
                     'groupIteration' => $pack->getParent()?->getGroupIteration(),
                     'parent' => $pack->getParent(),
+                    'orderIndex' => $orderIndex + 1
                 ]
             );
 
@@ -1748,18 +1747,46 @@ class TrackingMovementService {
         return $this->formatService->list($values);
     }
 
-    public function getTrackingEvent(TrackingMovement $trackingMovement, bool $needStartEvent): ?TrackingEvent {
+    public function setTrackingEvent(TrackingMovement $trackingMovement,
+                                     bool             $manualDelayStart): void {
         $trackingLocation = $trackingMovement->getEmplacement();
         if (!$trackingLocation) {
-            return null;
+            return;
         }
 
-        return match (true) {
-            (($trackingMovement->isPicking() && $needStartEvent) || $trackingMovement->isInitTrackingDelay()) && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
-            $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
-            $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
-            default => null
-        };
+        $trackingToSetEvent = $trackingMovement;
+
+        if ($trackingMovement->isInitTrackingDelay()) {
+            $trackingEvent = TrackingEvent::START;
+        }
+        else if ($trackingMovement->isPicking()
+            && $trackingLocation->isStartTrackingTimerOnPicking()
+            && !$manualDelayStart) {
+            $pack = $trackingMovement->getPack();
+            $location = $trackingMovement->getEmplacement();
+
+            // the last ongoing drop is defined,
+            // AND its location is same as the current movement location,
+            // AND he hasn't a tracking event
+            // => then we set the start event on the drop movement
+            if ($location?->getId()
+                && $pack->getLastOngoingDrop()?->getEvent() === null
+                && $location?->getId() === $pack->getLastOngoingDrop()?->getEmplacement()?->getId()) {
+                $trackingToSetEvent = $pack->getLastOngoingDrop();
+            }
+
+            $trackingEvent = TrackingEvent::START;
+        }
+        else if ($trackingMovement->isDrop()
+            && $trackingLocation->isStopTrackingTimerOnDrop()) {
+            $trackingEvent = TrackingEvent::STOP;
+        }
+        else if ($trackingMovement->isDrop()
+            && $trackingLocation->isPauseTrackingTimerOnDrop()) {
+            $trackingEvent = TrackingEvent::PAUSE;
+        }
+
+        $trackingToSetEvent->setEvent($trackingEvent ?? null);
     }
 
 

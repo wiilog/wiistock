@@ -399,7 +399,11 @@ class TrackingMovement implements AttachmentContainer {
     }
 
     public function setPack(?Pack $pack): self {
+        if($this->pack && $this->pack !== $pack) {
+            $this->pack->removeTrackingMovement($this);
+        }
         $this->pack = $pack;
+        $pack?->addTrackingMovement($this);
         return $this;
     }
 
