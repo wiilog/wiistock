@@ -27,8 +27,8 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         $trackingMovement = $object;
 
         return match ($context["usage"]) {
-            SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobile($trackingMovement, $format, $context),
-            SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobilePicking($trackingMovement, $format, $context),
+            SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobileReadingPage($trackingMovement, $format, $context),
+            SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobileTrackingPage($trackingMovement, $format, $context),
             default => throw new Exception("Invalid usage"),
         };
     }
@@ -43,7 +43,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         ];
     }
 
-    public function normalizeForMobile (TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
+    public function normalizeForMobileReadingPage(TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
         return [
             "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
             "date" => $this->formatService->datetime($trackingMovement->getDatetime()),
@@ -55,14 +55,14 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         ];
     }
 
-    public function normalizeForMobilePicking (TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
+    public function normalizeForMobileTrackingPage(TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
         $pack = $trackingMovement->getPack();
 
         return [
             ...($context["includeMovementId"]
                 ? ["id" => $trackingMovement->getId()]
                 : []),
-            "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
+            "type" => $trackingMovement->getType()?->getCode(),
             "date" => $trackingMovement->getUniqueIdForMobile(),
             "ref_emplacement" => $this->formatService->location($trackingMovement->getEmplacement()),
             "nature_id" => $trackingMovement->getPack()?->getNature()?->getId(),
