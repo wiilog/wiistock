@@ -1,4 +1,5 @@
 {% import 'form.html.twig' as form %}
+{% import 'utils/fixed-field-by-type.html.twig' as macros %}
 
 {% set displayAction = 'displayedEdit' %}
 {% set requiredAction = 'requiredEdit' %}
@@ -33,16 +34,19 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-12 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-12 w-auto">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.wysiwyg(fieldCode, trans('Général', null, 'Modale', 'Commentaire'), requiredOnform, productionRequest.comment) }}
         </div>
     {% endif %}
-
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-12 mb-2">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-12 w-auto">
             {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
                 isNew: productionRequest.id is null,
                 addPhotoButton: true,

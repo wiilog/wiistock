@@ -436,11 +436,22 @@ class ProductionRequestController extends AbstractController
     #[Route("/{productionRequest}/update-status-content", name: "update_status_content", options: ["expose" => true], methods: [self::GET])]
     public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
                                                          ProductionRequest      $productionRequest): JsonResponse {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $productionType = $productionRequest->getType();
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
+        ]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($productionType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($productionType),
+            ]])
+            ->toArray();
 
         $html = $this->renderView('production_request/planning/update-status-form.html.twig', [
             "productionRequest" => $productionRequest,
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+            "fieldsParam" => $fieldsParam,
         ]);
 
         return $this->json([
