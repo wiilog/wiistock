@@ -53,8 +53,6 @@ $(document).ready(() => {
     })
 
     $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
-        let $select = $("[name=deliveryType]");
-        $select.trigger("change");
         $(`.sub-form`).addClass(`d-none`);
 
         const requestType = $('input[name="requestType"]:checked').val();
