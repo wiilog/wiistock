@@ -1665,7 +1665,7 @@ class DispatchController extends AbstractController {
                     $entityIds,
                 ),
             ),
-            'defaultType' => $defaultType->getId(),
+            'defaultTypeId' => $defaultType->getId(),
         ]);
     }
 
