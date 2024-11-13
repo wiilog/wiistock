@@ -175,7 +175,6 @@ class ProductionRequestController extends AbstractController
             $productionRequest->getCreatedAt()
         );
 
-        dump($expectedAtSettings);
         $currentExpectedAtSetting = $expectedAtSettings[$productionRequest->getType()->getId()]
             ?? $expectedAtSettings["all"]
             ?? null;
