@@ -24,11 +24,12 @@
                     'selected': true
                 }
             } : null,
-            additionalAttributes: productionRequest.type ? [] : [
-                { name: 'onChange', value: 'onProductionRequestTypeChange($(this))' },
-                { name: 'data-other-params'},
-                { name: 'data-other-params-with-drop-location', value: 'true' }
-            ],
+            additionalAttributes: productionRequest.type
+                ? []
+                : [
+                    { name: 'data-other-params'},
+                    { name: 'data-other-params-with-drop-location', value: 'true' }
+                ],
         }) }}
     </div>
 
@@ -94,6 +95,10 @@
     {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt') %}
     {% set displayOnform = fieldsParam|isFieldRequired(field.name, displayAction) %}
     {% if displayOnform %}
+        {% if not productionRequest.id %}
+            {{ form.hidden("expectedAtSettings", expectedAtSettings | json_encode) }}
+        {% endif %}
+
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, field.name) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
@@ -102,6 +107,7 @@
             {{ form.input(field.name, field.value, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d H:i') : null, {
                 type: 'datetime-local',
                 disabled: not canEditExpectedAt,
+                min: productionRequest.id and productionRequest.type ? (expectedAtSettings[productionRequest.type.id] ?? null)
             }) }}
         </div>
     {% endif %}
