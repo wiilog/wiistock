@@ -29,11 +29,13 @@
 
     {% include 'tracking_movement/form/fieldQuantity.html.twig' %}
 
-    <div class="form-group col-12">
-        {{ form.input('manualDelayStart', 'Début de délai manuel', false, null, {
-            type: 'datetime-local',
-        }) }}
-    </div>
+    {% if displayManualDelayStart %}
+        <div class="form-group col-12">
+            {{ form.input('manualDelayStart', 'Début de délai manuel', false, null, {
+                type: 'datetime-local',
+            }) }}
+        </div>
+    {% endif %}
 
     {{ form.hidden('is-mass', 1)}}
 </div>
