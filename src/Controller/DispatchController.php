@@ -1654,7 +1654,7 @@ class DispatchController extends AbstractController {
             $defaultType = $entities[0]->getStatus()->getTypeForGeneratedDispatchOnStatusChange();
         }
 
-        return $this->json([
+        $response = [
             'success' => true,
             'html' => $this->renderView('dispatch/forms/formFromEntity.html.twig',
                 $dispatchService->getNewDispatchConfig(
@@ -1665,8 +1665,13 @@ class DispatchController extends AbstractController {
                     $entityIds,
                 ),
             ),
-            'defaultTypeId' => $defaultType->getId(),
-        ]);
+        ];
+
+        if ($defaultType !== null) {
+            $response['defaultTypeId'] = $defaultType->getId();
+        }
+
+        return $this->json($response);
     }
 
     #[Route("/get-dispatch-details", name: "get_dispatch_details", options: ["expose" => true], methods: "GET")]
