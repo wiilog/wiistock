@@ -1,4 +1,16 @@
+import AJAX, {POST} from "@app/ajax";
+import Form from "@app/form";
+import Routing from '@app/fos-routing';
+import Camera from "@app/camera";
+import Flash from "@app/flash";
+import {wrapLoadingOnActionButton} from "@app/loading";
+import {createModalNewDispatch, initNewDispatchEditor, onDispatchTypeChange} from "@app/pages/dispatch/common";
+
+
 let tableDispatches = null;
+
+global.displayCommentNeededAttributes = displayCommentNeededAttributes;
+global.onDispatchTypeChange = onDispatchTypeChange
 
 $(function() {
     initTableDispatch(false).then((returnedDispatchTable) => {
@@ -227,16 +239,7 @@ function initTableDispatch(groupedSignatureMode = false) {
 function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
     const keepModalOpenAndClearAfterSubmit = $modalNewDispatch.find('[name=keepModalOpenAndClearAfterSubmit]').val();
-    Form
-        .create($modalNewDispatch)
-        .on('change', '[name=customerName]', (event) => {
-            const $customers = $(event.target)
-            // pre-filling customer information according to the customer
-            const [customer] = $customers.select2('data');
-            $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
-            $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
-            $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
-        })
+    createModalNewDispatch($modalNewDispatch)
         .submitTo(
             AJAX.POST,
             'dispatch_new',

@@ -5,6 +5,7 @@ import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
 import Form from "@app/form";
 import {initCommentHistoryForm} from "@app/pages/dispute/common";
+import {initDispatchCreateForm} from "@app/pages/dispatch/common";
 
 $('.select2').select2();
 let tableHistoLitige;

@@ -313,24 +313,3 @@ function openWaybillModal($button) {
     });
 }
 
-function copyTo($button, inputSourceName, inputTargetName) {
-    const $modal = $button.closest('.modal');
-    const $source = $modal.find(`[name="${inputSourceName}"]`);
-    const $target = $modal.find(`[name="${inputTargetName}"]`);
-    const valToCopy = $source.val();
-    if($target.is('textarea')) {
-        $target.text(valToCopy);
-    } else {
-        $target.val(valToCopy);
-    }
-}
-
-function reverseFields($button, inputName1, inputName2) {
-    const $modal = $button.closest('.modal');
-    const $field1 = $modal.find(`[name="${inputName1}"]`);
-    const $field2 = $modal.find(`[name="${inputName2}"]`);
-    const val1 = $field1.val();
-    const val2 = $field2.val();
-    $field1.val(val2);
-    $field2.val(val1);
-}

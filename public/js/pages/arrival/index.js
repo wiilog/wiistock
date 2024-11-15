@@ -1,3 +1,5 @@
+import {initDispatchCreateForm} from "@app/pages/dispatch/common";
+
 $('.select2').select2();
 
 let clicked = false;

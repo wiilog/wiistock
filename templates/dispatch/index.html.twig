@@ -111,7 +111,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/dispatch.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('dispatch-common') }}
+    {{ encore_entry_script_tags('dispatch-index') }}
     {{ encore_entry_script_tags('filters') }}
 {% endblock %}
