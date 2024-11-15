@@ -181,42 +181,6 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/pack-intel/{packcode}", name: "get_pack_intel", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
-    #[Route('/pack-intel/{packCode}', name: 'get_pack_intel', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
-    public function getPackIntel(EntityManagerInterface $entityManager,
-                                 string                 $packCode): JsonResponse
-    {
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $naturesRepository = $entityManager->getRepository(Nature::class);
-        $natures = $naturesRepository->findBy([], ['label' => 'ASC']);
-        $uniqueNature = count($natures) === 1;
-        $pack = $packRepository->findOneBy(['code' => $packCode]);
-
-        if ($pack && $pack->getNature()) {
-            $nature = [
-                'id' => $pack->getNature()->getId(),
-                'label' => $this->getFormatter()->nature($pack->getNature()),
-            ];
-        } else {
-            $nature = ($uniqueNature ? [
-                'id' => $natures[0]->getId(),
-                'label' => $this->getFormatter()->nature($natures[0]),
-            ] : null);
-        }
-
-        return new JsonResponse([
-            'success' => true,
-            'pack' => [
-                'code' => $packCode,
-                'quantity' => $pack ? $pack->getQuantity() : null,
-                'comment' => $pack ? $pack->getComment() : null,
-                'weight' => $pack ? $pack->getWeight() : null,
-                'volume' => $pack ? $pack->getVolume() : null,
-                'nature' => $nature
-            ]
-        ]);
-    }
-
     #[Route("/api-modifier", name: "pack_edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request                 $request,
