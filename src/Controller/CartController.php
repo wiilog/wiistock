@@ -140,22 +140,19 @@ class CartController extends AbstractController {
 
     #[Route("/infos/livraison/{request}", name: "delivery_data", options: ['expose' => true], methods: [self::GET])]
     public function deliveryRequestData(Demande $request): JsonResponse {
-        $type = $request->getType();
-
         return $this->json([
             "success" => true,
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'values' => $request->getFreeFields() ?? [],
+                'freeFields' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
         ]);
     }
 
-    #[Route("/infos/livraison/{request}", name: "collect_data", options: ['expose' => true], methods: [self::GET])]
+    #[Route("/infos/collecte/{request}", name: "collect_data", options: ['expose' => true], methods: [self::GET])]
     public function collectRequestData(Collecte $request): JsonResponse {
-        $type = $request->getType();
         return $this->json([
             "success" => true,
             "destination" => $request->isDestruct() ? "Destruction" : "Mise en stock",
