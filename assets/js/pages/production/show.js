@@ -2,6 +2,7 @@ import AJAX, {GET} from "@app/ajax";
 import Form from "@app/form";
 import Camera from "@app/camera"
 import {displayAttachmentRequired, initDeleteProductionRequest, modalConfirmDeleteProductionRequest, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
+import {initDispatchCreateForm} from "@app/pages/dispatch/common";
 
 global.displayAttachmentRequired = displayAttachmentRequired;
 

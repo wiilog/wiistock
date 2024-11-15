@@ -1,4 +1,27 @@
+import AJAX, {GET, POST} from "@app/ajax";
+import Form from "@app/form";
+import Routing from '@app/fos-routing';
+import Camera from "@app/camera";
+import Flash from "@app/flash";
+import {wrapLoadingOnActionButton} from "@app/loading";
+import {computeDescriptionFormValues} from "@app/pages/reference-article/common";
+
 let packsTable;
+
+global.generateOverconsumptionBill = generateOverconsumptionBill;
+global.generateDispatchLabel = generateDispatchLabel;
+global.openValidateDispatchModal = openValidateDispatchModal;
+global.openAddReferenceModal = openAddReferenceModal;
+global.openTreatDispatchModal = openTreatDispatchModal;
+global.runDispatchPrint = runDispatchPrint;
+global.openWaybillModal = openWaybillModal;
+global.copyTo = copyTo;
+global.reverseFields = reverseFields;
+global.refArticleChanged = refArticleChanged;
+global.deleteRefArticle = deleteRefArticle;
+global.openAddLogisticUnitModal = openAddLogisticUnitModal;
+global.selectUlChanged = selectUlChanged;
+
 
 $(function() {
     registerCopyToClipboard(`Le numéro a bien été copié dans le presse-papiers.`);
@@ -10,7 +33,6 @@ $(function() {
     }
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, {modifiable: isEdit});
-
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     Form
@@ -763,20 +785,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
     )
 }
 
-function launchPackListSearching() {
-    const $logisticUnitsContainer = $('.logistic-units-container');
-    const $searchInput = $logisticUnitsContainer
-        .closest('.content')
-        .find('input[type=search]');
-
-    $searchInput.on('input', function () {
-        const $input = $(this);
-        const referenceArticleSearch = $input.val();
-        loadReceptionLines({search: referenceArticleSearch});
-    });
-}
-
-function clearPackListSearching() {
+export function clearPackListSearching() {
     const $logisticUnitsContainer = $('.logistic-units-container');
     const $searchInput = $logisticUnitsContainer
         .closest('.content')
