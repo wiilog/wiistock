@@ -281,7 +281,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255, unique: false)] // TODO WIIS-12166
+    #[ORM\Column(type: Types::STRING, length: 255, unique: false)] // TODO WIIS-12164
     #[Assert\NotBlank(message: 'Le champ ne peut pas être vide.')]
     private ?string $username = null;
 
