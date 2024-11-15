@@ -176,8 +176,9 @@ class PackController extends AbstractController
                             'entityNumber' => $pack['entityNumber'],
                         ];
 
-                        $truckArrival = $truckService->getFromColumnData($entityManager, $pack['id']);
-                        $receipt = $associationService->getFromColumnData($entityManager, $pack['id']);
+                        $pack = $packRepository->find($pack['id']);
+                        $truckArrival = $truckService->getFromColumnData($pack);
+                        $receipt = $associationService->getFromColumnData($pack, $entityManager);
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMovement);
                         $pack['fromLabel'] = $mvtData['fromLabel'];
                         $pack['fromTo'] = $mvtData['from'];

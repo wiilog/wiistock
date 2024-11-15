@@ -12,6 +12,7 @@ use App\Entity\Setting;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Repository\ReceiptAssociationRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -73,20 +74,15 @@ class ReceiptAssociationService
         ];
     }
 
-    public function getFromColumnData(EntityManagerInterface $entityManager, int $id): string
+    public function getFromColumnData(Pack $pack, EntityManagerInterface $entityManager): string
     {
+        $id = $pack->getId();
         $allReceiptNumber = "";
-        $receipt = $entityManager->createQueryBuilder()
-        ->select("receipt_association.receptionNumber")
-        ->from(ReceiptAssociation::class, 'receipt_association')
-        ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
-        ->where("join_logisticUnits.id = :id")
-        ->setParameter("id", $id)
-        ->getQuery()
-        ->getArrayResult();
+        $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
+        $receipts = $receiptAssociationRepository->getReiceiptIdByPack($id);
 
-        foreach ($receipt as $r) {
-            $allReceiptNumber =  $allReceiptNumber . $r["receptionNumber"];
+        foreach ($receipts as $receipt) {
+            $allReceiptNumber =  $allReceiptNumber . $receipt["receptionNumber"];
         }
 
         return $allReceiptNumber;

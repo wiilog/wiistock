@@ -33,6 +33,19 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
+    public function getReiceiptIdByPack(string $id) {
+
+         return $this->createQueryBuilder('receipt_association')
+                ->select("receipt_association.receptionNumber")
+                ->from(ReceiptAssociation::class, 'receipt_association')
+                ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
+                ->where("join_logisticUnits.id = :id")
+                ->setParameter("id", $id)
+                ->getQuery()
+                ->getArrayResult();
+    }
+
+
     public function findByParamsAndFilters(InputBag $params, array $filters): array
     {
         $qb = $this->createQueryBuilder("receipt_association")

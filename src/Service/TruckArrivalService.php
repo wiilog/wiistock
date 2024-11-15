@@ -258,10 +258,8 @@ class TruckArrivalService
         ];
     }
 
-    public function getFromColumnData(EntityManagerInterface $entityManager, int $id): ?string
+    public function getFromColumnData(Pack $pack): ?string
     {
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $pack = $packRepository->find($id);
         $arrival = $pack->getArrivage();
 
         $truckArrival = $arrival
