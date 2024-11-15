@@ -15,8 +15,8 @@ class PackSplit
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?DateTime $splittingAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?DateTime $splittingAt;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'splitTargets')]
     #[ORM\JoinColumn(nullable: false)]
@@ -26,12 +26,16 @@ class PackSplit
     #[ORM\JoinColumn(nullable: false)]
     private ?Pack $target = null;
 
+    public function __construct() {
+        $this->splittingAt = new DateTime();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getSplittingAt(): ?DateTime
+    public function getSplittingAt(): DateTime
     {
         return $this->splittingAt;
     }
