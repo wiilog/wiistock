@@ -24,6 +24,13 @@
                         </div>
                     {% endif %}
                     <div class="d-flex header-wrapper bg-white">
+                        <div class="m-3">
+                        {% include('pack/datatablePackRow.html.twig') with {
+                            pack : logisticUnit,
+                            detail : true
+                            }
+                        %}
+                        </div>
                         <div class="barcode-container col-3 p-3">
                             {{ printBarcode({
                                 code: barcode.code,
@@ -46,6 +53,9 @@
                                             class: labelClass,
                                         }) }}
                                     </div>
+                                {% endif %}
+                                {% if logisticUnit.trackingMovements.count > 0 %}
+                                <button onclick="showMovement('{{ logisticUnit.code|trim }}')" class="btn btn-primary">Voir les mouvements</button>
                                 {% endif %}
                             </div>
                             <div class="d-flex justify-content-between mr-4">
@@ -147,6 +157,26 @@
                                     <span class="wii-body-text">{{ logisticUnit.project ? logisticUnit.project.code : "-" }}</span>
                                 </label>
                             </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Association IOT</span>
+                                    <span class="wii-body-text">
+                                        {% if logisticUnit.pairings | length %}
+                                            <ul>
+                                            {% for iot in logisticUnit.pairings %}
+                                                <li>
+                                                    <a href="{{ path("pairing_show", {"pairing": iot.sensorWrapper.sensor.id}) }}">
+                                                        <i class="fas fa-external-link-alt mr-2"></i> {{ iot.sensorWrapper.sensor.code }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        {% else %}
+                                            -
+                                            </ul>
+                                        {% endif %}
+                                    </span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,7 +225,8 @@
             </div>
         </div>
     </div>
-
+    {% include 'pack/modalEditPack.html.twig' %}
+    {% include 'pack/modalDeletePack.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

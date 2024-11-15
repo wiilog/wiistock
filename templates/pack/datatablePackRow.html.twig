@@ -39,11 +39,13 @@
                         {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données') }}
                     </a>
                 {% endif %}
-
+                {% include ("pack/cart-column.html.twig") %}
+                {% if detail is not defined  %}
                 <div class="dropdown-item d-flex align-items-center"
                      onclick="reloadLogisticUnitTrackingDelay({{ pack.id }})">
                     <span class="wii-icon wii-icon-modif wii-icon-17px-black mr-2"></span>Recalculer le délai de traça
                 </div>
+                {% endif %}
                 <a class="dropdown-item action-on-click d-none"
                    href="{{ path('pack_show', {id: pack.id}) }}">
                     <span class="fa fa-eye"></span>

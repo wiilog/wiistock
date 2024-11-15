@@ -1,10 +1,12 @@
 import {getTrackingHistory} from "./show";
 import '@styles/pages/pack/timeline.scss';
-import AJAX, {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Routing from "@app/fos-routing";
 
 global.toExport = toExport;
 global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
+global.showMovement = showMovement;
 
 const packsTableConfig = {
     responsive: true,
@@ -310,4 +312,18 @@ function reloadLogisticUnitTrackingDelay(logisticUnitId) {
                 Flash.add(ERROR, "Une erreur est survenu lors du calcul du délai de traitement de l'unité logistique", true, true);
             }
         });
+}
+
+function showMovement(num){
+    let params = {
+        "page":"mvt_traca",
+        "UL": num,
+    }
+    AJAX.route(POST, 'filter_sup_new')
+        .json(params)
+        .then((response) => {
+            if(response){
+                window.location.href = Routing.generate(`mvt_traca_index`);
+            }
+        })
 }
