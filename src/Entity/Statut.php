@@ -1026,7 +1026,7 @@ class Statut {
         return $this;
     }
 
-    public function setExamples(?iterable $roles): self {
+    public function setStatusCreationAuthorization(?iterable $roles): self {
         foreach($this->getStatusCreationAuthorization()->toArray() as $role) {
             $this->removeStatusCreationAuthorization($role);
         }
