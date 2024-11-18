@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use WiiCommon\Helper\Stream;
 
-
+// TODO WIIS-12167: remove
 #[AsCommand(
     name: 'app:article:remove-duplicate',
     description: 'Tool to remove duplicate article',
