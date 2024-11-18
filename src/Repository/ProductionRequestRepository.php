@@ -305,7 +305,6 @@ class ProductionRequestRepository extends EntityRepository
             ->addSelect("production_request.emergency AS " . FixedFieldEnum::emergency->name)
             ->addSelect("production_request.projectNumber AS " . FixedFieldEnum::projectNumber->name)
             ->addSelect("production_request.comment AS " . FixedFieldEnum::comment->name)
-            ->addSelect("join_destinationLocation.label AS " . FixedFieldEnum::destinationLocation->name)
             ->addSelect("production_request.freeFields AS freeFields")
             ->innerJoin("production_request.createdBy", "join_createdBy")
             ->leftJoin("production_request.treatedBy", "join_treatedBy")

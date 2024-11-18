@@ -52,8 +52,7 @@ class PackRepository extends EntityRepository
                                       DateTime $dateMax,
                                       bool     $groupByNature = false,
                                       array    $arrivalStatusesFilter = [],
-                                      array    $arrivalTypesFilter = [])
-    {
+                                      array    $arrivalTypesFilter = []) {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('COUNT(pack) AS count')
             ->join('pack.arrivage', 'arrival')
@@ -91,8 +90,7 @@ class PackRepository extends EntityRepository
     }
 
 
-    public function iteratePacksByDates(DateTime $dateMin, DateTime $dateMax): iterable
-    {
+    public function iteratePacksByDates(DateTime $dateMin, DateTime $dateMax): iterable {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('pack.code AS code')
             ->addSelect('join_nature.label AS nature')
@@ -111,8 +109,7 @@ class PackRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax)
-    {
+    public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax) {
         return $this->createQueryBuilder("pack")
             ->select("pack AS group")
             ->addSelect("COUNT(child.id) AS packCounter")
@@ -127,8 +124,7 @@ class PackRepository extends EntityRepository
             ->getResult();
     }
 
-    public function countAllPacks()
-    {
+    public function countAllPacks() {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('COUNT(pack)')
             ->where('pack.groupIteration IS NULL');
@@ -142,8 +138,7 @@ class PackRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countAllGroups()
-    {
+    public function countAllGroups() {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('COUNT(pack)')
             ->where('pack.groupIteration IS NOT NULL');
@@ -152,8 +147,7 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = []): array
-    {
+    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->groupBy('pack.id');
 
@@ -367,8 +361,7 @@ class PackRepository extends EntityRepository
         ];
     }
 
-    public function getCurrentPackOnLocations(array $locations, array $options = [])
-    {
+    public function getCurrentPackOnLocations(array $locations, array $options = []) {
         $natures = $options['natures'] ?? [];
         $isCount = $options['isCount'] ?? true;
         $field = $options['field'] ?? 'pack.id';
@@ -455,8 +448,7 @@ class PackRepository extends EntityRepository
             ->execute();
     }
 
-    public function countPacksByArrival(DateTime $from, DateTime $to)
-    {
+    public function countPacksByArrival(DateTime $from, DateTime $to) {
         $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
@@ -490,8 +482,7 @@ class PackRepository extends EntityRepository
         );
     }
 
-    public function getPacksById(array $packIds): array
-    {
+    public function getPacksById(array $packIds): array {
         $queryBuilder = $this->createQueryBuilder('pack');
         $exprBuilder = $queryBuilder->expr();
         return Stream::from(
@@ -519,8 +510,7 @@ class PackRepository extends EntityRepository
             ->toArray();
     }
 
-    public function findWithNoPairing(?string $term)
-    {
+    public function findWithNoPairing(?string $term) {
         return $this->createQueryBuilder("pack")
             ->select("pack.id AS id, pack.code AS text")
             ->leftJoin("pack.pairings", "pairings")
@@ -532,8 +522,7 @@ class PackRepository extends EntityRepository
             ->getArrayResult();
     }
 
-    public function getSensorPairingData(Pack $pack, int $start, int $count): array
-    {
+    public function getSensorPairingData(Pack $pack, int $start, int $count): array {
         $unionSQL = $this->createSensorPairingDataQueryUnion($pack);
 
         $entityManager = $this->getEntityManager();
@@ -549,8 +538,7 @@ class PackRepository extends EntityRepository
             ->fetchAllAssociative();
     }
 
-    private function createSensorPairingDataQueryUnion(Pack $pack): string
-    {
+    private function createSensorPairingDataQueryUnion(Pack $pack): string {
         $createQueryBuilder = function () {
             return $this->createQueryBuilder('pack')
                 ->select('pairing.id AS pairingId')
@@ -612,8 +600,7 @@ class PackRepository extends EntityRepository
         ";
     }
 
-    public function countSensorPairingData(Pack $pack): int
-    {
+    public function countSensorPairingData(Pack $pack): int {
         $unionSQL = $this->createSensorPairingDataQueryUnion($pack);
 
         $entityManager = $this->getEntityManager();
@@ -694,8 +681,7 @@ class PackRepository extends EntityRepository
      * @param int[] $waitingDays Number of days returned packs are waiting on their delivery point
      * @return Pack[]
      */
-    public function findOngoingPacksOnDeliveryPoints(array $waitingDays): array
-    {
+    public function findOngoingPacksOnDeliveryPoints(array $waitingDays): array {
         if (empty($waitingDays)) {
             throw new \RuntimeException("waitingDays shouldn't be empty");
         }
@@ -725,8 +711,7 @@ class PackRepository extends EntityRepository
             ->getResult();
     }
 
-    public function isInOngoingReception(Pack|int $pack): bool
-    {
+    public function isInOngoingReception(Pack|int $pack): bool {
         if (!$pack || !$pack->getId()) {
             return false;
         }
@@ -744,8 +729,7 @@ class PackRepository extends EntityRepository
                 ->getSingleScalarResult()) > 0;
     }
 
-    public function getForSelectFromDelivery(?string $term, ?int $delivery, bool $allowNoProject): array
-    {
+    public function getForSelectFromDelivery(?string $term, ?int $delivery, bool $allowNoProject): array {
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id, pack.code AS text")
             ->leftJoin(DeliveryRequestArticleLine::class, "request_line", Join::WITH, "request_line.pack = pack")
@@ -778,8 +762,7 @@ class PackRepository extends EntityRepository
             ->getArrayResult();
     }
 
-    public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location)
-    {
+    public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
         $query = $this->createQueryBuilder("pack")
             ->addSelect("pack.id AS id")
             ->addSelect("pack.code AS barCode")
@@ -816,8 +799,7 @@ class PackRepository extends EntityRepository
         return !empty($result) ? $result[0] : null;
     }
 
-    public function findWithoutArticle(string $code): ?Pack
-    {
+    public function findWithoutArticle(string $code): ?Pack {
         return $this->createQueryBuilder("pack")
             ->leftJoin("pack.article", "article")
             ->andWhere("pack.article IS NULL")
@@ -827,11 +809,11 @@ class PackRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findDuplicateCode()
-    {
+    // TODO WIIS-12167: remove
+    public function findDuplicateCode() {
         // get all packs having a non-unique code
         return $this->createQueryBuilder("pack")
-            ->select("TRIM(pack.code) AS code")
+            ->select("pack.code AS code")
             ->addSelect("COUNT(pack.code) AS count")
             ->groupBy("pack.code")
             ->having("COUNT(pack.code) > 1")
