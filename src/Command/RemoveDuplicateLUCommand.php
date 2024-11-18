@@ -8,6 +8,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Repository\PackRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\FormatService;
+use App\Service\TrackingMovementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,15 +18,16 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Serializer\SerializerInterface;
 use WiiCommon\Helper\Stream;
 
-
+// TODO WIIS-12167: remove
 #[AsCommand(
     name: 'app:lu:remove-duplicate',
     description: 'Tool to remove duplicate LU',
 )]
 class RemoveDuplicateLUCommand extends Command {
-    public function __construct(private EntityManagerInterface $entityManager,
-                                private SerializerInterface    $serializer,
-                                private FormatService          $formatService) {
+    public function __construct(private EntityManagerInterface  $entityManager,
+                                private SerializerInterface     $serializer,
+                                private TrackingMovementService $trackingMovementService,
+                                private FormatService           $formatService) {
         parent::__construct();
     }
 
@@ -111,14 +113,17 @@ class RemoveDuplicateLUCommand extends Command {
             $io->table(...$this->createTableLuConfig($lus, $this->formatService, $luRepository));
         }
         $firstMovements = Stream::from($lus)
-            ->map(fn(Pack $lu) => Stream::from($lu->getTrackingMovements()) // get the first tracking movement of each LU
-                ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
-                ->first()
-            )
+            ->map(fn(Pack $lu) => (
+                Stream::from($lu->getTrackingMovements()) // get the first tracking movement of each LU
+                    ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $this->trackingMovementService->compareMovements($a, $b))
+                    ->first()
+            ))
             ->filter() // remove null values
             ->toArray();
 
-        $notGroupLu = Stream::from($lus)->filter(fn(Pack $lu) => !$luRepository->count(['parent' => $lu]))->toArray();
+        $notGroupLu = Stream::from($lus)
+            ->filter(static fn(Pack $lu) => !$luRepository->count(['parent' => $lu]))
+            ->toArray();
 
         // if there is only one LU with children
         if (count($lus) - count($notGroupLu) === 1) {
@@ -142,9 +147,7 @@ class RemoveDuplicateLUCommand extends Command {
             // and rename the other group
             // like Groupe, Groupe_1, Groupe_2
             Stream::from($lus)
-                ->sort(function (Pack $a, Pack $b) {
-                    return $a->getLastAction()?->getDatetime() <=> $b->getLastAction()?->getDatetime();
-                })
+                ->sort(fn(Pack $a, Pack $b) => $this->trackingMovementService->compareMovements($a->getLastAction(), $b->getLastAction()))
                 ->reverse()
                 ->each(function (Pack $lu, $index) use ($io, $luRepository, &$editedEntities) {
                     if ($index !== 0) {
@@ -206,7 +209,7 @@ class RemoveDuplicateLUCommand extends Command {
                     ->map(fn($firstMovement) => json_encode(
                         $this
                             ->serializer
-                            ->normalize($firstMovement, null, ["usage" => SerializerUsageEnum::MOBILE])
+                            ->normalize($firstMovement, null, ["usage" => SerializerUsageEnum::MOBILE_DROP_MENU])
                     ))
                     ->unique();
                 // if all the LUs have the same first movement
@@ -239,15 +242,16 @@ class RemoveDuplicateLUCommand extends Command {
 
                     // we keep the LU with the most recent movement
                     $lastMovements = Stream::from($lus)
-                        ->map(callback: fn(Pack $lu) => Stream::from($lu->getTrackingMovements()) // get the first tracking movement of each LU
-                        ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
-                            ->last()
-                        )
-                        ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $a->getDatetime() <=> $b->getDatetime())
+                        ->map(fn(Pack $lu) => (
+                            Stream::from($lu->getTrackingMovements()) // get the first tracking movement of each LU
+                                ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $this->trackingMovementService->compareMovements($a, $b))
+                                ->last()
+                        ))
+                        ->sort(fn(TrackingMovement $a, TrackingMovement $b) => $this->trackingMovementService->compareMovements($a, $b))
                         ->last();
 
                     $luToDel = Stream::from($lus)
-                        ->filter(fn(Pack $lu) => $lu !== $lastMovements->getPack())
+                        ->filter(static fn(Pack $lu) => $lu !== $lastMovements->getPack())
                         ->toArray();
 
                     foreach ($luToDel as $lu) {
@@ -262,7 +266,7 @@ class RemoveDuplicateLUCommand extends Command {
 
                 // if there is only one tracking movement, we can delete the other LUs
                 $lusToDelete = Stream::from($lus)
-                    ->sort(fn(Pack $a, Pack $b) => $a->getTrackingMovements()->count() <=> $b->getTrackingMovements()->count())
+                    ->sort(static fn(Pack $a, Pack $b) => $a->getTrackingMovements()->count() <=> $b->getTrackingMovements()->count())
                     ->reverse()
                     ->toArray();
 
@@ -296,7 +300,7 @@ class RemoveDuplicateLUCommand extends Command {
                         ];
                         $this->entityManager->remove($locationClusterRecord);
                     });
-                $editedEntities['deletedTrackingMovement'][] = $this->serializer->normalize($trackingMovement, null, ["usage" => SerializerUsageEnum::MOBILE]);
+                $editedEntities['deletedTrackingMovement'][] = $this->serializer->normalize($trackingMovement, null, ["usage" => SerializerUsageEnum::MOBILE_DROP_MENU]);
                 $this->entityManager->remove($trackingMovement);
             });
 

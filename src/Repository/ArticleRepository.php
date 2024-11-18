@@ -1423,6 +1423,7 @@ class ArticleRepository extends EntityRepository {
             ->getOneOrNullResult();
     }
 
+    // TODO WIIS-12167 remove
     public function findDuplicateCode(){
         return $this->createQueryBuilder('article')
             ->select('article.barCode')
