@@ -41,7 +41,7 @@ class Role {
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
-    #[ORM\ManyToOne(inversedBy: 'statusCreationAuthorization')]
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'statusCreationAuthorization')]
     private ?Statut $statut = null;
 
     public function __construct() {

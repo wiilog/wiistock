@@ -1025,4 +1025,18 @@ class Statut {
 
         return $this;
     }
+
+    public function setExamples(?iterable $roles): self {
+        foreach($this->getStatusCreationAuthorization()->toArray() as $role) {
+            $this->removeStatusCreationAuthorization($role);
+        }
+
+        $this->statusCreationAuthorization = new ArrayCollection();
+        foreach($roles ?? [] as $role) {
+            $this->addStatusCreationAuthorization($role);
+        }
+
+        return $this;
+    }
+
 }
