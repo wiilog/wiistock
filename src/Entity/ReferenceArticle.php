@@ -944,6 +944,11 @@ class ReferenceArticle implements AttachmentContainer
         return $count ? count($articles) : $articles;
     }
 
+    public function hasArticles(): bool {
+        return Stream::from($this->articlesFournisseur)
+            ->some(fn(ArticleFournisseur $articleFournisseur) => !empty($articleFournisseur->getArticles()));
+    }
+
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
         if(!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
             $this->purchaseRequestLines[] = $purchaseRequestLine;
