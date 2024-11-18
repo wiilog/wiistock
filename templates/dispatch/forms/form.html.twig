@@ -7,12 +7,13 @@
 {% set typeCanChange =  dispatch.id ? false : true %}
 
 {% set keepModalOpenAndClearAfterSubmit = setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT') %}
+{% set keepModalOpenAndClearAfterSubmitRoles = setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT_FOR_ROLES') %}
 
 {% if dispatch.id %}
     {{ form.hidden('id', dispatch.id) }}
 {% endif %}
 
-{% if keepModalOpenAndClearAfterSubmit %}
+{% if keepModalOpenAndClearAfterSubmit and app.user.role.id in keepModalOpenAndClearAfterSubmitRoles|split(',') %}
     {{ form.hidden('keepModalOpenAndClearAfterSubmit', keepModalOpenAndClearAfterSubmit) }}
 {% endif %}
 
