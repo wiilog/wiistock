@@ -168,6 +168,12 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $passStatusAtPurchaseOrderGeneration = false;
 
+    /**
+     * @var Collection<int, Role>
+     */
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Role::class)]
+    private Collection $statusCreationAuthorization;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -185,6 +191,7 @@ class Statut {
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
         $this->notifiedUsers = new ArrayCollection();
+        $this->statusCreationAuthorization = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -986,6 +993,36 @@ class Statut {
     public function setPassStatusAtPurchaseOrderGeneration(bool $passStatusAtPurchaseOrderGeneration): self
     {
         $this->passStatusAtPurchaseOrderGeneration = $passStatusAtPurchaseOrderGeneration;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function getStatusCreationAuthorization(): Collection
+    {
+        return $this->statusCreationAuthorization;
+    }
+
+    public function addStatusCreationAuthorization(Role $statusCreationAuthorization): static
+    {
+        if (!$this->statusCreationAuthorization->contains($statusCreationAuthorization)) {
+            $this->statusCreationAuthorization->add($statusCreationAuthorization);
+            $statusCreationAuthorization->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatusCreationAuthorization(Role $statusCreationAuthorization): static
+    {
+        if ($this->statusCreationAuthorization->removeElement($statusCreationAuthorization)) {
+            // set the owning side to null (unless already changed)
+            if ($statusCreationAuthorization->getStatut() === $this) {
+                $statusCreationAuthorization->setStatut(null);
+            }
+        }
+
         return $this;
     }
 }
