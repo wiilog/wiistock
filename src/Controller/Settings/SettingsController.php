@@ -1322,8 +1322,9 @@ class SettingsController extends AbstractController {
                                 "value" => $type->getId(),
                                 "label" => $type->getLabel(),
                             ])->toArray(),
-                        "automaticallyCreateMovementOnValidationTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES)),
-                        "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES)),
+                        "automaticallyCreateMovementOnValidationTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES, 'types')),
+                        "keepModalOpenAndClearAfterSubmitForRoles" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT_FOR_ROLES, 'roles')),
+                        "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES, 'types')),
                         "dispatchFixedFieldsFilterable" => Stream::from($fixedFieldByTypeRepository->findBy(['entityCode'=> FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->toArray(),
