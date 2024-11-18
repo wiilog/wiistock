@@ -154,7 +154,7 @@ $(function() {
                 isLoading = false;
             } else {
                 const logisticUnitId = $number.data(`id`);
-                AJAX.route(`GET`, `logistic_unit_content`, {pack: logisticUnitId})
+                AJAX.route(`GET`, `pack_content`, {pack: logisticUnitId})
                     .json()
                     .then(result => {
                         $container.find(`.logistic-unit-content`).remove();
@@ -268,7 +268,7 @@ function switchGroups() {
 function toExport() {
     if(selectedTab === TAB_PACKS) {
         saveExportFile(
-            `export_packs`,
+            `pack_export`,
             true,
             {},
             false,
@@ -299,7 +299,7 @@ function toggleAddAllToCartButton() {
 
 function reloadLogisticUnitTrackingDelay(logisticUnitId) {
     AJAX
-        .route(POST, "force_pack_tracking_delay_calculation", {logisticUnit: logisticUnitId})
+        .route(POST, "pack_force_tracking_delay_calculation", {logisticUnit: logisticUnitId})
         .json()
         .then(({success}) => {
             if (success) {

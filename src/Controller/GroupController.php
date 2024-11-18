@@ -23,22 +23,14 @@ use Throwable;
 
 
 #[Route('/groupes', name: 'group_')]
-class GroupController extends AbstractController
-{
-
-    #[Route("/api", name: "api", options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
-    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function api(Request      $request,
-                        GroupService $groupService): Response
-    {
-        return $this->json($groupService->getDataForDatatable($request->request));
-    }
-
+class GroupController extends AbstractController {
     #[Route("/api-modifier", name: "edit_api", options: ['expose' => true], methods: [self::GET, self::POST])]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request                $request,
-                            EntityManagerInterface $manager): Response
-    {
+                            EntityManagerInterface $manager): Response {
+
+        // TODO voir si on peut factoriser avec la methode de Pack
+
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(Pack::class);
             $natureRepository = $manager->getRepository(Nature::class);
@@ -57,6 +49,7 @@ class GroupController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request, EntityManagerInterface $manager): Response
     {
+        // TODO voir si on peut factoriser avec la methode de Pack
         $data = json_decode($request->getContent(), true);
 
         $packRepository = $manager->getRepository(Pack::class);
@@ -84,8 +77,7 @@ class GroupController extends AbstractController
     #[Route("/api-degrouper", name: "ungroup_api", options: ['expose' => true], methods: [self::POST, self::GET])]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function ungroupApi(Request                $request,
-                               EntityManagerInterface $manager): Response
-    {
+                               EntityManagerInterface $manager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(Pack::class);
             $group = $packRepository->find($data['id']);
@@ -102,8 +94,7 @@ class GroupController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function ungroup(Request                $request,
                             EntityManagerInterface $manager,
-                            GroupService           $groupService): Response
-    {
+                            GroupService           $groupService): Response {
         $data = json_decode($request->getContent(), true);
 
         $packRepository = $manager->getRepository(Pack::class);
@@ -131,8 +122,11 @@ class GroupController extends AbstractController
                                  CSVExportService        $CSVExportService,
                                  TrackingMovementService $trackingMovementService,
                                  TranslationService      $translationService,
-                                 EntityManagerInterface  $entityManager): Response
-    {
+                                 EntityManagerInterface  $entityManager): Response {
+
+
+        // TODO quesq'on fait des exports ??
+
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 

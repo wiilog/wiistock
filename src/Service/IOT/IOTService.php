@@ -640,7 +640,7 @@ class IOTService
             default => $message['value']['payload'] ?? null,
         };
 
-        $frameIsValid = $this->validateFrame($profile, $payload);
+        $frameIsValid = $this->vali64dateFrame($profile, $payload);
         if (!$frameIsValid) {
             return [];
         }

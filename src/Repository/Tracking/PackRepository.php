@@ -26,10 +26,6 @@ use WiiCommon\Helper\StringHelper;
 
 class PackRepository extends EntityRepository
 {
-
-    public const PACKS_MODE = 'packs';
-    public const GROUPS_MODE = 'groups';
-
     private const DtToDbLabels = [
         'packNum' => 'code',
         'packNature' => 'packNature',
@@ -141,20 +137,15 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = []): array {
+    public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->groupBy('pack.id');
 
-        if ($mode === self::PACKS_MODE) {
-            $queryBuilder
-                ->leftJoin('pack.article', 'article')
-                ->andWhere('article.currentLogisticUnit IS NULL')
-                ->andWhere('pack.groupIteration IS NULL');
-            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
-        } else if ($mode === self::GROUPS_MODE) {
-            $queryBuilder->where('pack.groupIteration IS NOT NULL');
-            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
-        }
+        $queryBuilder
+            ->leftJoin('pack.article', 'article')
+            ->andWhere('article.currentLogisticUnit IS NULL')
+            ->andWhere('pack.groupIteration IS NULL');
+        $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
 
         // filtres sup
         foreach ($filters as $filter) {

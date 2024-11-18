@@ -39,17 +39,15 @@ use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-#[Route("/unite-logistique")]
-class PackController extends AbstractController
-{
+#[Route("/unite-logistique", name: 'pack_')]
+class PackController extends AbstractController {
 
-    #[Route("/liste/{code}", name: "pack_index", options: ["expose" => true], defaults: ["code" => null], methods: [ self::GET])]
+    #[Route("/liste/{code}", name: "index", options: ["expose" => true], defaults: ["code" => null], methods: [ self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function index(EntityManagerInterface $entityManager,
                           LanguageService        $languageService,
                           PackService            $packService,
-                                                 $code): Response
-    {
+                                                 $code): Response {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
@@ -67,7 +65,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route('/voir/{id}', name: 'pack_show', methods: [self::GET])]
+    #[Route('/voir/{id}', name: 'show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function show(Pack $logisticUnit,
                          EntityManagerInterface $manager,
@@ -98,7 +96,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/api", name: "pack_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function api(Request $request, PackService $packService): JsonResponse
     {
@@ -107,7 +105,7 @@ class PackController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/{pack}/contenu", name: "logistic_unit_content", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{pack}/contenu", name: "content", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function logisticUnitContent(EntityManagerInterface $manager,
                                         Pack                    $pack,
@@ -127,7 +125,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/csv", name: "export_packs", options: ["expose" => true], methods: [ self::GET])]
+    #[Route("/csv", name: "export", options: ["expose" => true], methods: [ self::GET])]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function printCSVPacks(Request                   $request,
                                   CSVExportService          $CSVExportService,
@@ -179,7 +177,7 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/api-modifier", name: "pack_edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier", name: "edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request                 $request,
                             EntityManagerInterface  $entityManager): JsonResponse
@@ -218,7 +216,7 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/modifier", name: "pack_edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
@@ -248,7 +246,7 @@ class PackController extends AbstractController
         return new JsonResponse($response);
     }
 
-    #[Route("/supprimer", name: "pack_delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer", name: "delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
                            EntityManagerInterface   $entityManager,
@@ -346,7 +344,7 @@ class PackController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route("/print-single-logistic-unit/{pack}", name: "print_single_logistic_unit", options: ["expose" => true])]
+    #[Route("/print-single-logistic-unit/{pack}", name: "print_single", options: ["expose" => true])]
     public function printSingleLogisticUnit(Pack $pack, PackService $packService, PDFGeneratorService $PDFGeneratorService): PdfResponse {
         if ($pack->getNature() && !$pack->getNature()->getTags()->isEmpty()) {
             $tag = $pack->getNature()->getTags()->first();
@@ -362,7 +360,7 @@ class PackController extends AbstractController
         );
     }
 
-    #[Route("/get-location", name: "pack_get_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/get-location", name: "get_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     public function getLocation(Request                 $request,
                                 EntityManagerInterface  $entityManager): JsonResponse {
         $pack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('pack')]);
@@ -373,7 +371,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/tracking-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: [self::POST])]
+    #[Route("/{id}/tracking-history-api", name: "tracking_history_api", options: ['expose' => true], methods: [self::POST])]
     public function statusHistoryApi(Pack                   $logisticUnit,
                                      Request                $request,
                                      EntityManagerInterface $entityManager,
@@ -411,7 +409,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/{logisticUnit}/tracking-delay", name: "force_pack_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
+    #[Route("/{logisticUnit}/tracking-delay", name: "force_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
     public function postTrackingDelay(EntityManagerInterface $entityManager,
                                       TrackingDelayService   $trackingDelayService,
                                       Pack                   $logisticUnit): JsonResponse {

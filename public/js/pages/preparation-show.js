@@ -362,7 +362,7 @@ function clearValidatePreparationModal() {
 }
 
 function printLogisticUnit(id) {
-    Wiistock.download(Routing.generate(`print_single_logistic_unit`, {pack: id}));
+    Wiistock.download(Routing.generate(`pack_print_single`, {pack: id}));
 }
 
 function initializeHistoryTables(packId){
@@ -410,7 +410,7 @@ function initializeGroupHistoryTable(packId) {
         processing: true,
         order: [['date', "desc"]],
         ajax: {
-            "url": Routing.generate('group_history_api', {pack: packId}, true),
+            "url": Routing.generate('pack_group_history_api', {pack: packId}, true),
             "type": "POST"
         },
         columns: [
@@ -430,7 +430,7 @@ function initializeProjectHistoryTable(packId) {
         processing: true,
         order: [['createdAt', "desc"]],
         ajax: {
-            "url": Routing.generate('project_history_api', {pack: packId}, true),
+            "url": Routing.generate('pack_project_history_api', {pack: packId}, true),
             "type": "POST"
         },
         columns: [

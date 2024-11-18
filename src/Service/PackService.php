@@ -97,7 +97,7 @@ class PackService {
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $currentUser->getLanguage() ?: $defaultLanguage;
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE, [
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
             'fields' => $this->getPackListColumnVisibleConfig($currentUser),
