@@ -36,7 +36,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'packs')]
