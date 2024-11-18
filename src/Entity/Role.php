@@ -41,6 +41,9 @@ class Role {
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'statusCreationAuthorization')]
+    private ?Statut $statut = null;
+
     public function __construct() {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
@@ -154,6 +157,18 @@ class Role {
 
     public function setLandingPage(string $landingPage): self {
         $this->landingPage = $landingPage;
+        return $this;
+    }
+
+    public function getStatut(): ?Statut
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?Statut $statut): static
+    {
+        $this->statut = $statut;
+
         return $this;
     }
 

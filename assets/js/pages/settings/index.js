@@ -87,6 +87,7 @@ const initializers = {
     stock_receptions_champs_fixes: initializeReceptionFixedFields,
     stock_demandes_champs_fixes: initializeDemandesFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
+    trace_production_champs_fixes: initializeProductionFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
@@ -679,35 +680,9 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    const $typeInputs = $container.find(`[name=type]`);
     const selectorTable = `#table-dispatch-fixed-fields`;
-    $typeInputs
-        .on(`change`, function() {
-            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
-            $container.find(selectorTable).DataTable().destroy();
-            EditableDatatable.create(selectorTable, {
-                route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),
-                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-                save: SAVE_MANUALLY,
-                ordering: false,
-                paging: false,
-                onEditStart: () => {
-                    $managementButtons.removeClass('d-none');
-                },
-                onEditStop: () => {
-                    $managementButtons.addClass('d-none');
-                },
-                columns: [
-                    {data: `label`, title: `Champ fixe`},
-                    {data: `displayedCreate`, title: `Afficher`},
-                    {data: `requiredCreate`, title: `Obligatoire`},
-                    {data: `displayedEdit`, title: `Afficher`},
-                    {data: `requiredEdit`, title: `Obligatoire`},
-                ],
-            });
-        })
-        .first()
-        .trigger(`change`);
+    const $typeInput = initFixedFieldByTypeSettings(`acheminements`, $container, selectorTable, canEdit);
+    $typeInput.first().trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
@@ -804,8 +779,14 @@ function initializeHandlingFixedFields($container, canEdit) {
 }
 
 function initializeLocationByTypeForDeliveries() {
-    initDeliveryRequestDefaultLocations();
+    initAssociationAlreadyDefined(
+        JSON.parse(
+            $(`input[name=deliveryTypeSettings]`).val()
+        ),
+        $('#modal-fixed-field-destinationdemande'));
+
     $('.new-type-association-button').on('click', function () {
+        const $modal = $('#modal-fixed-field-destinationdemande');
         newTypeAssociation($(this));
     });
 
@@ -830,42 +811,50 @@ function initializeLocationByTypeForDeliveries() {
     });
 }
 
-function initDeliveryRequestDefaultLocations() {
-    const $deliveryTypeSettings = $(`input[name=deliveryTypeSettings]`);
-    const deliveryTypeSettingsValues = JSON.parse($deliveryTypeSettings.val());
+function initAssociationAlreadyDefined(data, $modal) {
+    const $lastTypeSelect = $modal.find('select.type-to-associate').last();
     const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
 
-    deliveryTypeSettingsValues.forEach(item => {
-        newTypeAssociation($buttonNewTypeAssociation, item.type, item.location, true);
-        updateAlreadyDefinedTypes();
+    data.forEach(item => {
+        newTypeAssociation($buttonNewTypeAssociation,item.type, item.value, true);
+        updateAlreadyDefinedTypes(undefined);
     });
-    const $lastDeliveryTypeSelect = $('select[name=deliveryType]').last();
 
-    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastDeliveryTypeSelect.data('length') < 1);
+    $buttonNewTypeAssociation.prop(
+        'disabled',
+        $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastTypeSelect.data('length') < 1
+    );
 }
 
-function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
-    const $modal = $('#modal-fixed-field-destinationdemande');
+function newTypeAssociation($button, type = undefined, value = undefined, firstLoad = false) {
+    const $modal = $button.closest('.modal')
     const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
+    const $selectsType = $settingTypeAssociation.find('select.type-to-associate');
+    const $associatedElementsInputs = $settingTypeAssociation.find(".associated-element");
+    const $fieldsToFill = $.makeArray($selectsType).concat($.makeArray($associatedElementsInputs));
+    const allFilledFields = $fieldsToFill.length === 0 || !$fieldsToFill.some((field) => !$(field).val());
 
-    let allFilledSelect = true;
-    $settingTypeAssociation.find(`select[name=deliveryRequestLocation]`).each(function() {
-        if(!$(this).val()) {
-            allFilledSelect = false;
-        }
-    });
-
-    if (firstLoad || allFilledSelect) {
-        $button.prop(`disabled`, false);
+    if (firstLoad || allFilledFields) {
+        $button.removeAttr("disabled")
         $settingTypeAssociation.append($typeTemplate.html());
-        if(firstLoad && location && type) {
-            const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
-            const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
-            appendSelectOptions($typeSelect, $locationSelect, type, location);
+        updateAlreadyDefinedTypes(undefined);
+
+        if(firstLoad && value && type) {
+            const $assciationLine = $settingTypeAssociation.find('.type-association-container').last();
+            const $typeSelect = $assciationLine.find('.type-to-associate');
+            const $associatedElement = $assciationLine.find('.associated-element');
+            $typeSelect.append(`<option value="${type.id}" selected>${type.label}</option>`);
+            $typeSelect.trigger('change');
+            if($associatedElement.is('select')) {
+                $associatedElement.append(`<option value="${value.id}" selected>${value.label}</option>`);
+                $associatedElement.trigger('change');
+            } else {
+                $associatedElement.val(value);
+            }
         }
     } else {
-        showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
+        showBSAlert(`Tous les champs doivent être renseignés`, `danger`);
     }
 }
 
@@ -890,23 +879,22 @@ function onTypeChange($select) {
 }
 
 function removeAssociationLine($button) {
-    const $typeAssociationContainer = $('.type-association-container');
-    const $currentDeliveryTypeSelect = $button.parent().closest('.delivery-type-container').find('select[name=deliveryType]');
+    const $typeAssociationContainer = $button.parent('.type-association-container');
+    const $currentProductionTypeSelect = $typeAssociationContainer.find("select.type-to-associate");
 
     if($typeAssociationContainer.length === 1) {
         showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
     } else {
         $button.parent().parent(`.type-association-container`).remove();
-        updateAlreadyDefinedTypes($currentDeliveryTypeSelect.val());
+        updateAlreadyDefinedTypes($currentProductionTypeSelect.val(), );
         $('.new-type-association-button').prop(`disabled`, false);
     }
 }
 
 function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
     const $settingTypeAssociation = $('.setting-type-association');
-
     let types = [];
-    $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
+    $settingTypeAssociation.find("select.type-to-associate").each(function() {
         if(withdrawedValue !== $(this).val()) {
             types.push($(this).val());
         }
@@ -914,7 +902,6 @@ function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
 
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
-
 function initializeInventoryFrequenciesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
@@ -1121,16 +1108,6 @@ function initializeVisibilityGroup($container, canEdit) {
         table.addRow(true);
         changePageTitle($container.find('.wii-title'), true);
     });
-}
-
-function appendSelectOptions(typeSelect, locationSelect, type, location) {
-    typeSelect
-        .append(new Option(type.label, type.id, false, true))
-        .trigger(`change`);
-
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
 }
 
 function triggerReminderEmails($button) {
@@ -1364,28 +1341,61 @@ function initializeEmergenciesFixedFields($container, canEdit) {
     });
 }
 
+
+
 function initializeProductionFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-production-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `production`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const $modalExpectedAtDelayByTypeSetting = $('#modal-fixed-field-expectedat');
+    initAssociationAlreadyDefined(
+        JSON.parse(
+            $(`[name="productionTypeSettings"]`).val()
+        ),
+        $modalExpectedAtDelayByTypeSetting);
+
+    $('.new-type-association-button')
+        .off('click.new-type-association-button')
+        .on('click.new-type-association-button', function () {
+            newTypeAssociation($(this), undefined, undefined, false);
+        });
+
+    $(document)
+        .off('click.new-type-association-button', '.delete-association-line')
+        .on('click.new-type-association-button', '.delete-association-line', function () {
+            removeAssociationLine($(this));
+        });
+    const selectorTable = `#table-production-fixed-fields`;
+    const $typeInputs = initFixedFieldByTypeSettings(`production`, $container, selectorTable, canEdit);
+    $typeInputs.first().trigger( "change" );
+}
+
+function initFixedFieldByTypeSettings(entity, $container, selectorTable, canEdit){
+    const $typeInputs = $container.find(`.typeChoice input[name=type]`);
+    $typeInputs
+        .off('change.initFixedFieldByTypeSettings')
+        .on(`change.initFixedFieldByTypeSettings`, function() {
+            const $selectedType = $(this);
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: entity, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                ],
+            });
+        });
+    return $typeInputs;
 }
 
 function changeDisplayRefArticleTable($checkbox) {

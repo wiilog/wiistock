@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField\FreeField;
@@ -44,6 +45,7 @@ use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\WorkPeriod\WorkPeriodService;
+use DateInterval;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1522,7 +1524,7 @@ class SettingsService {
 
             if (isset($location) && $typeOption) {
                 $defaultDeliveryLocations[] = [
-                    'location' => [
+                    'value' => [
                         'id' => $location->getId(),
                         'label' => $location->getLabel(),
                     ],
@@ -1532,6 +1534,40 @@ class SettingsService {
             }
         }
         return $defaultDeliveryLocations;
+    }
+
+    public function getDefaultProductionExpectedAtByType(EntityManagerInterface $entityManager): array {
+
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $expectedAtField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_PRODUCTION, 'fieldCode' => FixedFieldEnum::expectedAt->name]);
+        $savedTypeIds = Stream::keys($expectedAtField->getElements())->toArray();
+        $savedTypes = !empty($savedTypeIds) ? $typeRepository->findBy(["id" => $savedTypeIds]) : [];
+        $delayByType = $expectedAtField->getElements();
+
+        if(isset($delayByType["all"])){
+            $allTypes = [[
+                "type"=> [
+                    "label" => "Tous les types",
+                    "id" => "all",
+                ],
+                "value" => $delayByType["all"],
+            ]];
+        }
+
+        return Stream::from(
+            Stream::from($savedTypes)
+                ->map(fn(Type $type) => [
+                    "type"=> [
+                        "label" => $type->getLabel(),
+                        "id" => $type->getId(),
+                    ],
+                    "value" => $delayByType[$type->getId()],
+                ]),
+                $allTypes ?? []
+        )
+            ->toArray();
+
     }
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
@@ -1589,6 +1625,21 @@ class SettingsService {
         }
 
         return $selectOptions;
+    }
+
+    public function getMinDateByTypesSettings(EntityManagerInterface $entityManager,
+                                              string                 $entity,
+                                              FixedFieldEnum         $field,
+                                              DateTime               $init): array {
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        return Stream::from($fixedFieldByTypeRepository->getElements($entity, $field->name))
+            ->map(static fn(string $delay) => explode(":", $delay))
+            ->map(static fn(array $delay) => (
+                (clone $init)
+                    ->add(new DateInterval("PT$delay[0]H$delay[1]M"))
+                    ->format('Y-m-d\TH:i')
+            ))
+            ->toArray();
     }
 
 }

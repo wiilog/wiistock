@@ -644,8 +644,10 @@ class DispatchController extends AbstractController {
             return $this->redirectToRoute('access_denied');
         }
 
-        $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+            $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
+        }
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
@@ -1222,8 +1224,10 @@ class DispatchController extends AbstractController {
                     ? $payload->all('files')
                     : [];
 
-                $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
-                $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
+                if ($payload->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+                    $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
+                    $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
+                }
 
                 $entityManager->flush();
             } else {
@@ -1643,7 +1647,14 @@ class DispatchController extends AbstractController {
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
-        return $this->json([
+        $defaultType = null;
+
+        if(count($entities) === 1 && $entities[0] instanceof ProductionRequest) {
+            /** @var ProductionRequest $productionRequest */
+            $defaultType = $entities[0]->getStatus()->getTypeForGeneratedDispatchOnStatusChange();
+        }
+
+        $response = [
             'success' => true,
             'html' => $this->renderView('dispatch/forms/formFromEntity.html.twig',
                 $dispatchService->getNewDispatchConfig(
@@ -1653,8 +1664,14 @@ class DispatchController extends AbstractController {
                     $packs,
                     $entityIds,
                 ),
-            )
-        ]);
+            ),
+        ];
+
+        if ($defaultType !== null) {
+            $response['defaultTypeId'] = $defaultType->getId();
+        }
+
+        return $this->json($response);
     }
 
     #[Route("/get-dispatch-details", name: "get_dispatch_details", options: ["expose" => true], methods: "GET")]

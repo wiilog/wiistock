@@ -20,7 +20,7 @@
 
     {% include 'tracking_movement/form/fieldQuantity.html.twig' %}
 
-    {% if isPickMovement %}
+    {% if isPickMovement and displayManualDelayStart %}
         <div class="form-group col-12">
             {{ form.input('manualDelayStart', 'Début de délai manuel', false, null, {
                 type: 'datetime-local',

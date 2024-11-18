@@ -14,6 +14,7 @@ class FixedFieldStandard extends FixedField {
     const ELEMENTS_TYPE_USER = 'USER_BY_TYPE';
     const ELEMENTS_RECEIVER = 'RECEIVER';
     const ELEMENTS_TYPE = 'TYPE';
+    const ELEMENTS_EXPECTED_AT_BY_TYPE = 'EXPECTED_AT_BY_TYPE';
     const ELEMENTS_LOCATION_BY_TYPE = 'LOCATION_BY_TYPE';
 
     const ENTITY_CODE_RECEPTION = 'réception';

@@ -263,6 +263,15 @@ class ScheduleRuleService
                 + ($remainSecondsBetweenDate > 0 ? $intervalPeriod : 0)
             );
 
+            // summer / winter hour change adjusting
+            if ($from->getOffset() !== $begin->getOffset()) {
+                $diffOffsetSeconds = $from->getOffset() - $begin->getOffset();
+                $diffOffsetHour = floor($diffOffsetSeconds / self::SECONDS_IN_ONE_HOUR);
+                if ($hoursBetweenDates + $diffOffsetHour >= 0) {
+                    $hoursToAdd += $diffOffsetHour;
+                }
+            }
+
             $nextOccurrence->modify("+{$hoursToAdd} hours");
         }
 

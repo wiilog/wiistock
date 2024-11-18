@@ -4,7 +4,6 @@ import Routing from '@app/fos-routing';
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
-    deliveryType: `ajax_select_delivery_type`,
     collectType: `ajax_select_collect_type`,
     referenceType: `ajax_select_reference_type`,
     dispatchType: `ajax_select_dispatch_type`,

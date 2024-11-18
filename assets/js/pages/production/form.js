@@ -51,6 +51,7 @@ export function openModalUpdateProductionRequestStatus($container, $modalUpdateP
 
 export function modalConfirmDeleteProductionRequest(productionRequestId){
     Modal.confirm({
+        title: "Créer un acheminement",
         message: `Voulez-vous générer une demande d'acheminement ?`,
         validateButton: {
             label: 'Créer la demande',
@@ -93,5 +94,10 @@ export function initModalNewProductionRequest($modal, tables, onOpen) {
         .onOpen(onOpen)
         .submitTo(POST, `production_request_new`, {
             tables: tables,
+            success: (response) => {
+                if(response.needModalConfirmationForGenerateDispatch) {
+                    modalConfirmDeleteProductionRequest(response.productionRequestId)
+                }
+            }
         });
 }

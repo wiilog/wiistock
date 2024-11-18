@@ -76,12 +76,15 @@ class DataExportController extends AbstractController {
 
         $rows = Stream::from($exports)
             ->map(function(Export $export) use ($scheduledTaskService) {
-                $nextExecution = $scheduledTaskService->calculateTaskNextExecution($export, new DateTime("now"));
+                $status = $export->getStatus();
+                $nextExecution = $status?->getCode() === Export::STATUS_SCHEDULED
+                    ? $scheduledTaskService->calculateTaskNextExecution($export, new DateTime("now"))
+                    : null;
                 return [
                     "actions" => $this->renderView("settings/donnees/export/action.html.twig", [
                         "export" => $export,
                     ]),
-                    "status" => $this->getFormatter()->status($export->getStatus()),
+                    "status" => $this->getFormatter()->status($status),
                     "createdAt" => $this->getFormatter()->datetime($export->getCreatedAt()),
                     "beganAt" => $this->getFormatter()->datetime($export->getBeganAt()),
                     "endedAt" => $this->getFormatter()->datetime($export->getEndedAt()),
