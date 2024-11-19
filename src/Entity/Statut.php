@@ -1007,7 +1007,9 @@ class Statut {
     public function addStatusCreationAuthorization(Role $statusCreationAuthorization): static
     {
         if (!$this->statusCreationAuthorization->contains($statusCreationAuthorization)) {
-            $this->statusCreationAuthorization->add($statusCreationAuthorization);
+            $this->statusCreationAuthorization[] = $statusCreationAuthorization;
+
+            $statusCreationAuthorization->addStatut($this);
         }
 
         return $this;
@@ -1015,7 +1017,21 @@ class Statut {
 
     public function removeStatusCreationAuthorization(Role $statusCreationAuthorization): static
     {
-        $this->statusCreationAuthorization->removeElement($statusCreationAuthorization);
+        if ($this->statusCreationAuthorization->removeElement($statusCreationAuthorization)) {
+            $statusCreationAuthorization->removeStatut($this);
+        }
+        return $this;
+    }
+
+    public function setStatusCreationAuthorization(?iterable $statuses): self {
+        foreach($this->getStatusCreationAuthorization()->toArray() as $status) {
+            $this->removeStatusCreationAuthorization($status);
+        }
+
+        $this->statusCreationAuthorization = new ArrayCollection();
+        foreach($statuses ?? [] as $status) {
+            $this->addStatusCreationAuthorization($status);
+        }
 
         return $this;
     }
