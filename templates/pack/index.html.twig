@@ -11,7 +11,7 @@
 {% block page_filter %}
     {% include 'filters/filtersPack.html.twig' with {
         page: 'PAGE_PACK',
-        tableSelector: '#packsTable, #groupsTable',
+        tableSelector: '#packsTable',
         callback: 'null',
         needsDateFormatting: true
     } %}
@@ -21,16 +21,6 @@
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <ul class="nav nav-pills pack-tabs">
-            <li class="nav-item">
-                <a href="#unites-logistiques" class="nav-link active">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}</a>
-            </li>
-            <li class="nav-item">
-                <a href="#groupes" class="nav-link">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Groupes') }}</a>
-            </li>
-        </ul>
-
-        <hr>
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% include "utils/action-buttons/header-buttons.html.twig" with {
@@ -61,10 +51,6 @@
                 <table id="packsTable" class="table w-100"
                        data-initial-visible="{{ fields|json_encode() }}">
                 </table>
-
-            </div>
-            <div class="col-12 groupsTableContainer">
-                <table id="groupsTable" class="table wii-list w-100"></table>
             </div>
         </div>
     </div>

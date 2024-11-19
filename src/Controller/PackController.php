@@ -42,7 +42,7 @@ use WiiCommon\Helper\Stream;
 #[Route("/unite-logistique", name: 'pack_')]
 class PackController extends AbstractController {
 
-    #[Route("/liste/{code}", name: "index", options: ["expose" => true], defaults: ["code" => null], methods: [ self::GET])]
+    #[Route("/liste/{code}", name: "index", options: ["expose" => true], defaults: ["code" => null], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function index(EntityManagerInterface $entityManager,
                           LanguageService        $languageService,
@@ -96,16 +96,15 @@ class PackController extends AbstractController {
         ]);
     }
 
-    #[Route("/api", name: "api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, PackService $packService): JsonResponse
-    {
+    public function api(Request $request, PackService $packService): JsonResponse {
         $data = $packService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
 
-    #[Route("/{pack}/contenu", name: "content", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{pack}/contenu", name: "content", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function logisticUnitContent(EntityManagerInterface $manager,
                                         Pack                    $pack,
@@ -125,7 +124,7 @@ class PackController extends AbstractController {
         ]);
     }
 
-    #[Route("/csv", name: "export", options: ["expose" => true], methods: [ self::GET])]
+    #[Route("/csv", name: "export", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function printCSVPacks(Request                   $request,
                                   CSVExportService          $CSVExportService,
@@ -177,7 +176,7 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/api-modifier", name: "edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier", name: "edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request                 $request,
                             EntityManagerInterface  $entityManager): JsonResponse
@@ -216,7 +215,7 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
@@ -246,7 +245,7 @@ class PackController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    #[Route("/supprimer", name: "delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer", name: "delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
                            EntityManagerInterface   $entityManager,
@@ -326,7 +325,7 @@ class PackController extends AbstractController {
         $csvService->putLine($handle, $line);
     }
 
-    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [ self::GET, self::POST])]
+    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function groupHistory(Request $request, PackService $packService, $pack): JsonResponse {
         if ($request->isXmlHttpRequest()) {
             $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
@@ -335,7 +334,7 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function projectHistory(Request                     $request,
                                    EntityManagerInterface      $entityManager,
                                    ProjectHistoryRecordService $projectHistoryRecordService,
@@ -360,7 +359,7 @@ class PackController extends AbstractController {
         );
     }
 
-    #[Route("/get-location", name: "get_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/get-location", name: "get_location", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function getLocation(Request                 $request,
                                 EntityManagerInterface  $entityManager): JsonResponse {
         $pack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('pack')]);
@@ -413,7 +412,6 @@ class PackController extends AbstractController {
     public function postTrackingDelay(EntityManagerInterface $entityManager,
                                       TrackingDelayService   $trackingDelayService,
                                       Pack                   $logisticUnit): JsonResponse {
-
         $trackingDelayService->updateTrackingDelay($entityManager, $logisticUnit);
 
         $entityManager->flush();
