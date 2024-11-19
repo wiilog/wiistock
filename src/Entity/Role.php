@@ -41,12 +41,16 @@ class Role {
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
-    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'statusCreationAuthorization')]
-    private ?Statut $statut = null;
+    /**
+     * @var Collection<int, Statut>
+     */
+    #[ORM\ManyToMany(targetEntity: Statut::class, mappedBy: 'statusCreationAuthorization')]
+    private Collection $statuts;
 
     public function __construct() {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->statuts = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -160,16 +164,45 @@ class Role {
         return $this;
     }
 
-    public function getStatut(): ?Statut
+    /**
+     * @return Collection<int, Statut>
+     */
+    public function getStatuts(): Collection
     {
-        return $this->statut;
+        return $this->statuts;
     }
 
-    public function setStatut(?Statut $statut): static
+    public function addStatut(Statut $statut): static
     {
-        $this->statut = $statut;
+        if (!$this->statuts->contains($statut)) {
+            $this->statuts[] = $statut;
+            $statut->addStatusCreationAuthorization($this);
+        }
 
         return $this;
     }
+
+    public function removeStatut(Statut $statut): static
+    {
+        if ($this->statuts->removeElement($statut)) {
+            $statut->removeStatusCreationAuthorization($this);
+        }
+
+        return $this;
+    }
+
+    public function setExamples(?iterable $statuses): self {
+        foreach($this->getStatuts()->toArray() as $status) {
+            $this->removeStatut($status);
+        }
+
+        $this->statuts = new ArrayCollection();
+        foreach($statuses ?? [] as $status) {
+            $this->addStatut($status);
+        }
+
+        return $this;
+    }
+
 
 }
