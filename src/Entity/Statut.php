@@ -172,6 +172,9 @@ class Statut {
      * @var Collection<int, Role>
      */
     #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'statuts')]
+    #[ORM\JoinTable(name: 'statut_role')]
+    #[ORM\JoinColumn(name: 'statut_id', referencedColumnName: 'id')]
+    #[ORM\JoinColumn(name: 'role_id', referencedColumnName: 'id')]
     private Collection $statusCreationAuthorization;
 
     public function __construct() {
