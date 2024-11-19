@@ -176,6 +176,9 @@ a {
     height: fit-content;
 }
 
+.h-auto {
+    height: auto;
+}
 .h-90 {
     height: 90%;
 }
@@ -291,7 +294,7 @@ a {
         width: 100% !important;
     }
 
-    .select2-container {
+    .select2-container:not(.no-full-size) {
         width: 100% !important;
 
         .select2-selection {
