@@ -115,7 +115,7 @@
                             <div class="row mt-2">
                                 <div class="col-md-6 col-12 mb-2">
                                     {{ form.select('deliveryType', 'Type', true, {
-                                        type: 'deliveryType',
+                                        type: '',
                                         placeholder: 'Sélectionnez un type',
                                         items : defaultType
                                             ? deliveryTypes | map((type) => ({
@@ -124,7 +124,7 @@
                                                 selected: defaultType.id == type.id,
                                             }))
                                             : [],
-                                        search: false,
+                                        search: true,
                                         onChange: 'cartTypeChange($(this))',
                                     }) }}
                                 </div>
