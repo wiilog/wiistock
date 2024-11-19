@@ -1023,14 +1023,14 @@ class Statut {
         return $this;
     }
 
-    public function setStatusCreationAuthorization(?iterable $statuses): self {
-        foreach($this->getStatusCreationAuthorization()->toArray() as $status) {
-            $this->removeStatusCreationAuthorization($status);
+    public function setStatusCreationAuthorization(?iterable $roles): self {
+        foreach($this->getStatusCreationAuthorization()->toArray() as $role) {
+            $this->removeStatusCreationAuthorization($role);
         }
 
         $this->statusCreationAuthorization = new ArrayCollection();
-        foreach($statuses ?? [] as $status) {
-            $this->addStatusCreationAuthorization($status);
+        foreach($roles ?? [] as $role) {
+            $this->addStatusCreationAuthorization($role);
         }
 
         return $this;
