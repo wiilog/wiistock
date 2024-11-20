@@ -49,6 +49,8 @@
                                 {% endif %}
                             </div>
                             <div class="d-flex justify-content-between mr-4">
+
+
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
                                     <span class="wii-field-name">Quantité <span class="wii-body-text ml-2">{{ logisticUnit.quantity }}</span></span>
@@ -180,6 +182,13 @@
                     </div>
 
                 {% endif %}
+                <div class="wii-box">
+                    <div class="header wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}</div>
+                    <div class="content pt-2 px-0">
+                        <table id="groupHistoryTable" class="table w-100"></table>
+                    </div>
+                </div>
+                {# TODO INIT  #}
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">
@@ -192,6 +201,13 @@
                         </div>
                     </div>
                 </div>
+                <div class="wii-box">
+                    <div class="header wii-title">{{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés</div>
+                    <div class="content pt-2 px-0">
+                        <table id="projectHistoryTable" class="table w-100"></table>
+                    </div>
+                </div>
+                {# TODO INIT  #}
             </div>
         </div>
     </div>

@@ -28,6 +28,7 @@ use Exception;
 use Iterator;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -87,13 +88,15 @@ class PackService {
     #[Required]
     public UserService $userService;
 
-    public function getDataForDatatable($params = null): array
-    {
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->security->getUser();
 
-        $filters = $params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
+        $filters = $params->get("codeUl")
+            ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
+            : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $currentUser->getLanguage() ?: $defaultLanguage;
@@ -159,8 +162,7 @@ class PackService {
         ];
     }
 
-    public function dataRowPack(Pack $pack): array
-    {
+    public function dataRowPack(Pack $pack): array {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
         $firstMovements = $trackingMovementRepository->findBy(
@@ -228,11 +230,17 @@ class PackService {
             "limitTreatmentDate" => $pack->getTrackingDelay()
                 ? $this->formatService->datetime($pack->getTrackingDelay()->getLimitTreatmentDate())
                 : null,
+            "group" => $pack->getParent()
+                ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
+                    "entityPath" => "pack_show",
+                    "entityId" => $pack->getParent()?->getId(),
+                    "from" => $this->formatService->pack($pack->getParent()),
+                ])
+                : '',
         ];
     }
 
-    public function dataRowGroupHistory(TrackingMovement $trackingMovement): array
-    {
+    public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
         return [
             'group' => $trackingMovement->getPackGroup() ? ($this->formatService->pack($trackingMovement->getPackGroup()) . '-' . $trackingMovement->getGroupIteration()) : '',
             'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
@@ -240,11 +248,10 @@ class PackService {
         ];
     }
 
-    public function checkPackDataBeforeEdition(array $data): array
-    {
-        $quantity = $data['quantity'] ?? null;
-        $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
-        $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
+    public function checkPackDataBeforeEdition(InputBag $data): array {
+        $quantity = $data->getInt('quantity', 0);
+        $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;
+        $volume = !empty($data->get('volume')) ? str_replace(",", ".", $data->get('volume')) : null;
 
         if ($quantity <= 0) {
             return [
@@ -274,23 +281,19 @@ class PackService {
     }
 
     public function editPack(EntityManagerInterface $entityManager,
-                             array                  $data,
+                             InputBag                  $data,
                              Pack                   $pack): void {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $projectRepository = $entityManager->getRepository(Project::class);
 
-        $natureId = $data['nature'] ?? null;
-        $projectId = $data['projects'] ?? null;
-        $quantity = $data['quantity'] ?? null;
-        $comment = $data['comment'] ?? null;
-        $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
-        $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
+        $natureId = $data->get('nature');
+        $projectId = $data->get('projects');
+        $quantity = $data->get('quantity');
+        $comment = $data->get('comment');
+        $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;
+        $volume = !empty($data->get('volume')) ? str_replace(",", ".", $data->get('volume')) : null;
 
-        $nature = $natureRepository->find($natureId);
-        if (!empty($nature)) {
-            $pack->setNature($nature);
-        }
-
+        $nature = $natureId ? $natureRepository->find($natureId) : null;
         $project = $projectRepository->findOneBy(["id" => $projectId]);
 
         $recordDate = new DateTime();
@@ -304,6 +307,7 @@ class PackService {
             ->setQuantity($quantity)
             ->setWeight($weight)
             ->setVolume($volume)
+            ->setNature($nature)
             ->setComment($comment);
     }
 
@@ -451,8 +455,7 @@ class PackService {
                                                                $user,
                                         bool                   $persistTrackingMovements = true,
                                         Project                $project = null,
-                                        Reception              $reception = null): array
-    {
+                                        Reception              $reception = null): array {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $location = $persistTrackingMovements
@@ -587,6 +590,7 @@ class PackService {
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
                 ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
                 ['name' => 'limitTreatmentDate', 'title' => 'Date limite de traitement', 'className' => 'noVis'],
+                ['name' => 'group', 'title' =>  'Groupe rattaché', 'className' => 'noVis'],
             ],
             [],
             $columnsVisible

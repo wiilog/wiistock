@@ -130,8 +130,7 @@ class PackController extends AbstractController {
                                   CSVExportService          $CSVExportService,
                                   TrackingMovementService   $trackingMovementService,
                                   TranslationService        $translation,
-                                  EntityManagerInterface    $entityManager): StreamedResponse
-    {
+                                  EntityManagerInterface    $entityManager): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -179,8 +178,7 @@ class PackController extends AbstractController {
     #[Route("/api-modifier", name: "edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request                 $request,
-                            EntityManagerInterface  $entityManager): JsonResponse
-    {
+                            EntityManagerInterface  $entityManager): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
             $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
@@ -220,13 +218,12 @@ class PackController extends AbstractController {
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          PackService            $packService,
-                         TranslationService     $translation): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
+                         TranslationService     $translation): JsonResponse {
+        $data = $request->request;
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $pack = $packRepository->find($data['id']);
+        $pack = $packRepository->find($data->get('id'));
         $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
         if (!empty($pack) && $packDataIsValid['success']) {
             $packService->editPack($entityManager, $data, $pack);
@@ -249,8 +246,7 @@ class PackController extends AbstractController {
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
                            EntityManagerInterface   $entityManager,
-                           TranslationService       $translation): JsonResponse
-    {
+                           TranslationService       $translation): JsonResponse {
         if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -312,8 +308,7 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function putPackLine($handle, CSVExportService $csvService, array $pack):void
-    {
+    private function putPackLine($handle, CSVExportService $csvService, array $pack):void {
         $line = [
             $pack['code'],
             $pack['nature'],

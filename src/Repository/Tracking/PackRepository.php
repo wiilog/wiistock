@@ -143,8 +143,7 @@ class PackRepository extends EntityRepository
 
         $queryBuilder
             ->leftJoin('pack.article', 'article')
-            ->andWhere('article.currentLogisticUnit IS NULL')
-            ->andWhere('pack.groupIteration IS NULL');
+            ->andWhere('article.currentLogisticUnit IS NULL');
         $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
 
         // filtres sup
@@ -266,6 +265,10 @@ class PackRepository extends EntityRepository
                                         ->leftJoin('truckArrivalLinesSearch.truckArrival', 'truckArrivalByLinesSearch');
 
                                     $searchParams[] = 'truckArrivalByLinesSearch.number LIKE :value';
+                                    break;
+                                case "group":
+                                    $queryBuilder->leftJoin('pack.parent', 'parentSearch');
+                                    $searchParams[] = 'parentSearch.code LIKE :value';
                                     break;
                             }
                         }

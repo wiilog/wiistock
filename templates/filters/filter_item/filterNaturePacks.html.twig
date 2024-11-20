@@ -7,7 +7,7 @@
         multiple: true,
         placeholder: 'Natures',
         disabled: disabled is defined ? disabled : false,
-        inputClass: 'minw-200px',
+        inputClass: 'minw-200px filter-select2',
         items:  natures | sort((a, b) => a.label <=> b.label) | map(nature => {
             label: nature.labelIn(userLanguage, defaultLanguage),
             value: nature.id,

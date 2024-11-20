@@ -53,15 +53,17 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
-
     const codeUl = $('#lu-code').val();
-    if (codeUl) {
-        displayFiltersSup([{field: 'LU', value: codeUl}], true);
-    } else {
+    if (!codeUl || codeUl.length === 0) {
         const params = JSON.stringify(PAGE_PACK);
-        AJAX.route(POST, 'filter_get_by_page', params, function (data) {
+        let path = Routing.generate('filter_get_by_page');
+        $.post(path, params, function(data) {
+            console.log(data);
             displayFiltersSup(data, true);
-        });
+        }, 'json');
+    } else {
+        console.log(codeUl);
+        displayFiltersSup([{field: 'UL', value: codeUl}], true);
     }
 
     $(document).on('click', '.add-cart', function () {
@@ -145,14 +147,19 @@ $(function () {
 
     if (!packsTable) {
         const $packTable = $('#packsTable');
-
         packsTable = initDataTable($packTable, packsTableConfig);
 
-        const $modalEditPack = $('#modalEditPack');
-        const $submitEditPack = $('#submitEditPack');
-        const urlEditPack = Routing.generate('pack_edit', true);
-        InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]}); //TODO FORM.JS
+        Form
+            .create('#modalEditPack')
+            .submitTo(
+                POST,
+                'pack_edit',
+                {
+                    tables: [packsTable],
+                }
+            );
 
+        // TODO : Modal.confirm({});
         let modalDeletePack = $("#modalDeletePack");
         let SubmitDeletePack = $("#submitDeletePack");
         let urlDeletePack = Routing.generate('pack_delete', true);
