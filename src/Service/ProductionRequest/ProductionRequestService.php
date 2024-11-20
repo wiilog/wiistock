@@ -11,6 +11,7 @@ use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -1227,7 +1228,7 @@ class ProductionRequestService
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldByType::class);
 
 
         $user = $this->userService->getUser();
@@ -1266,7 +1267,7 @@ class ProductionRequestService
         }
 
         $fixedFieldParamCountLines  = $fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldEnum::lineCount->name])[0] ?? null;
-        $displayCountLines = $fixedFieldParamCountLines?->isDisplayedEdit() || $fixedFieldParamCountLines?->isDisplayedCreate();
+        $displayCountLines = $fixedFieldParamCountLines?->getDisplayedEdit()->count() || $fixedFieldParamCountLines?->getDisplayedCreate()->count();
 
         $cards = [];
         $linesCountByColumns = [];

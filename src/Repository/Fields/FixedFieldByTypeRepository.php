@@ -64,4 +64,21 @@ class FixedFieldByTypeRepository extends EntityRepository {
 
         return $result[0]["elements"] ?? [];
     }
+
+    function findByEntityCode(string $entityCode, array $fieldCodes = []): array {
+        $queryBuilder = $this->createQueryBuilder("fixedFieldByType");
+
+        if (!empty($fieldCodes)) {
+            $queryBuilder
+                ->andWhere("fixedFieldByType.fieldCode IN (:fieldCodes)")
+                ->setParameter('fieldCodes', $fieldCodes);
+        }
+
+        return $queryBuilder
+            ->andWhere("fixedFieldByType.entityCode = :entityCode")
+            ->orderBy("fixedFieldByType.fieldLabel", "ASC")
+            ->setParameter("entityCode", $entityCode)
+            ->getQuery()
+            ->getResult();
+    }
 }
