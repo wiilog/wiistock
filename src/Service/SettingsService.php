@@ -29,6 +29,7 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\ReserveType;
+use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
@@ -1609,18 +1610,23 @@ class SettingsService {
         $entityManager->remove($startingHour);
     }
 
-    public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting): array {
+    public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting, ?string $entity = ''): array {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
-        $settingTypes = $settingRepository->getOneParamByLabel($setting);
-        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $settingValues = $this->getValue($entityManager, $setting);
+        $entities = match($entity) {
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
+            'roles' => $roleRepository->findAll(),
+            default => [],
+        };
+
         $selectOptions = [];
-        foreach ($dispatchTypes as $type){
+        foreach ($entities as $data){
             $selectOptions[] = [
-                'value' => $type->getId(),
-                'label' => $type->getLabel(),
-                'selected' => in_array($type->getId(), explode(',', $settingTypes)),
+                'value' => $data->getId(),
+                'label' => $data->getLabel(),
+                'selected' => in_array($data->getId(), explode(',', $settingValues)),
             ];
         }
 
