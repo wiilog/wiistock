@@ -171,7 +171,10 @@ class Statut {
     /**
      * @var Collection<int, Role>
      */
-    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Role::class)]
+    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'statuts')]
+    #[ORM\JoinTable(name: 'statut_role')]
+    #[ORM\JoinColumn(name: 'statut_id', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'role_id', referencedColumnName: 'id')]
     private Collection $statusCreationAuthorization;
 
     public function __construct() {
@@ -1007,8 +1010,9 @@ class Statut {
     public function addStatusCreationAuthorization(Role $statusCreationAuthorization): static
     {
         if (!$this->statusCreationAuthorization->contains($statusCreationAuthorization)) {
-            $this->statusCreationAuthorization->add($statusCreationAuthorization);
-            $statusCreationAuthorization->setStatut($this);
+            $this->statusCreationAuthorization[] = $statusCreationAuthorization;
+
+            $statusCreationAuthorization->addStatut($this);
         }
 
         return $this;
@@ -1017,12 +1021,8 @@ class Statut {
     public function removeStatusCreationAuthorization(Role $statusCreationAuthorization): static
     {
         if ($this->statusCreationAuthorization->removeElement($statusCreationAuthorization)) {
-            // set the owning side to null (unless already changed)
-            if ($statusCreationAuthorization->getStatut() === $this) {
-                $statusCreationAuthorization->setStatut(null);
-            }
+            $statusCreationAuthorization->removeStatut($this);
         }
-
         return $this;
     }
 

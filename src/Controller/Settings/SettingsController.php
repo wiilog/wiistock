@@ -1410,15 +1410,19 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                         'category' => CategoryType::DEMANDE_DISPATCH,
                     ],
-                    self::MENU_STATUSES => function() {
+                    self::MENU_STATUSES => function() use ($roleRepository) {
                         $types = $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false);
                         $types[0]["checked"] = true;
+                        $roles = $roleRepository->findAllExceptNoAccess();
 
                         return [
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_DISPATCH,
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
                             'groupedSignatureTypes' => $this->dispatchService->getGroupedSignatureTypes(),
+                            'roleOptions' => Stream::from($roles)
+                                ->map(static fn(Role $role) => "<option value='{$role->getId()}'>{$role->getLabel()}</option>")
+                                ->join(''),
                         ];
                     },
                 ],

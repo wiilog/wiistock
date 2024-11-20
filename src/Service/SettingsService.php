@@ -1095,9 +1095,9 @@ class SettingsService {
                 $typeRepository = $entityManager->getRepository(Type::class);
                 $languageRepository = $entityManager->getRepository(Language::class);
                 $userRepository = $entityManager->getRepository(Utilisateur::class);
+                $roleRepository = $entityManager->getRepository(Role::class);
 
                 $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
-
 
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -1202,6 +1202,11 @@ class SettingsService {
                     if(isset($statusData['typeForGeneratedDispatchOnStatusChange'])){
                         $dispatchRequestType = $typeRepository->findOneBy(['id' => $statusData['typeForGeneratedDispatchOnStatusChange']]);
                         $status->setTypeForGeneratedDispatchOnStatusChange($dispatchRequestType);
+                    }
+
+                    if(isset($statusData['allowedCreationForRoles'])) {
+                        $allowedCreationForRoles = $roleRepository->findBy(["id" => explode(',', $statusData['allowedCreationForRoles']) ?? ""]);
+                        $status->setStatusCreationAuthorization($allowedCreationForRoles);
                     }
 
                     if($hasRightGroupedSignature){
