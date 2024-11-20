@@ -176,6 +176,7 @@
     {{ parent() }}
     <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/arrival/show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('arrival-show') }}
     <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
 {% endblock %}

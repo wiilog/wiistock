@@ -32,13 +32,6 @@ $(function () {
     const pathDeletePreparation = Routing.generate(`preparation_delete`, {preparation: $modalDeletePreparation.find(`input[name=preparation]`).val()}, true);
     InitModal($modalDeletePreparation, $submitDeletePreparation, pathDeletePreparation);
 
-    const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
-        success: () => loadLogisticUnitList($preparationId.val())
-    });
-
     let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
     let modalEditLigneArticle = $("#modalEditLigneArticle");
     let submitEditLigneArticle = $("#submitEditLigneArticle");

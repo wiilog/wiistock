@@ -1,8 +1,9 @@
 import {getTrackingHistory} from "./show";
 import '@styles/pages/pack/timeline.scss';
-import AJAX, {POST, GET, DELETE} from "@app/ajax";
+import AJAX, {POST, GET} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
 import exportFile from "@app/utils";
+import {initEditPackModal, deletePack} from "@app/pages/pack/common";
 
 global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
 
@@ -61,7 +62,6 @@ $(function () {
             displayFiltersSup(data, true);
         }, 'json');
     } else {
-        console.log(codeUl);
         displayFiltersSup([{field: 'UL', value: codeUl}], true);
     }
 
@@ -147,20 +147,13 @@ $(function () {
     if (!packsTable) {
         const $packTable = $('#packsTable');
         packsTable = initDataTable($packTable, packsTableConfig);
-
-        Form
-            .create('#modalEditPack')
-            .submitTo(
-                POST,
-                'pack_edit',
-                {
-                    tables: [packsTable],
-                }
-            );
+        initEditPackModal({
+            tables: [packsTable],
+        });
     }
 
     $(document).on('click', '.delete-pack', function () {
-        deletePack($(this).data('id'));
+        deletePack({ 'pack' : $(this).data('id') }, packsTable);
     });
 
     $('.exportPacks').on('click', function () {
@@ -186,23 +179,6 @@ $(function () {
         )
     });
 });
-
-function deletePack(id){
-    Modal.confirm({
-        ajax: {
-            method: DELETE,
-            route: 'pack_delete',
-            params: { 'pack' : id },
-        },
-        message: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Voulez-vous réellement supprimer cette UL ?'),
-        title:  Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Supprimer l\'UL', false),
-        validateButton: {
-            color: 'danger',
-            label: Translation.of('Général', null, 'Modale', 'Supprimer'),
-        },
-        table: packsTable,
-    })
-}
 
 function addToCart(ids) {
     AJAX.route(POST, `cart_add_logistic_units`, {ids: ids.join(`,`)})

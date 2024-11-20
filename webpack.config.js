@@ -81,6 +81,7 @@ Encore
     .addEntry('security-login', './assets/js/pages/security/login.js')
     .addEntry('security-password-forgotten', '/assets/js/pages/security/password-forgotten.js')
     .addEntry('security-reset-password', '/assets/js/pages/security/reset-password.js')
+    .addEntry('arrival-show', './assets/js/pages/arrival/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

@@ -175,42 +175,40 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/api-modifier", name: "edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/api-modifier/{pack}", name: "edit_api", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request                 $request,
-                            EntityManagerInterface  $entityManager): JsonResponse {
-        if ($data = json_decode($request->getContent(), true)) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
-            $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $projectRepository = $entityManager->getRepository(Project::class);
+    public function editApi(Request                $request,
+                            Pack                   $pack,
+                            EntityManagerInterface $entityManager): JsonResponse {
+        $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
+        $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
-            $pack = $packRepository->find($data['id']);
-            $projects = Stream::from($projectRepository->findActive())
-                ->map(fn(Project $project) => [
-                    "label" => $project->getCode(),
-                    "value" => $project->getId(),
-                    "selected" => $pack->getProject() === $project
-                ]);
-
-            $disabledProject = (
-                $preparationOrderArticleLineRepository->isOngoingAndUsingPack($pack)
-                || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
-                || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
-                || !empty($pack->getArticle())
-            );
-
-            $html = $this->renderView('pack/modalEditPackContent.html.twig', [
-                'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
-                'pack' => $pack,
-                'projects' => $projects,
-                'disabledProject' => !empty($disabledProject)
+        $projects = Stream::from($projectRepository->findActive())
+            ->map(fn(Project $project) => [
+                "label" => $project->getCode(),
+                "value" => $project->getId(),
+                "selected" => $pack->getProject() === $project
             ]);
 
-            return new JsonResponse($html);
-        }
-        throw new BadRequestHttpException();
+        $disabledProject = (
+            $preparationOrderArticleLineRepository->isOngoingAndUsingPack($pack)
+            || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
+            || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
+            || !empty($pack->getArticle())
+        );
+
+        $html = $this->renderView('pack/modalEditPackContent.html.twig', [
+            'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
+            'pack' => $pack,
+            'projects' => $projects,
+            'disabledProject' => !empty($disabledProject)
+        ]);
+
+        return new JsonResponse([
+            "html" => $html
+        ]);
     }
 
     #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
@@ -252,7 +250,7 @@ class PackController extends AbstractController {
         $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
 
         $packCode = $pack->getCode();
-        $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
+        $arrivage = $request->query->getInt('arrivage') ? $arrivageRepository->find($request->query->getInt('arrivage')) : null;
         if (!$pack->getTrackingMovements()->isEmpty()) {
             $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité");
         }

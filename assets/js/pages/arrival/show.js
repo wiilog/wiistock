@@ -1,3 +1,10 @@
+import {initEditPackModal, deletePack} from "@app/pages/pack/common";
+import AJAX, {POST, GET} from "@app/ajax";
+import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
+import {wrapLoadingOnActionButton} from "@app/loading";
+
 $('.select2').select2();
 let tableHistoLitige;
 let tablePacks;
@@ -34,7 +41,7 @@ $(function () {
     initDispatchCreateForm($modalNewDispatch, 'arrivals', [arrivalId]);
 
     AJAX
-        .route(AJAX.GET, 'arrival_list_packs_api_columns', {})
+        .route(GET, 'arrival_list_packs_api_columns', {})
         .json()
         .then((columns) => {
             const packDatatable = initPackDatatable(arrivalId, columns);
@@ -57,7 +64,7 @@ function openTableHisto(dispute = undefined) {
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
-            "type": AJAX.POST
+            "type": POST
         },
         serverSide: true,
         order: [['date', 'asc']],
@@ -141,7 +148,7 @@ function initPackDatatable(arrivalId, columns) {
     return initDataTable('tablePacks', {
         ajax: {
             "url": Routing.generate('packs_api', {arrivage: arrivalId}, true),
-            "type": AJAX.POST,
+            "type": POST,
         },
         domConfig: {
             removeInfo: true
@@ -163,7 +170,7 @@ function initDisputeDatatable(arrivalId) {
         },
         ajax: {
             "url": pathArrivageLitiges,
-            "type": AJAX.POST
+            "type": POST
         },
         columns: [
             {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
@@ -202,7 +209,7 @@ function initPackModals(arrivalId, packDatatable) {
             data.append('packs', JSON.stringify(packs));
         })
         .submitTo(
-            AJAX.POST,
+            POST,
             'arrivage_add_pack',
             {
                 tables: [packDatatable],
@@ -219,22 +226,17 @@ function initPackModals(arrivalId, packDatatable) {
             }
         );
 
-    //édition d'UL
     const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+    initEditPackModal({
         tables: [packDatatable],
         waitForUserAction: () => {
             return checkPossibleCustoms($modalEditPack);
         },
-    });
+    })
 
-    //suppression d'UL
-    let modalDeletePack = $("#modalDeletePack");
-    let SubmitDeletePack = $("#submitDeletePack");
-    let urlDeletePack = Routing.generate('pack_delete', true);
-    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packDatatable], clearOnClose: true});
+    $(document).on('click', '.delete-pack', function () {
+        deletePack({ 'pack' : $(this).data('id'), arrivage : arrivalId }, tablePacks);
+    });
 }
 
 function initDisputeModals(arrivalId, disputeDatatable) {
@@ -246,7 +248,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
             data.append('reloadArrivage', arrivalId);
         })
         .submitTo(
-            AJAX.POST,
+            POST,
             "dispute_new",
             {
                 tables: [disputeDatatable],
@@ -283,7 +285,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
             })
         })
         .submitTo(
-            AJAX.POST,
+            POST,
             'arrival_edit_dispute',
             {
                 tables: [disputeDatatable],
