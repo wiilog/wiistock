@@ -16,6 +16,7 @@ use App\Service\MailerService;
 use App\Service\TrackingDelayService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
+use Doctrine\Common\Collections\Order;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -316,7 +317,7 @@ class TrackingMovementListener implements EventSubscriber
                     $replacedTracking = null;
                     if ($pack) {
                         // get last taking
-                        foreach ($pack->getTrackingMovements('ASC') as $packTrackingMovement) {
+                        foreach ($pack->getTrackingMovements(Order::Ascending) as $packTrackingMovement) {
                             if ($packTrackingMovement === $movementToDelete) {
                                 break;
                             }
