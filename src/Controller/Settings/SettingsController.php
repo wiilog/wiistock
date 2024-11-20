@@ -593,11 +593,6 @@ class SettingsController extends AbstractController {
                     "save" => false,
                     "wrapped" => false,
                 ],
-                self::MENU_INVENTORIES_IMPORTS => [
-                    "label" => "Imports d'inventaires",
-                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT,
-                    "save" => false,
-                ],
             ],
         ],
         self::CATEGORY_TEMPLATES => [
