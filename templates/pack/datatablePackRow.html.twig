@@ -24,11 +24,8 @@
                     </div>
                 {% endif %}
                 {% if hasRightDelete %}
-                    <div class="dropdown-item d-flex align-items-center"
-                         data-target="#modalDeletePack"
-                         data-toggle="modal"
-                         data-id="{{ pack.id }}"
-                         onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
+                    <div class="dropdown-item d-flex align-items-center delete-pack"
+                         data-id="{{ pack.id }}">
                         <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
                     </div>
                 {% endif %}

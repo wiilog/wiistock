@@ -242,70 +242,66 @@ class PackController extends AbstractController {
         return new JsonResponse($response);
     }
 
-    #[Route("/supprimer", name: "delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/supprimer/{pack}", name: "delete", options: ["expose" => true], methods: [self::DELETE], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
+                           Pack                     $pack,
                            EntityManagerInterface   $entityManager,
                            TranslationService       $translation): JsonResponse {
-        if ($data = json_decode($request->getContent(), true)) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
 
-            $pack = $packRepository->find($data['pack']);
-            $packCode = $pack->getCode();
-            $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
-            if (!$pack->getTrackingMovements()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité");
-            }
+        $packCode = $pack->getCode();
+        $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
+        if (!$pack->getTrackingMovements()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité");
+        }
 
-            if (!$pack->getDispatchPacks()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs acheminements");
-            }
+        if (!$pack->getDispatchPacks()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs acheminements");
+        }
 
-            if (!$pack->getDisputes()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs litiges");
-            }
-            if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage UL {1}', [
-                    1 => $pack->getArrivage()->getNumeroArrivage()
-                ]);
-            }
-            if ($pack->getTransportDeliveryOrderPack() ) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)));
-            }
-            if (!$pack->getChildArticles()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique contient des articles');
-            }
+        if (!$pack->getDisputes()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs litiges");
+        }
+        if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage UL {1}', [
+                1 => $pack->getArrivage()->getNumeroArrivage()
+            ]);
+        }
+        if ($pack->getTransportDeliveryOrderPack()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)));
+        }
+        if (!$pack->getChildArticles()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique contient des articles');
+        }
 
-            if (isset($msg)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => $msg
-                ]);
-            }
-
-            $receptionLine = $receptionLineRepository->findOneBy(['pack' => $pack]);
-            if ($receptionLine) {
-                $reception = $receptionLine->getReception();
-                $reception?->removeLine($receptionLine);
-                $receptionLine->setPack(null);
-                $entityManager->flush();
-                $entityManager->remove($receptionLine);
-            }
-
-            $entityManager->remove($pack);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,"",
-                'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
-                        1 => $packCode
-                    ])
+        if (isset($msg)) {
+            return $this->json([
+                "success" => false,
+                "msg" => $msg
             ]);
         }
 
-        throw new BadRequestHttpException();
+        $receptionLine = $receptionLineRepository->findOneBy(['pack' => $pack]);
+        if ($receptionLine) {
+            $reception = $receptionLine->getReception();
+            $reception?->removeLine($receptionLine);
+            $receptionLine->setPack(null);
+            $entityManager->flush();
+            $entityManager->remove($receptionLine);
+        }
+
+        $entityManager->remove($pack);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true, "",
+            'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
+                1 => $packCode
+            ])
+        ]);
+
     }
 
     private function putPackLine($handle, CSVExportService $csvService, array $pack):void {

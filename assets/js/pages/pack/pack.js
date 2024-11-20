@@ -1,10 +1,10 @@
 import {getTrackingHistory} from "./show";
 import '@styles/pages/pack/timeline.scss';
-import AJAX, {POST, GET} from "@app/ajax";
+import AJAX, {POST, GET, DELETE} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
+import exportFile from "@app/utils";
 
-global.toExport = toExport; // TODO ENLEVER DU GLOBAL
-global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay; // TODO ENLEVER DU GLOBAL
+global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
 
 const packsTableConfig = {
     responsive: true,
@@ -58,7 +58,6 @@ $(function () {
         const params = JSON.stringify(PAGE_PACK);
         let path = Routing.generate('filter_get_by_page');
         $.post(path, params, function(data) {
-            console.log(data);
             displayFiltersSup(data, true);
         }, 'json');
     } else {
@@ -158,14 +157,52 @@ $(function () {
                     tables: [packsTable],
                 }
             );
-
-        // TODO : Modal.confirm({});
-        let modalDeletePack = $("#modalDeletePack");
-        let SubmitDeletePack = $("#submitDeletePack");
-        let urlDeletePack = Routing.generate('pack_delete', true);
-        InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true, keepModal: false}); //TODO FORM.JS
     }
+
+    $(document).on('click', '.delete-pack', function () {
+        deletePack($(this).data('id'));
+    });
+
+    $('.exportPacks').on('click', function () {
+        exportFile(
+            `pack_export`,
+            {},
+            {
+                needsAllFilters: true,
+                needsDateFormatting: true,
+            }
+        )
+
+    });
+
+    $('.exportGroups').on('click', function () {
+        exportFile(
+            `group_export`,
+            {},
+            {
+                needsAllFilters: true,
+                needsDateFormatting: true,
+            }
+        )
+    });
 });
+
+function deletePack(id){
+    Modal.confirm({
+        ajax: {
+            method: DELETE,
+            route: 'pack_delete',
+            params: { 'pack' : id },
+        },
+        message: Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Voulez-vous réellement supprimer cette UL ?'),
+        title:  Translation.of('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Supprimer l\'UL', false),
+        validateButton: {
+            color: 'danger',
+            label: Translation.of('Général', null, 'Modale', 'Supprimer'),
+        },
+        table: packsTable,
+    })
+}
 
 function addToCart(ids) {
     AJAX.route(POST, `cart_add_logistic_units`, {ids: ids.join(`,`)})
@@ -181,33 +218,12 @@ function addToCart(ids) {
         });
 }
 
-function toExport() {
-    if (selectedTab === TAB_PACKS) {
-        saveExportFile( // TODO FAIRE EVOLUER POUR ENLEVER LA DEPRECATION
-            `pack_export`,
-            true,
-            {},
-            false,
-            Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
-            true
-        );
-    } else {
-        saveExportFile( // TODO FAIRE EVOLUER POUR ENLEVER LA DEPRECATION
-            `group_export`,
-            true,
-            {},
-            false,
-            Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
-            true
-        );
-    }
-}
-
 function toggleAddAllToCartButton() {
     const $addAllCart = $('.add-all-cart');
     if ($('.add-cart').length === 0) {
         $addAllCart.addClass(`d-none`);
-    } else {
+    }
+    else {
         $addAllCart.removeClass(`d-none`);
     }
 }

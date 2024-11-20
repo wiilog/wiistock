@@ -181,7 +181,7 @@ function onSettingsItemSelected($selected, $settingsItems, $settingsContents, op
  *   - determine if user date format needs to be used
  *   - jQuery object for loading
  */
-function exportFile(route, params = {}, options = {}) {
+export default function exportFile(route, params = {}, options = {}) {
     const needsDates = options.needsDates || true;
     const needsAllFilters = options.needsAllFilters || false;
     const needsDateFormatting = options.needsDateFormatting || false;

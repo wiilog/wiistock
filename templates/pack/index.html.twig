@@ -27,17 +27,21 @@
                     actions: [
                         {
                             hasRight: hasRightExport,
-                            title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
+                            title: trans('Général', null, 'Zone liste', 'Exporter les UL au format CSV'),
                             icon: "fa fa-file-csv",
-                            attributes: {
-                                "onclick": "toExport()",
-                            },
+                            class: "exportPacks",
+                        },
+                        {
+                            hasRight: hasRightExport,
+                            title: trans('Général', null, 'Zone liste', 'Exporter les groupes au format CSV'),
+                            icon: "fa fa-file-csv",
+                            class: "exportGroups",
                         },
                         {
                             title: "Gestion des colonnes",
                             icon: "fas fa-cog",
                             attributes: {
-                            "data-toggle": "modal",
+                                "data-toggle": "modal",
                                 "data-target": "#modalFieldModes",
                             },
                         }
@@ -57,7 +61,6 @@
     <input hidden value="{{ code }}" id="lu-code" class="data">
 
     {% include 'pack/modalEditPack.html.twig' %}
-    {% include 'pack/modalDeletePack.html.twig' %}
     {% include 'group/edit.html.twig' %}
     {% include 'group/ungroup.html.twig' %}
     {% include "utils/fields-modes.html.twig" with {
