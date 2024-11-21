@@ -9,7 +9,6 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\PurchaseRequest;
@@ -37,7 +36,6 @@ class CartController extends AbstractController {
     public function cart(EntityManagerInterface $manager,
                          SettingsService        $settingsService): Response {
         $typeRepository = $manager->getRepository(Type::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
         $settingRepository = $manager->getRepository(Setting::class);
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
