@@ -49,7 +49,9 @@ class CartController extends AbstractController {
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
-        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON], null,  [
+            'idsToFind' => $this->getUser()->getDeliveryTypeIds(),
+        ]);
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
         $referencesByBuyer = [];
