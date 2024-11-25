@@ -1571,15 +1571,17 @@ class SettingsController extends AbstractController {
 
                         return [
                             "emergency" => [
-                                "field" => $field->getId(),
-                                "elementsType" => $field->getElementsType(),
-                                "elements" => Stream::from($field->getElements())
-                                    ->map(fn(string $element) => [
-                                        "label" => $element,
-                                        "value" => $element,
-                                        "selected" => true,
-                                    ])
-                                    ->toArray(),
+                                "field" => $field ? $field->getId() : null,
+                                "elementsType" => $field ? $field->getElementsType() : null,
+                                "elements" => $field
+                                    ? Stream::from($field->getElements())
+                                        ->map(fn(string $element) => [
+                                            "label" => $element,
+                                            "value" => $element,
+                                            "selected" => true,
+                                        ])
+                                        ->toArray()
+                                    : [],
                             ],
                         ];
                     },

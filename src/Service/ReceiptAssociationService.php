@@ -76,10 +76,9 @@ class ReceiptAssociationService
 
     public function getFromColumnData(Pack $pack, EntityManagerInterface $entityManager): string
     {
-        $id = $pack->getId();
         $allReceiptNumber = "";
         $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
-        $receipts = $receiptAssociationRepository->getReiceiptIdByPack($pack);
+        $receipts = $receiptAssociationRepository->getReceiptIdByPack($pack);
 
         foreach ($receipts as $receipt) {
             $allReceiptNumber =  $allReceiptNumber . $receipt["receptionNumber"];

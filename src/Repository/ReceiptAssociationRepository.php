@@ -34,7 +34,7 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getReiceiptIdByPack(Pack $pack): array {
+    public function getReceiptIdByPack(Pack $pack): array {
 
          return $this->createQueryBuilder('receipt_association')
                 ->select("receipt_association.receptionNumber")
