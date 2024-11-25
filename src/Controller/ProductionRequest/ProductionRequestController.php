@@ -273,7 +273,7 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Accès refusé");
         }
 
-        if(!empty($productionRequest->getTrackingMovements())){
+        if(!($productionRequest->getTrackingMovements())->isEmpty()){
             return $this->json([
                 "success" => false,
                 "msg" => "Erreur : Cette demande est liée à un ou plusieurs mouvements de traçabilité.
