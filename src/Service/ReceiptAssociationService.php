@@ -79,7 +79,7 @@ class ReceiptAssociationService
         $id = $pack->getId();
         $allReceiptNumber = "";
         $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
-        $receipts = $receiptAssociationRepository->getReiceiptIdByPack($id);
+        $receipts = $receiptAssociationRepository->getReiceiptIdByPack($pack);
 
         foreach ($receipts as $receipt) {
             $allReceiptNumber =  $allReceiptNumber . $receipt["receptionNumber"];

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Language;
+use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
@@ -33,14 +34,14 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getReiceiptIdByPack(string $id) {
+    public function getReiceiptIdByPack(Pack $pack): array {
 
          return $this->createQueryBuilder('receipt_association')
                 ->select("receipt_association.receptionNumber")
                 ->from(ReceiptAssociation::class, 'receipt_association')
                 ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
                 ->where("join_logisticUnits.id = :id")
-                ->setParameter("id", $id)
+                ->setParameter("id", $pack->getId())
                 ->getQuery()
                 ->getArrayResult();
     }
