@@ -23,7 +23,11 @@ function main(): void {
     $WIISTOCK_VERSION = getenv("WIISTOCK_VERSION") ?: null;
     $APP_ENV = getenv("APP_ENV") ?: "prod";
     $APP_CONTEXT = getenv("APP_CONTEXT") ?: "prod";
-    $APP_DOMAIN_NAME = getenv("APP_DOMAIN_NAME") ?: "localhost";
+    $APP_URL = getenv("APP_URL") ?: "http://localhost";
+
+    preg_match("/https?:\/\/(.+)/", $APP_URL, $appDomainMatch);
+
+    $APP_DOMAIN_NAME = getenv("APP_DOMAIN_NAME") ?: $appDomainMatch[1] ?? "localhost";
     $DATABASE_SSL_CONFIG = getenv("DATABASE_SSL_CONFIG") ?: null;
     $APP_SAML_ENABLED = !empty(getenv("APP_SAML_ENABLED") ?: false);
     $DATABASE_URL = getenv("DATABASE_URL") ?: null;
