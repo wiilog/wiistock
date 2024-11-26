@@ -191,13 +191,13 @@ class Role {
         return $this;
     }
 
-    public function setExamples(?iterable $statuses): self {
+    public function setStatuts(?iterable $statuts): self {
         foreach($this->getStatuts()->toArray() as $status) {
             $this->removeStatut($status);
         }
 
         $this->statuts = new ArrayCollection();
-        foreach($statuses ?? [] as $status) {
+        foreach($statuts ?? [] as $status) {
             $this->addStatut($status);
         }
 
