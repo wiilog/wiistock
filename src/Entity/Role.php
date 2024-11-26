@@ -191,7 +191,7 @@ class Role {
         return $this;
     }
 
-    public function setStatut(?iterable $statuts): self {
+    public function setStatuts(?iterable $statuts): self {
         foreach($this->getStatuts()->toArray() as $status) {
             $this->removeStatut($status);
         }
