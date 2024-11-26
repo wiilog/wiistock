@@ -18,7 +18,7 @@ describe('Delete the production request', () => {
     it('Delete the production request', () => {
         let productionRequestId = "P-2024053014490001"
         const tableProductions = 'tableProductions'
-        const columnNumberId = 1;
+        const columnNumberId = 2;
 
         cy.searchInDatatable('#tableProductions_filter', productionRequestId);
 
