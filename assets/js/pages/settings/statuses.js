@@ -1,6 +1,7 @@
 import EditableDatatable, {MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
 import AJAX, {GET} from "@app/ajax";
 import Routing from '@app/fos-routing';
+import {onSelectAll} from "./utils";
 
 const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
@@ -69,8 +70,10 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     const $statusStateOptions = $container.find('[name=status-state-options]');
     const statusStateOptions = JSON.parse($statusStateOptions.val());
     const $groupedSignatureTypes = $container.find('[name=grouped-signature-types]');
-    const hasRightGroupedSignature = $container.find('[name=has-right-grouped-signature]').val();
     const groupedSignatureTypes = $groupedSignatureTypes.val() ? JSON.parse($groupedSignatureTypes.val()) : '';
+    const $roleOptions = $container.find('[name=role-options]');
+    const roleOptions = $roleOptions.val() ? JSON.parse($roleOptions.val()) : '';
+    const hasRightGroupedSignature = $container.find('[name=has-right-grouped-signature]').val();
     const tableSelector = `#${mode}-statuses-table`;
     const type = $('[name=type]:checked').val();
     const $modalEditTranslations = $container.find(".edit-translation-modal");
@@ -125,7 +128,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
             $pageBody.find('.wii-title').remove();
         },
         columns: getStatusesColumn(mode, hasRightGroupedSignature),
-        form: getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes, hasRightGroupedSignature),
+        form: getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes, hasRightGroupedSignature, roleOptions),
     });
 
     let submitEditTranslations = $modalEditTranslations.find("[type=submit]");
@@ -182,6 +185,12 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             data: `sendMailDest`,
             title: `<div class='small-column'>Envoi d'emails aux destinataires</div>`,
             modes: [MODE_HANDLING, MODE_DISPATCH]
+        },
+        {
+            data: `allowedCreationForRoles`,
+            title: `<div style="width: 250px !important; white-space: initial !important;">Autorisation de créer au statut par rôle</div>`,
+            class: `maxw-250px`,
+            modes: [MODE_DISPATCH],
         },
         ...(hasRightGroupedSignature ? [
             {
@@ -270,7 +279,7 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
-function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes, hasRightGroupedSignature){
+function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes, hasRightGroupedSignature, roleOptions){
     return {
         actions: `
             <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
@@ -313,6 +322,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         typeForGeneratedDispatchOnStatusChange: `<select name='typeForGeneratedDispatchOnStatusChange' class='form-control data' data-s2='dispatchType'></select>`,
         requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
+        allowedCreationForRoles: `<select name='allowedCreationForRoles' class='form-control data' multiple data-s2='roles'>${roleOptions}</select>`,
     };
 }
 
@@ -356,6 +366,10 @@ function initializeStatusesByTypes($container, canEdit, mode) {
             $filtersContainer.addClass('d-none');
             $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
         });
+
+    $(document).arrive(`.select-all-options`, function () {
+        $(this).on('click', onSelectAll);
+    });
 }
 
 /**

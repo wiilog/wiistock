@@ -26,15 +26,23 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         /** @var TrackingMovement $trackingMovement */
         $trackingMovement = $object;
 
-        return match ($context["usage"]) {
+        /** @var SerializerUsageEnum $usage */
+        $usage = $context["usage"] ?? null;
+
+        $usageStr = $usage ? $usage->value : "null";
+        $supportedUsageStr = Stream::from(self::SUPPORTED_USAGES)
+            ->map(static fn(SerializerUsageEnum $supported) => $supported->value)
+            ->join(", ");
+
+        return match ($usage) {
             SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobileReadingPage($trackingMovement, $format, $context),
             SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobileTrackingPage($trackingMovement, $format, $context),
-            default => throw new Exception("Invalid usage"),
+            default => throw new Exception("Invalid usage {$usageStr}, should be one of {$supportedUsageStr}"),
         };
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool{
-        return $data instanceof TrackingMovement && in_array($context["usage"] ?? null, self::SUPPORTED_USAGES);
+        return $data instanceof TrackingMovement;
     }
 
     public function getSupportedTypes(?string $format): array {
@@ -57,9 +65,10 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
 
     public function normalizeForMobileTrackingPage(TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
         $pack = $trackingMovement->getPack();
+        $includeMovementId = $context["includeMovementId"] ?? false;
 
         return [
-            ...($context["includeMovementId"]
+            ...($includeMovementId
                 ? ["id" => $trackingMovement->getId()]
                 : []),
             "type" => $trackingMovement->getType()?->getCode(),

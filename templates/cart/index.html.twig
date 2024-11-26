@@ -115,16 +115,15 @@
                             <div class="row mt-2">
                                 <div class="col-md-6 col-12 mb-2">
                                     {{ form.select('deliveryType', 'Type', true, {
-                                        type: 'deliveryType',
+                                        type: '',
                                         placeholder: 'Sélectionnez un type',
-                                        items :defaultType
-                                            ? [{
-                                                label: defaultType.label,
-                                                value: defaultType.id,
-                                                selected: true,
-                                            }]
+                                        items : deliveryTypes ? deliveryTypes | map((type) => ({
+                                                label: type.label,
+                                                value: type.id,
+                                                selected: defaultType is not null and defaultType.id == type.id,
+                                            }))
                                             : [],
-                                        search: false,
+                                        search: true,
                                         onChange: 'cartTypeChange($(this))',
                                     }) }}
                                 </div>
@@ -238,8 +237,14 @@
                                     {{ form.select('collectType', 'Type', true, {
                                         type: 'collectType',
                                         placeholder: 'Sélectionnez un type',
-                                        search: false,
+                                        search: true,
                                         onChange: 'cartTypeChange($(this))',
+                                        items : collectTypes
+                                            ? collectTypes | map((type) => ({
+                                                label: type.label,
+                                                value: type.id,
+                                            }))
+                                            : [],
                                     }) }}
                                 </div>
                                 <div class="col-md-6 col-12">

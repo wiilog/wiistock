@@ -9,7 +9,7 @@
                 <span>{{ fromLabel }}</span>
                 <br/>
             {% endif %}
-            <span>{{ from|replace({'-': '&#8209;'})|raw }}</span>
+            <span>{{ from|escape('html')|raw }}</span>
         </span>
     </a>
 {% elseif from is not null %}
