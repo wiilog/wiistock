@@ -21,7 +21,6 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
@@ -261,13 +260,19 @@ class DispatchService {
             ->filter(static fn(Type $type) => $type->isActive())
             ->toArray();
 
+        $notTreatedStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]);
+        // filter statuses to keep only those which are authorized to be created by the user
+        $notTreatedStatus = array_filter($notTreatedStatus, function (Statut $statut) {
+            return in_array($this->userService->getUser()->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+        });
+
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
             'types' => $types,
-            'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
+            'notTreatedStatus' => $notTreatedStatus,
             'packs' => $packs,
             'entity' => $entity,
             'isArrival' => $entity instanceof Arrivage,
