@@ -168,6 +168,15 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $passStatusAtPurchaseOrderGeneration = false;
 
+    /**
+     * @var Collection<int, Role>
+     */
+    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'statuts')]
+    #[ORM\JoinTable(name: 'statut_role')]
+    #[ORM\JoinColumn(name: 'statut_id', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'role_id', referencedColumnName: 'id')]
+    private Collection $statusCreationAuthorization;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -185,6 +194,7 @@ class Statut {
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
         $this->notifiedUsers = new ArrayCollection();
+        $this->statusCreationAuthorization = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -988,4 +998,45 @@ class Statut {
         $this->passStatusAtPurchaseOrderGeneration = $passStatusAtPurchaseOrderGeneration;
         return $this;
     }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function getStatusCreationAuthorization(): Collection
+    {
+        return $this->statusCreationAuthorization;
+    }
+
+    public function addStatusCreationAuthorization(Role $statusCreationAuthorization): static
+    {
+        if (!$this->statusCreationAuthorization->contains($statusCreationAuthorization)) {
+            $this->statusCreationAuthorization[] = $statusCreationAuthorization;
+
+            $statusCreationAuthorization->addStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatusCreationAuthorization(Role $statusCreationAuthorization): static
+    {
+        if ($this->statusCreationAuthorization->removeElement($statusCreationAuthorization)) {
+            $statusCreationAuthorization->removeStatut($this);
+        }
+        return $this;
+    }
+
+    public function setStatusCreationAuthorization(?iterable $roles): self {
+        foreach($this->getStatusCreationAuthorization()->toArray() as $role) {
+            $this->removeStatusCreationAuthorization($role);
+        }
+
+        $this->statusCreationAuthorization = new ArrayCollection();
+        foreach($roles ?? [] as $role) {
+            $this->addStatusCreationAuthorization($role);
+        }
+
+        return $this;
+    }
+
 }

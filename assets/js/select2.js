@@ -240,6 +240,11 @@ export default class Select2 {
                 }
             });
 
+            if ($element.is('[data-no-full-size]')) {
+                $element.siblings('.select2-container')
+                    .addClass('no-full-size');
+            }
+
             if ($element.is(`[data-keep-selected-order]`)) {
                 $element.on(`select2:select`, function (event) {
                     const $option = $(event.params.data.element);

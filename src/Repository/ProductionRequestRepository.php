@@ -272,6 +272,12 @@ class ProductionRequestRepository extends EntityRepository
                 ->map(static fn(array $dropLocation) => intval($dropLocation["id"]))
                 ->toArray()
             : [];
+
+        $destinationLocations = $filters->has("destinationLocation")
+            ? Stream::from($filters->all("destinationLocation"))
+                ->map(static fn(array $destinationLocation) => intval($destinationLocation["id"]))
+                ->toArray()
+            : [];
         $emergencies = $filters->has("emergencyMultiple")
             ? Stream::from($filters->all("emergencyMultiple"))
                 ->map(static fn(array $emergency) => $emergency["id"])
@@ -291,6 +297,7 @@ class ProductionRequestRepository extends EntityRepository
             ->addSelect("COALESCE(join_translation_status.translation, join_translation_default_status.translation, join_status.nom) AS " . FixedFieldEnum::status->name)
             ->addSelect("DATE_FORMAT(production_request.expectedAt, '$dateFormat') AS " . FixedFieldEnum::expectedAt->name)
             ->addSelect("join_dropLocation.label AS " . FixedFieldEnum::dropLocation->name)
+            ->addSelect("join_destinationLocation.label AS " . FixedFieldEnum::destinationLocation->name)
             ->addSelect("production_request.lineCount AS " . FixedFieldEnum::lineCount->name)
             ->addSelect("production_request.manufacturingOrderNumber AS " . FixedFieldEnum::manufacturingOrderNumber->name)
             ->addSelect("production_request.productArticleCode AS " . FixedFieldEnum::productArticleCode->name)
@@ -298,7 +305,6 @@ class ProductionRequestRepository extends EntityRepository
             ->addSelect("production_request.emergency AS " . FixedFieldEnum::emergency->name)
             ->addSelect("production_request.projectNumber AS " . FixedFieldEnum::projectNumber->name)
             ->addSelect("production_request.comment AS " . FixedFieldEnum::comment->name)
-            ->addSelect("join_destinationLocation.label AS " . FixedFieldEnum::destinationLocation->name)
             ->addSelect("production_request.freeFields AS freeFields")
             ->innerJoin("production_request.createdBy", "join_createdBy")
             ->leftJoin("production_request.treatedBy", "join_treatedBy")
@@ -330,6 +336,12 @@ class ProductionRequestRepository extends EntityRepository
             $queryBuilder
                 ->andWhere("join_dropLocation.id IN (:dropLocations)")
                 ->setParameter("dropLocations", $dropLocations);
+        }
+
+        if(!empty($destinationLocations)) {
+            $queryBuilder
+                ->andWhere("join_destinationLocation.id IN (:destinationLocations)")
+                ->setParameter("destinationLocations", $destinationLocations);
         }
 
         if(!empty($emergencies)) {

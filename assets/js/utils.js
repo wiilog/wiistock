@@ -1,6 +1,6 @@
 import moment from 'moment';
 import Flash from '@app/flash';
-import AJAX, {GET, POST} from '@app/ajax';
+import AJAX, {GET} from '@app/ajax';
 
 export const MAX_UPLOAD_FILE_SIZE = 10000000;
 export const MAX_IMAGE_PIXELS = 1000000;

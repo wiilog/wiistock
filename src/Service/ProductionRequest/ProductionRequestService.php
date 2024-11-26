@@ -11,6 +11,7 @@ use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -45,7 +46,6 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -99,16 +99,17 @@ class ProductionRequestService
 
         $columns = [];
 
-        if($dispatchMode) {
+        if ($dispatchMode || !$forExport) {
             $columns[] = [
-                'title' => "<input type='checkbox' class='checkbox check-all'>",
+                'title' => $dispatchMode ? "<input type='checkbox' class='checkbox check-all'>" : null,
                 'name' => 'actions',
                 'alwaysVisible' => true,
                 'orderable' => false,
                 'class' => 'noVis'
             ];
-        } else if (!$forExport) {
-            $columns[] = ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+            if (!$forExport) {
+                $columns[] = ['name' => 'isDispatched', 'visible' => true, 'orderable' => false];
+            }
         }
 
         if ($page === FieldModesController::PAGE_PRODUCTION_REQUEST_PLANNING) {
@@ -119,7 +120,6 @@ class ProductionRequestService
         }
 
         $columns = array_merge($columns, [
-            ['name' => 'isDispatched', 'visible' => true, 'orderable' => false],
             ['title' => FixedFieldEnum::number->value, 'name' => FixedFieldEnum::number->name],
             ['title' => FixedFieldEnum::createdAt->value, 'name' => FixedFieldEnum::createdAt->name],
             ['title' => FixedFieldEnum::createdBy->value, 'name' => FixedFieldEnum::createdBy->name],
@@ -300,7 +300,7 @@ class ProductionRequestService
                                             Utilisateur            $currentUser,
                                             InputBag               $data,
                                             FileBag                $fileBag,
-                                            bool $fromUpdateStatus = false): array
+                                            bool                   $fromUpdateStatus = false): array
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -378,7 +378,26 @@ class ProductionRequestService
         }
 
         if ($data->has(FixedFieldEnum::expectedAt->name)) {
-            $productionRequest->setExpectedAt($this->formatService->parseDatetime($data->get(FixedFieldEnum::expectedAt->name)));
+            $expectedAtSettings = $this->settingsService->getMinDateByTypesSettings(
+                $entityManager,
+                FixedFieldStandard::ENTITY_CODE_PRODUCTION,
+                FixedFieldEnum::expectedAt,
+                $productionRequest->getId() ? $productionRequest->getCreatedAt() : new DateTime()
+            );
+            $currentExpectedAtMinStr = $expectedAtSettings[$productionRequest->getType()->getId()]
+                ?? $expectedAtSettings["all"]
+                ?? null;
+
+            $expectedAt = $this->formatService->parseDatetime($data->get(FixedFieldEnum::expectedAt->name));
+
+            if ($currentExpectedAtMinStr && $expectedAt) {
+                $currentExpectedAtMin = $this->formatService->parseDatetime($currentExpectedAtMinStr);
+                if ($currentExpectedAtMin > $expectedAt) {
+                    throw new FormException("Il n'est pas possible d'enregistrer une date attendue inférieure à ". $this->formatService->datetime($currentExpectedAtMin));
+                }
+            }
+
+            $productionRequest->setExpectedAt($expectedAt);
         }
 
         if ($data->has(FixedFieldEnum::projectNumber->name)) {
@@ -419,9 +438,20 @@ class ProductionRequestService
 
         if ($status->isCreateDropMovementOnDropLocation()) {
             $nature = $productionRequest->getStatus()->getType()?->getCreatedIdentifierNature();
+            $type = $productionRequest->getStatus()->getType();
+            $identifier = $type->getCreateDropMovementById();
 
-            if(!$productionRequest->getManufacturingOrderNumber()){
-                throw new FormException('Le numéro d’OF est obligatoire pour créer le mouvement de traçabilité');
+            switch ($identifier) {
+                case Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE:
+                    if (!$productionRequest->getManufacturingOrderNumber()) {
+                        throw new FormException('Le numéro d’OF est obligatoire pour créer le mouvement de traçabilité');
+                    }
+                    break;
+                case Type::CREATE_DROP_MOVEMENT_BY_ID_PRODUCTION_REQUEST_VALUE:
+                    if (!$productionRequest->getNumber()) {
+                        throw new FormException('Le numéro de demande de production est obligatoire pour créer le mouvement de traçabilité');
+                    }
+                    break;
             }
 
             if (!$nature) {
@@ -439,8 +469,6 @@ class ProductionRequestService
                 $errors[] = 'Le type de nature n\'est pas autorisé sur cet emplacement';
             }
 
-            $type = $productionRequest->getStatus()->getType();
-            $identifier = $type->getCreateDropMovementById();
             $packOrCode = $identifier === Type::CREATE_DROP_MOVEMENT_BY_ID_MANUFACTURING_ORDER_VALUE
                 ? $productionRequest->getManufacturingOrderNumber()
                 : $productionRequest->getNumber();
@@ -1200,7 +1228,7 @@ class ProductionRequestService
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldByType::class);
 
 
         $user = $this->userService->getUser();
@@ -1239,7 +1267,7 @@ class ProductionRequestService
         }
 
         $fixedFieldParamCountLines  = $fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldEnum::lineCount->name])[0] ?? null;
-        $displayCountLines = $fixedFieldParamCountLines?->isDisplayedEdit() || $fixedFieldParamCountLines?->isDisplayedCreate();
+        $displayCountLines = $fixedFieldParamCountLines?->getDisplayedEdit()->count() || $fixedFieldParamCountLines?->getDisplayedCreate()->count();
 
         $cards = [];
         $linesCountByColumns = [];

@@ -153,8 +153,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
-        $qb->groupBy('user');
-
         return [
             'data' => $qb->getQuery()->getResult(),
             'total' => $this->count([]),

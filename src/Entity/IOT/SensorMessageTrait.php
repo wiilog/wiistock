@@ -9,6 +9,7 @@ use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\Mapping as ORM;
 
 trait SensorMessageTrait {
@@ -97,13 +98,14 @@ trait SensorMessageTrait {
     }
 
     public function getLastMessage(): ?SensorMessage {
-        $criteria = Criteria::create();
         $orderedSensorMessages = $this->sensorMessages
             ->matching(
-                $criteria->orderBy([
-                    'date' => Criteria::DESC,
-                    'id' => Criteria::DESC,
-                ])->setMaxResults(1)
+                Criteria::create()
+                    ->orderBy([
+                        'date' => Order::Descending,
+                        'id' => Order::Descending,
+                    ])
+                    ->setMaxResults(1)
             );
         return $orderedSensorMessages->first() ?: null;
     }

@@ -1,3 +1,9 @@
+const REQUEST_TYPES = {
+    delivery: 'delivery',
+    collect: 'collect',
+    purchase: 'purchase'
+}
+
 window.addEventListener( "pageshow", function ( event ) {
     const historyTraversal = event.persisted ||
         ( typeof window.performance != "undefined" &&
@@ -39,33 +45,42 @@ $(document).ready(() => {
 
     $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
         $(`.sub-form`).addClass(`d-none`);
+        const requestTypeValue = $('input[name="requestType"]:checked').val();
 
-        const requestType = $('input[name="requestType"]:checked').val();
-        if(requestType === "delivery"){
-            $('select[name="delivery-request"]').val("-").trigger('change');
-            $existingDelivery.removeClass('d-none');
-        } else if(requestType === "collect") {
-            $('select[name="collect-request"]').val("-").trigger('change');
-            $existingCollect.removeClass('d-none');
-        } else if(requestType === "purchase") {
-            $existingPurchase.removeClass('d-none');
+        switch (requestTypeValue) {
+            case REQUEST_TYPES.delivery:
+                showSelectOption($existingDelivery, 'delivery-request');
+                break;
+            case REQUEST_TYPES.collect:
+                showSelectOption($existingCollect, 'collect-request');
+                break;
+            case REQUEST_TYPES.purchase:
+                $existingPurchase.removeClass('d-none');
+                break;
+            default:
+                break;
         }
     })
 
-    $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
-        let $select = $("[name=deliveryType]");
-        $select.trigger("change");
+    $(`input[name="addOrCreate"][value="create"]`).on(`click`, function () {
         $(`.sub-form`).addClass(`d-none`);
+        const requestTypeValue = $('input[name="requestType"]:checked').val();
 
-        const requestType = $('input[name="requestType"]:checked').val();
-        if(requestType === "delivery"){
-            $('select[name="delivery-request"]').val("-").trigger('change');
-            $createDelivery.removeClass('d-none');
-        } else if(requestType === "collect") {
-            $('select[name="collect-request"]').val("-").trigger('change');
-            $createCollect.removeClass('d-none');
-        } else if(requestType === "purchase") {
-            $createPurchase.removeClass('d-none');
+        switch (requestTypeValue) {
+            case REQUEST_TYPES.delivery:
+                showSelectOption($createDelivery, 'delivery-request');
+                cartTypeChange($('select[name="deliveryType"]'));
+                break;
+            case REQUEST_TYPES.collect:
+                showSelectOption($createCollect, 'collect-request');
+                cartTypeChange($('select[name="collectType"]'));
+                break;
+            case REQUEST_TYPES.purchase:
+                $createPurchase.removeClass('d-none');
+                break;
+            default:
+                console.error(`Unknown request type ${requestType}`);
+                break;
         }
     });
 
@@ -137,10 +152,12 @@ $(document).ready(() => {
             })
         ));
     });
-
-
-
 });
+
+function showSelectOption($container, selectName) {
+    $(`select[name="${selectName}"]`).val("-").trigger('change');
+    $container.removeClass('d-none');
+}
 
 function initializePurchaseRequestInfos($purchaseInfos, id) {
     initDataTable($purchaseInfos.find(`table`), {
@@ -168,26 +185,47 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
 }
 
 function cartTypeChange($type) {
-    onTypeChange($type);
-
-    if($type.attr(`name`) === `deliveryType`) {
-        const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
-        const type = $type.val();
-        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
-        const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
-
-        $destination.attr(`disabled`, !type);
-        $destination.val(null)
-        if(defaultDestination) {
-            $destination.append(new Option(defaultDestination.label, defaultDestination.id, true, true))
-        }
-
-        $destination.trigger(`change`);
-    } else if($type.attr(`name`) === `collectType`) {
-        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
-        $destination.val(null).trigger(`change`);
-        $destination.attr(`disabled`, !$type.val());
+    // catch error to continue code execution even if an error occurs
+    try {
+        onTypeChange($type);
     }
+    catch (e) {
+        console.error(e)
+    }
+
+    const typeName = $type.attr('name');
+    switch (typeName) {
+        case 'deliveryType':
+            addDefaultDestinationForDeliveryType($type);
+            break;
+        case 'collectType':
+            removeDestinationForCollectType($type);
+            break;
+        default:
+            break;
+    }
+}
+
+function removeDestinationForCollectType($type) {
+    const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
+    $destination.val(null).trigger(`change`);
+    $destination.attr(`disabled`, !$type.val());
+}
+
+function addDefaultDestinationForDeliveryType($type) {
+    const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
+    const type = $type.val();
+
+    const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
+    const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
+
+    $destination.attr(`disabled`, !type);
+    $destination.val(null)
+    if(defaultDestination) {
+        $destination.append(new Option(defaultDestination.label, defaultDestination.id, true, true))
+    }
+
+    $destination.trigger(`change`);
 }
 
 function onDeliveryChanged($select) {
@@ -300,13 +338,9 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
             $(this).prop('required', !$(this).is(':disabled'));
         })
 
-        if (requestType === "delivery" || requestType === "collect") {
-            $addOrCreate.removeClass('d-none');
-        } else if (requestType === "purchase") {
-            $addOrCreate.addClass('d-none');
-        }
+        toggleAddOrCreateVisibility(requestType, $addOrCreate)
 
-        $('.target-location-picking-container').toggleClass('d-none', requestType !== "delivery")
+        $('.target-location-picking-container').toggleClass('d-none', requestType !== REQUEST_TYPES.delivery)
 
         toggleSelectedPurchaseRequest($existingPurchase, requestType);
     }
@@ -329,21 +363,25 @@ function loadLogisticUnitsCartForm($requestType, $addOrCreate, $existingPurchase
             $(this).prop('required', !$(this).is(':disabled'));
         })
 
-        if (requestType === "delivery" || requestType === "collect") {
-            $addOrCreate.removeClass('d-none');
-        } else if (requestType === "purchase") {
-            $addOrCreate.addClass('d-none');
-        }
+        toggleAddOrCreateVisibility(requestType, $addOrCreate)
 
-        $('.target-location-picking-container').toggleClass('d-none', requestType !== "delivery")
+        $('.target-location-picking-container').toggleClass('d-none', requestType !== REQUEST_TYPES.delivery)
 
         toggleSelectedPurchaseRequest($existingPurchase, requestType);
         loadLogisticUnitPack();
     }
 }
 
+function toggleAddOrCreateVisibility(requestType, $addOrCreate) {
+    if (requestType === REQUEST_TYPES.delivery || requestType === REQUEST_TYPES.collect) {
+        $addOrCreate.removeClass('d-none');
+    } else if (requestType === REQUEST_TYPES.purchase) {
+        $addOrCreate.addClass('d-none');
+    }
+}
+
 function toggleSelectedPurchaseRequest($existingPurchase, requestType) {
-    $existingPurchase.toggleClass(`d-none`, (requestType !== "purchase") || ($('.selected-purchase-requests').children().length === 0));
+    $existingPurchase.toggleClass(`d-none`, (requestType !== REQUEST_TYPES.purchase) || ($('.selected-purchase-requests').children().length === 0));
 }
 
 function containsReferences($container) {

@@ -13,6 +13,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Pack;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
@@ -23,6 +24,7 @@ use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
+use App\Service\SettingsService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -525,7 +527,9 @@ class TrackingMovementController extends AbstractController
 
     #[Route("/obtenir-corps-modal-nouveau", name: "mouvement_traca_get_appropriate_html", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
-    public function getAppropriateHtml(Request $request, EntityManagerInterface $entityManager): Response
+    public function getAppropriateHtml(Request                $request,
+                                       EntityManagerInterface $entityManager,
+                                       SettingsService        $settingsService): Response
     {
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -544,6 +548,7 @@ class TrackingMovementController extends AbstractController
             return $this->json([
                 "modalBody" => $fileToRender === "tracking_movement/" ? false : $this->renderView($fileToRender, [
                     'isPickMovement' => $appropriateType?->getCode() === TrackingMovement::TYPE_PRISE,
+                    'displayManualDelayStart' => $settingsService->getValue($entityManager, Setting::DISPLAY_MANUAL_DELAY_START),
                 ]),
             ]);
         }

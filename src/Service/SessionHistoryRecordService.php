@@ -38,6 +38,7 @@ class SessionHistoryRecordService{
         ]);
 
         if (!$historyAlreadyExists) {
+            $user->setLastLogin($date);
             $sessionHistory = (new SessionHistoryRecord())
                 ->setUser($user)
                 ->setOpenedAt($date)
@@ -45,7 +46,6 @@ class SessionHistoryRecordService{
                 ->setSessionId($sessionId);
 
             $entityManager->persist($sessionHistory);
-            $user->setLastLogin($date);
         }
 
         $entityManager->flush();

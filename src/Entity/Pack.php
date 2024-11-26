@@ -16,10 +16,12 @@ use App\Service\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
+#[ORM\Index(fields: ["code"], name: "IDX_WIILOG_CODE",)]
 class Pack implements PairedEntity {
 
     use SensorMessageTrait;
@@ -289,7 +291,7 @@ class Pack implements PairedEntity {
      * @param string $order
      * @return Collection|TrackingMovement[]
      */
-    public function getTrackingMovements(string $order = 'DESC'): Collection {
+    public function getTrackingMovements(Order $order = Order::Descending): Collection {
         $criteria = Criteria::create()
             ->orderBy([
                 "datetime" => $order,
