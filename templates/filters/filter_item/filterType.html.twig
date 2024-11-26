@@ -8,7 +8,8 @@
                         id="type">
                     <option value>{{ placeholder is defined ? placeholder : 'Type' }}</option>
                     {% for type in types | sort((a, b) => a.label <=> b.label) %}
-                        <option value="{{ type.label }}">
+                        <option {{ type.label in typesFilter ? 'selected' }}
+                            value="{{ type.label }}">
                             {{ userLanguage is defined and  defaultLanguage is defined
                                 ? type.labelIn(userLanguage, defaultLanguage)
                                 : type.label }}

@@ -211,7 +211,6 @@ function validateLivraison(livraisonId, $button) {
 }
 
 function ajaxEditArticle(select) {
-    console.log("cacoucacou")
     let path = Routing.generate('article_show', true);
     let params = {id: select.val(), isADemand: 1};
 

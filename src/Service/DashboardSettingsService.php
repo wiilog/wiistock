@@ -1376,6 +1376,12 @@ class DashboardSettingsService {
                                 'types' => $types,
                                 'fromDashboard' => true,
                             ]),
+                        Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING => $this->router->generate('handling_index',
+                            [
+                                'statuses' => $statuses,
+                                'types' => $types,
+                                'fromDashboard' => true,
+                            ]),
                         default => null,
                     };
                 } else {

@@ -9,9 +9,11 @@
 
 
     {% if page == 'PAGE_HAND' %}
-        {% include 'filters/filter_item/filterType.html.twig' with {
-            onchange: 'onFilterTypeChange($(this))',
-            placeholder: trans('Demande', 'Général', 'Type', false)
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types: types,
+            filterTypes: typesFilter,
+            onchange : 'onFilterTypeChange($(this))',
+            disabled,
         } %}
         {% include 'filters/filter_item/filterMultipleStatuses.html.twig' %}
     {% else %}

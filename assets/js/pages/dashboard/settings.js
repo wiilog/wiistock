@@ -1346,7 +1346,8 @@ function onEntityChange($select, onInit = false) {
     const $dispatchContainer = $modal.find(`.dispatch-container`);
     const $redirectCheckbox = $modal.find(`.redirect`);
     const $redirectDispatchLabel = $modal.find(`label.redirect-dispatch`);
-    const $redirectProductionLabel = $modal.find(`.redirect-production`);
+    const $redirectProductionLabel = $modal.find(`label.redirect-production`);
+    const $redirectHandlingLabel = $modal.find(`label.redirect-handling`);
 
     const disabledTypeSelect = (!categoryType || $correspondingTypes.length === 0);
     const disabledStatusSelect = (!categoryStatus || $correspondingStatuses.length === 0);
@@ -1377,21 +1378,32 @@ function onEntityChange($select, onInit = false) {
         }
     }
 
-    if (['requests_to_treat_dispatch', 'requests_to_treat_production'].includes($selectedOption.val())) {
+    if (['requests_to_treat_dispatch', 'requests_to_treat_production', 'requests_to_treat_handling'].includes($selectedOption.val())) {
         $redirectCheckbox.removeClass('d-none');
         $redirectDispatchLabel.addClass('d-none');
         $redirectProductionLabel.addClass('d-none');
+        $redirectHandlingLabel.addClass('d-none');
         $dispatchContainer.addClass('d-none');
-        if ($selectedOption.val() === 'requests_to_treat_dispatch') {
-            $redirectDispatchLabel.removeClass('d-none');
-            $dispatchContainer.removeClass('d-none');
-        } else if ($selectedOption.val() === 'requests_to_treat_production') {
-            $redirectProductionLabel.removeClass('d-none');
+
+        switch($selectedOption.val()) {
+            case 'requests_to_treat_dispatch':
+                $redirectDispatchLabel.removeClass('d-none');
+                $dispatchContainer.removeClass('d-none');
+                break;
+            case 'requests_to_treat_production':
+                $redirectProductionLabel.removeClass('d-none');
+                break;
+            case 'requests_to_treat_handling':
+                $redirectHandlingLabel.removeClass('d-none');
+                break;
+            default:
+                break;
         }
     } else {
         $dispatchContainer.addClass('d-none');
         $redirectDispatchLabel.addClass('d-none');
         $redirectProductionLabel.addClass('d-none');
+        $redirectHandlingLabel.addClass('d-none');
         $redirectCheckbox.addClass('d-none');
     }
 
