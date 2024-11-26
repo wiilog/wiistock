@@ -4,12 +4,15 @@
 namespace App\Service;
 
 use App\Controller\FieldModesController;
+use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Sensor;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
 use App\Entity\Project;
@@ -29,6 +32,7 @@ use Iterator;
 use RuntimeException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -87,6 +91,10 @@ class PackService {
 
     #[Required]
     public UserService $userService;
+
+    #[Required]
+    public RouterInterface $router;
+
 
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -190,10 +198,59 @@ class PackService {
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastAction();
+        $isGroup = $pack->getGroupIteration() || !$pack->getChildren()->isEmpty();
         return [
-            'actions' => $this->templating->render('pack/datatablePackRow.html.twig', [
-                'pack' => $pack,
-                'hasPairing' => $hasPairing
+            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                'actions' => [
+                    [
+                        'hasRight' => $pack->getArrivage(),
+                        'title' => $this->translationService->translate('Général', null, 'Zone liste', 'Imprimer'),
+                        'icon' => 'wii-icon wii-icon-printer-black',
+                        'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()->getId(), 'pack' => $pack->getId() ]),
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
+                        'title' => $this->translationService->translate('Général', null, 'Modale', 'Modifier'),
+                        'icon' => 'fas fa-edit',
+                        'attributes' => [
+                            'data-toggle' => "modal",
+                            'data-target' => "#modalEditPack",
+                            'data-id' => $pack->getId(),
+                        ]
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE),
+                        'title' => $this->translationService->translate('Général', null, 'Modale', 'Supprimer'),
+                        'icon' => 'wii-icon wii-icon-trash-black',
+                        'class' => 'delete-pack',
+                        'attributes' => [
+                            'data-toggle' => "modal",
+                            'data-target' => "#modalEditPack",
+                            'data-id' => $pack->getId(),
+                        ]
+                    ],
+                    [
+                        'hasRight' => $hasPairing && $this->userService->hasRightFunction(Menu::IOT, Action::DISPLAY_SENSOR),
+                        'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données'),
+                        'icon' => 'wii-icon wii-icon-pairing',
+                        'href' => $this->router->generate('show_data_history', [ 'type' => Sensor::PACK, 'id' => $pack->getId() ]),
+                    ],
+                    [
+                        'hasRight' => !$isGroup,
+                        'title' => 'Recalculer le délai de traça',
+                        'icon' => 'wii-icon wii-icon-modif wii-icon-17px-black',
+                        'attributes' => [
+                            'onclick' => "reloadLogisticUnitTrackingDelay({$pack->getId()})",
+                        ]
+                    ],
+                    [
+                        'hasRight' => true,
+                        'title' => "Détails",
+                        'icon' => 'fa fa-eye',
+                        'href' => $this->router->generate('pack_show', ['id' => $pack->getId()]),
+                        'class' => 'action-on-click'
+                    ],
+                ],
             ]),
             'cart' => $this->templating->render('pack/cart-column.html.twig', [
                 'pack' => $pack,
@@ -286,25 +343,31 @@ class PackService {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $projectRepository = $entityManager->getRepository(Project::class);
 
+        $isGroup = $pack->getGroupIteration() || !empty($pack->getChildren);
         $natureId = $data->get('nature');
-        $projectId = $data->get('projects');
-        $quantity = $data->get('quantity');
         $comment = $data->get('comment');
         $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;
         $volume = !empty($data->get('volume')) ? str_replace(",", ".", $data->get('volume')) : null;
+        $recordDate = new DateTime();
 
         $nature = $natureId ? $natureRepository->find($natureId) : null;
-        $project = $projectRepository->findOneBy(["id" => $projectId]);
 
-        $recordDate = new DateTime();
-        $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
+        if (!$isGroup) {
+            $projectId = $data->get('projects');
+            $quantity = $data->get('quantity');
 
-        foreach($pack->getChildArticles() as $article) {
-            $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
+            $project = $projectRepository->findOneBy(["id" => $projectId]);
+            $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
+            foreach($pack->getChildArticles() as $article) {
+                $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
+            }
+
+            $pack
+                ->setQuantity($quantity);
+
         }
 
         $pack
-            ->setQuantity($quantity)
             ->setWeight($weight)
             ->setVolume($volume)
             ->setNature($nature)

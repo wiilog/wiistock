@@ -24,56 +24,6 @@ use Throwable;
 
 #[Route('/groupes', name: 'group_')]
 class GroupController extends AbstractController {
-    #[Route("/api-modifier", name: "edit_api", options: ['expose' => true], methods: [self::GET, self::POST])]
-    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request                $request,
-                            EntityManagerInterface $manager): Response {
-
-        // TODO voir si on peut factoriser avec la methode de Pack
-
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $packRepository = $manager->getRepository(Pack::class);
-            $natureRepository = $manager->getRepository(Nature::class);
-            $group = $packRepository->find($data['id']);
-
-            return $this->json($this->renderView("group/edit_content.html.twig", [
-                'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
-                'group' => $group
-            ]));
-        }
-
-        throw new BadRequestHttpException();
-    }
-
-    #[Route("/modifier", name: "edit", options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
-    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function edit(Request $request, EntityManagerInterface $manager): Response
-    {
-        // TODO voir si on peut factoriser avec la methode de Pack
-        $data = json_decode($request->getContent(), true);
-
-        $packRepository = $manager->getRepository(Pack::class);
-        $natureRepository = $manager->getRepository(Nature::class);
-
-        $group = $packRepository->find($data["id"]);
-        if ($group) {
-            $group->setNature($natureRepository->find($data["nature"]))
-                ->setWeight($data["weight"] === "" ? null : $data["weight"])
-                ->setVolume($data["volume"] === "" ? null : $data["volume"])
-                ->setComment($data["comment"] ?? null);
-
-            $manager->persist($group);
-            $manager->flush();
-
-            return $this->json([
-                "success" => true,
-                "msg" => "Le groupe {$group->getCode()} a bien été modifié",
-            ]);
-        }
-
-        throw new NotFoundHttpException();
-    }
-
     #[Route("/api-degrouper", name: "ungroup_api", options: ['expose' => true], methods: [self::POST, self::GET])]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function ungroupApi(Request                $request,
@@ -123,10 +73,6 @@ class GroupController extends AbstractController {
                                  TrackingMovementService $trackingMovementService,
                                  TranslationService      $translationService,
                                  EntityManagerInterface  $entityManager): Response {
-
-
-        // TODO quesq'on fait des exports ??
-
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 

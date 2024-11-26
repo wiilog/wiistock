@@ -45,19 +45,6 @@ class GroupService {
         return $group;
     }
 
-    public function dataRowGroup(Pack $pack) {
-        return [
-            "actions" => $this->template->render('group/table/actions.html.twig', [
-                "group" => $pack
-            ]),
-            "details" => $this->template->render("group/table/details.html.twig", [
-                "group" => $pack,
-                "last_movement" => $pack->getLastAction(),
-                "formatter" => $this->formatService
-            ]),
-        ];
-    }
-
     public function ungroup(EntityManagerInterface $manager,
                             Pack $parent,
                             Emplacement $destination,

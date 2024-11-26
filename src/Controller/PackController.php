@@ -177,8 +177,7 @@ class PackController extends AbstractController {
 
     #[Route("/api-modifier/{pack}", name: "edit_api", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request                $request,
-                            Pack                   $pack,
+    public function editApi(Pack                   $pack,
                             EntityManagerInterface $entityManager): JsonResponse {
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);

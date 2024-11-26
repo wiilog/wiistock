@@ -9,7 +9,7 @@
      </span>
 {% else %}
     {{ pack.code }}
-    {{ not pack.children.empty ? '<span class="fa fa-object-group ml-1" title="cette ul est un groupe"></span>' }}
+    {% set isGroup = pack.groupIteration or (not pack.children.empty) %}
+    {{ pack.isGroup ? '<span class="fa fa-object-group ml-1" title="cette ul est un groupe"></span>' }}
     {{ pack.splitFrom ? ('<span class="fa fa-arrows-split-up-and-left ml-1" title="ul issu de la division de ' ~ pack.splitFrom.from.code | escape('html') ~ '"></span>' ) | raw}}
 {% endif %}
-
