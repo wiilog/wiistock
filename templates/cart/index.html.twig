@@ -235,7 +235,7 @@
                             <div class="row mt-2">
                                 <div class="col-md-6 col-12">
                                     {{ form.select('collectType', 'Type', true, {
-                                        type: 'collectType',
+                                        type: '',
                                         placeholder: 'Sélectionnez un type',
                                         search: true,
                                         onChange: 'cartTypeChange($(this))',
@@ -243,6 +243,7 @@
                                             ? collectTypes | map((type) => ({
                                                 label: type.label,
                                                 value: type.id,
+                                                selected: false,
                                             }))
                                             : [],
                                     }) }}
