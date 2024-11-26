@@ -31,7 +31,7 @@ $(function () {
         $modalNewDispatch.modal(`show`);
     });
 
-    initDispatchCreateForm($modalNewDispatch, [arrivalId]);
+    initDispatchCreateForm($modalNewDispatch, 'arrivals', [arrivalId]);
 
     AJAX
         .route(AJAX.GET, 'arrival_list_packs_api_columns', {})

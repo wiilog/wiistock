@@ -38,11 +38,11 @@
                 {% if label.url is defined %}
                     <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
                 {% endif %}
-                {{ label.text | raw }}
+                {{- label.text | raw -}}
             {% else %}
-                {{ label | raw }}
+                {{- label | raw -}}
             {% endif %}
-            {{ required and options.removeAsterisk is not defined ? '*' }}
+            {{- required and options.removeAsterisk is not defined ? '*' -}}
         </span>
         <span class="wii-small-text"> {{ options.smallText ?? '' }}</span>
     {% endif %}
@@ -210,6 +210,7 @@
                                 {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
                                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                                 {% if options.autoSelect ?? false %}data-auto-select{% endif %}
+                                {% if options.noFullSize ?? false %}data-no-full-size{% endif %}
                                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
                                 {% if options.includeParamsParent is defined %}data-include-params-parent="{{ options.includeParamsParent }}"{% endif %}
@@ -255,7 +256,7 @@
         {% if options.selectAllLabel ?? false %}
                 </div>
                 <div class="input-group-append col-4">
-                    <button class="btn btn-primary select-all-options w-100" type="button">{{ options.selectAllLabel }}</button>
+                    <button class="btn btn-primary select-all-options {{ options.selectAllLabelClass ?? 'w-100' }}" type="button">{{ options.selectAllLabel }}</button>
                 </div>
             </div>
         {% endif %}

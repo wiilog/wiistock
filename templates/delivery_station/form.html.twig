@@ -49,10 +49,9 @@
                         <div class="row filter-fields-container">
                             {% if filterFields is not empty %}
                                 {% for filterField in filterFields %}
-                                    {% if filterField is instanceof('App\\Entity\\FreeField\\FreeField') %}
+                                    {% if filterField is instanceof('App\\Entity\\FreeField\\FreeFieldManagementRule') %}
                                         {% include "free_field/freeFieldsEdit.html.twig" with {
-                                            freeFieldManagementRules,
-                                            freeFields: [filterField],
+                                            freeFieldManagementRules: [filterField],
                                             freeFieldValues: null,
                                             actionType: "new",
                                             disabledNeeded: true,
@@ -63,12 +62,14 @@
                                         <div class="col-md-4 col-12 w-100 my-2">
                                             {{ form.select('type', 'Type', false, {
                                                 type: 'types',
-                                                includeParams: '[name=categoryType]',
                                                 includeParamsParent: '.reference-choice-container',
+                                                additionalAttributes: [
+                                                    {name: 'data-other-params'},
+                                                    {name: 'data-other-params-category', value: constant('App\\Entity\\CategoryType::ARTICLE')}
+                                                ],
                                                 search: true,
                                             }) }}
                                         </div>
-                                        <input type="hidden" name="categoryType" value="{{ constant('App\\Entity\\CategoryType::ARTICLE') }}">
                                     {% endif %}
                                 {% endfor %}
                             {% else %}

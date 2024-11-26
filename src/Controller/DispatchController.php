@@ -23,6 +23,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -39,6 +40,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\PackService;
+use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
@@ -242,15 +244,16 @@ class DispatchController extends AbstractController {
 
     #[Route("/creer", name: "dispatch_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::CREATE_ACHE])]
-    public function new(Request                $request,
-                        FreeFieldService       $freeFieldService,
-                        DispatchService        $dispatchService,
-                        AttachmentService      $attachmentService,
-                        EntityManagerInterface $entityManager,
-                        TranslationService     $translationService,
-                        UniqueNumberService    $uniqueNumberService,
-                        RedirectService        $redirectService,
-                        StatusHistoryService   $statusHistoryService): Response {
+    public function new(Request                  $request,
+                        FreeFieldService         $freeFieldService,
+                        DispatchService          $dispatchService,
+                        AttachmentService        $attachmentService,
+                        EntityManagerInterface   $entityManager,
+                        TranslationService       $translationService,
+                        UniqueNumberService      $uniqueNumberService,
+                        RedirectService          $redirectService,
+                        StatusHistoryService     $statusHistoryService,
+                        ProductionRequestService $productionRequestService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -273,9 +276,15 @@ class DispatchController extends AbstractController {
             }
         }
 
+        $productionIds = $post->get('production');
+
         if($post->getBoolean('existingOrNot')) {
             $existingDispatch = $entityManager->find(Dispatch::class, $post->getInt('existingDispatch'));
             $dispatchService->manageDispatchPacks($existingDispatch, $packs, $entityManager);
+
+            if($productionIds){
+                $productionRequestService->linkProductionsAndDispatch($entityManager, json_decode($productionIds) ?? [], $existingDispatch);
+            }
 
             $entityManager->flush();
 
@@ -381,6 +390,10 @@ class DispatchController extends AbstractController {
             ->setCustomerPhone($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH))
             ->setCustomerRecipient($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
             ->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
+
+        if($productionIds){
+            $productionRequestService->linkProductionsAndDispatch($entityManager, json_decode($productionIds) ?? [], $dispatch);
+        }
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
             "initiatedBy" => $currentUser
@@ -625,14 +638,17 @@ class DispatchController extends AbstractController {
 
         $now = new DateTime();
 
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
-            $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
-            $dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)
+            || ($dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH))
+            || ($dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH))
+        ) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
-        $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
+        if ($post->getBoolean("isAttachmentForm")) {
+            $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
+            $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
+        }
 
         $type = $dispatch->getType();
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
@@ -1209,8 +1225,10 @@ class DispatchController extends AbstractController {
                     ? $payload->all('files')
                     : [];
 
-                $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
-                $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
+                if ($payload->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+                    $attachmentService->removeAttachments($entityManager, $dispatch, $alreadySavedFiles);
+                    $attachmentService->manageAttachments($entityManager, $dispatch, $request->files);
+                }
 
                 $entityManager->flush();
             } else {
@@ -1590,38 +1608,71 @@ class DispatchController extends AbstractController {
         return $response;
     }
 
-    #[Route("/create-form-arrivals-template", name: "create_from_arrivals_template", options: ["expose" => true], methods: self::GET)]
-    public function createFromArrivalTemplate(Request                $request,
+    #[Route("/create-form-entities-template", name: "create_from_entities_template", options: ["expose" => true], methods: self::GET)]
+    public function createFromEntitiesTemplate(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService): JsonResponse
     {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $productionRepository = $entityManager->getRepository(ProductionRequest::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $arrivalsIds = $request->query->all('arrivals');
-        $arrivals = !empty($arrivalsIds)
-            ? $arrivageRepository->findBy(['id' => $arrivalsIds])
-            : [];
+        $entityIds = $request->query->all('entityIds');
+        $entityType = $request->query->get('entityType');
+
+        $entities = [];
+        $packs = [];
+        if(!empty($entityIds)){
+           switch($entityType) {
+                case 'arrivals':
+                    $entities = $arrivageRepository->findBy(['id' => $entityIds]);
+                    $packs = Stream::from($entities)
+                        ->flatMap(static fn(Arrivage $arrival) => $arrival->getPacks()->toArray())
+                        ->toArray();
+                    break;
+                case 'productions':
+                    $entities = $productionRepository->findBy(['id' => $entityIds]);
+                    $packs = Stream::from($entities)
+                        ->flatMap(static fn(ProductionRequest $productionRequest) => $productionRequest->getLastTracking()
+                            ? [$productionRequest->getLastTracking()->getPack()]
+                            : []
+                        )
+                        ->toArray();
+                    break;
+                default:
+                    break;
+            }
+        }
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH], null, [
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
-        $packs = Stream::from($arrivals)
-            ->flatMap(static fn(Arrivage $arrival) => $arrival->getPacks()->toArray())
-            ->toArray();
+        $defaultType = null;
 
-        return $this->json([
+        if(count($entities) === 1 && $entities[0] instanceof ProductionRequest) {
+            /** @var ProductionRequest $productionRequest */
+            $defaultType = $entities[0]->getStatus()->getTypeForGeneratedDispatchOnStatusChange();
+        }
+
+        $response = [
             'success' => true,
-            'html' => $this->renderView('dispatch/forms/formFromArrival.html.twig',
+            'html' => $this->renderView('dispatch/forms/formFromEntity.html.twig',
                 $dispatchService->getNewDispatchConfig(
                     $entityManager,
                     $types,
-                    count($arrivals) === 1 ? $arrivals[0] : null,
-                    $packs
+                    count($entities) === 1 ? $entities[0] : null,
+                    $packs,
+                    $entityIds,
                 ),
-            )
-        ]);
+            ),
+        ];
+
+        if ($defaultType !== null) {
+            $response['defaultTypeId'] = $defaultType->getId();
+        }
+
+        return $this->json($response);
     }
 
     #[Route("/get-dispatch-details", name: "get_dispatch_details", options: ["expose" => true], methods: "GET")]

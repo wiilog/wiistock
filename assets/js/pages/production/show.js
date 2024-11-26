@@ -1,13 +1,22 @@
 import AJAX, {GET} from "@app/ajax";
 import Form from "@app/form";
 import Camera from "@app/camera"
-import {displayAttachmentRequired, openModalUpdateProductionRequestStatus, initDeleteProductionRequest} from '@app/pages/production/form'
+import {displayAttachmentRequired, initDeleteProductionRequest, modalConfirmDeleteProductionRequest, openModalUpdateProductionRequestStatus} from '@app/pages/production/form'
 
 global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
-    const $modalEditProductionRequest = $('#modalEditProductionRequest');
+    const $openModal = $('input[name=open-modal]');
     const productionRequestId = $(`[name=productionRequestId]`).val();
+
+    if($openModal.val() === 'new') {
+        let $modalNewDispatch = $("#modalNewDispatch");
+        initDispatchCreateForm($modalNewDispatch, 'productions', [productionRequestId]);
+        if (productionRequestId) {
+            $modalNewDispatch.modal(`show`);
+        }
+    }
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
     Form
         .create($modalEditProductionRequest)
         .onOpen(() => {
@@ -20,8 +29,12 @@ $(function () {
             routeParams: {
                 productionRequest: productionRequestId
             },
-            success: () => {
-                window.location.reload();
+            success: (response) => {
+                if(response.needModalConfirmationForGenerateDispatch) {
+                    modalConfirmDeleteProductionRequest(productionRequestId)
+                } else {
+                    window.location.reload();
+                }
             }
         });
 

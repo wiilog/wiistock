@@ -4,7 +4,6 @@ import Routing from '@app/fos-routing';
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
-    deliveryType: `ajax_select_delivery_type`,
     collectType: `ajax_select_collect_type`,
     referenceType: `ajax_select_reference_type`,
     dispatchType: `ajax_select_dispatch_type`,
@@ -240,6 +239,11 @@ export default class Select2 {
                     }
                 }
             });
+
+            if ($element.is('[data-no-full-size]')) {
+                $element.siblings('.select2-container')
+                    .addClass('no-full-size');
+            }
 
             if ($element.is(`[data-keep-selected-order]`)) {
                 $element.on(`select2:select`, function (event) {

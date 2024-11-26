@@ -1,19 +1,5 @@
 {% import 'form.html.twig' as form %}
-
-{% macro dataAttributesFieldbyType(fieldsParam, fieldCode) %}
-    {% for ParamName, types in fieldsParam[fieldCode] is defined ? fieldsParam[fieldCode] : [] %}
-        {% if ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT')] %}
-            data-displayed-type
-        {% elseif ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT')] %}
-            data-required-type
-        {% else %}
-            data-{{ ParamName }}-type
-        {% endif %}
-        ="{{ types }}"
-    {% endfor %}
-{% endmacro %}
-
-{% import _self as macros %}
+{% import 'utils/fixed-field-by-type.html.twig' as macros %}
 
 {% set displayAction = dispatch.id ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
 {% set requiredAction = dispatch.id ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
@@ -21,18 +7,23 @@
 {% set typeCanChange =  dispatch.id ? false : true %}
 
 {% set keepModalOpenAndClearAfterSubmit = setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT') %}
+{% set keepModalOpenAndClearAfterSubmitRoles = setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT_FOR_ROLES') %}
 
 {% if dispatch.id %}
     {{ form.hidden('id', dispatch.id) }}
 {% endif %}
 
-{% if keepModalOpenAndClearAfterSubmit %}
+{% if keepModalOpenAndClearAfterSubmit and app.user.role.id in keepModalOpenAndClearAfterSubmitRoles|split(',') %}
     {{ form.hidden('keepModalOpenAndClearAfterSubmit', keepModalOpenAndClearAfterSubmit) }}
 {% endif %}
 
+{% if isArrival is defined and not isArrival %}
+    {{ form.hidden('production', entityIds) }}
+{% endif %}
 <div class="row">
     <div class="col-md-4 col-12">
         {% set uniqueType = types is defined and types|length == 1 %}
+        {% set entityIsDefined = isArrival is defined and entity is defined and not isArrival and entity is not null %}
         {{ form.select(constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH'), trans('Demande', 'Général', 'Type', false), true, {
             inputClass: 'needs-default',
             disabled: dispatch.id,
@@ -49,10 +40,10 @@
                     value: type.id,
                     label: type | format_helper('type'),
                     selected: uniqueType,
-                    'pick-location-id': type.pickLocation ? type.pickLocation.id,
-                    'pick-location-label': type.pickLocation ? type.pickLocation.label,
-                    'drop-location-id': type.dropLocation ? type.dropLocation.id,
-                    'drop-location-label': type.dropLocation ? type.dropLocation.label,
+                    'pick-location-id': entityIsDefined and entity.dropLocation ? entity.dropLocation.id : (type.pickLocation ? type.pickLocation.id),
+                    'pick-location-label': entityIsDefined and entity.dropLocation ? entity.dropLocation.label : (type.pickLocation ? type.pickLocation.label),
+                    'drop-location-id': entityIsDefined and entity.destinationLocation ? entity.destinationLocation.id : (type.dropLocation ? type.dropLocation.id),
+                    'drop-location-label': entityIsDefined and entity.destinationLocation ? entity.destinationLocation.label : (type.dropLocation ? type.dropLocation.label),
                     'suggested-drop-locations': type.suggestedDropLocations | join(''),
                     'suggested-pick-locations': type.suggestedDropLocations| join(''),
                 })),
@@ -264,7 +255,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {% set projectNumber = dispatch.id is defined ? dispatch.projectNumber : (arrival is defined ? arrival.projectNumber : null) %}
+            {% set projectNumber = dispatch.id is defined ? dispatch.projectNumber : (entity is defined and isArrival ? entity.projectNumber : null) %}
             {{ form.input(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet'), requiredOnform, projectNumber, {
                 additionalAttributes: dispatch.id ? [] : [
                     { name: 'data-init', value: projectNumber },
@@ -460,6 +451,6 @@
             } %}
         </div>
     {% else %}
-        {{ form.hidden('isAttachmentForm', 1) }}
+        {{ form.hidden('isAttachmentForm', 0) }}
     {% endif %}
 </div>

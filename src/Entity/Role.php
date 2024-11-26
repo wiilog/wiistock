@@ -41,9 +41,16 @@ class Role {
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
+    /**
+     * @var Collection<int, Statut>
+     */
+    #[ORM\ManyToMany(targetEntity: Statut::class, mappedBy: 'statusCreationAuthorization')]
+    private Collection $statuts;
+
     public function __construct() {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->statuts = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -156,5 +163,46 @@ class Role {
         $this->landingPage = $landingPage;
         return $this;
     }
+
+    /**
+     * @return Collection<int, Statut>
+     */
+    public function getStatuts(): Collection
+    {
+        return $this->statuts;
+    }
+
+    public function addStatut(Statut $statut): static
+    {
+        if (!$this->statuts->contains($statut)) {
+            $this->statuts[] = $statut;
+            $statut->addStatusCreationAuthorization($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatut(Statut $statut): static
+    {
+        if ($this->statuts->removeElement($statut)) {
+            $statut->removeStatusCreationAuthorization($this);
+        }
+
+        return $this;
+    }
+
+    public function setExamples(?iterable $statuses): self {
+        foreach($this->getStatuts()->toArray() as $status) {
+            $this->removeStatut($status);
+        }
+
+        $this->statuts = new ArrayCollection();
+        foreach($statuses ?? [] as $status) {
+            $this->addStatut($status);
+        }
+
+        return $this;
+    }
+
 
 }

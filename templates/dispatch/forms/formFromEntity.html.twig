@@ -41,7 +41,11 @@
 
 <div class="row dispatch-details mb-3"></div>
 <div class="new-dispatch">
-    {% include 'dispatch/forms/form.html.twig' with {arrival} %}
+    {% include 'dispatch/forms/form.html.twig' with {
+        entity,
+        isArrival,
+        entityIds,
+    } %}
 </div>
 
 {% if packs is defined and packs is not empty %}

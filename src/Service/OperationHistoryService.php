@@ -60,6 +60,7 @@ class OperationHistoryService {
     public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
     public const TYPE_REQUEST_EDITED_DETAILS = "REQUEST_EDITED_DETAILS";
     public const TYPE_ADD_DISPATCH = "ADD_DISPATCH";
+    public const TYPE_CREATE_DISPATCH = "CREATE_DISPATCH";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}.{message}",
@@ -88,7 +89,8 @@ class OperationHistoryService {
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
         self::TYPE_REQUEST_EDITED => "La demande a été modifiée",
         self::TYPE_REQUEST_EDITED_DETAILS => "{user} a modifié les informations suivantes : {message}",
-        self::TYPE_ADD_DISPATCH => "{user} à créer un mouvement de traçabilité. {message}",
+        self::TYPE_ADD_DISPATCH => "{user} a créé un mouvement de traçabilité. {message}",
+        self::TYPE_CREATE_DISPATCH => "{user} a créé une demande d'acheminement. {message}"
     ];
 
     #[Required]
@@ -295,7 +297,8 @@ class OperationHistoryService {
             self::TYPE_REQUEST_EDITED_DETAILS,
             self::TYPE_REQUEST_AFFECTED_ROUND,
             self::TYPE_ADD_DISPATCH,
-            self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
+            self::TYPE_PACKS_FAILED,
+            self::TYPE_CREATE_DISPATCH => self::CATEGORY_INFORMATION,
 
             self::TYPE_DROP_REJECTED_PACK,
             self::TYPE_FAILED_DELIVERY,

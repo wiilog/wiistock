@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Setting;
@@ -407,6 +408,21 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                     FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
                 ]),
             ],
+            Setting::PRODUCTION_FIXED_FIELDS_ON_FILTERS => [
+                'default' => join(',', [
+                    FixedFieldEnum::manufacturingOrderNumber->name,
+                    FixedFieldEnum::emergency->name,
+                    FixedFieldEnum::expectedAt->name,
+                    FixedFieldEnum::projectNumber->name,
+                    FixedFieldEnum::productArticleCode->name,
+                    FixedFieldEnum::dropLocation->name,
+                    FixedFieldEnum::comment->name,
+                    FixedFieldEnum::attachments->name,
+                    FixedFieldEnum::quantity->name,
+                    FixedFieldEnum::lineCount->name,
+                    FixedFieldEnum::destinationLocation->name,
+                ]),
+            ],
             Setting::INCLUDE_TRUCK_ARRIVAL_DATE_AND_HOUR => [
                 'default' => false,
             ],
@@ -418,6 +434,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL => [
                 'default' => false,
+            ],
+            Setting::DISPLAY_MANUAL_DELAY_START => [
+                'default' => 0,
             ],
         ];
 

@@ -15,8 +15,18 @@
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
             {{ form.checkbox(setting('PACK_MUST_BE_NEW'), "L'UL ajouté dans l'acheminement ne peut pas exister en base (doit être nouveau)", false, setting_value('PACK_MUST_BE_NEW')) }}
         </div>
-        <div class="col-md-6 col-12 d-flex align-items-center my-1">
-            {{ form.checkbox(setting('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT'), "Garder la fenêtre modale ouverte après validation et vider les champs", false, setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT')) }}
+        <div class="col-12 d-flex align-items-center my-1">
+            <div class="col-md-6 col-12 d-flex align-items-center p-0">
+                {{ form.checkbox(setting('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT'), "Garder la fenêtre modale ouverte après validation et vider les champs pour les rôles", false, setting_value('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT')) }}
+            </div>
+            <div class="col-md-6 col-12 d-flex align-items-center p-0">
+                {{ form.select(setting('KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT_FOR_ROLES'), '', false, {
+                    type: 'roles',
+                    items: keepModalOpenAndClearAfterSubmitForRoles | json_decode,
+                    multiple: true,
+                    selectAllLabel: 'Tous',
+                }) }}
+            </div>
         </div>
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
             {% set settingName = setting('DISPATCH_NUMBER_FORMAT') %}

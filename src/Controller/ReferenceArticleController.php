@@ -582,7 +582,7 @@ class ReferenceArticleController extends AbstractController
                                               EntityManagerInterface $entityManager,
                                               ReferenceArticle       $referenceArticle): JsonResponse {
         $needsQuantitiesCheck = !$settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY, false);
-        $quantity = false;
+        $quantity = 0;
 
         if ($needsQuantitiesCheck) {
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {

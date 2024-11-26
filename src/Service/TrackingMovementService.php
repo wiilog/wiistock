@@ -95,7 +95,6 @@ class TrackingMovementService {
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $queryResult['total'],
         ];
     }
 
@@ -378,7 +377,6 @@ class TrackingMovementService {
                                            array             $options = []): TrackingMovement
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
-        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $type = $this->getTrackingType($entityManager, $trackingType);
 
@@ -402,6 +400,7 @@ class TrackingMovementService {
         $delivery = $options['delivery'] ?? null;
         $logisticUnitParent = $options['logisticUnitParent'] ?? null;
         $manualDelayStart = $options['manualDelayStart'] ?? null;
+        $groupIteration = $options['groupIteration'] ?? null;
 
         /** @var Pack|null $parent */
         $parent = $options['parent'] ?? null;
@@ -412,11 +411,12 @@ class TrackingMovementService {
             && $pack->getParent()
             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
 
-        $orderIndexNanoseconds = hrtime(true);
-        $orderIndex = floor($orderIndexNanoseconds / 1000000);
+        $orderIndex = $options["orderIndex"]
+            ?? floor(hrtime(true) / 1000000);
 
         $tracking = new TrackingMovement();
         $tracking
+            ->setPack($pack)
             ->setQuantity($quantity)
             ->setEmplacement($location)
             ->setOperateur($user)
@@ -424,7 +424,7 @@ class TrackingMovementService {
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
-            ->setOrderIndex($orderIndex + 1) // order index greater than the order index of the ungroup tracking movement next creation
+            ->setOrderIndex($orderIndex + 2) // order index greater than the order index of the ungroup tracking movement next creation
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null)
             ->setMainMovement($mainMovement)
@@ -434,7 +434,7 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $tracking->setEvent($this->getTrackingEvent($tracking, $type->getCode() === TrackingMovement::TYPE_PRISE && !$manualDelayStart));
+        $this->setTrackingEvent($tracking, (bool) $manualDelayStart);
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
@@ -451,10 +451,8 @@ class TrackingMovementService {
         if(!$ungroup && $parent) {
             // Si pas de mouvement de dégroupage, on set le parent
             $tracking->setPackParent($parent);
-            $tracking->setGroupIteration($parent->getGroupIteration());
+            $tracking->setGroupIteration($groupIteration ?: $parent->getGroupIteration());
         }
-
-        $pack->addTrackingMovement($tracking);
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->managePackLinksWithOperations($entityManager, $tracking, [
@@ -476,65 +474,56 @@ class TrackingMovementService {
         ]);
 
         if($manualDelayStart){
-            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_INIT_TRACKING_DELAY);
-
-            $trackingInitDelay = new TrackingMovement();
-            $trackingInitDelay
-                ->setOrderIndex($orderIndex)
-                ->setQuantity($pack->getQuantity())
-                ->setOperateur($user)
-                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
-                ->setDatetime($manualDelayStart)
-                ->setFinished($finished)
-                ->setType($type)
-                ->setCommentaire(!empty($commentaire) ? $commentaire : null)
-                ->setEmplacement($location)
-                ->setMainMovement($mainMovement)
-                ->setLogisticUnitParent($logisticUnitParent);
-            $pack->addTrackingMovement($trackingInitDelay);
-
-            $trackingInitDelay->setEvent($this->getTrackingEvent($trackingInitDelay, true));
-            $this->managePackLinksWithTracking($entityManager, $trackingInitDelay);
-
-            $entityManager->persist($trackingInitDelay);
-
-            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-                "message" => $this->buildCustomLogisticUnitHistoryRecord($trackingInitDelay),
-                "historyDate" => $trackingInitDelay->getDatetime(),
-                "user" => $trackingInitDelay->getOperateur(),
-                "type" => ucfirst($trackingInitDelay->getType()->getCode()),
-                "location" => $trackingInitDelay->getEmplacement(),
-            ]);
+            $this->createTrackingMovement(
+                $pack,
+                $location,
+                $user,
+                $manualDelayStart,
+                $fromNomade,
+                $finished,
+                TrackingMovement::TYPE_INIT_TRACKING_DELAY,
+                [
+                    'quantity' => $pack->getQuantity(),
+                    'commentaire' => $commentaire,
+                    'uniqueIdForMobile' => $fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null,
+                    'preparation' => $preparation,
+                    'delivery' => $delivery,
+                    'mouvementStock' => $mouvementStock,
+                    'mainMovement' => $mainMovement,
+                    'logisticUnitParent' => $logisticUnitParent,
+                    'orderIndex' => $orderIndex
+                ]
+            );
         }
 
         if ($ungroup) {
-            $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
+            $this->createTrackingMovement(
+                $pack,
+                $location,
+                $user,
+                $date,
+                $fromNomade,
+                $finished,
+                TrackingMovement::TYPE_UNGROUP,
+                [
+                    'entityManager' => $entityManager,
+                    'mouvementStock' => $mouvementStock,
+                    'commentaire' => $commentaire,
+                    'uniqueIdForMobile' => $fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null,
+                    'natureId' => $natureId,
+                    'disableUngrouping' => true,
+                    'preparation' => $preparation,
+                    'delivery' => $delivery,
+                    'removeFromGroup' => true,
+                    'groupIteration' => $pack->getParent()?->getGroupIteration(),
+                    'parent' => $pack->getParent(),
+                    'orderIndex' => $orderIndex + 1
+                ]
+            );
 
-            $trackingUngroup = new TrackingMovement();
-            $trackingUngroup
-                ->setOrderIndex($orderIndex)
-                ->setQuantity($pack->getQuantity())
-                ->setOperateur($user)
-                ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
-                ->setDatetime($date)
-                ->setFinished($finished)
-                ->setType($type)
-                ->setPackParent($pack->getParent())
-                ->setGroupIteration($pack->getParent()?->getGroupIteration())
-                ->setMouvementStock($mouvementStock)
-                ->setCommentaire(!empty($commentaire) ? $commentaire : null);
-            $pack->addTrackingMovement($trackingUngroup);
             if ($removeFromGroup) {
                 $pack->setParent(null);
             }
-            $entityManager->persist($trackingUngroup);
-            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-                "message" => $this->buildCustomLogisticUnitHistoryRecord($trackingUngroup),
-                "historyDate" => $trackingUngroup->getDatetime(),
-                "user" => $trackingUngroup->getOperateur(),
-                "type" => ucfirst($trackingUngroup->getType()->getCode()),
-                "location" => $trackingUngroup->getEmplacement(),
-            ]);
         }
 
         return $tracking;
@@ -917,8 +906,8 @@ class TrackingMovementService {
                         "includeMovementId" => $includeMovementId,
                     ]);
 
-                    $picking["trackingDelay"] = $trackingDelayData["delay"];
-                    $picking["trackingDelayColor"] = $trackingDelayData["color"];
+                    $picking["trackingDelay"] = $trackingDelayData["delay"] ?? null;
+                    $picking["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
                     $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
 
                     $picking['subPacks'] = $subPacks ?? [];
@@ -1757,18 +1746,46 @@ class TrackingMovementService {
         return $this->formatService->list($values);
     }
 
-    public function getTrackingEvent(TrackingMovement $trackingMovement, bool $needStartEvent): ?TrackingEvent {
+    public function setTrackingEvent(TrackingMovement $trackingMovement,
+                                     bool             $manualDelayStart): void {
         $trackingLocation = $trackingMovement->getEmplacement();
         if (!$trackingLocation) {
-            return null;
+            return;
         }
 
-        return match (true) {
-            (($trackingMovement->isPicking() && $needStartEvent) || $trackingMovement->isInitTrackingDelay()) && $trackingLocation->isStartTrackingTimerOnPicking() => TrackingEvent::START,
-            $trackingMovement->isDrop() && $trackingLocation->isStopTrackingTimerOnDrop() => TrackingEvent::STOP,
-            $trackingMovement->isDrop() && $trackingLocation->isPauseTrackingTimerOnDrop() => TrackingEvent::PAUSE,
-            default => null
-        };
+        $trackingToSetEvent = $trackingMovement;
+
+        if ($trackingMovement->isInitTrackingDelay()) {
+            $trackingEvent = TrackingEvent::START;
+        }
+        else if ($trackingMovement->isPicking()
+            && $trackingLocation->isStartTrackingTimerOnPicking()
+            && !$manualDelayStart) {
+            $pack = $trackingMovement->getPack();
+            $location = $trackingMovement->getEmplacement();
+
+            // the last ongoing drop is defined,
+            // AND its location is same as the current movement location,
+            // AND he hasn't a tracking event
+            // => then we set the start event on the drop movement
+            if ($location?->getId()
+                && $pack->getLastOngoingDrop()?->getEvent() === null
+                && $location?->getId() === $pack->getLastOngoingDrop()?->getEmplacement()?->getId()) {
+                $trackingToSetEvent = $pack->getLastOngoingDrop();
+            }
+
+            $trackingEvent = TrackingEvent::START;
+        }
+        else if ($trackingMovement->isDrop()
+            && $trackingLocation->isStopTrackingTimerOnDrop()) {
+            $trackingEvent = TrackingEvent::STOP;
+        }
+        else if ($trackingMovement->isDrop()
+            && $trackingLocation->isPauseTrackingTimerOnDrop()) {
+            $trackingEvent = TrackingEvent::PAUSE;
+        }
+
+        $trackingToSetEvent->setEvent($trackingEvent ?? null);
     }
 
 
