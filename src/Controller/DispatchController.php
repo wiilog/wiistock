@@ -638,13 +638,14 @@ class DispatchController extends AbstractController {
 
         $now = new DateTime();
 
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
-            $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
-            $dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)
+            || ($dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH))
+            || ($dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH))
+        ) {
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($post->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+        if ($post->getBoolean("isAttachmentForm")) {
             $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
             $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
         }
