@@ -19,8 +19,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductionRequestRepository::class)]
-class ProductionRequest extends StatusHistoryContainer implements AttachmentContainer
-{
+class ProductionRequest extends StatusHistoryContainer implements AttachmentContainer {
 
     use AttachmentTrait;
     use FreeFieldsManagerTrait;
@@ -34,6 +33,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
@@ -124,8 +124,7 @@ class ProductionRequest extends StatusHistoryContainer implements AttachmentCont
         return $this;
     }
 
-    public function getStatus(): ?Statut
-    {
+    public function getStatus(): ?Statut {
         return $this->status;
     }
 
