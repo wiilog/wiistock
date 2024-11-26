@@ -261,10 +261,11 @@ class DispatchService {
             ->toArray();
 
         $notTreatedStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]);
-        // filter statuses to keep only those which are authorized to be created by the user
-        $notTreatedStatus = array_filter($notTreatedStatus, function (Statut $statut) {
-            return in_array($this->userService->getUser()->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
-        });
+        $notTreatedStatus = Stream::from($notTreatedStatus)
+            ->filter(function (Statut $statut) {
+                return in_array($this->userService->getUser()->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+            })
+            ->toArray();
 
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],

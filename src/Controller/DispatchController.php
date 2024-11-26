@@ -130,13 +130,15 @@ class DispatchController extends AbstractController {
 
         $dispatchStatuses = $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder');
         $statuses = Stream::from($dispatchStatuses)
-            ->filter(fn(Statut $statut) => empty($currentUser->getDispatchTypeIds()) || in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()))
+            ->filter(function (Statut $statut) use ($currentUser) {
+                if (!empty($currentUser->getDispatchTypeIds()) && !in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds())) {
+                    return false;
+                }
+
+                return in_array($currentUser->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+            })
             ->toArray();
 
-        // filter statuses to keep only those which are authorized to be created by the user
-        $statuses = array_filter($statuses, function (Statut $statut) use ($currentUser) {
-            return in_array($currentUser->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
-        });
 
         return $this->render('dispatch/index.html.twig', [
             'statuses' => $statuses,

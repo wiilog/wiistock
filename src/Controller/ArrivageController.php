@@ -109,10 +109,12 @@ class ArrivageController extends AbstractController
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
         // filter statuses to keep only those which are authorized to be created by the user
-        $statuses = array_filter($statuses, function (Statut $statut) use ($user) {
-            return in_array($user->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
-        });
-        
+        $statuses = Stream::from($statuses)
+            ->filter(function (Statut $statut) use ($user) {
+                return in_array($user->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+            })
+            ->toArray();
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $pageLength = $user->getPageLengthForArrivage() ?: 10;
