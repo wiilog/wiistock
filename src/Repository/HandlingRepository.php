@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
+use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -174,11 +175,18 @@ class HandlingRepository extends EntityRepository
                             ->andWhere("filter_requester.id in (:filter_requester_username_value)")
                             ->setParameter('filter_requester_username_value', $value);
                         break;
-                    case 'type':
-                        $qb
-                            ->join('handling.type', 'filter_type')
-                            ->andWhere("filter_type.label in (:filter_type_value)")
-                            ->setParameter('filter_type_value', $filter['value']);
+                    case FiltreSup::FIELD_MULTIPLE_TYPES:
+                        if(!empty($filter['value'])){
+                            $value = Stream::explode(',', $filter['value'])
+                                ->filter()
+                                ->map(static fn($type) => explode(':', $type)[0])
+                                ->toArray();
+
+                            $qb
+                                ->join('handling.type', 'filter_type')
+                                ->andWhere('filter_type.id IN (:filter_type_value)')
+                                ->setParameter('filter_type_value', $value);
+                        }
                         break;
                     case 'emergencyMultiple':
                         $value = array_map(function ($value) {

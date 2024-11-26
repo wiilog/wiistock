@@ -103,6 +103,26 @@ class HandlingController extends AbstractController {
             ->filter(fn(Statut $statut) => empty($user->getHandlingTypeIds()) || in_array($statut->getType()->getId(), $user->getHandlingTypeIds()))
             ->toArray();
 
+        // data from request
+        $query = $request->query;
+        $typesFilter = $query->has('types') ? $query->all('types', '') : [];
+        $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
+
+        // case type filter selected
+        if (!empty($typesFilter)) {
+            $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
+                ->filterMap(fn(Type $type) => $type->getLabelIn($user->getLanguage()))
+                ->toArray();
+        }
+
+        // case status filter selected
+        if (!empty($statusesFilter)) {
+            $filterStatus = Stream::from($statutRepository->findBy(['id' => $statusesFilter]))
+                ->map(fn(Statut $status) => $status->getId())
+                ->toArray();
+        }
+
         return $this->render('handling/index.html.twig', [
             'userLanguage' => $user->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
@@ -129,6 +149,8 @@ class HandlingController extends AbstractController {
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                 'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
+            "typesFilter" => $typesFilter,
+            "fromDashboard" => $fromDashboard,
 		]);
     }
 
@@ -145,12 +167,11 @@ class HandlingController extends AbstractController {
 
     #[Route("/api", name: "handling_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, HandlingService $handlingService): Response
+    public function api(Request                  $request,
+                        HandlingService          $handlingService,
+                        EntityManagerInterface   $entityManager): Response
     {
-        // cas d'un filtre statut depuis page d'accueil
-        $filterStatus = $request->request->get('filterStatus');
-        $selectedDate = $request->request->get('selectedDate');
-        $data = $handlingService->getDataForDatatable($request->request, $filterStatus, $selectedDate);
+        $data = $handlingService->getDataForDatatable($entityManager, $request);
 
         return new JsonResponse($data);
     }

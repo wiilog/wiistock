@@ -18,15 +18,22 @@ $(function() {
 
         const $userFormat = $('#userDateFormat');
         const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+        const filtersContainer = $('.filters-container');
 
         initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
         initDatePickers();
         Select2Old.user($('.filter-select2[name="utilisateurs"]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
         Select2Old.user($('.filter-select2[name="receivers"]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
         Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgence', false));
+        Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
+
+        filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {
+            updateSelectedStatusesCount($(this).closest('.statuses-filter').find('[name*=statuses-filter]:checked').length);
+        })
 
         // applique les filtres si pré-remplis
         let val = $('#filterStatus').val();
+        const fromDashboard = $('[name="fromDashboard"]').val() === '1';
 
         if (params.date || val && val.length > 0) {
             if(val && val.length > 0) {
@@ -39,11 +46,7 @@ $(function() {
             }
         } else {
             // sinon, filtres enregistrés en base pour chaque utilisateur
-            let path = Routing.generate('filter_get_by_page');
-            let params = JSON.stringify(PAGE_HAND);
-            $.post(path, params, function (data) {
-                displayFiltersSup(data, true);
-            }, 'json');
+            getUserFiltersByPage(PAGE_HAND, {preventPrefillFilters: fromDashboard});
         }
 
         const $modalNewHandling = $("#modalNewHandling");
@@ -70,6 +73,18 @@ function callbackSaveFilter() {
 }
 
 function initDatatable(params) {
+    const $filtersContainer = $(".filters-container");
+    // const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+    const $typeFilter = $filtersContainer.find(`select[name=type]`);
+
+    let status = $filtersContainer.find(`.statuses-filter [name*=statuses-filter]:checked`)
+        .map((index, line) => $(line).data('id'))
+        .toArray();
+
+    updateSelectedStatusesCount(status.length);
+
+    const fromDashboard = $('[name="fromDashboard"]').val() === '1';
+
     return $.post(Routing.generate('handling_api_columns'))
         .then((columns) => {
             let pathHandling = Routing.generate('handling_api', true);
@@ -88,8 +103,10 @@ function initDatatable(params) {
                     "url": pathHandling,
                     "type": "POST",
                     'data' : {
-                        'filterStatus': $('#filterStatus').val(),
+                        'filterStatus': status,
                         'selectedDate': () => params.date,
+                        'filterType': $typeFilter.val(),
+                        'fromDashboard': fromDashboard,
                     },
                 },
                 columns: [

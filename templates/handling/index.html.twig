@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Demande', 'Général', 'Demande') }} | {{ trans('Demande', 'Services', null, 'Service') }}{% endblock %}
 {% block title_tooltip %}Demande | Service{% endblock %}
@@ -9,11 +10,13 @@
         tableSelector: '#tableHandlings',
         callback: 'callbackSaveFilter',
         emergency: true,
-        needsDateFormatting: true
+        needsDateFormatting: true,
+        disabled: fromDashboard ? 'disabled' : '',
     } %}
 {% endblock %}
 
 {% block page_content %}
+    {{ form.hidden('fromDashboard', fromDashboard) }}
     {% set fieldCodeReceiversHandling = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
     <input type="hidden"
            id="showReceiversColumn"

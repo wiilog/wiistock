@@ -701,7 +701,6 @@ function processSwitchesForm($modal, data, isAttachmentForm) {
         const $div = $(this);
         const $input = $div.find('input:checked');
         if ($div.hasClass("needed") && $input.length === 0 && $div.is(":visible")) {
-            console.log($div);
             $invalidElements.push($div);
             messages.push("Veuillez renseigner une valeur pour le champ " + $div.data("title"));
         } else {
