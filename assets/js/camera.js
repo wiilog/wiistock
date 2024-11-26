@@ -13,64 +13,64 @@ export default class Camera {
     static VIDEO_INPUT_TYPE = `videoinput`;
 
     static async init($openModalButton, $inputFile) {
-        return enumerateVideoDevices().then((videoDevices) => {
-            const videoDevicesLength = videoDevices.length;
-            if (videoDevicesLength > 0) {
-                const $takePictureModal = $(`#take-picture-modal`);
-                const $videoDevice = $takePictureModal.find(`[name=videoDevice]`);
+        const videoDevices = await enumerateVideoDevices();
 
-                const camera = new Camera();
-                camera.cameraPhoto = new CameraPhoto($takePictureModal.find(`.camera-frame`)[0]);
+        const videoDevicesLength = videoDevices.length;
+        if (videoDevicesLength > 0) {
+            const $takePictureModal = $(`#take-picture-modal`);
+            const $videoDevice = $takePictureModal.find(`[name=videoDevice]`);
 
-                $videoDevice
-                    .empty()
-                    .append(
-                        ...videoDevices.map(({deviceId, label}) => (
-                            $('<option/>', {
-                                value: deviceId,
-                                text: label
-                            })
-                        ))
-                    );
+            const camera = new Camera();
+            camera.cameraPhoto = new CameraPhoto($takePictureModal.find(`.camera-frame`)[0]);
 
-                if(camera) {
-                    $openModalButton
-                        .off(`click.cameraOpenModal`)
-                        .on(`click.cameraOpenModal`, function () {
-                            wrapLoadingOnActionButton($(this), () => camera.open($inputFile));
-                        });
-                }
+            $videoDevice
+                .empty()
+                .append(
+                    ...videoDevices.map(({deviceId, label}) => (
+                        $('<option/>', {
+                            value: deviceId,
+                            text: label
+                        })
+                    ))
+                );
 
-                if (videoDevicesLength === 1) {
-                    $videoDevice.prop(`disabled`, videoDevicesLength === 1);
-                }
-                else { // if(videoDevicesLength > 1)
-                    $videoDevice
-                        .off(`change.cameraOpenModal`)
-                        .on(`change.cameraOpenModal`, function () {
-                            const deviceId = $(this).val();
-
-                            stopCamera(camera).then(() => {
-                                wrapLoadingOnActionButton($takePictureModal.find(`.modal-body`), () => (
-                                    startCamera(camera, {device: deviceId}
-                                )))
-                            });
-                        });
-                }
-
-                $videoDevice
-                    .val(videoDevices[0].deviceId)
-                    .trigger('change');
-
-                return camera;
-            } else {
+            if(camera) {
                 $openModalButton
-                    .prop(`disabled`, true)
-                    .attr(`title`, `Votre système ne dispose pas d'entrée vidéo.`)
-                    .tooltip(tooltipConfig);
-                return undefined;
+                    .off(`click.cameraOpenModal`)
+                    .on(`click.cameraOpenModal`, function () {
+                        wrapLoadingOnActionButton($(this), () => camera.open($inputFile));
+                    });
             }
-        });
+
+            if (videoDevicesLength === 1) {
+                $videoDevice.prop(`disabled`, videoDevicesLength === 1);
+            }
+            else { // if(videoDevicesLength > 1)
+                $videoDevice
+                    .off(`change.cameraOpenModal`)
+                    .on(`change.cameraOpenModal`, function () {
+                        const deviceId = $(this).val();
+
+                        stopCamera(camera).then(() => {
+                            wrapLoadingOnActionButton($takePictureModal.find(`.modal-body`), () => (
+                                startCamera(camera, {device: deviceId}
+                            )))
+                        });
+                    });
+            }
+
+            $videoDevice
+                .val(videoDevices[0].deviceId)
+                .trigger('change');
+
+            return camera;
+        } else {
+            $openModalButton
+                .prop(`disabled`, true)
+                .attr(`title`, `Votre système ne dispose pas d'entrée vidéo.`)
+                .tooltip(tooltipConfig);
+            return undefined;
+        }
     }
 
     async open($filesInput) {
@@ -167,8 +167,9 @@ function stopCamera(camera) {
 }
 
 async function enumerateVideoDevices() {
-    return navigator.mediaDevices.enumerateDevices()
-        .then((cameras) => {
-            return cameras.filter(({kind}) => kind === Camera.VIDEO_INPUT_TYPE);
-        });
+    if (navigator.mediaDevices) {
+        const enumerateDevices = await navigator.mediaDevices.enumerateDevices();
+        return enumerateDevices.filter(({kind}) => kind === Camera.VIDEO_INPUT_TYPE);
+    }
+    return [];
 }

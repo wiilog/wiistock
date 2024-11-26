@@ -193,6 +193,7 @@ Cypress.Commands.add('fillComment', (selector, comment) => {
         .get(selector)
         .click()
         .clear()
+        .wait(200)
         .type(comment);
 })
 

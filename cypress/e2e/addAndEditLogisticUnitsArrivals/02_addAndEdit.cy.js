@@ -63,7 +63,7 @@ const disputeChanged = {
 describe('Add and edit logistic units arrivals', () => {
 
     beforeEach(() => {
-        interceptRoute(routes.pack_api);
+        interceptRoute(routes.packs_api);
         interceptRoute(routes.print_arrivage_bar_codes_nature_1);
         interceptRoute(routes.print_arrivage_bar_codes_nature_2);
         interceptRoute(routes.arrivage_new);
@@ -395,7 +395,9 @@ describe('Add and edit logistic units arrivals', () => {
     it("should edit a logistic units arrivals", () => {
         const selectorModalEditArrivage = '#modalEditArrivage';
         // click on the last logistic units arrivals to edit it
-        cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click();
+        cy.get('table#arrivalsTable tbody tr').last().find('td').eq(2).click()
+            .wait('@arrival_diputes_api')
+            .wait('@packs_api');
 
         cy.get('button.split-button')
             .click()
@@ -442,7 +444,7 @@ describe('Add and edit logistic units arrivals', () => {
                             .eq(0)
                             .click();
                     }
-                })
+                });
             }
         })
         // put file in the input
@@ -450,7 +452,7 @@ describe('Add and edit logistic units arrivals', () => {
             .selectFile(`cypress/fixtures/${arrivalChanged.file}`, {force: true});
 
         // close the modal and verify the response
-        cy.closeAndVerifyModal(selectorModalEditArrivage, 'submitEditArrivage', 'arrivage_edit');
+        cy.closeAndVerifyModal(selectorModalEditArrivage, null, 'arrivage_edit', true);
     })
 
     it("should check the modification made on the logistic units arrivals", () => {
