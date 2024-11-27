@@ -1378,12 +1378,14 @@ function onEntityChange($select, onInit = false) {
         }
     }
 
+    $dispatchContainer.addClass('d-none');
+    $redirectDispatchLabel.addClass('d-none');
+    $redirectProductionLabel.addClass('d-none');
+    $redirectHandlingLabel.addClass('d-none');
+    $redirectCheckbox.addClass('d-none');
+
     if (['requests_to_treat_dispatch', 'requests_to_treat_production', 'requests_to_treat_handling'].includes($selectedOption.val())) {
         $redirectCheckbox.removeClass('d-none');
-        $redirectDispatchLabel.addClass('d-none');
-        $redirectProductionLabel.addClass('d-none');
-        $redirectHandlingLabel.addClass('d-none');
-        $dispatchContainer.addClass('d-none');
 
         switch($selectedOption.val()) {
             case 'requests_to_treat_dispatch':
@@ -1399,12 +1401,6 @@ function onEntityChange($select, onInit = false) {
             default:
                 break;
         }
-    } else {
-        $dispatchContainer.addClass('d-none');
-        $redirectDispatchLabel.addClass('d-none');
-        $redirectProductionLabel.addClass('d-none');
-        $redirectHandlingLabel.addClass('d-none');
-        $redirectCheckbox.addClass('d-none');
     }
 
     $selectType.trigger('change');
