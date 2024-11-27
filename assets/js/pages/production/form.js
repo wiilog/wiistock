@@ -11,6 +11,13 @@ export function displayAttachmentRequired($select) {
 
     $modal.find(`[name=isFileNeeded]`).val(requiredAttachment);
     $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
+
+    const $label = $modal.find(`.pj-label span`).first();
+    if (requiredAttachment) {
+        if (!$label.text().includes('*')) $label.append('*');
+    } else {
+        $label.text($label.text().replace('*', ''));
+    }
 }
 
 export function openModalUpdateProductionRequestStatus($container, $modalUpdateProductionRequestStatus, productionRequest, successCallback){
