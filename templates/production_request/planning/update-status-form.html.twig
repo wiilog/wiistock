@@ -50,7 +50,7 @@
             {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
                 isNew: productionRequest.id is null,
                 addPhotoButton: true,
-                labelClass: "pj-label w-100",
+                labelClass: "attachment-label w-100",
             }) }}
         </div>
     {% else %}
