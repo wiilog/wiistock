@@ -38,7 +38,7 @@ final class Version20241119100647 extends AbstractMigration implements Container
         ])->fetchOne();
 
         // Get statuts in "Brouillon" state and corresponding to the "Dispatch" category
-        $statuts = $this->connection->executeQuery("SELECT statut.id AS id FROM statut WHERE statut.categorie_id = :categorie", [
+        $statuts = $this->connection->executeQuery("SELECT statut.id AS id FROM statut WHERE statut.state = :state AND statut.categorie_id = :categorie", [
             'state' => Statut::DRAFT,
             'categorie' => $categorieStatutDispatchId ?? 0,
         ])->fetchAllAssociative();
