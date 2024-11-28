@@ -3,6 +3,7 @@ import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
 import Form from "@app/form";
+import {ERROR} from "@app/flash";
 
 global.editRowUser = editRowUser;
 
@@ -106,21 +107,22 @@ function initRemoveSecondaryMails(){
         .off('click.initRemoveSecondaryMails')
         .on('click.initRemoveSecondaryMails', function () {
             removeMailLine($(this));
-    });
+        });
 
     $(document).arrive('.delete-mail-line', function () {
         $(this)
             .off('click.initRemoveSecondaryMails')
             .on('click.initRemoveSecondaryMails', function () {
                 removeMailLine($(this));
-        });
+            });
     });
 }
 
 function removeMailLine($button){
-    const $secondaryEmailContainer = $('.secondary-email');
+    const $modal = $button.closest('.modal');
+    const $secondaryEmailContainer = $modal.find('.secondary-email');
     const $currentEmail = $button.closest('.secondary-email');
-    const $addEmail = $('.add-secondary-email');
+    const $addEmail = $modal.find('.add-secondary-email');
 
     if($secondaryEmailContainer.length === 1) {
         Flash.add(ERROR, 'Au moins un email secondaire est nécessaire');
