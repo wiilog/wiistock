@@ -5,20 +5,15 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategorieStatut;
-use App\Entity\Role;
 use App\Entity\Statut;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
-use WiiCommon\Helper\Stream;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20241119100647 extends AbstractMigration implements ContainerAwareInterface
+final class Version20241119100647 extends AbstractMigration
 {
-    use ContainerAwareTrait;
 
     public function getDescription(): string
     {
