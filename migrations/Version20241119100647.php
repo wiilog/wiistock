@@ -50,7 +50,7 @@ final class Version20241119100647 extends AbstractMigration
         // Add all roles to each statut
         foreach ($statuts as $statut) {
             foreach ($roles as $role) {
-                $this->addSql("INSERT INTO statut_role (statut_id, role_id) VALUES (:statut_id, :role_id)", [
+                $this->addSql("INSERT INTO authorized_request_creation_status_role (statut_id, role_id) VALUES (:statut_id, :role_id)", [
                     'statut_id' => $statut["id"],
                     'role_id' => $role["id"],
                 ]);
