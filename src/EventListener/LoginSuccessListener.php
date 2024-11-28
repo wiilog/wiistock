@@ -13,17 +13,19 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 
 class LoginSuccessListener implements EventSubscriberInterface{
-
     public function __construct(
-        private RequestStack $requestStack,
-        private EntityManagerInterface $entityManager,
-        private SessionHistoryRecordService $sessionHistoryRecordService
+        private RequestStack                $requestStack,
+        private EntityManagerInterface      $entityManager,
+        private SessionHistoryRecordService $sessionHistoryRecordService,
     ){}
 
     public function onLoginSuccess(LoginSuccessEvent $event): void {
         $sessionId = $this->requestStack->getSession()->getId();
         $user = $event->getUser();
-        if ($user instanceof Utilisateur) {
+        $firewallName = $event->getFirewallName();
+        if ($user instanceof Utilisateur
+            && $sessionId
+            && $firewallName === 'main') {
             $entityManager = $this->entityManager;
             $this->sessionHistoryRecordService->closeInactiveSessions($entityManager);
             $typeRepository = $entityManager->getRepository(Type::class);
