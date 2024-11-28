@@ -260,7 +260,7 @@ class DispatchService {
             ->filter(static fn(Type $type) => $type->isActive())
             ->toArray();
 
-        $notTreatedStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]);
+        $notTreatedStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH);
         $notTreatedStatus = Stream::from($notTreatedStatus)
             ->filter(function (Statut $statut) {
                 return in_array($this->userService->getUser()->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
