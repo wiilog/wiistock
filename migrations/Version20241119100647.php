@@ -38,6 +38,8 @@ final class Version20241119100647 extends AbstractMigration
             'categorie' => $categorieStatutDispatchId ?? 0,
         ])->fetchAllAssociative();
 
+        $this->addSql('CREATE TABLE IF NOT EXISTS statut_role (statut_id INT NOT NULL, role_id INT NOT NULL)');
+
         // Add all roles to each statut
         foreach ($statuts as $statut) {
             foreach ($roles as $role) {
