@@ -38,7 +38,14 @@ final class Version20241119100647 extends AbstractMigration
             'categorie' => $categorieStatutDispatchId ?? 0,
         ])->fetchAllAssociative();
 
-        $this->addSql('CREATE TABLE IF NOT EXISTS statut_role (statut_id INT NOT NULL, role_id INT NOT NULL)');
+        $this->addSql('
+            CREATE TABLE authorized_request_creation_status_role (
+                statut_id INT NOT NULL,
+                role_id INT NOT NULL,
+                INDEX IDX_4369E5BCF6203804 (statut_id),
+                INDEX IDX_4369E5BCD60322AC (role_id),
+                PRIMARY KEY(statut_id, role_id)
+            ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB;');
 
         // Add all roles to each statut
         foreach ($statuts as $statut) {

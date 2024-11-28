@@ -111,7 +111,7 @@ class ArrivageController extends AbstractController
         // filter statuses to keep only those which are authorized to be created by the user
         $statuses = Stream::from($statuses)
             ->filter(function (Statut $statut) use ($user) {
-                return in_array($user->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+                return in_array($user->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
             })
             ->toArray();
 

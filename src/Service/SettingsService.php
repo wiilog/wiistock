@@ -1206,7 +1206,7 @@ class SettingsService {
 
                     if(isset($statusData['allowedCreationForRoles'])) {
                         $allowedCreationForRoles = $roleRepository->findBy(["id" => explode(',', $statusData['allowedCreationForRoles']) ?? ""]);
-                        $status->setStatusCreationAuthorization($allowedCreationForRoles);
+                        $status->setAuthorizedRequestCreationRoles($allowedCreationForRoles);
                     }
 
                     if($hasRightGroupedSignature){

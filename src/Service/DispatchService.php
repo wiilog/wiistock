@@ -263,7 +263,7 @@ class DispatchService {
         $notTreatedStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]);
         $notTreatedStatus = Stream::from($notTreatedStatus)
             ->filter(function (Statut $statut) {
-                return in_array($this->userService->getUser()->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+                return in_array($this->userService->getUser()->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
             })
             ->toArray();
 

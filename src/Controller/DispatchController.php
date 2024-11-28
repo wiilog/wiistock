@@ -135,7 +135,7 @@ class DispatchController extends AbstractController {
                     return false;
                 }
 
-                return in_array($currentUser->getRole(), $statut->getStatusCreationAuthorization()->toArray(), true);
+                return in_array($currentUser->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
             })
             ->toArray();
 

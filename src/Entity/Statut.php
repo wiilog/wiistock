@@ -171,11 +171,9 @@ class Statut {
     /**
      * @var Collection<int, Role>
      */
-    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'statuts')]
-    #[ORM\JoinTable(name: 'statut_role')]
-    #[ORM\JoinColumn(name: 'statut_id', referencedColumnName: 'id')]
-    #[ORM\InverseJoinColumn(name: 'role_id', referencedColumnName: 'id')]
-    private Collection $statusCreationAuthorization;
+    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'authorizedRequestStatuses')]
+    #[ORM\JoinTable(name: 'authorized_request_creation_status_role')]
+    private Collection $authorizedRequestCreationRoles;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -194,7 +192,7 @@ class Statut {
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
         $this->notifiedUsers = new ArrayCollection();
-        $this->statusCreationAuthorization = new ArrayCollection();
+        $this->authorizedRequestCreationRoles = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -1002,38 +1000,38 @@ class Statut {
     /**
      * @return Collection<int, Role>
      */
-    public function getStatusCreationAuthorization(): Collection
+    public function getAuthorizedRequestCreationRoles(): Collection
     {
-        return $this->statusCreationAuthorization;
+        return $this->authorizedRequestCreationRoles;
     }
 
-    public function addStatusCreationAuthorization(Role $statusCreationAuthorization): static
+    public function addAuthorizedRequestCreationRole(Role $role): self
     {
-        if (!$this->statusCreationAuthorization->contains($statusCreationAuthorization)) {
-            $this->statusCreationAuthorization[] = $statusCreationAuthorization;
+        if (!$this->authorizedRequestCreationRoles->contains($role)) {
+            $this->authorizedRequestCreationRoles[] = $role;
 
-            $statusCreationAuthorization->addStatut($this);
+            $role->addAuthorizedDispatchStatus($this);
         }
 
         return $this;
     }
 
-    public function removeStatusCreationAuthorization(Role $statusCreationAuthorization): static
+    public function removeAuthorizedRequestCreationRole(Role $role): self
     {
-        if ($this->statusCreationAuthorization->removeElement($statusCreationAuthorization)) {
-            $statusCreationAuthorization->removeStatut($this);
+        if ($this->authorizedRequestCreationRoles->removeElement($role)) {
+            $role->removeAuthorizedRequestStatus($this);
         }
         return $this;
     }
 
-    public function setStatusCreationAuthorization(?iterable $roles): self {
-        foreach($this->getStatusCreationAuthorization()->toArray() as $role) {
-            $this->removeStatusCreationAuthorization($role);
+    public function setAuthorizedRequestCreationRoles(?iterable $roles): self {
+        foreach($this->getAuthorizedRequestCreationRoles()->toArray() as $role) {
+            $this->removeAuthorizedRequestCreationRole($role);
         }
 
-        $this->statusCreationAuthorization = new ArrayCollection();
+        $this->authorizedRequestCreationRoles = new ArrayCollection();
         foreach($roles ?? [] as $role) {
-            $this->addStatusCreationAuthorization($role);
+            $this->addAuthorizedRequestCreationRole($role);
         }
 
         return $this;
