@@ -50,7 +50,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $reference = null;
 
-    #[ORM\Column(type: Types::STRING, length: 15, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 15, unique: true)]
     private ?string $barCode = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
