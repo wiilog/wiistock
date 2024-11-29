@@ -206,7 +206,7 @@ class PackService {
                         'hasRight' => $pack->getArrivage(),
                         'title' => $this->translationService->translate('Général', null, 'Zone liste', 'Imprimer'),
                         'icon' => 'wii-icon wii-icon-printer-black',
-                        'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()->getId(), 'pack' => $pack->getId() ]),
+                        'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()?->getId(), 'pack' => $pack->getId() ]),
                     ],
                     [
                         'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),

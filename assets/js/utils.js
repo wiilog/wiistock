@@ -13,7 +13,6 @@ global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
 global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
-global.exportFile = exportFile;
 global.getUserFiltersByPage = getUserFiltersByPage;
 global.clearFilters = clearFilters;
 global.saveFilters = saveFilters;

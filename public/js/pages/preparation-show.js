@@ -358,11 +358,6 @@ function printLogisticUnit(id) {
     Wiistock.download(Routing.generate(`pack_print_single`, {pack: id}));
 }
 
-function initializeHistoryTables(packId){
-    initializeGroupHistoryTable(packId);
-    initializeProjectHistoryTable(packId);
-}
-
 function printArticles(preparation) {
     let templates;
     try {
@@ -395,45 +390,6 @@ function printArticles(preparation) {
                 error: "Il n'y a aucune étiquette à imprimer."
             });
     }
-}
-
-function initializeGroupHistoryTable(packId) {
-    initDataTable('groupHistoryTable', {
-        serverSide: true,
-        processing: true,
-        order: [['date', "desc"]],
-        ajax: {
-            "url": Routing.generate('pack_group_history_api', {pack: packId}, true),
-            "type": "POST"
-        },
-        columns: [
-            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
-            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
-            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        }
-    });
-}
-
-function initializeProjectHistoryTable(packId) {
-    initDataTable('projectHistoryTable', {
-        serverSide: true,
-        processing: true,
-        order: [['createdAt', "desc"]],
-        ajax: {
-            "url": Routing.generate('pack_project_history_api', {pack: packId}, true),
-            "type": "POST"
-        },
-        columns: [
-            {data: 'project', name: 'group', title: Translation.of('Référentiel', 'Projet', 'Projet', false)},
-            {data: 'createdAt', name: 'type', title: 'Assigné le'},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        }
-    });
 }
 
 function treatLine(event, $line) {

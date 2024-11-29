@@ -6,6 +6,7 @@ import {displayAttachmentRequired, initDeleteProductionRequest, initModalNewProd
 import {getUserFiltersByPage} from '@app/utils';
 import {initDataTable} from "@app/datatable";
 import {showAndRequireInputByType} from "@app/utils";
+import {exportFile} from "@app/utils";
 
 let tableProduction;
 

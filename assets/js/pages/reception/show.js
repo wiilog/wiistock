@@ -10,6 +10,7 @@ import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
+import {intCommentHistoryForm} from "@app/pages/dispute/common";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -28,7 +29,6 @@ window.demandeurChanged = demandeurChanged;
 window.articleChanged = articleChanged;
 window.openModalArticlesFromLigneArticle = openModalArticlesFromLigneArticle;
 window.openTableHisto = openTableHisto;
-window.getCommentAndAddHisto = getCommentAndAddHisto;
 window.editRowLitigeReception = editRowLitigeReception;
 window.initEditReception = initEditReception;
 window.updateQuantityToReceive = updateQuantityToReceive;
@@ -292,18 +292,8 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
     $('#disputeNumberReception').text(disputeNumber);
 }
 
-function getCommentAndAddHisto() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
-    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
-    let dataComment = commentLitige.val();
-
-    $.post(path, JSON.stringify(dataComment), function (response) {
-        tableHistoLitige.ajax.reload();
-        commentLitige.val('');
-    });
-}
-
 function openTableHisto() {
+    const $modalEditLitige = $('#modalEditLitige');
     let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
@@ -326,6 +316,7 @@ function openTableHisto() {
         },
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
+    intCommentHistoryForm($modalEditLitige, tableHistoLitige);
     tableArticleLitige = initTableArticleLitige();
 }
 
