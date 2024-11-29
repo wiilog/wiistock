@@ -4,7 +4,7 @@ import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
 import Form from "@app/form";
-import {intCommentHistoryForm} from "@app/pages/dispute/common";
+import {initCommentHistoryForm} from "@app/pages/dispute/common";
 
 $('.select2').select2();
 let tableHistoLitige;
@@ -139,7 +139,7 @@ function openTableHisto($modalEditLitige, dispute = undefined) {
         }
     };
     tableHistoLitige = initDataTable($modalEditLitige.find('#tableHistoLitige'), tableHistoLitigeConfig);
-    intCommentHistoryForm($modalEditLitige, tableHistoLitige);
+    initCommentHistoryForm($modalEditLitige, tableHistoLitige);
 }
 
 function initPackDatatable(arrivalId, columns) {

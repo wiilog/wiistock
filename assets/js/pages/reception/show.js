@@ -10,7 +10,7 @@ import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
-import {intCommentHistoryForm} from "@app/pages/dispute/common";
+import {initCommentHistoryForm} from "@app/pages/dispute/common";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -316,7 +316,7 @@ function openTableHisto() {
         },
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
-    intCommentHistoryForm($modalEditLitige, tableHistoLitige);
+    initCommentHistoryForm($modalEditLitige, tableHistoLitige);
     tableArticleLitige = initTableArticleLitige();
 }
 

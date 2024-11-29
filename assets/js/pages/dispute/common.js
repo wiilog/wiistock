@@ -1,7 +1,7 @@
 import Form from "@app/form";
 import {POST} from "@app/ajax";
 
-export function intCommentHistoryForm($modal, tableHistoLitige) {
+export function initCommentHistoryForm($modal, tableHistoLitige) {
     const $commentForm = $modal.find('.comment-form')
     Form
         .create($commentForm , {

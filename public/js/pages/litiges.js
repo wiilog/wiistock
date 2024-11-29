@@ -176,14 +176,3 @@ function openTableHisto() {
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
     tableArticleLitige = initTableArticleLitige();
 }
-
-function intCommentHistoryForm() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
-    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
-    let dataComment = commentLitige.val();
-
-    $.post(path, JSON.stringify(dataComment), function () {
-        tableHistoLitige.ajax.reload();
-        commentLitige.val('');
-    });
-}
