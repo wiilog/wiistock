@@ -808,4 +808,12 @@ class PackRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findOneByCode(string $code) {
+        return $this->createQueryBuilder("pack")
+            ->where("pack.code = :code")
+            ->setParameter("code", $code)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
