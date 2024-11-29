@@ -12,6 +12,7 @@ use App\Entity\Setting;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Repository\ReceiptAssociationRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -71,6 +72,18 @@ class ReceiptAssociationService
             'recordsFiltered' => $queryResult['count'],
             'recordsTotal' => $queryResult['total'],
         ];
+    }
+
+    public function getReceiptNumberInString(array $receipts, string $id): string
+    {
+        $allReceipt = "";
+        foreach ($receipts as $receipt) {
+            $packByReceipt = explode(',',$receipt['ul']);
+            if(in_array($id, $packByReceipt)) {
+                $allReceipt = $receipt['number'] . ';' . $allReceipt;
+            }
+        }
+        return $allReceipt;
     }
 
     public function dataRowReceiptAssociation(array $receiptAssocation, Utilisateur $user): array

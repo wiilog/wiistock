@@ -7,6 +7,8 @@ use App\Entity\Action;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Pack;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Reserve;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;

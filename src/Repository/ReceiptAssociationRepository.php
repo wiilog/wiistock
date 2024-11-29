@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Language;
+use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
@@ -32,6 +33,19 @@ class ReceiptAssociationRepository extends EntityRepository
         ]);
         return $query->execute();
     }
+
+    public function getReceiptAllNumber(): array {
+
+         return $this->createQueryBuilder('receipt')
+                ->select("receipt_association.receptionNumber as number")
+                ->addSelect('GROUP_CONCAT(DISTINCT join_pack.id SEPARATOR \',\') AS ul')
+                ->from(ReceiptAssociation::class, 'receipt_association')
+                ->leftJoin('receipt_association.logisticUnits', 'join_pack')
+                ->groupBy('receipt_association.id')
+                ->getQuery()
+                ->getArrayResult();
+    }
+
 
     public function findByParamsAndFilters(InputBag $params, array $filters): array
     {
