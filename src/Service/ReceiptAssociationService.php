@@ -74,17 +74,16 @@ class ReceiptAssociationService
         ];
     }
 
-    public function getFromColumnData(Pack $pack, EntityManagerInterface $entityManager): string
+    public function getReceiptNumberInString(array $receipts, string $id): string
     {
-        $allReceiptNumber = "";
-        $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
-        $receipts = $receiptAssociationRepository->getReceiptIdByPack($pack);
-
+        $allReceipt = "";
         foreach ($receipts as $receipt) {
-            $allReceiptNumber =  $allReceiptNumber . $receipt["receptionNumber"];
+            $packByReceipt = explode(',',$receipt['ul']);
+            if(in_array($id, $packByReceipt)) {
+                $allReceipt = $receipt['number'] . ';' . $allReceipt;
+            }
         }
-
-        return $allReceiptNumber;
+        return $allReceipt;
     }
 
     public function dataRowReceiptAssociation(array $receiptAssocation, Utilisateur $user): array

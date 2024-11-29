@@ -34,14 +34,14 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getReceiptIdByPack(Pack $pack): array {
+    public function getReceiptAllNumber(): array {
 
-         return $this->createQueryBuilder('receipt_association')
-                ->select("receipt_association.receptionNumber")
+         return $this->createQueryBuilder('receipt')
+                ->select("receipt_association.receptionNumber as number")
+                ->addSelect('GROUP_CONCAT(DISTINCT join_pack.id SEPARATOR \',\') AS ul')
                 ->from(ReceiptAssociation::class, 'receipt_association')
-                ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
-                ->where("join_logisticUnits.id = :id")
-                ->setParameter("id", $pack->getId())
+                ->leftJoin('receipt_association.logisticUnits', 'join_pack')
+                ->groupBy('receipt_association.id')
                 ->getQuery()
                 ->getArrayResult();
     }

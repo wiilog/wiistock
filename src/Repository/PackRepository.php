@@ -98,9 +98,12 @@ class PackRepository extends EntityRepository
             ->addSelect('join_last_action.datetime AS lastMvtDate')
             ->addSelect('join_last_action.id AS fromTo')
             ->addSelect('join_location.label AS location')
+            ->addSelect('join_truck.number AS truckArrival')
             ->andWhere('join_last_action.datetime BETWEEN :dateMin AND :dateMax')
             ->andWhere('pack.groupIteration IS NULL')
             ->leftJoin('pack.lastAction', 'join_last_action')
+            ->leftJoin('pack.arrivage', 'join_arrivage')
+            ->leftJoin('join_arrivage.truckArrival', 'join_truck')
             ->leftJoin('join_last_action.emplacement', 'join_location')
             ->leftJoin('pack.nature', 'join_nature');
         return QueryBuilderHelper::addTrackingEntities($queryBuilder, 'join_last_action')

@@ -16,6 +16,7 @@ use App\Entity\Pack;
 
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
+use App\Entity\ReceiptAssociation;
 use App\Entity\ReceptionLine;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
@@ -167,7 +168,9 @@ class PackController extends AbstractController
             return $CSVExportService->streamResponse(
                 function ($output) use ($associationService, $truckService, $CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
+                    $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
                     $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
+                    $receipts = $receiptAssociationRepository->getReceiptAllNumber();
 
                     foreach ($packs as $pack) {
                         $trackingMovement = [
@@ -176,14 +179,11 @@ class PackController extends AbstractController
                             'entityNumber' => $pack['entityNumber'],
                         ];
 
-                        $pack = $packRepository->find($pack['id']);
-                        $truckArrival = $truckService->getFromColumnData($pack);
-                        $receipt = $associationService->getFromColumnData($pack, $entityManager);
+                        $receipt = $associationService->getReceiptNumberInString($receipts, strval($pack['id']));
                         $mvtData = $trackingMovementService->getFromColumnData($trackingMovement);
                         $pack['fromLabel'] = $mvtData['fromLabel'];
                         $pack['fromTo'] = $mvtData['from'];
                         $pack['receptionNumber'] = $receipt;
-                        $pack['truckArrival'] = $truckArrival;
                         $this->putPackLine($output, $CSVExportService, $pack);
                     }
                 }, 'export_UL.csv',

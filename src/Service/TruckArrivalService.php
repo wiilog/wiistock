@@ -257,15 +257,4 @@ class TruckArrivalService
             FixedFieldEnum::carrierTrackingNumberReserve->value => $this->formatService->bool($lineHasReserve),
         ];
     }
-
-    public function getFromColumnData(Pack $pack): ?string
-    {
-        $arrival = $pack->getArrivage();
-
-        $truckArrival = $arrival
-            ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
-            : null ;
-
-        return $truckArrival?->getNumber();
-    }
 }
