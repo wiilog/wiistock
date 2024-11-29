@@ -376,7 +376,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_EXPORT_ENCODING,
                 Action::SETTINGS_DISPLAY_EXPORT,
                 Action::SETTINGS_DISPLAY_IMPORTS_MAJS,
-                Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT
             ],
             self::SUB_MENU_TEMPLATES => [
                 Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,

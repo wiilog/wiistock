@@ -23,7 +23,6 @@ Encore
     .addEntry('settings-data-imports', './assets/js/pages/settings/data/imports.js')
     .addEntry('kiosk-settings', './assets/js/pages/settings/kiosk.js')
     .addEntry('settings-data-exports', './assets/js/pages/settings/data/exports.js')
-    .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
     .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
     .addEntry('settings-languages', './assets/js/pages/settings/users/languages.js')
     .addEntry('vehicle', './assets/js/pages/vehicle.js')

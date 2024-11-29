@@ -106,7 +106,6 @@ final class Version20220711124619 extends AbstractMigration {
             ActionsFixtures::SUB_MENU_DATA => [
                 Action::SETTINGS_DISPLAY_EXPORT,
                 Action::SETTINGS_DISPLAY_IMPORTS_MAJS,
-                Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT
             ],
         ];
 
