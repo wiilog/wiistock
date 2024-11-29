@@ -305,12 +305,12 @@ class PackService {
         ];
     }
 
-    public function checkPackDataBeforeEdition(InputBag $data): array {
+    public function checkPackDataBeforeEdition(InputBag $data, int $isGroup): array {
         $quantity = $data->getInt('quantity', 0);
         $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;
         $volume = !empty($data->get('volume')) ? str_replace(",", ".", $data->get('volume')) : null;
 
-        if ($quantity <= 0) {
+        if (!$isGroup && $quantity <= 0) {
             return [
                 'success' => false,
                 'msg' => 'La quantité doit être supérieure à 0.'
@@ -338,12 +338,13 @@ class PackService {
     }
 
     public function editPack(EntityManagerInterface $entityManager,
-                             InputBag                  $data,
-                             Pack                   $pack): void {
+                             InputBag               $data,
+                             Pack                   $pack,
+                             bool                   $isGroup = false): void {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $projectRepository = $entityManager->getRepository(Project::class);
 
-        $isGroup = $pack->getGroupIteration() || !empty($pack->getChildren);
+
         $natureId = $data->get('nature');
         $comment = $data->get('comment');
         $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;

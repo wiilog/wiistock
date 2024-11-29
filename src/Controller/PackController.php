@@ -219,11 +219,12 @@ class PackController extends AbstractController {
         $data = $request->request;
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
-
         $pack = $packRepository->find($data->get('id'));
-        $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
+        $isGroup = $pack->getGroupIteration() || !empty($pack->getChildren);
+
+        $packDataIsValid = $packService->checkPackDataBeforeEdition($data, $isGroup);
         if (!empty($pack) && $packDataIsValid['success']) {
-            $packService->editPack($entityManager, $data, $pack);
+            $packService->editPack($entityManager, $data, $pack, $isGroup);
 
             $entityManager->flush();
             $response = [
