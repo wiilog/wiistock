@@ -76,7 +76,7 @@ Encore
     .addEntry('nature-index', './assets/js/pages/nature/index.js')
     .addEntry('warning-header', './assets/js/warning-header.js')
     .addEntry('pack-show', './assets/js/pages/pack/show.js')
-    .addEntry('pack-index', './assets/js/pages/pack/pack.js')
+    .addEntry('pack-index', './assets/js/pages/pack/index.js')
     .addEntry('encours-index', '/assets/js/pages/encours/index.js')
     .addEntry('security-login', './assets/js/pages/security/login.js')
     .addEntry('security-password-forgotten', '/assets/js/pages/security/password-forgotten.js')

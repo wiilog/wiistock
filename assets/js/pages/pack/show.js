@@ -27,12 +27,12 @@ export function getTrackingHistory(logisticUnitId, searchable = true) {
     initializeHistoryTables(logisticUnitId);
 }
 
-export function initializeHistoryTables(packId){
+function initializeHistoryTables(packId){
     initializeGroupHistoryTable(packId);
     initializeProjectHistoryTable(packId);
 }
 
-export function initializeGroupHistoryTable(packId) {
+function initializeGroupHistoryTable(packId) {
     initDataTable('groupHistoryTable', {
         serverSide: true,
         processing: true,
@@ -52,7 +52,7 @@ export function initializeGroupHistoryTable(packId) {
     });
 }
 
-export function initializeProjectHistoryTable(packId) {
+function initializeProjectHistoryTable(packId) {
     initDataTable('projectHistoryTable', {
         serverSide: true,
         processing: true,
