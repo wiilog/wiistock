@@ -1,9 +1,8 @@
-import {getTrackingHistory} from "./show";
 import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
 import {exportFile} from "@app/utils";
-import {initEditPackModal, deletePack} from "@app/pages/pack/common";
+import {initEditPackModal, deletePack, getTrackingHistory} from "@app/pages/pack/common";
 
 global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
 

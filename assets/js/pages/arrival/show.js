@@ -233,7 +233,7 @@ function initPackModals(arrivalId, packDatatable) {
     })
 
     $(document).on('click', '.delete-pack', function () {
-        deletePack({ 'pack' : $(this).data('id'), arrivage : arrivalId }, tablePacks);
+        deletePack({ pack: $(this).data('id'), arrivage: arrivalId }, tablePacks);
     });
 }
 
