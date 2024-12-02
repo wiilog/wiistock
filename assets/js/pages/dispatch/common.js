@@ -5,7 +5,7 @@ import Camera from "@app/camera";
 import Modal from "@app/modal";
 import {showAndRequireInputByType} from "@app/utils";
 
-export function createModalNewDispatch($modalNewDispatch) {
+export function createFormNewDispatch($modalNewDispatch) {
     return Form
         .create($modalNewDispatch)
         .on('change', '[name=customerName]', (event) => {
@@ -19,15 +19,13 @@ export function createModalNewDispatch($modalNewDispatch) {
 }
 
 export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatch) {
-    $(document).on(`change`, `#modalNewDispatch input[name=existingOrNot]`, function () {
-        onExistingOrNotChanged($(this));
-    });
-
-    $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
-        onExistingDispatchSelected($(this));
-    });
-
-    createModalNewDispatch($modalNewDispatch)
+    createFormNewDispatch($modalNewDispatch)
+        .on('change', '#modalNewDispatch input[name=existingOrNot]', () => {
+            onExistingOrNotChanged($(this));
+        })
+        .on('change', '#modalNewDispatch select[name=existingDispatch]', () => {
+            onExistingDispatchSelected($(this));
+        })
         .onOpen(() => {
             initNewDispatchEditor($modalNewDispatch);
             Modal
