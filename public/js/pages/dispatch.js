@@ -268,8 +268,5 @@ function displayCommentNeededAttributes(statusSelect){
     $comment.toggleClass('needed', required);
 
     const $labelContainer = $comment.closest('.form-group').find('.field-label');
-    $labelContainer.find('.required-mark').remove();
-    if (required) {
-        $labelContainer.append($('<span class="required-mark">*</span>'))
-    }
+    updateRequiredMark($labelContainer, required);
 }

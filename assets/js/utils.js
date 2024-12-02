@@ -17,6 +17,7 @@ global.exportFile = exportFile;
 global.getUserFiltersByPage = getUserFiltersByPage;
 global.clearFilters = clearFilters;
 global.saveFilters = saveFilters;
+global.updateRequiredMark = updateRequiredMark;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -396,4 +397,16 @@ export function togglePrintButton(datatable, $printButton, filledFilters) {
 
 export function generateRandomNumber() {
     return Math.floor(Math.random() * 1000000);
+}
+
+export function updateRequiredMark($element, isRequired) {
+    const $label = $element.find('.required-mark');
+
+    if (!!isRequired) {
+        if (!$label.length) {
+            $element.append($('<span class="required-mark">*</span>'));
+        }
+    } else {
+        $label.remove();
+    }
 }
