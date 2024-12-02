@@ -82,7 +82,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
             "finished" => $trackingMovement->isFinished(),
             "fromStock" => !empty($trackingMovement->getMouvementStock()) || $pack->isArticleContainer(),
             "isGroup" => $pack->isGroup(),
-            "packParent" => $trackingMovement->getPackParent()?->getCode(),
+            "packGroup" => $trackingMovement->getPackGroup()?->getCode(),
             "articles" => Stream::from($pack->getChildArticles())
                 ->map(static fn(Article $article) => $article->getBarCode())
                 ->join(";"),

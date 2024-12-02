@@ -3,9 +3,11 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Repository\Tracking\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -87,9 +89,9 @@ class GroupService {
                             ?Utilisateur $user = null,
                             ?DateTime $date = null) {
         /** @var Pack[] $children */
-        $children = $parent->getChildren()->toArray();
+        $children = $parent->getContent()->toArray();
         foreach ($children as $pack) {
-            $pack->setParent(null);
+            $pack->setGroup(null);
 
             $ungroup = $this->trackingMovementService->createTrackingMovement(
                 $pack,

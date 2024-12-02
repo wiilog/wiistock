@@ -235,11 +235,11 @@ class StockMovementController extends AbstractController {
                             }
 
                             if ($associatedPack) {
-                                $associatedGroup = $associatedPack->getParent();
+                                $associatedGroup = $associatedPack->getGroup();
 
                                 if ($associatedGroup) {
-                                    $associatedGroup->removeChild($associatedPack);
-                                    if ($associatedGroup->getChildren()->isEmpty()) {
+                                    $associatedGroup->removeContent($associatedPack);
+                                    if ($associatedGroup->getContent()->isEmpty()) {
                                         $emptyGroups[] = $associatedGroup->getCode();
                                     }
                                 }

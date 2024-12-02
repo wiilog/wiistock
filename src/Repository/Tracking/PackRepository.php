@@ -108,7 +108,7 @@ class PackRepository extends EntityRepository
             ->select("pack AS group")
             ->addSelect("COUNT(child.id) AS packCounter")
             ->leftJoin("pack.lastAction", "movement")
-            ->leftJoin("pack.children", "child")
+            ->leftJoin("pack.content", "child")
             ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
             ->andWhere('pack.groupIteration IS NOT NULL')
             ->groupBy('pack')
