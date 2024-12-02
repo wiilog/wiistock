@@ -66,10 +66,16 @@ class TrackingMovementController extends AbstractController
         }
 
         if (!empty($packFilter)) {
+            $packRepository = $entityManager->getRepository(Pack::class);
             $filtreSupRepository->clearFiltersByUserAndPage($currentUser, FiltreSup::PAGE_MVT_TRACA);
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $currentUser);
+            $packId = $packRepository->findOneBy(["code" => $packFilter])?->getId();
+            if ($packId) {
+                $packFilter = $packId . ':' . $packFilter;
+                $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_LOGISTIC_UNITS, $packFilter, $currentUser);
 
-            $entityManager->persist($filter);
+                $entityManager->persist($filter);
+            }
+
             $entityManager->flush();
         }
 
