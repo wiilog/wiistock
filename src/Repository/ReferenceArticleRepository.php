@@ -1507,4 +1507,15 @@ class ReferenceArticleRepository extends EntityRepository {
 
         return $query->execute();
     }
+
+    // TODO WIIS-12167 remove
+    public function findDuplicateCode(){
+        return $this->createQueryBuilder('referenceArticle')
+            ->select('referenceArticle.barCode')
+            ->addSelect('COUNT(referenceArticle.barCode) as count')
+            ->groupBy('referenceArticle.barCode')
+            ->having('COUNT(referenceArticle.barCode) > 1')
+            ->getQuery()
+            ->getResult();
+    }
 }
