@@ -189,6 +189,15 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: "pack", targetEntity: TrackingDelay::class, cascade: ["persist", "remove"])]
     private ?TrackingDelay $trackingDelay = null;
 
+    /**
+     * @var Collection<int, PackSplit>
+     */
+    #[ORM\OneToMany(mappedBy: 'from', targetEntity: PackSplit::class)]
+    private Collection $splitTargets;
+
+    #[ORM\OneToOne(mappedBy: 'target', targetEntity: PackSplit::class)]
+    private ?PackSplit $splitFrom = null;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -200,6 +209,7 @@ class Pack implements PairedEntity {
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
         $this->receiptAssociations = new ArrayCollection();
+        $this->splitTargets = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -894,6 +904,68 @@ class Pack implements PairedEntity {
 
     public function setLastPicking(?TrackingMovement $lastPicking): self {
         $this->lastPicking = $lastPicking;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PackSplit>
+     */
+    public function getSplitTargets(): Collection
+    {
+        return $this->splitTargets;
+    }
+
+    public function addSplitTarget(PackSplit $splitTarget): self
+    {
+        if (!$this->splitTargets->contains($splitTarget)) {
+            $this->splitTargets[] = $splitTarget;
+            $splitTarget->setFrom($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSplitTarget(PackSplit $splitTarget): self
+    {
+        if ($this->splitTargets->removeElement($splitTarget)) {
+            if ($splitTarget->getFrom() === $this) {
+                $splitTarget->setFrom(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setSplitTargets(?iterable $splitTargets): self {
+        foreach ($this->getSplitTargets()->toArray() as $splitTarget) {
+            $this->removeSplitTarget($splitTarget);
+        }
+
+        $this->splitTargets = new ArrayCollection();
+        foreach ($splitTargets ?? [] as $splitTarget) {
+            $this->addSplitTarget($splitTarget);
+        }
+
+        return $this;
+    }
+
+    public function getSplitFrom(): ?PackSplit
+    {
+        return $this->splitFrom;
+    }
+
+    public function setSplitFrom(?PackSplit $splitFrom): self
+    {
+        if ($this->splitFrom && $this->splitFrom->getTarget() !== $this) {
+            $oldSplitFrom = $this->splitFrom;
+            $this->splitFrom = null;
+            $oldSplitFrom->setTarget(null);
+        }
+        $this->splitFrom = $splitFrom;
+        if($this->splitFrom && $this->splitFrom->getTarget() !== $this) {
+            $this->splitFrom->setTarget($this);
+        }
+
         return $this;
     }
 
