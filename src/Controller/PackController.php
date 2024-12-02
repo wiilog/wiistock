@@ -39,17 +39,15 @@ use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-#[Route("/unite-logistique")]
-class PackController extends AbstractController
-{
+#[Route("/unite-logistique", name: 'pack_')]
+class PackController extends AbstractController {
 
-    #[Route("/liste/{code}", name: "pack_index", options: ["expose" => true], defaults: ["code" => null], methods: [ self::GET])]
+    #[Route("/liste/{code}", name: "index", options: ["expose" => true], defaults: ["code" => null], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function index(EntityManagerInterface $entityManager,
                           LanguageService        $languageService,
                           PackService            $packService,
-                                                 $code): Response
-    {
+                                                 $code): Response {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
@@ -67,7 +65,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route('/voir/{id}', name: 'pack_show', methods: [self::GET])]
+    #[Route('/voir/{id}', name: 'show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function show(Pack $logisticUnit,
                          EntityManagerInterface $manager,
@@ -98,16 +96,15 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/api", name: "pack_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, PackService $packService): JsonResponse
-    {
+    public function api(Request $request, PackService $packService): JsonResponse {
         $data = $packService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
 
-    #[Route("/{pack}/contenu", name: "logistic_unit_content", options: ["expose" => true], methods: [ self::GET], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{pack}/contenu", name: "content", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function logisticUnitContent(EntityManagerInterface $manager,
                                         Pack                    $pack,
@@ -127,14 +124,13 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/csv", name: "export_packs", options: ["expose" => true], methods: [ self::GET])]
+    #[Route("/csv", name: "export", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function printCSVPacks(Request                   $request,
                                   CSVExportService          $CSVExportService,
                                   TrackingMovementService   $trackingMovementService,
                                   TranslationService        $translation,
-                                  EntityManagerInterface    $entityManager): StreamedResponse
-    {
+                                  EntityManagerInterface    $entityManager): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -179,60 +175,56 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/api-modifier", name: "pack_edit_api", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier/{pack}", name: "edit_api", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request                 $request,
-                            EntityManagerInterface  $entityManager): JsonResponse
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
-            $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $projectRepository = $entityManager->getRepository(Project::class);
+    public function editApi(Pack                   $pack,
+                            EntityManagerInterface $entityManager): JsonResponse {
+        $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
+        $deliveryRequestArticleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
-            $pack = $packRepository->find($data['id']);
-            $projects = Stream::from($projectRepository->findActive())
-                ->map(fn(Project $project) => [
-                    "label" => $project->getCode(),
-                    "value" => $project->getId(),
-                    "selected" => $pack->getProject() === $project
-                ]);
-
-            $disabledProject = (
-                $preparationOrderArticleLineRepository->isOngoingAndUsingPack($pack)
-                || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
-                || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
-                || !empty($pack->getArticle())
-            );
-
-            $html = $this->renderView('pack/modalEditPackContent.html.twig', [
-                'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
-                'pack' => $pack,
-                'projects' => $projects,
-                'disabledProject' => !empty($disabledProject)
+        $projects = Stream::from($projectRepository->findActive())
+            ->map(fn(Project $project) => [
+                "label" => $project->getCode(),
+                "value" => $project->getId(),
+                "selected" => $pack->getProject() === $project
             ]);
 
-            return new JsonResponse($html);
-        }
-        throw new BadRequestHttpException();
+        $disabledProject = (
+            $preparationOrderArticleLineRepository->isOngoingAndUsingPack($pack)
+            || $deliveryRequestArticleLineRepository->isOngoingAndUsingPack($pack)
+            || Stream::from($pack->getChildArticles())->some(fn(Article $article) => $article->getCarts()->count())
+            || !empty($pack->getArticle())
+        );
+
+        $html = $this->renderView('pack/modalEditPackContent.html.twig', [
+            'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
+            'pack' => $pack,
+            'projects' => $projects,
+            'disabledProject' => !empty($disabledProject)
+        ]);
+
+        return new JsonResponse([
+            "html" => $html
+        ]);
     }
 
-    #[Route("/modifier", name: "pack_edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          PackService            $packService,
-                         TranslationService     $translation): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
+                         TranslationService     $translation): JsonResponse {
+        $data = $request->request;
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
+        $pack = $packRepository->find($data->get('id'));
+        $isGroup = $pack->getGroupIteration() || !empty($pack->getChildren);
 
-        $pack = $packRepository->find($data['id']);
-        $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
+        $packDataIsValid = $packService->checkPackDataBeforeEdition($data, $isGroup);
         if (!empty($pack) && $packDataIsValid['success']) {
-            $packService->editPack($entityManager, $data, $pack);
+            $packService->editPack($entityManager, $data, $pack, $isGroup);
 
             $entityManager->flush();
             $response = [
@@ -248,75 +240,69 @@ class PackController extends AbstractController
         return new JsonResponse($response);
     }
 
-    #[Route("/supprimer", name: "pack_delete", options: ["expose" => true], methods: [ self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer/{pack}", name: "delete", options: ["expose" => true], methods: [self::DELETE], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
+                           Pack                     $pack,
                            EntityManagerInterface   $entityManager,
-                           TranslationService       $translation): JsonResponse
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
+                           TranslationService       $translation): JsonResponse {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
 
-            $pack = $packRepository->find($data['pack']);
-            $packCode = $pack->getCode();
-            $arrivage = isset($data['arrivage']) ? $arrivageRepository->find($data['arrivage']) : null;
-            if (!$pack->getTrackingMovements()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité");
-            }
+        $packCode = $pack->getCode();
+        $arrivage = $request->query->getInt('arrivage') ? $arrivageRepository->find($request->query->getInt('arrivage')) : null;
+        if (!$pack->getTrackingMovements()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité");
+        }
 
-            if (!$pack->getDispatchPacks()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs acheminements");
-            }
+        if (!$pack->getDispatchPacks()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs acheminements");
+        }
 
-            if (!$pack->getDisputes()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs litiges");
-            }
-            if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage UL {1}', [
-                    1 => $pack->getArrivage()->getNumeroArrivage()
-                ]);
-            }
-            if ($pack->getTransportDeliveryOrderPack() ) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)));
-            }
-            if (!$pack->getChildArticles()->isEmpty()) {
-                $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique contient des articles');
-            }
+        if (!$pack->getDisputes()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Cette unité logistique est référencée dans un ou plusieurs litiges");
+        }
+        if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans l\'arrivage UL {1}', [
+                1 => $pack->getArrivage()->getNumeroArrivage()
+            ]);
+        }
+        if ($pack->getTransportDeliveryOrderPack()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique est utilisé dans un ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)));
+        }
+        if (!$pack->getChildArticles()->isEmpty()) {
+            $msg = $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Cette unité logistique contient des articles');
+        }
 
-            if (isset($msg)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => $msg
-                ]);
-            }
-
-            $receptionLine = $receptionLineRepository->findOneBy(['pack' => $pack]);
-            if ($receptionLine) {
-                $reception = $receptionLine->getReception();
-                $reception?->removeLine($receptionLine);
-                $receptionLine->setPack(null);
-                $entityManager->flush();
-                $entityManager->remove($receptionLine);
-            }
-
-            $entityManager->remove($pack);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,"",
-                'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
-                        1 => $packCode
-                    ])
+        if (isset($msg)) {
+            return $this->json([
+                "success" => false,
+                "msg" => $msg
             ]);
         }
 
-        throw new BadRequestHttpException();
+        $receptionLine = $receptionLineRepository->findOneBy(['pack' => $pack]);
+        if ($receptionLine) {
+            $reception = $receptionLine->getReception();
+            $reception?->removeLine($receptionLine);
+            $receptionLine->setPack(null);
+            $entityManager->flush();
+            $entityManager->remove($receptionLine);
+        }
+
+        $entityManager->remove($pack);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true, "",
+            'msg' => $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "L'unité logistique {1} a bien été supprimée", [
+                1 => $packCode
+            ])
+        ]);
+
     }
 
-    private function putPackLine($handle, CSVExportService $csvService, array $pack):void
-    {
+    private function putPackLine($handle, CSVExportService $csvService, array $pack):void {
         $line = [
             $pack['code'],
             $pack['nature'],
@@ -328,7 +314,7 @@ class PackController extends AbstractController
         $csvService->putLine($handle, $line);
     }
 
-    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [ self::GET, self::POST])]
+    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function groupHistory(Request $request, PackService $packService, $pack): JsonResponse {
         if ($request->isXmlHttpRequest()) {
             $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
@@ -337,7 +323,7 @@ class PackController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function projectHistory(Request                     $request,
                                    EntityManagerInterface      $entityManager,
                                    ProjectHistoryRecordService $projectHistoryRecordService,
@@ -346,7 +332,7 @@ class PackController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route("/print-single-logistic-unit/{pack}", name: "print_single_logistic_unit", options: ["expose" => true])]
+    #[Route("/print-single-logistic-unit/{pack}", name: "print_single", options: ["expose" => true])]
     public function printSingleLogisticUnit(Pack $pack, PackService $packService, PDFGeneratorService $PDFGeneratorService): PdfResponse {
         if ($pack->getNature() && !$pack->getNature()->getTags()->isEmpty()) {
             $tag = $pack->getNature()->getTags()->first();
@@ -362,7 +348,7 @@ class PackController extends AbstractController
         );
     }
 
-    #[Route("/get-location", name: "pack_get_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/get-location", name: "get_location", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function getLocation(Request                 $request,
                                 EntityManagerInterface  $entityManager): JsonResponse {
         $pack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('pack')]);
@@ -373,7 +359,7 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/tracking-history-api", name: "pack_tracking_history_api", options: ['expose' => true], methods: [self::POST])]
+    #[Route("/{id}/tracking-history-api", name: "tracking_history_api", options: ['expose' => true], methods: [self::POST])]
     public function statusHistoryApi(Pack                   $logisticUnit,
                                      Request                $request,
                                      EntityManagerInterface $entityManager,
@@ -411,11 +397,10 @@ class PackController extends AbstractController
         ]);
     }
 
-    #[Route("/{logisticUnit}/tracking-delay", name: "force_pack_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
+    #[Route("/{logisticUnit}/tracking-delay", name: "force_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
     public function postTrackingDelay(EntityManagerInterface $entityManager,
                                       TrackingDelayService   $trackingDelayService,
                                       Pack                   $logisticUnit): JsonResponse {
-
         $trackingDelayService->updateTrackingDelay($entityManager, $logisticUnit);
 
         $entityManager->flush();

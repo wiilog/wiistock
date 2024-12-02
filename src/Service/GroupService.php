@@ -45,44 +45,6 @@ class GroupService {
         return $group;
     }
 
-    public function getDataForDatatable($params = null) {
-        $filtreSupRepository = $this->manager->getRepository(FiltreSup::class);
-        $packRepository = $this->manager->getRepository(Pack::class);
-
-        $currentUser = $this->security->getUser();
-
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::GROUPS_MODE, [
-            'fields' => $this->packService->getPackListColumnVisibleConfig($currentUser),
-        ]);
-
-        $packs = $queryResult['data'];
-
-        $rows = [];
-        foreach ($packs as $pack) {
-            $rows[] = $this->dataRowGroup($pack);
-        }
-
-        return [
-            'data' => $rows,
-            'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $queryResult['total'],
-        ];
-    }
-
-    public function dataRowGroup(Pack $pack) {
-        return [
-            "actions" => $this->template->render('group/table/actions.html.twig', [
-                "group" => $pack
-            ]),
-            "details" => $this->template->render("group/table/details.html.twig", [
-                "group" => $pack,
-                "last_movement" => $pack->getLastAction(),
-                "formatter" => $this->formatService
-            ]),
-        ];
-    }
-
     public function ungroup(EntityManagerInterface $manager,
                             Pack $parent,
                             Emplacement $destination,

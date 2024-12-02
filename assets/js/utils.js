@@ -13,7 +13,6 @@ global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
 global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
-global.exportFile = exportFile;
 global.getUserFiltersByPage = getUserFiltersByPage;
 global.clearFilters = clearFilters;
 global.saveFilters = saveFilters;
@@ -181,7 +180,7 @@ function onSettingsItemSelected($selected, $settingsItems, $settingsContents, op
  *   - determine if user date format needs to be used
  *   - jQuery object for loading
  */
-function exportFile(route, params = {}, options = {}) {
+export function exportFile(route, params = {}, options = {}) {
     const needsDates = options.needsDates || true;
     const needsAllFilters = options.needsAllFilters || false;
     const needsDateFormatting = options.needsDateFormatting || false;

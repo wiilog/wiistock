@@ -10,6 +10,8 @@
     {{ encore_entry_link_tags('pack-show') }}
 {% endblock %}
 
+{% set isGroup = logisticUnit.groupIteration or (not logisticUnit.content.empty) %}
+
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
@@ -174,11 +176,18 @@
                             <div class="content article-history d-none">
                                 {% include 'pack/article-history.html.twig' with {
                                     movements,
-                                } %}
-                            </div>
+                                } %}</div>
                         </div>
                     </div>
 
+                {% endif %}
+                {% if not isGroup %}
+                <div class="wii-box">
+                    <div class="header wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}</div>
+                    <div class="content p-2">
+                        <table id="groupHistoryTable" class="table w-100"></table>
+                    </div>
+                </div>
                 {% endif %}
             </div>
             <div class="col-12 col-md-6">
@@ -192,6 +201,14 @@
                         </div>
                     </div>
                 </div>
+                {% if not isGroup %}
+                <div class="wii-box">
+                    <div class="header wii-title">{{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés</div>
+                    <div class="content p-2">
+                        <table id="projectHistoryTable" class="table w-100"></table>
+                    </div>
+                </div>
+                {%  endif %}
             </div>
         </div>
     </div>
@@ -201,5 +218,4 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('pack-show') }}
-    {{ encore_entry_script_tags('pack') }}
 {% endblock %}
