@@ -7,6 +7,12 @@
 <form>
     <div class="row">
         {{ form.hidden('id', pack.id) }}
+
+        {% if isGroup %}
+            <div class="col-12">
+                <div class="wii-section-title mb-3 d-flex align-items-center"> Cette unité logistique représente un groupe</div>
+            </div>
+        {% endif %}
         <div class="form-group col-md-6 col-12">
             {% set inputLabel = isGroup
                 ? trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Numéro groupe")
@@ -16,6 +22,13 @@
                 disabled: true,
             }) }}
         </div>
+        {% if  isGroup %}
+            <div class="form-group col-md-6 col-12">
+                {{ form.input('groupChildrenLength', trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL"), false, pack.children | length, {
+                    disabled: true,
+                }) }}
+            </div>
+        {% endif %}
         <div class="form-group col-md-6 col-12">
             {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
             {{ form.select('nature', trans('Traçabilité', 'Général', "Nature"), false, {
