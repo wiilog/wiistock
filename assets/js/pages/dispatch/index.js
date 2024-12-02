@@ -4,7 +4,7 @@ import Routing from '@app/fos-routing';
 import Camera from "@app/camera";
 import Flash from "@app/flash";
 import {wrapLoadingOnActionButton} from "@app/loading";
-import {createModalNewDispatch, initNewDispatchEditor, onDispatchTypeChange} from "@app/pages/dispatch/common";
+import {createFormNewDispatch, initNewDispatchEditor, onDispatchTypeChange} from "@app/pages/dispatch/common";
 
 
 let tableDispatches = null;
@@ -239,7 +239,7 @@ function initTableDispatch(groupedSignatureMode = false) {
 function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
     const keepModalOpenAndClearAfterSubmit = $modalNewDispatch.find('[name=keepModalOpenAndClearAfterSubmit]').val();
-    createModalNewDispatch($modalNewDispatch)
+    createFormNewDispatch($modalNewDispatch)
         .submitTo(
             AJAX.POST,
             'dispatch_new',
