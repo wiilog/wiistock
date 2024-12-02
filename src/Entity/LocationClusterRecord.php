@@ -3,6 +3,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Repository\LocationClusterRecordRepository;
 use Doctrine\ORM\Mapping as ORM;

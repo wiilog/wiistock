@@ -1,35 +1,29 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Tracking;
 
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
-use App\Entity\Pack;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\ORM\Query\Expr\Join;
-use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @method Pack|null find($id, $lockMode = null, $lockVersion = null)
- * @method Pack|null findOneBy(array $criteria, array $orderBy = null)
- * @method Pack[]    findAll()
- * @method Pack[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class PackRepository extends EntityRepository
 {
 
@@ -114,7 +108,7 @@ class PackRepository extends EntityRepository
             ->select("pack AS group")
             ->addSelect("COUNT(child.id) AS packCounter")
             ->leftJoin("pack.lastAction", "movement")
-            ->leftJoin("pack.children", "child")
+            ->leftJoin("pack.content", "child")
             ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
             ->andWhere('pack.groupIteration IS NOT NULL')
             ->groupBy('pack')

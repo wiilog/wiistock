@@ -4,9 +4,8 @@
 namespace App\Service;
 
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Utilisateur;
-use App\Entity\WorkPeriod\WorkedDay;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

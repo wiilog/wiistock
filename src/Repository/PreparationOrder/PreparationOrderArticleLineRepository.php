@@ -2,8 +2,8 @@
 
 namespace App\Repository\PreparationOrder;
 
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Tracking\Pack;
 use Doctrine\ORM\EntityRepository;
 
 class PreparationOrderArticleLineRepository extends EntityRepository {

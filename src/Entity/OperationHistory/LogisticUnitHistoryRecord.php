@@ -3,7 +3,7 @@
 namespace App\Entity\OperationHistory;
 
 use App\Entity\Emplacement;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\LogisticUnitHistoryRecordRepository;
 use Doctrine\Common\Collections\ArrayCollection;

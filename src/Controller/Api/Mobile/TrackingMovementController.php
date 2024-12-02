@@ -2,13 +2,14 @@
 
 namespace App\Controller\Api\Mobile;
 
+use App\Annotation as Wii;
 use App\Controller\AbstractController;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Repository\Tracking\TrackingMovementRepository;
@@ -37,7 +38,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use App\Annotation as Wii;
 
 #[Route("/api/mobile")]
 class TrackingMovementController extends AbstractController {
@@ -213,11 +213,11 @@ class TrackingMovementController extends AbstractController {
                         }
 
                         if ($associatedPack) {
-                            $associatedGroup = $associatedPack->getParent();
+                            $associatedGroup = $associatedPack->getGroup();
 
                             if ($associatedGroup) {
-                                $associatedGroup->removeChild($associatedPack);
-                                if ($associatedGroup->getChildren()->isEmpty()) {
+                                $associatedGroup->removeContent($associatedPack);
+                                if ($associatedGroup->getContent()->isEmpty()) {
                                     $emptyGroups[] = $associatedGroup->getCode();
                                 }
                             }
@@ -358,7 +358,7 @@ class TrackingMovementController extends AbstractController {
                     }
 
                     /** @var Pack $child */
-                    foreach ($parent->getChildren() as $child) {
+                    foreach ($parent->getContent() as $child) {
                         if ($isMovementFinished) {
                             $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($child->getLastAction());
                         }
@@ -526,7 +526,7 @@ class TrackingMovementController extends AbstractController {
                 : [];
 
             if ($includeGroup) {
-                $group = $isGroup ? $pack : $pack->getParent();
+                $group = $isGroup ? $pack : $pack->getGroup();
                 $res['group'] = $group ? $group->serialize() : null;
             }
 
@@ -590,7 +590,7 @@ class TrackingMovementController extends AbstractController {
         if ($pack) {
             if (!$pack->isGroup()) {
                 $isPack = true;
-                $isSubPack = $pack->getParent() !== null;
+                $isSubPack = $pack->getGroup() !== null;
                 $packSerialized = $pack->serialize();
             } else {
                 $isPack = false;
@@ -627,7 +627,7 @@ class TrackingMovementController extends AbstractController {
             ]);
 
             $entityManager->persist($parentPack);
-        } else if ($parentPack->getChildren()->isEmpty()) {
+        } else if ($parentPack->getContent()->isEmpty()) {
             $isNewGroupInstance = true;
             $parentPack->incrementGroupIteration();
         }
@@ -664,8 +664,8 @@ class TrackingMovementController extends AbstractController {
                 $pack->setComment($data["comment"]);
             }
 
-            if (!$pack->getParent()) {
-                $pack->setParent($parentPack);
+            if (!$pack->getGroup()) {
+                $pack->setGroup($parentPack);
 
                 $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                     $pack,

@@ -7,7 +7,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -20,9 +20,9 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Exception;
+use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
-use \Generator;
 
 class TrackingMovementRepository extends EntityRepository
 {
@@ -62,7 +62,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect("pack_arrival.numeroCommandeList AS arrivalOrderNumber")
             ->addSelect("pack_arrival.isUrgent AS isUrgent")
             ->addSelect("tracking_movement.freeFields as freeFields")
-            ->addSelect("CONCAT(join_packParent.code, '-', tracking_movement.groupIteration) AS packParent")
+            ->addSelect("CONCAT(join_packGroup.code, '-', tracking_movement.groupIteration) AS packGroup")
             ->addSelect("IF(SIZE(tracking_movement.attachments) > 0, 'oui', 'non') AS hasAttachments")
 
             ->andWhere("tracking_movement.datetime BETWEEN :dateMin AND :dateMax")
@@ -72,7 +72,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin("tracking_movement.type", "join_type")
             ->leftJoin("tracking_movement.operateur", "join_operator")
             ->leftJoin("pack.arrivage", "pack_arrival")
-            ->leftJoin("tracking_movement.packParent", "join_packParent")
+            ->leftJoin("tracking_movement.packGroup", "join_packGroup")
             ->setParameter("dateMin", $dateMin)
             ->setParameter("dateMax", $dateMax);
 
@@ -178,7 +178,7 @@ class TrackingMovementRepository extends EntityRepository
                         ->innerJoin('tracking_movement.pack', 'search_pack')
                         ->leftJoin('tracking_movement.logisticUnitParent', 'search_logistic_unit_parent')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
-                        ->leftJoin('tracking_movement.packParent', 'search_pack_group')
+                        ->leftJoin('tracking_movement.packGroup', 'search_pack_group')
                         ->leftJoin('tracking_movement.operateur', 'search_operator')
                         ->leftJoin('tracking_movement.type', 'search_type')
                         ->leftJoin('search_pack.referenceArticle', 'search_pack_referenceArticle')
@@ -198,7 +198,7 @@ class TrackingMovementRepository extends EntityRepository
                             ->orderBy('order_location.label', $order);
                     } else if ($column === 'group') {
                         $qb
-                            ->leftJoin('tracking_movement.packParent', 'order_pack_group')
+                            ->leftJoin('tracking_movement.packGroup', 'order_pack_group')
                             ->orderBy('order_pack_group.code', $order)
                             ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'status') {
@@ -322,7 +322,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('join_pack.article', 'join_pack_article')
             ->leftJoin('join_pack.childArticles', 'join_pack_child_articles')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
-            ->leftJoin('tracking_movement.packParent', 'join_packParent')
+            ->leftJoin('tracking_movement.packGroup', 'join_packGroup')
             ->innerJoin(Pack::class, "join_packLastAction", Join::WITH, "join_packLastAction.lastAction = tracking_movement") // check if it's the last tracking pick
             ->andWhere('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')

@@ -18,7 +18,6 @@ use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ProductionRequest;
 use App\Entity\Reception;
@@ -26,10 +25,10 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use DateTime;
 use DateTimeInterface;
@@ -238,8 +237,8 @@ class TrackingMovementService {
                 ])
                 : '',
             'origin' => $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'group' => $movement->getPackParent()
-                ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
+            'group' => $movement->getPackGroup()
+                ? ($movement->getPackGroup()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
             'location' => $this->formatService->location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
@@ -292,7 +291,7 @@ class TrackingMovementService {
             foreach ($packCodes as $packCode) {
                 $pack = $packRepository->findOneBy(['code' => $packCode]);
                 $isParentPack = $pack && $pack->isGroup();
-                $isChildPack = $pack && $pack->getParent();
+                $isChildPack = $pack && $pack->getGroup();
                 if ($isParentPack || $isChildPack) {
                     $errors[] = $packCode;
                 }
@@ -313,7 +312,7 @@ class TrackingMovementService {
                     $parentPack = $this->groupService->createParentPack($data);
                     $entityManager->persist($parentPack);
                     $isNewGroupInstance = true;
-                } else if ($parentPack->getChildren()->isEmpty()) {
+                } else if ($parentPack->getContent()->isEmpty()) {
                     $parentPack->incrementGroupIteration();
                     $isNewGroupInstance = true;
                 }
@@ -353,7 +352,7 @@ class TrackingMovementService {
                         ]
                     );
 
-                    $pack->setParent($parentPack);
+                    $pack->setGroup($parentPack);
 
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
@@ -402,13 +401,13 @@ class TrackingMovementService {
         $manualDelayStart = $options['manualDelayStart'] ?? null;
         $groupIteration = $options['groupIteration'] ?? null;
 
-        /** @var Pack|null $parent */
-        $parent = $options['parent'] ?? null;
+        /** @var Pack|null $group */
+        $group = $options['parent'] ?? null;
         $removeFromGroup = $options['removeFromGroup'] ?? false;
 
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
-        $ungroup = !$disableUngrouping
-            && $pack->getParent()
+        $doUngroup = !$disableUngrouping
+            && $pack->getGroup()
             && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]);
 
         $orderIndex = $options["orderIndex"]
@@ -448,10 +447,10 @@ class TrackingMovementService {
             }
         }
 
-        if(!$ungroup && $parent) {
+        if(!$doUngroup && $group) {
             // Si pas de mouvement de dégroupage, on set le parent
-            $tracking->setPackParent($parent);
-            $tracking->setGroupIteration($groupIteration ?: $parent->getGroupIteration());
+            $tracking->setPackGroup($group);
+            $tracking->setGroupIteration($groupIteration ?: $group->getGroupIteration());
         }
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
@@ -496,7 +495,7 @@ class TrackingMovementService {
             );
         }
 
-        if ($ungroup) {
+        if ($doUngroup) {
             $this->createTrackingMovement(
                 $pack,
                 $location,
@@ -515,14 +514,14 @@ class TrackingMovementService {
                     'preparation' => $preparation,
                     'delivery' => $delivery,
                     'removeFromGroup' => true,
-                    'groupIteration' => $pack->getParent()?->getGroupIteration(),
-                    'parent' => $pack->getParent(),
+                    'groupIteration' => $pack->getGroup()?->getGroupIteration(),
+                    'parent' => $pack->getGroup(),
                     'orderIndex' => $orderIndex + 1
                 ]
             );
 
             if ($removeFromGroup) {
-                $pack->setParent(null);
+                $pack->setGroup(null);
             }
         }
 
@@ -877,7 +876,7 @@ class TrackingMovementService {
                         ? implode(", ", $movement["arrivalOrderNumber"])
                         : null,
                     "isUrgent" => $this->formatService->bool($movement["isUrgent"]),
-                    "packParent" => $movement["packParent"],
+                    "packGroup" => $movement["packGroup"],
                 };
             }
         }
@@ -894,7 +893,7 @@ class TrackingMovementService {
                 if ($trackingPack->isGroup()) {
                     $subPacks = $tracking
                         ->getPack()
-                        ->getChildren()
+                        ->getContent()
                         ->map(fn(Pack $pack) => $pack->serialize());
                 }
 
@@ -952,10 +951,10 @@ class TrackingMovementService {
             $options,
         );
 
-        $associatedGroup = $pack->getParent();
+        $associatedGroup = $pack->getGroup();
         if ($associatedGroup) {
-            $associatedGroup->removeChild($pack);
-            if ($associatedGroup->getChildren()->isEmpty()) {
+            $associatedGroup->removeContent($pack);
+            if ($associatedGroup->getContent()->isEmpty()) {
                 $emptyGroups[] = $associatedGroup->getCode();
             }
         }
@@ -1020,11 +1019,11 @@ class TrackingMovementService {
 
             $associatedPack = $createdMvt->getPack();
             if ($associatedPack) {
-                $associatedGroup = $associatedPack->getParent();
+                $associatedGroup = $associatedPack->getGroup();
 
                 if ($associatedGroup) {
-                    $associatedGroup->removeChild($associatedPack);
-                    if ($associatedGroup->getChildren()->isEmpty()) {
+                    $associatedGroup->removeContent($associatedPack);
+                    if ($associatedGroup->getContent()->isEmpty()) {
                         $emptyGroups[] = $associatedGroup->getCode();
                     }
                 }
@@ -1215,7 +1214,7 @@ class TrackingMovementService {
 
         $associatedPack = $movement->getPack();
         if (!$keepGroup && $associatedPack) {
-            $associatedGroup = $associatedPack->getParent();
+            $associatedGroup = $associatedPack->getGroup();
 
             if (!$forced && $associatedGroup) {
                 return [
@@ -1225,7 +1224,7 @@ class TrackingMovementService {
                     'group' => $associatedGroup->getCode(),
                 ];
             } else if ($forced) {
-                $associatedPack->setParent(null);
+                $associatedPack->setGroup(null);
             }
         }
 
@@ -1370,7 +1369,7 @@ class TrackingMovementService {
             $parent = $pack;
             $newMovements = [];
             /** @var Pack $child */
-            foreach ($parent->getChildren() as $child) {
+            foreach ($parent->getContent() as $child) {
                 $childOptions = [
                     $options,
                     'parent' => $parent,
@@ -1646,7 +1645,7 @@ class TrackingMovementService {
         if (!$autoUngroup
             || !$tracking->isDrop()
             || !$pack->isGroup()
-            || $pack->getChildren()->isEmpty()
+            || $pack->getContent()->isEmpty()
         ){
             return;
         }
@@ -1661,7 +1660,7 @@ class TrackingMovementService {
                 ->toArray()
             : [];
 
-        foreach ($pack->getChildren() as $children) {
+        foreach ($pack->getContent() as $children) {
             foreach($children->getDispatchPacks() as $dispatchPack) {
                 $dispatch = $dispatchPack->getDispatch();
 
@@ -1679,7 +1678,7 @@ class TrackingMovementService {
                         TrackingMovement::TYPE_UNGROUP
                     );
 
-                    $pack->removeChild($children);
+                    $pack->removeContent($children);
                     $entityManager->persist($trackingMovement);
                     $this->persistSubEntities($entityManager, $trackingMovement);
                 }
@@ -1707,7 +1706,7 @@ class TrackingMovementService {
                 ["code" => "hasAttachments", "label" => $this->translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),],
                 ["code" => "from", "label" => $this->translationService->translate('Traçabilité', 'Général', 'Issu de', false),],
                 ["code" => "arrivalOrderNumber", "label" => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),],
-                ["code" => "packParent", "label" => $this->translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),],
+                ["code" => "packGroup", "label" => $this->translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),],
             ]),
             Stream::from($freeFields)
                 ->map(fn(FreeField $field) => [
@@ -1727,12 +1726,12 @@ class TrackingMovementService {
         $newNature = $natureChangedData["newNature"] ?? null;
 
         $pack = $trackingMovement->getPack();
-        $packParent = $trackingMovement->getPackParent();
+        $packGroup = $trackingMovement->getPackGroup();
 
         $values = [
             FixedFieldEnum::quantity->value => $trackingMovement->getQuantity(),
             FixedFieldEnum::comment->value => $this->formatService->html($trackingMovement->getCommentaire()),
-            FixedFieldEnum::group->value => $this->formatService->pack($packParent),
+            FixedFieldEnum::group->value => $this->formatService->pack($packGroup),
         ];
 
         if ($natureChanged) {

@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;

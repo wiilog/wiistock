@@ -12,16 +12,16 @@ use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
-use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
-use App\Repository\PackRepository;
+use App\Repository\Tracking\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -234,7 +234,7 @@ class PackService {
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array
     {
         return [
-            'group' => $trackingMovement->getPackParent() ? ($this->formatService->pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
+            'group' => $trackingMovement->getPackGroup() ? ($this->formatService->pack($trackingMovement->getPackGroup()) . '-' . $trackingMovement->getGroupIteration()) : '',
             'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
             'type' => $this->formatService->status($trackingMovement->getType())
         ];

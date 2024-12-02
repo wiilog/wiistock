@@ -5,10 +5,10 @@ namespace App\Service;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\Setting;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
