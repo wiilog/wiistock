@@ -24,13 +24,11 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
-use App\Repository\Tracking\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Iterator;
 use RuntimeException;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -43,9 +41,6 @@ class PackService {
 
     #[Required]
     public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public Security $security;
 
     #[Required]
     public Twig_Environment $templating;
@@ -99,7 +94,7 @@ class PackService {
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
-        $currentUser = $this->security->getUser();
+        $currentUser = $this->userService->getUser();
 
         $filters = $params->get("codeUl")
             ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
@@ -179,7 +174,7 @@ class PackService {
             1
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
         $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
@@ -198,7 +193,7 @@ class PackService {
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastAction();
-        $isGroup = $pack->getGroupIteration() || !$pack->getChildren()->isEmpty();
+        $isGroup = $pack->getGroupIteration() || !$pack->getContent()->isEmpty();
         return [
             'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
@@ -287,11 +282,11 @@ class PackService {
             "limitTreatmentDate" => $pack->getTrackingDelay()
                 ? $this->formatService->datetime($pack->getTrackingDelay()->getLimitTreatmentDate())
                 : null,
-            "group" => $pack->getParent()
+            "group" => $pack->getGroup()
                 ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
                     "entityPath" => "pack_show",
-                    "entityId" => $pack->getParent()?->getId(),
-                    "from" => $this->formatService->pack($pack->getParent()),
+                    "entityId" => $pack->getGroup()?->getId(),
+                    "from" => $this->formatService->pack($pack->getGroup()),
                 ])
                 : '',
         ];
@@ -300,7 +295,7 @@ class PackService {
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
         return [
             'group' => $trackingMovement->getPackGroup() ? ($this->formatService->pack($trackingMovement->getPackGroup()) . '-' . $trackingMovement->getGroupIteration()) : '',
-            'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
+            'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->userService->getUser()),
             'type' => $this->formatService->status($trackingMovement->getType())
         ];
     }

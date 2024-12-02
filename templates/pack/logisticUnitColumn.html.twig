@@ -2,14 +2,14 @@
 
 {% if articles or pack.isArticleContainer %}
     {% set plural = articles > 1 ? 's' %}
-    <span class="logistic-unit-number" data-id="{{ pack.id }}" data-pack="{{ pack.code }}">
-        <span class="d-flex align-items-center">
+    <div class="logistic-unit-number" data-id="{{ pack.id }}" data-pack="{{ pack.code }}">
+        <div class="d-flex align-items-center">
             <div class="mt-1">{{ pack.code }}</div>
-        </span>
-     </span>
+        </div>
+     </div>
 {% else %}
     {{ pack.code }}
-    {% set isGroup = pack.groupIteration or (not pack.children.empty) %}
+    {% set isGroup = pack.groupIteration or (not pack.content.empty) %}
     {{ pack.isGroup ? '<span class="fa fa-object-group ml-1" title="cette ul est un groupe"></span>' }}
     {{ pack.splitFrom ? ('<span class="fa fa-arrows-split-up-and-left ml-1" title="ul issu de la division de ' ~ pack.splitFrom.from.code | escape('html') ~ '"></span>' ) | raw}}
 {% endif %}

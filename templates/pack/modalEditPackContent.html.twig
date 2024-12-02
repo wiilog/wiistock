@@ -2,7 +2,7 @@
 
 {% set disableQuantity = pack.childArticles is not empty %}
 
-{% set isGroup = pack.groupIteration or (not pack.children.empty) %}
+{% set isGroup = pack.groupIteration or (not pack.content.empty) %}
 
 <form>
     <div class="row">
@@ -24,7 +24,7 @@
         </div>
         {% if  isGroup %}
             <div class="form-group col-md-6 col-12">
-                {{ form.input('groupChildrenLength', trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL"), false, pack.children | length, {
+                {{ form.input('groupChildrenLength', trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL"), false, pack.content | length, {
                     disabled: true,
                 }) }}
             </div>

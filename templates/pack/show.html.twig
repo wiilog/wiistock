@@ -10,7 +10,7 @@
     {{ encore_entry_link_tags('pack-show') }}
 {% endblock %}
 
-{% set isGroup = logisticUnit.groupIteration or (not logisticUnit.children.empty) %}
+{% set isGroup = logisticUnit.groupIteration or (not logisticUnit.content.empty) %}
 
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
@@ -184,7 +184,7 @@
                 {% if not isGroup %}
                 <div class="wii-box">
                     <div class="header wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}</div>
-                    <div class="content pt-2 px-0">
+                    <div class="content p-2">
                         <table id="groupHistoryTable" class="table w-100"></table>
                     </div>
                 </div>
@@ -204,7 +204,7 @@
                 {% if not isGroup %}
                 <div class="wii-box">
                     <div class="header wii-title">{{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés</div>
-                    <div class="content pt-2 px-0">
+                    <div class="content p-2">
                         <table id="projectHistoryTable" class="table w-100"></table>
                     </div>
                 </div>
