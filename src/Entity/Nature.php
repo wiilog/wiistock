@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Tracking\Pack;
 use App\Entity\Transport\TemperatureRange;
 use App\Helper\LanguageHelper;
 use App\Repository\NatureRepository;

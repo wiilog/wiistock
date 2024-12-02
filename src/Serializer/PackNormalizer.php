@@ -2,7 +2,7 @@
 
 namespace App\Serializer;
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Service\FormatService;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;

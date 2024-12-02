@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;

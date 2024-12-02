@@ -2,7 +2,7 @@
 
 namespace App\Messenger\TrackingDelay;
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
 use App\Service\ExceptionLoggerService;

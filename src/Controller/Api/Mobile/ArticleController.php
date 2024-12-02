@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Mobile;
 
+use App\Annotation as Wii;
 use App\Controller\AbstractController;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
@@ -9,10 +10,10 @@ use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\NativeCountry;
-use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Exceptions\FormException;
@@ -28,7 +29,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
-use App\Annotation as Wii;
 
 #[Route("/api/mobile")]
 class ArticleController extends AbstractController {

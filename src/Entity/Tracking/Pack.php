@@ -1,17 +1,25 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Tracking;
 
+use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\DispatchPack;
+use App\Entity\Dispute;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\LocationClusterRecord;
+use App\Entity\Nature;
 use App\Entity\OperationHistory\TransportHistoryRecord;
+use App\Entity\Project;
+use App\Entity\ProjectHistoryRecord;
+use App\Entity\ReceiptAssociation;
+use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestPack;
-use App\Entity\Tracking\TrackingDelay;
-use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Helper\FormatHelper;
-use App\Repository\PackRepository;
+use App\Repository\Tracking\PackRepository;
 use App\Service\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

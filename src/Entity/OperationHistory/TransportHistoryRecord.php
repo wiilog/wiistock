@@ -3,8 +3,8 @@
 namespace App\Entity\OperationHistory;
 
 use App\Entity\Emplacement;
-use App\Entity\Pack;
 use App\Entity\StatusHistory;
+use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
