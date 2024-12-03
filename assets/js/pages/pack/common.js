@@ -36,7 +36,7 @@ export function deletePack(params, table){
             label: Translation.of('Général', null, 'Modale', 'Supprimer'),
         },
         table: table,
-    })
+    });
 }
 
 
