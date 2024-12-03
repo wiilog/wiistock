@@ -237,15 +237,26 @@ class UserController extends AbstractController {
             ? explode(',', $data->get('secondaryEmails'))
             : [];
 
+        $emptyIndex = [];
+
         if($secondaryEmails){
-            foreach($secondaryEmails as $email) {
-                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => "L'adresse email $email n'est pas valide"
-                    ]);
+            foreach($secondaryEmails as $index => $email) {
+                if($email == ""){
+                    $emptyIndex[] = $index;
+                }
+                else{
+                    if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        return $this->json([
+                            "success" => false,
+                            "msg" => "L'adresse email $email n'est pas valide"
+                        ]);
+                    }
                 }
             }
+        }
+
+        foreach($emptyIndex as $index) {
+            unset($secondaryEmails[$index]);
         }
 
         $dropzone = explode(":", $data->get('dropzone'));
