@@ -1077,27 +1077,18 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    #[Route("/packs/delete", name: "dispatch_delete_pack", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function deletePack(Request                $request,
+    #[Route("/packs/{pack}/delete", name: "dispatch_delete_pack", options: ["expose" => true], methods: self::DELETE, condition: self::IS_XML_HTTP_REQUEST)]
+    public function deletePack(DispatchPack           $pack,
                                TranslationService     $translationService,
-                               EntityManagerInterface $entityManager): Response
-    {
-        if($data = json_decode($request->getContent(), true)) {
-            $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+                               EntityManagerInterface $entityManager): Response {
+        $entityManager->remove($pack);
+        $pack->getDispatch()->setUpdatedAt(new DateTime());
+        $entityManager->flush();
 
-            if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
-                $entityManager->remove($pack);
-                $pack->getDispatch()->setUpdatedAt(new DateTime());
-                $entityManager->flush();
-            }
-
-            return $this->json([
-                "success" => true,
-                "msg" => $translationService->translate('Demande',"Acheminements", 'Détails acheminement - Liste des unités logistiques', "La ligne a bien été supprimée")
-            ]);
-        }
-
-        throw new BadRequestHttpException();
+        return $this->json([
+            "success" => true,
+            "msg" => $translationService->translate('Demande',"Acheminements", 'Détails acheminement - Liste des unités logistiques', "La ligne a bien été supprimée")
+        ]);
     }
 
     #[Route("/{id}/validate", name: "dispatch_validate_request", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]

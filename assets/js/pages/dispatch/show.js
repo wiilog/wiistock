@@ -1,10 +1,11 @@
-import AJAX, {GET, POST} from "@app/ajax";
+import AJAX, {DELETE, GET, POST} from "@app/ajax";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
 import Camera from "@app/camera";
 import Flash from "@app/flash";
 import {wrapLoadingOnActionButton} from "@app/loading";
 import {computeDescriptionFormValues} from "@app/pages/reference-article/common";
+import Modal from "@app/modal";
 
 let packsTable;
 
@@ -656,24 +657,8 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
         });
     }
 
-    let $modalDeletePack = $('#modalDeletePack');
-    let $submitDeletePack = $('#submitDeletePack');
     $table.on(`click`, `.delete-pack-row`, function() {
-        $modalDeletePack.modal(`show`);
-
-        $submitDeletePack.off(`click.deleteRow`).on(`click.deleteRow`, () => {
-            const data = JSON.stringify({
-                pack: $(this).data(`id`) || null,
-            });
-
-            $.post(Routing.generate('dispatch_delete_pack', true), data, response => {
-                table.row($(this).closest(`tr`))
-                    .remove()
-                    .draw();
-
-                showBSAlert(response.msg, response.success ? `success` : `danger`)
-            });
-        });
+        confirmRemovePack(table, $(this).data(`id`));
     });
 
     $(window).on(`beforeunload`, () =>  {
@@ -902,4 +887,25 @@ function registerVolumeCompute() {
             }
         });
     });
+}
+
+function confirmRemovePack(table, packId) {
+    if (packId) {
+        Modal.confirm({
+            ajax: {
+                method: DELETE,
+                route: 'dispatch_delete_pack',
+                params: {
+                    pack: packId,
+                },
+            },
+            message: Translation.of('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Voulez-vous vraiment supprimer la ligne ?'),
+            title: Translation.of('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Supprimer la ligne'),
+            validateButton: {
+                color: 'danger',
+                label: Translation.of('Général', null, 'Modale', 'Supprimer'),
+            },
+            table,
+        });
+    }
 }
