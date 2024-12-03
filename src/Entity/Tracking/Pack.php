@@ -582,9 +582,6 @@ class Pack implements PairedEntity {
             "id" => $this->getId(),
             "code" => $this->getCode(),
             "natureId" => $this->getNature()?->getId(),
-            "packs" => $this->getContent()
-                ->map(fn(Pack $pack) => $pack->serialize())
-                ->toArray(),
         ];
     }
 

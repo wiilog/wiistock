@@ -526,7 +526,19 @@ class TrackingMovementController extends AbstractController {
 
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getGroup();
-                $res['group'] = $group ? $group->serialize() : null;
+                $res['group'] = $group
+                    ? [
+                        ...$group->serialize(),
+                        "packs" => $group->getContent()
+                            ->map(fn(Pack $pack) => [
+                                ...$pack->serialize(),
+                                ...$packService->formatTrackingDelayData($pack),
+                                'limitTreatmentDate' => $this->formatService->datetime($pack->getTrackingDelay()?->getLimitTreatmentDate(), null)
+                            ])
+                            ->toArray(),
+                    ]
+                    : null;
+
             }
 
             if ($includePack) {
