@@ -15,7 +15,7 @@ export function createFormNewDispatch($modalNewDispatch) {
             $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
             $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
             $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
-        })
+        });
 }
 
 export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatch) {
@@ -114,7 +114,7 @@ export function onDispatchTypeChange($select) {
     showAndRequireInputByType($select);
 }
 
-export function onExistingOrNotChanged($input) {
+function onExistingOrNotChanged($input) {
     const $modal = $input.closest('.modal');
     const value = parseInt($input.val());
     const $dispatchDetails = $modal.find(`.dispatch-details`);
@@ -144,7 +144,7 @@ export function onExistingOrNotChanged($input) {
     }
 }
 
-export function onExistingDispatchSelected($select) {
+function onExistingDispatchSelected($select) {
     const $modal = $select.closest('.modal');
     $.get(Routing.generate(`get_dispatch_details`, {id: $select.val()}, true)).then(({content}) => {
         $modal.find(`.dispatch-details`)
