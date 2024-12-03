@@ -3,7 +3,7 @@ import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
 import Form from "@app/form";
-import {ERROR} from "@app/flash";
+import Flash, {ERROR} from "@app/flash";
 
 global.editRowUser = editRowUser;
 
