@@ -29,6 +29,7 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\ReserveType;
+use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
@@ -45,6 +46,7 @@ use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\WorkPeriod\WorkPeriodService;
+use DateInterval;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1093,9 +1095,9 @@ class SettingsService {
                 $typeRepository = $entityManager->getRepository(Type::class);
                 $languageRepository = $entityManager->getRepository(Language::class);
                 $userRepository = $entityManager->getRepository(Utilisateur::class);
+                $roleRepository = $entityManager->getRepository(Role::class);
 
                 $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
-
 
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -1200,6 +1202,11 @@ class SettingsService {
                     if(isset($statusData['typeForGeneratedDispatchOnStatusChange'])){
                         $dispatchRequestType = $typeRepository->findOneBy(['id' => $statusData['typeForGeneratedDispatchOnStatusChange']]);
                         $status->setTypeForGeneratedDispatchOnStatusChange($dispatchRequestType);
+                    }
+
+                    if(isset($statusData['allowedCreationForRoles'])) {
+                        $allowedCreationForRoles = $roleRepository->findBy(["id" => explode(',', $statusData['allowedCreationForRoles']) ?? ""]);
+                        $status->setAuthorizedRequestCreationRoles($allowedCreationForRoles);
                     }
 
                     if($hasRightGroupedSignature){
@@ -1608,22 +1615,42 @@ class SettingsService {
         $entityManager->remove($startingHour);
     }
 
-    public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting): array {
+    public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting, ?string $entity = ''): array {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
-        $settingTypes = $settingRepository->getOneParamByLabel($setting);
-        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $settingValues = $this->getValue($entityManager, $setting);
+        $entities = match($entity) {
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
+            'roles' => $roleRepository->findAll(),
+            default => [],
+        };
+
         $selectOptions = [];
-        foreach ($dispatchTypes as $type){
+        foreach ($entities as $data){
             $selectOptions[] = [
-                'value' => $type->getId(),
-                'label' => $type->getLabel(),
-                'selected' => in_array($type->getId(), explode(',', $settingTypes)),
+                'value' => $data->getId(),
+                'label' => $data->getLabel(),
+                'selected' => in_array($data->getId(), explode(',', $settingValues)),
             ];
         }
 
         return $selectOptions;
+    }
+
+    public function getMinDateByTypesSettings(EntityManagerInterface $entityManager,
+                                              string                 $entity,
+                                              FixedFieldEnum         $field,
+                                              DateTime               $init): array {
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        return Stream::from($fixedFieldByTypeRepository->getElements($entity, $field->name))
+            ->map(static fn(string $delay) => explode(":", $delay))
+            ->map(static fn(array $delay) => (
+                (clone $init)
+                    ->add(new DateInterval("PT$delay[0]H$delay[1]M"))
+                    ->format('Y-m-d\TH:i')
+            ))
+            ->toArray();
     }
 
 }

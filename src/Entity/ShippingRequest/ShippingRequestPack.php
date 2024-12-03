@@ -3,7 +3,7 @@
 namespace App\Entity\ShippingRequest;
 
 use App\Entity\Article;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Repository\ShippingRequest\ShippingRequestPackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
+use App\Entity\Role;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -83,6 +84,7 @@ class StatusController extends AbstractController
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         $category = match ($mode) {
             self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -137,6 +139,13 @@ class StatusController extends AbstractController
                         ])
                         ->toArray()
                     : [];
+                $allowedCreationForRoles = Stream::from($roleRepository->findAllExceptNoAccess())
+                    ->map(static fn(Role $role) => [
+                        "label" => $role->getLabel(),
+                        "value" => $role->getId(),
+                        "selected" => in_array($role, $status->getAuthorizedRequestCreationRoles()->toArray()),
+                    ])
+                    ->toArray();
                 $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
                 $typeForGeneratedDispatchOnStatusChange = $status->getTypeForGeneratedDispatchOnStatusChange() ?
                     Stream::from($types)
@@ -185,7 +194,22 @@ class StatusController extends AbstractController
                     "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
                     "passStatusAtPurchaseOrderGeneration" => $formService->macro("checkbox", "passStatusAtPurchaseOrderGeneration", null, false, $passStatusAtPurchaseOrderGeneration),
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
-                ];
+                    "allowedCreationForRoles" => $formService->macro("select", "allowedCreationForRoles", null, false, [
+                        "type" => "roles",
+                        "inputClass" => " ",
+                        "labelClass" => " ",
+                        "noFullSize" => true,
+                        "selectAllLabelClass" => "h-auto",
+                        "multiple" => true,
+                        "items" => $allowedCreationForRoles,
+                        "selectAllLabel" => "Tous",
+                        "additionalAttributes" => [
+                            [
+                                'name' => 'data-parent',
+                                'value' => 'body',
+                            ],
+                        ],
+                    ])];
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
@@ -215,6 +239,9 @@ class StatusController extends AbstractController
                     "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
                     "passStatusAtPurchaseOrderGeneration" => $this->formatService->bool($status->isPassStatusAtPurchaseOrderGeneration()),
                     "order" => $status->getDisplayOrder(),
+                    "allowedCreationForRoles" => Stream::from($status->getAuthorizedRequestCreationRoles())
+                        ->map(static fn(Role $role) => $role->getLabel())
+                        ->join(', '),
                 ];
             }
         }

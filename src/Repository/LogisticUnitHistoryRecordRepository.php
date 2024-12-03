@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;

@@ -8,21 +8,18 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class UserChecker implements UserCheckerInterface
 {
     public const ACCOUNT_DISABLED_CODE = 666;
     public const NO_MORE_SESSION_AVAILABLE = 667;
 
-    #[Required]
-    public SessionHistoryRecordService $sessionService;
+    public function __construct(
+        private SessionHistoryRecordService $sessionService,
+        private EntityManagerInterface $entityManager,
+    ){}
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    public function checkPreAuth(UserInterface $user): void
-    {
+    public function checkPreAuth(UserInterface $user): void {
         if (!$user instanceof AppUser) {
             return;
         }
@@ -40,7 +37,5 @@ class UserChecker implements UserCheckerInterface
         }
     }
 
-    public function checkPostAuth(UserInterface $user): void
-    {
-    }
+    public function checkPostAuth(UserInterface $user): void {}
 }

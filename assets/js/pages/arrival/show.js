@@ -1,3 +1,11 @@
+import {initEditPackModal, deletePack} from "@app/pages/pack/common";
+import AJAX, {POST, GET, DELETE} from "@app/ajax";
+import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
+import {initDataTable} from "@app/datatable";
+import Form from "@app/form";
+import {initCommentHistoryForm} from "@app/pages/dispute/common";
+
 $('.select2').select2();
 let tableHistoLitige;
 let tablePacks;
@@ -34,7 +42,7 @@ $(function () {
     initDispatchCreateForm($modalNewDispatch, 'arrivals', [arrivalId]);
 
     AJAX
-        .route(AJAX.GET, 'arrival_list_packs_api_columns', {})
+        .route(GET, 'arrival_list_packs_api_columns', {})
         .json()
         .then((columns) => {
             const packDatatable = initPackDatatable(arrivalId, columns);
@@ -44,20 +52,78 @@ $(function () {
     const disputeDatatable = initDisputeDatatable(arrivalId);
     initDisputeModals(arrivalId, disputeDatatable);
 
-    initArrivalModals();
-
     if (query.reserve) {
         $('.new-dispute-modal').click();
     }
+
+    let $modalEditArrivage = $('#modalEditArrivage');
+    Form
+        .create($modalEditArrivage)
+        .submitTo(
+            POST,
+            "arrivage_edit",
+            {
+                success: (params) => arrivalCallback(false, params)
+            }
+        )
+        .onOpen((event) => {
+            Modal.load('arrivage_edit_api', {id: arrivalId}, $modalEditArrivage, $modalEditArrivage.find('.modal-body'), {
+                onOpen: (data) => {
+                    $modalEditArrivage.find('.error-msg').html('');
+
+                    $modalEditArrivage.find('#acheteursEdit').val(data.acheteurs).select2();
+                    $modalEditArrivage.find('.select2').select2();
+                    initDateTimePicker('.date-cl');
+                    Select2Old.initFree($('.select2-free'));
+                    Select2Old.location($modalEditArrivage.find('.ajax-autocomplete-location'));
+                    Select2Old.user($modalEditArrivage.find('.ajax-autocomplete-user'));
+                    const $userFormat = $('#userDateFormat');
+                    const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+
+                    initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+                    initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+
+                    fillDatePickers('.free-field-date');
+                    fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
+
+                    Camera.init(
+                        $modalEditArrivage.find(`.take-picture-modal-button`),
+                        $modalEditArrivage.find(`[name="files[]"]`)
+                    );
+
+                }
+            })
+        });
+
+    $('.delete-arrival').on('click', function () {
+        Modal.confirm({
+            ajax: {
+                method: DELETE,
+                route: 'arrivage_delete',
+                params: {
+                    arrival: arrivalId
+                },
+            },
+            message: Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Voulez-vous réellement supprimer cet arrivage UL ?'),
+            title: 'Supprimer l\'arrivage UL',
+            validateButton: {
+                color: 'danger',
+                label: 'Supprimer',
+            },
+            cancelButton: {
+                label: 'Annuler',
+            },
+        });
+    });
 });
 
-function openTableHisto(dispute = undefined) {
+function openTableHisto($modalEditLitige, dispute = undefined) {
     dispute = dispute || $('[name="disputeId"]').val();
     let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: dispute}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
-            "type": AJAX.POST
+            "type": POST
         },
         serverSide: true,
         order: [['date', 'asc']],
@@ -72,76 +138,15 @@ function openTableHisto(dispute = undefined) {
             needsPartialDomOverride: true,
         }
     };
-    tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
-}
-
-function editRowArrivage($button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = $button.data('id');
-    let params = {id: id};
-
-    wrapLoadingOnActionButton(
-        $button,
-        () => {
-            return $.post(path, JSON.stringify(params), function (data) {
-                modal.find('.error-msg').html('');
-                modal.find('.modal-body').html(data.html);
-
-                modal.find('#acheteursEdit').val(data.acheteurs).select2();
-                modal.find('.select2').select2();
-                initDateTimePicker('.date-cl');
-                Select2Old.initFree($('.select2-free'));
-                Select2Old.location(modal.find('.ajax-autocomplete-location'));
-                Select2Old.user(modal.find('.ajax-autocomplete-user'));
-                const $userFormat = $('#userDateFormat');
-                const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-
-                initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
-                initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
-
-                fillDatePickers('.free-field-date');
-                fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
-
-                Camera.init(
-                    modal.find(`.take-picture-modal-button`),
-                    modal.find(`[name="files[]"]`)
-                );
-
-                modal.modal('show');
-            }, 'json');
-        }
-    );
-    modal.find(submit).attr('value', id);
-}
-
-function deleteRowArrivage(button, modal, submit, hasLitige) {
-    deleteRow(button, modal, submit);
-    let hasLitigeText = modal.find('.hasLitige');
-    if (hasLitige) {
-        hasLitigeText.removeClass('d-none');
-    } else {
-        hasLitigeText.addClass('d-none');
-    }
-}
-
-function getCommentAndAddHisto() {
-    let path = Routing.generate('dispute_add_comment', {dispute: $('[name="disputeId"]').val()}, true);
-    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
-    let dataComment = commentLitige.val();
-
-    $.post(path, JSON.stringify(dataComment), function (response) {
-        tableHistoLitige.ajax.reload();
-        commentLitige.val('');
-    });
+    tableHistoLitige = initDataTable($modalEditLitige.find('#tableHistoLitige'), tableHistoLitigeConfig);
+    initCommentHistoryForm($modalEditLitige, tableHistoLitige);
 }
 
 function initPackDatatable(arrivalId, columns) {
     return initDataTable('tablePacks', {
         ajax: {
             "url": Routing.generate('packs_api', {arrivage: arrivalId}, true),
-            "type": AJAX.POST,
+            "type": POST,
         },
         domConfig: {
             removeInfo: true
@@ -163,7 +168,7 @@ function initDisputeDatatable(arrivalId) {
         },
         ajax: {
             "url": pathArrivageLitiges,
-            "type": AJAX.POST
+            "type": POST
         },
         columns: [
             {data: 'Actions', name: 'actions', title: '', orderable: false, className: 'noVis'},
@@ -202,7 +207,7 @@ function initPackModals(arrivalId, packDatatable) {
             data.append('packs', JSON.stringify(packs));
         })
         .submitTo(
-            AJAX.POST,
+            POST,
             'arrivage_add_pack',
             {
                 tables: [packDatatable],
@@ -219,22 +224,17 @@ function initPackModals(arrivalId, packDatatable) {
             }
         );
 
-    //édition d'UL
     const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+    initEditPackModal({
         tables: [packDatatable],
         waitForUserAction: () => {
             return checkPossibleCustoms($modalEditPack);
         },
-    });
+    })
 
-    //suppression d'UL
-    let modalDeletePack = $("#modalDeletePack");
-    let SubmitDeletePack = $("#submitDeletePack");
-    let urlDeletePack = Routing.generate('pack_delete', true);
-    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packDatatable], clearOnClose: true});
+    $(document).on('click', '.delete-pack', function () {
+        deletePack({ pack: $(this).data('id'), arrivage: arrivalId }, tablePacks);
+    });
 }
 
 function initDisputeModals(arrivalId, disputeDatatable) {
@@ -246,7 +246,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
             data.append('reloadArrivage', arrivalId);
         })
         .submitTo(
-            AJAX.POST,
+            POST,
             "dispute_new",
             {
                 tables: [disputeDatatable],
@@ -278,12 +278,12 @@ function initDisputeModals(arrivalId, disputeDatatable) {
                         $modalEditLitige.find(`.take-picture-modal-button`),
                         $modalEditLitige.find(`[name="files[]"]`)
                     );
-                    openTableHisto(disputeId)
+                    openTableHisto($modalEditLitige, disputeId)
                 }
             })
         })
         .submitTo(
-            AJAX.POST,
+            POST,
             'arrival_edit_dispute',
             {
                 tables: [disputeDatatable],
@@ -294,16 +294,4 @@ function initDisputeModals(arrivalId, disputeDatatable) {
     let SubmitDeleteLitige = $("#submitDeleteLitige");
     let urlDeleteLitige = Routing.generate('litige_delete_arrivage', true);
     InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [disputeDatatable]});
-}
-
-function initArrivalModals() {
-    let modalModifyArrivage = $('#modalEditArrivage');
-    let submitModifyArrivage = $('#submitEditArrivage');
-    let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-    InitModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, {success: (params) => arrivalCallback(false, params)});
-
-    let modalDeleteArrivage = $('#modalDeleteArrivage');
-    let submitDeleteArrivage = $('#submitDeleteArrivage');
-    let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
-    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
 }

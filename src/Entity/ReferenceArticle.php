@@ -10,6 +10,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -942,6 +943,11 @@ class ReferenceArticle implements AttachmentContainer
                 ->toArray();
 
         return $count ? count($articles) : $articles;
+    }
+
+    public function hasArticles(): bool {
+        return Stream::from($this->articlesFournisseur)
+            ->some(fn(ArticleFournisseur $articleFournisseur) => !empty($articleFournisseur->getArticles()));
     }
 
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {

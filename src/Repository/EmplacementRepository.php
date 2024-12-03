@@ -7,7 +7,7 @@ use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;

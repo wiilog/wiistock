@@ -32,13 +32,6 @@ $(function () {
     const pathDeletePreparation = Routing.generate(`preparation_delete`, {preparation: $modalDeletePreparation.find(`input[name=preparation]`).val()}, true);
     InitModal($modalDeletePreparation, $submitDeletePreparation, pathDeletePreparation);
 
-    const $modalEditPack = $('#modalEditPack');
-    const $submitEditPack = $('#submitEditPack');
-    const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
-        success: () => loadLogisticUnitList($preparationId.val())
-    });
-
     let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
     let modalEditLigneArticle = $("#modalEditLigneArticle");
     let submitEditLigneArticle = $("#submitEditLigneArticle");
@@ -362,12 +355,7 @@ function clearValidatePreparationModal() {
 }
 
 function printLogisticUnit(id) {
-    Wiistock.download(Routing.generate(`print_single_logistic_unit`, {pack: id}));
-}
-
-function initializeHistoryTables(packId){
-    initializeGroupHistoryTable(packId);
-    initializeProjectHistoryTable(packId);
+    Wiistock.download(Routing.generate(`pack_print_single`, {pack: id}));
 }
 
 function printArticles(preparation) {
@@ -402,45 +390,6 @@ function printArticles(preparation) {
                 error: "Il n'y a aucune étiquette à imprimer."
             });
     }
-}
-
-function initializeGroupHistoryTable(packId) {
-    initDataTable('groupHistoryTable', {
-        serverSide: true,
-        processing: true,
-        order: [['date', "desc"]],
-        ajax: {
-            "url": Routing.generate('group_history_api', {pack: packId}, true),
-            "type": "POST"
-        },
-        columns: [
-            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
-            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
-            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        }
-    });
-}
-
-function initializeProjectHistoryTable(packId) {
-    initDataTable('projectHistoryTable', {
-        serverSide: true,
-        processing: true,
-        order: [['createdAt', "desc"]],
-        ajax: {
-            "url": Routing.generate('project_history_api', {pack: packId}, true),
-            "type": "POST"
-        },
-        columns: [
-            {data: 'project', name: 'group', title: Translation.of('Référentiel', 'Projet', 'Projet', false)},
-            {data: 'createdAt', name: 'type', title: 'Assigné le'},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        }
-    });
 }
 
 function treatLine(event, $line) {

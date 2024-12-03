@@ -26,15 +26,23 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         /** @var TrackingMovement $trackingMovement */
         $trackingMovement = $object;
 
-        return match ($context["usage"]) {
-            SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobile($trackingMovement, $format, $context),
-            SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobilePicking($trackingMovement, $format, $context),
-            default => throw new Exception("Invalid usage"),
+        /** @var SerializerUsageEnum $usage */
+        $usage = $context["usage"] ?? null;
+
+        $usageStr = $usage ? $usage->value : "null";
+        $supportedUsageStr = Stream::from(self::SUPPORTED_USAGES)
+            ->map(static fn(SerializerUsageEnum $supported) => $supported->value)
+            ->join(", ");
+
+        return match ($usage) {
+            SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobileReadingPage($trackingMovement, $format, $context),
+            SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobileTrackingPage($trackingMovement, $format, $context),
+            default => throw new Exception("Invalid usage {$usageStr}, should be one of {$supportedUsageStr}"),
         };
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool{
-        return $data instanceof TrackingMovement && in_array($context["usage"] ?? null, self::SUPPORTED_USAGES);
+        return $data instanceof TrackingMovement;
     }
 
     public function getSupportedTypes(?string $format): array {
@@ -43,7 +51,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         ];
     }
 
-    public function normalizeForMobile (TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
+    public function normalizeForMobileReadingPage(TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
         return [
             "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
             "date" => $this->formatService->datetime($trackingMovement->getDatetime()),
@@ -55,14 +63,15 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         ];
     }
 
-    public function normalizeForMobilePicking (TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
+    public function normalizeForMobileTrackingPage(TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
         $pack = $trackingMovement->getPack();
+        $includeMovementId = $context["includeMovementId"] ?? false;
 
         return [
-            ...($context["includeMovementId"]
+            ...($includeMovementId
                 ? ["id" => $trackingMovement->getId()]
                 : []),
-            "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
+            "type" => $trackingMovement->getType()?->getCode(),
             "date" => $trackingMovement->getUniqueIdForMobile(),
             "ref_emplacement" => $this->formatService->location($trackingMovement->getEmplacement()),
             "nature_id" => $trackingMovement->getPack()?->getNature()?->getId(),
@@ -73,7 +82,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
             "finished" => $trackingMovement->isFinished(),
             "fromStock" => !empty($trackingMovement->getMouvementStock()) || $pack->isArticleContainer(),
             "isGroup" => $pack->isGroup(),
-            "packParent" => $trackingMovement->getPackParent()?->getCode(),
+            "packGroup" => $trackingMovement->getPackGroup()?->getCode(),
             "articles" => Stream::from($pack->getChildArticles())
                 ->map(static fn(Article $article) => $article->getBarCode())
                 ->join(";"),

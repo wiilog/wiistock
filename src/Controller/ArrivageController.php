@@ -17,12 +17,12 @@ use App\Entity\Fournisseur;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
@@ -108,6 +108,13 @@ class ArrivageController extends AbstractController
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
+        // filter statuses to keep only those which are authorized to be created by the user
+        $statuses = Stream::from($statuses)
+            ->filter(function (Statut $statut) use ($user) {
+                return in_array($user->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
+            })
+            ->toArray();
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $pageLength = $user->getPageLengthForArrivage() ?: 10;
@@ -413,12 +420,11 @@ class ArrivageController extends AbstractController
         ]);
     }
 
-    #[Route("/api-modifier", name: "arrivage_edit_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier", name: "arrivage_edit_api", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
     public function editApi(Request                $request,
-                            EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
+                            EntityManagerInterface $entityManager): Response {
+        if ($data = $request->query->all()) {
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $arrivageRepository = $entityManager->getRepository(Arrivage::class);
                 $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
@@ -703,29 +709,25 @@ class ArrivageController extends AbstractController
         return new JsonResponse($response);
     }
 
-    #[Route("/supprimer", name: "arrivage_delete", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer/{arrival}", name: "arrivage_delete", options: ["expose" => true], methods: [self::DELETE], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DELETE_ARRI], mode: HasPermission::IN_JSON)]
-    public function delete(Request                $request,
-                           AttachmentService      $attachmentService,
-                           EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
+    public function delete(AttachmentService      $attachmentService,
+                           Arrivage               $arrival,
+                           EntityManagerInterface $entityManager): Response {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            /** @var Arrivage $arrival */
 
-            /** @var Arrivage $arrivage */
-            $arrivage = $arrivageRepository->find($data['arrivage']);
-
-            $canBeDeleted = ($arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0);
+            $canBeDeleted = ($arrivageRepository->countUnsolvedDisputesByArrivage($arrival) == 0);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
             $tracking = $trackingMovementRepository->findBy([
-                "pack" => $arrivage->getPacks()->toArray(),
+                "pack" => $arrival->getPacks()->toArray(),
             ]);
 
             if ($canBeDeleted) {
                 foreach($tracking as $track) {
                     $entityManager->remove($track);
                 }
-                foreach($arrivage->getPacks() as $pack) {
+                foreach($arrival->getPacks() as $pack) {
 
                     $pack->getTrackingMovements()->clear();
 
@@ -737,14 +739,14 @@ class ArrivageController extends AbstractController
 
                     $entityManager->remove($pack);
                 }
-                $arrivage->getPacks()->clear();
-                $attachmentService->removeAttachments($entityManager, $arrivage);
+                $arrival->getPacks()->clear();
+                $attachmentService->removeAttachments($entityManager, $arrival);
 
-                foreach ($arrivage->getUrgences() as $urgence) {
+                foreach ($arrival->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
                 }
 
-                $entityManager->remove($arrivage);
+                $entityManager->remove($arrival);
                 $entityManager->flush();
                 $data = [
                     "redirect" => $this->generateUrl('arrivage_index')
@@ -753,15 +755,11 @@ class ArrivageController extends AbstractController
                 $data = false;
             }
             return new JsonResponse($data);
-        }
-
-        throw new BadRequestHttpException();
     }
 
     #[Route("/lister-UL", name: "arrivage_list_packs_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function listPacksByArrivage(Request                $request,
-                                        EntityManagerInterface $entityManager)
-    {
+                                        EntityManagerInterface $entityManager) {
         if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($data['id']);

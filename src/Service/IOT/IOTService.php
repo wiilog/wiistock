@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
@@ -23,20 +24,19 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorProfile;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
-use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Repository\ArticleRepository;
 use App\Repository\IOT\SensorMessageRepository;
-use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
+use App\Repository\Tracking\PackRepository;
 use App\Service\DeliveryRequestService;
 use App\Service\HttpService;
 use App\Service\MailerService;
@@ -46,8 +46,8 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use DateInterval;
-use DateTimeZone;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -308,7 +308,7 @@ class IOTService
                                             EntityManagerInterface $entityManager): void {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
         if ($needsTrigger && $sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
-            $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)
+            $button = $sensorMessage->getContent();
             $config = $triggerAction->getConfig();
             $wanted = intval($config['buttonIndex']);
             $needsTrigger = ($button === $wanted);
@@ -319,6 +319,7 @@ class IOTService
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
                 $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+                $triggerAction->setLastTrigger(new DateTime('now'));
             }
         }
     }
@@ -688,14 +689,14 @@ class IOTService
         }
 
         $messages = Stream::from($mainDatas)
-            ->map(function ($mainData, $type) use ($message, $messageDate, $device, $entityManager) :SensorMessage {
+            ->map(function ($mainData, $type) use ($message, $messageDate, $device, $entityManager, $payload) :SensorMessage {
                 $received = new SensorMessage();
                 $received
                     ->setPayload($message)
                     ->setDate($messageDate)
                     ->setContent($mainData)
                     ->setContentType($type)
-                    ->setEvent($this->extractEventTypeFromMessage($message, $device->getProfile()->getName()))
+                    ->setEvent($this->extractEventTypeFromMessage($message, $device->getProfile()->getName(), $payload))
                     ->setLinkedSensorLastMessage($device)
                     ->setSensor($device);
 
@@ -847,15 +848,19 @@ class IOTService
             case IOTService::KOOVEA_HUB:
                 return [self::DATA_TYPE_GPS => $config['value']];
             case IOTService::INEO_SENS_ACS_BTN:
-                return [self::DATA_TYPE_ACTION => $this->extractEventTypeFromMessage($config, $profile)];
+                return [self::DATA_TYPE_ACTION => $this->extractEventTypeFromMessage($config, $profile, $payload)];
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 // TODO WIIS-10287 check $config['payload_cleartext']
-                if (isset($config['value']['payload'])) {
+                if ($payload) {
                     // TODO WIIS-10287 check $config['payload_cleartext']
-                    $value = hexdec(substr($config['value']['payload'], 0, 2));
+                    $value = hexdec(substr($payload, 0, 2));
                     $event = $value & ~($value >> 3 << 3);
-                    return [self::DATA_TYPE_ACTION => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
+                    if ($event === 0) {
+                        return [self::DATA_TYPE_LIVENESS_PROOF=> self::ACS_PRESENCE];
+                    } else if ($event > 0 && $event < 8) {
+                        return [self::DATA_TYPE_ACTION => $event];
+                    }
                 }
                 break;
             case IOTService::DEMO_TEMPERATURE:
@@ -958,7 +963,7 @@ class IOTService
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
 
-    public function extractEventTypeFromMessage(array $config, string $profile) {
+    public function extractEventTypeFromMessage(array $config, string $profile, string $payload = null): string {
         switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
@@ -989,16 +994,14 @@ class IOTService
                 break;
             case IOTService::SYMES_ACTION_SINGLE:
             case IOTService::SYMES_ACTION_MULTI:
-            // TODO WIIS-10287 check $config['payload_cleartext']
-                if (isset($config['value']['payload'])) {
-                    // TODO WIIS-10287 check $config['payload_cleartext']
-                    $value = hexdec(substr($config['value']['payload'], 0, 2));
+                if ($payload) {
+                    $value = hexdec(substr($payload, 0, 2));
                     $event =  $value & ~($value >> 3 << 3);
                     return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
                 }
                 break;
             case IOTService::INEO_INS_EXTENDER:
-                $frame = $config['value']['payload'];
+                $frame = $payload;
                 if (str_starts_with($frame, '49')) {
                     return self::ACS_PRESENCE;
                 }

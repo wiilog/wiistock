@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Tracking\Pack;
 use App\Repository\ReceiptAssociationRepository;
 use App\Service\FormatService;
 use DateTime;

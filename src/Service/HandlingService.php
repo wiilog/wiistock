@@ -16,6 +16,7 @@ use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -60,32 +61,51 @@ class HandlingService {
     #[Required]
     public LanguageService $languageService;
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $selectedDate = null): array
-    {
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $handlingRepository = $this->entityManager->getRepository(Handling::class);
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
+    #[Required]
+    public SettingsService $settingsService;
 
-        $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request): array
+    {
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+
+        $includeDesiredTime = (bool) $this->settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
 
         $user = $this->userService->getUser();
 
-        if ($statusFilter) {
-            $filters = [
+        $filterType = $request->request->all('filterType');
+        $fromDashboard = $request->request->getBoolean('fromDashboard');
+        $filterStatus = $request->request->all('filterStatus');
+        $selectedDate = $request->request->get('selectedDate');
+
+        if(!$fromDashboard) {
+            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $user);
+        } else {
+            $preFilledStatuses = $filterStatus
+                ? implode(",", $filterStatus)
+                : [];
+            $preFilledType = $filterType
+                ? implode(",", $filterType)
+                : [];
+
+            $preFilledFilters = [
                 [
-                    'field' => 'statut',
-                    'value' => $statusFilter,
+                    'field' => 'statuses-filter',
+                    'value' => $preFilledStatuses,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
+                    'value' => $preFilledType,
                 ],
             ];
-        }
-        else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $user);
+
+            $filters = $preFilledFilters;
         }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
-        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters, $user, $selectedDate, [
+        $queryResult = $handlingRepository->findByParamAndFilters($request->request, $filters, $user, $selectedDate, [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language
         ]);

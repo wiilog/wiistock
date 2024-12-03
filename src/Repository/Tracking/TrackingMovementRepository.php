@@ -7,8 +7,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
-use App\Entity\Pack;
-use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -19,12 +18,11 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Exception;
+use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
-use \Generator;
 
 class TrackingMovementRepository extends EntityRepository
 {
@@ -64,7 +62,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect("pack_arrival.numeroCommandeList AS arrivalOrderNumber")
             ->addSelect("pack_arrival.isUrgent AS isUrgent")
             ->addSelect("tracking_movement.freeFields as freeFields")
-            ->addSelect("CONCAT(join_packParent.code, '-', tracking_movement.groupIteration) AS packParent")
+            ->addSelect("CONCAT(join_packGroup.code, '-', tracking_movement.groupIteration) AS packGroup")
             ->addSelect("IF(SIZE(tracking_movement.attachments) > 0, 'oui', 'non') AS hasAttachments")
 
             ->andWhere("tracking_movement.datetime BETWEEN :dateMin AND :dateMax")
@@ -74,7 +72,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin("tracking_movement.type", "join_type")
             ->leftJoin("tracking_movement.operateur", "join_operator")
             ->leftJoin("pack.arrivage", "pack_arrival")
-            ->leftJoin("tracking_movement.packParent", "join_packParent")
+            ->leftJoin("tracking_movement.packGroup", "join_packGroup")
             ->setParameter("dateMin", $dateMin)
             ->setParameter("dateMax", $dateMax);
 
@@ -87,8 +85,6 @@ class TrackingMovementRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('tracking_movement')
             ->groupBy('tracking_movement.id');
-
-        $countTotal = QueryBuilderHelper::count($qb, 'tracking_movement');
 
         if($params->get('article')) {
             $qb
@@ -109,9 +105,13 @@ class TrackingMovementRepository extends EntityRepository
                     case 'emplacement':
                         $emplacementValue = explode(':', $filter['value']);
                         $qb
-                            ->join('tracking_movement.emplacement', 'filter_location')
-                            ->andWhere('filter_location.label = :location')
-                            ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
+                            ->innerJoin(
+                                'tracking_movement.emplacement',
+                                'filter_location',
+                                Join::WITH,
+                                'filter_location.id = :location'
+                            )
+                            ->setParameter('location', $emplacementValue[0] ?? $filter['value']);
                         break;
                     case 'utilisateurs':
                         $value = explode(',', $filter['value']);
@@ -130,17 +130,18 @@ class TrackingMovementRepository extends EntityRepository
                             ->andWhere('tracking_movement.datetime <= :dateMax')
                             ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                         break;
-                    case 'UL':
+                    case 'logisticUnits':
+                        $packs = Stream::explode(",", $filter["value"])
+                            ->map(static fn(string $pack) => (int)explode(':', $pack)[0])
+                            ->toArray();
                         $qb
-                            ->leftJoin('tracking_movement.pack', 'filter_pack')
-                            ->leftJoin('filter_pack.article', 'filter_pack_article')
-                            ->leftJoin('tracking_movement.logisticUnitParent', 'code_filter_logistic_unit')
-                            ->andWhere('IF(code_filter_logistic_unit.id IS NOT NULL,
-                                            code_filter_logistic_unit.code,
-                                            (IF (filter_pack_article.currentLogisticUnit IS NOT NULL,
-                                                NULL,
-                                                filter_pack.code))) LIKE :filter_code')
-                            ->setParameter('filter_code', '%' . $filter['value'] . '%');
+                            ->innerJoin(
+                                "tracking_movement.pack",
+                                "filter_pack",
+                                Join::WITH,
+                                "filter_pack.id  IN (:packs)"
+                            )
+                            ->setParameter("packs", $packs);
                         break;
                     case FiltreSup::FIELD_ARTICLE:
                         $value = explode(':', $filter['value'])[0];
@@ -177,7 +178,7 @@ class TrackingMovementRepository extends EntityRepository
                         ->innerJoin('tracking_movement.pack', 'search_pack')
                         ->leftJoin('tracking_movement.logisticUnitParent', 'search_logistic_unit_parent')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
-                        ->leftJoin('tracking_movement.packParent', 'search_pack_group')
+                        ->leftJoin('tracking_movement.packGroup', 'search_pack_group')
                         ->leftJoin('tracking_movement.operateur', 'search_operator')
                         ->leftJoin('tracking_movement.type', 'search_type')
                         ->leftJoin('search_pack.referenceArticle', 'search_pack_referenceArticle')
@@ -197,7 +198,7 @@ class TrackingMovementRepository extends EntityRepository
                             ->orderBy('order_location.label', $order);
                     } else if ($column === 'group') {
                         $qb
-                            ->leftJoin('tracking_movement.packParent', 'order_pack_group')
+                            ->leftJoin('tracking_movement.packGroup', 'order_pack_group')
                             ->orderBy('order_pack_group.code', $order)
                             ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'status') {
@@ -273,11 +274,6 @@ class TrackingMovementRepository extends EntityRepository
             $qb->addOrderBy("tracking_movement.orderIndex", "DESC");
         }
 
-        // compte éléments filtrés
-        $countFiltered = QueryBuilderHelper::count($qb, 'tracking_movement');
-        $qb
-            ->select('tracking_movement');
-
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));
         }
@@ -286,12 +282,19 @@ class TrackingMovementRepository extends EntityRepository
             $qb->setMaxResults($params->getInt('length'));
         }
 
-        $query = $qb->getQuery();
+        $query = $qb
+            ->addSelect("COUNT_OVER(tracking_movement.id) AS __query_count")
+            ->getQuery();
+
+        $queryResult = $query?->getResult();
+        $countFiltered = $queryResult[0]['__query_count'] ?? 0;
+        $data = Stream::from($queryResult)
+            ->map(static fn($row) => $row[0])
+            ->toArray();
 
         return [
-            'data' => $query?->getResult(),
             'count' => $countFiltered,
-            'total' => $countTotal
+            'data' => $data,
         ];
     }
 
@@ -319,7 +322,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('join_pack.article', 'join_pack_article')
             ->leftJoin('join_pack.childArticles', 'join_pack_child_articles')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
-            ->leftJoin('tracking_movement.packParent', 'join_packParent')
+            ->leftJoin('tracking_movement.packGroup', 'join_packGroup')
             ->innerJoin(Pack::class, "join_packLastAction", Join::WITH, "join_packLastAction.lastAction = tracking_movement") // check if it's the last tracking pick
             ->andWhere('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')

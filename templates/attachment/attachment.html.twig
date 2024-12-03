@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set addPhotoButton = addPhotoButton is defined and addPhotoButton %}
 
 <div class="attachments-container">
@@ -14,7 +16,7 @@
         {% set dropFrameName = attachmentLineOptions.dropFrameName is defined
             and attachmentLineOptions.dropFrameName ? attachmentLineOptions.dropFrameName : "" %}
 
-        <input type="hidden" name="isAttachmentForm" value="1"/>
+        {{ form.hidden('isAttachmentForm', 1) }}
         <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
         <input type="hidden" name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
 

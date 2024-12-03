@@ -593,11 +593,6 @@ class SettingsController extends AbstractController {
                     "save" => false,
                     "wrapped" => false,
                 ],
-                self::MENU_INVENTORIES_IMPORTS => [
-                    "label" => "Imports d'inventaires",
-                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT,
-                    "save" => false,
-                ],
             ],
         ],
         self::CATEGORY_TEMPLATES => [
@@ -1322,8 +1317,9 @@ class SettingsController extends AbstractController {
                                 "value" => $type->getId(),
                                 "label" => $type->getLabel(),
                             ])->toArray(),
-                        "automaticallyCreateMovementOnValidationTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES)),
-                        "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES)),
+                        "automaticallyCreateMovementOnValidationTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES, 'types')),
+                        "keepModalOpenAndClearAfterSubmitForRoles" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::KEEP_MODAL_OPEN_AND_CLEAR_AFTER_SUBMIT_FOR_ROLES, 'roles')),
+                        "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES, 'types')),
                         "dispatchFixedFieldsFilterable" => Stream::from($fixedFieldByTypeRepository->findBy(['entityCode'=> FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->toArray(),
@@ -1409,15 +1405,19 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                         'category' => CategoryType::DEMANDE_DISPATCH,
                     ],
-                    self::MENU_STATUSES => function() {
+                    self::MENU_STATUSES => function() use ($roleRepository) {
                         $types = $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false);
                         $types[0]["checked"] = true;
+                        $roles = $roleRepository->findAllExceptNoAccess();
 
                         return [
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_DISPATCH,
                             'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
                             'groupedSignatureTypes' => $this->dispatchService->getGroupedSignatureTypes(),
+                            'roleOptions' => Stream::from($roles)
+                                ->map(static fn(Role $role) => "<option value='{$role->getId()}'>{$role->getLabel()}</option>")
+                                ->join(''),
                         ];
                     },
                 ],
@@ -1909,27 +1909,16 @@ class SettingsController extends AbstractController {
             }
         }
         else if($field->getElementsType() == FixedFieldStandard::ELEMENTS_LOCATION_BY_TYPE){
-            if($request->request->has('deliveryType') && $request->request->has('deliveryRequestLocation')){
+            if(!($request->request->has('deliveryType') ^ $request->request->has('deliveryRequestLocation'))){
                 $deliveryTypes = explode(',', $request->request->get("deliveryType"));
                 $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
-
                 if(count($deliveryTypes) !== count($deliveryRequestLocations)){
                     return $this->json([
                         "success" => false,
                         "msg" => "Une configuration d'emplacement de livraison par défaut est invalide",
                     ]);
                 }
-
                 $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
-                $invalidDeliveryTypes = (
-                    empty($associatedTypesAndLocations)
-                    || !Stream::from($associatedTypesAndLocations)
-                        ->filter(fn(string $key, string $value) => !$key || !$value)
-                        ->isEmpty()
-                );
-                if ($invalidDeliveryTypes) {
-                    throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
-                }
                 $field->setElements($associatedTypesAndLocations);
             } else {
                 return $this->json([

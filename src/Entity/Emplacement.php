@@ -14,6 +14,7 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
+use App\Entity\Tracking\Pack;
 use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\Vehicle;
@@ -26,6 +27,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
+#[ORM\Index(fields: ["label"], name: "IDX_WIILOG_LABEL")]
 class Emplacement implements PairedEntity {
 
     use SensorMessageTrait;

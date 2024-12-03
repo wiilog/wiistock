@@ -2,12 +2,13 @@
 
 namespace App\Serializer;
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Service\FormatService;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use WiiCommon\Helper\Stream;
 
 class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
@@ -23,14 +24,22 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
         /** @var Pack $pack */
         $pack = $object;
 
-        return match ($context["usage"]) {
+        /** @var SerializerUsageEnum $usage */
+        $usage = $context["usage"] ?? null;
+
+        $usageStr = $usage ? $usage->value : "null";
+        $supportedUsageStr = Stream::from(self::SUPPORTED_USAGES)
+            ->map(static fn(SerializerUsageEnum $supported) => $supported->value)
+            ->join(", ");
+
+        return match ($usage) {
             SerializerUsageEnum::MOBILE => $this->normalizeForMobile($pack, $format, $context),
-            default => throw new Exception("Invalid usage"),
+            default => throw new Exception("Invalid usage {$usageStr}, should be one of {$supportedUsageStr}"),
         };
     }
 
     public function supportsNormalization(mixed $data, string $format = null, array $context = []): bool {
-        return $data instanceof Pack && in_array($context["usage"], self::SUPPORTED_USAGES);
+        return $data instanceof Pack;
     }
 
     public function getSupportedTypes(?string $format): array {

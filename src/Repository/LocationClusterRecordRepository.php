@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use Doctrine\ORM\EntityRepository;
 
 /**

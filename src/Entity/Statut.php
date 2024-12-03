@@ -168,6 +168,13 @@ class Statut {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $passStatusAtPurchaseOrderGeneration = false;
 
+    /**
+     * @var Collection<int, Role>
+     */
+    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'authorizedRequestStatuses')]
+    #[ORM\JoinTable(name: 'authorized_request_creation_status_role')]
+    private Collection $authorizedRequestCreationRoles;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -185,6 +192,7 @@ class Statut {
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
         $this->notifiedUsers = new ArrayCollection();
+        $this->authorizedRequestCreationRoles = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -988,4 +996,45 @@ class Statut {
         $this->passStatusAtPurchaseOrderGeneration = $passStatusAtPurchaseOrderGeneration;
         return $this;
     }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function getAuthorizedRequestCreationRoles(): Collection
+    {
+        return $this->authorizedRequestCreationRoles;
+    }
+
+    public function addAuthorizedRequestCreationRole(Role $role): self
+    {
+        if (!$this->authorizedRequestCreationRoles->contains($role)) {
+            $this->authorizedRequestCreationRoles[] = $role;
+
+            $role->addAuthorizedDispatchStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAuthorizedRequestCreationRole(Role $role): self
+    {
+        if ($this->authorizedRequestCreationRoles->removeElement($role)) {
+            $role->removeAuthorizedRequestStatus($this);
+        }
+        return $this;
+    }
+
+    public function setAuthorizedRequestCreationRoles(?iterable $roles): self {
+        foreach($this->getAuthorizedRequestCreationRoles()->toArray() as $role) {
+            $this->removeAuthorizedRequestCreationRole($role);
+        }
+
+        $this->authorizedRequestCreationRoles = new ArrayCollection();
+        foreach($roles ?? [] as $role) {
+            $this->addAuthorizedRequestCreationRole($role);
+        }
+
+        return $this;
+    }
+
 }

@@ -3,6 +3,7 @@
 {% set useTruckArrival = setting_value('USE_TRUCK_ARRIVALS')  %}
 
 <div class="row">
+    {{ form.hidden('id', arrivage.id) }}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-lg-4 col-md-6 col-12">

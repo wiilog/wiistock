@@ -20,12 +20,11 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
-use App\Entity\Pack;
-use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -261,13 +260,20 @@ class DispatchService {
             ->filter(static fn(Type $type) => $type->isActive())
             ->toArray();
 
+        $notTreatedStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH);
+        $notTreatedStatus = Stream::from($notTreatedStatus)
+            ->filter(function (Statut $statut) {
+                return in_array($this->userService->getUser()->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
+            })
+            ->toArray();
+
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
             'types' => $types,
-            'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
+            'notTreatedStatus' => $notTreatedStatus,
             'packs' => $packs,
             'entity' => $entity,
             'isArrival' => $entity instanceof Arrivage,

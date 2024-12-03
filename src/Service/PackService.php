@@ -4,30 +4,33 @@
 namespace App\Service;
 
 use App\Controller\FieldModesController;
+use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Sensor;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\OperationHistory\LogisticUnitHistoryRecord;
-use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
-use App\Repository\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Iterator;
 use RuntimeException;
-use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -38,9 +41,6 @@ class PackService {
 
     #[Required]
     public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public Security $security;
 
     #[Required]
     public Twig_Environment $templating;
@@ -87,17 +87,23 @@ class PackService {
     #[Required]
     public UserService $userService;
 
-    public function getDataForDatatable($params = null): array
-    {
+    #[Required]
+    public RouterInterface $router;
+
+
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
-        $currentUser = $this->security->getUser();
+        $currentUser = $this->userService->getUser();
 
-        $filters = $params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
+        $filters = $params->get("codeUl")
+            ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
+            : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $currentUser->getLanguage() ?: $defaultLanguage;
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE, [
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
             'fields' => $this->getPackListColumnVisibleConfig($currentUser),
@@ -159,8 +165,7 @@ class PackService {
         ];
     }
 
-    public function dataRowPack(Pack $pack): array
-    {
+    public function dataRowPack(Pack $pack): array {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
         $firstMovements = $trackingMovementRepository->findBy(
@@ -169,7 +174,7 @@ class PackService {
             1
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
         $prefix = $user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y';
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
@@ -188,10 +193,59 @@ class PackService {
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastAction();
+        $isGroup = $pack->getGroupIteration() || !$pack->getContent()->isEmpty();
         return [
-            'actions' => $this->templating->render('pack/datatablePackRow.html.twig', [
-                'pack' => $pack,
-                'hasPairing' => $hasPairing
+            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+                'actions' => [
+                    [
+                        'hasRight' => $pack->getArrivage(),
+                        'title' => $this->translationService->translate('Général', null, 'Zone liste', 'Imprimer'),
+                        'icon' => 'wii-icon wii-icon-printer-black',
+                        'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()?->getId(), 'pack' => $pack->getId() ]),
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
+                        'title' => $this->translationService->translate('Général', null, 'Modale', 'Modifier'),
+                        'icon' => 'fas fa-edit',
+                        'attributes' => [
+                            'data-toggle' => "modal",
+                            'data-target' => "#modalEditPack",
+                            'data-id' => $pack->getId(),
+                        ]
+                    ],
+                    [
+                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE),
+                        'title' => $this->translationService->translate('Général', null, 'Modale', 'Supprimer'),
+                        'icon' => 'wii-icon wii-icon-trash-black',
+                        'class' => 'delete-pack',
+                        'attributes' => [
+                            'data-toggle' => "modal",
+                            'data-target' => "#modalEditPack",
+                            'data-id' => $pack->getId(),
+                        ]
+                    ],
+                    [
+                        'hasRight' => $hasPairing && $this->userService->hasRightFunction(Menu::IOT, Action::DISPLAY_SENSOR),
+                        'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données'),
+                        'icon' => 'wii-icon wii-icon-pairing',
+                        'href' => $this->router->generate('show_data_history', [ 'type' => Sensor::PACK, 'id' => $pack->getId() ]),
+                    ],
+                    [
+                        'hasRight' => !$isGroup,
+                        'title' => 'Recalculer le délai de traça',
+                        'icon' => 'wii-icon wii-icon-modif wii-icon-17px-black',
+                        'attributes' => [
+                            'onclick' => "reloadLogisticUnitTrackingDelay({$pack->getId()})",
+                        ]
+                    ],
+                    [
+                        'hasRight' => true,
+                        'title' => "Détails",
+                        'icon' => 'fa fa-eye',
+                        'href' => $this->router->generate('pack_show', ['id' => $pack->getId()]),
+                        'class' => 'action-on-click'
+                    ],
+                ],
             ]),
             'cart' => $this->templating->render('pack/cart-column.html.twig', [
                 'pack' => $pack,
@@ -228,25 +282,30 @@ class PackService {
             "limitTreatmentDate" => $pack->getTrackingDelay()
                 ? $this->formatService->datetime($pack->getTrackingDelay()->getLimitTreatmentDate())
                 : null,
+            "group" => $pack->getGroup()
+                ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
+                    "entityPath" => "pack_show",
+                    "entityId" => $pack->getGroup()?->getId(),
+                    "from" => $this->formatService->pack($pack->getGroup()),
+                ])
+                : '',
         ];
     }
 
-    public function dataRowGroupHistory(TrackingMovement $trackingMovement): array
-    {
+    public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
         return [
-            'group' => $trackingMovement->getPackParent() ? ($this->formatService->pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
-            'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
+            'group' => $trackingMovement->getPackGroup() ? ($this->formatService->pack($trackingMovement->getPackGroup()) . '-' . $trackingMovement->getGroupIteration()) : '',
+            'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->userService->getUser()),
             'type' => $this->formatService->status($trackingMovement->getType())
         ];
     }
 
-    public function checkPackDataBeforeEdition(array $data): array
-    {
-        $quantity = $data['quantity'] ?? null;
-        $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
-        $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
+    public function checkPackDataBeforeEdition(InputBag $data, int $isGroup): array {
+        $quantity = $data->getInt('quantity', 0);
+        $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;
+        $volume = !empty($data->get('volume')) ? str_replace(",", ".", $data->get('volume')) : null;
 
-        if ($quantity <= 0) {
+        if (!$isGroup && $quantity <= 0) {
             return [
                 'success' => false,
                 'msg' => 'La quantité doit être supérieure à 0.'
@@ -274,36 +333,40 @@ class PackService {
     }
 
     public function editPack(EntityManagerInterface $entityManager,
-                             array                  $data,
-                             Pack                   $pack): void {
+                             InputBag               $data,
+                             Pack                   $pack,
+                             bool                   $isGroup = false): void {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $projectRepository = $entityManager->getRepository(Project::class);
 
-        $natureId = $data['nature'] ?? null;
-        $projectId = $data['projects'] ?? null;
-        $quantity = $data['quantity'] ?? null;
-        $comment = $data['comment'] ?? null;
-        $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
-        $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
 
-        $nature = $natureRepository->find($natureId);
-        if (!empty($nature)) {
-            $pack->setNature($nature);
-        }
-
-        $project = $projectRepository->findOneBy(["id" => $projectId]);
-
+        $natureId = $data->get('nature');
+        $comment = $data->get('comment');
+        $weight = !empty($data->get('weight')) ? str_replace(",", ".", $data->get('weight')) : null;
+        $volume = !empty($data->get('volume')) ? str_replace(",", ".", $data->get('volume')) : null;
         $recordDate = new DateTime();
-        $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
 
-        foreach($pack->getChildArticles() as $article) {
-            $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
+        $nature = $natureId ? $natureRepository->find($natureId) : null;
+
+        if (!$isGroup) {
+            $projectId = $data->get('projects');
+            $quantity = $data->get('quantity');
+
+            $project = $projectRepository->findOneBy(["id" => $projectId]);
+            $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
+            foreach($pack->getChildArticles() as $article) {
+                $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
+            }
+
+            $pack
+                ->setQuantity($quantity);
+
         }
 
         $pack
-            ->setQuantity($quantity)
             ->setWeight($weight)
             ->setVolume($volume)
+            ->setNature($nature)
             ->setComment($comment);
     }
 
@@ -451,8 +514,7 @@ class PackService {
                                                                $user,
                                         bool                   $persistTrackingMovements = true,
                                         Project                $project = null,
-                                        Reception              $reception = null): array
-    {
+                                        Reception              $reception = null): array {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $location = $persistTrackingMovements
@@ -587,6 +649,7 @@ class PackService {
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
                 ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
                 ['name' => 'limitTreatmentDate', 'title' => 'Date limite de traitement', 'className' => 'noVis'],
+                ['name' => 'group', 'title' =>  'Groupe rattaché', 'className' => 'noVis'],
             ],
             [],
             $columnsVisible

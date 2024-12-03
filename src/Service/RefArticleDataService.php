@@ -618,7 +618,7 @@ class RefArticleDataService
                 "reference_id" => $refArticle->getId(),
                 "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
                 "showAddRefToCart" => $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF || $settingManageDeliveriesWithoutStockQuantity,
-                "hasArticles" => !empty($refArticle->getAssociatedArticles()),
+                "hasArticles" => $refArticle->hasArticles(),
             ]),
             "colorClass" => (
             $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :

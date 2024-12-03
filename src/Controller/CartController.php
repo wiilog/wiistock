@@ -5,17 +5,15 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
-use App\Entity\Pack;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\Tracking\Pack;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -38,7 +36,6 @@ class CartController extends AbstractController {
     public function cart(EntityManagerInterface $manager,
                          SettingsService        $settingsService): Response {
         $typeRepository = $manager->getRepository(Type::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
         $settingRepository = $manager->getRepository(Setting::class);
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
@@ -50,7 +47,9 @@ class CartController extends AbstractController {
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
-        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON], null,  [
+            'idsToFind' => $this->getUser()->getDeliveryTypeIds(),
+        ]);
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
         $referencesByBuyer = [];
@@ -141,22 +140,19 @@ class CartController extends AbstractController {
 
     #[Route("/infos/livraison/{request}", name: "delivery_data", options: ['expose' => true], methods: [self::GET])]
     public function deliveryRequestData(Demande $request): JsonResponse {
-        $type = $request->getType();
-
         return $this->json([
             "success" => true,
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
-                'values' => $request->getFreeFields() ?? [],
+                'freeFields' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
         ]);
     }
 
-    #[Route("/infos/livraison/{request}", name: "collect_data", options: ['expose' => true], methods: [self::GET])]
+    #[Route("/infos/collecte/{request}", name: "collect_data", options: ['expose' => true], methods: [self::GET])]
     public function collectRequestData(Collecte $request): JsonResponse {
-        $type = $request->getType();
         return $this->json([
             "success" => true,
             "destination" => $request->isDestruct() ? "Destruction" : "Mise en stock",

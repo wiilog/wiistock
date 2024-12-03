@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Emplacement;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

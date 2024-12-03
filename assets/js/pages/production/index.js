@@ -1,15 +1,15 @@
 import AJAX, {POST, GET} from "@app/ajax";
 import Camera from "@app/camera";
-import Form from "@app/form";
+import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
 import {displayAttachmentRequired, initDeleteProductionRequest, initModalNewProductionRequest} from './form'
 import {getUserFiltersByPage} from '@app/utils';
 import {initDataTable} from "@app/datatable";
 import {showAndRequireInputByType} from "@app/utils";
+import {exportFile} from "@app/utils";
 
 let tableProduction;
 
-global.onProductionRequestTypeChange = onProductionRequestTypeChange;
 global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
@@ -166,6 +166,7 @@ function initProductionRequestsTable(dispatchMode = false) {
 
 function onProductionRequestTypeChange($select){
     onTypeChange($select);
+
     const $modal = $select.closest(`.modal`);
     const $typeSelect = $modal.find(`[name=type]`);
     const $selectStatus = $modal.find(`[name=status]`);
@@ -185,22 +186,30 @@ function onProductionRequestTypeChange($select){
     if (optionData.dropLocationId && optionData.dropLocationLabel) {
         $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
     }
-    $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
+    $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "");
+
     showAndRequireInputByType($select);
+    updateExpectedAtField($modal);
 }
 
 function initNewProductionRequest() {
-    const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
+    const $modal = $(`#modalNewProductionRequest`);
     initModalNewProductionRequest(
-        $modalNewProductionRequest,
+        $modal,
         [tableProduction],
         (event) => {
             Camera.init(
-                $modalNewProductionRequest.find(`.take-picture-modal-button`),
-                $modalNewProductionRequest.find(`[name="files[]"]`)
+                $modal.find(`.take-picture-modal-button`),
+                $modal.find(`[name="files[]"]`)
             );
         }
     );
+
+    $modal.find('[name="type"]')
+        .off('change.initNewProductionRequest')
+        .on("change.initNewProductionRequest", function() {
+            onProductionRequestTypeChange($(this));
+        });
 }
 function initDuplicateProductionRequest() {
     const $modalEditProductionRequest = $(`#modalEditProductionRequest`);
@@ -236,3 +245,25 @@ function toggleValidateDispatchButton($productionsTable, $dispatchModeContainer)
     $dispatchModeContainer.find(`.validate`).prop(`disabled`, !atLeastOneChecked);
     $(`.check-all`).prop(`checked`, ($allDispatchCheckboxes.filter(`:checked`).length) === $allDispatchCheckboxes.length);
 }
+
+function updateExpectedAtField($modal) {
+    const $type = $modal.find('[name="type"]');
+    const $expectedAt = $modal.find('input[name=expectedAt]');
+    const $expectedAtSettings = $modal.find('input[name="expectedAtSettings"]');
+
+    const settings = JSON.parse($expectedAtSettings.val());
+
+    const selectedType = $type.val();
+
+    let expectedAtMin = null;
+
+    if(selectedType) {
+        expectedAtMin = settings[selectedType]
+            || settings.all
+            || null;
+    }
+
+    $expectedAt.attr('min', expectedAtMin);
+}
+
+

@@ -9,6 +9,7 @@ use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\Tracking\Pack;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArticleRepository;
 use DateTime;
@@ -50,7 +51,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $reference = null;
 
-    #[ORM\Column(type: Types::STRING, length: 15, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 15, unique: true)]
     private ?string $barCode = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]

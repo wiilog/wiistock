@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\AttachmentContainer;
+use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\DisputeRepository;
 use DateTime;

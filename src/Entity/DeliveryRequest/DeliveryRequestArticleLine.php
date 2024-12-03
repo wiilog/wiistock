@@ -4,8 +4,8 @@ namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\Tracking\Pack;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 

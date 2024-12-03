@@ -41,9 +41,16 @@ class Role {
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
+    /**
+     * @var Collection<int, Statut>
+     */
+    #[ORM\ManyToMany(targetEntity: Statut::class, mappedBy: 'authorizedRequestCreationRoles')]
+    private Collection $authorizedRequestStatuses;
+
     public function __construct() {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->authorizedRequestStatuses = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -156,5 +163,46 @@ class Role {
         $this->landingPage = $landingPage;
         return $this;
     }
+
+    /**
+     * @return Collection<int, Statut>
+     */
+    public function getAuthorizedRequestStatuses(): Collection
+    {
+        return $this->authorizedRequestStatuses;
+    }
+
+    public function addAuthorizedDispatchStatus(Statut $status): static
+    {
+        if (!$this->authorizedRequestStatuses->contains($status)) {
+            $this->authorizedRequestStatuses[] = $status;
+            $status->addAuthorizedRequestCreationRole($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAuthorizedRequestStatus(Statut $status): static
+    {
+        if ($this->authorizedRequestStatuses->removeElement($status)) {
+            $status->removeAuthorizedRequestCreationRole($this);
+        }
+
+        return $this;
+    }
+
+    public function setAuthorizedRequestStatuses(?iterable $statuses): self {
+        foreach($this->getAuthorizedRequestStatuses()->toArray() as $statuses) {
+            $this->removeAuthorizedRequestStatus($statuses);
+        }
+
+        $this->authorizedRequestStatuses = new ArrayCollection();
+        foreach($statuses ?? [] as $statuses) {
+            $this->addAuthorizedDispatchStatus($statuses);
+        }
+
+        return $this;
+    }
+
 
 }

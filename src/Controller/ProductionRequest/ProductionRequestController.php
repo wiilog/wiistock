@@ -31,6 +31,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
 use App\Service\ProductionRequest\ProductionRequestService;
+use App\Service\SettingsService;
 use App\Service\StatusService;
 use App\Service\UserService;
 use DateTime;
@@ -49,10 +50,11 @@ class ProductionRequestController extends AbstractController
 {
     #[Route('/index', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function index(Request $request,
+    public function index(Request                  $request,
                           EntityManagerInterface   $entityManager,
+                          SettingsService          $settingsService,
                           ProductionRequestService $productionRequestService,
-                          StatusService          $statusService): Response {
+                          StatusService            $statusService): Response {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
 
         /** @var Utilisateur $currentUser */
@@ -63,7 +65,6 @@ class ProductionRequestController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         // data from request
         $query = $request->query;
@@ -90,6 +91,13 @@ class ProductionRequestController extends AbstractController
 
         $dateChoices = FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class];
 
+        $expectedAtSettings = $settingsService->getMinDateByTypesSettings(
+            $entityManager,
+            FixedFieldStandard::ENTITY_CODE_PRODUCTION,
+            FixedFieldEnum::expectedAt,
+            new DateTime()
+        );
+
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
             "fieldsParam" => $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]),
@@ -99,15 +107,17 @@ class ProductionRequestController extends AbstractController
             "dateChoices" => $dateChoices,
             "types" => $types,
             "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
-                ->reduce(function($status, $item) {
-                    $status[$item['id']] = $item['label'];
-                    return $status;
-                }, []),
+                ->keymap(static fn($item) => [
+                    $item['id'],
+                    $item['label']
+                ])
+                ->toArray(),
             "typesFilter" => $typesFilter,
             "statusFilter" => $statusesFilter,
             "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
+            "expectedAtSettings" => $expectedAtSettings,
         ]);
     }
 
@@ -136,12 +146,16 @@ class ProductionRequestController extends AbstractController
     #[Route("/voir/{id}", name: "show", options: ["expose" => true])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function show(EntityManagerInterface   $entityManager,
-                         Request $request,
+                         Request                  $request,
                          ProductionRequest        $productionRequest,
+                         SettingsService          $settingsService,
                          ProductionRequestService $productionRequestService): Response {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
         $productionType = $productionRequest->getType();
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
+
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($productionType, CategorieCL::PRODUCTION_REQUEST);
 
         $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
             "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
@@ -154,6 +168,17 @@ class ProductionRequestController extends AbstractController
 
         $openModal = $request->query->get('open-modal');
 
+        $expectedAtSettings = $settingsService->getMinDateByTypesSettings(
+            $entityManager,
+            FixedFieldStandard::ENTITY_CODE_PRODUCTION,
+            FixedFieldEnum::expectedAt,
+            $productionRequest->getCreatedAt()
+        );
+
+        $currentExpectedAtSetting = $expectedAtSettings[$productionRequest->getType()->getId()]
+            ?? $expectedAtSettings["all"]
+            ?? null;
+
         return $this->render("production_request/show/index.html.twig", [
             "fieldsParam" => $fieldsParam,
             "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
@@ -164,6 +189,9 @@ class ProductionRequestController extends AbstractController
             "attachments" => $productionRequest->getAttachments(),
             "freeFields" => $freeFields,
             "openModal" => $openModal,
+            "expectedAtSettings" => [
+                $productionRequest->getType()->getId() => $currentExpectedAtSetting
+            ],
         ]);
     }
 
@@ -176,6 +204,7 @@ class ProductionRequestController extends AbstractController
                         FixedFieldService        $fieldsParamService): JsonResponse {
 
         $post = $request->request;
+
         $typeRepository = $entityManager->getRepository(Type::class);
         $typeValue = FixedFieldEnum::type->name;
         $type = $typeRepository->find($post->getInt($typeValue));
@@ -186,7 +215,6 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Vous n'avez pas les droits pour générer plusieurs demandes de production.");
         }
 
-
         if ($quantityToGenerate < 1) {
             throw new FormException("La quantité à générer doit être supérieure à 0.");
         }
@@ -196,13 +224,28 @@ class ProductionRequestController extends AbstractController
         }
 
         $productionRequests = [];
+        $needModalConfirmationForGenerateDispatch = false;
         for ($i = 0; $i < $quantityToGenerate; $i++) {
-            $productionRequestData = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
-            $productionRequests[] = $productionRequestData['productionRequest'];
-            $entityManager->persist($productionRequestData['productionRequest']);
+            ['productionRequest' => $productionRequest] = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
+            $productionRequests[] = $productionRequest;
+            $entityManager->persist($productionRequest);
+
+            if ($productionRequestService->checkNeedModalConfirmationForGenerateDispatch($productionRequest, $userService)) {
+                $needModalConfirmationForGenerateDispatch = true;
+            }
         }
 
         $entityManager->flush();
+
+        // can only have one production request because duplication doesn't work with this parameter (for now)
+        if ($needModalConfirmationForGenerateDispatch && count($productionRequests) === 1) {
+            return $this->json([
+                "success" => true,
+                "needModalConfirmationForGenerateDispatch" => true,
+                'msg' => "Votre demande de production a bien été créée.",
+                'productionRequestId' => $productionRequests[0]->getId(),
+            ]);
+        }
 
         foreach ($productionRequests as $productionRequest) {
             $productionRequestService->sendUpdateStatusEmail($productionRequest);
@@ -230,7 +273,7 @@ class ProductionRequestController extends AbstractController
             throw new FormException("Accès refusé");
         }
 
-        if(!empty($productionRequest->getTrackingMovements())){
+        if(!($productionRequest->getTrackingMovements())->isEmpty()){
             return $this->json([
                 "success" => false,
                 "msg" => "Erreur : Cette demande est liée à un ou plusieurs mouvements de traçabilité.
@@ -409,11 +452,22 @@ class ProductionRequestController extends AbstractController
     #[Route("/{productionRequest}/update-status-content", name: "update_status_content", options: ["expose" => true], methods: [self::GET])]
     public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
                                                          ProductionRequest      $productionRequest): JsonResponse {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $productionType = $productionRequest->getType();
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
+        ]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($productionType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($productionType),
+            ]])
+            ->toArray();
 
         $html = $this->renderView('production_request/planning/update-status-form.html.twig', [
             "productionRequest" => $productionRequest,
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+            "fieldsParam" => $fieldsParam,
         ]);
 
         return $this->json([

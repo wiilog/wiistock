@@ -3,6 +3,7 @@
 namespace App\Controller\IOT;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Collecte;
@@ -11,24 +12,21 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
-
 use App\Entity\OrdreCollecte;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Tracking\Pack;
 use App\Service\GeoService;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
+use App\Service\TranslationService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouterInterface;
-use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
-use DateTime;
 
 #[Route('/iot/historique')]
 class DataHistoryController extends AbstractController {

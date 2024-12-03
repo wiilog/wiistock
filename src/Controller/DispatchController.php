@@ -22,11 +22,11 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Entity\ProductionRequest;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -130,8 +130,16 @@ class DispatchController extends AbstractController {
 
         $dispatchStatuses = $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder');
         $statuses = Stream::from($dispatchStatuses)
-            ->filter(fn(Statut $statut) => empty($currentUser->getDispatchTypeIds()) || in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()))
+            ->filter(function (Statut $statut) use ($currentUser) {
+                if (!empty($currentUser->getDispatchTypeIds()) && !in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds())) {
+                    return false;
+                }
+
+                return in_array($currentUser->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
+            })
             ->toArray();
+
+
         return $this->render('dispatch/index.html.twig', [
             'statuses' => $statuses,
             'carriers' => $carrierRepository->findAllSorted(),
@@ -638,13 +646,14 @@ class DispatchController extends AbstractController {
 
         $now = new DateTime();
 
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
-            $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
-            $dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)
+            || ($dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH))
+            || ($dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH))
+        ) {
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($post->has(FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH)) {
+        if ($post->getBoolean("isAttachmentForm")) {
             $attachmentService->removeAttachments($entityManager, $dispatch, $post->all('files') ?: []);
             $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispatch]);
         }
@@ -1647,7 +1656,14 @@ class DispatchController extends AbstractController {
             'idsToFind' => $this->getUser()->getDispatchTypeIds(),
         ]);
 
-        return $this->json([
+        $defaultType = null;
+
+        if(count($entities) === 1 && $entities[0] instanceof ProductionRequest) {
+            /** @var ProductionRequest $productionRequest */
+            $defaultType = $entities[0]->getStatus()->getTypeForGeneratedDispatchOnStatusChange();
+        }
+
+        $response = [
             'success' => true,
             'html' => $this->renderView('dispatch/forms/formFromEntity.html.twig',
                 $dispatchService->getNewDispatchConfig(
@@ -1657,8 +1673,14 @@ class DispatchController extends AbstractController {
                     $packs,
                     $entityIds,
                 ),
-            )
-        ]);
+            ),
+        ];
+
+        if ($defaultType !== null) {
+            $response['defaultTypeId'] = $defaultType->getId();
+        }
+
+        return $this->json($response);
     }
 
     #[Route("/get-dispatch-details", name: "get_dispatch_details", options: ["expose" => true], methods: "GET")]

@@ -1,17 +1,17 @@
+{% import 'form.html.twig' as form %}
 {% set naturesFilter = naturesFilter ?? [] %}
 
 <div class="col-auto m-1 select-filter pr-0">
-    <div class="select2-overflow">
-        <div class="input-group w-100">
-            <select class="form-control data minw-200px cursor-default filter-select2"
-                    name="natures"
-                    id="natures"
-                    multiple="multiple"
-                    {{ disabled is defined ? disabled }}>
-                {% for nature in natures |sort((a, b) => a.label <=> b.label) %}
-                    <option class="d-none" {{ nature.id in naturesFilter ? 'selected' }} value="{{ nature.id }}">{{ nature.labelIn(userLanguage, defaultLanguage) }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
+    {{ form.select('natures', null, false, {
+        type: '',
+        multiple: true,
+        placeholder: 'Natures',
+        disabled: disabled is defined ? disabled : false,
+        inputClass: 'minw-200px filter-select2',
+        items:  natures | sort((a, b) => a.label <=> b.label) | map(nature => {
+            label: nature.labelIn(userLanguage, defaultLanguage),
+            value: nature.id,
+            selected: nature.id in naturesFilter
+        })
+    }) }}
 </div>

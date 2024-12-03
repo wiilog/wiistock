@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Tracking\Pack;
 use App\Repository\DispatchPackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

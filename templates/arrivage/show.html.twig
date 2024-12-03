@@ -109,7 +109,6 @@
     </div>
     {% include 'arrivage/modalAddPacks.html.twig' %}
     {% include "arrivage/modalEditArrivage.html.twig" %}
-    {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include 'utils/modal/empty-modal.html.twig' with {
         id: 'modalNewLitige',
         size: 'modal-xl',
@@ -140,7 +139,6 @@
 
     {% include 'arrivage/modalDeleteLitige.html.twig' %}
     {% include 'pack/modalEditPack.html.twig' %}
-    {% include 'pack/modalDeletePack.html.twig' %}
     {% include "utils/fields-modes.html.twig" with {
         fields,
         table: 'tablePacks',
@@ -176,7 +174,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/arrival/show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('arrival-show') }}
     <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
 {% endblock %}
