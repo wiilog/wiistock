@@ -127,52 +127,25 @@ class PackController extends AbstractController {
     #[Route("/csv", name: "export", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function printCSVPacks(Request                   $request,
+                                  PackService               $packService,
                                   CSVExportService          $CSVExportService,
-                                  TrackingMovementService   $trackingMovementService,
-                                  TranslationService        $translation,
                                   EntityManagerInterface    $entityManager): StreamedResponse {
+
+
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (Throwable $throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
 
-        if (isset($dateTimeMin) && isset($dateTimeMax)) {
-
-            $csvHeader = [
-                $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
-                $translation->translate('Traçabilité', 'Général', 'Nature', false),
-                $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
-                $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
-                $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
-                $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
-            ];
-
-            return $CSVExportService->streamResponse(
-                function ($output) use ($CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
-                    $packRepository = $entityManager->getRepository(Pack::class);
-                    $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
-
-                    foreach ($packs as $pack) {
-                        $trackingMovement = [
-                            'entity' => $pack['entity'],
-                            'entityId' => $pack['entityId'],
-                            'entityNumber' => $pack['entityNumber'],
-                        ];
-                        $mvtData = $trackingMovementService->getFromColumnData($trackingMovement);
-                        $pack['fromLabel'] = $mvtData['fromLabel'];
-                        $pack['fromTo'] = $mvtData['from'];
-                        $this->putPackLine($output, $CSVExportService, $pack);
-                    }
-                }, 'export_UL.csv',
-                $csvHeader
-            );
-        }
-
-        throw new BadRequestHttpException();
+        return $CSVExportService->streamResponse(
+            $packService->getExportPacksFunction(
+                $dateTimeMin,
+                $dateTimeMax,
+                $entityManager,
+            ), 'export_UL.csv',
+            $packService->getCsvHeader()
+        );
     }
 
     #[Route("/api-modifier/{pack}", name: "edit_api", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
@@ -300,18 +273,6 @@ class PackController extends AbstractController {
             ])
         ]);
 
-    }
-
-    private function putPackLine($handle, CSVExportService $csvService, array $pack):void {
-        $line = [
-            $pack['code'],
-            $pack['nature'],
-            FormatHelper::datetime($pack['lastMvtDate'], "", false, $this->getUser()),
-            $pack['fromLabel'],
-            $pack['fromTo'],
-            $pack['location']
-        ];
-        $csvService->putLine($handle, $line);
     }
 
     #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [self::GET, self::POST])]
