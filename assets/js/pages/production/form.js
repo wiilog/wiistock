@@ -3,6 +3,7 @@ import Form from "@app/form";
 import Camera from "@app/camera";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
+import {updateRequiredMark} from "@app/utils";
 
 export function displayAttachmentRequired($select) {
     const $modal = $select.closest(`.modal`);
@@ -11,6 +12,9 @@ export function displayAttachmentRequired($select) {
 
     $modal.find(`[name=isFileNeeded]`).val(requiredAttachment);
     $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
+
+    const $labelContainer = $modal.find(`.attachment-label span`).first();
+     updateRequiredMark($labelContainer, requiredAttachment);
 }
 
 export function openModalUpdateProductionRequestStatus($container, $modalUpdateProductionRequestStatus, productionRequest, successCallback){

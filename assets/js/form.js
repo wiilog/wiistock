@@ -281,7 +281,7 @@ export default class Form {
 
                 if ($scrollableParent) {
                     $scrollableParent.animate({
-                        scrollTop: $firstInvalidElement.offset().top
+                        scrollTop: $firstInvalidElement.offset()?.top
                     }, 1000);
                 }
             }
@@ -674,6 +674,8 @@ function processFiles($form, data, errors) {
                 elements: [$requiredFileField.siblings('.dropFrame')],
                 message: `Vous devez ajouter au moins un fichier`,
             });
+
+            $requiredFileField.parent().addClass('is-invalid');
         }
     }
 
