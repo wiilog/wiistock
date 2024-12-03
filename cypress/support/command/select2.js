@@ -9,7 +9,9 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
     const select = cy.get(getName).siblings('.select2')
 
     if(shouldClick){
-        select.click()
+        select
+            .click()
+            .wait(200);
     }
     select.parents()
         .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
