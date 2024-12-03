@@ -166,17 +166,6 @@ $(function () {
         )
 
     });
-
-    $('.exportGroups').on('click', function () {
-        exportFile(
-            `group_export`,
-            {},
-            {
-                needsAllFilters: true,
-                needsDateFormatting: true,
-            }
-        )
-    });
 });
 
 function addToCart(ids) {
