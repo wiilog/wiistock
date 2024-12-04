@@ -270,6 +270,18 @@
                     </div>
                 </div>
                 {%  endif %}
+
+                <div class="wii-box">
+                    <div class="header wii-title">Contenu du groupe</div>
+                        <div class="row">
+                            <div class="col-12 packsTableContainer d-flex mt-3">
+                                <table id="packsTable" class="forceHidden w-100"
+                                       data-initial-visible="{{ fields|json_encode() }}">
+                                </table>
+                            </div>
+                        </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -279,5 +291,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-        {{ encore_entry_script_tags('pack-show') }}
+    {{ encore_entry_script_tags('pack-show') }}
+    {{ encore_entry_script_tags('pack-index') }}
+    <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
 {% endblock %}
