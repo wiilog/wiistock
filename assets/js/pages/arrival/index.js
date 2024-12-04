@@ -1,5 +1,8 @@
 import {initDispatchCreateForm} from "@app/pages/dispatch/common";
 
+global.listPacks = listPacks;
+global.openArrivalCreationModal = openArrivalCreationModal;
+
 $('.select2').select2();
 
 let clicked = false;
