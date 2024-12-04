@@ -26,8 +26,6 @@ import "@app/utils";
 import '@app/tooltips';
 import '@app/select2';
 
-import {showAndRequireInputByType} from '@app/utils';
-
 import Camera from "@app/camera"
 import Form from "@app/form";
 import BrowserSupport from '@app/support';
@@ -38,7 +36,7 @@ import {LOADING_CLASS, wrapLoadingOnActionButton} from '@app/loading';
 
 import '@styles/app.scss';
 
-import {extendsDateSort, initDataTable, initSearchDate, initDatatablePlugin} from "@app/datatable";
+import {extendsDateSort, initDataTable, initDatatablePlugin, initSearchDate} from "@app/datatable";
 import {initFieldModes} from "@app/field-modes";
 
 export const $document = $(document);
@@ -67,7 +65,6 @@ importFieldModes();
 
 function importWiistock() {
     global.LOADING_CLASS = LOADING_CLASS;
-    global.showAndRequireInputByType = showAndRequireInputByType; // TODO WIIS-12102 remove when public go to asset js
     global.Wiistock = Wiistock;
     global.Modal = Modal;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;

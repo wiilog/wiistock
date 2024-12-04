@@ -24,6 +24,7 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -31,7 +32,6 @@ use Iterator;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -39,57 +39,26 @@ class PackService {
 
     private const PACK_DEFAULT_TRACKING_DELAY_COLOR = "#000000";
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public ReceptionLineService $receptionLineService;
-
-    #[Required]
-    public DateTimeService $dateTimeService;
-
-    #[Required]
-    public SettingsService $settingsService;
-
-    #[Required]
-    public ArrivageService $arrivageService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public ProjectHistoryRecordService $projectHistoryRecordService;
-
-    #[Required]
-    public TruckArrivalService $truckArrivalService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public RouterInterface $router;
-
+    public function __construct(
+        private CSVExportService            $CSVExportService,
+        private RouterInterface             $router,
+        private UserService                 $userService,
+        private TruckArrivalService         $truckArrivalService,
+        private ProjectHistoryRecordService $projectHistoryRecordService,
+        private TranslationService          $translationService,
+        private ArrivageService             $arrivageService,
+        private SettingsService             $settingsService,
+        private DateTimeService             $dateTimeService,
+        private ReceptionLineService        $receptionLineService,
+        private FormatService               $formatService,
+        private FieldModesService           $fieldModesService,
+        private TranslationService          $translation,
+        private LanguageService             $languageService,
+        private MailerService               $mailerService,
+        private TrackingMovementService     $trackingMovementService,
+        private Twig_Environment            $templating,
+        private EntityManagerInterface      $entityManager,
+    ) {}
 
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -146,7 +115,7 @@ class PackService {
         ];
     }
 
-    public function getGroupHistoryForDatatable($pack, $params) {
+    public function getGroupHistoryForDatatable($pack, $params): array {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
         $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack, $params);
@@ -413,8 +382,7 @@ class PackService {
         return $pack;
     }
 
-    public function createPackWithCode(string $code): Pack
-    {
+    public function createPackWithCode(string $code): Pack {
         $pack = new Pack();
         $pack->setCode(str_replace("    ", " ", $code));
         return $pack;
@@ -886,6 +854,56 @@ class PackService {
                 yield $pack;
             }
         }
+    }
+
+    public function getCsvHeader(): array {
+        $translation = $this->translation;
+        return  [
+            $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
+            $translation->translate('Traçabilité', 'Général', 'Nature', false),
+            $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+            $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
+            $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
+            $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
+            'Groupe rattaché'
+        ];
+    }
+
+
+    public function getExportPacksFunction(DateTime               $dateTimeMin,
+                                           DateTime               $dateTimeMax,
+                                           EntityManagerInterface $entityManager): callable {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
+
+        return function ($handle) use ($entityManager, $packs) {
+            foreach ($packs as $pack) {
+                $trackingMovement = [
+                    'entity' => $pack['entity'],
+                    'entityId' => $pack['entityId'],
+                    'entityNumber' => $pack['entityNumber'],
+                ];
+                $mvtData = $this->trackingMovementService->getFromColumnData($trackingMovement);
+                $pack['fromLabel'] = $mvtData['fromLabel'];
+                $pack['fromTo'] = $mvtData['from'];
+                $this->putPackLine($handle, $pack);
+            }
+
+            $entityManager->flush();
+        };
+    }
+
+    private function putPackLine($handle, array $pack): void {
+        $line = [
+            $pack['code'],
+            $pack['nature'],
+            $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
+            $pack['fromLabel'],
+            $pack['fromTo'],
+            $pack['location'],
+            $pack['groupCode'],
+        ];
+        $this->CSVExportService->putLine($handle, $line);
     }
 
     public function getActionButtons(Pack $pack, bool $hasPairing): string {

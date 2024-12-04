@@ -20,6 +20,7 @@ const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
 const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
+const ENTITY_PACK = "pack";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -276,6 +277,21 @@ function createForm() {
                         }));
                     } else if (content.entityToExport === ENTITY_REF_LOCATION) {
                         window.open(Routing.generate(`settings_export_ref_location`));
+                    } else if (content.entityToExport === ENTITY_PACK) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'unités logistics`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_packs`, {
+                            dateMin,
+                            dateMax,
+                        }));
+                    } else {
+                        Flash.add(`danger`, `Une erreur est survenue lors de la génération de l'export`);
                     }
 
                     return new Promise((resolve) => {
@@ -357,6 +373,7 @@ function onFormEntityChange() {
             break;
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
+        case ENTITY_PACK:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;

@@ -3,36 +3,19 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Repository\Tracking\PackRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Service\Attribute\Required;
-use Twig\Environment as Twig_Environment;
 
 class GroupService {
-
-    #[Required]
-    public EntityManagerInterface $manager;
-
-    #[Required]
-    public PackService $packService;
-
-    #[Required]
-    public Twig_Environment $template;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public FormatService $formatService;
+    public function __construct(
+        private TrackingMovementService $trackingMovementService,
+        private Security                $security,
+        private PackService             $packService,
+    ) {}
 
     public function createParentPack(array $options = []): Pack {
         $group = $this->packService->createPackWithCode($options['parent']);
@@ -81,5 +64,4 @@ class GroupService {
             $manager->persist($ungroup);
         }
     }
-
 }

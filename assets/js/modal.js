@@ -55,7 +55,7 @@ export default class Modal {
         const $cancelButton = $modal.find('button.discard');
 
         if (title) {
-            $title.text(title);
+            $title.html(title);
         }
 
         $message.html(message);

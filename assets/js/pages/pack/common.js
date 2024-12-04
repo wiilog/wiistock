@@ -37,7 +37,7 @@ export function deletePack(params, table, onSuccess = null) {
         },
         table: table,
         onSuccess: onSuccess,
-    })
+    });
 }
 
 
