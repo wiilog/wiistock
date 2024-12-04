@@ -141,5 +141,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/arrival/index.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('arrival-index') }}
 {% endblock %}
