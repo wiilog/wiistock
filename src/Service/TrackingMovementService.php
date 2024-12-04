@@ -884,39 +884,22 @@ class TrackingMovementService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user, string $type, array $filterDemandeCollecteIds = [], $includeMovementId = false): array {
+    public function getMobileUserPicking(EntityManagerInterface $entityManager,
+                                         Utilisateur            $user,
+                                         string                 $type,
+                                         array                  $filterDemandeCollecteIds = [],
+                                                                $includeMovementId = false): array {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        return Stream::from($trackingMovementRepository->getPickingByOperatorAndNotDropped($user, $type, $filterDemandeCollecteIds))
-            ->filterMap(function (TrackingMovement $tracking) use ($includeMovementId, $trackingMovementRepository) {
-                $trackingPack = $tracking->getPack();
-
-                if ($trackingPack->isGroup()) {
-                    $subPacks = $tracking
-                        ->getPack()
-                        ->getContent()
-                        ->map(fn(Pack $pack) => $pack->serialize());
-                }
-
-                $trackingDelayData = $this->packService->formatTrackingDelayData($trackingPack);
-
-                if(!$trackingPack->isGroup() || !empty($subPacks)){
-                    $picking = $this->normalizer->normalize($tracking, null, [
-                        "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
-                        "includeMovementId" => $includeMovementId,
-                    ]);
-
-                    $picking["trackingDelay"] = $trackingDelayData["delay"] ?? null;
-                    $picking["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
-                    $picking["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
-
-                    $picking['subPacks'] = $subPacks ?? [];
-
-                    return $picking;
-                } else {
-                    return null;
-                }
-            })
-            ->toArray();
+        $pickingMovements = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, $type, $filterDemandeCollecteIds);
+        return Stream::from($pickingMovements)
+            ->filter(static fn(TrackingMovement $tracking) => !$tracking->getPack()->isGroup() || !$tracking->getPack()->getContent()->isEmpty())
+            ->map(fn(TrackingMovement $trackingMovement) => (
+                $this->normalizer->normalize($trackingMovement, null, [
+                    "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
+                    "includeMovementId" => $includeMovementId,
+                ])
+            ))
+            ->values();
     }
 
     public function finishTrackingMovement(?TrackingMovement $trackingMovement): ?string {

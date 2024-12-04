@@ -3,8 +3,11 @@
 namespace App\Serializer;
 
 use App\Entity\Article;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
+use App\Helper\FormatHelper;
 use App\Service\FormatService;
+use App\Service\PackService;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -20,7 +23,10 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         SerializerUsageEnum::MOBILE_DROP_MENU,
     ];
 
-    public function __construct(private FormatService $formatService) {}
+    public function __construct(
+        private FormatService $formatService,
+        private PackService   $packService,
+    ) {}
 
     public function normalize(mixed $object, string $format = null, array $context = []): array {
         /** @var TrackingMovement $trackingMovement */
@@ -67,7 +73,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         $pack = $trackingMovement->getPack();
         $includeMovementId = $context["includeMovementId"] ?? false;
 
-        return [
+        $res = [
             ...($includeMovementId
                 ? ["id" => $trackingMovement->getId()]
                 : []),
@@ -87,5 +93,34 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
                 ->map(static fn(Article $article) => $article->getBarCode())
                 ->join(";"),
         ];
+
+        $trackingPack = $trackingMovement->getPack();
+
+        if ($trackingPack->isGroup()) {
+            $subPacks = $trackingPack->getContent()
+                ->map(fn(Pack $pack) => ([
+                    "code" => $pack->getCode(),
+                    "ref_article" => $pack->getCode(),
+                    "nature_id" => $pack->getNature()?->getId(),
+                    "quantity" => $pack->getLastAction()
+                        ? $pack->getLastAction()->getQuantity()
+                        : 1,
+                    "type" => $pack->getLastAction()?->getType()?->getCode(),
+                    "ref_emplacement" => $pack->getLastAction()?->getEmplacement()?->getLabel(),
+                    "date" => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
+                ]))
+                ->toArray();
+        }
+
+        $res['subPacks'] = $subPacks ?? [];
+
+
+        $trackingDelayData = $this->packService->formatTrackingDelayData($trackingPack);
+
+        $res["trackingDelay"] = $trackingDelayData["delay"] ?? null;
+        $res["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
+        $res["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
+
+        return $res;
     }
 }
