@@ -268,7 +268,7 @@ class PackRepository extends EntityRepository
                                     $searchParams[] = 'truckArrivalByLinesSearch.number LIKE :value';
                                     break;
                                 case "group":
-                                    $queryBuilder->leftJoin('pack.parent', 'parentSearch');
+                                    $queryBuilder->leftJoin('pack.group', 'parentSearch');
                                     $searchParams[] = 'parentSearch.code LIKE :value';
                                     break;
                             }

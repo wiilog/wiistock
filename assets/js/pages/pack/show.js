@@ -1,6 +1,6 @@
 import '@styles/details-page.scss';
 import '@styles/pages/pack/timeline.scss';
-import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay} from "@app/pages/pack/common";
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart} from "@app/pages/pack/common";
 
 
 $(function() {
@@ -30,6 +30,10 @@ $(function() {
         reloadLogisticUnitTrackingDelay($(this).data('id'), function () {
             window.location.reload();
         });
+    });
+
+    $('.add-cart-btn').on('click', function () {
+        addToCart([logisticUnitId]);
     });
 
     registerCopyToClipboard(`Le numéro a bien été copié dans le presse-papiers.`);

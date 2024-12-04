@@ -1,15 +1,7 @@
 {% set articles = pack.childArticles | length %}
 {% if articles %}
-    {% if detail is not defined %}
-        <span
-            class="wii-icon-cart wii-icon mr-2 add-cart"
-            data-id="{{ pack.id }}">
-        </span>
-    {% else %}
-        <div class="dropdown-item d-flex align-items-center add-all-cart">
-                    <span class="wii-icon wii-icon-cart wii-icon-17px-black mr-2 add-cart"
-                          data-id="{{ pack.id }}">
-                    </span>Ajouter au panier
-        </div>
-    {% endif %}
+    <span
+        class="wii-icon-cart wii-icon mr-2 add-cart"
+        data-id="{{ pack.id }}">
+    </span>
 {% endif %}

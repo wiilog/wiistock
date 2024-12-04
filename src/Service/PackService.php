@@ -552,7 +552,7 @@ class PackService {
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
                 ["name" => 'details', "title" => '<span class="fa fa-search"><span>', "className" => 'noVis', "orderable" => false],
-                ['name' => 'cart', 'title' => '<span class="wii-icon wii-icon-cart"></span>', 'classname' => 'cart-row', "orderable" => false],
+                ['name' => 'cart', 'title' => '<span class="wii-icon wii-icon-cart add-all-cart"></span>', 'classname' => 'cart-row', "orderable" => false],
                 ['name' => 'pairing', 'title' => '<span class="wii-icon wii-icon-pairing black"><span>', 'classname' => 'pairing-row'],
                 ['name' => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')],
                 ['name' => 'nature', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Nature')],

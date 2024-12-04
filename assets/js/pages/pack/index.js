@@ -2,7 +2,7 @@ import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
 import Flash from "@app/flash";
 import {exportFile} from "@app/utils";
-import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay} from "@app/pages/pack/common";
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart} from "@app/pages/pack/common";
 
 const packsTableConfig = {
     responsive: true,
@@ -62,11 +62,18 @@ $(function () {
         displayFiltersSup([{field: 'UL', value: codeUl}], true);
     }
 
-    $(document).on('click', '.add-cart', function () {
-        event.stopPropagation();
-        const id = [$(this).data(`id`)];
-        addToCart(id);
+    $(document).arrive(`.add-cart`, function () {
+        const $number = $(this);
+
+        // register the event directly on the element through arrive
+        // to get the event before action-on-click and be able to
+        // cancel modal openning through event.stopPropagation
+        $number.on(`mouseup`, event => {
+            event.stopPropagation();
+            addToCart(id);
+        })
     });
+
 
 
     $(document).on('click', `.add-all-cart`, function () {
@@ -171,20 +178,6 @@ $(function () {
 
     });
 });
-
-function addToCart(ids) {
-    AJAX.route(POST, `cart_add_logistic_units`, {ids: ids.join(`,`)})
-        .json()
-        .then(({messages, cartQuantity}) => {
-            messages.forEach(({success, msg}) => {
-                Flash.add(success ? `success` : `danger`, msg);
-            });
-
-            if (cartQuantity !== undefined) {
-                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(cartQuantity);
-            }
-        });
-}
 
 function toggleAddAllToCartButton() {
     const $addAllCart = $('.add-all-cart');

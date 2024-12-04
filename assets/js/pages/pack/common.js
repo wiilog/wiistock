@@ -120,3 +120,17 @@ export function reloadLogisticUnitTrackingDelay(logisticUnitId, onSuccess) {
         });
 }
 
+export function addToCart(ids) {
+    AJAX.route(POST, `cart_add_logistic_units`, {ids: ids.join(`,`)})
+        .json()
+        .then(({messages, cartQuantity}) => {
+            messages.forEach(({success, msg}) => {
+                Flash.add(success ? `success` : `danger`, msg);
+            });
+
+            if (cartQuantity !== undefined) {
+                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(cartQuantity);
+            }
+        });
+}
+

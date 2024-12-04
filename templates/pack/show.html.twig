@@ -13,7 +13,6 @@
 {% set isGroup = logisticUnit.groupIteration or (not logisticUnit.content.empty) %}
 {% set labelClass = "ref text-break font-weight-bold" %}
 
-
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
@@ -215,8 +214,17 @@
                                 <div class="logistic-unit-tab" data-target=".article-history">Historique des articles</div>
                             </div>
                             <div class="content current-articles">
-                                {% for article in logisticUnit.childArticles %}
-                                    {% include 'pack/article-card.html.twig' with { article: article } %}
+                                {% if logisticUnit.childArticles |length > 0%}
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm d-flex align-items-center mt-2 ml-auto add-cart-btn"
+                                        title="Ajouter au panier">
+                                        <span class="wii-icon wii-icon-cart mr-2" alt="Icône ajouter au panier"></span>
+                                        Ajouter au panier
+                                    </button>
+                                    {% for article in logisticUnit.childArticles %}
+                                        {% include 'pack/article-card.html.twig' with { article: article } %}
+                                    {% endfor %}
                                 {% else %}
                                     <div class="logistic-unit-no-items">
                                         <div class="logistic-unit-no-items-icon-circle">
@@ -224,7 +232,7 @@
                                         </div>
                                         {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun article actuellement') }}
                                     </div>
-                                {% endfor %}
+                                {% endif %}
                             </div>
                             <div class="content article-history d-none">
                                 {% include 'pack/article-history.html.twig' with {
