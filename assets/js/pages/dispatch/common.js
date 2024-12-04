@@ -20,11 +20,14 @@ export function createFormNewDispatch($modalNewDispatch) {
 
 export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatch) {
     createFormNewDispatch($modalNewDispatch)
-        .on('change', '#modalNewDispatch input[name=existingOrNot]', () => {
+        .on('change', 'input[name=existingOrNot]', function() {
             onExistingOrNotChanged($(this));
         })
-        .on('change', '#modalNewDispatch select[name=existingDispatch]', () => {
+        .on('change', 'select[name=existingDispatch]', function() {
             onExistingDispatchSelected($(this));
+        })
+        .on('click', '.remove-pack-in-dispatch', function() {
+            removePackInDispatchModal($(this));
         })
         .onOpen(() => {
             initNewDispatchEditor($modalNewDispatch);
@@ -151,4 +154,10 @@ function onExistingDispatchSelected($select) {
             .empty()
             .append(content);
     });
+}
+
+function removePackInDispatchModal($button) {
+    $button
+        .closest('[data-multiple-key]')
+        .remove();
 }

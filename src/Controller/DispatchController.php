@@ -1609,8 +1609,8 @@ class DispatchController extends AbstractController {
 
     #[Route("/create-form-entities-template", name: "create_from_entities_template", options: ["expose" => true], methods: self::GET)]
     public function createFromEntitiesTemplate(Request                $request,
-                                              EntityManagerInterface $entityManager,
-                                              DispatchService        $dispatchService): JsonResponse
+                                               EntityManagerInterface $entityManager,
+                                               DispatchService        $dispatchService): JsonResponse
     {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
