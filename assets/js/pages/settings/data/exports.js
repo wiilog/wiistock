@@ -374,7 +374,6 @@ function onFormEntityChange() {
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
         case ENTITY_PACK:
-        case ENTITY_GROUP:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;
