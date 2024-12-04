@@ -526,7 +526,10 @@ class TrackingMovementController extends AbstractController {
 
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getGroup();
-                $res['group'] = $group ? $group->serialize() : null;
+                $res['group'] = $group
+                    ? $normalizer->normalize($group, null, ["usage" => SerializerUsageEnum::MOBILE])
+                    : null;
+
             }
 
             if ($includePack) {
