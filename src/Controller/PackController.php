@@ -80,9 +80,11 @@ class PackController extends AbstractController {
             : null ;
 
         $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
+        $fields = $packService->getPackList3ColumnVisibleConfig($this->getUser());
 
         return $this->render('pack/show.html.twig', [
             "logisticUnit" => $logisticUnit,
+            "fields" => $fields,
             "movements" => $movements,
             "arrival" => $arrival,
             "truckArrival" => $truckArrival,
