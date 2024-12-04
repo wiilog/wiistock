@@ -1,10 +1,8 @@
 import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
-import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Flash from "@app/flash";
 import {exportFile} from "@app/utils";
-import {initEditPackModal, deletePack, getTrackingHistory} from "@app/pages/pack/common";
-
-global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart} from "@app/pages/pack/common";
 
 const packsTableConfig = {
     responsive: true,
@@ -64,11 +62,18 @@ $(function () {
         displayFiltersSup([{field: 'UL', value: codeUl}], true);
     }
 
-    $(document).on('click', '.add-cart', function () {
-        event.stopPropagation();
-        const id = [$(this).data(`id`)];
-        addToCart(id);
+    $(document).arrive(`.add-cart`, function () {
+        const $number = $(this);
+
+        // register the event directly on the element through arrive
+        // to get the event before action-on-click and be able to
+        // cancel modal openning through event.stopPropagation
+        $number.on(`mouseup`, event => {
+            event.stopPropagation();
+            addToCart(id);
+        })
     });
+
 
 
     $(document).on('click', `.add-all-cart`, function () {
@@ -151,9 +156,15 @@ $(function () {
         });
     }
 
-    $(document).on('click', '.delete-pack', function () {
-        deletePack({ 'pack' : $(this).data('id') }, packsTable);
-    });
+    $(document)
+        .on('click', '.delete-pack', function () {
+            deletePack({ 'pack' : $(this).data('id') }, packsTable);
+        })
+        .on('click', '.reload-tracking-delay', function () {
+            reloadLogisticUnitTrackingDelay($(this).data('id'), () => {
+                packsTable.ajax?.reload();
+            });
+        });
 
     $('.exportPacks').on('click', function () {
         exportFile(
@@ -168,20 +179,6 @@ $(function () {
     });
 });
 
-function addToCart(ids) {
-    AJAX.route(POST, `cart_add_logistic_units`, {ids: ids.join(`,`)})
-        .json()
-        .then(({messages, cartQuantity}) => {
-            messages.forEach(({success, msg}) => {
-                Flash.add(success ? `success` : `danger`, msg);
-            });
-
-            if (cartQuantity !== undefined) {
-                $('.header-icon.cart .icon-figure.small').removeClass(`d-none`).text(cartQuantity);
-            }
-        });
-}
-
 function toggleAddAllToCartButton() {
     const $addAllCart = $('.add-all-cart');
     if ($('.add-cart').length === 0) {
@@ -190,18 +187,4 @@ function toggleAddAllToCartButton() {
     else {
         $addAllCart.removeClass(`d-none`);
     }
-}
-
-function reloadLogisticUnitTrackingDelay(logisticUnitId) {
-    AJAX
-        .route(POST, "pack_force_tracking_delay_calculation", {logisticUnit: logisticUnitId})
-        .json()
-        .then(({success}) => {
-            if (success) {
-                Flash.add(SUCCESS, "Le délai de traitement de l'unité logistique a bien été recalculé", true, true);
-                packsTable.ajax.reload();
-            } else {
-                Flash.add(ERROR, "Une erreur est survenu lors du calcul du délai de traitement de l'unité logistique", true, true);
-            }
-        });
 }

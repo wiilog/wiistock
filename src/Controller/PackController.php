@@ -80,8 +80,11 @@ class PackController extends AbstractController {
             : null ;
 
         $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
+        $lastMessage = $logisticUnit->getLastMessage();
+        $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
 
         return $this->render('pack/show.html.twig', [
+            "packActionButtons" => $packService->getActionButtons($logisticUnit, $hasPairing),
             "logisticUnit" => $logisticUnit,
             "movements" => $movements,
             "arrival" => $arrival,
@@ -93,6 +96,7 @@ class PackController extends AbstractController {
                 "type" => 'qrcode',
             ],
             "trackingDelay" => $trackingDelay,
+            "hasPairing" => $hasPairing,
         ]);
     }
 

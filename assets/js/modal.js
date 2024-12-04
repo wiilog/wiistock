@@ -35,7 +35,7 @@ const $CONFIRMATION_MODAL = $(`
 `);
 
 export default class Modal {
-    static confirm({ajax, message, title, validateButton, cancelButton, table, keepOnError, cancelled}) {
+    static confirm({ajax, message, title, validateButton, cancelButton, table, keepOnError, cancelled, onSuccess}) {
         keepOnError = keepOnError === undefined ? true : keepOnError;
 
         const {label: validateLabel, color: validateColor, click: validateClick} = validateButton || {};
@@ -96,6 +96,9 @@ export default class Modal {
                             }
                             if (table) {
                                 table.ajax.reload();
+                            }
+                            if (result.success && onSuccess && typeof onSuccess === 'function') {
+                                onSuccess(result);
                             }
                         });
                 });
