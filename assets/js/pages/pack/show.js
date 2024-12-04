@@ -2,6 +2,7 @@ import '@styles/details-page.scss';
 import '@styles/pages/pack/timeline.scss';
 import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay} from "@app/pages/pack/common";
 
+
 $(function() {
     const logisticUnitId = $(`[name="logisticUnitId"]`).val();
     getTrackingHistory(logisticUnitId, true);
@@ -30,4 +31,6 @@ $(function() {
             window.location.reload();
         });
     });
+
+    registerCopyToClipboard(`Le numéro a bien été copié dans le presse-papiers.`);
 });

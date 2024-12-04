@@ -11,6 +11,8 @@
 {% endblock %}
 
 {% set isGroup = logisticUnit.groupIteration or (not logisticUnit.content.empty) %}
+{% set labelClass = "ref text-break font-weight-bold" %}
+
 
 {% block page_content %}
     {{ form.hidden('logisticUnitId', logisticUnit.id) }}
@@ -18,12 +20,47 @@
         <div class="row wii-column">
             <div class="col-12 col-md-6">
                 {% set nature = logisticUnit.nature %}
-                <div class="wii-box details-page-header d-flex flex-column"
-                     style="border-color: {{ nature ? nature.color : 'black' }}">
+                <div class="wii-box details-page-header d-flex flex-column">
+                    <div class="d-flex align-items-center mr-3">
+                        <div class="mx-2">
+                            <div class="dropdown dropright">
+                                <div class="d-flex">
+                                    {{ packActionButtons|raw }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex py-2 w-100 justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column dispatch-number">
+                                    <span class="wii-title">Unité logistique</span>
+                                    <span class="h4 mb-0 bold copyable" title="Copier">
+                                    {{ logisticUnit.code }}
+                                </span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end">
+                            <span class="wii-field-name">
+                                {% if trackingDelay %}
+                                    <div class="d-flex flex-column align-items-end">
+                                        {{ form.label("Temps restant", false, false, {
+                                            class: labelClass,
+                                        }) }}
+                                        <span class="h4">
+                                            {{ trackingDelay|raw }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+
                     {% if nature %}
-                        <div class="wii-type" style="background-color: {{ nature.color }}">
+                        <div class="wii-type border-radius-0" style="background-color: {{ nature.color }}">
                             <span class="p-1">{{ nature.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</span>
                         </div>
+                    {% else %}
+                        <span class="w-100 bordered"></span>
                     {% endif %}
                     <div class="d-flex header-wrapper bg-white">
                         <div class="barcode-container col-3 p-3">
@@ -35,33 +72,14 @@
                                 width: barcode.width,
                             })|raw }}
                         </div>
-                        <div class="specifications w-100 ">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="d-flex">
-                                    <div class="mr-1">
-                                        {{ packActionButtons|raw }}
-                                    </div>
-                                    {% set labelClass = "ref text-break font-weight-bold" %}
-                                    {{ form.label(logisticUnit.code, false, false, {
-                                        class: labelClass,
-                                    }) }}
-                                </div>
-                                {% if trackingDelay %}
-                                    <div class="d-flex flex-column align-items-end">
-                                        {{ trackingDelay|raw }}
-                                        {{ form.label("Temps restant", false, false, {
-                                            class: labelClass,
-                                        }) }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="d-flex justify-content-between mr-4">
-                                <div class="d-flex align-content-center">
-                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
+                        <div class="specifications col-9">
+                            <div class="d-flex flex-column mr-4">
+                                <div class="d-flex align-content-center my-2">
+                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="20px">
                                     <span class="wii-field-name">Quantité <span class="wii-body-text ml-2">{{ logisticUnit.quantity }}</span></span>
                                 </div>
-                                <div class="d-flex align-content-center">
-                                    <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
+                                <div class="d-flex align-content-center my-4">
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="20px">
                                     <span class="wii-field-name">Emplacement <span class="wii-body-text ml-2">{{ logisticUnit.lastOngoingDrop ? logisticUnit.lastOngoingDrop.emplacement | format_helper('location') }}</span></span>
                                 </div>
                             </div>
@@ -175,6 +193,16 @@
                                 </label>
                             </div>
                         </div>
+                    </div>
+                    <div class="content comment-container">
+                        <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
+                        {% if logisticUnit.comment != '<p><br></p>' %}
+                            <div class="ql-editor">
+                                {{ logisticUnit.comment | raw }}
+                            </div>
+                        {% else %}
+                            -
+                        {% endif %}
                     </div>
                 </div>
 
