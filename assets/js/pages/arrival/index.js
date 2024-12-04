@@ -1,6 +1,8 @@
 import {initDispatchCreateForm} from "@app/pages/dispatch/common";
+import {arrivalCallback, printArrival, checkPossibleCustoms} from "@app/pages/arrival/common";
 
 global.listPacks = listPacks;
+global.printArrival = printArrival;
 global.openArrivalCreationModal = openArrivalCreationModal;
 
 $('.select2').select2();
@@ -31,6 +33,8 @@ $(function () {
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
+
+    initModalNewArrivage();
     initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.location($('#emplacement'), {}, Translation.of('Traçabilité', 'Mouvements', 'Emplacement de dépose', false));
     Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Transporteurs', false));
@@ -494,4 +498,33 @@ function onNoTrackingSelected($modal, event) {
     } else {
         trackingNumberSuccess(data);
     }
+}
+
+function initModalNewArrivage() {
+
+    $(document)
+        .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
+            const $recipient = $(this);
+            const $modal = $recipient.closest('.modal');
+            const defaultLocationIfRecipient = {
+                id: $recipient.data('default-location-if-recipient-id'),
+                label: $recipient.data('default-location-if-recipient-label'),
+            };
+            if($recipient.val() && $recipient.val().length > 0 && defaultLocationIfRecipient.id && defaultLocationIfRecipient.label) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfRecipient.label, defaultLocationIfRecipient.id, false, true))
+            }
+        })
+        .on(`change`, '#modalNewArrivage [name=customs]', function () {
+            const $customs = $(this);
+            const $modal = $customs.closest('.modal');
+            const defaultLocationIfCustoms = {
+                id: $customs.data('default-location-if-customs-id'),
+                label: $customs.data('default-location-if-customs-label'),
+            };
+            if ($customs.is(':checked') && defaultLocationIfCustoms.id && defaultLocationIfCustoms.label) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfCustoms.label, defaultLocationIfCustoms.id, false, true))
+            }
+        });
 }
