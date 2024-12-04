@@ -84,6 +84,7 @@ class PackController extends AbstractController {
         $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
 
         return $this->render('pack/show.html.twig', [
+            "packActionButtons" => $packService->getActionButtons($logisticUnit, $hasPairing),
             "logisticUnit" => $logisticUnit,
             "movements" => $movements,
             "arrival" => $arrival,

@@ -18,7 +18,7 @@
         <div class="row wii-column">
             <div class="col-12 col-md-6">
                 {% set nature = logisticUnit.nature %}
-                <div class="wii-box overflow-hidden details-page-header d-flex flex-column"
+                <div class="wii-box details-page-header d-flex flex-column"
                      style="border-color: {{ nature ? nature.color : 'black' }}">
                     {% if nature %}
                         <div class="wii-type" style="background-color: {{ nature.color }}">
@@ -26,13 +26,6 @@
                         </div>
                     {% endif %}
                     <div class="d-flex header-wrapper bg-white">
-                        <div class="m-3">
-                        {% include('pack/datatablePackRow.html.twig') with {
-                            pack : logisticUnit,
-                            detail : true
-                            }
-                        %}
-                        </div>
                         <div class="barcode-container col-3 p-3">
                             {{ printBarcode({
                                 code: barcode.code,
@@ -42,12 +35,17 @@
                                 width: barcode.width,
                             })|raw }}
                         </div>
-                        <div class="specifications w-100 m-3">
+                        <div class="specifications w-100 ">
                             <div class="d-flex justify-content-between align-items-start">
-                                {% set labelClass = "ref text-break font-weight-bold" %}
-                                {{ form.label(logisticUnit.code, false, false, {
-                                    class: labelClass,
-                                }) }}
+                                <div class="d-flex">
+                                    <div class="mr-1">
+                                        {{ packActionButtons|raw }}
+                                    </div>
+                                    {% set labelClass = "ref text-break font-weight-bold" %}
+                                    {{ form.label(logisticUnit.code, false, false, {
+                                        class: labelClass,
+                                    }) }}
+                                </div>
                                 {% if trackingDelay %}
                                     <div class="d-flex flex-column align-items-end">
                                         {{ trackingDelay|raw }}
@@ -55,9 +53,6 @@
                                             class: labelClass,
                                         }) }}
                                     </div>
-                                {% endif %}
-                                {% if logisticUnit.trackingMovements.count > 0 %}
-                                <button onclick="showMovement('{{ logisticUnit.code|trim }}')" class="btn btn-primary">Voir les mouvements</button>
                                 {% endif %}
                             </div>
                             <div class="d-flex justify-content-between mr-4">
@@ -243,10 +238,10 @@
         </div>
     </div>
     {% include 'pack/modalEditPack.html.twig' %}
-    {% include 'pack/modalDeletePack.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('pack-show') }}
+
+        {{ encore_entry_script_tags('pack-show') }}
 {% endblock %}

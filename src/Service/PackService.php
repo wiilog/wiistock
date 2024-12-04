@@ -193,60 +193,8 @@ class PackService {
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastAction();
-        $isGroup = $pack->getGroupIteration() || !$pack->getContent()->isEmpty();
         return [
-            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
-                'actions' => [
-                    [
-                        'hasRight' => $pack->getArrivage(),
-                        'title' => $this->translationService->translate('Général', null, 'Zone liste', 'Imprimer'),
-                        'icon' => 'wii-icon wii-icon-printer-black',
-                        'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()?->getId(), 'pack' => $pack->getId() ]),
-                    ],
-                    [
-                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
-                        'title' => $this->translationService->translate('Général', null, 'Modale', 'Modifier'),
-                        'icon' => 'fas fa-edit',
-                        'attributes' => [
-                            'data-toggle' => "modal",
-                            'data-target' => "#modalEditPack",
-                            'data-id' => $pack->getId(),
-                        ]
-                    ],
-                    [
-                        'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE),
-                        'title' => $this->translationService->translate('Général', null, 'Modale', 'Supprimer'),
-                        'icon' => 'wii-icon wii-icon-trash-black',
-                        'class' => 'delete-pack',
-                        'attributes' => [
-                            'data-toggle' => "modal",
-                            'data-target' => "#modalEditPack",
-                            'data-id' => $pack->getId(),
-                        ]
-                    ],
-                    [
-                        'hasRight' => $hasPairing && $this->userService->hasRightFunction(Menu::IOT, Action::DISPLAY_SENSOR),
-                        'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données'),
-                        'icon' => 'wii-icon wii-icon-pairing',
-                        'href' => $this->router->generate('show_data_history', [ 'type' => Sensor::PACK, 'id' => $pack->getId() ]),
-                    ],
-                    [
-                        'hasRight' => !$isGroup,
-                        'title' => 'Recalculer le délai de traça',
-                        'icon' => 'wii-icon wii-icon-modif wii-icon-17px-black',
-                        'attributes' => [
-                            'onclick' => "reloadLogisticUnitTrackingDelay({$pack->getId()})",
-                        ]
-                    ],
-                    [
-                        'hasRight' => true,
-                        'title' => "Détails",
-                        'icon' => 'fa fa-eye',
-                        'href' => $this->router->generate('pack_show', ['id' => $pack->getId()]),
-                        'class' => 'action-on-click'
-                    ],
-                ],
-            ]),
+            'actions' => $this->getActionButtons($pack, $hasPairing),
             'cart' => $this->templating->render('pack/cart-column.html.twig', [
                 'pack' => $pack,
             ]),
@@ -938,5 +886,67 @@ class PackService {
                 yield $pack;
             }
         }
+    }
+
+    public function getActionButtons(Pack $pack, bool $hasPairing): string {
+        $isGroup = $pack->getGroupIteration() || !$pack->getContent()->isEmpty();
+
+        return $this->templating->render('utils/action-buttons/dropdown.html.twig', [
+            'actions' => [
+                [
+                    'hasRight' => $pack->getArrivage(),
+                    'title' => $this->translationService->translate('Général', null, 'Zone liste', 'Imprimer'),
+                    'icon' => 'wii-icon wii-icon-printer-black',
+                    'href' => $this->router->generate('print_arrivage_single_pack_bar_codes', [ 'arrivage' => $pack->getArrivage()?->getId(), 'pack' => $pack->getId() ]),
+                ],
+                [
+                    'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
+                    'title' => $this->translationService->translate('Général', null, 'Modale', 'Modifier'),
+                    'icon' => 'fas fa-edit',
+                    'attributes' => [
+                        'data-toggle' => "modal",
+                        'data-target' => "#modalEditPack",
+                        'data-id' => $pack->getId(),
+                    ]
+                ],
+                [
+                    'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE),
+                    'title' => $this->translationService->translate('Général', null, 'Modale', 'Supprimer'),
+                    'icon' => 'wii-icon wii-icon-trash-black',
+                    'class' => 'delete-pack',
+                    'attributes' => [
+                        'data-id' => $pack->getId(),
+                    ]
+                ],
+                [
+                    'hasRight' => $hasPairing && $this->userService->hasRightFunction(Menu::IOT, Action::DISPLAY_SENSOR),
+                    'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des données'),
+                    'icon' => 'wii-icon wii-icon-pairing wii-icon-black',
+                    'href' => $this->router->generate('show_data_history', [ 'type' => Sensor::PACK, 'id' => $pack->getId() ]),
+                ],
+                [
+                    'hasRight' => !$isGroup,
+                    'title' => 'Recalculer le délai de traça',
+                    'class' => 'reload-tracking-delay',
+                    'icon' => 'wii-icon wii-icon-modif wii-icon-17px-black',
+                    'attributes' => [
+                        'data-id' => $pack->getId(),
+                    ]
+                ],
+                [
+                    'hasRight' => true,
+                    'title' => "Détails",
+                    'icon' => 'fa fa-eye',
+                    'href' => $this->router->generate('pack_show', ['id' => $pack->getId()]),
+                    'actionOnClick' => true,
+                ],
+                [
+                    'hasRight' => true,
+                    'title' => "Voir les mouvements",
+                    'icon' => 'fa fa-eye',
+                    'href' => $this->router->generate('mvt_traca_index', [ 'pack' => $pack->getCode()]),
+                ],
+            ],
+        ]);
     }
 }

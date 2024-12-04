@@ -2,7 +2,7 @@ import {POST, DELETE} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import Routing from "@app/fos-routing";
-
+import Flash, {ERROR, SUCCESS} from "@app/flash";
 
 export function initEditPackModal(options) {
     const $modalEditPack = $('#modalEditPack');
@@ -22,7 +22,7 @@ export function initEditPackModal(options) {
         );
 }
 
-export function deletePack(params, table){
+export function deletePack(params, table, onSuccess = null) {
     Modal.confirm({
         ajax: {
             method: DELETE,
@@ -36,6 +36,7 @@ export function deletePack(params, table){
             label: Translation.of('Général', null, 'Modale', 'Supprimer'),
         },
         table: table,
+        onSuccess: onSuccess,
     })
 }
 
@@ -102,3 +103,20 @@ function initializeProjectHistoryTable(packId) {
         }
     });
 }
+
+export function reloadLogisticUnitTrackingDelay(logisticUnitId, onSuccess) {
+    AJAX
+        .route(POST, "pack_force_tracking_delay_calculation", {logisticUnit: logisticUnitId})
+        .json()
+        .then(({success}) => {
+            if (success) {
+                Flash.add(SUCCESS, "Le délai de traitement de l'unité logistique a bien été recalculé", true, true);
+                if (onSuccess && typeof onSuccess === 'function') {
+                    onSuccess();
+                }
+            } else {
+                Flash.add(ERROR, "Une erreur est survenu lors du calcul du délai de traitement de l'unité logistique", true, true);
+            }
+        });
+}
+

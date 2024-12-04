@@ -1,10 +1,8 @@
 import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
-import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Flash from "@app/flash";
 import {exportFile} from "@app/utils";
-import {initEditPackModal, deletePack, getTrackingHistory} from "@app/pages/pack/common";
-
-global.reloadLogisticUnitTrackingDelay = reloadLogisticUnitTrackingDelay;
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay} from "@app/pages/pack/common";
 
 const packsTableConfig = {
     responsive: true,
@@ -151,9 +149,15 @@ $(function () {
         });
     }
 
-    $(document).on('click', '.delete-pack', function () {
-        deletePack({ 'pack' : $(this).data('id') }, packsTable);
-    });
+    $(document)
+        .on('click', '.delete-pack', function () {
+            deletePack({ 'pack' : $(this).data('id') }, packsTable);
+        })
+        .on('click', '.reload-tracking-delay', function () {
+            reloadLogisticUnitTrackingDelay($(this).data('id'), () => {
+                packsTable.ajax?.reload();
+            });
+        });
 
     $('.exportPacks').on('click', function () {
         exportFile(
@@ -201,18 +205,4 @@ function toggleAddAllToCartButton() {
     else {
         $addAllCart.removeClass(`d-none`);
     }
-}
-
-function reloadLogisticUnitTrackingDelay(logisticUnitId) {
-    AJAX
-        .route(POST, "pack_force_tracking_delay_calculation", {logisticUnit: logisticUnitId})
-        .json()
-        .then(({success}) => {
-            if (success) {
-                Flash.add(SUCCESS, "Le délai de traitement de l'unité logistique a bien été recalculé", true, true);
-                packsTable.ajax.reload();
-            } else {
-                Flash.add(ERROR, "Une erreur est survenu lors du calcul du délai de traitement de l'unité logistique", true, true);
-            }
-        });
 }
