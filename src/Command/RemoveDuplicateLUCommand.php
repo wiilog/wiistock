@@ -8,6 +8,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Repository\PackRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\FormatService;
+use App\Service\SpecificService;
 use App\Service\TrackingMovementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -26,6 +27,7 @@ use WiiCommon\Helper\Stream;
 class RemoveDuplicateLUCommand extends Command {
     public function __construct(private EntityManagerInterface  $entityManager,
                                 private SerializerInterface     $serializer,
+                                private SpecificService         $specificService,
                                 private TrackingMovementService $trackingMovementService,
                                 private FormatService           $formatService) {
         parent::__construct();
@@ -59,6 +61,7 @@ class RemoveDuplicateLUCommand extends Command {
             $io->warning('Il y a des ULs dupliquées !!');
         }
         $io->progressStart(count($duplicateLUsData));
+
         foreach ($duplicateLUsData as $duplicateLUData) {
             $lus = $luRepository->findBy(['code' => $duplicateLUData['code']]);
 
@@ -67,6 +70,7 @@ class RemoveDuplicateLUCommand extends Command {
                 $duplicateGroupeData[] = $duplicateLUData;
                 continue;
             }
+
             $io->progressAdvance();
 
             if($input->getOption('details')) {
@@ -124,6 +128,21 @@ class RemoveDuplicateLUCommand extends Command {
         $notGroupLu = Stream::from($lus)
             ->filter(static fn(Pack $lu) => !$luRepository->count(['parent' => $lu]))
             ->toArray();
+
+        if ($this->specificService->isCurrentClientNameFunction([SpecificService::CLIENT_QUENELLE, SpecificService::CLIENT_SAUCISSON_BRIOCHE])) {
+
+            $counter = 0;
+            /** @var Pack $pack */
+            foreach ($lus as $pack) {
+                $oldCode = $pack->getCode();
+                $pack->setCode($oldCode . "-" . ($counter + 1));
+                $io->text("UL $oldCode renommée {$pack->getCode()}");
+                $counter++;
+            }
+
+            return;
+        }
+
 
         // if there is only one LU with children
         if (count($lus) - count($notGroupLu) === 1) {
