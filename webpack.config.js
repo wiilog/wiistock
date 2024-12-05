@@ -82,6 +82,7 @@ Encore
     .addEntry('security-password-forgotten', '/assets/js/pages/security/password-forgotten.js')
     .addEntry('security-reset-password', '/assets/js/pages/security/reset-password.js')
     .addEntry('arrival-show', './assets/js/pages/arrival/show.js')
+    .addEntry('arrival-index', './assets/js/pages/arrival/index.js')
     .addEntry('dispatch-index', '/assets/js/pages/dispatch/index.js')
     .addEntry('dispatch-show', '/assets/js/pages/dispatch/show.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')

@@ -6,6 +6,9 @@ import {initDataTable} from "@app/datatable";
 import Form from "@app/form";
 import {initCommentHistoryForm} from "@app/pages/dispute/common";
 import {initDispatchCreateForm} from "@app/pages/dispatch/common";
+import {printArrival, checkPossibleCustoms} from "@app/pages/arrival/common";
+
+global.printArrival = printArrival;
 
 $('.select2').select2();
 let tableHistoLitige;
