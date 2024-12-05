@@ -86,7 +86,13 @@ class RemoveDuplicateRefArtCommand extends Command {
             $oldCodeNumber =  (int) substr($oldCode, -8);
             $oldCodePrefix = substr($oldCode, 0, -8);
 
-            $newCode = $oldCodePrefix . $oldCodeNumber + $index + 10000000;
+
+            $newCodeTryCount = 0;
+            do {
+                $newCode = $oldCodePrefix . $oldCodeNumber + $index + $newCodeTryCount + (int)(((int)($index / 10) + 1).'0000000');
+                $referenceArticleWithNewCode = $referenceArticleRepository->findOneBy(['barCode' => $newCode]);
+                $newCodeTryCount++;
+            } while ($referenceArticleWithNewCode);
 
             $pack = $referenceArticle->getTrackingPack();
             if ($pack?->getBarCode() === $oldCode) {
@@ -100,6 +106,7 @@ class RemoveDuplicateRefArtCommand extends Command {
                 "oldCode" => $oldCode,
                 "newCode" => $newCode,
             ];
+            $this->entityManager->flush();
         }
 
         if ($input->getOption('interact')) {
