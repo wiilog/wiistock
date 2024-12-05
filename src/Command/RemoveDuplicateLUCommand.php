@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\Tracking\TrackingMovement;
@@ -159,8 +161,6 @@ class RemoveDuplicateLUCommand extends Command {
             if ($input->getOption('interact')) {
                 $io->confirm('continuer ?');
             }
-
-
         } else {
             // if anny of the duplicate LUs has a tracking movement
             if (empty($firstMovements)) {
@@ -285,6 +285,14 @@ class RemoveDuplicateLUCommand extends Command {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
         $locationClusterRecordRepository = $this->entityManager->getRepository(LocationClusterRecord::class);
 
+        if (!$lu->getDispatchPacks()->isEmpty()) {
+            $lu->setCode($lu->getCode() . "_". rand(1, 1000));
+
+            $editedEntities['renamedGroup'][] = $this->serializer->normalize($lu, null, ["usage" => SerializerUsageEnum::MOBILE]);
+            return $editedEntities;
+        }
+
+
         $mvtToDelete = Stream::from($lu->getTrackingMovements(), $trackingMovementRepository->findBy(["packParent" => $lu]));
         if ($input->getOption('details')) {
             $io->success("On supprime l'UL avec l'id : {$lu->getId()}");
@@ -307,6 +315,7 @@ class RemoveDuplicateLUCommand extends Command {
         if ($input->getOption('details')) {
             $io->success("Supprimed");
         }
+
         $editedEntities['deletedLu'][] = $this->serializer->normalize($lu, null, ["usage" => SerializerUsageEnum::MOBILE]);
         $this->entityManager->remove($lu);
 
