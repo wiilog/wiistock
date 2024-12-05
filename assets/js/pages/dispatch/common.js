@@ -1,13 +1,12 @@
-function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatch) {
-    $(document).on(`change`, `#modalNewDispatch input[name=existingOrNot]`, function () {
-        onExistingOrNotChanged($(this));
-    });
+import AJAX from "@app/ajax";
+import Form from "@app/form";
+import Routing from '@app/fos-routing';
+import Camera from "@app/camera";
+import Modal from "@app/modal";
+import {showAndRequireInputByType} from "@app/utils";
 
-    $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
-        onExistingDispatchSelected($(this));
-    });
-
-    Form
+export function createFormNewDispatch($modalNewDispatch) {
+    return Form
         .create($modalNewDispatch)
         .on('change', '[name=customerName]', (event) => {
             const $customers = $(event.target)
@@ -16,6 +15,16 @@ function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatc
             $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
             $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
             $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
+        });
+}
+
+export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatch) {
+    createFormNewDispatch($modalNewDispatch)
+        .on('change', '#modalNewDispatch input[name=existingOrNot]', () => {
+            onExistingOrNotChanged($(this));
+        })
+        .on('change', '#modalNewDispatch select[name=existingDispatch]', () => {
+            onExistingDispatchSelected($(this));
         })
         .onOpen(() => {
             initNewDispatchEditor($modalNewDispatch);
@@ -56,7 +65,7 @@ function initDispatchCreateForm($modalNewDispatch, entityType, entitiesToDispatc
         );
 }
 
-function initNewDispatchEditor(modal) {
+export function initNewDispatchEditor(modal) {
     clearModal(modal);
     const $modal = $(modal);
     onDispatchTypeChange($modal.find("[name=type]"));
@@ -64,7 +73,7 @@ function initNewDispatchEditor(modal) {
     initDatePickers();
 }
 
-function onDispatchTypeChange($select) {
+export function onDispatchTypeChange($select) {
     const $modal = $select.closest('.modal');
     onTypeChange($select);
 

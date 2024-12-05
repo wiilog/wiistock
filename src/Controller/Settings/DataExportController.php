@@ -32,12 +32,15 @@ use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DispatchService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
+use App\Service\PackService;
 use App\Service\RefArticleDataService;
 use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
@@ -477,6 +480,33 @@ class DataExportController extends AbstractController {
             },
             "export_productions-$today.csv",
             $header
+        );
+    }
+
+    #[Route("/export/unique/unités-logistiques", name: "settings_export_packs", options: ["expose" => true], methods: [self::GET])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function printCSVPacks(Request                   $request,
+                                  PackService               $packService,
+                                  EntityManagerInterface    $entityManager,
+                                  CSVExportService          $CSVExportService,
+                                  DataExportService         $dataExportService): StreamedResponse {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_PACK, $now);
+
+        return $CSVExportService->streamResponse(
+            $packService->getExportPacksFunction(
+                $dateTimeMin,
+                $dateTimeMax,
+                $entityManager,
+            ), "export_UL_$today.csv",
+            $packService->getCsvHeader()
         );
     }
 

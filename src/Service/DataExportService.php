@@ -434,7 +434,14 @@ class DataExportService
             $export->setColumnToExport([]);
         }
 
-        if(in_array($entity, [Export::ENTITY_ARRIVAL,Export::ENTITY_DELIVERY_ROUND, Export::ENTITY_DISPATCH, Export::ENTITY_PRODUCTION, Export::ENTITY_TRACKING_MOVEMENT])) {
+        if(in_array($entity, [
+            Export::ENTITY_ARRIVAL,
+            Export::ENTITY_DELIVERY_ROUND,
+            Export::ENTITY_DISPATCH,
+            Export::ENTITY_PRODUCTION,
+            Export::ENTITY_TRACKING_MOVEMENT,
+            Export::ENTITY_PACK,
+        ])) {
             $export
                 ->setPeriod($data["period"])
                 ->setPeriodInterval($data["periodInterval"]);

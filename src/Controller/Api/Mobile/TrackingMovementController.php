@@ -492,8 +492,7 @@ class TrackingMovementController extends AbstractController {
                                 EntityManagerInterface $entityManager,
                                 NatureService          $natureService,
                                 PackService            $packService,
-                                NormalizerInterface    $normalizer,
-                                DateTimeService        $dateTimeService): JsonResponse
+                                NormalizerInterface    $normalizer): JsonResponse
     {
         $code = $request->query->get('code');
         $includeNature = $request->query->getBoolean('nature');
@@ -527,7 +526,10 @@ class TrackingMovementController extends AbstractController {
 
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getGroup();
-                $res['group'] = $group ? $group->serialize() : null;
+                $res['group'] = $group
+                    ? $normalizer->normalize($group, null, ["usage" => SerializerUsageEnum::MOBILE])
+                    : null;
+
             }
 
             if ($includePack) {
@@ -573,38 +575,6 @@ class TrackingMovementController extends AbstractController {
         }
 
         return $this->json($res);
-    }
-
-    #[Route("/pack-groups", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
-    #[Wii\RestVersionChecked]
-    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $code = $request->query->get('code');
-
-        $packRepository = $entityManager->getRepository(Pack::class);
-
-        $pack = !empty($code)
-            ? $packRepository->findOneBy(['code' => $code])
-            : null;
-
-        if ($pack) {
-            if (!$pack->isGroup()) {
-                $isPack = true;
-                $isSubPack = $pack->getGroup() !== null;
-                $packSerialized = $pack->serialize();
-            } else {
-                $isPack = false;
-                $packGroupSerialized = $pack->serialize();
-            }
-        }
-
-        return $this->json([
-            "success" => true,
-            "isPack" => $isPack ?? false,
-            "isSubPack" => $isSubPack ?? false,
-            "pack" => $packSerialized ?? null,
-            "packGroup" => $packGroupSerialized ?? null,
-        ]);
     }
 
     #[Route("/group", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]

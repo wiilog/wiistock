@@ -190,6 +190,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     {{ encore_entry_script_tags('production-show') }}
 {% endblock %}

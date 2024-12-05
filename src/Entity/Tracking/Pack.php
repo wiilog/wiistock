@@ -18,7 +18,6 @@ use App\Entity\ReceiptAssociation;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
-use App\Helper\FormatHelper;
 use App\Repository\Tracking\PackRepository;
 use App\Service\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -554,38 +553,6 @@ class Pack implements PairedEntity {
         }
 
         return $this;
-    }
-
-    public function serialize(): array {
-        return $this->isGroup()
-            ? $this->serializeGroup()
-            : $this->serializePack();
-    }
-
-    private function serializePack(): array {
-        $lastAction = $this->getLastAction();
-        return [
-            "code" => $this->getCode(),
-            "ref_article" => $this->getCode(),
-            "nature_id" => $this->getNature()?->getId(),
-            "quantity" => $lastAction
-                ? $lastAction->getQuantity()
-                : 1,
-            "type" => $lastAction?->getType()?->getCode(),
-            "ref_emplacement" => $lastAction?->getEmplacement()?->getLabel(),
-            "date" => FormatHelper::datetime($lastAction?->getDatetime(), ''),
-        ];
-    }
-
-    private function serializeGroup(): array {
-        return [
-            "id" => $this->getId(),
-            "code" => $this->getCode(),
-            "natureId" => $this->getNature()?->getId(),
-            "packs" => $this->getContent()
-                ->map(fn(Pack $pack) => $pack->serialize())
-                ->toArray(),
-        ];
     }
 
     /**

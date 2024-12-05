@@ -63,11 +63,7 @@ class LocationClusterRecord {
         return $this->pack;
     }
 
-    /**
-     * @param Pack $pack
-     * @return self
-     */
-    public function setPack(Pack $pack): self {
+    public function setPack(?Pack $pack): self {
         $this->pack = $pack;
         return $this;
     }

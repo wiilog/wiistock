@@ -29,42 +29,21 @@ use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 class ScheduledExportService {
-
-    #[Required]
-    public CSVExportService $csvExportService;
-
-    #[Required]
-    public DataExportService $dataExportService;
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    #[Required]
-    public ArticleDataService $articleDataService;
-
-    #[Required]
-    public ArrivageService $arrivageService;
-
-    #[Required]
-    public TransportRoundService $transportRoundService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public Environment $templating;
-
-    #[Required]
-    public FTPService $ftpService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TranslationService $translationService;
+    public function __construct(
+        private PackService           $packService,
+        private TranslationService    $translationService,
+        private LanguageService       $languageService,
+        private FTPService            $ftpService,
+        private Environment           $templating,
+        private MailerService         $mailerService,
+        private FreeFieldService      $freeFieldService,
+        private TransportRoundService $transportRoundService,
+        private ArrivageService       $arrivageService,
+        private ArticleDataService    $articleDataService,
+        private RefArticleDataService $refArticleDataService,
+        private DataExportService     $dataExportService,
+        private CSVExportService      $csvExportService,
+    ) {}
 
     public function export(EntityManagerInterface $entityManager,
                            Export                 $export,
@@ -198,6 +177,10 @@ class ScheduledExportService {
 
             $this->csvExportService->putLine($output, $this->dataExportService->createProductionRequestsHeader());
             $this->dataExportService->exportProductionRequest($productionRequests, $output, $freeFieldsConfig, $freeFieldsById);
+        } else if($exportToRun->getEntity() === Export::ENTITY_PACK) {
+            $this->csvExportService->putLine($output, $this->packService->getCsvHeader());
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $this->packService->getExportPacksFunction($startDate, $endDate, $entityManager)($output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }

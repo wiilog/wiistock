@@ -1,8 +1,8 @@
 {% import 'form.html.twig' as form %}
 {% import 'utils/fixed-field-by-type.html.twig' as macros %}
 
-{% set displayAction = displayAction ?? (productionRequest.id ? 'displayedEdit' : 'displayedCreate') %}
-{% set requiredAction = requiredAction ?? (productionRequest.id ? 'requiredEdit' : 'requiredCreate') %}
+{% set displayAction = productionRequest.id ? 'displayedEdit' : 'displayedCreate' %}
+{% set requiredAction = productionRequest.id ? 'requiredEdit' : 'requiredCreate' %}
 {% set typeCanChange =  productionRequest.id ? false : true %}
 
 {{ form.input('id', null, false, productionRequest.id, {

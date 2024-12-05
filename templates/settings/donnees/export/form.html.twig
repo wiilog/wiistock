@@ -58,7 +58,13 @@
                 value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRACKING_MOVEMENT'),
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRACKING_MOVEMENT'),
                 disabled: export.id is not null
-            }
+            },
+            {
+                label: 'Unités logistiques',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PACK'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PACK'),
+                disabled: export.id is not null
+            },
         ], {expanded: true}) }}
 
         <label class="references-sentence wii-small-text my-3">Les références exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>

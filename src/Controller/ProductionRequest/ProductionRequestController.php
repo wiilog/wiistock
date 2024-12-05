@@ -534,20 +534,28 @@ class ProductionRequestController extends AbstractController
     #[HasPermission([Menu::PRODUCTION, Action::DUPLICATE_PRODUCTION_REQUEST])]
     public function duplicate(ProductionRequest $productionRequest,
                               EntityManagerInterface $entityManager): JsonResponse {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $productionRequest = clone $productionRequest;
 
         $productionRequest->clearAttachments();
+        $productionType = $productionRequest->getType();
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy([
+            "entityCode" => FixedFieldStandard::ENTITY_CODE_PRODUCTION
+        ]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($productionType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($productionType),
+            ]])
+            ->toArray();
 
         return $this->json([
             "success" => true,
             "html" => $this->renderView("production_request/modal/form.html.twig", [
                 "isDuplication" => true,
                 "productionRequest" => $productionRequest,
-                "displayAction" => "displayedCreate",
-                "requiredAction" => "requiredCreate",
-                "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-                "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+                "fieldsParam" => $fieldsParam,
+                "emergencies" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             ]),
         ]);
     }

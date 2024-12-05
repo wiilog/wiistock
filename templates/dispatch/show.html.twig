@@ -290,7 +290,6 @@
     {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
     {% include "dispatch/modalValidateDispatch.html.twig" with {dispatchValidate, dispatch } %}
     {% include "dispatch/modalTreatDispatch.html.twig" with {dispatchTreat, dispatch } %}
-    {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}
     {% if hasRightToAddReferenceInLu %}
@@ -319,6 +318,6 @@
     {{ parent() }}
 
     {{ encore_entry_script_tags('reference-article-form-common') }}
-    <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('dispatch-show') }}
 
 {% endblock %}

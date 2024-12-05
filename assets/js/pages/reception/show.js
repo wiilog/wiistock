@@ -10,6 +10,7 @@ import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
+import {clearPackListSearching} from "@app/pages/dispatch/show";
 import {initCommentHistoryForm} from "@app/pages/dispute/common";
 
 let modalNewLigneReception = "#modalNewLigneReception";
@@ -849,13 +850,7 @@ function launchPackListSearching() {
     });
 }
 
-function clearPackListSearching() {
-    const $logisticUnitsContainer = $('.logistic-units-container');
-    const $searchInput = $logisticUnitsContainer
-        .closest('.content')
-        .find('input[type=search]');
-    $searchInput.val(null);
-}
+
 
 function loadPackingArticleForm($modal) {
     const $referenceContainer = $modal.find(`.reference-container`);
