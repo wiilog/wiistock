@@ -23,6 +23,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
+#[ORM\Index(fields: ["barCode"], name: "IDX_WIILOG_CODE",)]
 class ReferenceArticle implements AttachmentContainer
 {
 

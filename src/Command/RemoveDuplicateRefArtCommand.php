@@ -55,7 +55,11 @@ class RemoveDuplicateRefArtCommand extends Command {
         } else {
             $io->warning('Il y a des Reference Articles dupliquées');
         }
-        $io->progressStart(count($duplicateRAsData));
+
+
+        $duplicateRACount = $referenceArticleRepository->count(['barCode' => Stream::from($duplicateRAsData)->map(fn($data) => $data['barCode'])->toArray()]);
+
+        $io->progressStart($duplicateRACount);
 
         foreach ($duplicateRAsData as $duplicateRAData) {
             $referencesArticles = $referenceArticleRepository->findBy(['barCode' => $duplicateRAData['barCode']]);
@@ -64,8 +68,6 @@ class RemoveDuplicateRefArtCommand extends Command {
 
 
             $this->entityManager->flush();
-
-            $io->progressAdvance();
         }
 
         $io->text(json_encode($editedEntities));
@@ -80,33 +82,48 @@ class RemoveDuplicateRefArtCommand extends Command {
 
         // wee need to keep one reference article who keep the same code, so wee remove one element from the array
         $referencesArticles = array_slice($referencesArticles, 1);
+        $io->progressAdvance();
+        $newCodeTryCount = 0;
         foreach ($referencesArticles as $index => $referenceArticle) {
             $oldCode = $referenceArticle->getBarCode();
-            // code = REF240900000001 => 00000001
-            $oldCodeNumber =  (int) substr($oldCode, -8);
-            $oldCodePrefix = substr($oldCode, 0, -8);
+            // REF240900000001
+            // dateCode = 2409
+            $dateCode = substr($oldCode, 3, 4);
 
+            //$io->warning("dateCode:$dateCode");
+
+            // getHighestBarCodeByDateCode
+            $highestBarCodeForDateCode = $referenceArticleRepository->getHighestBarCodeByDateCode($dateCode) ?? $oldCode;
+
+            // code = REF240900000001 => 00000001
+            $highestCodeNumber =  (int) substr($highestBarCodeForDateCode, -8);
+
+            //$io->warning("highestCodeNumber:$highestBarCodeForDateCode, $highestCodeNumber");
 
             $newCodeTryCount = 0;
             do {
-                $newCode = $oldCodePrefix . $oldCodeNumber + $index + $newCodeTryCount + (int)(((int)($index / 10) + 1).'0000000');
+                // sprintf('%08u', $highestCounter + 1)
+                $newCode = "REF" . $dateCode . sprintf('%08u', $newCodeTryCount + $highestCodeNumber + 1);
                 $referenceArticleWithNewCode = $referenceArticleRepository->findOneBy(['barCode' => $newCode]);
                 $newCodeTryCount++;
+
+                //$io->text(" newCodeTryCount: $newCodeTryCount");
+
             } while ($referenceArticleWithNewCode);
 
+            // $io->warning("ca y est on a un nouveau code : $newCode");
+
             $pack = $referenceArticle->getTrackingPack();
+
             if ($pack?->getBarCode() === $oldCode) {
                 $pack->setBarCode($newCode);
             }
 
             $referenceArticle->setBarCode($newCode);
 
-            $editedEntities['updatedReferenceArticle'][] = [
-                "id" => $referenceArticle->getId(),
-                "oldCode" => $oldCode,
-                "newCode" => $newCode,
-            ];
+
             $this->entityManager->flush();
+            $io->progressAdvance();
         }
 
         if ($input->getOption('interact')) {
