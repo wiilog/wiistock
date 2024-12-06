@@ -16,4 +16,16 @@
         name: 'receiptAssociation',
         placeholder: 'Association',
     } %}
+
+    {% include 'filters/filter_item/filterBasicSelect.html.twig' with {
+        name: 'type',
+        options: {
+            type: '',
+            items: [
+                { value: 'pack', label: 'Unité logistique' },
+                { value: 'group', label: 'Groupe' },
+            ],
+            placeholder: 'Type',
+        },
+    } %}
 {% endblock %}
