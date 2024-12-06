@@ -274,10 +274,10 @@
         </div>
     </div>
     {% include 'pack/modalEditPack.html.twig' %}
+    {% include 'group/ungroup.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-
         {{ encore_entry_script_tags('pack-show') }}
 {% endblock %}
