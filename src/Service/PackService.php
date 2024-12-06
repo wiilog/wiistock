@@ -103,6 +103,15 @@ class PackService {
         ]);
     }
 
+    public function generateGroupContentHtml(Pack $pack): string {
+        $user = $this->userService->getUser();
+        return $this->templating->render('pack/content_group.html.twig', [
+            "userLanguage" => $user?->getLanguage(),
+            "defaultLanguage" => $this->languageService->getDefaultLanguage(),
+            "content" => $pack,
+        ]);
+    }
+
     public function getTrackingRecordsHistory(LogisticUnitHistoryRecord $logisticUnitHistoryRecord): array {
         $user = $this->userService->getUser();
         return  [
@@ -545,36 +554,18 @@ class PackService {
         );
     }
 
-    public function getPackList3ColumnVisibleConfig(Utilisateur $currentUser): array {
-        //$columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
-        $columnsVisible = ["code" => ["fieldVisible"], "nature" => ["fieldVisible"], "quantity" => ["fieldVisible"]];
-        //dd($columnsVisible, $columnsVisible2);
-        return $this->fieldModesService->getArrayConfig(
-            [
-                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true, "hiddenColumn"=> true, "visible"=> false],
-                ["name" => 'details', "title" => '<span class="fa fa-search"><span>', "className" => 'noVis', "orderable" => false],
-                ['name' => 'cart', 'title' => '<span class="wii-icon wii-icon-cart"></span>', 'classname' => 'cart-row', "orderable" => false],
-                ['name' => 'pairing', 'title' => '<span class="wii-icon wii-icon-pairing black"><span>', 'classname' => 'pairing-row'],
-                ['name' => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')],
-                ['name' => 'nature', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Nature')],
-                ['name' => 'quantity', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Quantité')],
-                ['name' => 'project', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Projet')],
-                ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
-                ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
-                ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
-                ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
-                ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
-                ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
-                ['name' => 'limitTreatmentDate', 'title' => 'Date limite de traitement', 'className' => 'noVis'],
-                ['name' => 'group', 'title' =>  'Groupe rattaché', 'className' => 'noVis'],
-            ],
-            [],
-            $columnsVisible
-        );
+    public function removeUselessPackField(array $columnsVisible, array $choiceColumn): array {
+        foreach($columnsVisible as $key => $value) {
+            if(!in_array($key, $choiceColumn)) {
+                unset($columnsVisible[$key]);
+            }
+        }
+        return $columnsVisible;
     }
 
     public function getPackListColumnVisibleConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getFieldModes(FieldModesController::PAGE_PACK_LIST) ?? Utilisateur::DEFAULT_PACK_LIST_FIELDS_MODES;
+
         return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],

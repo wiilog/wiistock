@@ -290,6 +290,40 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
+    #[Route("/group_content/{id}", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function groupContent(Request $request,
+                                 EntityManagerInterface $entityManager,
+                                 PackService            $packService,
+                                 Pack                   $logisticUnit): JsonResponse {
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $contents = $logisticUnit->getContent()->toArray();
+        if (empty($contents)) {
+            return $this->json([
+                "data" => [
+                    [
+                        "content" => "Aucun contenu trouvé",
+                    ]
+                ],
+                "recordsFiltered" => 1,
+                "recordsTotal" => 1,
+            ]);
+        }
+
+        $params = $request->request;
+        $query = $packRepository->getPackContentFiltered($params, $logisticUnit);
+
+        return $this->json([
+            "data" =>
+                Stream::from($query["data"])
+                    ->map(fn(Pack $content) => [
+                        "content" => $packService->generateGroupContentHtml($content),
+                    ])
+                    ->toArray(),
+            "recordsFiltered" => $query["count"],
+            "recordsTotal" => $query["total"],
+        ]);
+    }
     #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function projectHistory(Request                     $request,
                                    EntityManagerInterface      $entityManager,

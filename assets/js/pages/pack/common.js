@@ -102,6 +102,21 @@ function initializeGroupHistoryTable(packId) {
         }
     });
 }
+export function initializeGroupContentTable(packId, searchable = true) {
+    initDataTable('groupContentTable', {
+        serverSide: true,
+        processing: true,
+        paging: true,
+        searching: searchable,
+        ajax: {
+            "url": Routing.generate('pack_group_content_api', {id: packId}, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: `content`, title: ``, orderable: false},
+        ],
+    });
+}
 
 function initializeProjectHistoryTable(packId) {
     initDataTable('projectHistoryTable', {
