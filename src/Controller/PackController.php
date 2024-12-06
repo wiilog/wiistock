@@ -297,12 +297,19 @@ class PackController extends AbstractController {
                                  Pack                   $logisticUnit): JsonResponse {
 
         $packRepository = $entityManager->getRepository(Pack::class);
-        $contents = $logisticUnit->getContent()->toArray();
-        if (empty($contents)) {
+
+        $params = $request->request;
+        $groupContent = $packRepository->getPackContentFiltered($params, $logisticUnit);
+
+        if ($groupContent["total"] === 0) {
             return $this->json([
                 "data" => [
                     [
-                        "content" => "Aucun contenu trouvé",
+                        "content" => "
+                            <div class='bold w-100 text-center m-3'>
+                                Ce groupe est vide
+                            </div>
+                        ",
                     ]
                 ],
                 "recordsFiltered" => 1,
@@ -310,18 +317,17 @@ class PackController extends AbstractController {
             ]);
         }
 
-        $params = $request->request;
-        $query = $packRepository->getPackContentFiltered($params, $logisticUnit);
-
         return $this->json([
             "data" =>
-                Stream::from($query["data"])
-                    ->map(fn(Pack $content) => [
-                        "content" => $packService->generateGroupContentHtml($content),
+                Stream::from($groupContent["data"])
+                    ->map(fn(array $data) => [
+                        "content" => $this->renderView('pack/content_group.html.twig', [
+                            "pack" => $data,
+                        ])
                     ])
                     ->toArray(),
-            "recordsFiltered" => $query["count"],
-            "recordsTotal" => $query["total"],
+            "recordsFiltered" => $groupContent["count"],
+            "recordsTotal" => $groupContent["total"],
         ]);
     }
     #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]

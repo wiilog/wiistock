@@ -1,14 +1,10 @@
 <div class="mb-2 bg-white d-flex flex-row p-2 w-100">
     <div class="container d-flex flex-column">
-        <p class="font-weight-bold wii-warning-text text-wrap">{{ content.code }}</p>
-        <p><span class="font-weight-bold">{{ content.nature.label }}</span></p>
+        <p class="font-weight-bold wii-warning-text text-wrap">{{ pack.code }}</p>
+        <p><span class="font-weight-bold">{{  pack.nature }}</span></p>
     </div>
     <div class="container d-flex flex-column">
-        <p class="text-wrap"><span class="font-weight-bold">Délai de traitement</span> : {{content.trackingDelay is not null ? content.trackingDelay.elapsedTime : "Aucun délai"}}</p>
-        <p class="text-wrap"><span class="font-weight-bold">Quantité</span> : {{ content.quantity }}</p>
+        <p class="text-wrap"><span class="font-weight-bold">Délai de traitement</span> : {{pack.elapsedTime ?: "Aucun délai"}}</p>
+        <p class="text-wrap"><span class="font-weight-bold">Quantité</span> : {{ pack.quantity }}</p>
     </div>
 </div>
-
-
-
-
