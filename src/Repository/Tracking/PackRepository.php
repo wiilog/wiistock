@@ -138,6 +138,56 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    public function getPackContentFiltered(InputBag $params, Pack $pack): array {
+
+        $qb = $this->createQueryBuilder("content")
+            ->leftJoin('content.group', 'pack')
+            ->andWhere('pack = :logisticUnit')
+            ->setParameter('logisticUnit', $pack);
+
+
+        $total = QueryBuilderHelper::count($qb, 'content');
+
+        if (!empty($params)) {
+            if (!empty($params->all('search'))) {
+                $search = $params->all('search')['value'];
+                if (!empty($search)) {
+                    $exprBuilder = $qb->expr();
+                    $qb
+                        ->andWhere($exprBuilder->orX(
+                            'content.code LIKE :value',
+                            'pack_nature.label LIKE :value',
+                            'content.quantity LIKE :value',
+                            'delay.elapsedTime LIKE :value',
+                        ))
+                        ->leftJoin('content.nature', 'pack_nature')
+                        ->leftJoin('content.trackingDelay', 'delay')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+
+            $filtered = QueryBuilderHelper::count($qb, 'content');
+
+            if ($params->getInt('start')) {
+                $qb->setFirstResult($params->getInt('start'));
+            }
+
+            $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+            if ($pageLength) {
+                $qb->setMaxResults($pageLength);
+            }
+        }
+
+
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'count' => $filtered,
+            'total' => $total
+        ];
+    }
+
+
+
     public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->groupBy('pack.id');
