@@ -288,6 +288,46 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
+    #[Route("/group_content/{id}", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function groupContent(Request $request,
+                                 EntityManagerInterface $entityManager,
+                                 PackService            $packService,
+                                 Pack                   $logisticUnit): JsonResponse {
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $params = $request->request;
+        $groupContent = $packRepository->getPackContentFiltered($params, $logisticUnit);
+
+        if ($groupContent["total"] === 0) {
+            return $this->json([
+                "data" => [
+                    [
+                        "content" => "
+                            <div class='bold w-100 text-center m-3'>
+                                Ce groupe est vide
+                            </div>
+                        ",
+                    ]
+                ],
+                "recordsFiltered" => 1,
+                "recordsTotal" => 1,
+            ]);
+        }
+
+        return $this->json([
+            "data" =>
+                Stream::from($groupContent["data"])
+                    ->map(fn(array $data) => [
+                        "content" => $this->renderView('pack/content_group.html.twig', [
+                            "pack" => $data,
+                        ])
+                    ])
+                    ->toArray(),
+            "recordsFiltered" => $groupContent["count"],
+            "recordsTotal" => $groupContent["total"],
+        ]);
+    }
     #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function projectHistory(Request                     $request,
                                    EntityManagerInterface      $entityManager,

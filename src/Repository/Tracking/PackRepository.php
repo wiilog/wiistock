@@ -138,6 +138,62 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    public function getPackContentFiltered(InputBag $params, Pack $pack): array {
+        $qb = $this->createQueryBuilder("content")
+            ->select("content.id AS id")
+            ->addSelect("pack_nature.label AS nature")
+            ->addSelect("content.code AS code")
+            ->addSelect("content.quantity AS quantity")
+            ->addSelect("delay.elapsedTime AS elapsedTime")
+            ->leftJoin('content.group', 'pack')
+            ->leftJoin('content.nature', 'pack_nature')
+            ->leftJoin('content.trackingDelay', 'delay')
+            ->andWhere('pack = :logisticUnit')
+            ->setParameter('logisticUnit', $pack);
+
+        $total = QueryBuilderHelper::count($qb, 'content');
+
+        if (!empty($params->all('search'))) {
+            $search = $params->all('search')['value'];
+            if (!empty($search)) {
+                $exprBuilder = $qb->expr();
+                $qb
+                    ->andWhere($exprBuilder->orX(
+                        'content.code LIKE :value',
+                        'pack_nature.label LIKE :value',
+                        'content.quantity LIKE :value',
+                        'delay.elapsedTime LIKE :value',
+                    ))
+                    ->setParameter('value', '%' . $search . '%');
+            }
+        }
+
+        $qb = $qb
+            ->addSelect("COUNT_OVER(content.id) AS __query_count")
+            ->getQuery();
+
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
+
+        $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+        if ($pageLength) {
+            $qb->setMaxResults($pageLength);
+        }
+
+        $queryResult = $qb?->getResult();
+
+        dump($queryResult);
+
+        return [
+            'data' => $queryResult,
+            'count' => $queryResult[0]['__query_count'] ?? 0,
+            'total' => $total
+        ];
+    }
+
+
+
     public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->groupBy('pack.id');
