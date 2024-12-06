@@ -139,49 +139,55 @@ class PackRepository extends EntityRepository
     }
 
     public function getPackContentFiltered(InputBag $params, Pack $pack): array {
-
         $qb = $this->createQueryBuilder("content")
+            ->select("content.id AS id")
+            ->addSelect("pack_nature.label AS nature")
+            ->addSelect("content.code AS code")
+            ->addSelect("content.quantity AS quantity")
+            ->addSelect("delay.elapsedTime AS elapsedTime")
             ->leftJoin('content.group', 'pack')
+            ->leftJoin('content.nature', 'pack_nature')
+            ->leftJoin('content.trackingDelay', 'delay')
             ->andWhere('pack = :logisticUnit')
             ->setParameter('logisticUnit', $pack);
 
-
         $total = QueryBuilderHelper::count($qb, 'content');
 
-        if (!empty($params)) {
-            if (!empty($params->all('search'))) {
-                $search = $params->all('search')['value'];
-                if (!empty($search)) {
-                    $exprBuilder = $qb->expr();
-                    $qb
-                        ->andWhere($exprBuilder->orX(
-                            'content.code LIKE :value',
-                            'pack_nature.label LIKE :value',
-                            'content.quantity LIKE :value',
-                            'delay.elapsedTime LIKE :value',
-                        ))
-                        ->leftJoin('content.nature', 'pack_nature')
-                        ->leftJoin('content.trackingDelay', 'delay')
-                        ->setParameter('value', '%' . $search . '%');
-                }
-            }
-
-            $filtered = QueryBuilderHelper::count($qb, 'content');
-
-            if ($params->getInt('start')) {
-                $qb->setFirstResult($params->getInt('start'));
-            }
-
-            $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
-            if ($pageLength) {
-                $qb->setMaxResults($pageLength);
+        if (!empty($params->all('search'))) {
+            $search = $params->all('search')['value'];
+            if (!empty($search)) {
+                $exprBuilder = $qb->expr();
+                $qb
+                    ->andWhere($exprBuilder->orX(
+                        'content.code LIKE :value',
+                        'pack_nature.label LIKE :value',
+                        'content.quantity LIKE :value',
+                        'delay.elapsedTime LIKE :value',
+                    ))
+                    ->setParameter('value', '%' . $search . '%');
             }
         }
 
+        $qb = $qb
+            ->addSelect("COUNT_OVER(content.id) AS __query_count")
+            ->getQuery();
+
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
+
+        $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+        if ($pageLength) {
+            $qb->setMaxResults($pageLength);
+        }
+
+        $queryResult = $qb?->getResult();
+
+        dump($queryResult);
 
         return [
-            'data' => $qb->getQuery()->getResult(),
-            'count' => $filtered,
+            'data' => $queryResult,
+            'count' => $queryResult[0]['__query_count'] ?? 0,
             'total' => $total
         ];
     }

@@ -103,15 +103,6 @@ class PackService {
         ]);
     }
 
-    public function generateGroupContentHtml(Pack $pack): string {
-        $user = $this->userService->getUser();
-        return $this->templating->render('pack/content_group.html.twig', [
-            "userLanguage" => $user?->getLanguage(),
-            "defaultLanguage" => $this->languageService->getDefaultLanguage(),
-            "content" => $pack,
-        ]);
-    }
-
     public function getTrackingRecordsHistory(LogisticUnitHistoryRecord $logisticUnitHistoryRecord): array {
         $user = $this->userService->getUser();
         return  [
@@ -552,15 +543,6 @@ class PackService {
             [],
             $columnsVisible
         );
-    }
-
-    public function removeUselessPackField(array $columnsVisible, array $choiceColumn): array {
-        foreach($columnsVisible as $key => $value) {
-            if(!in_array($key, $choiceColumn)) {
-                unset($columnsVisible[$key]);
-            }
-        }
-        return $columnsVisible;
     }
 
     public function getPackListColumnVisibleConfig(Utilisateur $currentUser): array {

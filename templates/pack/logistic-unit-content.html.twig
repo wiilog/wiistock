@@ -7,7 +7,7 @@
     <div class="logistic-unit-tabs">
         <div class="logistic-unit-tab active" data-target=".track-history">Historique traçabilité</div> {# A voir avec Pauline si une traduction est prévu ? #}
         {% if pack.content|length > 0 %}
-        <div class="logistic-unit-tab" data-target=".content_group">Contenu du groupe</div>
+            <div class="logistic-unit-tab" data-target=".content_group">Contenu du groupe</div>
         {% endif %}
         {% if pack.childArticles|length > 0 %}
             <div class="logistic-unit-tab" data-target=".current-articles">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}</div>
