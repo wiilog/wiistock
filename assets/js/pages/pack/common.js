@@ -22,6 +22,24 @@ export function initEditPackModal(options) {
         );
 }
 
+export function initUngroupModal(options) {
+    const $modalUngroup = $('#modalUngroup');
+    Form
+        .create($modalUngroup)
+        .onOpen((event) => {
+            Modal.load('group_ungroup_api', {group: $(event.relatedTarget).data('id')}, $modalUngroup, $modalUngroup.find('.modal-body'), {
+                onOpen: () => {
+                    initializeEntryTimeIntervals($modalUngroup, true);
+                }
+            })
+        })
+        .submitTo(
+            POST,
+            'group_ungroup',
+            options
+        );
+}
+
 export function deletePack(params, table, onSuccess = null) {
     Modal.confirm({
         ajax: {
@@ -133,4 +151,3 @@ export function addToCart(ids) {
             }
         });
 }
-

@@ -928,11 +928,21 @@ class PackService {
                     ]
                 ],
                 [
-                    'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE),
+                    'hasRight' => !$isGroup && $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE) ,
                     'title' => $this->translationService->translate('Général', null, 'Modale', 'Supprimer'),
                     'icon' => 'wii-icon wii-icon-trash-black',
                     'class' => 'delete-pack',
                     'attributes' => [
+                        'data-id' => $pack->getId(),
+                    ]
+                ],
+                [
+                    'hasRight' => $isGroup && $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
+                    'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Dégrouper'),
+                    'icon' => 'wii-icon wii-icon-trash-black',
+                    'attributes' => [
+                        'data-toggle' => "modal",
+                        'data-target' => "#modalUngroup",
                         'data-id' => $pack->getId(),
                     ]
                 ],

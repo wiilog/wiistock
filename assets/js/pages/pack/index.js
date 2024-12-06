@@ -2,7 +2,7 @@ import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
 import Flash from "@app/flash";
 import {exportFile} from "@app/utils";
-import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart} from "@app/pages/pack/common";
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initUngroupModal} from "@app/pages/pack/common";
 
 const packsTableConfig = {
     responsive: true,
@@ -152,6 +152,9 @@ $(function () {
         const $packTable = $('#packsTable');
         packsTable = initDataTable($packTable, packsTableConfig);
         initEditPackModal({
+            tables: [packsTable],
+        });
+        initUngroupModal({
             tables: [packsTable],
         });
     }
