@@ -1,0 +1,10 @@
+{% import 'form.html.twig' as form %}
+
+<div class="col-auto m-1 select-filter pr-0">
+    <div class="input-group">
+        {% set options = options|merge({
+            inputClass: 'minw-200px filter-input',
+        }) %}
+        {{ form.select(name, null, false, options) }}
+    </div>
+</div>
