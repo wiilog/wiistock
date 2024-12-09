@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
@@ -144,8 +145,11 @@ class CartController extends AbstractController {
             "success" => true,
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
+                'freeFields' => Stream::from($request->getType()->getFreeFieldManagementRules())
+                    ->map(static fn(FreeFieldManagementRule $rule) => $rule->getFreeField())
+                    ->toArray(),
                 'containerClass' => null,
-                'freeFields' => $request->getFreeFields() ?? [],
+                'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
         ]);
@@ -160,6 +164,9 @@ class CartController extends AbstractController {
             "comment" => $request->getCommentaire(),
             "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
                 'containerClass' => null,
+                'freeFields' => Stream::from($request->getType()->getFreeFieldManagementRules())
+                    ->map(static fn(FreeFieldManagementRule $rule) => $rule->getFreeField())
+                    ->toArray(),
                 'values' => $request->getFreeFields() ?? [],
                 'emptyLabel' => 'Cette demande ne contient aucun champ libre'
             ])
