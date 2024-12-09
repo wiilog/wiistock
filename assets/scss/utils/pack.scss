@@ -68,12 +68,8 @@
                             background-color: $primary;
                         }
 
-                        &:nth-child(2) {
-                            border-left: $primary solid 1px;
-
-                            &:not(:last-child) {
-                                border-right: $primary solid 1px;
-                            }
+                        &:not(:last-child) {
+                            border-right: $primary solid 1px;
                         }
                     }
                 }

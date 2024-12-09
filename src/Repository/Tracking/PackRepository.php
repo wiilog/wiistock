@@ -184,8 +184,6 @@ class PackRepository extends EntityRepository
 
         $queryResult = $qb?->getResult();
 
-        dump($queryResult);
-
         return [
             'data' => $queryResult,
             'count' => $queryResult[0]['__query_count'] ?? 0,

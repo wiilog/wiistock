@@ -74,8 +74,6 @@ $(function () {
         })
     });
 
-
-
     $(document).on('click', `.add-all-cart`, function () {
         const ids = $('.add-cart')
             .map(function () {
