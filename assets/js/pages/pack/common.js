@@ -102,14 +102,17 @@ function initializeGroupHistoryTable(packId) {
         }
     });
 }
-export function initializeGroupContentTable(packId, searchable = true) {
+export function initializeGroupContentTable(logisticUnit, showPageMode = true) {
     initDataTable('groupContentTable', {
         serverSide: true,
         processing: true,
         paging: true,
-        searching: searchable,
+        searching: showPageMode,
         ajax: {
-            "url": Routing.generate('pack_group_content_api', {id: packId}, true),
+            "url": Routing.generate('pack_group_content_api', {
+                logisticUnit,
+                showPageMode: Number(showPageMode || false),
+            }, true),
             "type": "POST"
         },
         columns: [

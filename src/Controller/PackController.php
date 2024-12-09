@@ -290,16 +290,17 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    #[Route("/group_content/{id}", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST])]
-    public function groupContent(Request $request,
-                                 EntityManagerInterface $entityManager,
-                                 PackService            $packService,
-                                 Pack                   $logisticUnit): JsonResponse {
+    #[Route("/{logisticUnit}/group_content", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function groupContentApi(Request                $request,
+                                    EntityManagerInterface $entityManager,
+                                    PackService            $packService,
+                                    Pack                   $logisticUnit): JsonResponse {
 
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $params = $request->request;
-        $groupContent = $packRepository->getPackContentFiltered($params, $logisticUnit);
+        $groupContent = $packRepository->getPackContentFiltered($request->request, $logisticUnit);
+
+        $showPageMode = $request->query->getBoolean("showPageMode");
 
         if ($groupContent["total"] === 0) {
             return $this->json([
@@ -318,14 +319,15 @@ class PackController extends AbstractController {
         }
 
         return $this->json([
-            "data" =>
-                Stream::from($groupContent["data"])
-                    ->map(fn(array $data) => [
-                        "content" => $this->renderView('pack/content_group.html.twig', [
-                            "pack" => $data,
-                        ])
+            "data" => Stream::from($groupContent["data"])
+                ->map(fn(Pack $pack) => [
+                    "content" => $this->renderView('pack/content_group.html.twig', [
+                        "pack" => $pack,
+                        "trackingDelay" => $packService->generateTrackingDelayHtml($pack),
+                        "itemBgColor" => $showPageMode ? "" : "bg-white",
                     ])
-                    ->toArray(),
+                ])
+                ->toArray(),
             "recordsFiltered" => $groupContent["count"],
             "recordsTotal" => $groupContent["total"],
         ]);

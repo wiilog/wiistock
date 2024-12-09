@@ -100,92 +100,55 @@ class PackRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax) {
-        return $this->createQueryBuilder("pack")
-            ->select("pack AS group")
-            ->addSelect("COUNT(child.id) AS packCounter")
-            ->leftJoin("pack.lastAction", "movement")
-            ->leftJoin("pack.content", "child")
-            ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
-            ->andWhere('pack.groupIteration IS NOT NULL')
-            ->groupBy('pack')
-            ->setParameter("dateMin", $dateMin)
-            ->setParameter("dateMax", $dateMax)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function countAllPacks() {
-        $queryBuilder = $this->createQueryBuilder('pack')
-            ->select('COUNT(pack)')
-            ->where('pack.groupIteration IS NULL');
-        return $queryBuilder
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     /**
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @return array{
+     *     data: Pack[],
+     *     count: int,
+     *     total: int,
+     * }
      */
-    public function countAllGroups() {
-        $queryBuilder = $this->createQueryBuilder('pack')
-            ->select('COUNT(pack)')
-            ->where('pack.groupIteration IS NOT NULL');
-        return $queryBuilder
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
+    public function getPackContentFiltered(InputBag $params, Pack $containerPack): array {
+        $queryBuilder = $this->createQueryBuilder("contained_pack")
+            ->innerJoin('contained_pack.group', 'join_container_pack', Join::WITH, 'contained_pack.group = :containerPack')
+            ->leftJoin('contained_pack.nature', 'join_pack_nature')
+            ->setParameter('containerPack', $containerPack);
 
-    public function getPackContentFiltered(InputBag $params, Pack $pack): array {
-        $qb = $this->createQueryBuilder("content")
-            ->select("content.id AS id")
-            ->addSelect("pack_nature.label AS nature")
-            ->addSelect("pack_nature.color AS color")
-            ->addSelect("content.code AS code")
-            ->addSelect("content.quantity AS quantity")
-            ->addSelect("delay.elapsedTime AS elapsedTime")
-            ->leftJoin('content.group', 'pack')
-            ->leftJoin('content.nature', 'pack_nature')
-            ->leftJoin('content.trackingDelay', 'delay')
-            ->andWhere('pack = :logisticUnit')
-            ->setParameter('logisticUnit', $pack);
-
-        $total = QueryBuilderHelper::count($qb, 'content');
+        $total = QueryBuilderHelper::count($queryBuilder, 'contained_pack');
 
         if (!empty($params->all('search'))) {
             $search = $params->all('search')['value'];
             if (!empty($search)) {
-                $exprBuilder = $qb->expr();
-                $qb
+                $exprBuilder = $queryBuilder->expr();
+                $queryBuilder
                     ->andWhere($exprBuilder->orX(
-                        'content.code LIKE :value',
-                        'pack_nature.label LIKE :value',
-                        'content.quantity LIKE :value',
-                        'delay.elapsedTime LIKE :value',
+                        'contained_pack.code LIKE :value',
+                        'join_pack_nature.label LIKE :value',
+                        'contained_pack.quantity LIKE :value',
                     ))
                     ->setParameter('value', '%' . $search . '%');
             }
         }
 
-        $qb = $qb
-            ->addSelect("COUNT_OVER(content.id) AS __query_count")
-            ->getQuery();
+        $queryBuilder
+            ->addSelect("COUNT_OVER(contained_pack.id) AS __query_count");
 
         if ($params->getInt('start')) {
-            $qb->setFirstResult($params->getInt('start'));
+            $queryBuilder->setFirstResult($params->getInt('start'));
         }
 
         $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
         if ($pageLength) {
-            $qb->setMaxResults($pageLength);
+            $queryBuilder->setMaxResults($pageLength);
         }
 
-        $queryResult = $qb?->getResult();
+        $queryResult = $queryBuilder
+            ->getQuery()
+            ->getResult();
 
         return [
-            'data' => $queryResult,
+            'data' => Stream::from($queryResult)
+                ->map(static fn(array $item) => $item[0])
+                ->toArray(),
             'count' => $queryResult[0]['__query_count'] ?? 0,
             'total' => $total
         ];
