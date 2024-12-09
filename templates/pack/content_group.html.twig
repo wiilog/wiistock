@@ -1,5 +1,7 @@
 {% set itemBgColor = itemBgColor ?? "" %}
-<div class="mb-2 bg-white d-flex flex-row w-100 allow-expand">
+<a class="mb-2 bg-white d-flex flex-row w-100 allow-expand"
+   href="{{ path('pack_show', {'id': pack.id}) }}"
+>
     {% include 'pack/utils/packItemListTemplate.html.twig' with {
         header: {
             data: {
@@ -14,4 +16,4 @@
             ] | merge(trackingDelay ? [{label: 'Délai de traitement', raw: true, value: trackingDelay, bold: 'label'}] : [])
         },
     } %}
-</div>
+</a>
