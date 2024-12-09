@@ -7,13 +7,15 @@
     {% endfor %}
 {% endmacro %}
 
+{% set headerColor = header.color ?? 'var(--primary)' %}
+
 <div class="logistic-unit-wrapper"
     {{ _self.dataAttributes(data ?? []) }}>
     <table class="table-logistic-unit-wrapper">
         {% if header %}
             {% set sideLabel = header.sideLabel ?? '' %}
             <tr class="ul"
-                style="--row-color: {{ header.color ?? 'var(--primary)' }};"
+                style="--row-color: {{ headerColor }};"
                 {{ _self.dataAttributes(header.data ?? []) }}>
                 <td class="side-unit-label">
                     <div class="text-color-auto" title="{{ sideLabel }}">{{ sideLabel }}</div>
@@ -25,7 +27,11 @@
                             {% set headerLength = header.content|length %}
                             {% for item in header.content %}
                                 {% if not item['actions'] ?? false %}
-                                    <div class="col d-flex pack-details-element">
+                                    <div class="col d-flex pack-details-element"
+                                         {% if not loop.last %}
+                                            style="border-right: {{ headerColor }} solid 1px;"
+                                         {% endif %}
+                                    >
                                         {% if item.icon is defined %}
                                             <div class="mr-2">
                                                 <i class="wii-icon wii-icon-{{ item.icon }} wii-icon-15px bg-primary"></i>

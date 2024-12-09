@@ -67,10 +67,6 @@
                         .wii-icon {
                             background-color: $primary;
                         }
-
-                        &:not(:last-child) {
-                            border-right: $primary solid 1px;
-                        }
                     }
                 }
             }
