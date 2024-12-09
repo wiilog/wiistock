@@ -1,34 +1,6 @@
 let arrivageUrgentLoading = false;
 
-$(function () {
-    $(document)
-        .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
-            const $recipient = $(this);
-            const $modal = $recipient.closest('.modal');
-            const defaultLocationIfRecipient = {
-                id: $recipient.data('default-location-if-recipient-id'),
-                label: $recipient.data('default-location-if-recipient-label'),
-            };
-            if($recipient.val() && $recipient.val().length > 0 && defaultLocationIfRecipient.id && defaultLocationIfRecipient.label) {
-                $modal.find('[name=dropLocation]')
-                    .append(new Option(defaultLocationIfRecipient.label, defaultLocationIfRecipient.id, false, true))
-            }
-        })
-        .on(`change`, '#modalNewArrivage [name=customs]', function () {
-            const $customs = $(this);
-            const $modal = $customs.closest('.modal');
-            const defaultLocationIfCustoms = {
-                id: $customs.data('default-location-if-customs-id'),
-                label: $customs.data('default-location-if-customs-label'),
-            };
-            if ($customs.is(':checked') && defaultLocationIfCustoms.id && defaultLocationIfCustoms.label) {
-                $modal.find('[name=dropLocation]')
-                    .append(new Option(defaultLocationIfCustoms.label, defaultLocationIfCustoms.id, false, true))
-            }
-        });
-});
-
-function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
+export function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
         const {autoHide, message, modalType, arrivalId, iconType, autoPrint, title, modalKey} = alertConfig;
@@ -96,6 +68,81 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
             displayCurrentModal();
         }
     }
+}
+
+export function printArrival({arrivalId, printPacks, printArrivage, packs, printAll}) {
+    let templates;
+    try {
+        templates = JSON.parse($('#tagTemplates').val());
+    } catch (error) {
+        templates = [];
+    }
+    let params = {
+        arrivage: arrivalId,
+        printPacks: printPacks ? 1 : 0,
+        printArrivage: printArrivage ? 1 : 0,
+        packs: packs || [],
+    };
+    const printAllPacks = printAll || false;
+    if (templates.length > 0 && !printAllPacks) {
+        Promise.all(
+            [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
+                .concat(templates.map(function(template) {
+                    params.template = template;
+                    return AJAX
+                        .route('GET', `print_arrivage_bar_codes`, params)
+                        .file({})
+                }))
+        ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
+    } else {
+        if (printArrivage || printPacks) {
+            window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+        }
+    }
+}
+
+export function checkPossibleCustoms($modal) {
+    const isCustoms = $modal.find('[name="customs"]').is(':checked');
+    const $select = $modal.find('[name="fournisseur"]')
+
+    const $selectedSupplier = $select.find(':selected');
+    const possibleCustom = $selectedSupplier.data('possible-customs');
+
+    return new Promise((resolve) => {
+        if (!isCustoms && possibleCustom){
+            displayAlertModal(
+                undefined,
+                $('<div/>', {
+                    class: 'text-center',
+                    html: `Attention, ce fournisseur livre habituellement des unités logistiques sous douanes.`
+                        + ` Voulez-vous modifier votre saisie pour déclarer l'unité logistique' sous douanes ?`
+                }),
+                [
+                    {
+                        class: 'btn btn-outline-secondary m-0',
+                        text: 'Non',
+                        action: ($modal) => {
+                            resolve(true);
+                            $modal.modal('hide');
+                        }
+                    },
+                    {
+                        class: 'btn btn-success m-0',
+                        text: 'Oui',
+                        action: ($modal) => {
+                            resolve(false);
+                            $modal.modal('hide');
+                        }
+                    }
+                ],
+                'warning'
+            );
+        }
+        else {
+            resolve(true);
+        }
+    });
+
 }
 
 function redirectWithReserve(newArrivalId) {
@@ -171,37 +218,6 @@ function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
     const printPacksNumber = (printPacks === true) ? '1' : '0';
     const printArrivageNumber = (printArrivage === true) ? '1' : '0';
     return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
-}
-
-function printArrival({arrivalId, printPacks, printArrivage, packs, printAll}) {
-    let templates;
-    try {
-        templates = JSON.parse($('#tagTemplates').val());
-    } catch (error) {
-        templates = [];
-    }
-    let params = {
-        arrivage: arrivalId,
-        printPacks: printPacks ? 1 : 0,
-        printArrivage: printArrivage ? 1 : 0,
-        packs: packs || [],
-    };
-    const printAllPacks = printAll || false;
-    if (templates.length > 0 && !printAllPacks) {
-        Promise.all(
-            [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
-                .concat(templates.map(function(template) {
-                    params.template = template;
-                    return AJAX
-                        .route('GET', `print_arrivage_bar_codes`, params)
-                        .file({})
-                }))
-        ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
-    } else {
-        if (printArrivage || printPacks) {
-            window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
-        }
-    }
 }
 
 function createButtonConfigs({modalType,
@@ -281,93 +297,4 @@ function createButtonConfigs({modalType,
     }
 
     return buttonConfigs;
-}
-
-function checkPossibleCustoms($modal) {
-    const isCustoms = $modal.find('[name="customs"]').is(':checked');
-    const $select = $modal.find('[name="fournisseur"]')
-
-    const $selectedSupplier = $select.find(':selected');
-    const possibleCustom = $selectedSupplier.data('possible-customs');
-
-    return new Promise((resolve) => {
-        if (!isCustoms && possibleCustom){
-            displayAlertModal(
-                undefined,
-                $('<div/>', {
-                    class: 'text-center',
-                    html: `Attention, ce fournisseur livre habituellement des unités logistiques sous douanes.`
-                        + ` Voulez-vous modifier votre saisie pour déclarer l'unité logistique' sous douanes ?`
-                }),
-                [
-                    {
-                        class: 'btn btn-outline-secondary m-0',
-                        text: 'Non',
-                        action: ($modal) => {
-                            resolve(true);
-                            $modal.modal('hide');
-                        }
-                    },
-                    {
-                        class: 'btn btn-success m-0',
-                        text: 'Oui',
-                        action: ($modal) => {
-                            resolve(false);
-                            $modal.modal('hide');
-                        }
-                    }
-                ],
-                'warning'
-            );
-        }
-        else {
-            resolve(true);
-        }
-    });
-
-}
-
-function removePackInDispatchModal($button) {
-    $button
-        .closest('[data-multiple-key]')
-        .remove();
-}
-
-function onExistingOrNotChanged($input) {
-    const $modal = $input.closest('.modal');
-    const value = parseInt($input.val());
-    const $dispatchDetails = $modal.find(`.dispatch-details`);
-    const $existingDispatchContainer = $modal.find(`.existing-dispatch`);
-    const $newDispatchContainer = $modal.find(`.new-dispatch`);
-    const $existingDispatch = $existingDispatchContainer.find(`select[name=existingDispatch]`);
-
-    if(value === 0) {
-        $dispatchDetails.empty();
-        $existingDispatch
-            .val(null)
-            .trigger(SELECT2_TRIGGER_CHANGE)
-            .removeClass(`needed data`);
-        $newDispatchContainer.removeClass(`d-none`);
-        $existingDispatchContainer.addClass(`d-none`);
-        $newDispatchContainer
-            .find(`.needed-save`)
-            .addClass(`needed data`);
-    } else {
-        $existingDispatchContainer.removeClass(`d-none`);
-        $newDispatchContainer.addClass(`d-none`);
-        $newDispatchContainer
-            .find(`.needed`)
-            .removeClass(`needed data`)
-            .addClass('needed-save');
-        $existingDispatch.addClass(`needed data`);
-    }
-}
-
-function onExistingDispatchSelected($select) {
-    const $modal = $select.closest('.modal');
-    $.get(Routing.generate(`get_dispatch_details`, {id: $select.val()}, true)).then(({content}) => {
-        $modal.find(`.dispatch-details`)
-            .empty()
-            .append(content);
-    });
 }
