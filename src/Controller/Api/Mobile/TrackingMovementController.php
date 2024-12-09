@@ -322,7 +322,7 @@ class TrackingMovementController extends AbstractController {
                 $date = explode('+', $movement['date']);
                 $date = $date[0] ?? $movement['date'];
                 return [
-                    'code' => $movement['ref_article'],
+                    'code' => $movement['packGroup'] ?? $movement['ref_article'],
                     'location' => $movement['ref_emplacement'],
                     'nature_id' => $movement['nature_id'],
                     'date' => new DateTime($date ?? 'now'),
