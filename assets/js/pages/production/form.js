@@ -14,7 +14,7 @@ export function displayAttachmentRequired($select) {
     $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
 
     const $labelContainer = $modal.find(`.attachment-label span`).first();
-     updateRequiredMark($labelContainer, requiredAttachment);
+    updateRequiredMark($labelContainer, requiredAttachment);
 }
 
 export function openModalUpdateProductionRequestStatus($container, $modalUpdateProductionRequestStatus, productionRequest, successCallback){
