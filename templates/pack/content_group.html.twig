@@ -1,10 +1,15 @@
-<div class="mb-2 bg-white d-flex flex-row p-2 w-100">
-    <div class="container d-flex flex-column">
-        <p class="font-weight-bold wii-warning-text text-wrap">{{ pack.code }}</p>
-        <p><span class="font-weight-bold">{{  pack.nature }}</span></p>
-    </div>
-    <div class="container d-flex flex-column">
-        <p class="text-wrap"><span class="font-weight-bold">Délai de traitement</span> : {{pack.elapsedTime ?: "Aucun délai"}}</p>
-        <p class="text-wrap"><span class="font-weight-bold">Quantité</span> : {{ pack.quantity }}</p>
-    </div>
+<div class="mb-2 bg-white d-flex flex-row w-100 maxw-100">
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        header: {
+            data: {
+                'pack-id': pack.id,
+            },
+            sideLabel: pack.nature,
+            color: pack.color,
+            content: [
+                {label: 'Unité logistique', value: pack.code, bold: 'label'},
+                {label: 'Quantité', value: pack.quantity , bold: 'label'}
+            ] | merge(pack.elapsedTime ? [{label: 'Délai de traitement', value: pack.elapsedTime, bold: 'label'}] : []),
+        },
+    } %}
 </div>

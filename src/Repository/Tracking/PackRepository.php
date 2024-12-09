@@ -142,6 +142,7 @@ class PackRepository extends EntityRepository
         $qb = $this->createQueryBuilder("content")
             ->select("content.id AS id")
             ->addSelect("pack_nature.label AS nature")
+            ->addSelect("pack_nature.color AS color")
             ->addSelect("content.code AS code")
             ->addSelect("content.quantity AS quantity")
             ->addSelect("delay.elapsedTime AS elapsedTime")
