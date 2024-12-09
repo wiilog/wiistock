@@ -182,11 +182,19 @@ class PackRepository extends EntityRepository
                         ->setParameter('arrivalNumber', '%' . $filter['value'] . '%');
                     break;
                 case 'type':
-                    $queryBuilder
-                        ->join('pack.arrivage', 'a_type')
-                        ->join('a_type.type', 'type')
-                        ->andWhere('type.label LIKE :types')
-                        ->setParameter('types', '%' . $filter['value'] . '%');
+                    $type = $filter['value'];
+                    switch ($type) {
+                        case 'pack':
+                            $queryBuilder
+                                ->andWhere('pack.groupIteration IS NULL');
+                            break;
+                        case 'group':
+                            $queryBuilder
+                                ->andWhere('pack.groupIteration IS NOT NULL');
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case 'natures':
                     $natures = explode(',', $filter['value']);
