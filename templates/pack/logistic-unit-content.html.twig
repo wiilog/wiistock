@@ -2,11 +2,15 @@
     {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
+{% set isGroup = pack.groupIteration or (not pack.content.empty) %}
+
 <div class="logistic-unit-content" data-pack="{{ pack.code }}">
     <span class="wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Contenu unité logistique') }}</span>
     <div class="logistic-unit-tabs">
-        <div class="logistic-unit-tab active" data-target=".track-history">Historique traçabilité</div> {# A voir avec Pauline si une traduction est prévu ? #}
-
+        <div class="logistic-unit-tab" data-target=".track-history">Historique traçabilité</div> {# A voir avec Pauline si une traduction est prévu ? #}
+        {% if isGroup %}
+            <div class="logistic-unit-tab {{ isGroup ? "active" }}" data-target=".content_group">Contenu du groupe</div>
+        {% endif %}
         {% if pack.childArticles|length > 0 %}
             <div class="logistic-unit-tab" data-target=".current-articles">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}</div>
         {% endif %}
@@ -15,9 +19,15 @@
         {% endif %}
     </div>
 
-    <div class="content track-history history-container">
+    <div class="content track-history history-container {{ isGroup ? "d-none" }}">
         <table class="w-100" id="table-LU-history"></table>
     </div>
+
+    {% if isGroup %}
+        <div class="content content_group history-container">
+            <table class="w-100" id="groupContentTable"></table>
+        </div>
+    {% endif %}
 
     <div class="content current-articles d-none">
         {% for article in pack.childArticles %}

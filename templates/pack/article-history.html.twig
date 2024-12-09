@@ -1,6 +1,5 @@
 {% for movement in movements %}
     {% set article = movement.packArticle %}
-
     {% if article %}
         <div class="logistic-unit-history-interstice">
             {% if movement.type.code == constant('App\\Entity\\Tracking\\TrackingMovement::TYPE_DROP_LU') %}

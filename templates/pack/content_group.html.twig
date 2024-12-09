@@ -1,0 +1,19 @@
+{% set itemBgColor = itemBgColor ?? "" %}
+<a class="mb-2 bg-white d-flex flex-row w-100 allow-expand"
+   href="{{ path('pack_show', {'id': pack.id}) }}"
+>
+    {% include 'pack/utils/packItemListTemplate.html.twig' with {
+        header: {
+            data: {
+                'pack-id': pack.id,
+            },
+            sideLabel: pack.nature ? pack.nature.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
+            color: pack.nature ? pack.nature.color : null,
+            classes: itemBgColor,
+            content: [
+                {label: 'Unité logistique', value: pack.code, bold: 'label'},
+                {label: 'Quantité', value: pack.quantity , bold: 'label'},
+            ] | merge(trackingDelay ? [{label: 'Délai de traitement', raw: true, value: trackingDelay, bold: 'label'}] : [])
+        },
+    } %}
+</a>
