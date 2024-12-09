@@ -115,6 +115,17 @@ export function initializeGroupContentTable(packId, searchable = true) {
         columns: [
             {data: `content`, title: ``, orderable: false},
         ],
+        drawCallback: () => {
+            let lastElement = false;
+            $(".pack-details-element").each(function() {
+                if (lastElement && lastElement.offset().top !== $(this).offset().top) {
+                    lastElement.addClass("border-right-0");
+                } else {
+
+                }
+                lastElement = $(this);
+            }).last().addClass("border-right-0");
+        },
     });
 }
 
