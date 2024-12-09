@@ -35,6 +35,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
 #[ORM\Index(fields: ["datetime"], name: "IDX_WIILOG_DATETIME")]
+#[ORM\Index(fields: ["uniqueIdForMobile"], name: "IDX_WIILOG_UNIQUE_ID_FOR_MOBILE")]
 class TrackingMovement implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
