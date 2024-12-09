@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <form>
     <div class="row">
         <div class="col-12">
@@ -10,11 +12,11 @@
         </div>
     </div>
     <div class="row mt-2">
+        {{ form.hidden('id', group.id) }}
         <div class="form-group col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', "Mouvements", 'Emplacement de dépose') }}</label>
-            <select class="ajax-autocomplete-location-edit data form-control w-100 needed"
-                    name="location" title="Emplacement de dépose">
-            </select>
+            {{ form.select('location', trans('Traçabilité', "Mouvements", 'Emplacement de dépose'), true, {
+                type: 'location'
+            }) }}
         </div>
     </div>
 </form>

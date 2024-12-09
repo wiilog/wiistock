@@ -24,20 +24,15 @@ use Throwable;
 
 #[Route('/groupes', name: 'group_')]
 class GroupController extends AbstractController {
-    #[Route("/api-degrouper", name: "ungroup_api", options: ['expose' => true], methods: [self::POST, self::GET])]
+    #[Route("/api-degrouper/{group}", name: "ungroup_api", options: ['expose' => true], methods: [self::POST, self::GET])]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function ungroupApi(Request                $request,
-                               EntityManagerInterface $manager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $packRepository = $manager->getRepository(Pack::class);
-            $group = $packRepository->find($data['id']);
-
-            return $this->json($this->renderView("group/ungroup_content.html.twig", [
+    public function ungroupApi(Pack                   $group): Response {
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("group/ungroup_content.html.twig", [
                 "group" => $group
-            ]));
-        }
-
-        throw new BadRequestHttpException();
+            ]),
+        ]);
     }
 
     #[Route("/degrouper", name: "ungroup", options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
@@ -45,14 +40,14 @@ class GroupController extends AbstractController {
     public function ungroup(Request                $request,
                             EntityManagerInterface $manager,
                             GroupService           $groupService): Response {
-        $data = json_decode($request->getContent(), true);
+        $data =$request->request;
 
         $packRepository = $manager->getRepository(Pack::class);
         $locationRepository = $manager->getRepository(Emplacement::class);
 
-        $group = $packRepository->find($data["id"]);
+        $group = $packRepository->find($data->get("id"));
         if ($group) {
-            $location = $locationRepository->find($data["location"]);
+            $location = $locationRepository->find($data->get("location"));
 
             $groupService->ungroup($manager, $group, $location);
             $manager->flush();
@@ -61,8 +56,8 @@ class GroupController extends AbstractController {
                 "success" => true,
                 "msg" => "Groupe dégrouppé avec succès",
             ]);
+        } else {
+            throw new NotFoundHttpException();
         }
-
-        throw new NotFoundHttpException();
     }
 }

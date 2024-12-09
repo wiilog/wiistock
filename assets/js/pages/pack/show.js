@@ -1,12 +1,18 @@
 import '@styles/details-page.scss';
 import '@styles/pages/pack/timeline.scss';
-import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart} from "@app/pages/pack/common";
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initUngroupModal} from "@app/pages/pack/common";
 
 
 $(function() {
     const logisticUnitId = $(`[name="logisticUnitId"]`).val();
     getTrackingHistory(logisticUnitId, true);
     initEditPackModal({
+        success: () => {
+            window.location.reload();
+        }
+    });
+
+    initUngroupModal({
         success: () => {
             window.location.reload();
         }
