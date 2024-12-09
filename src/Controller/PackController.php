@@ -372,9 +372,11 @@ class PackController extends AbstractController {
                                      EntityManagerInterface $entityManager,
                                      PackService            $packService): JsonResponse {
         $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
-        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $logisticUnit], ['date' => 'DESC']);
 
-        if (empty($logisticUnitHistoryRecords)) {
+        $params = $request->request;
+        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($params, $logisticUnit);
+
+        if ($queryResult["total"] === 0) {
             return $this->json([
                 "data" => [
                     [
@@ -385,9 +387,6 @@ class PackController extends AbstractController {
                 "recordsTotal" => 1,
             ]);
         }
-
-        $params = $request->request;
-        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($params, $logisticUnit);
 
         $latestRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'DESC', 'id' => 'DESC']);
         $firstRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'ASC', 'id' => 'ASC']);
