@@ -6,7 +6,7 @@
                 'pack-id': pack.id,
             },
             sideLabel: pack.nature ? pack.nature.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
-            color: pack.nature ? pack.nature.color,
+            color: pack.nature ? pack.nature.color : null,
             classes: itemBgColor,
             content: [
                 {label: 'Unité logistique', value: pack.code, bold: 'label'},
