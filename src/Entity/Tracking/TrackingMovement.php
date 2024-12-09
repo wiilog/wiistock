@@ -13,7 +13,6 @@ use App\Entity\Livraison;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ProductionRequest;
 use App\Entity\Reception;
@@ -35,6 +34,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
 #[ORM\Index(fields: ["datetime"], name: "IDX_WIILOG_DATETIME")]
+#[ORM\Index(fields: ["uniqueIdForMobile"], name: "IDX_WIILOG_UNIQUE_ID_FOR_MOBILE")]
 class TrackingMovement implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
@@ -156,8 +156,8 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: ReceptionReferenceArticle::class, inversedBy: 'trackingMovements')]
     private ?ReceptionReferenceArticle $receptionReferenceArticle = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'childTrackingMovements')]
-    private ?Pack $packParent = null;
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    private ?Pack $packGroup = null;
 
     #[ORM\ManyToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovements')]
     private Collection $attachments;
@@ -490,20 +490,12 @@ class TrackingMovement implements AttachmentContainer {
         return $this;
     }
 
-    public function getPackParent(): ?Pack {
-        return $this->packParent;
+    public function getPackGroup(): ?Pack {
+        return $this->packGroup;
     }
 
-    public function setPackParent(?Pack $packParent): self {
-        if($this->packParent && $this->packParent !== $packParent) {
-            $this->packParent->removeChildTrackingMovement($this);
-        }
-
-        $this->packParent = $packParent;
-
-        if($packParent) {
-            $packParent->addChildTrackingMovement($this);
-        }
+    public function setPackGroup(?Pack $packGroup): self {
+        $this->packGroup = $packGroup;
 
         return $this;
     }

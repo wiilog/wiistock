@@ -211,7 +211,6 @@ class Action {
     const SETTINGS_DISPLAY_EXPORT_ENCODING = 'afficher encodage des exports CSV';
     const SETTINGS_DISPLAY_EXPORT = 'afficher export CSV';
     const SETTINGS_DISPLAY_IMPORTS_MAJS = 'afficher imports & mises à jour';
-    const SETTINGS_DISPLAY_INVENTORIES_IMPORT = "afficher imports d'inventaires";
 
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";

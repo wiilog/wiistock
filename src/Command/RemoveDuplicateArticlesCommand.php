@@ -3,16 +3,13 @@
 namespace App\Command;
 
 use App\Entity\Article;
-use App\Entity\Pack;
-use App\Repository\PackRepository;
-use App\Service\FormatService;
+use App\Entity\Tracking\Pack;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use WiiCommon\Helper\Stream;
 
 // TODO WIIS-12167: remove
 #[AsCommand(

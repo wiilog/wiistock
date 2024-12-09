@@ -44,13 +44,13 @@ class Role {
     /**
      * @var Collection<int, Statut>
      */
-    #[ORM\ManyToMany(targetEntity: Statut::class, mappedBy: 'statusCreationAuthorization')]
-    private Collection $statuts;
+    #[ORM\ManyToMany(targetEntity: Statut::class, mappedBy: 'authorizedRequestCreationRoles')]
+    private Collection $authorizedRequestStatuses;
 
     public function __construct() {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
-        $this->statuts = new ArrayCollection();
+        $this->authorizedRequestStatuses = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -167,38 +167,38 @@ class Role {
     /**
      * @return Collection<int, Statut>
      */
-    public function getStatuts(): Collection
+    public function getAuthorizedRequestStatuses(): Collection
     {
-        return $this->statuts;
+        return $this->authorizedRequestStatuses;
     }
 
-    public function addStatut(Statut $statut): static
+    public function addAuthorizedDispatchStatus(Statut $status): static
     {
-        if (!$this->statuts->contains($statut)) {
-            $this->statuts[] = $statut;
-            $statut->addStatusCreationAuthorization($this);
+        if (!$this->authorizedRequestStatuses->contains($status)) {
+            $this->authorizedRequestStatuses[] = $status;
+            $status->addAuthorizedRequestCreationRole($this);
         }
 
         return $this;
     }
 
-    public function removeStatut(Statut $statut): static
+    public function removeAuthorizedRequestStatus(Statut $status): static
     {
-        if ($this->statuts->removeElement($statut)) {
-            $statut->removeStatusCreationAuthorization($this);
+        if ($this->authorizedRequestStatuses->removeElement($status)) {
+            $status->removeAuthorizedRequestCreationRole($this);
         }
 
         return $this;
     }
 
-    public function setStatuts(?iterable $statuts): self {
-        foreach($this->getStatuts()->toArray() as $status) {
-            $this->removeStatut($status);
+    public function setAuthorizedRequestStatuses(?iterable $statuses): self {
+        foreach($this->getAuthorizedRequestStatuses()->toArray() as $statuses) {
+            $this->removeAuthorizedRequestStatus($statuses);
         }
 
-        $this->statuts = new ArrayCollection();
-        foreach($statuts ?? [] as $status) {
-            $this->addStatut($status);
+        $this->authorizedRequestStatuses = new ArrayCollection();
+        foreach($statuses ?? [] as $statuses) {
+            $this->addAuthorizedDispatchStatus($statuses);
         }
 
         return $this;

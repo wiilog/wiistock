@@ -18,7 +18,7 @@ export default class Form {
         this.id = id;
     }
 
-    static create(selector, {clearOnOpen} = {}) {
+    static create(selector, {clearOnOpen, submitButtonSelector} = {}) {
         const $form = $(selector);
         let form = $form.data('form');
 
@@ -38,11 +38,12 @@ export default class Form {
                 .attr('data-form-id', form.id);
 
             WysiwygManager.initializeWYSIWYG(form.element);
+            submitButtonSelector ??= '[type=submit]';
             form.element
                 .off('click.submit-form')
                 .off('shown.bs.modal')
                 .off('hidden.bs.modal')
-                .on(`click.submit-form`, '[type=submit]', function (event) {
+                .on(`click.submit-form`, submitButtonSelector, function (event) {
                     const result = Form.process(form, {
                         button: $(this),
                     });

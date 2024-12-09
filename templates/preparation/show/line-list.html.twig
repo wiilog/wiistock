@@ -16,12 +16,7 @@
                         {actions: [{
                             title: 'Voir',
                             icon: 'fas fa-eye',
-                            attributes: {
-                                "data-id": logisticUnit.packId,
-                                "data-target": "#modalEditPack",
-                                "data-toggle": "modal",
-                                onclick: "editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeHistoryTables(" ~ logisticUnit.packId ~"))",
-                            },
+                            href: path("pack_show", { "logisticUnit": logisticUnit.packId }),
                         }, {
                             title: 'Imprimer',
                             icon: 'wii-icon wii-icon-printer-black',

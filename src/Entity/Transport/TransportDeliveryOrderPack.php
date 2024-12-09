@@ -3,7 +3,7 @@
 namespace App\Entity\Transport;
 
 use App\Entity\Nature;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportDeliveryOrderPackRepository;
 use DateTime;

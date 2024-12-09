@@ -7,7 +7,7 @@ use App\Entity\CategorieCL;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;

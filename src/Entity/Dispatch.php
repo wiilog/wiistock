@@ -2,14 +2,13 @@
 
 namespace App\Entity;
 
-use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\DispatchRepository;
-use App\Service\FormatService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;

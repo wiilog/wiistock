@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Service\TrackingDelayService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;

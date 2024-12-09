@@ -593,11 +593,6 @@ class SettingsController extends AbstractController {
                     "save" => false,
                     "wrapped" => false,
                 ],
-                self::MENU_INVENTORIES_IMPORTS => [
-                    "label" => "Imports d'inventaires",
-                    "right" => Action::SETTINGS_DISPLAY_INVENTORIES_IMPORT,
-                    "save" => false,
-                ],
             ],
         ],
         self::CATEGORY_TEMPLATES => [
@@ -1914,27 +1909,16 @@ class SettingsController extends AbstractController {
             }
         }
         else if($field->getElementsType() == FixedFieldStandard::ELEMENTS_LOCATION_BY_TYPE){
-            if($request->request->has('deliveryType') && $request->request->has('deliveryRequestLocation')){
+            if(!($request->request->has('deliveryType') ^ $request->request->has('deliveryRequestLocation'))){
                 $deliveryTypes = explode(',', $request->request->get("deliveryType"));
                 $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
-
                 if(count($deliveryTypes) !== count($deliveryRequestLocations)){
                     return $this->json([
                         "success" => false,
                         "msg" => "Une configuration d'emplacement de livraison par défaut est invalide",
                     ]);
                 }
-
                 $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
-                $invalidDeliveryTypes = (
-                    empty($associatedTypesAndLocations)
-                    || !Stream::from($associatedTypesAndLocations)
-                        ->filter(fn(string $key, string $value) => !$key || !$value)
-                        ->isEmpty()
-                );
-                if ($invalidDeliveryTypes) {
-                    throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
-                }
                 $field->setElements($associatedTypesAndLocations);
             } else {
                 return $this->json([

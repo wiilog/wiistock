@@ -1,17 +1,24 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Tracking;
 
+use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\DispatchPack;
+use App\Entity\Dispute;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\LocationClusterRecord;
+use App\Entity\Nature;
 use App\Entity\OperationHistory\TransportHistoryRecord;
+use App\Entity\Project;
+use App\Entity\ProjectHistoryRecord;
+use App\Entity\ReceiptAssociation;
+use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestPack;
-use App\Entity\Tracking\TrackingDelay;
-use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
-use App\Helper\FormatHelper;
-use App\Repository\PackRepository;
+use App\Repository\Tracking\PackRepository;
 use App\Service\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,7 +28,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
-#[ORM\Index(fields: ["code"], name: "IDX_WIILOG_CODE",)]
 class Pack implements PairedEntity {
 
     use SensorMessageTrait;
@@ -36,7 +42,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'packs')]
@@ -139,15 +145,12 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $referenceArticle = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'children')]
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'content')]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Pack $parent = null;
+    private ?Pack $group = null;
 
-    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Pack::class)]
-    private ?Collection $children;
-
-    #[ORM\OneToMany(mappedBy: 'packParent', targetEntity: TrackingMovement::class)]
-    private ?Collection $childTrackingMovements;
+    #[ORM\OneToMany(mappedBy: 'group', targetEntity: Pack::class)]
+    private ?Collection $content;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
@@ -185,18 +188,27 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: "pack", targetEntity: TrackingDelay::class, cascade: ["persist", "remove"])]
     private ?TrackingDelay $trackingDelay = null;
 
+    /**
+     * @var Collection<int, PackSplit>
+     */
+    #[ORM\OneToMany(mappedBy: 'from', targetEntity: PackSplit::class)]
+    private Collection $splitTargets;
+
+    #[ORM\OneToOne(mappedBy: 'target', targetEntity: PackSplit::class)]
+    private ?PackSplit $splitFrom = null;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->dispatchPacks = new ArrayCollection();
         $this->locationClusterRecords = new ArrayCollection();
-        $this->children = new ArrayCollection();
-        $this->childTrackingMovements = new ArrayCollection();
+        $this->content = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
         $this->receiptAssociations = new ArrayCollection();
+        $this->splitTargets = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -486,18 +498,18 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getParent(): ?Pack {
-        return $this->parent;
+    public function getGroup(): ?Pack {
+        return $this->group;
     }
 
-    public function setParent(?Pack $parent): self {
-        if ($this->parent
-            && $this->parent !== $parent) {
-            $this->parent->removeChild($this);
+    public function setGroup(?Pack $group): self {
+        if ($this->group
+            && $this->group !== $group) {
+            $this->group->removeContent($this);
         }
-        $this->parent = $parent;
-        if ($parent) {
-            $parent->addChild($this);
+        $this->group = $group;
+        if ($group) {
+            $group->addContent($this);
         }
 
         return $this;
@@ -506,113 +518,41 @@ class Pack implements PairedEntity {
     /**
      * @return Collection|Pack[]
      */
-    public function getChildren(): Collection {
-        return $this->children;
+    public function getContent(): Collection {
+        return $this->content;
     }
 
-    public function addChild(Pack $child): self {
-        if (!$this->children->contains($child)) {
-            $this->children[] = $child;
-            $child->setParent($this);
+    public function addContent(Pack $child): self {
+        if (!$this->content->contains($child)) {
+            $this->content[] = $child;
+            $child->setGroup($this);
         }
 
         return $this;
     }
 
-    public function removeChild(Pack $child): self {
-        if ($this->children->removeElement($child)) {
-            if ($child->getParent() === $this) {
-                $child->setParent(null);
+    public function removeContent(Pack $child): self {
+        if ($this->content->removeElement($child)) {
+            if ($child->getGroup() === $this) {
+                $child->setGroup(null);
             }
         }
 
         return $this;
     }
 
-    public function setChildren(?array $children): self {
-        foreach ($this->getChildren()->toArray() as $child) {
-            $this->removeChild($child);
+    public function setContent(?array $content): self {
+        foreach ($this->getContent()->toArray() as $child) {
+            $this->removeContent($child);
         }
 
-        $this->children = new ArrayCollection();
+        $this->content = new ArrayCollection();
 
-        foreach ($children as $child) {
-            $this->addChild($child);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|TrackingMovement[]
-     */
-    public function getChildTrackingMovements(): Collection {
-        return $this->childTrackingMovements;
-    }
-
-    public function addChildTrackingMovement(TrackingMovement $movement): self {
-        if (!$this->childTrackingMovements->contains($movement)) {
-            $this->childTrackingMovements[] = $movement;
-            $movement->setPackParent($this);
+        foreach ($content as $child) {
+            $this->addContent($child);
         }
 
         return $this;
-    }
-
-    public function removeChildTrackingMovement(TrackingMovement $movement): self {
-        if ($this->childTrackingMovements->removeElement($movement)) {
-            if ($movement->getPackParent() === $this) {
-                $movement->setPackParent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setChildTrackingMovements(?array $movements): self {
-        foreach ($this->getChildTrackingMovements()->toArray() as $movement) {
-            $this->removeChildTrackingMovement($movement);
-        }
-
-        $this->childTrackingMovements = new ArrayCollection();
-
-        foreach ($movements as $movement) {
-            $this->addChildTrackingMovement($movement);
-        }
-
-        return $this;
-    }
-
-    public function serialize(): array {
-        return $this->isGroup()
-            ? $this->serializeGroup()
-            : $this->serializePack();
-    }
-
-    private function serializePack(): array {
-        $lastAction = $this->getLastAction();
-        return [
-            "code" => $this->getCode(),
-            "ref_article" => $this->getCode(),
-            "nature_id" => $this->getNature()?->getId(),
-            "quantity" => $lastAction
-                ? $lastAction->getQuantity()
-                : 1,
-            "type" => $lastAction?->getType()?->getCode(),
-            "ref_emplacement" => $lastAction?->getEmplacement()?->getLabel(),
-            "date" => FormatHelper::datetime($lastAction?->getDatetime(), ''),
-        ];
-    }
-
-    private function serializeGroup(): array {
-        return [
-            "id" => $this->getId(),
-            "code" => $this->getCode(),
-            "natureId" => $this->getNature()?->getId(),
-            "packs" => $this->getChildren()
-                ->map(fn(Pack $pack) => $pack->serialize())
-                ->toArray(),
-        ];
     }
 
     /**
@@ -931,6 +871,68 @@ class Pack implements PairedEntity {
 
     public function setLastPicking(?TrackingMovement $lastPicking): self {
         $this->lastPicking = $lastPicking;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PackSplit>
+     */
+    public function getSplitTargets(): Collection
+    {
+        return $this->splitTargets;
+    }
+
+    public function addSplitTarget(PackSplit $splitTarget): self
+    {
+        if (!$this->splitTargets->contains($splitTarget)) {
+            $this->splitTargets[] = $splitTarget;
+            $splitTarget->setFrom($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSplitTarget(PackSplit $splitTarget): self
+    {
+        if ($this->splitTargets->removeElement($splitTarget)) {
+            if ($splitTarget->getFrom() === $this) {
+                $splitTarget->setFrom(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setSplitTargets(?iterable $splitTargets): self {
+        foreach ($this->getSplitTargets()->toArray() as $splitTarget) {
+            $this->removeSplitTarget($splitTarget);
+        }
+
+        $this->splitTargets = new ArrayCollection();
+        foreach ($splitTargets ?? [] as $splitTarget) {
+            $this->addSplitTarget($splitTarget);
+        }
+
+        return $this;
+    }
+
+    public function getSplitFrom(): ?PackSplit
+    {
+        return $this->splitFrom;
+    }
+
+    public function setSplitFrom(?PackSplit $splitFrom): self
+    {
+        if ($this->splitFrom && $this->splitFrom->getTarget() !== $this) {
+            $oldSplitFrom = $this->splitFrom;
+            $this->splitFrom = null;
+            $oldSplitFrom->setTarget(null);
+        }
+        $this->splitFrom = $splitFrom;
+        if($this->splitFrom && $this->splitFrom->getTarget() !== $this) {
+            $this->splitFrom->setTarget($this);
+        }
+
         return $this;
     }
 

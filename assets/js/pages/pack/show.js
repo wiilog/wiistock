@@ -1,26 +1,40 @@
 import '@styles/details-page.scss';
 import '@styles/pages/pack/timeline.scss';
-import {POST} from "@app/ajax";
-import Routing from "@app/fos-routing";
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart} from "@app/pages/pack/common";
+
 
 $(function() {
     const logisticUnitId = $(`[name="logisticUnitId"]`).val();
     getTrackingHistory(logisticUnitId, true);
-});
+    initEditPackModal({
+        success: () => {
+            window.location.reload();
+        }
+    });
 
-export function getTrackingHistory(logisticUnitId, searchable = true) {
-    const tableLuhistoryConfig = {
-        processing: true,
-        serverSide: true,
-        paging: true,
-        searching: searchable,
-        ajax: {
-            url: Routing.generate(`pack_tracking_history_api`, {id: logisticUnitId}, true),
-            type: POST,
-        },
-        columns: [
-            {data: `history`, title: ``, orderable: false},
-        ],
-    };
-    initDataTable($('#table-LU-history'), tableLuhistoryConfig);
-}
+    $('.delete-pack').on('click', function () {
+        deletePack(
+            {"pack": logisticUnitId},
+            undefined,
+            function () {
+                // redirect to pack index after deletion
+                // the timeout is used to force the redirection after the modal is closed. Otherwise, the modal will be closed and nothing will happen
+                setTimeout(function(){
+                    document.location.href = Routing.generate('pack_index');
+                },100);
+            }
+        );
+    });
+
+    $('.reload-tracking-delay').on('click', function () {
+        reloadLogisticUnitTrackingDelay($(this).data('id'), function () {
+            window.location.reload();
+        });
+    });
+
+    $('.add-cart-btn').on('click', function () {
+        addToCart([logisticUnitId]);
+    });
+
+    registerCopyToClipboard(`Le numéro a bien été copié dans le presse-papiers.`);
+});

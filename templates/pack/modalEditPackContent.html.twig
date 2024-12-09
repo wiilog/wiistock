@@ -2,82 +2,78 @@
 
 {% set disableQuantity = pack.childArticles is not empty %}
 
+{% set isGroup = pack.groupIteration or (not pack.content.empty) %}
+
 <form>
     <div class="row">
+        {{ form.hidden('id', pack.id) }}
+
+        {% if isGroup %}
+            <div class="col-12">
+                <div class="wii-section-title mb-3 d-flex align-items-center"> Cette unité logistique représente un groupe</div>
+            </div>
+        {% endif %}
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" style="margin-bottom:5px" title="Numéro UL">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
-            <input type="text"
-                   class="form-control"
-                   value="{{ pack.code }}"
-                   title="{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL', false) }}"
-                   disabled/>
+            {% set inputLabel = isGroup
+                ? trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Numéro groupe")
+                : trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL')
+            %}
+            {{ form.input('code', inputLabel, false, pack.code, {
+                disabled: true,
+            }) }}
         </div>
+        {% if  isGroup %}
+            <div class="form-group col-md-6 col-12">
+                {{ form.input('groupChildrenLength', trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', "Nombre d'UL"), false, pack.content | length, {
+                    disabled: true,
+                }) }}
+            </div>
+        {% endif %}
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Général', "Nature") }}*</label>
-            <select class="form-control data needed"
-                    name="nature"
-                    title="{{ trans('Traçabilité', 'Général', "Nature", false) }}">
-                <option value>{{ trans('Traçabilité', 'Général', 'Sélectionner une nature', false) }}</option>
-                {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
-                {% for nature in natures %}
-                    <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature.label }}</option>
-                {% endfor %}
-            </select>
+            {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
+            {{ form.select('nature', trans('Traçabilité', 'Général', "Nature"), false, {
+                type: '',
+                items: natures | map(nature => ({
+                    label: nature.label,
+                    value: nature.id,
+                    selected: packNatureId == nature.id
+                })),
+            } ) }}
         </div>
+        {% if not isGroup %}
+            <div class="form-group col-md-6 col-12">
+                {{ form.input('quantity', trans('Traçabilité', 'Général', 'Quantité'), true, pack.quantity, {
+                    disabled: disableQuantity,
+                    min: 1,
+                    step: 1,
+                } ) }}
+            </div>
+            <div class="form-group col-md-6 col-12">
+                {{ form.select('projects', trans('Référentiel', 'Projet', "Projet", false), false, {
+                    items: projects,
+                    placeholder: 'Sélectionnez un ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower),
+                    emptyOption: {text: '', value: ''},
+                    disabled: disabledProject,
+                    tooltip: disabledProject ? 'Le ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower) ~ ' ne peut pas être modifié car l\'unité logistique est dans une réception en cours, une ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower ~ ' en cours ou un panier' : null
+                }) }}
+            </div>
+        {% endif %}
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Général', 'Quantité') }}</label>
-            <input type="number"
-                   class="form-control data needed"
-                   value="{{ pack.quantity }}"
-                   name="quantity"
-                   min="1"
-                   step="1"
-                   title="{{ trans('Traçabilité', 'Général', 'Quantité', false) }}"
-                   {{ disableQuantity ? 'disabled' }}/>
-        </div>
-        <div class="form-group col-md-6 col-12">
-            {{ form.select('projects', trans('Référentiel', 'Projet', "Projet", false), false, {
-                items: projects,
-                placeholder: 'Sélectionnez un ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower),
-                emptyOption: {text: '', value: ''},
-                disabled: disabledProject,
-                tooltip: disabledProject ? 'Le ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower) ~ ' ne peut pas être modifié car l\'unité logistique est dans une réception en cours, une ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower ~ ' en cours ou un panier' : null
+            {{ form.input('weight', trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)'), false, pack.weight, {
+                type: 'number',
+                min: 0,
+                step: 0.1,
             }) }}
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)') }}</label>
-            <input class="form-control data"
-                   value="{{ pack.weight }}"
-                   name="weight"
-                   title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)', false) }}"/>
-        </div>
-        <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Volume (m3)') }}</label>
-            <input class="form-control data"
-                   value="{{ pack.volume }}"
-                   name="volume"
-                   title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Volume (m3)', false) }}"/>
+            {{ form.input("volume", trans('Traçabilité', 'Unités logistiques', 'Divers', 'Volume (m3)'), false, pack.volume, {
+                type: 'number',
+                min: 0,
+                step: 0.1,
+            }) }}
         </div>
         <div class="col-12">
-            <label class="wii-field-name" for="commentaire">{{ trans('Général', null, 'Modale', 'Commentaire') }}</label>
-            <input id="commentaire"
-                   class="form-control data"
-                   name="comment"
-                   type="hidden"
-                   value="{{ pack.comment }}">
-            <div class="editor-container-edit" data-wysiwyg>{{ pack.comment|raw }}</div>
-        </div>
-        <div class="col-12 mt-3">
-            <div class="wii-section-title my-3 d-flex align-items-center">
-                {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}
-            </div>
-            <table id="groupHistoryTable" class="table w-100"></table>
-        </div>
-        <div class="col-12 mt-3">
-            <div class="wii-section-title my-3 d-flex align-items-center">
-                {{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés
-            </div>
-            <table id="projectHistoryTable" class="table w-100"></table>
+            {{ form.wysiwyg('comment', trans('Général', null, 'Modale', 'Commentaire'), false, pack.comment) }}
         </div>
     </div>
 </form>

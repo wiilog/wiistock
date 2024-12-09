@@ -5,13 +5,13 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('pack') }}
+    {{ encore_entry_link_tags('pack-index') }}
 {% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersPack.html.twig' with {
         page: 'PAGE_PACK',
-        tableSelector: '#packsTable, #groupsTable',
+        tableSelector: '#packsTable',
         callback: 'null',
         needsDateFormatting: true
     } %}
@@ -21,16 +21,6 @@
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <ul class="nav nav-pills pack-tabs">
-            <li class="nav-item">
-                <a href="#unites-logistiques" class="nav-link active">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}</a>
-            </li>
-            <li class="nav-item">
-                <a href="#groupes" class="nav-link">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Groupes"', 'Groupes') }}</a>
-            </li>
-        </ul>
-
-        <hr>
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% include "utils/action-buttons/header-buttons.html.twig" with {
@@ -39,15 +29,13 @@
                             hasRight: hasRightExport,
                             title: trans('Général', null, 'Zone liste', 'Exporter au format CSV'),
                             icon: "fa fa-file-csv",
-                            attributes: {
-                                "onclick": "toExport()",
-                            },
+                            class: "exportPacks",
                         },
                         {
                             title: "Gestion des colonnes",
                             icon: "fas fa-cog",
                             attributes: {
-                            "data-toggle": "modal",
+                                "data-toggle": "modal",
                                 "data-target": "#modalFieldModes",
                             },
                         }
@@ -61,18 +49,12 @@
                 <table id="packsTable" class="table w-100"
                        data-initial-visible="{{ fields|json_encode() }}">
                 </table>
-
-            </div>
-            <div class="col-12 groupsTableContainer">
-                <table id="groupsTable" class="table wii-list w-100"></table>
             </div>
         </div>
     </div>
     <input hidden value="{{ code }}" id="lu-code" class="data">
 
     {% include 'pack/modalEditPack.html.twig' %}
-    {% include 'pack/modalDeletePack.html.twig' %}
-    {% include 'group/edit.html.twig' %}
     {% include 'group/ungroup.html.twig' %}
     {% include "utils/fields-modes.html.twig" with {
         fields,
@@ -92,6 +74,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('pack') }}
-    <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('pack-index') }}
 {% endblock %}

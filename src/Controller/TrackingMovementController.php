@@ -12,9 +12,9 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Menu;
-use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -66,10 +66,16 @@ class TrackingMovementController extends AbstractController
         }
 
         if (!empty($packFilter)) {
+            $packRepository = $entityManager->getRepository(Pack::class);
             $filtreSupRepository->clearFiltersByUserAndPage($currentUser, FiltreSup::PAGE_MVT_TRACA);
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $currentUser);
+            $packId = $packRepository->findOneBy(["code" => $packFilter])?->getId();
+            if ($packId) {
+                $packFilter = $packId . ':' . $packFilter;
+                $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_LOGISTIC_UNITS, $packFilter, $currentUser);
 
-            $entityManager->persist($filter);
+                $entityManager->persist($filter);
+            }
+
             $entityManager->flush();
         }
 

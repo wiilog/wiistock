@@ -1,41 +1,31 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Tracking;
 
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
-use App\Entity\Pack;
 use App\Entity\Reception;
 use App\Entity\ReceptionLine;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\ORM\Query\Expr\Join;
-use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @method Pack|null find($id, $lockMode = null, $lockVersion = null)
- * @method Pack|null findOneBy(array $criteria, array $orderBy = null)
- * @method Pack[]    findAll()
- * @method Pack[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class PackRepository extends EntityRepository
 {
-
-    public const PACKS_MODE = 'packs';
-    public const GROUPS_MODE = 'groups';
-
     private const DtToDbLabels = [
         'packNum' => 'code',
         'packNature' => 'packNature',
@@ -97,9 +87,10 @@ class PackRepository extends EntityRepository
             ->addSelect('join_last_action.datetime AS lastMvtDate')
             ->addSelect('join_last_action.id AS fromTo')
             ->addSelect('join_location.label AS location')
+            ->addSelect('join_group.code AS groupCode')
             ->andWhere('join_last_action.datetime BETWEEN :dateMin AND :dateMax')
-            ->andWhere('pack.groupIteration IS NULL')
             ->leftJoin('pack.lastAction', 'join_last_action')
+            ->leftJoin('pack.group', 'join_group')
             ->leftJoin('join_last_action.emplacement', 'join_location')
             ->leftJoin('pack.nature', 'join_nature');
         return QueryBuilderHelper::addTrackingEntities($queryBuilder, 'join_last_action')
@@ -114,7 +105,7 @@ class PackRepository extends EntityRepository
             ->select("pack AS group")
             ->addSelect("COUNT(child.id) AS packCounter")
             ->leftJoin("pack.lastAction", "movement")
-            ->leftJoin("pack.children", "child")
+            ->leftJoin("pack.content", "child")
             ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
             ->andWhere('pack.groupIteration IS NOT NULL')
             ->groupBy('pack')
@@ -147,20 +138,14 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, string $mode, array $options = []): array {
+    public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->groupBy('pack.id');
 
-        if ($mode === self::PACKS_MODE) {
-            $queryBuilder
-                ->leftJoin('pack.article', 'article')
-                ->andWhere('article.currentLogisticUnit IS NULL')
-                ->andWhere('pack.groupIteration IS NULL');
-            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
-        } else if ($mode === self::GROUPS_MODE) {
-            $queryBuilder->where('pack.groupIteration IS NOT NULL');
-            $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
-        }
+        $queryBuilder
+            ->leftJoin('pack.article', 'article')
+            ->andWhere('article.currentLogisticUnit IS NULL');
+        $countTotal = QueryBuilderHelper::count($queryBuilder, 'pack');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -281,6 +266,10 @@ class PackRepository extends EntityRepository
                                         ->leftJoin('truckArrivalLinesSearch.truckArrival', 'truckArrivalByLinesSearch');
 
                                     $searchParams[] = 'truckArrivalByLinesSearch.number LIKE :value';
+                                    break;
+                                case "group":
+                                    $queryBuilder->leftJoin('pack.group', 'parentSearch');
+                                    $searchParams[] = 'parentSearch.code LIKE :value';
                                     break;
                             }
                         }

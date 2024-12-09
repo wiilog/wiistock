@@ -3,9 +3,9 @@
 namespace App\Command;
 
 use App\Entity\LocationClusterRecord;
-use App\Entity\Pack;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
-use App\Repository\PackRepository;
+use App\Repository\Tracking\PackRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\FormatService;
 use App\Service\TrackingMovementService;
@@ -285,7 +285,7 @@ class RemoveDuplicateLUCommand extends Command {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
         $locationClusterRecordRepository = $this->entityManager->getRepository(LocationClusterRecord::class);
 
-        $mvtToDelete = Stream::from($lu->getTrackingMovements(), $trackingMovementRepository->findBy(["packParent" => $lu]));
+        $mvtToDelete = Stream::from($lu->getTrackingMovements(), $trackingMovementRepository->findBy(["packGroup" => $lu]));
         if ($input->getOption('details')) {
             $io->success("On supprime l'UL avec l'id : {$lu->getId()}");
             $io->table(...$this->createTableMovementConfig((clone $mvtToDelete)->toArray(), $this->formatService));

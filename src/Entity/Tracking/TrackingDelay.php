@@ -2,7 +2,6 @@
 
 namespace App\Entity\Tracking;
 
-use App\Entity\Pack;
 use App\Repository\Tracking\TrackingDelayRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;

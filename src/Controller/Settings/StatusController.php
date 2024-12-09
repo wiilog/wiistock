@@ -143,7 +143,7 @@ class StatusController extends AbstractController
                     ->map(static fn(Role $role) => [
                         "label" => $role->getLabel(),
                         "value" => $role->getId(),
-                        "selected" => in_array($role, $status->getStatusCreationAuthorization()->toArray()),
+                        "selected" => in_array($role, $status->getAuthorizedRequestCreationRoles()->toArray()),
                     ])
                     ->toArray();
                 $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
@@ -239,7 +239,7 @@ class StatusController extends AbstractController
                     "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
                     "passStatusAtPurchaseOrderGeneration" => $this->formatService->bool($status->isPassStatusAtPurchaseOrderGeneration()),
                     "order" => $status->getDisplayOrder(),
-                    "allowedCreationForRoles" => Stream::from($status->getStatusCreationAuthorization())
+                    "allowedCreationForRoles" => Stream::from($status->getAuthorizedRequestCreationRoles())
                         ->map(static fn(Role $role) => $role->getLabel())
                         ->join(', '),
                 ];

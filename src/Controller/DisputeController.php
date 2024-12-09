@@ -224,28 +224,36 @@ class DisputeController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/add_Comment/{dispute}", name: "add_comment", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/add_Comment/{dispute}", name: "add_comment", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function addComment(Request $request,
                                DisputeService $disputeService,
                                EntityManagerInterface $em,
-                               Dispute $dispute): Response
-    {
-        if ($data = (json_decode($request->getContent(), true) ?? [])) {
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
+                               Dispute $dispute): Response {
+        $comment = $request->request->get('comment');
 
-            $historyRecord = $disputeService->createDisputeHistoryRecord(
-                $dispute,
-                $currentUser,
-                [$data]
-            );
-
-            $em->persist($historyRecord);
-            $em->flush();
-
-            return new JsonResponse(true);
+        if (empty($comment)) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Le commentaire ne peut pas être vide'
+            ]);
         }
-        return new JsonResponse(false);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $historyRecord = $disputeService->createDisputeHistoryRecord(
+            $dispute,
+            $currentUser,
+            [$comment]
+        );
+
+        $em->persist($historyRecord);
+        $em->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Commentaire ajouté avec succès'
+        ]);
     }
 
     #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
