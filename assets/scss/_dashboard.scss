@@ -495,8 +495,8 @@ sup {
     flex-grow: 1;
 
     .btn.btn-light {
-        background: #F2F3F7 !important;
-        border-color: #F2F3F7 !important;
+        background: $light-blue !important;
+        border-color: $light-blue !important;
     }
 
     &:first-child {
