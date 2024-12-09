@@ -306,7 +306,7 @@ class PackController extends AbstractController {
                 "data" => [
                     [
                         "content" => "
-                            <div class='bold w-100 text-center m-3'>
+                            <div class='bold w-100 text-center m-3 allow-expand'>
                                 Ce groupe est vide
                             </div>
                         ",

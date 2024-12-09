@@ -116,15 +116,13 @@ export function initializeGroupContentTable(packId, searchable = true) {
             {data: `content`, title: ``, orderable: false},
         ],
         drawCallback: () => {
-            let lastElement = false;
+            let $lastElement = false;
             $(".pack-details-element").each(function() {
-                if (lastElement && lastElement.offset().top !== $(this).offset().top) {
-                    lastElement.addClass("border-right-0");
-                } else {
-
+                if ($lastElement && $lastElement.offset().top !== $(this).offset().top) {
+                    $lastElement.addClass("border-right-0");
                 }
-                lastElement = $(this);
-            }).last().addClass("border-right-0");
+                $lastElement = $(this);
+            })
         },
     });
 }
