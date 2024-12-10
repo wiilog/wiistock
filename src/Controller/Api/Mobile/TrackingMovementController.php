@@ -13,6 +13,7 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\PackSplit;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
@@ -640,16 +641,12 @@ class TrackingMovementController extends AbstractController {
                 $pack->setComment($data["comment"]);
             }
 
-            if($data["splitFromId"]) {
-                $packSplit = new PackSplit();
+            if(isset($data["splitFromId"])) {
                 $splitFrom = $packRepository->findOneBy(['id' => $data["splitFromId"]]);
                 $unallowedSplit = $splitFrom?->getSplitFrom()?->getFrom()?->getSplitFrom()?->getFrom();
 
                 if($unallowedSplit) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => "Impossible de diviser le colis {$splitFrom->getCode()}.",
-                    ]);
+                    throw new FormException("Impossible de diviser le colis {$splitFrom->getCode()}.");
                 }
 
                 if($splitFrom->getLastOngoingDrop()){
@@ -670,10 +667,27 @@ class TrackingMovementController extends AbstractController {
 
                     $entityManager->persist($packSplitTrackingMovement);
 
-                    $pack->setLastOngoingDrop($splitFrom->getLastOngoingDrop());
+                    $splitFromLastOnGoingDrop = $splitFrom->getLastOngoingDrop();
+                    $targetDropTrackingMovement = $trackingMovementService->createTrackingMovement(
+                        $pack,
+                        $splitFromLastOnGoingDrop->getEmplacement(),
+                        $splitFromLastOnGoingDrop->getOperateur(),
+                        $splitFromLastOnGoingDrop->getDatetime(),
+                        true,
+                        $splitFromLastOnGoingDrop->getFinished(),
+                        $splitFromLastOnGoingDrop->getType(),
+                        [
+                            'parent' => $splitFromLastOnGoingDrop->getPackGroup(),
+                        ]
+                    );
+
+                    $trackingMovementService->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
+                    $entityManager->persist($targetDropTrackingMovement);
+
+                    $pack->setLastOngoingDrop($targetDropTrackingMovement);
                 }
 
-                $packSplit
+                $packSplit = (new PackSplit())
                     ->setTarget($pack)
                     ->setFrom($splitFrom)
                     ->setSplittingAt(new DateTime());
