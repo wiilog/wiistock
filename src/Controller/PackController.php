@@ -369,14 +369,13 @@ class PackController extends AbstractController {
     }
 
     #[Route("/{id}/tracking-history-api", name: "tracking_history_api", options: ['expose' => true], methods: [self::POST])]
-    public function statusHistoryApi(Pack                   $logisticUnit,
-                                     Request                $request,
-                                     EntityManagerInterface $entityManager,
-                                     PackService            $packService): JsonResponse {
+    public function trackingHistoryApi(Pack                   $logisticUnit,
+                                       Request                $request,
+                                       EntityManagerInterface $entityManager,
+                                       PackService            $packService): JsonResponse {
         $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
 
-        $params = $request->request;
-        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($params, $logisticUnit);
+        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($request->request, $logisticUnit);
 
         if ($queryResult["total"] === 0) {
             return $this->json([
@@ -390,16 +389,15 @@ class PackController extends AbstractController {
             ]);
         }
 
-        $latestRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'DESC', 'id' => 'DESC']);
-        $firstRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'ASC', 'id' => 'ASC']);
+        $latestRecord = $logisticUnitHistoryRecordsRepository->findOneRecord($logisticUnit, "last");
+        $firstRecord = $logisticUnitHistoryRecordsRepository->findOneRecord($logisticUnit, "first");
 
         return $this->json([
-            "data" =>
-                Stream::from($queryResult["data"])
-                    ->map(fn(LogisticUnitHistoryRecord $record) => [
-                        "history" => $packService->generateTrackingHistoryHtml($entityManager, $record, $firstRecord->getId(), $latestRecord->getId()),
-                    ])
-                    ->toArray(),
+            "data" => Stream::from($queryResult["data"])
+                ->map(static fn(LogisticUnitHistoryRecord $record) => [
+                    "history" => $packService->generateTrackingHistoryHtml($record, $firstRecord->getId(), $latestRecord->getId()),
+                ])
+                ->toArray(),
             "recordsFiltered" => $queryResult["count"],
             "recordsTotal" => $queryResult["total"],
         ]);
