@@ -635,7 +635,7 @@ class TrackingMovementController extends AbstractController {
         }
 
         foreach ($packs as $data) {
-            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"], false, isset($data["splitFromId"]));
+            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"] ?? null, false, isset($data["splitFromId"]));
 
             if(isset($data["comment"])) {
                 $pack->setComment($data["comment"]);
