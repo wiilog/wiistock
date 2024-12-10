@@ -40,6 +40,29 @@ $(function () {
                 });
             }
         })
+        .addProcessor((data, errors, $form) => {
+            // find if there is duplicate [name=receptionNumber] values
+            const $receptionNumbers = $form.find('[name=receptionNumber]');
+            const values = $receptionNumbers.map((index, element) => $(element).val()).get();
+            const duplicateValues = values.filter((value, index, self) => self.indexOf(value) !== index);
+
+            if (duplicateValues.length > 0) {
+                let errorElement = [];
+                $receptionNumbers.each((index, element) => {
+                    const $element = $(element);
+                    if (duplicateValues.includes($element.val())) {
+                        errorElement.push($element);
+                    }
+                });
+
+                errors.push({
+                    elements: errorElement,
+                    global: false,
+                    message: "Les numéros doivent être uniques",
+                });
+            }
+
+        })
         .submitTo(AJAX.POST, `receipt_association_form_submit`, {
             tables: [tableReceiptAssociation],
             success: function () {
