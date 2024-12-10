@@ -719,16 +719,13 @@ class RefArticleDataService
 
     public function generateBarCode($counter = null): string {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-
         $now = new DateTime('now');
         $dateCode = $now->format('ym');
 
         if (!isset($counter)) {
             $highestBarCode = $referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
             $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
-            $highestCounter = !isset($this->highestBarcodeCounter)
-                ? max($this->highestBarcodeCounter, $highestCounter)
-                : $highestCounter;
+            $highestCounter =  max($this->highestBarcodeCounter ?? 0, $highestCounter);
             $this->highestBarcodeCounter = ($highestCounter ?: 0) + 1;
 
             $counter = sprintf('%08u', $this->highestBarcodeCounter);
