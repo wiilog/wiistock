@@ -37,6 +37,8 @@ class Pack implements PairedEntity {
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
+    public const MAX_SPLIT_LEVEL = 3;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -934,6 +936,14 @@ class Pack implements PairedEntity {
         }
 
         return $this;
+    }
+
+    public function getSplitCountFrom(): int {
+        $parent = $this->getSplitFrom()?->getFrom();
+
+        return $parent
+            ? 1 + $parent->getSplitCountFrom()
+            : 0;
     }
 
 }

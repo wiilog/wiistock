@@ -503,7 +503,7 @@ class TrackingMovementController extends AbstractController {
         $includeExisting = $request->query->getBoolean('existing');
         $includePack = $request->query->getBoolean('pack');
         $includeMovements = $request->query->getBoolean('movements');
-        $includeGrouping = $request->query->getBoolean('grouping');
+        $includeSplitCount = $request->query->getBoolean('splitCount');
         $res = ['success' => true];
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -571,8 +571,8 @@ class TrackingMovementController extends AbstractController {
                 $res['existing'] = true;
             }
 
-            if($includeGrouping) {
-                $res["targetsNumber"] = $pack->getSplitTargets()->count();
+            if($includeSplitCount) {
+                $res["splitCount"] = $pack->getSplitTargets()->count();
             }
         } else {
             $res['isGroup'] = false;
@@ -643,9 +643,8 @@ class TrackingMovementController extends AbstractController {
 
             if(isset($data["splitFromId"])) {
                 $splitFrom = $packRepository->findOneBy(['id' => $data["splitFromId"]]);
-                $unallowedSplit = $splitFrom?->getSplitFrom()?->getFrom()?->getSplitFrom()?->getFrom();
 
-                if($unallowedSplit) {
+                if($pack->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
                     throw new FormException("Impossible de diviser le colis {$splitFrom->getCode()}.");
                 }
 
