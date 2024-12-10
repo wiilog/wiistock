@@ -10,8 +10,10 @@ use App\Entity\Emplacement;
 use App\Entity\Nature;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\PackSplit;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
@@ -501,6 +503,7 @@ class TrackingMovementController extends AbstractController {
         $includeExisting = $request->query->getBoolean('existing');
         $includePack = $request->query->getBoolean('pack');
         $includeMovements = $request->query->getBoolean('movements');
+        $includeSplitCount = $request->query->getBoolean('splitCount');
         $res = ['success' => true];
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -567,6 +570,10 @@ class TrackingMovementController extends AbstractController {
             if($includeExisting) {
                 $res['existing'] = true;
             }
+
+            if($includeSplitCount) {
+                $res["splitCount"] = $pack->getSplitTargets()->count();
+            }
         } else {
             $res['isGroup'] = false;
             $res['isPack'] = false;
@@ -628,10 +635,63 @@ class TrackingMovementController extends AbstractController {
         }
 
         foreach ($packs as $data) {
-            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
+            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"] ?? null, false, isset($data["splitFromId"]));
 
             if(isset($data["comment"])) {
                 $pack->setComment($data["comment"]);
+            }
+
+            if(isset($data["splitFromId"])) {
+                $splitFrom = $packRepository->findOneBy(['id' => $data["splitFromId"]]);
+
+                if($pack->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
+                    throw new FormException("Impossible de diviser le colis {$splitFrom->getCode()}.");
+                }
+
+                if($splitFrom->getLastOngoingDrop()){
+                    $packSplitTrackingMovement = $trackingMovementService->createTrackingMovement(
+                        $pack,
+                        null,
+                        $this->getUser(),
+                        DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                        true,
+                        true,
+                        TrackingMovement::TYPE_PACK_SPLIT,
+                        [
+                            'parent' => $parentPack,
+                        ]
+                    );
+
+                    $trackingMovementService->manageLinksForClonedMovement($splitFrom->getLastOngoingDrop(), $packSplitTrackingMovement);
+
+                    $entityManager->persist($packSplitTrackingMovement);
+
+                    $splitFromLastOnGoingDrop = $splitFrom->getLastOngoingDrop();
+                    $targetDropTrackingMovement = $trackingMovementService->createTrackingMovement(
+                        $pack,
+                        $splitFromLastOnGoingDrop->getEmplacement(),
+                        $splitFromLastOnGoingDrop->getOperateur(),
+                        $splitFromLastOnGoingDrop->getDatetime(),
+                        true,
+                        $splitFromLastOnGoingDrop->getFinished(),
+                        $splitFromLastOnGoingDrop->getType(),
+                        [
+                            'parent' => $splitFromLastOnGoingDrop->getPackGroup(),
+                        ]
+                    );
+
+                    $trackingMovementService->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
+                    $entityManager->persist($targetDropTrackingMovement);
+
+                    $pack->setLastOngoingDrop($targetDropTrackingMovement);
+                }
+
+                $packSplit = (new PackSplit())
+                    ->setTarget($pack)
+                    ->setFrom($splitFrom)
+                    ->setSplittingAt(new DateTime());
+
+                $entityManager->persist($packSplit);
             }
 
             if (!$pack->getGroup()) {
