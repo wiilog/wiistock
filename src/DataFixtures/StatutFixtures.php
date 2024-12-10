@@ -110,6 +110,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TrackingMovement::TYPE_DROP_LU,
                 TrackingMovement::TYPE_PICK_LU,
                 TrackingMovement::TYPE_INIT_TRACKING_DELAY,
+                TrackingMovement::TYPE_PACK_SPLIT,
             ],
             CategorieStatut::MVT_STOCK => [
                 MouvementStock::TYPE_ENTREE,

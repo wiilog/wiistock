@@ -394,7 +394,8 @@ class PackService {
                                                        $packOrCode,
                                                        $quantity,
                                                        $natureId = null,
-                                bool                   $onlyPack = false): Pack {
+                                bool                   $onlyPack = false,
+                                bool                   $fromPackSplit = false): Pack {
 
         $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -406,6 +407,10 @@ class PackService {
 
         if ($onlyPack && $pack && $pack->isGroup()) {
             throw new Exception(Pack::PACK_IS_GROUP);
+        }
+
+        if ($fromPackSplit && $pack) {
+            throw new Exception("Le colis {$codePack} est déjà présent en base de données.");
         }
 
         if (!isset($pack)) {
