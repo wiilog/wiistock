@@ -80,7 +80,7 @@ class PackController extends AbstractController {
             : null ;
 
         $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
-        $fields = $packService->getPackList3ColumnVisibleConfig($this->getUser());
+        $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
         $lastMessage = $logisticUnit->getLastMessage();
         $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
 
