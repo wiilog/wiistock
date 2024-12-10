@@ -180,7 +180,6 @@ class DispatchController extends AbstractController
                     $entityManager->flush();
                     $localIdsToInsertIds[$dispatchArray['localId']] = $dispatch->getId();
                 } catch (Exception $error) {
-                    throw $error;
                     $exceptionLoggerService->sendLog($error, $request);
                     $errors[] = $error instanceof FormException ? $error->getMessage() : "Une erreur est survenue sur le traitement d'un des acheminements";
                     [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
