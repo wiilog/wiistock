@@ -52,6 +52,8 @@ use WiiCommon\Helper\Stream;
 class RefArticleDataService
 {
 
+    private $highestBarcodeCounter = null;
+
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
         ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
@@ -717,14 +719,16 @@ class RefArticleDataService
 
     public function generateBarCode($counter = null): string {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-
         $now = new DateTime('now');
         $dateCode = $now->format('ym');
 
         if (!isset($counter)) {
             $highestBarCode = $referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
             $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
-            $counter = sprintf('%08u', $highestCounter + 1);
+            $highestCounter =  max($this->highestBarcodeCounter ?? 0, $highestCounter);
+            $this->highestBarcodeCounter = ($highestCounter ?: 0) + 1;
+
+            $counter = sprintf('%08u', $this->highestBarcodeCounter);
         }
 
         return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;

@@ -59,7 +59,7 @@ class ReferenceArticle implements AttachmentContainer
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $reference = null;
 
-    #[ORM\Column(type: 'string', length: 15, nullable: true)]
+    #[ORM\Column(type: 'string', length: 15, unique: true, nullable: false)]
     private ?string $barCode = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
