@@ -263,12 +263,22 @@
                     </div>
                 </div>
                 {% if not isGroup %}
-                <div class="wii-box">
-                    <div class="header wii-title">{{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés</div>
-                    <div class="content p-2">
-                        <table id="projectHistoryTable" class="table w-100"></table>
+                    <div class="wii-box">
+                        <div class="header wii-title">{{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés</div>
+                        <div class="content p-2">
+                            <table id="projectHistoryTable" class="table w-100"></table>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
+                {% if isGroup %}
+                    <div class="wii-box">
+                        <div class="header wii-title">Contenu du groupe</div>
+                        <div class="pt-2">
+                            <div class="history-container py-2 pt-2">
+                                <table id="groupContentTable"></table>
+                            </div>
+                        </div>
+                    </div>
                 {%  endif %}
             </div>
         </div>
@@ -279,5 +289,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-        {{ encore_entry_script_tags('pack-show') }}
+    {{ encore_entry_script_tags('pack-show') }}
+    {{ encore_entry_script_tags('pack-index') }}
+    <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
 {% endblock %}

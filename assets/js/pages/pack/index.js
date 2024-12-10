@@ -2,7 +2,7 @@ import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
 import Flash from "@app/flash";
 import {exportFile} from "@app/utils";
-import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initUngroupModal} from "@app/pages/pack/common";
+import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initializeGroupContentTable, initUngroupModal} from "@app/pages/pack/common";
 
 const packsTableConfig = {
     responsive: true,
@@ -74,8 +74,6 @@ $(function () {
         })
     });
 
-
-
     $(document).on('click', `.add-all-cart`, function () {
         const ids = $('.add-cart')
             .map(function () {
@@ -131,6 +129,7 @@ $(function () {
                         packsTable.columns.adjust();
 
                         getTrackingHistory(logisticUnitId, false);
+                        initializeGroupContentTable(logisticUnitId, false);
                         isLoading = false;
                     });
             }

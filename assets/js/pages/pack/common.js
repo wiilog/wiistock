@@ -102,6 +102,33 @@ function initializeGroupHistoryTable(packId) {
         }
     });
 }
+export function initializeGroupContentTable(logisticUnit, showPageMode = true) {
+    initDataTable('groupContentTable', {
+        serverSide: true,
+        processing: true,
+        paging: true,
+        searching: showPageMode,
+        ajax: {
+            "url": Routing.generate('pack_group_content_api', {
+                logisticUnit,
+                showPageMode: Number(showPageMode || false),
+            }, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: `content`, title: ``, orderable: false},
+        ],
+        drawCallback: () => {
+            let $lastElement = false;
+            $(".pack-details-element").each(function() {
+                if ($lastElement && $lastElement.offset().top !== $(this).offset().top) {
+                    $lastElement.addClass("border-right-0");
+                }
+                $lastElement = $(this);
+            })
+        },
+    });
+}
 
 function initializeProjectHistoryTable(packId) {
     initDataTable('projectHistoryTable', {

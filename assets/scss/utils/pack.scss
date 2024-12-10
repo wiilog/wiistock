@@ -52,7 +52,7 @@
                     border-bottom-right-radius: 0.35rem;
                     height: 100%;
                     z-index: 2;
-                    background-color: #f2f3f7;
+                    background-color: $light-blue;
 
                     div.col {
                         margin-top: 15px;
@@ -66,14 +66,6 @@
 
                         .wii-icon {
                             background-color: $primary;
-                        }
-
-                        &:nth-child(2) {
-                            border-left: $primary solid 1px;
-
-                            &:not(:last-child) {
-                                border-right: $primary solid 1px;
-                            }
                         }
                     }
                 }

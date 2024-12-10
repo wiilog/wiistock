@@ -100,43 +100,61 @@ class PackRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax) {
-        return $this->createQueryBuilder("pack")
-            ->select("pack AS group")
-            ->addSelect("COUNT(child.id) AS packCounter")
-            ->leftJoin("pack.lastAction", "movement")
-            ->leftJoin("pack.content", "child")
-            ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
-            ->andWhere('pack.groupIteration IS NOT NULL')
-            ->groupBy('pack')
-            ->setParameter("dateMin", $dateMin)
-            ->setParameter("dateMax", $dateMax)
+    /**
+     * @return array{
+     *     data: Pack[],
+     *     count: int,
+     *     total: int,
+     * }
+     */
+    public function getPackContentFiltered(InputBag $params, Pack $containerPack): array {
+        $queryBuilder = $this->createQueryBuilder("contained_pack")
+            ->innerJoin('contained_pack.group', 'join_container_pack', Join::WITH, 'contained_pack.group = :containerPack')
+            ->leftJoin('contained_pack.nature', 'join_pack_nature')
+            ->setParameter('containerPack', $containerPack);
+
+        $total = QueryBuilderHelper::count($queryBuilder, 'contained_pack');
+
+        if (!empty($params->all('search'))) {
+            $search = $params->all('search')['value'];
+            if (!empty($search)) {
+                $exprBuilder = $queryBuilder->expr();
+                $queryBuilder
+                    ->andWhere($exprBuilder->orX(
+                        'contained_pack.code LIKE :value',
+                        'join_pack_nature.label LIKE :value',
+                        'contained_pack.quantity LIKE :value',
+                    ))
+                    ->setParameter('value', '%' . $search . '%');
+            }
+        }
+
+        $queryBuilder
+            ->addSelect("COUNT_OVER(contained_pack.id) AS __query_count");
+
+        if ($params->getInt('start')) {
+            $queryBuilder->setFirstResult($params->getInt('start'));
+        }
+
+        $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+        if ($pageLength) {
+            $queryBuilder->setMaxResults($pageLength);
+        }
+
+        $queryResult = $queryBuilder
             ->getQuery()
             ->getResult();
+
+        return [
+            'data' => Stream::from($queryResult)
+                ->map(static fn(array $item) => $item[0])
+                ->toArray(),
+            'count' => $queryResult[0]['__query_count'] ?? 0,
+            'total' => $total
+        ];
     }
 
-    public function countAllPacks() {
-        $queryBuilder = $this->createQueryBuilder('pack')
-            ->select('COUNT(pack)')
-            ->where('pack.groupIteration IS NULL');
-        return $queryBuilder
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
 
-    /**
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countAllGroups() {
-        $queryBuilder = $this->createQueryBuilder('pack')
-            ->select('COUNT(pack)')
-            ->where('pack.groupIteration IS NOT NULL');
-        return $queryBuilder
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
 
     public function findByParamsAndFilters(InputBag $params, $filters, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder('pack')

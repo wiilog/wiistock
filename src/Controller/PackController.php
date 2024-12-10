@@ -80,12 +80,14 @@ class PackController extends AbstractController {
             : null ;
 
         $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
+        $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
         $lastMessage = $logisticUnit->getLastMessage();
         $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
 
         return $this->render('pack/show.html.twig', [
             "packActionButtons" => $packService->getActionButtons($logisticUnit, $hasPairing),
             "logisticUnit" => $logisticUnit,
+            "fields" => $fields,
             "movements" => $movements,
             "arrival" => $arrival,
             "truckArrival" => $truckArrival,
@@ -288,6 +290,48 @@ class PackController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
+    #[Route("/{logisticUnit}/group_content", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST])]
+    public function groupContentApi(Request                $request,
+                                    EntityManagerInterface $entityManager,
+                                    PackService            $packService,
+                                    Pack                   $logisticUnit): JsonResponse {
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $groupContent = $packRepository->getPackContentFiltered($request->request, $logisticUnit);
+
+        $showPageMode = $request->query->getBoolean("showPageMode");
+
+        if ($groupContent["total"] === 0) {
+            return $this->json([
+                "data" => [
+                    [
+                        "content" => "
+                            <div class='bold w-100 text-center m-3 allow-expand'>
+                                Ce groupe est vide
+                            </div>
+                        ",
+                    ]
+                ],
+                "recordsFiltered" => 1,
+                "recordsTotal" => 1,
+            ]);
+        }
+
+        return $this->json([
+            "data" => Stream::from($groupContent["data"])
+                ->map(fn(Pack $pack) => [
+                    "content" => $this->renderView('pack/content_group.html.twig', [
+                        "pack" => $pack,
+                        "trackingDelay" => $packService->generateTrackingDelayHtml($pack),
+                        "itemBgColor" => $showPageMode ? "" : "bg-white",
+                    ])
+                ])
+                ->toArray(),
+            "recordsFiltered" => $groupContent["count"],
+            "recordsTotal" => $groupContent["total"],
+        ]);
+    }
     #[Route("/project_history/{pack}", name: "project_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function projectHistory(Request                     $request,
                                    EntityManagerInterface      $entityManager,
@@ -330,9 +374,11 @@ class PackController extends AbstractController {
                                      EntityManagerInterface $entityManager,
                                      PackService            $packService): JsonResponse {
         $logisticUnitHistoryRecordsRepository = $entityManager->getRepository(LogisticUnitHistoryRecord::class);
-        $logisticUnitHistoryRecords = $logisticUnitHistoryRecordsRepository->findBy(['pack' => $logisticUnit], ['date' => 'DESC']);
 
-        if (empty($logisticUnitHistoryRecords)) {
+        $params = $request->request;
+        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($params, $logisticUnit);
+
+        if ($queryResult["total"] === 0) {
             return $this->json([
                 "data" => [
                     [
@@ -343,9 +389,6 @@ class PackController extends AbstractController {
                 "recordsTotal" => 1,
             ]);
         }
-
-        $params = $request->request;
-        $queryResult = $logisticUnitHistoryRecordsRepository->findByParamsAndFilters($params, $logisticUnit);
 
         $latestRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'DESC', 'id' => 'DESC']);
         $firstRecord = $logisticUnitHistoryRecordsRepository->findOneBy(['pack' => $logisticUnit], ['date' => 'ASC', 'id' => 'ASC']);
