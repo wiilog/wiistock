@@ -178,3 +178,11 @@ export function addToCart(ids) {
             }
         });
 }
+
+export function clearPackListSearching() {
+    const $logisticUnitsContainer = $('.logistic-units-container');
+    const $searchInput = $logisticUnitsContainer
+        .closest('.content')
+        .find('input[type=search]');
+    $searchInput.val(null);
+}

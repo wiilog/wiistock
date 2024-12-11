@@ -5,6 +5,7 @@ import Camera from "@app/camera";
 import Flash from "@app/flash";
 import {wrapLoadingOnActionButton} from "@app/loading";
 import {computeDescriptionFormValues} from "@app/pages/reference-article/common";
+import {clearPackListSearching} from "@app/pages/pack/common";
 import Modal from "@app/modal";
 
 let packsTable;
@@ -768,14 +769,6 @@ function loadDispatchReferenceArticle({start, search} = {}) {
                 })
         )
     )
-}
-
-export function clearPackListSearching() {
-    const $logisticUnitsContainer = $('.logistic-units-container');
-    const $searchInput = $logisticUnitsContainer
-        .closest('.content')
-        .find('input[type=search]');
-    $searchInput.val(null);
 }
 
 function refArticleChanged($select) {
