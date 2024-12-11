@@ -10,7 +10,7 @@ import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
 import FixedFieldEnum from "@generated/fixed-field-enum";
 import {initDataTable} from "@app/datatable";
-import {clearPackListSearching} from "@app/pages/dispatch/show";
+import {clearPackListSearching} from "@app/pages/pack/common";
 import {initCommentHistoryForm} from "@app/pages/dispute/common";
 
 let modalNewLigneReception = "#modalNewLigneReception";
