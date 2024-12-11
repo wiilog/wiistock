@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-{% set hasRightTreatDispute = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::TREAT_DISPUTE')) %}
+{% set hasRightToEditDispute = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
 
 {{ form.hidden('disputeId', dispute.id)}}
 
@@ -8,7 +8,7 @@
     <div class="form-group col-8">
         {{ form.select('disputeType', trans('Qualité', 'Litiges', 'Type'), true , {
             type : '',
-            disabled : not hasRightTreatDispute,
+            disabled : not hasRightToEditDispute,
             items : disputeTypes|map((type) => {
                 value : type.id,
                 label : type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
@@ -25,7 +25,7 @@
             items: disputeStatuses|map((statut) => {
                 value: statut.id,
                 label: statut.nom,
-                disabled: (not hasRightTreatDispute) and statut.treated and statut.id != dispute.status.id,
+                disabled: (not hasRightToEditDispute) and statut.treated and statut.id != dispute.status.id,
                 selected: dispute.status.id == statut.id
             }),
         }) }}
