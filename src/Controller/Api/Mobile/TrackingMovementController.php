@@ -676,7 +676,8 @@ class TrackingMovementController extends AbstractController {
                         $splitFromLastOnGoingDrop->getFinished(),
                         $splitFromLastOnGoingDrop->getType(),
                         [
-                            'parent' => $splitFromLastOnGoingDrop->getPackGroup(),
+                            "parent" => $splitFromLastOnGoingDrop->getPackGroup(),
+                            "historyTracking" => false,
                         ]
                     );
 

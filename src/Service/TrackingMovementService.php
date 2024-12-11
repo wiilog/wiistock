@@ -384,6 +384,7 @@ class TrackingMovementService {
         }
 
         $commentaire = $options['commentaire'] ?? null;
+        $createHistoryTracking = $options['historyTracking'] ?? true;
         $mouvementStock = $options['mouvementStock'] ?? null;
         $fileBag = $options['fileBag'] ?? null;
         $quantity = $options['quantity'] ?? 1;
@@ -464,13 +465,15 @@ class TrackingMovementService {
 
         $natureChangedData = $this->changeNatureAccordingToLocation($tracking);
 
-        $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
-            "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, $natureChangedData),
-            "historyDate" => $tracking->getDatetime(),
-            "user" => $tracking->getOperateur(),
-            "type" => ucfirst($tracking->getType()->getCode()),
-            "location" => $tracking->getEmplacement(),
-        ]);
+        if ($createHistoryTracking) {
+            $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
+                "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, $natureChangedData),
+                "historyDate" => $tracking->getDatetime(),
+                "user" => $tracking->getOperateur(),
+                "type" => ucfirst($tracking->getType()->getCode()),
+                "location" => $tracking->getEmplacement(),
+            ]);
+        }
 
         if($manualDelayStart){
             $this->createTrackingMovement(
