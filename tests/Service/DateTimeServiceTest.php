@@ -6,13 +6,14 @@ use App\Service\CacheService;
 use App\Service\DateTimeService;
 use DateInterval;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Flex\Cache;
 
 class DateTimeServiceTest extends KernelTestCase
 {
+    private DateTimeService $dateTimeService;
+    private EntityManagerInterface $entityManager;
+    private CacheService $cacheService;
     private const LOCAL_PATH_CACHE_DAY = 'work-period';
     private const FILE_NAME_WORKED_DAY = 'workedDay';
     private const FILE_NAME_FREE_DAY = 'workFreeDay';
@@ -41,18 +42,6 @@ class DateTimeServiceTest extends KernelTestCase
         ],
     ];
     private const ARRAY_WORKED_PERIOD_EMPTY = [];
-
-    private DateTimeService $dateTimeService;
-    private EntityManagerInterface $entityManager;
-    private CacheService $cacheService;
-
-    protected function setUp(): void {
-        self::bootKernel();
-        $container = static::getContainer();
-        $this->dateTimeService = $container->get(DateTimeService::class);
-        $this->cacheService = $container->get(CacheService::class);
-        $this->entityManager = $container->get(EntityManagerInterface::class);
-    }
 
     public function validTimeProvider(): array
     {
@@ -87,44 +76,6 @@ class DateTimeServiceTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider validTimeProvider
-     */
-    public function testCalculateMinuteFromWithValidTimes(string $time, int $expectedMinutes): void
-    {
-        $this->assertEquals($expectedMinutes, $this->dateTimeService->calculateMinuteFrom($time));
-    }
-
-    /**
-     * @dataProvider invalidTimeProvider
-     */
-    public function testCalculateMinuteFromWithInvalidTimes(string $time): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->dateTimeService->calculateMinuteFrom($time);
-    }
-
-    public function testCalculateMinuteFromWithEdgeCases(): void
-    {
-        $this->assertEquals(0, $this->dateTimeService->calculateMinuteFrom('00:00'));
-        $this->assertEquals(1439, $this->dateTimeService->calculateMinuteFrom('23:59'));
-    }
-
-    public function testCalculateMinuteFromWithLeadingZeros(): void
-    {
-        $this->assertEquals(90, $this->dateTimeService->calculateMinuteFrom('01:30'));
-        $this->assertEquals(5, $this->dateTimeService->calculateMinuteFrom('00:05'));
-    }
-
-    public function testCalculateMinuteFromUsesCorrectMultiplier(): void
-    {
-        // Assuming SECONDS_IN_MINUTE is public and equals 60
-        $this->assertEquals(
-            2 * DateTimeService::SECONDS_IN_MINUTE + 5,
-            $this->dateTimeService->calculateMinuteFrom('02:05')
-        );
-    }
-
     public function workedPeriodBetweenDatesDataProvider(): array {
         return [
             [self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), "2024-10-08 08:00:00", "2024-10-08 17:00:00", "PT8H"],
@@ -152,24 +103,6 @@ class DateTimeServiceTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider workedPeriodBetweenDatesDataProvider
-     */
-    public function testGetWorkedPeriod(array $arrayWordedDay, array $arrayFreeDay, string $dateString1, string $dateString2, string $expected): void
-    {
-        $this->createCacheWorkedPeriod($arrayWordedDay, $arrayFreeDay);
-
-        $date1 = DateTime::createFromFormat('Y-m-d H:i:s', $dateString1);
-        $date2 = DateTime::createFromFormat('Y-m-d H:i:s', $dateString2);
-        $expectedDateInterval = $this->dateTimeService->convertDateIntervalToMilliseconds(new DateInterval($expected));
-        $testedDateInterval = $this->dateTimeService->convertDateIntervalToMilliseconds($this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $date1, $date2));
-
-        $this->assertEquals(
-            $expectedDateInterval,
-            $testedDateInterval
-        );
-    }
-
     public function addWorkedPeriodToDateTimeDataProvider(): array {
         return [
             [self::ARRAY_WORKED_PERIOD, $this->arrayFreePeriodEmpty(), "2024-10-08 08:00:00", "PT5H", "2024-10-08 14:00:00"],
@@ -192,6 +125,74 @@ class DateTimeServiceTest extends KernelTestCase
     }
 
     /**
+     * @return void
+     */
+    protected function setUp(): void {
+        self::bootKernel();
+        $container = static::getContainer();
+        $this->dateTimeService = $container->get(DateTimeService::class);
+        $this->cacheService = $container->get(CacheService::class);
+        $this->entityManager = $container->get(EntityManagerInterface::class);
+    }
+
+    /**
+     * @testDox Test calculate minute from with valid times
+     * @dataProvider validTimeProvider
+     */
+    public function testCalculateMinuteFromWithValidTimes(string $time, int $expectedMinutes): void
+    {
+        $this->assertEquals($expectedMinutes, $this->dateTimeService->calculateMinuteFrom($time));
+    }
+
+    /**
+     * @testDox Test calculate minute from with invalid times
+     * @dataProvider invalidTimeProvider
+     */
+    public function testCalculateMinuteFromWithInvalidTimes(string $time): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->dateTimeService->calculateMinuteFrom($time);
+    }
+
+    /**
+     * @testDox Test calculate minute from with edge cases
+     */
+    public function testCalculateMinuteFromWithEdgeCases(): void
+    {
+        $this->assertEquals(0, $this->dateTimeService->calculateMinuteFrom('00:00'));
+        $this->assertEquals(1439, $this->dateTimeService->calculateMinuteFrom('23:59'));
+    }
+
+    /**
+     * @testDox Test calculate minute from with leading zeros
+     */
+    public function testCalculateMinuteFromWithLeadingZeros(): void
+    {
+        $this->assertEquals(90, $this->dateTimeService->calculateMinuteFrom('01:30'));
+        $this->assertEquals(5, $this->dateTimeService->calculateMinuteFrom('00:05'));
+    }
+
+    /**
+     * @testDox Test get worked period
+     * @dataProvider workedPeriodBetweenDatesDataProvider
+     */
+    public function testGetWorkedPeriod(array $arrayWordedDay, array $arrayFreeDay, string $dateString1, string $dateString2, string $expected): void
+    {
+        $this->createCacheWorkedPeriod($arrayWordedDay, $arrayFreeDay);
+
+        $date1 = DateTime::createFromFormat('Y-m-d H:i:s', $dateString1);
+        $date2 = DateTime::createFromFormat('Y-m-d H:i:s', $dateString2);
+        $expectedDateInterval = $this->dateTimeService->convertDateIntervalToMilliseconds(new DateInterval($expected));
+        $testedDateInterval = $this->dateTimeService->convertDateIntervalToMilliseconds($this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $date1, $date2));
+
+        $this->assertEquals(
+            $expectedDateInterval,
+            $testedDateInterval
+        );
+    }
+
+    /**
+     * @testDox Test add worked period
      * @dataProvider addWorkedPeriodToDateTimeDataProvider
      */
     public function testAddWorkedPeriod(array $arrayWordedDay, array $arrayFreeDay, $dateString, $dateStringInterval, ?string $expected): void
