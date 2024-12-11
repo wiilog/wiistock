@@ -73,10 +73,9 @@ class TrackingDelay {
         return $this;
     }
 
-    public function isTimerStopped(): bool {
+    public function isTimerPaused(): bool {
         return (
             $this->lastTrackingEvent === TrackingEvent::PAUSE
-            || $this->lastTrackingEvent === TrackingEvent::STOP
         );
     }
 

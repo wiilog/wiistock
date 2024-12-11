@@ -38,18 +38,20 @@
                                 </div>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
-                            <span class="wii-field-name">
-                                {% if trackingDelay %}
-                                    <div class="d-flex flex-column align-items-end">
-                                        {{ form.label("Temps restant", false, false, {
-                                            class: labelClass,
-                                        }) }}
-                                        <span class="h4">
-                                            {{ trackingDelay|raw }}
-                                        </span>
+                                {% set trackingDelayDelay = trackingDelay["delay"] ?? null %}
+
+                                {% if trackingDelayDelay %}
+                                    <div class="wii-field-name">
+                                        <div class="d-flex flex-column align-items-end">
+                                            {{ form.label("Temps restant", false, false, {
+                                                class: labelClass,
+                                            }) }}
+                                            <span class="h4">
+                                                {{ trackingDelayDelay|raw }}
+                                            </span>
+                                        </div>
                                     </div>
                                 {% endif %}
-                            </span>
                             </div>
                         </div>
                     </div>
