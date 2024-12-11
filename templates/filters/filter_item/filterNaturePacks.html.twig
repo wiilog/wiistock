@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 {% set naturesFilter = naturesFilter ?? [] %}
 
-<div class="col-auto m-1 select-filter pr-0">
+<div class="col-auto minw-200px m-1 pr-0 select-filter">
     {{ form.select('natures', null, false, {
         type: '',
         multiple: true,
