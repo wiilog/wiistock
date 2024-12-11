@@ -119,7 +119,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
 
         $res["trackingDelay"] = $trackingDelayData["delay"] ?? null;
         $res["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
-        $res["limitTreatmentDate"] = $this->formatService->datetime($trackingPack->getTrackingDelay()?->getLimitTreatmentDate(), null);
+        $res["limitTreatmentDate"] = $this->formatService->datetime($trackingDelayData["date"] ?? null, null);
 
         return $res;
     }

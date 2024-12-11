@@ -79,7 +79,7 @@ class TrackingDelayService {
      * Return array of data calculated in the function:
      *  - The elapsed time of the pack to be treated,
      *  - the limit treatment date of the pack according to its nature
-     *  - the lastTrackingEvent of a movement on the pack
+     *  - lastTrackingEvent: the event of the last movement on the pack
      *
      * @return null|array{
      *     lastTrackingEvent?: TrackingEvent|null,
@@ -131,6 +131,7 @@ class TrackingDelayService {
             [
                 "start" => $intervalStart,
                 "end" => $intervalEnd,
+                "endEvent" => $lastTrackingEvent,
             ] = $segment;
 
             $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
@@ -177,7 +178,8 @@ class TrackingDelayService {
      *
      * @return Generator<array{
      *     start: DateTime,
-     *     end: DateTime
+     *     end: DateTime,
+     *     endEvent: TrackingEvent|null
      * }>
      */
     private function iteratePackTrackingSegmentsBetween(EntityManagerInterface $entityManager,
@@ -214,15 +216,15 @@ class TrackingDelayService {
                 }
 
                 if ($intervalStart && $intervalEnd) {
+                    $lastTrackingEvent = $trackingEvent->getEvent();
                     yield [
                         "start" => $intervalStart,
                         "end" => $intervalEnd,
+                        "endEvent" => $lastTrackingEvent,
                     ];
 
                     $intervalStart = null;
                     $intervalEnd = null;
-
-                    $lastTrackingEvent = $trackingEvent->getEvent();
 
                     if ($lastTrackingEvent === TrackingEvent::STOP) {
                         break;
@@ -235,6 +237,7 @@ class TrackingDelayService {
                 yield [
                     "start" => $intervalStart,
                     "end" => $intervalEnd,
+                    "endEvent" => null,
                 ];
 
                 $intervalStart = null;
@@ -248,6 +251,7 @@ class TrackingDelayService {
             yield [
                 "start" => $intervalStart,
                 "end" => $intervalEnd,
+                "endEvent" => null,
             ];
 
             $intervalStart = null;
