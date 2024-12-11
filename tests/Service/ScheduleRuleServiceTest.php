@@ -291,6 +291,46 @@ class ScheduleRuleServiceTest extends KernelTestCase {
                 "from" => "2024-01-01 19:00:00",
                 "expected" => "2024-01-05 18:00:00",
             ],
+            [ // before hour changing
+                "scheduleRule" => [
+                    "frequency" => ScheduleRule::DAILY,
+                    "startDate" => "2024-04-15",
+                    "repeatPeriod" => 1,
+                    "intervalTime" => '18:00',
+                ],
+                "from" => "2024-10-27 17:55:00",
+                "expected" => "2024-10-27 18:00:00",
+            ],
+            [ // after hour changing
+                "scheduleRule" => [
+                    "frequency" => ScheduleRule::DAILY,
+                    "startDate" => "2024-04-15",
+                    "repeatPeriod" => 1,
+                    "intervalTime" => '18:00',
+                ],
+                "from" => "2024-10-26 17:55:00",
+                "expected" => "2024-10-26 18:00:00",
+            ],
+            [ // before the second hour changing
+                "scheduleRule" => [
+                    "frequency" => ScheduleRule::DAILY,
+                    "startDate" => "2024-04-15",
+                    "repeatPeriod" => 1,
+                    "intervalTime" => '18:00',
+                ],
+                "from" => "2025-03-29 17:55:00",
+                "expected" => "2025-03-29 18:00:00",
+            ],
+            [ // two hour changing
+                "scheduleRule" => [
+                    "frequency" => ScheduleRule::DAILY,
+                    "startDate" => "2024-04-15",
+                    "repeatPeriod" => 1,
+                    "intervalTime" => '18:00',
+                ],
+                "from" => "2025-03-30 17:55:00",
+                "expected" => "2025-03-30 18:00:00",
+            ],
         ];
     }
 
