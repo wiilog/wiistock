@@ -3,7 +3,7 @@
 <div class="col-auto m-1 select-filter pr-0">
     <div class="input-group">
         {% set options = options|merge({
-            inputClass: 'minw-200px filter-input',
+            inputClass: 'minw-200px filter-input select2',
         }) %}
         {{ form.select(name, null, false, options) }}
     </div>
