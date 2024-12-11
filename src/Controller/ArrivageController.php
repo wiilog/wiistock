@@ -1157,20 +1157,20 @@ class ArrivageController extends AbstractController
         $data = $request->request;
 
         $currentUser = $this->getUser();
-        $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $currentUser);
+        $hasRightToEditDispute = $this->userService->hasRightFunction(Menu::QUALI, Action::EDIT, $currentUser);
 
         $dispute = $disputeRepository->find($data->get('disputeId'));
 
         $typeBefore = $dispute->getType()->getId();
         $typeAfter = $data->getInt('disputeType');
-        if ($hasRightToTreatLitige) {
+        if ($hasRightToEditDispute) {
             $dispute->setType($typeRepository->find($typeAfter));
         }
 
         $statutBefore = $dispute->getStatus()->getId();
         $statutAfter = $data->getInt('disputeStatus');
         $newStatus = $statutRepository->find($statutAfter);
-        if ($hasRightToTreatLitige || !$newStatus->isTreated()) {
+        if ($hasRightToEditDispute || !$newStatus->isTreated()) {
             $dispute->setStatus($newStatus);
         }
 
