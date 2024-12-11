@@ -24,7 +24,6 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
-use App\Service\FormatService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -395,7 +394,8 @@ class PackService {
                                                        $quantity,
                                                        $natureId = null,
                                 bool                   $onlyPack = false,
-                                bool                   $fromPackSplit = false): Pack {
+                                array                  $options = []): Pack
+    {
 
         $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -409,7 +409,7 @@ class PackService {
             throw new Exception(Pack::PACK_IS_GROUP);
         }
 
-        if ($fromPackSplit && $pack) {
+        if (isset($options['fromPackSplit']) && $options['fromPackSplit'] && $pack) {
             throw new Exception("Le colis {$codePack} est déjà présent en base de données.");
         }
 
@@ -426,6 +426,10 @@ class PackService {
             if (!empty($nature)) {
                 $pack->setNature($nature);
             }
+        }
+
+        if (isset($options['arrival'])) {
+            $pack->setArrivage($options['arrival']);
         }
 
         return $pack;
