@@ -11,5 +11,5 @@
     {{ pack.code }}
     {% set isGroup = pack.groupIteration or (not pack.content.empty) %}
     {{ pack.isGroup ? '<span class="fa fa-object-group ml-1" title="cette ul est un groupe"></span>' }}
-    {{ pack.splitFrom ? ('<span class="fa fa-arrows-split-up-and-left ml-1" title="UL issu de la division de ' ~ pack.splitFrom.from.code | escape('html') ~ '"></span>' ) | raw}}
+    {{ pack.splitTargets is not empty ? ('<span class="fa fa-arrows-split-up-and-left ml-1" title="Cette UL a été divisé"></span>' ) | raw}}
 {% endif %}
