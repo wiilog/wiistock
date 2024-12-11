@@ -198,7 +198,7 @@ class PackService {
                 'truckArrival' => $truckArrival
             ]),
             "trackingDelay" => $finalTrackingDelay,
-            "limitTreatmentDate" => $pack->getTrackingDelay()
+            "limitTreatmentDate" => $pack->getTrackingDelay() && !$lastPackMovement->isPause()
                 ? $this->formatService->datetime($pack->getTrackingDelay()->getLimitTreatmentDate())
                 : null,
             "group" => $pack->getGroup()
