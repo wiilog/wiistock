@@ -301,9 +301,19 @@ class TrackingDelayService {
             $arrivalCreatedAt = $arrival?->getDate();
             $truckArrivalCreatedAt = $truckArrival?->getCreationDate();
 
-            $timerStartedAt = $truckArrivalCreatedAt
-                ?: $arrivalCreatedAt
-                ?: $pack->getFirstAction()?->getDatetime();
+            $timerStartedAt = $truckArrivalCreatedAt ?: $arrivalCreatedAt;
+
+            // if any truck arrival or logistic unit arrival
+            // we get the first tracking movement on pack
+            if (!$timerStartedAt) {
+                $firstAction = $pack->getFirstAction();
+                // if the first tracking was not on a stop location (like a picking on stop location)
+                // we get as timerStartedAt the date of the tracking
+                // because we know that the pack has never been pick and that the timer has never been started
+                if (!($firstAction?->getEmplacement()?->isStopTrackingTimerOnDrop())) {
+                    $timerStartedAt = $firstAction?->getDatetime();
+                }
+            }
 
             if ($timerStartedAt
                 && $lastStop
