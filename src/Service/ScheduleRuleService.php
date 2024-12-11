@@ -2,16 +2,9 @@
 
 namespace App\Service;
 
-use App\Entity\CategorieStatut;
-use App\Entity\ScheduledTask\Export;
-use App\Entity\ScheduledTask\Import;
-use App\Entity\ScheduledTask\InventoryMissionPlan;
-use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduleRule;
-use App\Entity\Statut;
 use App\Exceptions\FormException;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -222,7 +215,16 @@ class ScheduleRuleService
         $nextOccurrence = clone $start;
 
         if ($from > $start) {
-            $secondsBetween = ($from->getTimestamp() - $start->getTimestamp());
+            $fromTimestamp = $from->getTimestamp();
+            $startTimeStamp = $start->getTimestamp();
+
+            // summer / winter hour change adjusting
+            if ($from->getOffset() !== $start->getOffset()) {
+                $diffOffsetSeconds = $from->getOffset() - $start->getOffset();
+                $startTimeStamp -= $diffOffsetSeconds;
+            }
+
+            $secondsBetween = ($fromTimestamp - $startTimeStamp);
             $daysBetween = floor($secondsBetween / self::SECONDS_IN_A_DAY);
             $periodBetweenCount = floor($daysBetween / $period);
             $remainSecondsBetweenDate = ($secondsBetween % self::SECONDS_IN_A_DAY) + (($daysBetween % $period) * self::SECONDS_IN_A_DAY);
