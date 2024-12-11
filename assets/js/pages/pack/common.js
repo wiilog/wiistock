@@ -1,4 +1,4 @@
-import {POST, DELETE} from "@app/ajax";
+import AJAX, {POST, DELETE} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import Routing from "@app/fos-routing";

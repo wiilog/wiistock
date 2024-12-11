@@ -79,7 +79,6 @@ class PackController extends AbstractController {
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
 
-        $trackingDelay = $packService->generateTrackingDelayHtml($logisticUnit);
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
         $lastMessage = $logisticUnit->getLastMessage();
         $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
@@ -97,7 +96,7 @@ class PackController extends AbstractController {
                 "width" => 10,
                 "type" => 'qrcode',
             ],
-            "trackingDelay" => $trackingDelay,
+            "trackingDelay" => $packService->generateTrackingDelayHtml($logisticUnit),
             "hasPairing" => $hasPairing,
         ]);
     }
@@ -318,15 +317,19 @@ class PackController extends AbstractController {
             ]);
         }
 
+
         return $this->json([
             "data" => Stream::from($groupContent["data"])
-                ->map(fn(Pack $pack) => [
-                    "content" => $this->renderView('pack/content_group.html.twig', [
-                        "pack" => $pack,
-                        "trackingDelay" => $packService->generateTrackingDelayHtml($pack),
-                        "itemBgColor" => $showPageMode ? "" : "bg-white",
-                    ])
-                ])
+                ->map(function(Pack $pack) use ($packService, $showPageMode) {
+                    $trackingDelay = $packService->generateTrackingDelayHtml($pack);
+                    return [
+                        "content" => $this->renderView('pack/content_group.html.twig', [
+                            "pack" => $pack,
+                            "trackingDelay" => $trackingDelay["delay"],
+                            "itemBgColor" => $showPageMode ? "" : "bg-white",
+                        ])
+                    ];
+                })
                 ->toArray(),
             "recordsFiltered" => $groupContent["count"],
             "recordsTotal" => $groupContent["total"],

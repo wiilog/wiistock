@@ -85,7 +85,7 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
                         "date" => $this->formatService->datetime($pack->getLastAction()?->getDatetime(), null),
                         "trackingDelayColor" => $trackingDelayData["color"] ?? null,
                         "trackingDelay" => $trackingDelayData["delay"] ?? null,
-                        "limitTreatmentDate" => $this->formatService->datetime($pack->getTrackingDelay()?->getLimitTreatmentDate(), null)
+                        "limitTreatmentDate" => $this->formatService->datetime($trackingDelayData["date"] ?? null, null)
                     ];
                 })
                 ->toArray();
@@ -94,7 +94,7 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
             $trackingDelayData = $this->packService->formatTrackingDelayData($pack);
             $res["trackingDelay"] = $trackingDelayData["delay"] ?? null;
             $res["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
-            $res["limitTreatmentDate"] = $this->formatService->datetime($pack->getTrackingDelay()?->getLimitTreatmentDate(), null);
+            $res["limitTreatmentDate"] = $this->formatService->datetime($trackingDelayData["date"] ?? null, null);
         }
 
         return $res;
