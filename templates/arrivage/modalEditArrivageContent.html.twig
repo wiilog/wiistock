@@ -228,34 +228,14 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-6 col-lg-2 d-flex align-items-end">
-            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
-                {% set checked =  arrivage.customs ? 'checked' : '' %}
-                <input
-                    class="checkbox mr-2"
-                    type="checkbox"
-                    name="customs"
-                    {{ checked }}>
-                <label class="text-break text-wrap">
-                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
-                </label>
-            </label>
+            {{ form.checkbox("customs", trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane'), false, arrivage.customs  ) }}
         </div>
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-6 col-lg-2 d-flex align-items-end">
-            <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
-                <input
-                    class="checkbox data no-clear mr-2"
-                    type="checkbox"
-                    name="frozen"
-                    {% set checked =  arrivage.frozen ? 'checked' : '' %}
-                    {{ checked }}>
-                <label class="text-break text-wrap">
-                    {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé') }}
-                </label>
-            </label>
+            {{ form.checkbox("frozen", trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé'), false, arrivage.frozen  ) }}
         </div>
     {% endif %}
 </div>
