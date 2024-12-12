@@ -659,7 +659,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     }
 
     $table.on(`click`, `.delete-pack-row`, function() {
-        confirmRemovePack(table, $(this).data(`id`));
+        confirmRemovePack(table, $(this));
     });
 
     $(window).on(`beforeunload`, () =>  {
@@ -881,24 +881,36 @@ function registerVolumeCompute() {
         });
     });
 }
+function confirmRemovePack(table, $pack) {
+    const commonConfig = {
+        message: Translation.of('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Voulez-vous vraiment supprimer la ligne ?'),
+        title: Translation.of('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Supprimer la ligne'),
+        validateButton: {
+            color: 'danger',
+            label: Translation.of('Général', null, 'Modale', 'Supprimer'),
+        },
+        table,
+    };
 
-function confirmRemovePack(table, packId) {
-    if (packId) {
+    if ($pack.data('id')) {
         Modal.confirm({
+            ...commonConfig,
             ajax: {
-                method: DELETE,
+                method: 'DELETE',
                 route: 'dispatch_delete_pack',
                 params: {
-                    pack: packId,
+                    pack: $pack.data('id'),
                 },
             },
-            message: Translation.of('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Voulez-vous vraiment supprimer la ligne ?'),
-            title: Translation.of('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Supprimer la ligne'),
-            validateButton: {
-                color: 'danger',
-                label: Translation.of('Général', null, 'Modale', 'Supprimer'),
+        });
+    } else {
+        Modal.confirm({
+            ...commonConfig,
+            onSuccess: () => {
+                const $row = $pack.closest('tr');
+                table.row($row).remove().draw();
             },
-            table,
         });
     }
 }
+
