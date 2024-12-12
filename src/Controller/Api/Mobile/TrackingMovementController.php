@@ -503,6 +503,7 @@ class TrackingMovementController extends AbstractController {
         $includePack = $request->query->getBoolean('pack');
         $includeMovements = $request->query->getBoolean('movements');
         $includeSplitCount = $request->query->getBoolean('splitCount');
+        $includeTrackingDelayData = $request->query->getBoolean('trackingDelayData');
         $res = ['success' => true];
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -517,14 +518,16 @@ class TrackingMovementController extends AbstractController {
             $res['isGroup'] = $isGroup;
             $res['isPack'] = !$isGroup;
 
-            $trackingDelayData = $packService->formatTrackingDelayData($pack);
-            $res['trackingDelayData'] = isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
-                ? [
-                    'color' => $trackingDelayData["color"],
-                    'delay' => $trackingDelayData["delay"],
-                    'limitTreatmentDate' => $this->formatService->datetime($trackingDelayData["date"] ?? null, null),
-                ]
-                : [];
+            if ($includeTrackingDelayData) {
+                $trackingDelayData = $packService->formatTrackingDelayData($pack);
+                $res['trackingDelayData'] = isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
+                    ? [
+                        'color' => $trackingDelayData["color"],
+                        'delay' => $trackingDelayData["delayHTML"],
+                        'limitTreatmentDate' => $trackingDelayData["dateHTML"] ?? null,
+                    ]
+                    : [];
+            }
 
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getGroup();
