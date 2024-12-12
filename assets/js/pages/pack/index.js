@@ -21,8 +21,6 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     drawCallback: () => {
-        toggleAddAllToCartButton();
-
         //remove open logistic unit details pane
         const $logisticUnitPane = $(`.logistic-unit-content`);
         if ($logisticUnitPane.exists()) {
@@ -63,14 +61,15 @@ $(function () {
     }
 
     $(document).arrive(`.add-cart`, function () {
-        const $number = $(this);
+        const $buttons = $(this);
 
         // register the event directly on the element through arrive
         // to get the event before action-on-click and be able to
         // cancel modal openning through event.stopPropagation
-        $number.on(`mouseup`, event => {
+        $buttons.on(`mouseup`, event => {
+            const id = $(this).data(`id`);
             event.stopPropagation();
-            addToCart(id);
+            addToCart([id]);
         })
     });
 
@@ -180,13 +179,3 @@ $(function () {
 
     });
 });
-
-function toggleAddAllToCartButton() {
-    const $addAllCart = $('.add-all-cart');
-    if ($('.add-cart').length === 0) {
-        $addAllCart.addClass(`d-none`);
-    }
-    else {
-        $addAllCart.removeClass(`d-none`);
-    }
-}
