@@ -74,8 +74,7 @@ function callbackSaveFilter() {
 
 function initDatatable(params) {
     const $filtersContainer = $(".filters-container");
-    // const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
-    const $typeFilter = $filtersContainer.find(`select[name=type]`);
+    const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
 
     let status = $filtersContainer.find(`.statuses-filter [name*=statuses-filter]:checked`)
         .map((index, line) => $(line).data('id'))
