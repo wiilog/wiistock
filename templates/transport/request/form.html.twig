@@ -229,8 +229,11 @@
                                     {% set isSelected = line.selected ?? false %}
 
                                     {% set allowedForms = nature.allowedForms ?? {} %}
-                                    {% set natureTypeCollect = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
-                                    {% set natureTypeDelivery = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_DELIVERY_CODE')] ?? [] %}
+
+                                    {% set natureTypeCollectValue = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_COLLECT_CODE')] ?? [] %}
+                                    {% set natureTypeDeliveryValue = allowedForms[constant('App\\Entity\\Nature::TRANSPORT_DELIVERY_CODE')] ?? [] %}
+                                    {% set natureTypeCollect = natureTypeCollectValue is iterable ? natureTypeCollectValue : [natureTypeCollectValue] %}
+                                    {% set natureTypeDelivery = natureTypeDeliveryValue is iterable ? natureTypeDeliveryValue : [natureTypeDeliveryValue] %}
                                     {% set natureType = natureTypeCollect|merge(natureTypeDelivery) %}
 
                                     {% if natureType is not empty %}
