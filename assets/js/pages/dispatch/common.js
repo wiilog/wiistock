@@ -29,6 +29,11 @@ export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesTo
         .on('click', '.remove-pack-in-dispatch', function() {
             removePackInDispatchModal($(this));
         })
+        .on('change', 'select[name=type]', function() {
+            if($modalNewDispatch.find('input[name=id]').length === 0){
+                onDispatchTypeChange($modalNewDispatch.find('[name=type]'));
+            }
+        })
         .onOpen(() => {
             initNewDispatchEditor($modalNewDispatch);
             Modal
