@@ -634,7 +634,9 @@ class TrackingMovementController extends AbstractController {
         }
 
         foreach ($packs as $data) {
-            $splitFrom = $packRepository->findOneBy(['id' => $data["splitFromId"] ?? null]);
+            $splitFromId = $data["splitFromId"] ?? null;
+            $splitFrom = $splitFromId ? $packRepository->findOneBy(['id' => $splitFromId]) : null;
+
             $pack = $packService->persistPack($entityManager,
                 $data["code"],
                 $data["quantity"],

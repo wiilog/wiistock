@@ -409,7 +409,9 @@ class PackService {
             throw new Exception(Pack::PACK_IS_GROUP);
         }
 
-        if (isset($options['fromPackSplit']) && $options['fromPackSplit'] && $pack) {
+        $fromPackSplit = $options['fromPackSplit'] ?? null;
+
+        if ($fromPackSplit && $pack) {
             throw new Exception("Le colis {$codePack} est déjà présent en base de données.");
         }
 

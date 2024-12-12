@@ -228,12 +228,9 @@ class Pack implements PairedEntity {
 
     public function getArrivage(): ?Arrivage
     {
-        if (isset($this->arrivage)) {
-            return $this->arrivage;
-        }
-
         // If the pack is split, we use the arrival of the pack that was split from
-        return $this->splitFrom?->getFrom()?->getArrivage();
+        return $this->arrivage
+            ?: $this->splitFrom?->getFrom()?->getArrivage();
     }
 
     /**
