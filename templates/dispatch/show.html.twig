@@ -57,7 +57,8 @@
                                 </div>
                                 <div class="dropdown-menu dropdown-wiilog pointer">
                                     {% if hasRightEdit %}
-                                        {% if dispatch.statut.notTreated and not dispatch.statut.draft %}
+                                        {{ dump(hasRightToRollbackDraft) }}
+                                        {% if hasRightToRollbackDraft %}
                                             <a class="dropdown-item"
                                                href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
                                                 <i class="fas fa-undo-alt mr-2"></i>
