@@ -56,14 +56,12 @@
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
                                 <div class="dropdown-menu dropdown-wiilog pointer">
-                                    {% if hasRightEdit %}
-                                        {% if dispatch.statut.notTreated and not dispatch.statut.draft %}
-                                            <a class="dropdown-item"
-                                               href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
-                                                <i class="fas fa-undo-alt mr-2"></i>
-                                                {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon', false) }}
-                                            </a>
-                                        {% endif %}
+                                    {% if hasRightEdit and hasRightToRollbackDraft %}
+                                        <a class="dropdown-item"
+                                           href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
+                                            <i class="fas fa-undo-alt mr-2"></i>
+                                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon', false) }}
+                                        </a>
                                     {% endif %}
                                     {% if hasRightToGenerateDeliveryNote %}
                                         <a type="button"

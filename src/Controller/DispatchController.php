@@ -541,6 +541,9 @@ class DispatchController extends AbstractController {
             ]])
             ->toArray();
 
+        $hasRightToRollbackDraft = ($dispatch->getStatut()->isNotTreated() && !$dispatch->getStatut()->isDraft())
+            && count($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT])) > 0;
+
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
@@ -559,6 +562,7 @@ class DispatchController extends AbstractController {
                     ->filter(static fn(Statut $status) => (!$dispatch->getType()->hasReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->hasReusableStatuses())
                     ->toArray(),
             ],
+            'hasRightToRollbackDraft' => $hasRightToRollbackDraft,
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
