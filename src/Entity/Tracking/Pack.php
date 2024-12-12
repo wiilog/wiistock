@@ -233,6 +233,12 @@ class Pack implements PairedEntity {
             ?: $this->splitFrom?->getFrom()?->getArrivage();
     }
 
+    public function setArrivage(?Arrivage $arrivage): self {
+        $this->arrivage = $arrivage;
+
+        return $this;
+    }
+
     /**
      * @return Collection|Dispute[]
      */
