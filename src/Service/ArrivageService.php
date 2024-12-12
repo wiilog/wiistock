@@ -788,7 +788,7 @@ class ArrivageService {
                     FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE        => $this->formatService->supplier($arrival->getFournisseur()),
                     FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE    => $arrival->getNumeroCommandeList() ? implode(",", $arrival->getNumeroCommandeList()) : '',
                     FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?: '',
-                    FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: '',
+                    FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: $this->formatService->truckArrivalLines($arrival->getTruckArrivalLines()),
                     FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()?->getLabel() ?: '',
                     default                                                 => null
                 };
