@@ -793,7 +793,10 @@ class PackService {
 
         return [
             "delay" => isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
-                ? "<span class='font-weight-bold' style='color: {$trackingDelayData["color"]}'>{$trackingDelayData["delay"]}</span>"
+                ? $this->templating->render("pack/tracking-delay.html.twig", [
+                    "delay" => $trackingDelayData["delay"],
+                    "color" => $trackingDelayData["color"],
+                ])
                 : null,
             "date" => $this->formatService->datetime($trackingDelayData["date"] ?? null, null),
         ];

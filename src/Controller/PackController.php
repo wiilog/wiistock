@@ -300,6 +300,7 @@ class PackController extends AbstractController {
         $groupContent = $packRepository->getPackContentFiltered($request->request, $logisticUnit);
 
         $showPageMode = $request->query->getBoolean("showPageMode");
+        $itemColor = $showPageMode ? "" : "bg-white";
 
         if ($groupContent["total"] === 0) {
             return $this->json([
@@ -320,13 +321,13 @@ class PackController extends AbstractController {
 
         return $this->json([
             "data" => Stream::from($groupContent["data"])
-                ->map(function(Pack $pack) use ($packService, $showPageMode) {
+                ->map(function(Pack $pack) use ($packService, $showPageMode, $itemColor) {
                     $trackingDelay = $packService->generateTrackingDelayHtml($pack);
                     return [
                         "content" => $this->renderView('pack/content_group.html.twig', [
                             "pack" => $pack,
                             "trackingDelay" => $trackingDelay["delay"],
-                            "itemBgColor" => $showPageMode ? "" : "bg-white",
+                            "itemBgColor" => $itemColor,
                         ])
                     ];
                 })
