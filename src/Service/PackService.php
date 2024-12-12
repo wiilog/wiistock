@@ -892,7 +892,10 @@ class PackService {
             $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
             $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
             $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
-            'Groupe rattaché'
+            'Groupe rattaché',
+            'Groupe',
+            'Poids (kg)',
+            'Volume (m3)',
         ];
     }
 
@@ -929,6 +932,9 @@ class PackService {
             $pack['fromTo'],
             $pack['location'],
             $pack['groupCode'],
+            $this->formatService->bool($pack['groupIteration']),
+            $pack['weight'],
+            $pack['volume'],
         ];
         $this->CSVExportService->putLine($handle, $line);
     }
