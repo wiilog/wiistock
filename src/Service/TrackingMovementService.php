@@ -452,7 +452,7 @@ class TrackingMovementService {
             $tracking->setPackGroup($group);
             $tracking->setGroupIteration($groupIteration ?: $group->getGroupIteration());
 
-            if($type->getCode() === TrackingMovement::TYPE_GROUP) {
+            if($type->getCode() === TrackingMovement::TYPE_GROUP && $createHistoryTracking) {
                 $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $group, [
                     "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, [], $pack),
                     "historyDate" => $tracking->getDatetime(),
@@ -532,13 +532,15 @@ class TrackingMovementService {
                 ]
             );
 
-            $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $pack->getGroup(), [
-                "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, $natureChangedData, $pack),
-                "historyDate" => $tracking->getDatetime(),
-                "user" => $tracking->getOperateur(),
-                "type" => ucfirst("Sortie d'UL"),
-                "location" => $tracking->getEmplacement(),
-            ]);
+            if ($createHistoryTracking) {
+                $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack->getGroup(), [
+                    "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, $natureChangedData, $pack),
+                    "historyDate" => $tracking->getDatetime(),
+                    "user" => $tracking->getOperateur(),
+                    "type" => ucfirst("Sortie d'UL"),
+                    "location" => $tracking->getEmplacement(),
+                ]);
+            }
 
             if ($removeFromGroup) {
                 $pack->setGroup(null);
