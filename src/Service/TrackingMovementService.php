@@ -373,8 +373,7 @@ class TrackingMovementService {
                                            bool              $fromNomade,
                                            ?bool             $finished,
                                            Statut|string|int $trackingType,
-                                           array             $options = []): TrackingMovement
-    {
+                                           array             $options = []): TrackingMovement {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
 
         $type = $this->getTrackingType($entityManager, $trackingType);
@@ -452,6 +451,16 @@ class TrackingMovementService {
             // Si pas de mouvement de dégroupage, on set le parent
             $tracking->setPackGroup($group);
             $tracking->setGroupIteration($groupIteration ?: $group->getGroupIteration());
+
+            if($type->getCode() === TrackingMovement::TYPE_GROUP && $createHistoryTracking) {
+                $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $group, [
+                    "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, [], $pack),
+                    "historyDate" => $tracking->getDatetime(),
+                    "user" => $tracking->getOperateur(),
+                    "type" => ucfirst("Entrée d'UL"),
+                    "location" => $tracking->getEmplacement(),
+                ]);
+            }
         }
 
         $this->managePackLinksWithTracking($entityManager, $tracking);
@@ -522,6 +531,16 @@ class TrackingMovementService {
                     'orderIndex' => $orderIndex + 1
                 ]
             );
+
+            if ($createHistoryTracking) {
+                $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack->getGroup(), [
+                    "message" => $this->buildCustomLogisticUnitHistoryRecord($tracking, $natureChangedData, $pack),
+                    "historyDate" => $tracking->getDatetime(),
+                    "user" => $tracking->getOperateur(),
+                    "type" => ucfirst("Sortie d'UL"),
+                    "location" => $tracking->getEmplacement(),
+                ]);
+            }
 
             if ($removeFromGroup) {
                 $pack->setGroup(null);
@@ -1705,7 +1724,8 @@ class TrackingMovementService {
     }
 
     public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement,
-                                                         array            $natureChangedData = []): string {
+                                                         array            $natureChangedData = [],
+                                                         ?Pack            $pack = null): string {
 
         $natureChanged = $natureChangedData["natureChanged"] ?? false;
         $oldNature = $natureChangedData["oldNature"] ?? null;
@@ -1719,6 +1739,10 @@ class TrackingMovementService {
             FixedFieldEnum::comment->value => $this->formatService->html($trackingMovement->getCommentaire()),
             FixedFieldEnum::group->value => $this->formatService->pack($packGroup),
         ];
+
+        if($pack) {
+            $values["Unité logistique"] = $this->formatService->pack($pack);
+        }
 
         if ($natureChanged) {
             $values["Nouvelle nature"] = $this->formatService->nature($newNature);
