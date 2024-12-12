@@ -77,8 +77,11 @@ export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesTo
 export function initNewDispatchEditor(modal) {
     clearModal(modal);
     const $modal = $(modal);
-    onDispatchTypeChange($modal.find("[name=type]"));
-
+    const $selectType = $modal.find("[name=type]");
+    $selectType.on('change', function() {
+        onDispatchTypeChange($(this));
+    });
+    $selectType.trigger('change');
     initDatePickers();
 }
 
