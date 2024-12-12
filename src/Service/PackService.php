@@ -932,7 +932,7 @@ class PackService {
             $pack['fromTo'],
             $pack['location'],
             $pack['groupCode'],
-            $this->formatService->bool($pack['groupIteration']),
+            $this->formatService->bool($pack['groupIteration'] ?? false),
             $pack['weight'],
             $pack['volume'],
         ];
