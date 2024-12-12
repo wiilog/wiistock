@@ -491,7 +491,7 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "purchaseOrderLine":
-                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['purchaseOrderLine'])){
+                                if(in_array(FieldModesService::FIELD_MODE_VISIBLE, $articlePageFieldModes['purchaseOrderLine'] ?? [])){
                                     $subqb = $this->createQueryBuilder("article")
                                         ->select('article.id')
                                         ->andWhere('article.purchaseOrder LIKE :search')
