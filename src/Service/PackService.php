@@ -785,15 +785,7 @@ class PackService {
 
     public function generateTrackingDelayHtml(Pack $pack): ?string
     {
-        if($pack->isGroup()) {
-            $packWithLowestDelay = Stream::from($pack->getContent())
-                ->sort(static fn(Pack $content1, Pack $content2) => $content1->getTrackingDelay()?->getElapsedTime() < $content2->getTrackingDelay()?->getElapsedTime())
-                ->last();
-
-            $trackingDelayData = $packWithLowestDelay ? $this->formatTrackingDelayData($packWithLowestDelay): $this->formatTrackingDelayData($pack);
-        } else {
-            $trackingDelayData = $this->formatTrackingDelayData($pack);
-        }
+        $trackingDelayData = $this->formatTrackingDelayData($pack);
 
         return isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
             ? "<span class='font-weight-bold' style='color: {$trackingDelayData["color"]}'>{$trackingDelayData["delay"]}</span>"
