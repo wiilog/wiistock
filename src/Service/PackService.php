@@ -196,10 +196,8 @@ class PackService {
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
-            "trackingDelay" => $finalTrackingDelay,
-            "limitTreatmentDate" => $pack->getTrackingDelay() && !$lastPackMovement->isPause()
-                ? $this->formatService->datetime($pack->getTrackingDelay()->getLimitTreatmentDate())
-                : null,
+            "trackingDelay" => $finalTrackingDelay["delay"],
+            "limitTreatmentDate" => $finalTrackingDelay["date"],
             "group" => $pack->getGroup()
                 ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
                     "entityPath" => "pack_show",
@@ -785,17 +783,33 @@ class PackService {
         $entityManager->persist($logisticUnitHistoryRecord);
     }
 
-    public function generateTrackingDelayHtml(Pack $pack): ?string
+    /**
+     * @return array{
+     *     date?: string,
+     *     delay?: string,
+     * }
+     */
+    public function generateTrackingDelayHtml(Pack $pack): array
     {
         $trackingDelayData = $this->formatTrackingDelayData($pack);
 
-        return isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
-            ? "<span class='font-weight-bold' style='color: {$trackingDelayData["color"]}'>{$trackingDelayData["delay"]}</span>"
-            : null;
+        return [
+            "delay" => isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
+                ? $this->templating->render("pack/tracking-delay.html.twig", [
+                    "delay" => $trackingDelayData["delay"],
+                    "color" => $trackingDelayData["color"],
+                ])
+                : null,
+            "date" => $this->formatService->datetime($trackingDelayData["date"] ?? null, null),
+        ];
     }
 
     /**
-     * @return array{color?: string, delay?: string}
+     * @return array{
+     *     color?: string,
+     *     delay?: string,
+     *     date?: DateTime,
+     * }
      */
     public function formatTrackingDelayData(Pack $pack): array {
         $packTrackingDelay = $pack->getTrackingDelay();
@@ -806,13 +820,16 @@ class PackService {
             return [];
         }
 
-        $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
-
         $delayIsLate = false;
-        $elapsedTime = $pack->getTrackingDelay()->getElapsedTime();
-        $trackingDelayInSeconds = $packTrackingDelay->isTimerStopped()
-            ? $elapsedTime
-            : ($elapsedTime + floor($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay) / 1000));
+        $elapsedTime = $packTrackingDelay->getElapsedTime();
+        if (!$packTrackingDelay->isTimerPaused()) {
+            $limitTreatmentDate = $packTrackingDelay->getLimitTreatmentDate();
+            $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
+            $trackingDelayInSeconds = ($elapsedTime + floor($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay) / 1000));
+        }
+        else {
+            $trackingDelayInSeconds = $elapsedTime;
+        }
 
         $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
 
@@ -839,6 +856,7 @@ class PackService {
         return [
             "color" => $trackingDelayColor,
             "delay" => $strDelay,
+            "date"  => $limitTreatmentDate ?? null
         ];
     }
 

@@ -522,7 +522,7 @@ class TrackingMovementController extends AbstractController {
                 ? [
                     'color' => $trackingDelayData["color"],
                     'delay' => $trackingDelayData["delay"],
-                    'limitTreatmentDate' => $this->formatService->datetime($pack->getTrackingDelay()?->getLimitTreatmentDate(), null),
+                    'limitTreatmentDate' => $this->formatService->datetime($trackingDelayData["date"] ?? null, null),
                 ]
                 : [];
 
