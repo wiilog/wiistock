@@ -104,6 +104,9 @@ export default class Modal {
                 });
             }
             else {
+                if(onSuccess && typeof onSuccess === 'function') {
+                    onSuccess();
+                }
                 $modal.modal('hide');
             }
         });
