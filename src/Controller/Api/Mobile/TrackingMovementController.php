@@ -642,7 +642,6 @@ class TrackingMovementController extends AbstractController {
                 false,
                 [
                     'fromPackSplit' => isset($splitFrom),
-                    'arrival' => $splitFrom?->getArrivage()
                 ]
             );
 

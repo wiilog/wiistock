@@ -428,10 +428,6 @@ class PackService {
             }
         }
 
-        if (isset($options['arrival'])) {
-            $pack->setArrivage($options['arrival']);
-        }
-
         return $pack;
     }
 
