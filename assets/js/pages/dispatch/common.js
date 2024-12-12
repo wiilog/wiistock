@@ -45,7 +45,8 @@ export function initDispatchCreateForm($modalNewDispatch, entityType, entitiesTo
                             const $type = $modalNewDispatch.find('[name=type]');
 
                             if (response.defaultTypeId) {
-                                $type.val(response.defaultTypeId)
+                                $type.val(response.defaultTypeId);
+                                onDispatchTypeChange($type);
                             }
 
                             $type.trigger('change');
