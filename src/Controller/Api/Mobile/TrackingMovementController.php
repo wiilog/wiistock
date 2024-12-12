@@ -18,7 +18,6 @@ use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
-use App\Service\DateTimeService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
@@ -635,14 +634,24 @@ class TrackingMovementController extends AbstractController {
         }
 
         foreach ($packs as $data) {
-            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"] ?? null, false, isset($data["splitFromId"]));
+            $splitFromId = $data["splitFromId"] ?? null;
+            $splitFrom = $splitFromId ? $packRepository->findOneBy(['id' => $splitFromId]) : null;
 
-            if(isset($data["comment"])) {
+            $pack = $packService->persistPack($entityManager,
+                $data["code"],
+                $data["quantity"],
+                $data["nature_id"] ?? null,
+                false,
+                [
+                    'fromPackSplit' => isset($splitFrom),
+                ]
+            );
+
+            if (isset($data["comment"])) {
                 $pack->setComment($data["comment"]);
             }
 
-            if(isset($data["splitFromId"])) {
-                $splitFrom = $packRepository->findOneBy(['id' => $data["splitFromId"]]);
+            if (isset($splitFrom)) {
 
                 if($pack->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
                     throw new FormException("Impossible de diviser le colis {$splitFrom->getCode()}.");
