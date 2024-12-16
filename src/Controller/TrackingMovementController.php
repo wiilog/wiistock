@@ -164,13 +164,13 @@ class TrackingMovementController extends AbstractController
         try {
             if (!empty($post->get('is-group'))) {
                 $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $date);
-                if (!$groupTreatment['success']) {
+                if (!$groupTreatment['success'] || ($groupTreatment["error"] ?? false)) {
                     return $this->json($groupTreatment);
                 }
 
                 $createdMovements = $groupTreatment['createdMovements'];
             }
-            else if (empty($post->get('is-mass'))) {
+            else if (empty($post->get( 'is-mass'))) {
                 $location = $emplacementRepository->find($post->get('emplacement'));
 
                 $res = $trackingMovementService->persistTrackingMovementForPackOrGroup(
@@ -193,7 +193,7 @@ class TrackingMovementController extends AbstractController
                     array_push($createdMovements, ...$res['movements']);
                 }
                 else {
-                    return $this->json($this->treatPersistTrackingError($res));
+                    return $this->json($trackingMovementService->treatPersistTrackingError($res));
                 }
             }
             else {
@@ -255,7 +255,7 @@ class TrackingMovementController extends AbstractController
                                 ->concat($codeToPack, true)
                                 ->toArray();
                         } else {
-                            return $this->json($this->treatPersistTrackingError($pickingRes));
+                            return $this->json($trackingMovementService->treatPersistTrackingError($pickingRes));
                         }
                     }
 
@@ -288,7 +288,7 @@ class TrackingMovementController extends AbstractController
                                 ->toArray();
                         }
                         else {
-                            return $this->json($this->treatPersistTrackingError($dropRes));
+                            return $this->json($trackingMovementService->treatPersistTrackingError($dropRes));
                         }
                     }
                 }
@@ -613,26 +613,5 @@ class TrackingMovementController extends AbstractController
             "error" => false,
             "quantity" => $quantity > 0 ? $quantity : null, //regle de gestion : l'UL doit contenir au moins un article pour qu'on grise le champ
         ]);
-    }
-
-    private function treatPersistTrackingError(array $res): array {
-        if (isset($res["error"])) {
-            if ($res["error"] === Pack::CONFIRM_CREATE_GROUP) {
-                return [
-                    "success" => true,
-                    "group" => $res["group"],
-                ];
-            } else if ($res['error'] === Pack::IN_ONGOING_RECEPTION) {
-                return [
-                    "success" => false,
-                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementée."),
-                ];
-            }
-
-            throw new Exception('untreated error');
-        }
-        else {
-            return $res;
-        }
     }
 }
