@@ -106,10 +106,21 @@ export default class EditableDatatable {
         }
     }
 
-    setURL(url, load = true) {
+    /**
+     * Sets a new URL for the table's AJAX source, fetches the data, and optionally triggers a reload.
+     *
+     * @param {string} url - The new URL to be used for the AJAX data source.
+     * @param {boolean} [load=true] - Determines whether to reload the data after updating the URL. Defaults to true.
+     * @param {Function|null} [callback=null] - An optional callback function to execute after the reload completes. Defaults to null.
+     */
+    setURL(url, load = true, callback = null) {
         const ajaxUrl = this.table.ajax.url(url);
         if (load) {
-            ajaxUrl.load();
+            ajaxUrl.load(() => {
+                if (callback) {
+                    callback();
+                }
+            });
         }
     }
 

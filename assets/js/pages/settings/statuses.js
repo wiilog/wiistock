@@ -357,7 +357,9 @@ function initializeStatusesByTypes($container, canEdit, mode) {
             const $type = $(this);
             const type = $type.val();
             const url = Routing.generate(`settings_statuses_api`, {mode, type})
-            table.setURL(url);
+            table.setURL(url, true, () => {
+                disableFieldsBasedOnStatus($container);
+            });
         });
     $typeFilters.first().trigger('click');
 
@@ -395,6 +397,10 @@ function onStatusStateChange($container, $selects) {
     });
 
     // Disable fields based on the selected status
+    disableFieldsBasedOnStatus($container);
+}
+
+function disableFieldsBasedOnStatus($container) {
     Object.keys(fieldsToDisabledAttr).forEach((name) => {
         const $fields = $container.find(`[name=${name}]`);
         updateCheckboxes(name, $fields);
@@ -426,15 +432,15 @@ function isFieldDisabled($field) {
  */
 function ensureMaxCheckboxSelection($container, groupName) {
     const maxChecked = fieldsMaxChecked[groupName];
-    if (maxChecked !== undefined) {
-        const $checkboxes = $container.find(`[name="${groupName}"]`);
-
-        $checkboxes
-            .off(`change.checkboxesChange`)
-            .on(`change.checkboxesChange`, function () {
-                updateCheckboxes(groupName, $checkboxes);
-            });
+    if (maxChecked === undefined) {
+        return;
     }
+    const $checkboxes = $container.find(`[name="${groupName}"]`);
+    $checkboxes
+        .off(`change.checkboxesChange`)
+        .on(`change.checkboxesChange`, function () {
+            updateCheckboxes(groupName, $checkboxes);
+        });
 }
 
 /**
