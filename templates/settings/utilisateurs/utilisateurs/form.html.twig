@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-{% set max_secondary_mail = 2 %}
+{% set maxSecondaryMail = 2 %}
 <form>
     {% if user.id %}
         {{ form.hidden('user', user.id) }}
@@ -38,25 +38,25 @@
                     </div>
                 </div>
 
-                {% set secondary_emails = (user.secondaryEmails ?? []) | filter(e => e) %}
+                {% set secondaryEmails = (user.secondaryEmails ?? []) | filter(e => e) %}
 
-                <div class="form-group row {% if secondary_emails | length < max_secondary_mail %}mb-0{% endif %}">
+                <div class="form-group row {% if secondaryEmails | length < maxSecondaryMail %}mb-0{% endif %}">
                     <div class="col-12">
                         {{ form.input('email', 'Email', true, user.email, {
                             type: 'email',
                         }) }}
                     </div>
                     <div class="col-12" style="text-align: right">
-                        <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none {{ secondary_emails | length >= max_secondary_mail ? "d-none"}}" style="font-size: 0.8rem">Ajouter un email</span>
+                        <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none {{ secondaryEmails | length >= maxSecondaryMail ? "d-none"}}" style="font-size: 0.8rem">Ajouter un email</span>
                     </div>
                 </div>
 
-                {% for i in range(1, max_secondary_mail)%} {# init new email input empty with a max of 2 input #}
-                    {% set label = 'Email ' ~ (i + 1) %}
-                    {% set index_in_secondary_emails = i - 1 %}
-                    <div class="form-group secondary-email {{ secondary_emails[index_in_secondary_emails] is not defined ? "d-none"}}">
+                {% for indexMail in range(1, maxSecondaryMail)%} {# init new email input empty with a max of 2 input #}
+                    {% set label = 'Email ' ~ (indexMail + 1) %}
+                    {% set indexInSecondaryEmails = indexMail - 1 %}
+                    <div class="form-group secondary-email {{ secondaryEmails[indexInSecondaryEmails] is not defined ? "d-none"}}">
                         <div class="col-12 d-flex">
-                            {{ form.input('secondaryEmails', label, true, secondary_emails[index_in_secondary_emails] is defined ? secondary_emails[index_in_secondary_emails] : '', {
+                            {{ form.input('secondaryEmails', label, true, secondaryEmails[indexInSecondaryEmails] is defined ? secondaryEmails[indexInSecondaryEmails] : '', {
                                 type: 'email',
                                 inputClass: 'data-array',
                             }) }}

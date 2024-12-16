@@ -48,10 +48,12 @@ class UserController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
 
             $user = $utilisateurRepository->find($data['id']);
+            $SECONDARYMAILNUMBER = 2;
 
             return new JsonResponse([
                 "html" => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     "user" => $user,
+                    "secondaryMailNumber" => $SECONDARYMAILNUMBER,
                     "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
@@ -234,29 +236,19 @@ class UserController extends AbstractController {
         }
 
         $secondaryEmails = $data->has('secondaryEmails')
-            ? explode(',', $data->get('secondaryEmails'))
+            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()
             : [];
 
-        $emptyIndex = [];
 
         if($secondaryEmails){
             foreach($secondaryEmails as $index => $email) {
                 if($email == ""){
                     $emptyIndex[] = $index;
                 }
-                else{
-                    if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        return $this->json([
-                            "success" => false,
-                            "msg" => "L'adresse email $email n'est pas valide"
-                        ]);
-                    }
+                else if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)){
+                    throw new FormException("L'adresse email $email n'est pas valide");
                 }
             }
-        }
-
-        foreach($emptyIndex as $index) {
-            unset($secondaryEmails[$index]);
         }
 
         $dropzone = explode(":", $data->get('dropzone'));
