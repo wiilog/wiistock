@@ -167,12 +167,6 @@ class DateTimeService {
         $this->workPeriodService->clearCaches();
     }
 
-    public function intervalToHourAndMinStr(DateInterval $delay): string {
-        $hours = sprintf('%02d', ($delay->d*24) + $delay->h);
-        $minutes = sprintf('%02d', $delay->i);
-        return "{$hours}h{$minutes}";
-    }
-
     /**
      * Calculate worked period between the two input date.
      * The set of worked days and work free days are used to define this period.

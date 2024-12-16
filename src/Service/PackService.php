@@ -826,11 +826,9 @@ class PackService {
 
         $color = $this->getTrackingDelayColor($pack, $remainingTime);
 
-        $delayIsLate = ($remainingTime < 0);
-
-        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime));
-        $formattedRemainingInterval = $this->dateTimeService->intervalToHourAndMinStr($remainingInterval);
-        $delayHTML = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
+        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingTime);
+        $remainingInterval->invert = $remainingTime < 0;
+        $delayHTML = $this->formatService->delay($remainingInterval);
 
         return [
             "color" => $color,
