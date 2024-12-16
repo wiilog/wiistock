@@ -65,6 +65,12 @@
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PACK'),
                 disabled: export.id is not null
             },
+            {
+                label: 'Arrivages camion',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRUCK_ARRIVAL'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRUCK_ARRIVAL'),
+                disabled: export.id is not null
+            },
         ], {expanded: true}) }}
 
         <label class="references-sentence wii-small-text my-3">Les références exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
