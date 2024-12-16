@@ -227,7 +227,7 @@ function submitNewTrackingMovementForm(data, form) {
         () => AJAX
             .route(POST, 'mvt_traca_new', {})
             .json(data)
-            .then(({success, group, trackingMovementsCounter, ...re}) => {
+            .then(({success, error, group, trackingMovementsCounter, ...re}) => {
                 const $modal = form.element;
                 if (success) {
                     [tableMvt].forEach((table) => {
@@ -238,7 +238,7 @@ function submitNewTrackingMovementForm(data, form) {
                         }
                     })
                     if (group) {
-                        displayConfirmationModal($modal, group);
+                        displayConfirmationModal($modal, group, error);
                     } else {
                         displayOnSuccessCreation(success, trackingMovementsCounter);
                         fillDatePickers('.free-field-date');
@@ -324,12 +324,24 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
-function displayConfirmationModal($trackingMovementModal, group) {
+function displayConfirmationModal($trackingMovementModal, group, error) {
+    let message = "";
+    switch(error) {
+        case 'CONFIRM_CREATE_GROUP':
+            message = `Cette unité logistique est présente dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`;
+        break;
+        case 'CONFIRM_SPLIT_PACK':
+            message = `L'unité logistique <strong>${group}</strong> est présente dans un groupe. <br>Voulez-vous la diviser ?`;
+        break;
+        default:
+            message = "Une erreur est survenue.";
+        break;
+    };
     displayAlertModal(
         undefined,
         $('<div/>', {
             class: 'text-center',
-            html: `Cette unité logistique est présente dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
+            html: message,
         }),
         [
             {
