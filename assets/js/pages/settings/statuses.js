@@ -357,7 +357,9 @@ function initializeStatusesByTypes($container, canEdit, mode) {
             const $type = $(this);
             const type = $type.val();
             const url = Routing.generate(`settings_statuses_api`, {mode, type})
-            table.setURL(url, true, () => disableFieldsBasedOnStatus($container));
+            table.setURL(url, true, () => {
+                disableFieldsBasedOnStatus($container);
+            });
         });
     $typeFilters.first().trigger('click');
 
