@@ -498,10 +498,11 @@ class SelectController extends AbstractController {
                     'limit' => $limit,
                 ]
             );
+            $completeMatch = $packRepository->count(['code' => $packCode]) === 1;
         }
 
         return new StreamedJsonResponse([
-            "results" => $packService->getFormatedKeyboardPackGenerator($results) ?? [],
+            "results" => $packService->getFormatedKeyboardPackGenerator($results, $completeMatch) ?? [],
             "error" => $error ?? null,
         ]);
 

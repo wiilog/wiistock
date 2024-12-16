@@ -116,7 +116,7 @@ export default class Select2 {
                     dataType: `json`,
                     data: params => Select2.includeParams($element, params),
                     processResults: (data) => {
-                        const $search = $element.parent().find(`.select2-search__field`);
+                        const $search = $(`.select2-search__field`);
                         if (data.error) {
                             $search.addClass(`is-invalid`);
 
@@ -148,7 +148,7 @@ export default class Select2 {
                                         const selectedData = $element.select2('data');
                                         const alreadySelected = selectedData.findIndex(({id}) => id === searchValue) > -1;
                                         if (!alreadySelected) {
-                                            const [option] = $element.parent().find('.select2-results__option')
+                                            const [option] = $('.select2-results__option')
                                                 .toArray()
                                                 .filter((element) => !$(element).find('.new-item-container').exists());
                                             $(option).trigger("mouseup");
