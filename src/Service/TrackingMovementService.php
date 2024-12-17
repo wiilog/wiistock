@@ -1723,6 +1723,18 @@ class TrackingMovementService {
             ->toArray();
     }
 
+    public function getTrackingMovementExportableColumnsSorted(EntityManagerInterface $entityManager): array {
+        return Stream::from($this->getTrackingMovementExportableColumns($entityManager))
+            ->reduce(
+                static function (array $carry, array $column) {
+                    $carry["labels"][] = $column["label"] ?? '';
+                    $carry["codes"][] = $column["code"] ?? '';
+                    return $carry;
+                },
+                ["labels" => [], "codes" => []]
+            );
+    }
+
     public function buildCustomLogisticUnitHistoryRecord(TrackingMovement $trackingMovement,
                                                          array            $natureChangedData = [],
                                                          ?Pack            $pack = null): string {
