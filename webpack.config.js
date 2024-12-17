@@ -86,7 +86,6 @@ Encore
     .addEntry('dispatch-index', '/assets/js/pages/dispatch/index.js')
     .addEntry('dispatch-show', '/assets/js/pages/dispatch/show.js')
     .addEntry('dispute-index', '/assets/js/pages/dispute/index.js')
-    .addEntry('dispute-common', '/assets/js/pages/dispute/common.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
