@@ -275,6 +275,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'm-d-Y' => 'mm-dd-yyyy',
     ];
     const SEARCH_DEFAULT = ["label", "reference"];
+    public const MAX_SECONDARY_EMAILS = 2;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

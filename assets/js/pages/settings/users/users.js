@@ -3,6 +3,7 @@ import Routing from '@app/fos-routing';
 import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
 import Form from "@app/form";
+import Flash, {ERROR} from "@app/flash";
 
 global.editRowUser = editRowUser;
 
@@ -54,7 +55,7 @@ export function initUserPage($container) {
     let $submitDeleteUser = $("#submitDeleteUser");
     let pathDeleteUser = Routing.generate('user_delete', true);
     InitModal($modalDeleteUser, $submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
-
+    initRemoveSecondaryMails();
     $container.on(`click`, `.add-secondary-email`, function() {
         const $modal = $(this).closest(`.modal`);
 
@@ -98,4 +99,37 @@ function editRowUser(button) {
     }, 'json');
 
     modal.find(submit).attr('value', id);
+}
+
+function initRemoveSecondaryMails(){
+
+    $('.delete-mail-line')
+        .off('click.initRemoveSecondaryMails')
+        .on('click.initRemoveSecondaryMails', function () {
+            removeMailLine($(this));
+        });
+
+    $(document).arrive('.delete-mail-line', function () {
+        $(this)
+            .off('click.initRemoveSecondaryMails')
+            .on('click.initRemoveSecondaryMails', function () {
+                removeMailLine($(this));
+            });
+    });
+}
+
+function removeMailLine($button){
+    const $modal = $button.closest('.modal');
+    const $secondaryEmailContainer = $modal.find('.secondary-email');
+    const $currentEmail = $button.closest('.secondary-email');
+    const $addEmail = $modal.find('.add-secondary-email');
+
+    if($secondaryEmailContainer.length === 1) {
+        Flash.add(ERROR, 'Au moins un email secondaire est nécessaire');
+    } else {
+        $currentEmail.addClass("d-none");
+        $addEmail.removeClass("d-none");
+        const $inputEmail = $button.closest('.secondary-email').find('input[name=secondaryEmails]');
+        $inputEmail.val("");
+    }
 }
