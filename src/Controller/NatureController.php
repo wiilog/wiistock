@@ -102,8 +102,11 @@ class NatureController extends AbstractController {
                 $segmentsColors[] = $trackingDelaySegment['segmentColor'];
             });
 
+        $natureDelayInterval = $nature->getTrackingDelay()
+            ? $dateTimeService->secondsToDateInterval($nature->getTrackingDelay())
+            : null;
         $trackingDelay = $nature->getTrackingDelay()
-            ? $dateTimeService->intervalToHourAndMinStr($dateTimeService->secondsToDateInterval($nature->getTrackingDelay()))
+            ? $this->getFormatter()->delay($natureDelayInterval)
             : null;
         $content = $this->renderView('nature/modal/form.html.twig', [
             "nature" => $nature,

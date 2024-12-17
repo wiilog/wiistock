@@ -6,7 +6,7 @@ import {initDataTable} from "@app/datatable";
 import Form from "@app/form";
 import {initCommentHistoryForm} from "@app/pages/dispute/common";
 import {initDispatchCreateForm, onDispatchTypeChange} from "@app/pages/dispatch/common";
-import {printArrival, checkPossibleCustoms} from "@app/pages/arrival/common";
+import {printArrival, checkPossibleCustoms, arrivalCallback} from "@app/pages/arrival/common";
 
 global.printArrival = printArrival;
 global.onDispatchTypeChange = onDispatchTypeChange
@@ -68,7 +68,12 @@ $(function () {
             POST,
             "arrivage_edit",
             {
-                success: (params) => arrivalCallback(false, params)
+                success: (response) => {
+                    arrivalCallback(false, response);
+                    if (response.entete) {
+                        $('.zone-entete').html(response.entete);
+                    }
+                }
             }
         )
         .onOpen((event) => {
@@ -95,7 +100,6 @@ $(function () {
                         $modalEditArrivage.find(`.take-picture-modal-button`),
                         $modalEditArrivage.find(`[name="files[]"]`)
                     );
-
                 }
             })
         });
