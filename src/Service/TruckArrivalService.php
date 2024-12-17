@@ -290,7 +290,6 @@ class TruckArrivalService
     }
 
     private function putPackLine($handle, array $truckArrival): void {
-        dump($truckArrival); //TODO delete dump(
         $line = [
             $truckArrival["number"],
             $truckArrival["carrier"],
