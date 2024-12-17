@@ -72,6 +72,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('dispute') }}
     <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/litiges.js') }}?v={{ web_version }}"></script>
 {% endblock %}
