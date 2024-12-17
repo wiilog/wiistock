@@ -136,6 +136,7 @@ class ProductionRequestService
             ['title' => FixedFieldEnum::emergency->value, 'name' => FixedFieldEnum::emergency->name],
             ['title' => FixedFieldEnum::projectNumber->value, 'name' => FixedFieldEnum::projectNumber->name],
             ['title' => FixedFieldEnum::comment->value, 'name' => FixedFieldEnum::comment->name],
+            ['title' => FixedFieldEnum::treatmentAt->value, 'name' => FixedFieldEnum::treatmentAt->name],
         ]);
 
         return $this->fieldModesService->getArrayConfig($columns, $freeFields, $fieldsModes, $forExport);
@@ -241,6 +242,7 @@ class ProductionRequestService
             FixedFieldEnum::emergency->name => $productionRequest->getEmergency() ?: 'Non',
             FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
             FixedFieldEnum::comment->name => $productionRequest->getComment(),
+            FixedFieldEnum::treatmentAt->name => $this->formatService->datetime($productionRequest->getTreatedAt()),
         ];
 
         $row['isDispatched'] = $productionRequest->getDispatch() ? '<i class="fas fa-exchange-alt"></i>' : '';
@@ -762,6 +764,7 @@ class ProductionRequestService
             $productionRequest[FixedFieldEnum::emergency->name],
             $productionRequest[FixedFieldEnum::projectNumber->name],
             $comment ? strip_tags($comment) : null,
+            $productionRequest[FixedFieldEnum::treatmentAt->name],
             ...(Stream::from($freeFieldsConfig['freeFields'])
                 ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                     $value = $freeFieldValues[$freeFieldId] ?? null;
