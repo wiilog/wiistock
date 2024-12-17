@@ -1,3 +1,5 @@
+import {initCommentHistoryForm, initTableArticleLitige} from "@app/pages/dispute/common";
+
 let tableLitiges;
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
@@ -8,6 +10,9 @@ let urlDeleteLitige = Routing.generate('dispute_delete', true);
 
 let tableHistoLitige;
 let tableArticleLitige;
+
+global.editRowLitige = editRowLitige;
+global.openTableHisto = openTableHisto;
 
 $(function () {
     const $userFormat = $('#userDateFormat');
@@ -154,7 +159,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 }
 
 function openTableHisto() {
-
     let pathHistoLitige = Routing.generate('dispute_histo_api', {dispute: $('[name="disputeId"]').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
@@ -175,4 +179,6 @@ function openTableHisto() {
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
     tableArticleLitige = initTableArticleLitige();
+
+    initCommentHistoryForm(modalEditLitige, tableHistoLitige);
 }
