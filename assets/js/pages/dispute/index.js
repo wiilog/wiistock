@@ -1,4 +1,4 @@
-import {initCommentHistoryForm} from "@app/pages/dispute/common";
+import {initCommentHistoryForm, initTableArticleLitige} from "@app/pages/dispute/common";
 
 let tableLitiges;
 let modalEditLitige = $('#modalEditLitige');

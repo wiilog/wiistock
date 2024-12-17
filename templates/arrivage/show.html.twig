@@ -174,5 +174,5 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('arrival-show') }}
-    <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('dispute-common') }}
 {% endblock %}
