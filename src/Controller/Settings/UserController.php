@@ -52,7 +52,6 @@ class UserController extends AbstractController {
             return new JsonResponse([
                 "html" => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     "user" => $user,
-                    "secondaryMailNumber" => Utilisateur::MAX_SECONDARY_EMAILS,
                     "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
@@ -235,19 +234,18 @@ class UserController extends AbstractController {
         }
 
         $secondaryEmails = $data->has('secondaryEmails')
-            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()->toArray()
+            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()->values()
             : [];
 
-        if($secondaryEmails){
-            if(count($secondaryEmails) > Utilisateur::MAX_SECONDARY_EMAILS){
-                throw new FormException("Le nombre d'email n'est pas valide");
-            }
-            foreach($secondaryEmails as $email) {
-                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)){
-                    throw new FormException("L'adresse email $email n'est pas valide");
-                }
+        if(count($secondaryEmails) > Utilisateur::MAX_SECONDARY_EMAILS){
+            throw new FormException("Le nombre d'email n'est pas valide");
+        }
+        foreach($secondaryEmails as $email) {
+            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)){
+                throw new FormException("L'adresse email $email n'est pas valide");
             }
         }
+
 
         $dropzone = explode(":", $data->get('dropzone'));
         if($dropzone[0] === 'location') {
@@ -470,22 +468,18 @@ class UserController extends AbstractController {
         }
 
         $secondaryEmails = $data->has('secondaryEmails')
-            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()->toArray()
+            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()->values()
             : [];
 
-        if($secondaryEmails){
-            if(count($secondaryEmails) > Utilisateur::MAX_SECONDARY_EMAILS){
-                throw new FormException("Le nombre d'email n'est pas valide");
-            }
-            foreach($secondaryEmails as $email) {
-                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => "L'adresse email \"{$email}\" n'est pas valide"
-                    ]);
-                }
+        if(count($secondaryEmails) > Utilisateur::MAX_SECONDARY_EMAILS){
+            throw new FormException("Le nombre d'email n'est pas valide");
+        }
+        foreach($secondaryEmails as $email) {
+            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new FormException("L'adresse email $email n'est pas valide");
             }
         }
+
 
         $dropzone = explode(":", $data->get('dropzone'));
         if($dropzone[0] === 'location') {

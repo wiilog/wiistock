@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-{% set maxSecondaryEmail = constant(('App\\Entity\\Utilisateur::MAX_SECONDARY_EMAILS')) %}
+{% set maxSecondaryEmail = constant('App\\Entity\\Utilisateur::MAX_SECONDARY_EMAILS') %}
 <form>
     {% if user.id %}
         {{ form.hidden('user', user.id) }}
