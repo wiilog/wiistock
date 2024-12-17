@@ -26,6 +26,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Service\IOT\IOTService;
+use DateInterval;
 use DateTime;
 use DateTimeInterface;
 use Exception;
@@ -454,6 +455,31 @@ class FormatService
         $minutes = $date->format('i');
 
         return $hours . "h" . $minutes;
+    }
+
+    /**
+     * @param array{
+     *     minus?: bool,
+     *     separator?: string,
+     * } $options
+     */
+    public function delay(?DateInterval $delay,
+                          ?string       $else = null,
+                          array         $options = []): ?string {
+
+        $minus = $options["minus"] ?? true;
+        $separator = $options["separator"] ?? "h";
+
+        if (isset($delay)) {
+            $hours = sprintf('%02d', ($delay->d * 24) + $delay->h);
+            $minutes = sprintf('%02d', $delay->i);
+
+            $prefix = $minus && $delay->invert ? "-" : "";
+
+            return "{$prefix}{$hours}{$separator}{$minutes}";
+        }
+
+        return $else;
     }
 
     public function list(array $values, bool $ignoreEmpty = true): string {

@@ -96,7 +96,7 @@ class PackController extends AbstractController {
                 "width" => 10,
                 "type" => 'qrcode',
             ],
-            "trackingDelay" => $packService->generateTrackingDelayHtml($logisticUnit),
+            "trackingDelay" => $packService->formatTrackingDelayData($logisticUnit),
             "hasPairing" => $hasPairing,
         ]);
     }
@@ -322,11 +322,11 @@ class PackController extends AbstractController {
         return $this->json([
             "data" => Stream::from($groupContent["data"])
                 ->map(function(Pack $pack) use ($packService, $showPageMode, $itemColor) {
-                    $trackingDelay = $packService->generateTrackingDelayHtml($pack);
+                    $trackingDelay = $packService->formatTrackingDelayData($pack);
                     return [
                         "content" => $this->renderView('pack/content_group.html.twig', [
                             "pack" => $pack,
-                            "trackingDelay" => $trackingDelay["delay"],
+                            "trackingDelay" => $trackingDelay["delayHTMLRaw"] ?? null,
                             "itemBgColor" => $itemColor,
                         ])
                     ];

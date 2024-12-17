@@ -56,7 +56,6 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
     public function normalizeForMobile (Pack $pack, string $format = null, array $context = []): array {
         $lastAction = $pack->getLastAction();
 
-
         $res = [
             "id" => $pack->getId(),
             "code" => $pack->getCode(),
@@ -84,17 +83,17 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
                         "ref_emplacement" => $pack->getLastAction()?->getEmplacement()?->getLabel(),
                         "date" => $this->formatService->datetime($pack->getLastAction()?->getDatetime(), null),
                         "trackingDelayColor" => $trackingDelayData["color"] ?? null,
-                        "trackingDelay" => $trackingDelayData["delay"] ?? null,
-                        "limitTreatmentDate" => $this->formatService->datetime($trackingDelayData["date"] ?? null, null)
+                        "trackingDelay" => $trackingDelayData["delayHTML"] ?? null,
+                        "limitTreatmentDate" => $trackingDelayData["dateHTML"] ?? null,
                     ];
                 })
                 ->toArray();
         }
         else {
             $trackingDelayData = $this->packService->formatTrackingDelayData($pack);
-            $res["trackingDelay"] = $trackingDelayData["delay"] ?? null;
+            $res["trackingDelay"] = $trackingDelayData["delayHTML"] ?? null;
             $res["trackingDelayColor"] = $trackingDelayData["color"] ?? null;
-            $res["limitTreatmentDate"] = $this->formatService->datetime($trackingDelayData["date"] ?? null, null);
+            $res["limitTreatmentDate"] = $trackingDelayData["dateHTML"] ?? null;
         }
 
         return $res;

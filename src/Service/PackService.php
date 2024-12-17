@@ -159,7 +159,7 @@ class PackService {
             ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
             : null ;
 
-        $finalTrackingDelay = $this->generateTrackingDelayHtml($pack);
+        $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastAction();
@@ -196,8 +196,8 @@ class PackService {
             'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
-            "trackingDelay" => $finalTrackingDelay["delay"],
-            "limitTreatmentDate" => $finalTrackingDelay["date"],
+            "trackingDelay" => $finalTrackingDelay["delayHTMLRaw"] ?? null,
+            "limitTreatmentDate" => $finalTrackingDelay["dateHTML"] ?? null,
             "group" => $pack->getGroup()
                 ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
                     "entityPath" => "pack_show",
@@ -785,45 +785,75 @@ class PackService {
 
     /**
      * @return array{
-     *     date?: string,
-     *     delay?: string,
-     * }
-     */
-    public function generateTrackingDelayHtml(Pack $pack): array
-    {
-        $trackingDelayData = $this->formatTrackingDelayData($pack);
-
-        return [
-            "delay" => isset($trackingDelayData["color"]) && isset($trackingDelayData["delay"])
-                ? $this->templating->render("pack/tracking-delay.html.twig", [
-                    "delay" => $trackingDelayData["delay"],
-                    "color" => $trackingDelayData["color"],
-                ])
-                : null,
-            "date" => $this->formatService->datetime($trackingDelayData["date"] ?? null, null),
-        ];
-    }
-
-    /**
-     * @return array{
      *     color?: string,
-     *     delay?: string,
+     *     delay?: int,
+     *     delayHTML?: string,
+     *     delayHTMLRaw?: string,
      *     date?: DateTime,
+     *     dateHTML?: string,
      * }
      */
     public function formatTrackingDelayData(Pack $pack): array {
+        if($pack->isGroup()) {
+            $packChildSortedByDelay = Stream::from($pack->getContent())
+                ->filterMap(function(Pack $pack) {
+                    $remainingTime = $this->getTrackingDelayRemainingTime($pack);
+                    // ignore pack without tracking delay
+                    return isset($remainingTime)
+                        ? [
+                            "pack" => $pack,
+                            "remainingTime" => $remainingTime,
+                        ]
+                        : null;
+                })
+                ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
+
+            $firstPackChild = $packChildSortedByDelay->first()["pack"] ?? null;
+            $pack = $firstPackChild ?: $pack;
+        }
+
+        $packTrackingDelay = $pack->getTrackingDelay();
+
+        $remainingTime = $this->getTrackingDelayRemainingTime($pack);
+
+        if (!isset($remainingTime)) {
+            return [];
+        }
+
+        if (!$packTrackingDelay->isTimerPaused()) {
+            $limitTreatmentDate = $packTrackingDelay->getLimitTreatmentDate();
+        }
+
+        $color = $this->getTrackingDelayColor($pack, $remainingTime);
+
+        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingTime);
+        $remainingInterval->invert = $remainingTime < 0;
+        $delayHTML = $this->formatService->delay($remainingInterval);
+
+        return [
+            "color" => $color,
+            "delay" => $remainingTime,
+            "delayHTML" => $delayHTML,
+            "delayHTMLRaw" => $this->templating->render("pack/tracking-delay.html.twig", [
+                "delay" => $delayHTML,
+                "color" => $color,
+            ]),
+            "date" => $limitTreatmentDate ?? null,
+            "dateHTML" => $this->formatService->datetime($limitTreatmentDate ?? null, null),
+        ];
+    }
+
+    private function getTrackingDelayRemainingTime(Pack $pack): ?int {
         $packTrackingDelay = $pack->getTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
 
         if(!$packTrackingDelay || !$natureTrackingDelay) {
-            return [];
+            return null;
         }
 
-        $delayIsLate = false;
         $elapsedTime = $packTrackingDelay->getElapsedTime();
         if (!$packTrackingDelay->isTimerPaused()) {
-            $limitTreatmentDate = $packTrackingDelay->getLimitTreatmentDate();
             $trackingDelay = $this->dateTimeService->getWorkedPeriodBetweenDates($this->entityManager, $packTrackingDelay->getCalculatedAt(), new DateTime());
             $trackingDelayInSeconds = ($elapsedTime + floor($this->dateTimeService->convertDateIntervalToMilliseconds($trackingDelay) / 1000));
         }
@@ -831,12 +861,17 @@ class PackService {
             $trackingDelayInSeconds = $elapsedTime;
         }
 
-        $remainingTime = $natureTrackingDelay - $trackingDelayInSeconds;
+        return $natureTrackingDelay - $trackingDelayInSeconds;
+    }
 
-        if($remainingTime < 0){
+    private function getTrackingDelayColor(Pack $pack,
+                                           int  $remainingTime): ?string {
+        $nature = $pack->getNature();
+
+        if ($remainingTime < 0){
             $trackingDelayColor = $nature->getExceededDelayColor() ?? PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
-            $delayIsLate = true;
-        } else {
+        }
+        else {
             $trackingDelaySegments = $nature->getTrackingDelaySegments();
             $trackingDelayColor = PackService::PACK_DEFAULT_TRACKING_DELAY_COLOR;
 
@@ -849,15 +884,7 @@ class PackService {
             }
         }
 
-        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval(abs($remainingTime));
-        $formattedRemainingInterval = $this->dateTimeService->intervalToHourAndMinStr($remainingInterval);
-        $strDelay = ($delayIsLate ? '-' : '') . $formattedRemainingInterval;
-
-        return [
-            "color" => $trackingDelayColor,
-            "delay" => $strDelay,
-            "date"  => $limitTreatmentDate ?? null
-        ];
+        return $trackingDelayColor;
     }
 
     public function getFormatedKeyboardPackGenerator(Iterator $packs): Iterator {
