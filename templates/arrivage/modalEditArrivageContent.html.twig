@@ -256,17 +256,8 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col h-fit-content">
-            <label class="wii-field-name"
-                   for="commentaire"
-                   style="margin-bottom: 5px">
-                {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentNeeded ? '*' }}
-            </label>
-            <input id="commentaire"
-                   class="commentaire form-control data {{ commentNeeded ? 'needed' }}"
-                   name="commentaire"
-                   type="hidden"
-                   value="{{ arrivage.commentaire }}">
-            <div class="editor-container-edit" value="{{ arrivage.commentaire }}" data-wysiwyg>{{ arrivage.commentaire|raw }}</div>
+            {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+            {{ form.wysiwyg('comment', trans('Général', null, 'Modale', 'Commentaire'), commentNeeded, arrivage.commentaire) }}
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE') %}

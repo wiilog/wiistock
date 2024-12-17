@@ -542,7 +542,6 @@ class ArrivageController extends AbstractController
     #[Route("/modifier", name: "arrivage_edit", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
-                         SpecificService        $specificService,
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
                          EntityManagerInterface $entityManager,
@@ -580,8 +579,8 @@ class ArrivageController extends AbstractController
 
         $arrivage->setDropLocation($dropLocation);
 
-        if ($post->has('commentaire')) {
-            $arrivage->setCommentaire($post->get('commentaire'));
+        if ($post->has('comment')) {
+            $arrivage->setCommentaire($post->get('comment'));
         }
 
         if ($post->has('noTracking')) {
