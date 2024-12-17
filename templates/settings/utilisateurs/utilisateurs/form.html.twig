@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-{% set maxSecondaryMail = 2 %}
+{% set maxSecondaryEmail = constant(('App\\Entity\\Utilisateur::MAX_SECONDARY_EMAILS')) %}
 <form>
     {% if user.id %}
         {{ form.hidden('user', user.id) }}
@@ -40,20 +40,20 @@
 
                 {% set secondaryEmails = (user.secondaryEmails ?? []) | filter(e => e) %}
 
-                <div class="form-group row {% if secondaryEmails | length < maxSecondaryMail %}mb-0{% endif %}">
+                <div class="form-group row {% if secondaryEmails | length < maxSecondaryEmail %}mb-0{% endif %}">
                     <div class="col-12">
                         {{ form.input('email', 'Email', true, user.email, {
                             type: 'email',
                         }) }}
                     </div>
-                    <div class="col-12" style="text-align: right">
-                        <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none {{ secondaryEmails | length >= maxSecondaryMail ? "d-none"}}" style="font-size: 0.8rem">Ajouter un email</span>
+                    <div class="col-12 d-flex justify-content-end">
+                        <span class="btn-link btn-sm add-secondary-email font-weight-bold pointer user-select-none {{ secondaryEmails | length >= maxSecondaryEmail ? "d-none"}}">Ajouter un email</span>
                     </div>
                 </div>
 
-                {% for indexMail in range(1, maxSecondaryMail)%} {# init new email input empty with a max of 2 input #}
-                    {% set label = 'Email ' ~ (indexMail + 1) %}
-                    {% set indexInSecondaryEmails = indexMail - 1 %}
+                {% for indexEmail in range(1, maxSecondaryEmail)%} {# init new email input empty with a max of 2 input #}
+                    {% set label = 'Email ' ~ (indexEmail + 1) %}
+                    {% set indexInSecondaryEmails = indexEmail - 1 %}
                     <div class="form-group secondary-email {{ secondaryEmails[indexInSecondaryEmails] is not defined ? "d-none"}}">
                         <div class="col-12 d-flex">
                             {{ form.input('secondaryEmails', label, true, secondaryEmails[indexInSecondaryEmails] is defined ? secondaryEmails[indexInSecondaryEmails] : '', {
@@ -61,8 +61,8 @@
                                 inputClass: 'data-array',
                             }) }}
                             <div class="d-flex align-items-end">
-                                <div class="btn btn-outline-primary delete-mail-line d-flex align-items-center ml-2"
-                                     title="Supprimer email secondaire" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
+                                <div class="btn btn-outline-primary delete-mail-line d-flex align-items-center ml-2 pt-2 pb-2"
+                                     title="Supprimer email secondaire">
                                     <i class="wii-icon wii-icon-trash"></i>
                                 </div>
                             </div>

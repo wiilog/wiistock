@@ -48,12 +48,11 @@ class UserController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
 
             $user = $utilisateurRepository->find($data['id']);
-            $SECONDARYMAILNUMBER = 2;
 
             return new JsonResponse([
                 "html" => $this->renderView('settings/utilisateurs/utilisateurs/form.html.twig', [
                     "user" => $user,
-                    "secondaryMailNumber" => $SECONDARYMAILNUMBER,
+                    "secondaryMailNumber" => Utilisateur::MAX_SECONDARY_EMAILS,
                     "languages" => Stream::from($languageRepository->findBy(["hidden" => false]))
                         ->map(fn(Language $language) => [
                             "value" => $language->getId(),
@@ -236,16 +235,15 @@ class UserController extends AbstractController {
         }
 
         $secondaryEmails = $data->has('secondaryEmails')
-            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()
+            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()->toArray()
             : [];
 
-
         if($secondaryEmails){
-            foreach($secondaryEmails as $index => $email) {
-                if($email == ""){
-                    $emptyIndex[] = $index;
-                }
-                else if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)){
+            if(count($secondaryEmails) > Utilisateur::MAX_SECONDARY_EMAILS){
+                throw new FormException("Le nombre d'email n'est pas valide");
+            }
+            foreach($secondaryEmails as $email) {
+                if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)){
                     throw new FormException("L'adresse email $email n'est pas valide");
                 }
             }
@@ -472,10 +470,13 @@ class UserController extends AbstractController {
         }
 
         $secondaryEmails = $data->has('secondaryEmails')
-            ? explode(',', $data->get('secondaryEmails'))
+            ? Stream::explode(',', $data->get('secondaryEmails'))->filter()->toArray()
             : [];
 
         if($secondaryEmails){
+            if(count($secondaryEmails) > Utilisateur::MAX_SECONDARY_EMAILS){
+                throw new FormException("Le nombre d'email n'est pas valide");
+            }
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return $this->json([
