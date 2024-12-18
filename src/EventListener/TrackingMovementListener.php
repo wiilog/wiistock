@@ -168,6 +168,10 @@ class TrackingMovementListener implements EventSubscriber
 
         $pack = $movementToDelete->getPack();
 
+        if (!$pack) {
+            return;
+        }
+
         $lastOngoingDropToUpdate = (
             !$pack->getLastOngoingDrop()
             || $pack->getLastOngoingDrop()->getId() === $movementToDelete->getId()
