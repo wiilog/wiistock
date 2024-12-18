@@ -38,7 +38,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
             // edit values
             cy.typeInModalInputs(selectorModal, driver, ['carrier']);
             // edit values select2
-            cy.select2Ajax('transporteur', driver.carrier, '', true, '/select/carrier*')
+            cy.select2Ajax('transporteur', driver.carrier, '', '/select/carrier*')
 
             // close and verify modal is closed
             cy.closeAndVerifyModal(selectorModal, 'submitNewChauffeur', 'chauffeur_new');
@@ -75,9 +75,9 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
             cy.typeInModalInputs(selectorModal, newDrivers[index], ['carrier']);
 
             // clear previous value
-            cy.clearSelect2AjaxValues('transporteur');
+            cy.clearSelect2AjaxValues(`${selectorModal} [name="transporteur"]`);
             // refill select2
-            cy.select2Ajax('transporteur', newDrivers[index].carrier, 'modalEditChauffeur', false, '/select/carrier*')
+            cy.select2Ajax('transporteur', newDrivers[index].carrier, 'modalEditChauffeur', '/select/carrier*')
 
             // submit form & wait reponse
             cy.closeAndVerifyModal(selectorModal, 'submitEditChauffeur', 'chauffeur_edit');

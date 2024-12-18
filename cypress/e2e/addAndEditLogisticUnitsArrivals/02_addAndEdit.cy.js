@@ -203,7 +203,7 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get(selectorModalNewLitige, {timeout: 10000})
             .should('be.visible');
 
-        cy.select2Ajax('disputeType',dispute.type, '', true, '/select/*', false);
+        cy.select2Ajax('disputeType',dispute.type, '', '/select/*', false);
 
         // remove the reporter if it's already selected
         cy.get(selectorModalNewLitige).then(($modal) => {
@@ -220,7 +220,7 @@ describe('Add and edit logistic units arrivals', () => {
         // and select the new one
         cy.select2Ajax('disputeReporter', dispute.reporter);
 
-        cy.select2Ajax('disputeStatus',dispute.status, '', true, '/select/*', false);
+        cy.select2Ajax('disputeStatus',dispute.status, '', '/select/*', false);
 
         // fill the dispute packs with the first and the last logistic units selected before
         cy.get('@firstLU').then((firstLU) => {
@@ -272,7 +272,7 @@ describe('Add and edit logistic units arrivals', () => {
             .click().wait('@arrival_dispute_api_edit', {timeout: 8000});
 
         // edit the dispute
-        cy.select2Ajax('disputeType', disputeChanged.type, '', true, '/select/*', false);
+        cy.select2Ajax('disputeType', disputeChanged.type, '', '/select/*', false);
         cy.get(`${modalEditLitige} [name=disputeStatus]`)
             .select(disputeChanged.status);
         cy.get(`${modalEditLitige} [name=disputeReporter]`)
@@ -285,7 +285,7 @@ describe('Add and edit logistic units arrivals', () => {
         cy.select2Ajax('disputeReporter', disputeChanged.reporter);
 
         // remove the packs if they are already selected
-        cy.clearSelect2AjaxValues('disputePacks');
+        cy.clearSelect2AjaxValues(`${modalEditLitige} [name="disputePacks"]`);
 
         // fill the dispute packs with the first and the last logistic units selected before
         cy.get('@firstLU').then((firstLU) => {
@@ -404,9 +404,9 @@ describe('Add and edit logistic units arrivals', () => {
             .wait('@arrivage_edit_api');
 
         // select2ajax
-        cy.select2Ajax('fournisseur', arrivalChanged.fournisseur, '', true, '', false);
-        cy.select2Ajax('transporteur', arrivalChanged.transporteur, '', true, '', false);
-        cy.select2Ajax('chauffeur', arrivalChanged.chauffeur, '', true, '', false);
+        cy.select2Ajax('fournisseur', arrivalChanged.fournisseur, '', '', false);
+        cy.select2Ajax('transporteur', arrivalChanged.transporteur, '', '', false);
+        cy.select2Ajax('chauffeur', arrivalChanged.chauffeur, '', '', false);
 
         // remove the first and the second numeroCommandeList if they are already selected
         cy.clearSelect2("numeroCommandeList", "modalEditArrivage");

@@ -15,7 +15,9 @@ Cypress.Commands.add('typeInModalInputs', (modalId, dataObject, excludedAttribut
     Object.keys(dataObject).forEach((propertyName) => {
         // Check if the property should be excluded
         if (!excludedAttributes.includes(propertyName)) {
-            cy.get(`${modalId} input[name=${propertyName}]`).clear().type(dataObject[propertyName]);
+            const $input = cy.get(`${modalId} input[name="${propertyName}"]`);
+            $input.focus().clear();
+            $input.focus().type(dataObject[propertyName]);
         }
     });
 });
@@ -224,6 +226,6 @@ function fillSelect($select, value){
     if ($select.hasClass('list-multiple')) {
         cy.select2($select.attr('name'), value);
     } else {
-        cy.select2Ajax($select.attr('name'), value, '', true, '/select/*', true);
+        cy.select2Ajax($select.attr('name'), value, '', '/select/*', true);
     }
 }

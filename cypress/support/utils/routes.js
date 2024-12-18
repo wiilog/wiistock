@@ -22,10 +22,15 @@ export const routes = {
         route: '/emplacement/creer',
         alias: 'emplacement_new'
     },
-    location_api_new: {
+    location_form_new: {
         method: 'GET',
         route: '/emplacement/form',
-        alias: 'location_api_new'
+        alias: 'location_form_new'
+    },
+    location_form_edit: {
+        method: 'GET',
+        route: '/emplacement/form/*',
+        alias: 'location_form_edit'
     },
     emplacement_edit: {
         method: 'POST',

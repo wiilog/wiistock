@@ -68,7 +68,7 @@ describe('Test the filters', () => {
     })
 
     it('should sort array elements by a location', () => {
-        cy.select2Ajax('emplacement', 'BUREAU GT', '', true, '/emplacement/!*');
+        cy.select2Ajax('emplacement', 'BUREAU GT', '', '/emplacement/!*');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', 8);
 
@@ -77,7 +77,7 @@ describe('Test the filters', () => {
             .find('.select2-selection__clear')
             .click();
 
-        cy.select2Ajax('emplacement', 'ZONE 41', '', true, '/emplacement/!*');
+        cy.select2Ajax('emplacement', 'ZONE 41', '', '/emplacement/!*');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
     })
@@ -153,7 +153,7 @@ describe('Test the filters', () => {
     it('should sort array elements by a minimum date, a maximum date and a location', () => {
         cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
         cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
-        cy.select2Ajax('emplacement', 'LABO 11', '', true, '/emplacement/!*');
+        cy.select2Ajax('emplacement', 'LABO 11', '', '/emplacement/!*');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
     })
@@ -180,7 +180,7 @@ describe('Test the filters', () => {
         cy.get('#ul').click().clear().type('12345');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', 6);
-        cy.select2Ajax('emplacement', 'BUREAU GT', '', true, '/emplacement/!*');
+        cy.select2Ajax('emplacement', 'BUREAU GT', '', '/emplacement/!*');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', 4);
         cy.select2('statut', 'passage à vide');
@@ -197,7 +197,7 @@ describe('Test the filters', () => {
         cy.select2Ajax('article', 'ART230700000001');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
-        cy.select2Ajax('emplacement', 'BUREAU GT', '', true, '/emplacement/!*');
+        cy.select2Ajax('emplacement', 'BUREAU GT', '', '/emplacement/!*');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
         cy.select2('statut', 'dépose dans UL');
