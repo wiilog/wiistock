@@ -75,7 +75,7 @@ describe('Test of the production request', () => {
         cy
             .get(`#${modalUpdateStatus}`).should('be.visible', {timeout: 8000})
             .then(() => {
-                cy.select2Ajax('status', inProgress, modalUpdateStatus, true, 'production_request_planning_api_test', false);
+                cy.select2Ajax('status', inProgress, modalUpdateStatus, 'production_request_planning_api_test', false);
                 cy.closeAndVerifyModal(`#${modalUpdateStatus}`, 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
                 cy.wait(1000);
             });
@@ -107,7 +107,7 @@ describe('Test of the production request', () => {
         cy
             .get(`#${modalUpdateStatus}`).should('be.visible', {timeout: 8000})
             .then(() => {
-                cy.select2Ajax('status', processed, modalUpdateStatus, true, 'production_request_planning_api_test', false);
+                cy.select2Ajax('status', processed, modalUpdateStatus, 'production_request_planning_api_test', false);
                 cy.closeAndVerifyModal(`#${modalUpdateStatus}`, 'submitEditUpdateStatusProductionRequest', 'production_request_planning_api_test', true);
                 cy.wait(1000);
             });
