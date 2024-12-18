@@ -20,7 +20,7 @@ FROM tracking_movement
 
          LEFT JOIN pack AS tracking_movement_pack ON tracking_movement.pack_id = tracking_movement_pack.id
          LEFT JOIN pack AS tracking_movement_parent_pack
-                   ON tracking_movement.pack_parent_id = tracking_movement_parent_pack.id
+                   ON tracking_movement.pack_group_id = tracking_movement_parent_pack.id
          LEFT JOIN article ON tracking_movement_pack.article_id = article.id
          LEFT JOIN nature AS nature_pack ON tracking_movement_pack.nature_id = nature_pack.id
          LEFT JOIN statut AS type_mouvement ON tracking_movement.type_id = type_mouvement.id
