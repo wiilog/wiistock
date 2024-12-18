@@ -8,7 +8,8 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         interceptRoute(routes.emplacements_groupes_api);
         interceptRoute(routes.zones_api);
         interceptRoute(routes.emplacement_new);
-        interceptRoute(routes.location_api_new);
+        interceptRoute(routes.location_form_new);
+        interceptRoute(routes.location_form_edit);
         interceptRoute(routes.emplacement_edit);
         interceptRoute(routes.location_group_new);
         interceptRoute(routes.location_group_edit);
@@ -36,7 +37,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
 
         cy.get(`button[data-cy-name="new-location-button"]`).should('be.visible')
             .click()
-            .wait('@location_api_new');
+            .wait('@location_form_new');
 
         cy.get(selectorModal).should('be.visible', { timeout: 4000 }).then(() => {
             // Type in the inputs
@@ -86,8 +87,11 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
 
         const editLocation = (locationToEditName, newLocationData) => {
             const selectorModal = '#modalEditLocation';
-            // Click on the location to edit
+            // Click on the location to edit and wait for modal charging
             cy.clickOnRowInDatatable('locationsTable', locationToEditName);
+            cy
+                .wait('@location_form_edit')
+                .wait(700);
             cy.get(selectorModal).should('be.visible');
 
             // Edit values
@@ -186,35 +190,39 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.get('.nav-item').find('a').contains(menu).click();
 
         // Wait for the datatable to be loaded before clicking on the row
-        cy.wait('@emplacements_groupes_api');
+        cy.wait('@emplacements_groupes_api').then(() => {
+            locationGroupToEdit.forEach((locationGroupToEditName, index) => {
+                cy.clickOnRowInDatatable('groupsTable', locationGroupToEditName);
 
-        locationGroupToEdit.forEach((locationGroupToEditName, index) => {
-            cy.clickOnRowInDatatable('groupsTable', locationGroupToEditName);
+                // Ensure the modal is visible
+                cy.get(selectorModal).should('be.visible');
 
-            // Ensure the modal is visible
-            cy.get(selectorModal).should('be.visible');
+                // Edit values using custom command
+                cy.typeInModalInputs(selectorModal, newLocationGroups[index], ['description', 'status', 'locations']);
+                cy.get(`${selectorModal} [name=description]`).type(newLocationGroups[index].description);
 
-            // Edit values using custom command
-            cy.typeInModalInputs(selectorModal, newLocationGroups[index], ['description', 'status', 'locations']);
-            cy.get(`${selectorModal} [name=description]`).type(newLocationGroups[index].description);
+                // Toggle button status
+                const statusValue = newLocationGroups[index].status ? "1" : "0";
+                cy.checkCheckbox(selectorModal, `[data-title='Statut'] input`, statusValue);
 
-            // Toggle button status
-            const statusValue = newLocationGroups[index].status ? "1" : "0";
-            cy.checkCheckbox(selectorModal, `[data-title='Statut'] input`, statusValue);
+                cy.clearSelect2('locations', "modalEditLocationGroup");
 
-            cy.clearSelect2('locations', "modalEditLocationGroup");
+                cy.select2AjaxMultiple('locations', newLocationGroups[index].locations, 'modalEditLocationGroup', false);
 
-            cy.select2AjaxMultiple('locations', newLocationGroups[index].locations, 'modalEditLocationGroup', false);
+                // Submit form
+                cy.closeAndVerifyModal(selectorModal, 'submitEditLocationGroup', 'location_group_edit');
 
-            // Submit form
-            cy.closeAndVerifyModal(selectorModal, 'submitEditLocationGroup', 'location_group_edit');
+                // Reload datatable
+                cy.wait('@emplacements_groupes_api');
 
-            // Reload datatable
-            cy.wait('@emplacements_groupes_api');
-
-            // Check datatable after edit
-            newLocationGroups[index] = { ...newLocationGroups[index], locations: newLocationGroups[index].locations.length, status: newLocationGroups[index].status ? 'Inactif' : 'Actif' }
-            cy.checkDataInDatatable(newLocationGroups[index], 'label', 'groupsTable', propertiesMap);
+                // Check datatable after edit
+                newLocationGroups[index] = {
+                    ...newLocationGroups[index],
+                    locations: newLocationGroups[index].locations.length,
+                    status: newLocationGroups[index].status ? 'Inactif' : 'Actif'
+                }
+                cy.checkDataInDatatable(newLocationGroups[index], 'label', 'groupsTable', propertiesMap);
+            });
         });
     })
 

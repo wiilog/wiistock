@@ -1,20 +1,18 @@
 import {defaultTypeSpeed} from '../utils/cypressConfigConstants';
 
-Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldClick = true, requestAlias = '/select/*', shouldWait = true) => {
+Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestAlias = '/select/*', shouldWait = true) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
     const selectorPrefix = modalName !== '' ? `#${modalName} ` : '';
     const getName = `${selectorPrefix}[name=${selectName}]`;
+    const inputSearchSelector = `input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`;
 
-    const select = cy.get(getName).siblings('.select2')
+    // open select2 drowdown with search input
+    cy.get(getName).siblings('.select2.select2-container').find('.select2-selection')
+        .click()
+        .wait(200);
 
-    if(shouldClick){
-        select
-            .click()
-            .wait(200);
-    }
-    select.parents()
-        .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
+    cy.get(inputSearchSelector)
         .type(value)
         .then(() => {
             if (shouldWait) {
@@ -24,9 +22,8 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
             }
         })
 
-    cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
-        .wait(40)
-        .parents('.select2-dropdown')
+    cy.get(inputSearchSelector)
+        .closest('.select2-dropdown')
         .should('be.visible', {timeout: 6000})
         .contains(value)
         .should('be.visible')
@@ -54,7 +51,7 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
             .type(element)
             .wait('@select2Request')
             .its('response.statusCode').should('eq', 200)
-            .wait(40)
+            .wait(100)
             .then(() => {
                 cy.get('.select2-dropdown')
                     .find('.select2-results__option')
@@ -128,15 +125,18 @@ Cypress.Commands.add('clearSelect2', (selectName, modalId = null) => {
  * @example :
  * cy.removePreviousSelect2AjaxValues('locations');
  */
-Cypress.Commands.add('clearSelect2AjaxValues', (selectName) => {
-    cy.get(`select[name=${selectName}]`)
+Cypress.Commands.add('clearSelect2AjaxValues', (selector) => {
+    cy.get(selector)
         .siblings('.select2')
         .find('.select2-selection__clear, .select2-selection__choice__remove')
         .each(($el) => {
-            cy.get(`select[name=${selectName}]`)
+            cy.get(selector)
                 .siblings('.select2')
                 .find('.select2-selection__clear, .select2-selection__choice__remove')
                 .first()
                 .click();
         })
+
+    // hide select2 dropdown
+    cy.get(selector).parent().click();
 })

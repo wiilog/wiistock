@@ -67,9 +67,9 @@ describe('Add and edit components in Referentiel > Projet', () => {
             // edit values
             cy.typeInModalInputs(selectorModal, newProjects[index], ['projectManager']);
             // remove previous value
-            cy.clearSelect2AjaxValues('projectManager');
+            cy.clearSelect2AjaxValues(`${selectorModal} [name="projectManager"]`);
             // add new value
-            cy.select2Ajax('projectManager', newProjects[index].projectManager, 'modalEditProject', false)
+            cy.select2Ajax('projectManager', newProjects[index].projectManager, 'modalEditProject')
 
             // submit form
             cy.closeAndVerifyModal(selectorModal, 'submitEditProject', 'project_edit');
