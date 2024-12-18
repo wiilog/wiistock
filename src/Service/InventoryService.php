@@ -112,7 +112,7 @@ class InventoryService {
 
                         $movement = $this->trackingMovementService->persistTrackingMovement(
                             $this->entityManager,
-                            $refOrArt->getBarCode(),
+                            $refOrArt->getTrackingPack() ?: $refOrArt->getBarCode(),
                             $emplacement,
                             $user,
                             $now,
