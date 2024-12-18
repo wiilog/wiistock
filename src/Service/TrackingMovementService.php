@@ -109,7 +109,7 @@ class TrackingMovementService {
 
         if (isset($movement)) {
             if (($movement instanceof TrackingMovement && $movement->getDispatch())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::DISPATCH_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null)  === TrackingMovement::DISPATCH_ENTITY)) {
                 $data['entityPath'] = 'dispatch_show';
                 $data['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
                 $data['entityId'] =  is_array($movement)
@@ -119,7 +119,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getDispatch()->getNumber();
             } else if (($movement instanceof TrackingMovement && $movement->getArrivage())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::ARRIVAL_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::ARRIVAL_ENTITY)) {
                 $data['entityPath'] = 'arrivage_show';
                 $data['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
                 $data['entityId'] = is_array($movement)
@@ -129,7 +129,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getArrivage()->getNumeroArrivage();
             } else if (($movement instanceof TrackingMovement && $movement->getReception())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::RECEPTION_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::RECEPTION_ENTITY)) {
                 $data['entityPath'] = 'reception_show';
                 $data['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
                 $data['entityId'] = is_array($movement)
@@ -139,7 +139,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getReception()->getNumber();
             } else if (($movement instanceof TrackingMovement && $movement->getMouvementStock()?->getTransferOrder())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::TRANSFER_ORDER_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::TRANSFER_ORDER_ENTITY)) {
                 $data['entityPath'] = 'transfer_order_show';
                 $data['fromLabel'] = 'Transfert de stock';
                 $data['entityId'] = is_array($movement)
@@ -149,7 +149,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getMouvementStock()->getTransferOrder()->getNumber();
             } else if (($movement instanceof TrackingMovement && $movement->getPreparation())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::PREPARATION_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::PREPARATION_ENTITY)) {
                 $data['entityPath'] = 'preparation_show';
                 $data['fromLabel'] = 'Preparation';
                 $data['entityId'] = is_array($movement)
@@ -159,7 +159,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getPreparation()->getNumero();
             } else if (($movement instanceof TrackingMovement && $movement->getDelivery())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::DELIVERY_ORDER_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::DELIVERY_ORDER_ENTITY)) {
                 $data['entityPath'] = 'livraison_show';
                 $data['fromLabel'] = $this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false);
                 $data['entityId'] = is_array($movement)
@@ -169,7 +169,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getDelivery()->getNumero();
             } else if (($movement instanceof TrackingMovement && $movement->getDeliveryRequest())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::DELIVERY_REQUEST_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::DELIVERY_REQUEST_ENTITY)) {
                 $data['entityPath'] = 'demande_show';
                 $data['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
                 $data['entityId'] = is_array($movement)
@@ -179,7 +179,7 @@ class TrackingMovementService {
                     ? $movement['entityNumber']
                     : $movement->getDeliveryRequest()->getNumero();
             } else if (($movement instanceof TrackingMovement && $movement->getShippingRequest())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::SHIPPING_REQUEST_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::SHIPPING_REQUEST_ENTITY)) {
                 $data['entityPath'] = 'shipping_request_show';
                 $data['fromLabel'] = $this->translation->translate("Demande", "Expédition", "Demande d'expédition", false);
                 $data['entityId'] = is_array($movement)
@@ -190,7 +190,7 @@ class TrackingMovementService {
                     : $movement->getShippingRequest()->getNumber();
             }
             else if (($movement instanceof TrackingMovement && $movement->getProductionRequest())
-                || (is_array($movement) && $movement['entity'] === TrackingMovement::PRODUCTION_REQUEST_ENTITY)) {
+                || (is_array($movement) && ($movement['entity'] ?? null) === TrackingMovement::PRODUCTION_REQUEST_ENTITY)) {
                 $data['entityPath'] = 'production_request_show';
                 $data['fromLabel'] = 'Production';
                 $data['entityId'] = is_array($movement)

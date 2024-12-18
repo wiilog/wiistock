@@ -923,7 +923,7 @@ class PackService {
         };
     }
 
-    private function putPackLine($handle, array $pack): void {
+    public function putPackLine($handle, array $pack): void {
         $line = [
             $pack['code'],
             $pack['nature'],
