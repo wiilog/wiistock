@@ -111,11 +111,17 @@ $(function () {
             isLoading = true;
 
             const $container = $(`.packsTableContainer`);
+            const $line = $number.closest('tr');
 
-            if ($number.is(`.active`)) {
+            let closeContentContainer = function() {
                 $number.removeClass(`active`);
+                $line.removeClass('selected-line');
                 $container.find(`.logistic-unit-content`).remove();
                 isLoading = false;
+            };
+
+            if ($number.is(`.active`)) {
+                closeContentContainer();
             } else {
                 const logisticUnitId = $number.data(`id`);
                 AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
@@ -123,9 +129,19 @@ $(function () {
                     .then(result => {
                         $container.find(`.logistic-unit-content`).remove();
                         $(`.logistic-unit-number.active`).removeClass(`active`);
+                        $container.find(`.selected-line`).removeClass(`selected-line`);
                         $number.addClass(`active`);
                         $container.append(result.html);
                         packsTable.columns.adjust();
+
+                        $container
+                            .find('button.close')
+                            .off('click')
+                            .on('click', function () {
+                                closeContentContainer();
+                            });
+
+                        $line.addClass('selected-line');
 
                         getTrackingHistory(logisticUnitId, false);
                         initializeGroupContentTable(logisticUnitId, false);

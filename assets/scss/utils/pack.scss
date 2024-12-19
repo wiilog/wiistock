@@ -110,3 +110,12 @@
     }
 }
 
+.selected-line {
+    background-color: rgba($primary, 0.2) !important;
+}
+
+.pack-content-header {
+    display: flex;
+    justify-content: space-between;
+}
+
