@@ -25,6 +25,7 @@ enum FixedFieldEnum: string
     case emergency = "Urgence";
     case projectNumber = "Numéro projet";
     case comment = "Commentaire";
+    case treatmentAt = "Date de traitement";
     case attachments = 'Pièces jointes';
     case name = "Nom";
     case description = "Description";

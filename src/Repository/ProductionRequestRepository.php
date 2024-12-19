@@ -173,6 +173,8 @@ class ProductionRequestRepository extends EntityRepository
                         $qb->orderBy('production_request.number', $order);
                     } else if ($column === 'createdAt') {
                         $qb->orderBy('production_request.createdAt', $order);
+                    } else if ($column === FixedFieldEnum::treatmentAt->name) {
+                        $qb->orderBy('production_request.treatedAt', $order);
                     } else if ($column === FixedFieldEnum::treatedBy->name) {
                         $qb
                             ->leftJoin('production_request.treatedBy', 'order_treatedBy')
@@ -305,6 +307,7 @@ class ProductionRequestRepository extends EntityRepository
             ->addSelect("production_request.emergency AS " . FixedFieldEnum::emergency->name)
             ->addSelect("production_request.projectNumber AS " . FixedFieldEnum::projectNumber->name)
             ->addSelect("production_request.comment AS " . FixedFieldEnum::comment->name)
+            ->addSelect("DATE_FORMAT(production_request.treatedAt, '$dateFormat') AS " . FixedFieldEnum::treatmentAt->name)
             ->addSelect("production_request.freeFields AS freeFields")
             ->innerJoin("production_request.createdBy", "join_createdBy")
             ->leftJoin("production_request.treatedBy", "join_treatedBy")
