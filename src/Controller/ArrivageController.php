@@ -108,12 +108,6 @@ class ArrivageController extends AbstractController
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
-        // filter statuses to keep only those which are authorized to be created by the user
-        $statuses = Stream::from($statuses)
-            ->filter(function (Statut $statut) use ($user) {
-                return in_array($user->getRole(), $statut->getAuthorizedRequestCreationRoles()->toArray(), true);
-            })
-            ->toArray();
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
