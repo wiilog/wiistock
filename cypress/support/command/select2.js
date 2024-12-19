@@ -1,6 +1,6 @@
 import {defaultTypeSpeed} from '../utils/cypressConfigConstants';
 
-Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldClick = true, requestAlias = '/select/*', shouldWait = true) => {
+Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestAlias = '/select/*', shouldWait = true) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
     const selectorPrefix = modalName !== '' ? `#${modalName} ` : '';
@@ -8,10 +8,9 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
 
     const select = cy.get(getName).siblings('.select2')
 
-    if(shouldClick){
-        select.click()
-    }
-    select.parents()
+    select
+        .click()
+        .wait(300)
         .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .type(value)
         .then(() => {
@@ -52,7 +51,7 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
             .type(element)
             .wait('@select2Request')
             .its('response.statusCode').should('eq', 200)
-            .wait(40)
+            .wait(100)
             .then(() => {
                 cy.get('.select2-dropdown')
                     .find('.select2-results__option')
@@ -77,14 +76,14 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null, forceMul
         cy.get(`[name=${selectName}]`)
             .siblings('.select2')
             .click()
-            .wait(100)
+            .wait(200)
             .type(`${element}`, {delay: customDelay ?? defaultTypeSpeed})
-            .wait(70)
+            .wait(200)
             .get('.select2-dropdown')
             .contains(element)
             .should('be.visible')
             .first()
-            .click()
+            .click();
     });
 
     cy.get(`[name=${selectName}]`).then(($select) => {

@@ -62,7 +62,7 @@ describe('create a production request', () => {
 
         cy.get(`#${selectorModal}`).should('be.visible', { timeout: 8000 }).then(() => {
             // Type in the inputs
-            cy.select2Ajax('type', newProductionRequest.type, selectorModal, true, '/select/*', false);
+            cy.select2Ajax('type', newProductionRequest.type, selectorModal, '/select/*', false);
             cy.select2Ajax('dropLocation', newProductionRequest.dropLocation, selectorModal);
             cy.typeInModalInputs(`#${selectorModal}`, newProductionRequest, ['type', 'dropLocation', 'comment', 'file']);
             cy.fillFreeFields(freeFields);
