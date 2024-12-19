@@ -7,10 +7,10 @@ use App\Entity\Action;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\Reserve;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -44,6 +44,9 @@ class TruckArrivalService
 
     #[Required]
     public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request,
@@ -254,5 +257,51 @@ class TruckArrivalService
             FixedFieldEnum::carrierTrackingNumber->value => $carrierTrackingNumbers,
             FixedFieldEnum::carrierTrackingNumberReserve->value => $this->formatService->bool($lineHasReserve),
         ];
+    }
+
+    public function getCsvHeader(): array {
+        return [
+            FixedFieldEnum::number->value,
+            FixedFieldEnum::carrier->value,
+            FixedFieldEnum::driver->value,
+            FixedFieldEnum::carrierTrackingNumber->value,
+            FixedFieldEnum::carrierTrackingNumberReserve->value,
+            FixedFieldEnum::createdAt->value,
+            FixedFieldEnum::operator->value,
+            FixedFieldEnum::registrationNumber->value,
+            FixedFieldEnum::unloadingLocation->value,
+            "Réserve(s)",
+        ];
+    }
+
+    public function getExportFunction(DateTime               $dateTimeMin,
+                                      DateTime               $dateTimeMax,
+                                      EntityManagerInterface $entityManager): callable {
+        $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
+        $truckArrivals = $truckArrivalRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+
+        return function ($handle) use ($entityManager, $truckArrivals) {
+            foreach ($truckArrivals as $truckArrival) {
+                $this->putPackLine($handle, $truckArrival);
+            }
+
+            $entityManager->flush();
+        };
+    }
+
+    private function putPackLine($handle, array $truckArrival): void {
+        $line = [
+            $truckArrival["number"],
+            $truckArrival["carrier"],
+            $truckArrival["driver"],
+            $truckArrival["carrierTrackingNumber"],
+            $truckArrival["carrierTrackingNumberReserve"],
+            $this->formatService->datetime($truckArrival["createdAt"]),
+            $truckArrival["operator"],
+            $truckArrival["registrationNumber"],
+            $truckArrival["unloadingLocation"],
+            $truckArrival["hasReserve"],
+        ];
+        $this->CSVExportService->putLine($handle, $line);
     }
 }

@@ -441,6 +441,7 @@ class DataExportService
             Export::ENTITY_PRODUCTION,
             Export::ENTITY_TRACKING_MOVEMENT,
             Export::ENTITY_PACK,
+            Export::ENTITY_TRUCK_ARRIVAL,
         ])) {
             $export
                 ->setPeriod($data["period"])
