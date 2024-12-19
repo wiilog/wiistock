@@ -22,10 +22,15 @@ export const routes = {
         route: '/emplacement/creer',
         alias: 'emplacement_new'
     },
-    location_api_new: {
+    location_form_new: {
         method: 'GET',
         route: '/emplacement/form',
-        alias: 'location_api_new'
+        alias: 'location_form_new'
+    },
+    location_form_edit: {
+        method: 'GET',
+        route: '/emplacement/form/*',
+        alias: 'location_form_edit'
     },
     emplacement_edit: {
         method: 'POST',
@@ -147,7 +152,7 @@ export const routes = {
         route: '/parametrage/champs-libres/api/*',
         alias: 'settings_free_field_api'
     },
-    pack_api: {
+    packs_api: {
         method: 'POST',
         route: 'arrivage/packs/api/*',
         alias: 'packs_api'
@@ -203,8 +208,8 @@ export const routes = {
         alias: 'printPacks'
     },
     arrivage_edit_api:{
-        method: 'POST',
-        route: '/arrivage/api-modifier',
+        method: 'GET',
+        route: '/arrivage/api-modifier?id=*',
         alias: 'arrivage_edit_api'
     },
     arrivage_edit:{

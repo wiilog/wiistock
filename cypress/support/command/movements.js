@@ -12,7 +12,7 @@ Cypress.Commands.add('editMovement', (minute, type) => {
             .siblings('.select2')
             .find('.select2-selection__clear')
             .click();
-        cy.select2Ajax('location', 'LABO 11', 'modalEditMvtTraca', false);
+        cy.select2Ajax('location', 'LABO 11', 'modalEditMvtTraca');
     } else {
         cy.select2Ajax('location', 'LABO 11', 'modalEditMvtTraca');
     }
@@ -20,7 +20,7 @@ Cypress.Commands.add('editMovement', (minute, type) => {
         .siblings('.select2')
         .find('.select2-selection__clear')
         .click();
-    cy.select2Ajax('operator', 'Lambda', 'modalEditMvtTraca', false);
+    cy.select2Ajax('operator', 'Lambda', 'modalEditMvtTraca');
     cy.get('#modalEditMvtTraca input[name=quantity]').click().clear().type('100');
     cy.get('#submitEditMvtTraca').click().wait(['@mvt_traca_edit', '@tracking_movement_api'], {timeout: 8000});
     cy.get('#modalEditMvtTraca').should('not.be.visible');
@@ -41,19 +41,19 @@ Cypress.Commands.add('addMovement', (typeNumber, type) => {
         .siblings('.select2')
         .find('.select2-selection__clear')
         .click();
-    cy.select2Ajax('operator', 'Lambda', 'modalNewMvtTraca', false);
+    cy.select2Ajax('operator', 'Lambda', 'modalNewMvtTraca');
     cy.get('select[name=type]').select(typeNumber);
     if (type === 'prises et deposes' || type === 'groupage') {
         cy.select2('pack', `230714636-105${typeNumber}`);
         if (type === 'prises et deposes') {
-            cy.select2Ajax('emplacement-prise', 'LABO 11', 'modalNewMvtTraca', true, '/emplacement/*');
-            cy.select2Ajax('emplacement-depose', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*');
+            cy.select2Ajax('emplacement-prise', 'LABO 11', 'modalNewMvtTraca', '/emplacement/*');
+            cy.select2Ajax('emplacement-depose', 'BUREAU GT', 'modalNewMvtTraca', '/emplacement/*');
         } else if (type === 'groupage') {
             cy.get('input[name=parent]').type(`5555-44${typeNumber}`);
         }
     } else if (type !== 'prises et deposes' && type !== 'groupage') {
         cy.get('input[name=pack]').type(`230714636-105${typeNumber}`);
-        cy.select2Ajax('emplacement', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*');
+        cy.select2Ajax('emplacement', 'BUREAU GT', 'modalNewMvtTraca', '/emplacement/*');
         if (type === 'dépose dans UL') {
             cy.select2AjaxMultiple('articles', ['ART230700000002'], 'modalNewMvtTraca');
         }

@@ -17,7 +17,7 @@ describe('Check if the line where we clicked opens the correct production reques
     });
 
     it('Opening production request from datatable', () => {
-        const columnNumberId = 1;
+        const columnNumberId = 2;
         let productionRequestId;
         cy.get(`table#${tableProduction} tbody tr`)
             .first()
@@ -43,8 +43,8 @@ describe('Check if the line where we clicked opens the correct production reques
             });
     });
 
-    it('Search and open a production request with the search bar', () =>{
-        const columnNumberId = 1;
+    it('Search and open a production request with the search bar', () => {
+        const columnNumberId = 2;
         const fabricationOrderNumber = 'P-2024053014430001';
 
         cy.searchInDatatable('#tableProductions_filter', fabricationOrderNumber);
