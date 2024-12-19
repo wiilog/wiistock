@@ -528,7 +528,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 // timeout is necessary because drawCallback doesnt seem to be called when everything is fully loaded,
                 // because we have some custom rendering actions which may take more time than native datatable rendering
                 setTimeout(() => {
-                    beforeDatatableLoadAction($table, table)
+                    afterDatatableLoadAction($table, table)
                 }, 500);
             }
         },
@@ -674,7 +674,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     return table;
 }
 
-function beforeDatatableLoadAction($table, table)  {
+function afterDatatableLoadAction($table, table)  {
     $table.DataTable().columns.adjust().draw();
 
     const rowsCount = table.rows().count();
