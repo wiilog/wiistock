@@ -946,7 +946,7 @@ class TrackingMovementService {
                                    array &$emptyGroups,
                                    int &$numberOfRowsInserted) {
         $createdMvt = $this->createTrackingMovement(
-            $pack->getCode(),
+            $pack,
             $location,
             $nomadUser,
             $date,
@@ -1008,7 +1008,7 @@ class TrackingMovementService {
             }
 
             $createdMvt = $this->createTrackingMovement(
-                $article->getBarCode(),
+                $article->getTrackingPack() ?: $article->getBarCode(),
                 $location,
                 $nomadUser,
                 $date,
