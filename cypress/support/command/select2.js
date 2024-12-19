@@ -10,7 +10,7 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', requestA
 
     select
         .click()
-        .wait(300)
+        .wait(600)
         .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .type(value)
         .then(() => {
