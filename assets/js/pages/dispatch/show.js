@@ -634,6 +634,11 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             else {
                 $quantity.trigger('focus');
             }
+
+            $row.trigger('focusout.keyboardNavigation');
+            if($row.find('.is-invalid').length === 0) {
+                addPackRow(table, $(`.add-pack-row`));
+            }
         });
 
         $table.on(`click`, `.add-pack-row`, function() {
