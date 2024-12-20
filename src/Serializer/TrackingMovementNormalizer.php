@@ -8,6 +8,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FormatHelper;
 use App\Service\FormatService;
 use App\Service\PackService;
+use App\Service\TrackingMovementService;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -21,11 +22,13 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
     private const SUPPORTED_USAGES = [
         SerializerUsageEnum::MOBILE_READING_MENU,
         SerializerUsageEnum::MOBILE_DROP_MENU,
+        SerializerUsageEnum::CSV_EXPORT,
     ];
 
     public function __construct(
-        private FormatService $formatService,
-        private PackService   $packService,
+        private FormatService           $formatService,
+        private PackService             $packService,
+        private TrackingMovementService $trackingMovementService
     ) {}
 
     public function normalize(mixed $object, string $format = null, array $context = []): array {
@@ -43,6 +46,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         return match ($usage) {
             SerializerUsageEnum::MOBILE_READING_MENU => $this->normalizeForMobileReadingPage($trackingMovement, $format, $context),
             SerializerUsageEnum::MOBILE_DROP_MENU => $this->normalizeForMobileTrackingPage($trackingMovement, $format, $context),
+            SerializerUsageEnum::CSV_EXPORT => $this->normalizeForCsvExport($trackingMovement, $format, $context),
             default => throw new Exception("Invalid usage {$usageStr}, should be one of {$supportedUsageStr}"),
         };
     }
@@ -122,5 +126,30 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
         $res["limitTreatmentDate"] = $trackingDelayData["dateHTML"] ?? null;
 
         return $res;
+    }
+
+    public function normalizeForCsvExport(TrackingMovement $trackingMovement, string $format = null, array $context = []): array {
+        $fromData = $this->trackingMovementService->getFromColumnData($trackingMovement);
+        $fromLabel = $fromData["fromLabel"] ?? "";
+        $fromNumber = $fromData["from"] ?? "";
+        $from = trim("$fromLabel $fromNumber") ?: null;
+        $pack = $trackingMovement->getPack();
+        $arrival = $pack?->getArrivage();
+        return [
+            "date" => $this->formatService->datetime($trackingMovement->getDatetime()),
+            "logisticUnit" => $this->formatService->pack($pack),
+            "location" => $this->formatService->location($trackingMovement->getEmplacement()),
+            "quantity" => $trackingMovement->getQuantity(),
+            "type" => ucfirst($this->formatService->status($trackingMovement->getType())),
+            "operator" => $this->formatService->user($trackingMovement->getOperateur()),
+            "comment" => $this->formatService->html($trackingMovement->getCommentaire()),
+            "hasAttachments" => $this->formatService->bool($trackingMovement->getAttachments()->count() > 0),
+            "from" => $from,
+            "arrivalOrderNumber" => $arrival?->getNumeroCommandeList(),
+            "isUrgent" => $this->formatService->bool($arrival?->getIsUrgent(), false),
+            "nature" => $this->formatService->nature($trackingMovement->getOldNature()),
+            "packGroup" => $this->formatService->pack($trackingMovement->getPackGroup()),
+            "freeFields" => $trackingMovement->getFreeFields(),
+        ];
     }
 }
