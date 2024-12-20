@@ -36,6 +36,7 @@ use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\PackService;
+use App\Service\ReceiptAssociationService;
 use App\Service\RefArticleDataService;
 use App\Service\ScheduledTaskService;
 use App\Service\ScheduleRuleService;
@@ -509,6 +510,34 @@ class DataExportController extends AbstractController {
             $packService->getCsvHeader()
         );
     }
+
+    #[Route("/export/unique/unités-logistiques", name: "settings_export_receipt_association", options: ["expose" => true], methods: [self::GET])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function printCSVReceiptAssociation(Request                   $request,
+                                               EntityManagerInterface    $entityManager,
+                                               CSVExportService          $CSVExportService,
+                                               DataExportService         $dataExportService,
+                                               ReceiptAssociationService $receiptAssociationService): StreamedResponse {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_RECEIPT_ASSOCIATION, $now);
+
+        return $CSVExportService->streamResponse(
+            $receiptAssociationService->getExportPacksFunction(
+                $dateTimeMin,
+                $dateTimeMax,
+                $entityManager,
+            ), "export_UL_$today.csv",
+            $receiptAssociationService->getCsvHeader()
+        );
+    }
+
 
     #[Route("/export-template", name: "export_template", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]

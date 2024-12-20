@@ -145,7 +145,7 @@ class TrackingMovementNormalizer implements NormalizerInterface, NormalizerAware
             "comment" => $this->formatService->html($trackingMovement->getCommentaire()),
             "hasAttachments" => $this->formatService->bool($trackingMovement->getAttachments()->count() > 0),
             "from" => $from,
-            "arrivalOrderNumber" => implode(", ", $arrival?->getNumeroCommandeList() ?? []),
+            "arrivalOrderNumber" => $arrival?->getNumeroCommandeList(),
             "isUrgent" => $this->formatService->bool($arrival?->getIsUrgent(), false),
             "nature" => $this->formatService->nature($trackingMovement->getOldNature()),
             "packGroup" => $this->formatService->pack($trackingMovement->getPackGroup()),

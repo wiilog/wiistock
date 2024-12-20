@@ -29,7 +29,7 @@ class Export extends ScheduledTask {
     const ENTITY_PRODUCTION = "production";
     const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
     const ENTITY_PACK = "pack";
-
+    const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
     const ENTITY_LABELS = [
         self::ENTITY_REFERENCE => "Références",
         self::ENTITY_ARTICLE => "Articles",

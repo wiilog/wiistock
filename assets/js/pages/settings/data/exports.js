@@ -20,7 +20,7 @@ const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
 const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
-const ENTITY_PACK = "pack";
+const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -287,6 +287,19 @@ function createForm() {
                         }
 
                         window.open(Routing.generate(`settings_export_packs`, {
+                            dateMin,
+                            dateMax,
+                        }));
+                    } else if (content.entityToExport === ENTITY_RECEIPT_ASSOCIATION) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'associations BR`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_receipt_association`, {
                             dateMin,
                             dateMax,
                         }));
