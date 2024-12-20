@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Dispute;
-use App\Entity\SessionHistoryRecord;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
@@ -233,4 +232,25 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ->getQuery()
                 ->toIterable();
     }
+
+    /**
+     * Find all users matching a regex pattern
+     * @param string $regex
+     * @return iterable<Utilisateur>
+     */
+    public function findAllMatching(string $regex): iterable
+    {
+        // Ajout des délimiteurs si manquants
+        if (!preg_match('/^.+\/[imsxuADSUX]*$/', $regex)) { // Vérifie la validité d'une regex
+            $regex = '/' . str_replace('/', '\/', $regex) . '/';
+        }
+
+        $users = $this->findAll();
+        foreach ($users as $user) {
+            if (preg_match($regex, $user->getEmail())) {
+                yield $user;
+            }
+        }
+    }
+
 }
