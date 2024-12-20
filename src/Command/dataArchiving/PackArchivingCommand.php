@@ -62,7 +62,7 @@ class PackArchivingCommand extends Command {
 
             $toTreatCount = $trackingMovementRepository->countOlderThan($dateToArchive);
             $io->info('TrackingMovement to treat: ' . $toTreatCount);
-        } while ($returnVar === self::SUCCESS &&$toTreatCount > 0);
+        } while ($returnVar === self::SUCCESS && $toTreatCount > 0);
 
         $io->success('End archiving Pack and TrackingMovement');
 
