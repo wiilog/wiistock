@@ -736,7 +736,7 @@ class ReceptionController extends AbstractController {
                         );
                         $entityManager->persist($mouvementStock);
                         $createdMvt = $trackingMovementService->createTrackingMovement(
-                            $referenceArticle->getBarCode(),
+                            $referenceArticle->getTrackingPack() ?: $referenceArticle->getBarCode(),
                             $receptionLocation,
                             $currentUser,
                             $now,

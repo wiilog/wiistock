@@ -233,7 +233,7 @@ class MouvementStockController extends AbstractController
 
                         if ($chosenArticleToMove instanceof Article && $chosenArticleToMove->getCurrentLogisticUnit()){
                             $associatedPickLUTracaMvt = $trackingMovementService->createTrackingMovement(
-                                $chosenArticleToMove->getBarCode(),
+                                $associatedPickTracaMvt->getPack(),
                                 $emplacementFrom,
                                 $loggedUser,
                                 $now,

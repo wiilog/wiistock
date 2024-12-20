@@ -108,20 +108,22 @@ class PreparationOrderController extends AbstractController {
 
                         foreach ($movements as $movement) {
                             if ($movement->getType() === MouvementStock::TYPE_TRANSFER) {
+                                /** @var ReferenceArticle|Article $refOrArticle */
+                                $refOrArticle = $movement->getRefArticle() ?: $movement->getArticle();
                                 $preparationsManager->persistDeliveryMovement(
                                     $entityManager,
                                     $movement->getQuantity(),
                                     $nomadUser,
                                     $livraison,
                                     !empty($movement->getRefArticle()),
-                                    $movement->getRefArticle() ?? $movement->getArticle(),
+                                    $refOrArticle,
                                     $preparation,
                                     false,
                                     $emplacementPrepa
                                 );
-                                $code = $movement->getRefArticle() ? $movement->getRefArticle()->getBarCode() : $movement->getArticle()->getBarCode();
+
                                 $trackingMovementPick = $trackingMovementService->createTrackingMovement(
-                                    $code,
+                                    $refOrArticle->getTrackingPack() ?: $refOrArticle->getBarCode(),
                                     $movement->getEmplacementFrom(),
                                     $nomadUser,
                                     $dateEnd,
@@ -137,7 +139,7 @@ class PreparationOrderController extends AbstractController {
                                 $entityManager->persist($trackingMovementPick);
                                 $entityManager->flush();
                                 $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                                    $code,
+                                    $trackingMovementPick->getPack(),
                                     $emplacementPrepa,
                                     $nomadUser,
                                     $dateEnd,
