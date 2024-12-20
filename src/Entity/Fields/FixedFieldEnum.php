@@ -76,6 +76,8 @@ enum FixedFieldEnum: string
     case pauseTrackingTimerOnDrop = "Emplacement de pause";
     case newNatureOnPick = "Nouvelle nature à la prise sur emplacement";
     case newNatureOnDrop = "Nouvelle nature à la dépose sur emplacement";
+    case registrationNumber = "Immatriculation";
+    case unloadingLocation = "Emplacement de déchargement";
 
     public static function fromCase(string $case): string|null {
         try {
