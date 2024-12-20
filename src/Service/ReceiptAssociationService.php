@@ -230,4 +230,41 @@ class ReceiptAssociationService
             $entityManager->persist($dropMvt);
         }
     }
+
+    public function getCsvHeader(): array {
+        $translation = $this->translation;
+        return  [
+            "Date",
+            "Unité logistique",
+            "Reception",
+            "Utilisateur",
+        ];
+    }
+
+
+    public function getExportReceiptAssociationFunction(DateTime               $dateTimeMin,
+                                           DateTime               $dateTimeMax,
+                                           EntityManagerInterface $entityManager): callable {
+        $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
+        $receiptAssociations = $receiptAssociationRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
+
+        return function ($handle) use ($entityManager, $receiptAssociations) {
+            foreach ($receiptAssociations as $receiptAssociation) {
+                $this->putReceiptAssociationLine($handle, $receiptAssociation);
+            }
+
+            $entityManager->flush();
+        };
+    }
+
+    public function putReceiptAssociationLine($handle, array $receiptAssociation): void {
+        $line = [
+            $this->formatService->datetime($receiptAssociation['date'], "", false, $this->userService->getUser()),
+            $receiptAssociation['pack'],
+            $receiptAssociation['nature'],
+            $receiptAssociation['receipt'],
+            $receiptAssociation['user'],
+        ];
+        $this->CSVExportService->putLine($handle, $line);
+    }
 }
