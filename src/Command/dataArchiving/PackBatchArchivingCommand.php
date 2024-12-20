@@ -143,30 +143,8 @@ class PackBatchArchivingCommand extends Command {
             $io->progressAdvance();
             if(++$batch === self::BATCH_SIZE) {
                 $batch = 0;
-                $groups = [];
-                foreach ($packs as $pack) {
-                    // if the pack does not have any more tracking movement, we can archive it
-                    if($pack->getTrackingMovements()->isEmpty()) {
-                        if ($pack->isBasicUnit()) {
-                            if ($pack->getGroupIteration()) {
-                                $groups[$pack->getId()] ??= $pack;
-                            } else {
-                                if ($pack->getGroup()) {
-                                    $groups[$pack->getGroup()->getId()] ??= $pack->getGroup();
-                                }
-                                $this->archivePack($pack, $files);
-                            }
-                        }
-                    }
-                }
 
-                foreach ($groups as $group) {
-                    if($group->getTrackingMovements()->isEmpty() && $group->getContent()) {
-                        $this->archivePack($group, $files);
-                    }
-                }
-                $this->entityManager->flush();
-                $this->entityManager->clear();
+                $this->treatPackAndFLush($packs, $files);
 
                 foreach ($files as $entityToArchive => $file) {
                     fflush($file);
@@ -182,6 +160,8 @@ class PackBatchArchivingCommand extends Command {
                 $packs = [];
             }
         }
+
+        $this->treatPackAndFLush($packs, $files);
 
         //close the file
         foreach ($files as $entityToArchive => $file) {
@@ -204,6 +184,33 @@ class PackBatchArchivingCommand extends Command {
 
         $pack->setGroup(null);
         $this->entityManager->remove($pack);
+    }
+
+    private function treatPackAndFLush(array $packs, array $files): void {
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+
+        $groups = [];
+        foreach ($packs as $pack) {
+            // if the pack does not have any more tracking movement, we can archive it
+            if($pack->getTrackingMovements()->isEmpty() && !$trackingMovementRepository->findOneBy(["packGroup" => $pack]) ) {
+                if ($pack->isBasicUnit()) {
+                    if ($pack->getGroupIteration()) {
+                        $groups[$pack->getId()] ??= $pack;
+                    } else {
+                        $this->archivePack($pack, $files);
+                    }
+                }
+            }
+        }
+
+        foreach ($groups as $group) {
+            if($group->getTrackingMovements()->isEmpty() && $group->getContent()->isEmpty()) {
+                $this->archivePack($group, $files);
+            }
+        }
+
+        $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
 }
