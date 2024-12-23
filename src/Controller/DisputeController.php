@@ -12,13 +12,13 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\DisputeHistoryRecord;
 
-use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
 use DateTime;
@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
 
 #[Route("/litige", name: "dispute_")]
@@ -119,7 +120,7 @@ class DisputeController extends AbstractController
 
     #[Route("/csv", name: "export_csv", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function exportCSVDispute(Request                $request,
-                                     DisputeService         $disputeService,
+                                     NormalizerInterface    $normalizer,
                                      EntityManagerInterface $entityManager,
                                      CSVExportService       $CSVExportService): Response
     {
@@ -139,45 +140,34 @@ class DisputeController extends AbstractController
             'Statut',
             'Date création',
             'Date modification',
+            'Déclarant',
+            'Historique',
             'Unité logistiques / Réferences',
             'Code barre',
             'QteArticle',
             'Ordre arrivage / réception',
             'N° Commande / BL',
-            'Déclarant',
             'Fournisseur',
             'N° ligne',
             'Acheteur(s)',
-            'Date commentaire',
-            'Utilisateur',
-            'Commentaire'
         ];
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
-        return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax, $statuses) {
 
-            $disputeRepository = $entityManager->getRepository(Dispute::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+        $disputeRepository = $entityManager->getRepository(Dispute::class);
 
-            $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDatesOrAndStatus($dateTimeMin, $dateTimeMax, $statuses);
+        $disputes = $disputeRepository->iterateBetween($dateTimeMin, $dateTimeMax, $statuses);
+        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $normalizer, $disputes) {
+            foreach ($disputes as $dispute) {
+                $rows = $normalizer->normalize($dispute, null, [
+                    "usage" => SerializerUsageEnum::CSV_EXPORT,
+                ]);
 
-            /** @var Dispute $dispute */
-            foreach ($arrivalDisputes as $dispute) {
-                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_ARRIVAL, $output, $dispute, $disputeRepository);
+                foreach ($rows as $row) {
+                    $CSVExportService->putLine($output, $row);
+                }
             }
 
-            $entityManager->clear();
-
-            $associatedIdAndReferences = $receptionReferenceArticleRepository->getAssociatedIdAndReferences();
-            $associatedIdAndOrderNumbers = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers();
-
-            $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax, $statuses);
-            /** @var Dispute $dispute */
-            foreach ($receptionDisputes as $dispute) {
-                $articles = $articleRepository->getArticlesByDisputeId($dispute["id"]);
-                $disputeService->putDisputeLine($entityManager, DisputeService::PUT_LINE_RECEPTION, $output, $dispute, $disputeRepository, $associatedIdAndReferences, $associatedIdAndOrderNumbers, $articles);
-            }
         }, "Export-Litiges_$today.csv", $headers);
     }
 

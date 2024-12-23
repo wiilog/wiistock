@@ -11,6 +11,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -118,55 +119,30 @@ class DisputeRepository extends EntityRepository
         return $queryBuilder;
     }
 
-    public function iterateArrivalDisputesByDatesOrAndStatus(DateTime $dateMin, DateTime $dateMax, $statuses = []): iterable {
-        return $this
-            ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
-            ->join('dispute.packs', 'pack')
-            ->join('pack.arrivage', 'arrivage')
+    /**
+     * @param int[] $statusIds
+     * @return Generator<Dispute>
+     */
+    public function iterateBetween(DateTime $dateMin,
+                                   DateTime $dateMax,
+                                   array    $statusIds = []): iterable {
+        $queryBuilder = $this->createQueryBuilder('dispute');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder = $queryBuilder
+            ->andWhere($exprBuilder->between('dispute.creationDate', ':dateMin', ':dateMax'))
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+
+        if (!empty($statusIds)) {
+            $queryBuilder
+                ->andWhere('join_status in (:statuses)')
+                ->setParameter('statuses', $statusIds);
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->toIterable();
-    }
-
-	public function iterateReceptionDisputesByDates(DateTime $dateMin, DateTime $dateMax, $statuses = []): iterable
-	{
-        return $this
-            ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
-            ->join('dispute.articles', 'article')
-            ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
-            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
-            ->join('receptionLine.reception', 'reception')
-            ->getQuery()
-            ->toIterable();
-	}
-
-    public function findByArrivage($arrivage)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT DISTINCT dispute
-            FROM App\Entity\Dispute dispute
-            INNER JOIN dispute.packs pack
-            INNER JOIN pack.arrivage a
-            WHERE a.id = :arrivage'
-        )->setParameter('arrivage', $arrivage);
-
-        return $query->execute();
-    }
-
-    public function findByReception($reception)
-    {
-        $qb = $this->createQueryBuilder('dispute');
-        $qb
-            ->distinct()
-            ->select('dispute')
-            ->join('dispute.articles', 'article')
-            ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
-            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
-            ->join('receptionLine.reception', 'reception')
-            ->where('reception.id = :reception')
-            ->setParameter('reception', $reception);
-        return $qb->getQuery()->execute();
     }
 
 	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user, FieldModesService $fieldModesService): array

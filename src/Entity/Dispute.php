@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DisputeRepository::class)]
+#[ORM\Index(fields: ["creationDate"], name: "IDX_WIILOG_CREATION_DATE")]
 class Dispute implements AttachmentContainer {
 
     use AttachmentTrait;
@@ -128,7 +129,7 @@ class Dispute implements AttachmentContainer {
     }
 
     /**
-     * @return Collection|DisputeHistoryRecord[]
+     * @return Collection<DisputeHistoryRecord>
      */
     public function getDisputeHistory(): Collection {
         return $this->disputeHistory;
@@ -155,21 +156,21 @@ class Dispute implements AttachmentContainer {
         return $this;
     }
 
-    public function getCreationDate(): ?\DateTimeInterface {
+    public function getCreationDate(): ?DateTime {
         return $this->creationDate;
     }
 
-    public function setCreationDate(\DateTimeInterface $creationDate): self {
+    public function setCreationDate(DateTime $creationDate): self {
         $this->creationDate = $creationDate;
 
         return $this;
     }
 
-    public function getUpdateDate(): ?\DateTimeInterface {
+    public function getUpdateDate(): ?DateTime {
         return $this->updateDate;
     }
 
-    public function setUpdateDate(\DateTimeInterface $updateDate): self {
+    public function setUpdateDate(DateTime $updateDate): self {
         $this->updateDate = $updateDate;
 
         return $this;
@@ -196,7 +197,10 @@ class Dispute implements AttachmentContainer {
         return $this;
     }
 
-    public function getPacks() {
+    /**
+     * @return Collection<Pack>
+     */
+    public function getPacks(): Collection {
         return $this->packs;
     }
 
@@ -217,7 +221,7 @@ class Dispute implements AttachmentContainer {
     }
 
     /**
-     * @return Collection|Article[]
+     * @return Collection<Article>
      */
     public function getArticles(): Collection {
         return $this->articles;

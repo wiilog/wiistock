@@ -1170,13 +1170,14 @@ class ReceptionController extends AbstractController {
     }
 
     #[Route('/litiges/api/{reception}', name: 'litige_reception_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
-    public function apiReceptionLitiges(EntityManagerInterface $entityManager,
-                                        Reception $reception): Response {
-
-        $disputeRepository = $entityManager->getRepository(Dispute::class);
+    public function apiReceptionLitiges(Reception $reception): Response {
 
         /** @var Dispute[] $disputes */
-        $disputes = $disputeRepository->findByReception($reception);
+        $disputes = Stream::from($reception->getLines())
+            ->flatMap(fn(ReceptionLine $line) => $line->getReceptionReferenceArticles()->toArray())
+            ->flatMap(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getArticles()->toArray())
+            ->flatMap(fn(Article $article) => $article->getDisputes()->toArray())
+            ->toArray();
 
         $rows = [];
 
