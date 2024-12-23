@@ -43,6 +43,7 @@ use App\Service\ScheduleRuleService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportRoundService;
+use App\Service\TruckArrivalService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

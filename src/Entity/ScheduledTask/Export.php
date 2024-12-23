@@ -30,6 +30,8 @@ class Export extends ScheduledTask {
     const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
     const ENTITY_PACK = "pack";
     const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
+    const ENTITY_DISPUTE = "dispute";
+
     const ENTITY_LABELS = [
         self::ENTITY_REFERENCE => "Références",
         self::ENTITY_ARTICLE => "Articles",
@@ -41,6 +43,7 @@ class Export extends ScheduledTask {
         self::ENTITY_TRACKING_MOVEMENT => "Mouvements",
         self::ENTITY_PACK => "Unités logistiques",
         self::ENTITY_RECEIPT_ASSOCIATION => "Associations BR",
+        self::ENTITY_DISPUTE => "Litiges",
     ];
 
     const DESTINATION_EMAIL = 1;

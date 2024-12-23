@@ -120,8 +120,8 @@ class DisputeController extends AbstractController
 
     #[Route("/csv", name: "export_csv", options: ["expose" => true], methods: [self::GET, self::POST])]
     public function exportCSVDispute(Request                $request,
-                                     NormalizerInterface    $normalizer,
                                      EntityManagerInterface $entityManager,
+                                     DisputeService         $disputeService,
                                      CSVExportService       $CSVExportService): Response
     {
 
@@ -131,44 +131,16 @@ class DisputeController extends AbstractController
         $status = $request->query->get('statut');
         $statuses = $status ? explode(',', $status) : [];
 
-        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-
-        $headers = [
-            'Numéro de litige',
-            'Type',
-            'Statut',
-            'Date création',
-            'Date modification',
-            'Déclarant',
-            'Historique',
-            'Unité logistiques / Réferences',
-            'Code barre',
-            'QteArticle',
-            'Ordre arrivage / réception',
-            'N° Commande / BL',
-            'Fournisseur',
-            'N° ligne',
-            'Acheteur(s)',
-        ];
+        $dateTimeMin = $this->getFormatter()->parseDatetime($dateMin);
+        $dateTimeMax = $this->getFormatter()->parseDatetime($dateMax);
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
-        $disputeRepository = $entityManager->getRepository(Dispute::class);
-
-        $disputes = $disputeRepository->iterateBetween($dateTimeMin, $dateTimeMax, $statuses);
-        return $CSVExportService->streamResponse(function ($output) use ($CSVExportService, $normalizer, $disputes) {
-            foreach ($disputes as $dispute) {
-                $rows = $normalizer->normalize($dispute, null, [
-                    "usage" => SerializerUsageEnum::CSV_EXPORT,
-                ]);
-
-                foreach ($rows as $row) {
-                    $CSVExportService->putLine($output, $row);
-                }
-            }
-
-        }, "Export-Litiges_$today.csv", $headers);
+        return $CSVExportService->streamResponse(
+            $disputeService->getExportGenerator($entityManager, $dateTimeMin, $dateTimeMax, $statuses),
+            "Export-Litiges_$today.csv",
+            $disputeService->getCsvHeader()
+        );
     }
 
     #[Route("/histo/{dispute}", name: "histo_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]

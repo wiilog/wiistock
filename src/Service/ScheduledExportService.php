@@ -44,6 +44,7 @@ class ScheduledExportService {
         private DataExportService         $dataExportService,
         private CSVExportService          $csvExportService,
         private ReceiptAssociationService $receiptAssociationService,
+        private DisputeService            $disputeService,
     ) {}
 
     public function export(EntityManagerInterface $entityManager,
@@ -186,6 +187,10 @@ class ScheduledExportService {
             $this->csvExportService->putLine($output, $this->receiptAssociationService->getCsvHeader());
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $this->receiptAssociationService->getExportReceiptAssociationFunction($startDate, $endDate, $entityManager)($output);
+        } else if($exportToRun->getEntity() === Export::ENTITY_DISPUTE) {
+            $this->csvExportService->putLine($output, $this->disputeService->getCsvHeader());
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $this->disputeService->getExportGenerator($entityManager, $startDate, $endDate)($output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }

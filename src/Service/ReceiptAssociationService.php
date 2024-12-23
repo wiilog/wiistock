@@ -232,10 +232,9 @@ class ReceiptAssociationService
         ];
     }
 
-
     public function getExportReceiptAssociationFunction(DateTime               $dateTimeMin,
-                                           DateTime               $dateTimeMax,
-                                           EntityManagerInterface $entityManager): callable {
+                                                        DateTime               $dateTimeMax,
+                                                        EntityManagerInterface $entityManager): callable {
         $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
         $receiptAssociations = $receiptAssociationRepository->getByDates($dateTimeMin, $dateTimeMax, $this->security->getUser()?->getDateFormat());
 
