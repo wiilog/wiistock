@@ -189,6 +189,18 @@ class PackBatchArchivingCommand extends Command {
             $this->archiveReceiptAssociation($receiptAssociation, $pack, $files);
         }
 
+        foreach ($pack->getProjectHistoryRecords() as $projectHistoryRecord) {
+            $this->entityManager->remove($projectHistoryRecord);
+        }
+
+        foreach ($pack->getTransportHistories() as $transportHistory) {
+            $this->entityManager->remove($transportHistory);
+        }
+
+        foreach ($pack->getPairings() as $pairing) {
+            $this->entityManager->remove($pairing);
+        }
+
         $this->packService->putPackLine(
             $files[Pack::class],
             $this->serializer->normalize($pack, null, ["usage" => SerializerUsageEnum::CSV_EXPORT])
