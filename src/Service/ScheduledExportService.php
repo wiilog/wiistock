@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\ReceiptAssociationController;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
@@ -24,25 +25,25 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 class ScheduledExportService {
     public function __construct(
-        private PackService           $packService,
-        private TranslationService    $translationService,
-        private LanguageService       $languageService,
-        private FTPService            $ftpService,
-        private Environment           $templating,
-        private MailerService         $mailerService,
-        private FreeFieldService      $freeFieldService,
-        private TransportRoundService $transportRoundService,
-        private ArrivageService       $arrivageService,
-        private ArticleDataService    $articleDataService,
-        private RefArticleDataService $refArticleDataService,
-        private DataExportService     $dataExportService,
-        private CSVExportService      $csvExportService,
+        private PackService               $packService,
+        private TranslationService        $translationService,
+        private LanguageService           $languageService,
+        private FTPService                $ftpService,
+        private Environment               $templating,
+        private MailerService             $mailerService,
+        private FreeFieldService          $freeFieldService,
+        private TransportRoundService     $transportRoundService,
+        private ArrivageService           $arrivageService,
+        private ArticleDataService        $articleDataService,
+        private RefArticleDataService     $refArticleDataService,
+        private DataExportService         $dataExportService,
+        private CSVExportService          $csvExportService,
+        private ReceiptAssociationService $receiptAssociationService,
     ) {}
 
     public function export(EntityManagerInterface $entityManager,
@@ -181,6 +182,10 @@ class ScheduledExportService {
             $this->csvExportService->putLine($output, $this->packService->getCsvHeader());
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $this->packService->getExportPacksFunction($startDate, $endDate, $entityManager)($output);
+        } else if($exportToRun->getEntity() === Export::ENTITY_RECEIPT_ASSOCIATION) {
+            $this->csvExportService->putLine($output, $this->receiptAssociationService->getCsvHeader());
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $this->receiptAssociationService->getExportReceiptAssociationFunction($startDate, $endDate, $entityManager)($output);
         } else {
             throw new RuntimeException("Unknown entity type");
         }

@@ -3,16 +3,20 @@
 namespace App\Command\dataArchiving;
 
 use App\Entity\CategorieCL;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FileSystem;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
+use App\Service\ReceiptAssociationService;
 use App\Service\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use SGK\BarcodeBundle\Generator\Generator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -38,14 +42,16 @@ class PackBatchArchivingCommand extends Command {
     private string $absoluteCachePath;
 
     public function __construct(
-        private readonly EntityManagerInterface  $entityManager,
-        private readonly CSVExportService        $csvExportService,
-        private readonly PackService             $packService,
-        private readonly TrackingMovementService $trackingMovementService,
-        private readonly FreeFieldService        $freeFieldService,
-        private readonly SerializerInterface     $serializer,
+        private readonly EntityManagerInterface    $entityManager,
+        private readonly CSVExportService          $csvExportService,
+        private readonly PackService               $packService,
+        private readonly TrackingMovementService   $trackingMovementService,
+        private readonly FreeFieldService          $freeFieldService,
+        private readonly SerializerInterface       $serializer,
+        private readonly ReceiptAssociationService $receiptAssociationService,
+        private readonly FormatService             $formatService,
 
-        KernelInterface                          $kernel,
+        KernelInterface                            $kernel,
     ) {
         parent::__construct();
         $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_FOLDER;
@@ -82,7 +88,8 @@ class PackBatchArchivingCommand extends Command {
         // date format = FILE_NAME_DATE_FORMAT
         $fileNames = [
             TrackingMovement::class => $this->generateFileName("TrackingMovement", $dateToArchive),
-            Pack::class => $this->generateFileName("Pack", $dateToArchive)
+            Pack::class => $this->generateFileName("Pack", $dateToArchive),
+            ReceiptAssociation::class => $this->generateFileName("ReceiptAssociation", $dateToArchive),
         ];
 
         // the file normally should not exist
@@ -107,6 +114,7 @@ class PackBatchArchivingCommand extends Command {
                     $fileHeader = match ($entityToArchive) {
                         TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
                         Pack::class => $this->packService->getCsvHeader(),
+                        ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
                     };
 
                     $this->csvExportService->putLine($file, $fileHeader);
@@ -177,6 +185,10 @@ class PackBatchArchivingCommand extends Command {
     }
 
     private function archivePack(Pack $pack, array $files): void {
+        foreach ($pack->getReceiptAssociations() as $receiptAssociation) {
+            $this->archiveReceiptAssociation($receiptAssociation, $pack, $files);
+        }
+
         $this->packService->putPackLine(
             $files[Pack::class],
             $this->serializer->normalize($pack, null, ["usage" => SerializerUsageEnum::CSV_EXPORT])
@@ -184,6 +196,26 @@ class PackBatchArchivingCommand extends Command {
 
         $pack->setGroup(null);
         $this->entityManager->remove($pack);
+    }
+
+    private function archiveReceiptAssociation(ReceiptAssociation $receiptAssociation, Pack $pack, array $files): void {
+        $this->receiptAssociationService->putReceiptAssociationLine(
+            $files[ReceiptAssociation::class],
+            [
+                ...$this->serializer->normalize($receiptAssociation, null, ["usage" => SerializerUsageEnum::CSV_EXPORT]),
+                "lastActionDate" => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
+                "lastActionLocation" => $this->formatService->location($pack->getLastAction()?->getEmplacement()),
+                "logisticUnit" => $this->formatService->pack($pack),
+            ]
+        );
+
+
+        $receiptAssociation->removePack($pack);
+
+        if($receiptAssociation->getLogisticUnits()->isEmpty()) {
+            $receiptAssociation->setUser(null);
+            $this->entityManager->remove($receiptAssociation);
+        }
     }
 
     private function treatPackAndFLush(array $packs, array $files): void {
