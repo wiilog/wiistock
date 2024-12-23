@@ -511,7 +511,7 @@ class DataExportController extends AbstractController {
         );
     }
 
-    #[Route("/export/unique/unités-logistiques", name: "settings_export_receipt_association", options: ["expose" => true], methods: [self::GET])]
+    #[Route("/export/unique/associations-BR", name: "settings_export_receipt_association", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function printCSVReceiptAssociation(Request                   $request,
                                                EntityManagerInterface    $entityManager,
@@ -520,6 +520,7 @@ class DataExportController extends AbstractController {
                                                ReceiptAssociationService $receiptAssociationService): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
+
         $now = new DateTime('now');
         $today = $now->format("d-m-Y-H-i-s");
 
@@ -529,7 +530,7 @@ class DataExportController extends AbstractController {
         $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_RECEIPT_ASSOCIATION, $now);
 
         return $CSVExportService->streamResponse(
-            $receiptAssociationService->getExportPacksFunction(
+            $receiptAssociationService->getExportReceiptAssociationFunction(
                 $dateTimeMin,
                 $dateTimeMax,
                 $entityManager,

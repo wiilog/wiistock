@@ -40,6 +40,7 @@ class Export extends ScheduledTask {
         self::ENTITY_PRODUCTION => "Productions",
         self::ENTITY_TRACKING_MOVEMENT => "Mouvements",
         self::ENTITY_PACK => "Unités logistiques",
+        self::ENTITY_RECEIPT_ASSOCIATION => "Associations BR",
     ];
 
     const DESTINATION_EMAIL = 1;

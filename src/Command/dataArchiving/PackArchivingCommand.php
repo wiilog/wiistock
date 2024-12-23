@@ -68,9 +68,4 @@ class PackArchivingCommand extends Command {
 
         return 0;
     }
-
-    private function generateFileName(string $entityToArchive, DateTime $dateToArchive): string {
-        return $_ENV['APP_LOCALE'] . $entityToArchive . (new DateTime())->format(self::FILE_NAME_DATE_FORMAT) . '_' . $dateToArchive->format(self::FILE_NAME_DATE_FORMAT) . '.csv';
-    }
-
 }

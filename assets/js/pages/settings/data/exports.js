@@ -20,6 +20,7 @@ const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
 const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
+const ENTITY_PACK = "pack";
 const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
 
 global.displayExportModal = displayExportModal;
@@ -387,6 +388,7 @@ function onFormEntityChange() {
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
         case ENTITY_PACK:
+        case ENTITY_RECEIPT_ASSOCIATION:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;

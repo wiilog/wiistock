@@ -173,7 +173,7 @@ class PackBatchArchivingCommand extends Command {
     }
 
     private function generateFileName(string $entityToArchive, DateTime $dateToArchive): string {
-        return $_ENV['APP_LOCALE'] . $entityToArchive . (new DateTime())->format(self::FILE_NAME_DATE_FORMAT) . '_' . $dateToArchive->format(self::FILE_NAME_DATE_FORMAT) . '.csv';
+        return "ARC_" . $_ENV['APP_LOCALE'] ."_".  $entityToArchive . "_". (new DateTime())->format(self::FILE_NAME_DATE_FORMAT) . '_' . $dateToArchive->format(self::FILE_NAME_DATE_FORMAT) . '.csv';
     }
 
     private function archivePack(Pack $pack, array $files): void {

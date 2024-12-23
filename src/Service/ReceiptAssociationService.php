@@ -49,6 +49,9 @@ class ReceiptAssociationService
     #[Required]
     public SettingsService $settingsService;
 
+    #[Required]
+    public TranslationService $translationService;
+
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                                                $params = null): array
     {
@@ -87,20 +90,6 @@ class ReceiptAssociationService
                 'receipt_association' => $receiptAssocation,
             ]),
         ];
-    }
-
-    public function receiptAssociationPutLine($output, array $receiptAssociation): void
-    {
-        $row = [
-            $receiptAssociation['creationDate'],
-            $receiptAssociation['logisticUnit'],
-            $receiptAssociation['receptionNumber'],
-            $receiptAssociation['user'],
-            $receiptAssociation['lastActionDate'],
-            $receiptAssociation['lastActionLocation'],
-        ];
-
-        $this->CSVExportService->putLine($output, $row);
     }
 
     /**
@@ -232,12 +221,14 @@ class ReceiptAssociationService
     }
 
     public function getCsvHeader(): array {
-        $translation = $this->translation;
+        $translationService = $this->translationService;
         return  [
-            "Date",
-            "Unité logistique",
-            "Reception",
-            "Utilisateur",
+            $translationService->translate('Traçabilité', 'Général', 'Date',false),
+            $translationService->translate('Traçabilité', 'Général', 'Unité logistique',false),
+            $translationService->translate('Traçabilité', 'Association BR', 'Réception',false),
+            $translationService->translate('Traçabilité', 'Général', 'Utilisateur',false),
+            $translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement',false),
+            $translationService->translate('Traçabilité', 'Général', 'Dernier emplacement',false),
         ];
     }
 
@@ -246,7 +237,7 @@ class ReceiptAssociationService
                                            DateTime               $dateTimeMax,
                                            EntityManagerInterface $entityManager): callable {
         $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
-        $receiptAssociations = $receiptAssociationRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
+        $receiptAssociations = $receiptAssociationRepository->getByDates($dateTimeMin, $dateTimeMax, $this->security->getUser()?->getDateFormat());
 
         return function ($handle) use ($entityManager, $receiptAssociations) {
             foreach ($receiptAssociations as $receiptAssociation) {
@@ -257,14 +248,17 @@ class ReceiptAssociationService
         };
     }
 
-    public function putReceiptAssociationLine($handle, array $receiptAssociation): void {
-        $line = [
-            $this->formatService->datetime($receiptAssociation['date'], "", false, $this->userService->getUser()),
-            $receiptAssociation['pack'],
-            $receiptAssociation['nature'],
-            $receiptAssociation['receipt'],
+    public function putReceiptAssociationLine($output, array $receiptAssociation): void {
+        $row = [
+            $receiptAssociation['creationDate'],
+            $receiptAssociation['logisticUnit'],
+            $receiptAssociation['receptionNumber'],
             $receiptAssociation['user'],
+            $receiptAssociation['lastActionDate'],
+            $receiptAssociation['lastActionLocation'],
         ];
-        $this->CSVExportService->putLine($handle, $line);
+
+        $this->CSVExportService->putLine($output, $row);
     }
+
 }
