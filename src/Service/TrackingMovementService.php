@@ -445,7 +445,7 @@ class TrackingMovementService {
         $delivery = $options['delivery'] ?? null;
         $logisticUnitParent = $options['logisticUnitParent'] ?? null;
         $manualDelayStart = $options['manualDelayStart'] ?? null;
-        $groupIteration = $options['groupIteration'] ?? 1;
+        $groupIteration = $options['groupIteration'] ?? null;
 
         /** @var Pack|null $group */
         $group = $options['parent'] ?? null;
@@ -1919,9 +1919,9 @@ class TrackingMovementService {
     }
 
     public function manageSplitPack(EntityManagerInterface $entityManager,
-                                    Pack                  $packParent,
-                                    Pack                  $pack,
-                                    DateTime              $date): void {
+                                    Pack                   $packParent,
+                                    Pack                   $pack,
+                                    DateTime               $date): void {
         if($pack->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
             throw new FormException("Impossible de diviser le colis {$packParent->getCode()}.");
         }
@@ -1936,7 +1936,6 @@ class TrackingMovementService {
             TrackingMovement::TYPE_PACK_SPLIT,
             [
                 'disableUngrouping' => true,
-                'parent' => $packParent,
             ]
         );
 
