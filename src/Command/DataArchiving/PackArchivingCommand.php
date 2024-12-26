@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command\dataArchiving;
+namespace App\Command\DataArchiving;
 
 use App\Entity\CategorieCL;
 use App\Entity\Tracking\Pack;
@@ -29,11 +29,6 @@ use WiiCommon\Helper\Stream;
 class PackArchivingCommand extends Command {
     const COMMAND_NAME = 'app:purge:pack';
 
-    const ARCHIVE_PACK_OLDER_THAN = 2; // year
-    const FILE_NAME_DATE_FORMAT = 'Y-m-d';
-    const TEMPORARY_FOLDER = '/var/dataArchiving/';
-    const BATCH_SIZE = 1000;
-
     public function __construct(
         private readonly EntityManagerInterface  $entityManager,
     ) {
@@ -46,10 +41,10 @@ class PackArchivingCommand extends Command {
 
         $io->success('Start archiving Pack and TrackingMovement');
         try {
-            $dateToArchive = new DateTime('-' . self::ARCHIVE_PACK_OLDER_THAN . ' years');
+            $dateToArchive = new DateTime('-' . PackBatchArchivingCommand::ARCHIVE_PACK_OLDER_THAN . ' years');
         } catch (\Exception $e) {
             $io->error('Error while creating date to archive');
-            return 1;
+            return Command::FAILURE;
         }
 
         $toTreatCount = $trackingMovementRepository->countOlderThan($dateToArchive);
@@ -66,6 +61,6 @@ class PackArchivingCommand extends Command {
 
         $io->success('End archiving Pack and TrackingMovement');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

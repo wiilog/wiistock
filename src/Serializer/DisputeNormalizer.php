@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
+use function PHPUnit\Framework\isEmpty;
 
 class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
@@ -74,21 +75,25 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
 
         $res = [];
 
+        $packsContext = $context["packs"] ?? [];
+
         // arrival logistic unit dispute
         if (!$dispute->getPacks()->isEmpty()) {
             foreach ($dispute->getPacks() as $pack) {
-                $arrival = $pack->getArrivage();
-                $res[] = [
-                    ...$common,
-                    "object" => $pack->getCode(),
-                    "barcode" => null,
-                    "quantity" => null,
-                    "order" => $arrival?->getNumeroArrivage(),
-                    "orderNumbers" => Stream::from($arrival?->getNumeroCommandeList() ?? [])->join(' / '),
-                    "supplier" => $this->formatService->supplier($arrival?->getFournisseur()),
-                    "lineNumber" => null,
-                    "buyers" => $this->formatService->users($arrival?->getAcheteurs()),
-                ];
+                if (isEmpty($packsContext) || in_array($pack, $packsContext)) {
+                    $arrival = $pack->getArrivage();
+                    $res[] = [
+                        ...$common,
+                        "object" => $pack->getCode(),
+                        "barcode" => null,
+                        "quantity" => null,
+                        "order" => $arrival?->getNumeroArrivage(),
+                        "orderNumbers" => Stream::from($arrival?->getNumeroCommandeList() ?? [])->join(' / '),
+                        "supplier" => $this->formatService->supplier($arrival?->getFournisseur()),
+                        "lineNumber" => null,
+                        "buyers" => $this->formatService->users($arrival?->getAcheteurs()),
+                    ];
+                }
             }
         }
         // reception order dispute

@@ -236,7 +236,7 @@ class ReceiptAssociationService
                                                         DateTime               $dateTimeMax,
                                                         EntityManagerInterface $entityManager): callable {
         $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
-        $receiptAssociations = $receiptAssociationRepository->getByDates($dateTimeMin, $dateTimeMax, $this->security->getUser()?->getDateFormat());
+        $receiptAssociations = $receiptAssociationRepository->getByDates($dateTimeMin, $dateTimeMax, $this->userService->getUser()?->getDateFormat());
 
         return function ($handle) use ($entityManager, $receiptAssociations) {
             foreach ($receiptAssociations as $receiptAssociation) {

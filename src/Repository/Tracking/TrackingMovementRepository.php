@@ -18,6 +18,8 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 use Generator;
@@ -672,6 +674,12 @@ class TrackingMovementRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * Returns an iterable of TrackingMovement older than the given date
+     *
+     * @param DateTime $date
+     * @return iterable<TrackingMovement>
+     */
     public function iterateOlderThan(DateTime $date): iterable {
         $queryBuilder = $this->createQueryBuilder("tracking_movement")
             ->andWhere("tracking_movement.datetime < :date")
@@ -681,6 +689,13 @@ class TrackingMovementRepository extends EntityRepository
         return $queryBuilder->getQuery()->toIterable();
     }
 
+    /**
+     * Counts the number of TrackingMovement older than the given date.
+     *
+     * @param DateTime $date
+     * @return int
+     * @throws NonUniqueResultException|NoResultException
+     */
     public function countOlderThan(DateTime $date): int {
         return $this->createQueryBuilder("tracking_movement")
             ->select("COUNT(tracking_movement.id)")

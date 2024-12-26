@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Command\dataArchiving;
+namespace App\Command\DataArchiving;
 
 use App\Entity\CategorieCL;
+use App\Entity\Dispute;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FileSystem;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
+use App\Service\DisputeService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
@@ -16,7 +18,6 @@ use App\Service\ReceiptAssociationService;
 use App\Service\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use SGK\BarcodeBundle\Generator\Generator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,8 +36,11 @@ class PackBatchArchivingCommand extends Command {
 
     const ARCHIVE_PACK_OLDER_THAN = 2; // year
     const FILE_NAME_DATE_FORMAT = 'Y-m-d';
-    const TEMPORARY_FOLDER = '/var/dataArchiving/';
+    const TEMPORARY_DIR = '/var/dataArchiving/';
     const BATCH_SIZE = 1000;
+
+    // 2GB
+    const MEMORY_LIMIT = 2147483648;
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
@@ -50,27 +54,32 @@ class PackBatchArchivingCommand extends Command {
         private readonly SerializerInterface       $serializer,
         private readonly ReceiptAssociationService $receiptAssociationService,
         private readonly FormatService             $formatService,
+        private readonly DisputeService            $disputeService,
 
         KernelInterface                            $kernel,
     ) {
         parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_FOLDER;
+        $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_DIR;
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
-        $packRepository = $this->entityManager->getRepository(Pack::class);
+
+
 
         $trackingMovementExportableColumnsSorted = $this->trackingMovementService->getTrackingMovementExportableColumnsSorted($this->entityManager);
         $trackingMovementFreeFieldsConfig = $this->freeFieldService->createExportArrayConfig($this->entityManager, [CategorieCL::MVT_TRACA]);
 
         $io = new SymfonyStyle($input, $output);
 
-        // allow more memory Usage
-        ini_set('memory_limit', '2147483648');
+        $functionMemoryLimit = self::MEMORY_LIMIT * 0.75;
+        $io->error($functionMemoryLimit);
 
-        $io->title('Archiving Pack and TrackingMovement');
+        // allow more memory Usage
+        ini_set('memory_limit', self::MEMORY_LIMIT);
+
+        $io->title("Archiving Pack and TrackingMovement on batch of" . self::BATCH_SIZE);
 
         // all tracking movement older than ARCHIVE_PACK_OLDER_THAN years will be archived
         // archiving means that the data will be added to an CSV file and then deleted from the database
@@ -84,52 +93,58 @@ class PackBatchArchivingCommand extends Command {
             return 1;
         }
 
-        // file name =  APP_LOCALE (env) + entityToArchive + today's date + _ + $dateToArchive + .csv
-        // date format = FILE_NAME_DATE_FORMAT
-        $fileNames = [
-            TrackingMovement::class => $this->generateFileName("TrackingMovement", $dateToArchive),
-            Pack::class => $this->generateFileName("Pack", $dateToArchive),
-            ReceiptAssociation::class => $this->generateFileName("ReceiptAssociation", $dateToArchive),
-        ];
+        $io->warning(TrackingMovement::class);
+
+        $fileNames = Stream::from([
+            TrackingMovement::class,
+            Pack::class,
+            ReceiptAssociation::class,
+            Dispute::class
+        ])
+            ->keyMap(fn ($entityToArchive) => [
+                $entityToArchive,
+                $this->generateFileName($this->getEntityName($entityToArchive), $dateToArchive),
+            ])
+            ->toArray();
 
         // the file normally should not exist
         // if the file already exists we keep it and add the new data to it (without deleting the old data, and without rewriting headers)
-        $files = Stream::from($fileNames)
-            ->keymap(function (string $fileName, string $entityToArchive) use ($trackingMovementExportableColumnsSorted, $io): array {
-                // if repository self::TEMPORARY_FOLDER does not exist, create it
-                if (!$this->filesystem->isDir()) {
-                    $this->filesystem->mkdir();
-                }
+        $files = [];
+        foreach ($fileNames as $entityToArchive => $fileName) {
+            // if directory self::TEMPORARY_FOLDER does not exist, create it
+            if (!$this->filesystem->isDir()) {
+                $this->filesystem->mkdir();
+            }
 
-                $fileExists = $this->filesystem->exists($fileName);
+            $fileExists = $this->filesystem->exists($fileName);
 
-                $file = fopen("." . self::TEMPORARY_FOLDER . $fileName, 'a');
+            $file = fopen($this->absoluteCachePath . $fileName, 'a');
 
-                if ($fileExists) {
-                    $io->warning('File ' . $fileName . ' already exists. The new data will be added to it.');
-                } else {
-                    $io->text('Creating file ' . $fileName);
+            if ($fileExists) {
+                $io->warning('File ' . $fileName . ' already exists. The new data will be added to it.');
+            } else {
+                $io->text('Creating file ' . $fileName);
 
-                    //generate the header for the file based on the entity
-                    $fileHeader = match ($entityToArchive) {
-                        TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
-                        Pack::class => $this->packService->getCsvHeader(),
-                        ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
-                    };
+                //generate the header for the file based on the entity
+                $fileHeader = match ($entityToArchive) {
+                    TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
+                    Pack::class => $this->packService->getCsvHeader(),
+                    ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
+                    Dispute::class => $this->disputeService->getCsvHeader(),
+                };
 
-                    $this->csvExportService->putLine($file, $fileHeader);
-                    unset($fileHeader);
-                }
-                return [$entityToArchive, $file];
-            })
-            ->toArray();
+                $this->csvExportService->putLine($file, $fileHeader);
+            }
+            $files[$entityToArchive] = $file;
+        }
 
         // init progress bar
         $io->progressStart($trackingMovementRepository->countOlderThan($dateToArchive));
 
         $batch = 0;
         $packs = [];
-        foreach ($trackingMovementRepository->iterateOlderThan($dateToArchive) as $trackingMovement) {
+        $iteratorTrackingToArchive = $trackingMovementRepository->iterateOlderThan($dateToArchive);
+        foreach ($iteratorTrackingToArchive as $trackingMovement) {
 
             $this->trackingMovementService->putMovementLine(
                 $files[TrackingMovement::class],
@@ -160,7 +175,7 @@ class PackBatchArchivingCommand extends Command {
                 gc_collect_cycles();
 
                 $io->text('Memory usage: ' . memory_get_usage());
-                if (memory_get_usage() > 1500000000) {
+                if (memory_get_usage() > $functionMemoryLimit) {
                     $io->warning('Memory limit reached');
                     break;
                 }
@@ -172,7 +187,7 @@ class PackBatchArchivingCommand extends Command {
         $this->treatPackAndFLush($packs, $files);
 
         //close the file
-        foreach ($files as $entityToArchive => $file) {
+        foreach ($files as $file) {
             fclose($file);
         }
 
@@ -181,7 +196,11 @@ class PackBatchArchivingCommand extends Command {
     }
 
     private function generateFileName(string $entityToArchive, DateTime $dateToArchive): string {
-        return "ARC_" . $_ENV['APP_LOCALE'] ."_".  $entityToArchive . "_". (new DateTime())->format(self::FILE_NAME_DATE_FORMAT) . '_' . $dateToArchive->format(self::FILE_NAME_DATE_FORMAT) . '.csv';
+        // file name = ARC + APP_LOCALE (env) + entityToArchive + today's date + _ + $dateToArchive + .csv
+        $appLocal = $_ENV['APP_LOCALE'];
+        $now = (new DateTime())->format(self::FILE_NAME_DATE_FORMAT);
+        $date = $dateToArchive->format(self::FILE_NAME_DATE_FORMAT);
+        return "ARC_{$appLocal}_{$entityToArchive}_{$now}_{$date}.csv";
     }
 
     private function archivePack(Pack $pack, array $files): void {
@@ -199,6 +218,10 @@ class PackBatchArchivingCommand extends Command {
 
         foreach ($pack->getPairings() as $pairing) {
             $this->entityManager->remove($pairing);
+        }
+
+        foreach ($pack->getDisputes() as $dispute) {
+            $this->archiveDispute($dispute, $pack, $files);
         }
 
         $this->packService->putPackLine(
@@ -230,6 +253,22 @@ class PackBatchArchivingCommand extends Command {
         }
     }
 
+    private function archiveDispute(Dispute $dispute, Pack $pack, array $files): void {
+        $this->disputeService->putDisputeLine(
+            $files[Dispute::class],
+            $dispute,
+            [
+                "packs" => [$pack],
+            ]
+        );
+
+        $dispute->removePack($pack);
+
+        if($dispute->getPacks()->isEmpty()) {
+            $this->entityManager->remove($dispute);
+        }
+    }
+
     private function treatPackAndFLush(array $packs, array $files): void {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
@@ -255,6 +294,10 @@ class PackBatchArchivingCommand extends Command {
 
         $this->entityManager->flush();
         $this->entityManager->clear();
+    }
+
+    private function getEntityName(string $entity): string {
+        return Stream::explode("\\", $entity)->last();
     }
 
 }
