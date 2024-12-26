@@ -586,7 +586,7 @@ class DataExportController extends AbstractController {
         ]);
     }
 
-    #[Route("/export/unique/truck-arrival", name: "settings_export_truck_arrival", options: ["expose" => true], methods: "GET")]
+    #[Route("/export/unique/truck-arrival", name: "settings_export_truck_arrival", options: ["expose" => true], methods: [self::GET])]
     public function exportTruckArrival(Request                   $request,
                                        TruckArrivalService       $truckArrivalService,
                                        EntityManagerInterface    $entityManager,
