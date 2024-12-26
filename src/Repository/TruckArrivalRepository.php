@@ -6,6 +6,7 @@ use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -233,5 +234,41 @@ class TruckArrivalRepository extends EntityRepository
         return $qb
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function iterateByDates(DateTime $dateMin, DateTime $dateMax): iterable {
+        $queryBuilder = $this->createQueryBuilder('truck_arrival')
+            ->select('truck_arrival.id AS id')
+            ->addSelect('truck_arrival.number AS number')
+            ->addSelect('join_carrier.label AS carrier')
+            ->addSelect('join_operator.username AS operator')
+            ->addSelect("CONCAT(join_driver.prenom, ' ', join_driver.nom) AS driver")
+            ->addSelect('join_driver.prenom AS driver_surname')
+            ->addSelect('join_unloadingLocation.label AS unloadingLocation')
+            ->addSelect('truck_arrival.registrationNumber AS registrationNumber')
+            ->addSelect('truck_arrival.creationDate AS createdAt')
+            ->addSelect("GROUP_CONCAT(DISTINCT join_trackingLines_reserve_type.label SEPARATOR ',') AS carrierTrackingNumberReserve")
+            ->addSelect("GROUP_CONCAT(DISTINCT join_trackingLines.number SEPARATOR ',') AS carrierTrackingNumber")
+            ->addSelect("IF(truck_arrival.reserves IS NOT EMPTY, 'Oui', 'Non') AS hasReserve")
+            ->leftJoin('truck_arrival.carrier', 'join_carrier')
+            ->leftJoin('truck_arrival.operator', 'join_operator')
+            ->leftJoin('truck_arrival.driver', 'join_driver')
+            ->leftJoin('truck_arrival.trackingLines', 'join_trackingLines')
+            ->leftJoin('truck_arrival.reserves', 'join_truckArrival_reserve')
+            ->leftJoin('join_trackingLines.reserve', 'join_trackingLines_reserve')
+            ->leftJoin('join_trackingLines_reserve.reserveType', 'join_trackingLines_reserve_type')
+            ->leftJoin('truck_arrival.unloadingLocation', 'join_unloadingLocation')
+            ->andWhere('truck_arrival.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax,
+            ]);
+
+        $queryBuilder = QueryBuilderHelper::setGroupBy($queryBuilder, ['hasReserve', 'carrierTrackingNumber', 'carrierTrackingNumberReserve']);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
+
     }
 }

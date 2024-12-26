@@ -21,6 +21,7 @@ const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
 const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 const ENTITY_PACK = "pack";
+const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -290,6 +291,19 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
+                    } else if(content.entityToExport === ENTITY_TRUCK_ARRIVAL) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'arrivages de camions`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_truck_arrival`, {
+                            dateMin,
+                            dateMax,
+                        }));
                     } else {
                         Flash.add(`danger`, `Une erreur est survenue lors de la génération de l'export`);
                     }
@@ -374,6 +388,7 @@ function onFormEntityChange() {
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_PRODUCTION:
         case ENTITY_PACK:
+        case ENTITY_TRUCK_ARRIVAL:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;

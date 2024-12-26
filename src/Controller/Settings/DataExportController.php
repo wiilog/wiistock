@@ -42,6 +42,7 @@ use App\Service\ScheduleRuleService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportRoundService;
+use App\Service\TruckArrivalService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -583,6 +584,33 @@ class DataExportController extends AbstractController {
         return $this->json([
             'success' => true,
         ]);
+    }
+
+    #[Route("/export/unique/truck-arrival", name: "settings_export_truck_arrival", options: ["expose" => true], methods: [self::GET])]
+    public function exportTruckArrival(Request                   $request,
+                                       TruckArrivalService       $truckArrivalService,
+                                       EntityManagerInterface    $entityManager,
+                                       CSVExportService          $CSVExportService,
+                                       DataExportService         $dataExportService): StreamedResponse {
+
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+        $now = new DateTime('now');
+        $today = $now->format("d-m-Y-H-i-s");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        $dataExportService->persistUniqueExport($entityManager, Export::ENTITY_TRUCK_ARRIVAL, $now);
+
+        return $CSVExportService->streamResponse(
+            $truckArrivalService->getExportFunction(
+                $dateTimeMin,
+                $dateTimeMax,
+                $entityManager,
+            ), "export-arrivage-camion-$today.csv",
+            $truckArrivalService->getCsvHeader()
+        );
     }
 }
 
