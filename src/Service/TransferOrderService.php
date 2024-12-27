@@ -166,7 +166,7 @@ class TransferOrderService {
             );
 
             $trackingPick = $this->mouvementTracaService->createTrackingMovement(
-                $barcode,
+                $refOrArt->getTrackingPack() ?: $barcode,
                 $emplacementFrom,
                 $utilisateur,
                 new DateTime(),
