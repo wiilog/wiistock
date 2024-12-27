@@ -131,7 +131,8 @@ class DispatchController extends AbstractController {
         $dispatchStatuses = $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder');
         $statuses = Stream::from($dispatchStatuses)
             ->filter(function (Statut $statut) use ($currentUser) {
-                return ($currentUser->getDispatchTypeIds()) && in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds());
+                return empty($currentUser->getDispatchTypeIds())
+                    || (($currentUser->getDispatchTypeIds()) && in_array($statut->getType()->getId(), $currentUser->getDispatchTypeIds()));
             })
             ->toArray();
 
