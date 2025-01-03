@@ -627,12 +627,14 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
 
             table.columns.adjust().draw();
 
-            if ($quantity.val() && $nature.val()) {
-                // trigger dispatch pack saving if nature and pack filled
-                $quantity.trigger('focusout.keyboardNavigation');
-            }
-            else {
+            if (!($quantity.val() && $nature.val())) {
                 $quantity.trigger('focus');
+            }
+
+            $row.trigger('focusout.keyboardNavigation');
+
+            if(Form.process($row) instanceof FormData) {
+                addPackRow(table, $(`.add-pack-row`));
             }
         });
 
