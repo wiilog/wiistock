@@ -20,7 +20,7 @@ jobs:
                 uses: actions/checkout@v4
                 with:
                     repository: wiilog/wiistock-docker
-                    token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Robin Personal Access Token available until Jan 1, 2025
+                    token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
                     ref: main
 
             -   name: Setup environment wiistock-docker
@@ -40,7 +40,7 @@ jobs:
                     path: projects/wiistock
 
             -   name: Login to docker hub
-                run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}
+                run: docker login --username ${{ secrets.DOCKER_USER }} --password ${{ secrets.DOCKER_PULL_TOKEN }}  #Grégoire Personal Access Token available until Jan 1, 2026
 
             -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
