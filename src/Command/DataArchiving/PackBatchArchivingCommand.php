@@ -80,14 +80,8 @@ class PackBatchArchivingCommand extends Command {
         // archiving means that the data will be added to an CSV file and then deleted from the database
         // the CSV file will be stored in the TEMPORARY_FOLDER folder temporarily
 
-        // get all tracking movement older than ARCHIVE_PACK_OLDER_THAN years
-        try {
-            $dateToArchive = new DateTime('-' . self::ARCHIVE_PACK_OLDER_THAN . ' years');
-        } catch (\Exception $e) {
-            $io->error('Error while creating date to archive');
-            return 1;
-        }
 
+        $dateToArchive = new DateTime('-' . self::ARCHIVE_PACK_OLDER_THAN . ' years');
         $io->warning(TrackingMovement::class);
 
         $fileNames = Stream::from([
@@ -159,7 +153,9 @@ class PackBatchArchivingCommand extends Command {
             $this->entityManager->remove($trackingMovement);
 
             $io->progressAdvance();
-            if(++$batch === self::BATCH_SIZE) {
+            $batch ++;
+
+            if($batch === self::BATCH_SIZE) {
                 $batch = 0;
 
                 $this->treatPackAndFLush($packs, $files);

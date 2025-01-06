@@ -40,13 +40,8 @@ class PackArchivingCommand extends Command {
         $io = new SymfonyStyle($input, $output);
 
         $io->success('Start archiving Pack and TrackingMovement');
-        try {
-            $dateToArchive = new DateTime('-' . PackBatchArchivingCommand::ARCHIVE_PACK_OLDER_THAN . ' years');
-        } catch (\Exception $e) {
-            $io->error('Error while creating date to archive');
-            return Command::FAILURE;
-        }
 
+        $dateToArchive = new DateTime('-' . PackBatchArchivingCommand::ARCHIVE_PACK_OLDER_THAN . ' years');
         $toTreatCount = $trackingMovementRepository->countOlderThan($dateToArchive);
         $io->info('TrackingMovement to treat: ' . $toTreatCount);
         do {
