@@ -25,7 +25,7 @@ const packsTableConfig = {
         const $logisticUnitPane = $(`.logistic-unit-content`);
         if ($logisticUnitPane.exists()) {
             const pack = $logisticUnitPane.data(`pack`);
-            const $number = $(`.logistic-unit-number[data-pack="${pack}"]`);
+            const $number = $(`.open-content-button[data-pack="${pack}"]`);
 
             if (!$number.exists()) {
                 $logisticUnitPane.remove();
@@ -37,7 +37,7 @@ const packsTableConfig = {
 
         const codeUl = $('#lu-code').val();
         if (codeUl) {
-            $(`.logistic-unit-number`).trigger(`mouseup`);
+            $(`.open-content-button`).trigger(`mouseup`);
         }
     }
 };
@@ -93,62 +93,8 @@ $(function () {
         })
     });
 
-    $(document).arrive(`.logistic-unit-number`, function () {
-        const $number = $(this);
-
-        let isLoading = false;
-
-        // register the event directly on the element through arrive
-        // to get the event before action-on-click and be able to
-        // cancel modal openning through event.stopPropagation
-        $number.on(`mouseup`, event => {
-            event.stopPropagation();
-            if (isLoading) {
-                Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
-                return;
-            }
-
-            isLoading = true;
-
-            const $container = $(`.packsTableContainer`);
-            const $line = $number.closest('tr');
-
-            let closeContentContainer = function() {
-                $number.removeClass(`active`);
-                $line.removeClass('selected-line');
-                $container.find(`.logistic-unit-content`).remove();
-                isLoading = false;
-            };
-
-            if ($number.is(`.active`)) {
-                closeContentContainer();
-            } else {
-                const logisticUnitId = $number.data(`id`);
-                AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
-                    .json()
-                    .then(result => {
-                        $container.find(`.logistic-unit-content`).remove();
-                        $(`.logistic-unit-number.active`).removeClass(`active`);
-                        $container.find(`.selected-line`).removeClass(`selected-line`);
-                        $number.addClass(`active`);
-                        $container.append(result.html);
-                        packsTable.columns.adjust();
-
-                        $container
-                            .find('button.close')
-                            .off('click')
-                            .on('click', function () {
-                                closeContentContainer();
-                            });
-
-                        $line.addClass('selected-line');
-
-                        getTrackingHistory(logisticUnitId, false);
-                        initializeGroupContentTable(logisticUnitId, false);
-                        isLoading = false;
-                    });
-            }
-        })
+    $(document).arrive(`.open-content-button`, function () {
+        onContentButtonClicked($(this));
     });
 
     $(document).on(`click`, `.logistic-unit-tab`, function () {
@@ -195,3 +141,59 @@ $(function () {
 
     });
 });
+
+function onContentButtonClicked($number){
+    let isLoading = false;
+
+    // register the event directly on the element through arrive
+    // to get the event before action-on-click and be able to
+    // cancel modal openning through event.stopPropagation
+    $number.on(`mouseup`, event => {
+        event.stopPropagation();
+        if (isLoading) {
+            Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
+            return;
+        }
+
+        isLoading = true;
+
+        const $container = $(`.packsTableContainer`);
+        const $line = $number.closest('tr');
+
+        let closeContentContainer = function() {
+            $number.removeClass(`active`);
+            $line.removeClass('selected-line');
+            $container.find(`.logistic-unit-content`).remove();
+            isLoading = false;
+        };
+
+        if ($number.is(`.active`)) {
+            closeContentContainer();
+        } else {
+            const logisticUnitId = $number.data(`id`);
+            AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
+                .json()
+                .then(result => {
+                    $container.find(`.logistic-unit-content`).remove();
+                    $(`.open-content-button.active`).removeClass(`active`);
+                    $container.find(`.selected-line`).removeClass(`selected-line`);
+                    $number.addClass(`active`);
+                    $container.append(result.html);
+                    packsTable.columns.adjust();
+
+                    $container
+                        .find('button.close')
+                        .off('click')
+                        .on('click', function () {
+                            closeContentContainer();
+                        });
+
+                    $line.addClass('selected-line');
+
+                    getTrackingHistory(logisticUnitId, false);
+                    initializeGroupContentTable(logisticUnitId, false);
+                    isLoading = false;
+                });
+        }
+    });
+}
