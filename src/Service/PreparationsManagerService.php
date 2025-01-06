@@ -168,7 +168,7 @@ class PreparationsManagerService
                     $locationEndPrepa
                 );
 
-                $trackingMovementPick= $this->trackingMovementService->createTrackingMovement(
+                $trackingMovementPick = $this->trackingMovementService->createTrackingMovement(
                     $articleEntity->getTrackingPack() ?: $articleEntity->getBarCode(),
                     $articleEntity->getEmplacement(),
                     $user,
@@ -189,7 +189,7 @@ class PreparationsManagerService
                 }
 
                 $trackingMovementDrop = $this->trackingMovementService->createTrackingMovement(
-                    $articleEntity->getTrackingPack() ?: $articleEntity->getBarCode(),
+                    $trackingMovementPick->getPack(),
                     $locationEndPrepa,
                     $user,
                     $now,

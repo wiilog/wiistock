@@ -445,6 +445,7 @@ class DataExportService
             Export::ENTITY_PACK,
             Export::ENTITY_DISPUTE,
             Export::ENTITY_RECEIPT_ASSOCIATION,
+            Export::ENTITY_TRUCK_ARRIVAL,
         ])) {
             $export
                 ->setPeriod($data["period"])

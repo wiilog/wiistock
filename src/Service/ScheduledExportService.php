@@ -43,6 +43,7 @@ class ScheduledExportService {
         private RefArticleDataService     $refArticleDataService,
         private DataExportService         $dataExportService,
         private CSVExportService          $csvExportService,
+        private TruckArrivalService       $truckArrivalService,
         private ReceiptAssociationService $receiptAssociationService,
         private DisputeService            $disputeService,
     ) {}
@@ -183,6 +184,10 @@ class ScheduledExportService {
             $this->csvExportService->putLine($output, $this->packService->getCsvHeader());
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $this->packService->getExportPacksFunction($startDate, $endDate, $entityManager)($output);
+        } else if($exportToRun->getEntity() === Export::ENTITY_TRUCK_ARRIVAL) {
+            $this->csvExportService->putLine($output, $this->truckArrivalService->getCsvHeader());
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $this->truckArrivalService->getExportFunction($startDate, $endDate, $entityManager)($output);
         } else if($exportToRun->getEntity() === Export::ENTITY_RECEIPT_ASSOCIATION) {
             $this->csvExportService->putLine($output, $this->receiptAssociationService->getCsvHeader());
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);

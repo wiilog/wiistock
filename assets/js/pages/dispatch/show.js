@@ -528,7 +528,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 // timeout is necessary because drawCallback doesnt seem to be called when everything is fully loaded,
                 // because we have some custom rendering actions which may take more time than native datatable rendering
                 setTimeout(() => {
-                    $table.DataTable().columns.adjust().draw();
+                    afterDatatableLoadAction($table, table)
                 }, 500);
             }
         },
@@ -627,12 +627,14 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
 
             table.columns.adjust().draw();
 
-            if ($quantity.val() && $nature.val()) {
-                // trigger dispatch pack saving if nature and pack filled
-                $quantity.trigger('focusout.keyboardNavigation');
-            }
-            else {
+            if (!($quantity.val() && $nature.val())) {
                 $quantity.trigger('focus');
+            }
+
+            $row.trigger('focusout.keyboardNavigation');
+
+            if(Form.process($row) instanceof FormData) {
+                addPackRow(table, $(`.add-pack-row`));
             }
         });
 
@@ -672,6 +674,26 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     });
 
     return table;
+}
+
+function afterDatatableLoadAction($table, table)  {
+    $table.DataTable().columns.adjust().draw();
+
+    const rowsCount = table.rows().count();
+
+    // Get the index of the last row with the 'add-pack-row' class
+    const lastRowIndex = table.row($(`.add-pack-row`)).index() - 1;
+
+    const $lastRow = table.row(lastRowIndex).node();
+
+    if ($lastRow) {
+        const lastRowFilled = $( $lastRow ).find('select[name="pack"]').val() !== null;
+
+        // Add a new pack row if the last row is filled and rowsCount is valid
+        if (rowsCount > 0 && lastRowFilled) {
+            addPackRow(table, $(`.add-pack-row`));
+        }
+    }
 }
 
 function addPackRow(table, $button) {

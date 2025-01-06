@@ -385,14 +385,14 @@ class OrdreCollecteService
         ];
     }
 
-    private function persistMouvementsFromStock(Utilisateur $user,
-                                                $article,
-                                                ?DateTime $date,
-                                                Emplacement $locationFrom,
-                                                ?Emplacement $locationTo,
-                                                int $quantity,
-                                                OrdreCollecte $ordreCollecte,
-                                                bool $fromNomade = false): void {
+    private function persistMouvementsFromStock(Utilisateur              $user,
+                                                ReferenceArticle|Article $article,
+                                                ?DateTime                $date,
+                                                Emplacement              $locationFrom,
+                                                ?Emplacement             $locationTo,
+                                                int                      $quantity,
+                                                OrdreCollecte            $ordreCollecte,
+                                                bool                     $fromNomade = false): void {
 
         // mouvement de stock d'entrée
         $mouvementStock = $this->mouvementStockService->createMouvementStock($user, $locationFrom, $quantity, $article, MouvementStock::TYPE_ENTREE);
@@ -401,7 +401,7 @@ class OrdreCollecteService
 
         // Mouvement traca prise
         $createdMvt = $this->trackingMovementService->createTrackingMovement(
-            $article->getBarCode(),
+            $article->getTrackingPack() ?: $article->getBarCode(),
             $locationFrom,
             $user,
             $date,

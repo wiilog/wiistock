@@ -206,10 +206,10 @@ class ReceiptAssociationService
             $entityManager->persist($dropMvtLU);
         }
 
-        /** @var Reception $reception */
         foreach ($receptions as $reception) {
             //dépose
-            $dropMvt = $this->trackingMovementService->createTrackingMovement($reception,
+            $dropMvt = $this->trackingMovementService->createTrackingMovement(
+                $reception,
                 $defaultLocationReception,
                 $user,
                 $now,

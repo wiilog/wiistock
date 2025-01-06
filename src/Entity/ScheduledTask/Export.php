@@ -29,6 +29,7 @@ class Export extends ScheduledTask {
     const ENTITY_PRODUCTION = "production";
     const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
     const ENTITY_PACK = "pack";
+    const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
     const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
     const ENTITY_DISPUTE = "dispute";
 
@@ -42,6 +43,7 @@ class Export extends ScheduledTask {
         self::ENTITY_PRODUCTION => "Productions",
         self::ENTITY_TRACKING_MOVEMENT => "Mouvements",
         self::ENTITY_PACK => "Unités logistiques",
+        self::ENTITY_TRUCK_ARRIVAL => "Arrivages Camion",
         self::ENTITY_RECEIPT_ASSOCIATION => "Associations BR",
         self::ENTITY_DISPUTE => "Litiges",
     ];

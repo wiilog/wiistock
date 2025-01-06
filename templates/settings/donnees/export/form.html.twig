@@ -66,6 +66,12 @@
                 disabled: export.id is not null
             },
             {
+                label: 'Arrivages camion',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRUCK_ARRIVAL'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRUCK_ARRIVAL'),
+                disabled: export.id is not null
+            },
+            {
                 label: 'Associations BR',
                 value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_RECEIPT_ASSOCIATION'),
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_RECEIPT_ASSOCIATION'),
