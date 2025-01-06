@@ -1,6 +1,5 @@
 SELECT truck_arrival_line.number as no_tracking,
        ta.number as no_arrivage_camion,
-       truck_arrival_line.id as id,
        IF(reserve.kind = 'qualite', 'Oui', 'Non') as reserve_qualite,
        IF(
            (
