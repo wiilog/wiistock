@@ -160,23 +160,15 @@ function onContentButtonClicked($number){
         const $container = $(`.packsTableContainer`);
         const $line = $number.closest('tr');
 
-        let closeContentContainer = function() {
-            $number.removeClass(`active`);
-            $line.removeClass('selected-line');
-            $container.find(`.logistic-unit-content`).remove();
-            isLoading = false;
-        };
-
         if ($number.is(`.active`)) {
-            closeContentContainer();
+            closeContentContainer($number, $line, $container.find(`.logistic-unit-content`));
+            isLoading = false;
         } else {
             const logisticUnitId = $number.data(`id`);
             AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
                 .json()
                 .then(result => {
-                    $container.find(`.logistic-unit-content`).remove();
-                    $(`.open-content-button.active`).removeClass(`active`);
-                    $container.find(`.selected-line`).removeClass(`selected-line`);
+                    closeContentContainer($(`.open-content-button.active`), $container.find(`.selected-line`), $container.find(`.logistic-unit-content`));
                     $number.addClass(`active`);
                     $container.append(result.html);
                     packsTable.columns.adjust();
@@ -185,7 +177,8 @@ function onContentButtonClicked($number){
                         .find('button.close')
                         .off('click')
                         .on('click', function () {
-                            closeContentContainer();
+                            closeContentContainer($number, $container.find(`.selected-line`), $container.find(`.logistic-unit-content`));
+                            isLoading = false;
                         });
 
                     $line.addClass('selected-line');
@@ -196,4 +189,10 @@ function onContentButtonClicked($number){
                 });
         }
     });
+}
+
+function closeContentContainer($number, $line, $logisticUnitContent) {
+    $number.removeClass(`active`);
+    $line.removeClass('selected-line');
+    $logisticUnitContent.remove();
 }
