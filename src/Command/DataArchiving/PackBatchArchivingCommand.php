@@ -10,6 +10,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FileSystem;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
+use App\Service\DataExportService;
 use App\Service\DisputeService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
@@ -29,13 +30,12 @@ use WiiCommon\Helper\Stream;
 
 #[AsCommand(
     name: PackBatchArchivingCommand::COMMAND_NAME,
-    description: 'Archiving Pack and TrackingMovement'
+    description: 'Archiving Pack and TrackingMovement on batch of 1000. The function end when there is no more TrackingMovement to archive of when the memory has reached 75% of the limit',
 )]
 class PackBatchArchivingCommand extends Command {
     const COMMAND_NAME = 'app:purge:batch-pack';
 
     const ARCHIVE_PACK_OLDER_THAN = 2; // year
-    const FILE_NAME_DATE_FORMAT = 'Y-m-d';
     const TEMPORARY_DIR = '/var/dataArchiving/';
     const BATCH_SIZE = 1000;
 
@@ -56,7 +56,7 @@ class PackBatchArchivingCommand extends Command {
         private readonly FormatService             $formatService,
         private readonly DisputeService            $disputeService,
 
-        KernelInterface                            $kernel,
+        KernelInterface                            $kernel, private readonly DataExportService $dataExportService,
     ) {
         parent::__construct();
         $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_DIR;
@@ -65,17 +65,12 @@ class PackBatchArchivingCommand extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
-
-
-
         $trackingMovementExportableColumnsSorted = $this->trackingMovementService->getTrackingMovementExportableColumnsSorted($this->entityManager);
         $trackingMovementFreeFieldsConfig = $this->freeFieldService->createExportArrayConfig($this->entityManager, [CategorieCL::MVT_TRACA]);
 
         $io = new SymfonyStyle($input, $output);
 
         $functionMemoryLimit = self::MEMORY_LIMIT * 0.75;
-        $io->error($functionMemoryLimit);
-
         // allow more memory Usage
         ini_set('memory_limit', self::MEMORY_LIMIT);
 
@@ -103,7 +98,7 @@ class PackBatchArchivingCommand extends Command {
         ])
             ->keyMap(fn ($entityToArchive) => [
                 $entityToArchive,
-                $this->generateFileName($this->getEntityName($entityToArchive), $dateToArchive),
+                $this->dataExportService->generateDataArchichingFileName($this->getEntityName($entityToArchive), $dateToArchive),
             ])
             ->toArray();
 
@@ -193,14 +188,6 @@ class PackBatchArchivingCommand extends Command {
 
         $io->success('Pack and TrackingMovement archiving done');
         return Command::SUCCESS;
-    }
-
-    private function generateFileName(string $entityToArchive, DateTime $dateToArchive): string {
-        // file name = ARC + APP_LOCALE (env) + entityToArchive + today's date + _ + $dateToArchive + .csv
-        $appLocal = $_ENV['APP_LOCALE'];
-        $now = (new DateTime())->format(self::FILE_NAME_DATE_FORMAT);
-        $date = $dateToArchive->format(self::FILE_NAME_DATE_FORMAT);
-        return "ARC_{$appLocal}_{$entityToArchive}_{$now}_{$date}.csv";
     }
 
     private function archivePack(Pack $pack, array $files): void {

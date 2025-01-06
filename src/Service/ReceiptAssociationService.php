@@ -242,8 +242,6 @@ class ReceiptAssociationService
             foreach ($receiptAssociations as $receiptAssociation) {
                 $this->putReceiptAssociationLine($handle, $receiptAssociation);
             }
-
-            $entityManager->flush();
         };
     }
 

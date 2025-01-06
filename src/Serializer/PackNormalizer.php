@@ -8,6 +8,7 @@ use App\Helper\FormatHelper;
 use App\Service\FormatService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -111,7 +112,7 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
         $firstMovements = $trackingMovementRepository->findBy(
             ["pack" => $pack],
-            ["datetime" => "ASC", "orderIndex" => "ASC", "id" => "ASC"],
+            ["datetime" => Order::Ascending->value, "orderIndex" => Order::Ascending->value, "id" => Order::Ascending->value],
             1
         );
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);

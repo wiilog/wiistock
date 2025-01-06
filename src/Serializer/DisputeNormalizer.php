@@ -73,8 +73,7 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
                 ->join("\n"),
         ];
 
-        $res = [];
-
+        $result = [];
         $packsContext = $context["packs"] ?? [];
 
         // arrival logistic unit dispute
@@ -82,7 +81,7 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
             foreach ($dispute->getPacks() as $pack) {
                 if (isEmpty($packsContext) || in_array($pack, $packsContext)) {
                     $arrival = $pack->getArrivage();
-                    $res[] = [
+                    $result[] = [
                         ...$common,
                         "object" => $pack->getCode(),
                         "barcode" => null,
@@ -101,7 +100,7 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
             foreach ($dispute->getArticles() as $article) {
                 $receptionReferenceArticle = $article->getReceptionReferenceArticle();
                 $reception = $receptionReferenceArticle?->getReceptionLine()?->getReception();
-                $res[] = [
+                $result[] = [
                     ...$common,
                     "object" => $receptionReferenceArticle?->getReferenceArticle()?->getReference(),
                     "barcode" => $article->getBarCode(),
@@ -115,6 +114,6 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
             }
         }
 
-        return $res;
+        return $result;
     }
 }
