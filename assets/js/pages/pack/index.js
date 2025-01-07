@@ -169,19 +169,20 @@ function fireContentButtonClick($number){
                 .json()
                 .then(result => {
                     closeContentContainer($(`.open-content-button.active`), $container.find(`.selected-line`), $container.find(`.logistic-unit-content`));
+
                     $number.addClass(`active`);
+                    $line.addClass('selected-line');
                     $container.append(result.html);
+
                     packsTable.columns.adjust();
 
                     $container
                         .find('button.close')
-                        .off('click')
-                        .on('click', function () {
+                        .off('click.fireContentButtonClick')
+                        .on('click.fireContentButtonClick', function () {
                             closeContentContainer($number, $line, $container.find(`.logistic-unit-content`));
                             isLoading = false;
                         });
-
-                    $line.addClass('selected-line');
 
                     getTrackingHistory(logisticUnitId, false);
                     initializeGroupContentTable(logisticUnitId, false);
