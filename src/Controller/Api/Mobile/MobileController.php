@@ -179,7 +179,6 @@ class MobileController extends AbstractController {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
-        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
         $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);

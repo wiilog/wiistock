@@ -914,7 +914,6 @@ class TrackingMovementService {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $pickingMovements = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, $type, $filterDemandeCollecteIds);
         return Stream::from($pickingMovements)
-            ->filter(static fn(TrackingMovement $tracking) => !$tracking->getPack()->isGroup() || !$tracking->getPack()->getContent()->isEmpty())
             ->map(fn(TrackingMovement $trackingMovement) => (
                 $this->normalizer->normalize($trackingMovement, null, [
                     "usage" => SerializerUsageEnum::MOBILE_DROP_MENU,
