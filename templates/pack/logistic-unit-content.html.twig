@@ -5,7 +5,12 @@
 {% set isGroup = pack.groupIteration or (not pack.content.empty) %}
 
 <div class="logistic-unit-content" data-pack="{{ pack.code }}">
-    <span class="wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Contenu unité logistique') }}</span>
+    <div class="d-flex justify-content-between">
+        <span class="wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Contenu unité logistique') }}</span>
+        <button type="button" class="close" name="closePackContent" aria-label="Fermer">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
     <div class="logistic-unit-tabs">
         <div class="logistic-unit-tab" data-target=".track-history">Historique traçabilité</div> {# A voir avec Pauline si une traduction est prévu ? #}
         {% if isGroup %}

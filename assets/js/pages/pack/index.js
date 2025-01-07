@@ -21,23 +21,25 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     drawCallback: () => {
-        //remove open logistic unit details pane
-        const $logisticUnitPane = $(`.logistic-unit-content`);
+        // remove open logistic unit details pane if pack is not in the list
+        // for example on page changing it is triggered
+        const $container = $(`.packsTableContainer`);
+        const $logisticUnitPane = $container.find(`.logistic-unit-content`);
         if ($logisticUnitPane.exists()) {
             const pack = $logisticUnitPane.data(`pack`);
-            const $number = $(`.logistic-unit-number[data-pack="${pack}"]`);
+            const $activeButton = $container.find(`.open-content-button[data-pack="${pack}"]`);
 
-            if (!$number.exists()) {
-                $logisticUnitPane.remove();
-                packsTable.columns.adjust();
+            if (!$activeButton.exists()) {
+                closeContentContainer($container);
             } else {
-                $number.addClass(`active`);
+                const $line = $activeButton.closest('tr');
+                $line.addClass('active');
             }
         }
 
         const codeUl = $('#lu-code').val();
         if (codeUl) {
-            $(`.logistic-unit-number`).trigger(`mouseup`);
+            $(`.open-content-button`).trigger(`mouseup`);
         }
     }
 };
@@ -93,46 +95,8 @@ $(function () {
         })
     });
 
-    $(document).arrive(`.logistic-unit-number`, function () {
-        const $number = $(this);
-
-        let isLoading = false;
-
-        // register the event directly on the element through arrive
-        // to get the event before action-on-click and be able to
-        // cancel modal openning through event.stopPropagation
-        $number.on(`mouseup`, event => {
-            event.stopPropagation();
-            if (isLoading) {
-                Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
-                return;
-            }
-
-            isLoading = true;
-
-            const $container = $(`.packsTableContainer`);
-
-            if ($number.is(`.active`)) {
-                $number.removeClass(`active`);
-                $container.find(`.logistic-unit-content`).remove();
-                isLoading = false;
-            } else {
-                const logisticUnitId = $number.data(`id`);
-                AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
-                    .json()
-                    .then(result => {
-                        $container.find(`.logistic-unit-content`).remove();
-                        $(`.logistic-unit-number.active`).removeClass(`active`);
-                        $number.addClass(`active`);
-                        $container.append(result.html);
-                        packsTable.columns.adjust();
-
-                        getTrackingHistory(logisticUnitId, false);
-                        initializeGroupContentTable(logisticUnitId, false);
-                        isLoading = false;
-                    });
-            }
-        })
+    $(document).arrive(`.open-content-button`, function () {
+        fireContentButtonClick($(this));
     });
 
     $(document).on(`click`, `.logistic-unit-tab`, function () {
@@ -179,3 +143,65 @@ $(function () {
 
     });
 });
+
+function fireContentButtonClick($openContentButton){
+    let isLoading = false;
+
+    // register the event directly on the element through arrive
+    // to get the event before action-on-click and be able to
+    // cancel modal openning through event.stopPropagation
+    $openContentButton.on(`mouseup`, event => {
+        event.stopPropagation();
+        if (isLoading) {
+            Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
+            return;
+        }
+
+        isLoading = true;
+
+        const $container = $(`.packsTableContainer`);
+        const $line = $openContentButton.closest('tr');
+
+        if ($line.is(`.active`)) {
+            closeContentContainer($container);
+            isLoading = false;
+        } else {
+            const logisticUnitId = $openContentButton.data(`id`);
+            AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
+                .json()
+                .then(result => {
+                    closeContentContainer($container, false);
+
+                    $line.addClass('active');
+                    $container.append(result.html);
+
+                    packsTable.columns.adjust();
+
+                    $container
+                        .find('.logistic-unit-content button.close')
+                        .off('click.fireContentButtonClick')
+                        .on('click.fireContentButtonClick', function () {
+                            closeContentContainer($container);
+                            isLoading = false;
+                        });
+
+                    getTrackingHistory(logisticUnitId, false);
+                    initializeGroupContentTable(logisticUnitId, false);
+                    isLoading = false;
+                });
+        }
+    });
+}
+
+/**
+ * @param {jQuery} $tableContainer
+ * @param {boolean} adjustTable
+ */
+function closeContentContainer($tableContainer, adjustTable = true) {
+    $tableContainer.find('.active').removeClass('active');
+    $tableContainer.find(`.logistic-unit-content`).remove();
+
+    if (adjustTable) {
+        packsTable.columns.adjust();
+    }
+}

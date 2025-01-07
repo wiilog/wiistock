@@ -1,7 +1,0 @@
-{% set truckArrival = truckArrival ?? null %}
-
-{% if truckArrival %}
-    <a href="{{ path("truck_arrival_show", {"id": truckArrival.id}) }}">
-        <i class="fas fa-share-square mr-2"></i>{{ truckArrival.number }}
-    </a>
-{% endif %}
