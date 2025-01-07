@@ -576,7 +576,7 @@ class PackService {
                 ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],
                 ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
-                ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
+                ['name' => 'trackingDelay', 'title' => $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement'), 'className' => 'noVis'],
                 ['name' => 'limitTreatmentDate', 'title' => 'Date limite de traitement', 'className' => 'noVis'],
                 ['name' => 'group', 'title' =>  'Groupe rattaché', 'className' => 'noVis'],
             ],
