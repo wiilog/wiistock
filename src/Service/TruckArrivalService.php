@@ -280,28 +280,21 @@ class TruckArrivalService
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $truckArrivals = $truckArrivalRepository->iterateByDates($dateTimeMin, $dateTimeMax);
 
-        return function ($handle) use ($entityManager, $truckArrivals) {
+        return function ($handle) use ($truckArrivals) {
             foreach ($truckArrivals as $truckArrival) {
-                $this->putPackLine($handle, $truckArrival);
+                $this->CSVExportService->putLine($handle, [
+                    $truckArrival["number"],
+                    $truckArrival["carrier"],
+                    $truckArrival["driver"],
+                    $truckArrival["carrierTrackingNumber"],
+                    $truckArrival["carrierTrackingNumberReserve"],
+                    $this->formatService->datetime($truckArrival["createdAt"]),
+                    $truckArrival["operator"],
+                    $truckArrival["registrationNumber"],
+                    $truckArrival["unloadingLocation"],
+                    $truckArrival["hasReserve"],
+                ]);
             }
-
-            $entityManager->flush();
         };
-    }
-
-    private function putPackLine($handle, array $truckArrival): void {
-        $line = [
-            $truckArrival["number"],
-            $truckArrival["carrier"],
-            $truckArrival["driver"],
-            $truckArrival["carrierTrackingNumber"],
-            $truckArrival["carrierTrackingNumberReserve"],
-            $this->formatService->datetime($truckArrival["createdAt"]),
-            $truckArrival["operator"],
-            $truckArrival["registrationNumber"],
-            $truckArrival["unloadingLocation"],
-            $truckArrival["hasReserve"],
-        ];
-        $this->CSVExportService->putLine($handle, $line);
     }
 }
