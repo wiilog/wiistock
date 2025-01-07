@@ -165,17 +165,17 @@ class PackService {
         $lastPackMovement = $pack->getLastAction();
         return [
             'actions' => $this->getActionButtons($pack, $hasPairing),
-            'cart' => $this->templating->render('pack/cart-column.html.twig', [
+            'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
                 'pack' => $pack,
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'details' => $this->templating->render('pack/content-pack-column.html.twig', [
+            'details' => $this->templating->render('pack/list/content-pack-column.html.twig', [
                 'pack' => $pack,
             ]),
-            'code' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+            'code' => $this->templating->render("pack/list/code-column.html.twig", [
                 "pack" => $pack,
             ]),
             'nature' => $this->formatService->nature($pack->getNature()),
@@ -193,7 +193,7 @@ class PackService {
                     : '')
                 : '',
             'receiptAssociation' => $receptionAssociationFormatted,
-            'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
+            'truckArrivalNumber' => $this->templating->render('pack/list/truck-arrival-column.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
             "trackingDelay" => $finalTrackingDelay["delayHTMLRaw"] ?? null,

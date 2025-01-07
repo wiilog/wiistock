@@ -21,17 +21,19 @@ const packsTableConfig = {
         needsRowClickAction: true
     },
     drawCallback: () => {
-        //remove open logistic unit details pane
-        const $logisticUnitPane = $(`.logistic-unit-content`);
+        // remove open logistic unit details pane if pack is not in the list
+        // for example on page changing it is triggered
+        const $container = $(`.packsTableContainer`);
+        const $logisticUnitPane = $container.find(`.logistic-unit-content`);
         if ($logisticUnitPane.exists()) {
             const pack = $logisticUnitPane.data(`pack`);
-            const $number = $(`.open-content-button[data-pack="${pack}"]`);
+            const $activeButton = $container.find(`.open-content-button[data-pack="${pack}"]`);
 
-            if (!$number.exists()) {
-                $logisticUnitPane.remove();
-                packsTable.columns.adjust();
+            if (!$activeButton.exists()) {
+                closeContentContainer($container);
             } else {
-                $number.addClass(`active`);
+                const $line = $activeButton.closest('tr');
+                $line.addClass('active');
             }
         }
 
@@ -142,13 +144,13 @@ $(function () {
     });
 });
 
-function fireContentButtonClick($number){
+function fireContentButtonClick($openContentButton){
     let isLoading = false;
 
     // register the event directly on the element through arrive
     // to get the event before action-on-click and be able to
     // cancel modal openning through event.stopPropagation
-    $number.on(`mouseup`, event => {
+    $openContentButton.on(`mouseup`, event => {
         event.stopPropagation();
         if (isLoading) {
             Flash.add(`info`, `Chargement du contenu de l'unité logistique en cours`)
@@ -158,29 +160,28 @@ function fireContentButtonClick($number){
         isLoading = true;
 
         const $container = $(`.packsTableContainer`);
-        const $line = $number.closest('tr');
+        const $line = $openContentButton.closest('tr');
 
-        if ($number.is(`.active`)) {
-            closeContentContainer($number, $line, $container.find(`.logistic-unit-content`));
+        if ($line.is(`.active`)) {
+            closeContentContainer($container);
             isLoading = false;
         } else {
-            const logisticUnitId = $number.data(`id`);
+            const logisticUnitId = $openContentButton.data(`id`);
             AJAX.route(GET, `pack_content`, {pack: logisticUnitId})
                 .json()
                 .then(result => {
-                    closeContentContainer($(`.open-content-button.active`), $container.find(`.selected-line`), $container.find(`.logistic-unit-content`));
+                    closeContentContainer($container, false);
 
-                    $number.addClass(`active`);
-                    $line.addClass('selected-line');
+                    $line.addClass('active');
                     $container.append(result.html);
 
                     packsTable.columns.adjust();
 
                     $container
-                        .find('button.close')
+                        .find('.logistic-unit-content button.close')
                         .off('click.fireContentButtonClick')
                         .on('click.fireContentButtonClick', function () {
-                            closeContentContainer($number, $line, $container.find(`.logistic-unit-content`));
+                            closeContentContainer($container);
                             isLoading = false;
                         });
 
@@ -192,8 +193,15 @@ function fireContentButtonClick($number){
     });
 }
 
-function closeContentContainer($number, $line, $logisticUnitContent) {
-    $number.removeClass(`active`);
-    $line.removeClass('selected-line');
-    $logisticUnitContent.remove();
+/**
+ * @param {jQuery} $tableContainer
+ * @param {boolean} adjustTable
+ */
+function closeContentContainer($tableContainer, adjustTable = true) {
+    $tableContainer.find('.active').removeClass('active');
+    $tableContainer.find(`.logistic-unit-content`).remove();
+
+    if (adjustTable) {
+        packsTable.columns.adjust();
+    }
 }
