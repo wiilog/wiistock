@@ -55,7 +55,8 @@ class MobileApiService {
         "Emplacement de prise",
         "Emplacement de dépose",
         "Livraison",
-        "Projet"
+        "Projet",
+        "Divers",
     ];
 
     public function getDispatchesData(EntityManagerInterface $entityManager,
@@ -182,6 +183,7 @@ class MobileApiService {
             ->toArray();
 
         //TODO: récupérer tout en français
+        dump($translations);
         return [
             'translations' => $translations,
         ];
