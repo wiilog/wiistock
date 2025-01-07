@@ -94,7 +94,7 @@ $(function () {
     });
 
     $(document).arrive(`.open-content-button`, function () {
-        onContentButtonClicked($(this));
+        fireContentButtonClick($(this));
     });
 
     $(document).on(`click`, `.logistic-unit-tab`, function () {
@@ -142,7 +142,7 @@ $(function () {
     });
 });
 
-function onContentButtonClicked($number){
+function fireContentButtonClick($number){
     let isLoading = false;
 
     // register the event directly on the element through arrive
@@ -177,7 +177,7 @@ function onContentButtonClicked($number){
                         .find('button.close')
                         .off('click')
                         .on('click', function () {
-                            closeContentContainer($number, $container.find(`.selected-line`), $container.find(`.logistic-unit-content`));
+                            closeContentContainer($number, $line, $container.find(`.logistic-unit-content`));
                             isLoading = false;
                         });
 
