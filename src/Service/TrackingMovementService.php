@@ -292,13 +292,10 @@ class TrackingMovementService {
             $errorType = null;
             $packCodes = explode(',', $data['pack']);
 
-            $packs = $packRepository->findBy([
-                'code' => $packCodes,
-            ]);
-
-            foreach ($packs as $pack) {
-                $isGroup = $pack->isGroup();
-                if ($isGroup || $pack->getGroup()) {
+            foreach ($packCodes as $packCode) {
+                $pack = $packRepository->findOneBy(['code' => $packCode]);
+                $isGroup = $pack && $pack->isGroup();
+                if ($isGroup || ($pack && $pack->getGroup())) {
                     $errors[] = $pack->getCode();
                     if ($isGroup) {
                         $errorType = Pack::PACK_IS_GROUP;
@@ -340,12 +337,11 @@ class TrackingMovementService {
                     $createdMovements[] = $groupingTrackingMovement;
                 }
 
-                foreach ($packs as $pack) {
-                    if($pack->getGroup()) {
+                foreach ($packCodes as $packCode) {
+                    $pack = $packRepository->findOneBy(['code' => $packCode]);
+                    if($pack && $pack->getGroup()) {
                         $childNumber = $pack->getSplitTargets()->count();
                         $packCode = $pack->getCode() . '.' . ($childNumber + 1);
-                    } else {
-                        $packCode = $pack->getCode();
                     }
 
                     $movedPack = $this->packService->persistPack($entityManager, $packCode, 1, null);
@@ -367,11 +363,12 @@ class TrackingMovementService {
                     );
 
                     $movedPack->setGroup($parentPack);
-
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
 
-                    $this->manageSplitPack($entityManager, $pack, $movedPack, $date);
+                    if($pack && $pack->getGroup()) {
+                        $this->manageSplitPack($entityManager, $pack, $movedPack, $date);
+                    }
                 }
                 return [
                     'success' => true,
