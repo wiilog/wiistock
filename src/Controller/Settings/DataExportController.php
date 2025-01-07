@@ -486,11 +486,11 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/unique/unités-logistiques", name: "settings_export_packs", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function printCSVPacks(Request                   $request,
-                                  PackService               $packService,
-                                  EntityManagerInterface    $entityManager,
-                                  CSVExportService          $CSVExportService,
-                                  DataExportService         $dataExportService): StreamedResponse {
+    public function printCSVPacks(Request                $request,
+                                  PackService            $packService,
+                                  EntityManagerInterface $entityManager,
+                                  CSVExportService       $CSVExportService,
+                                  DataExportService      $dataExportService): StreamedResponse {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
         $now = new DateTime('now');
