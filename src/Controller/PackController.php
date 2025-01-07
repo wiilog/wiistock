@@ -67,10 +67,10 @@ class PackController extends AbstractController {
 
     #[Route('/voir/{id}', name: 'show', methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
-    public function show(Pack $logisticUnit,
-                         EntityManagerInterface $manager,
-                         PackService $packService): Response {
-        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+    public function show(Pack                   $logisticUnit,
+                         EntityManagerInterface $entityManager,
+                         PackService            $packService): Response {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($logisticUnit);
 
         $arrival = $logisticUnit->getArrivage();

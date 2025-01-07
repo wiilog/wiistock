@@ -198,6 +198,10 @@ class PackService {
             ]),
             "trackingDelay" => $finalTrackingDelay["delayHTMLRaw"] ?? null,
             "limitTreatmentDate" => $finalTrackingDelay["dateHTML"] ?? null,
+            "orderNumbers" => Stream::from($pack->getArrivage()?->getNumeroCommandeList() ?: [])
+                ->join(', '),
+            "supplier" => $this->formatService->supplier($pack->getArrivage()?->getFournisseur()),
+            "carrier" => $this->formatService->carrier($pack->getArrivage()?->getTransporteur()),
             "group" => $pack->getGroup()
                 ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
                     "entityPath" => "pack_show",
@@ -568,6 +572,9 @@ class PackService {
                 ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
                 ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
+                ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
+                ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
+                ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],
                 ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
                 ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
