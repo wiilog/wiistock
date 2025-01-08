@@ -258,6 +258,7 @@ function createArrival(form = null) {
         fillDatePickers('.free-field-datetime', 'YYYY-MM-DD', true);
 
         const $carrierSelect = $modal.find("select[name='transporteur']");
+        const $driverSelect = $modal.find("select[name='chauffeur']");
         const $noTrackingSelect = $modal.find("select[name='noTracking']");
         const $noTruckArrivalSelect = $modal.find("select[name='noTruckArrival']");
 
@@ -285,21 +286,27 @@ function createArrival(form = null) {
         $noTruckArrivalSelect.off('select2:select').on(`select2:select`, function ($select) {
             const data = $select.params.data || {};
             const trackingNumberRequired = Boolean($modal.find(`[name=trackingNumberRequired]`).val());
-            if (data.carrier_id && !trackingNumberRequired){
-                $carrierSelect.append(`<option value="${data.carrier_id}" selected>${data.carrier_label}</option>`);
-                $noTrackingSelect
-                    .prop(`disabled`, !$(this).val())
-                    .attr('data-other-params-carrier-id', data.carrier_id)
-                    .attr('data-other-params-truck-arrival-id', $(this).val());
+            if (!trackingNumberRequired){
+                if(data.carrier_id){
+                    $carrierSelect.append(`<option value="${data.carrier_id}" selected>${data.carrier_label}</option>`);
+                    $noTrackingSelect
+                        .prop(`disabled`, !$(this).val())
+                        .attr('data-other-params-carrier-id', data.carrier_id)
+                        .attr('data-other-params-truck-arrival-id', $(this).val());
 
-                const newTrackingNumbers = $noTrackingSelect.select2('data')
-                    ?.filter(({isNewElement}) => isNewElement)
-                    .map(({id}) => id) || [];
-                $noTrackingSelect.find(`option`).each(function() {
-                    if (!newTrackingNumbers.includes($(this).val())) {
-                        $(this).remove();
-                    }
-                });
+                    const newTrackingNumbers = $noTrackingSelect.select2('data')
+                        ?.filter(({isNewElement}) => isNewElement)
+                        .map(({id}) => id) || [];
+                    $noTrackingSelect.find(`option`).each(function() {
+                        if (!newTrackingNumbers.includes($(this).val())) {
+                            $(this).remove();
+                        }
+                    });
+                }
+
+                if(data.driver_id){
+                    $driverSelect.find(`option[value='${data.driver_id}']`).prop('selected', true).trigger('change');
+                }
             }
         });
 
