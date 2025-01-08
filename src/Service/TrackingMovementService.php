@@ -294,19 +294,21 @@ class TrackingMovementService {
 
             foreach ($packCodes as $packCode) {
                 $pack = $packRepository->findOneBy(['code' => $packCode]);
-                $isGroup = $pack && $pack->isGroup();
-                if ($isGroup || ($pack && $pack->getGroup())) {
+                $isGroup = $pack?->isGroup();
+                if ($isGroup) {
+                    $errorType = Pack::PACK_IS_GROUP;
+                    $errors = [];
+                    break;
+                } else if($pack?->getGroup()) {
+                    $errorType = Pack::CONFIRM_SPLIT_PACK;
                     $errors[] = $pack->getCode();
-                    if ($isGroup) {
-                        $errorType = Pack::PACK_IS_GROUP;
-                    }
                 }
             }
 
-            if (!empty($errors) && !$data["forced"] ?? false) {
+            if ($errorType && (!$data["forced"] ?? false)) {
                 return $this->treatPersistTrackingError([
-                    "group" => $errors,
-                    "error" => $errorType ?: Pack::CONFIRM_SPLIT_PACK,
+                    "group" => Stream::from($errors)->join(', '),
+                    "error" => $errorType,
                 ]);
             }
             else {
@@ -381,14 +383,21 @@ class TrackingMovementService {
 
     public function treatPersistTrackingError(array $res): array {
         if (isset($res["error"])) {
-            if ( in_array($res["error"], [
+            if (in_array($res["error"], [
                 Pack::CONFIRM_CREATE_GROUP,
                 Pack::CONFIRM_SPLIT_PACK,
             ])) {
+                $message = match ($res["error"]) {
+                    Pack::CONFIRM_CREATE_GROUP => "Cette unité logistique est présente dans le groupe <strong>{$res["group"]}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?",
+                    Pack::CONFIRM_SPLIT_PACK => "L'unité logistique <strong>{$res["group"]}</strong> est présente dans un groupe. <br>Voulez-vous la diviser ?",
+                    default => "",
+                };
+
                 return [
                     "success" => true,
                     "group" => $res["group"],
                     "error" => $res["error"],
+                    "confirmMessage" => $message,
                 ];
             } else if ($res['error'] === Pack::IN_ONGOING_RECEPTION) {
                 return [
