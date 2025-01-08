@@ -853,6 +853,17 @@ class ArrivageService {
             ->toArray();
     }
 
+    public function getArrivalExportableColumnsSorted(EntityManagerInterface $entityManager): array {
+        return Stream::from($this->getArrivalExportableColumns($entityManager))
+            ->reduce(function(array $carry, array $column) {
+                $carry["labels"][] = $column["label"] ?? '';
+                $carry["codes"][] = $column["code"] ?? '';
+                return $carry;
+            },
+            ["labels" => [], "codes" => []]
+        );
+    }
+
 
     public function generateNewForm(EntityManagerInterface $entityManager, array $fromTruckArrivalOptions = []): array
     {
@@ -979,4 +990,5 @@ class ArrivageService {
             FixedFieldEnum::comment->value => $this->formatService->html($arrival->getCommentaire() ?? ''),
         ];
     }
+
 }
