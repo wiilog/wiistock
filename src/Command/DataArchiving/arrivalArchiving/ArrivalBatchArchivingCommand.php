@@ -4,21 +4,18 @@ namespace App\Command\DataArchiving\arrivalArchiving;
 
 use App\Entity\Arrivage;
 use App\Helper\FileSystem;
-use App\Repository\ArrivageRepository;
 use App\Service\ArrivageService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
-use App\Service\FormatService;
-use App\Service\FreeFieldService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 use WiiCommon\Helper\Stream;
 
 #[AsCommand(
@@ -42,9 +39,6 @@ class ArrivalBatchArchivingCommand extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly CSVExportService $csvExportService,
-        private readonly FreeFieldService $freeFieldService,
-        private readonly SerializerInterface $serializer,
-        private readonly FormatService $formatService,
         private readonly DataExportService $dataExportService,
         private readonly ArrivageService $arrivageService,
         KernelInterface $kernel
@@ -111,7 +105,7 @@ class ArrivalBatchArchivingCommand extends Command
         return $files;
     }
 
-    private function processArrivals(ArrivageRepository $repository, DateTime $dateToArchive, array $columnsSorted, array $files, SymfonyStyle $io): void
+    private function processArrivals(EntityRepository $repository, DateTime $dateToArchive, array $columnsSorted, array $files, SymfonyStyle $io): void
     {
         $totalToArchive = $repository->countOlderThan($dateToArchive);
         $io->progressStart($totalToArchive);
