@@ -8,10 +8,13 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Statut;
+use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -507,5 +510,34 @@ class ArrivageRepository extends EntityRepository
             ->setParameter("dropLocation", $dropLocation->getId())
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * Counts the number of TrackingMovement older than the given date.
+     *
+     * @param DateTime $date
+     * @return int
+     * @throws NonUniqueResultException|NoResultException
+     */
+    public function countOlderThan(DateTime $date): int {
+        return $this->createQueryBuilder('arrivage')
+            ->select('COUNT(arrivage.id)')
+            ->where('arrivage.date < :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Returns an iterable of TrackingMovement older than the given date
+     *
+     * @param DateTime $date
+     * @return iterable<TrackingMovement>
+     */
+    public function iterateOlderThan(DateTime $date): iterable {
+        $queryBuilder = $this->createQueryBuilder('arrivage')
+            ->where('arrivage.date < :date')
+            ->setParameter('date', $date);
+        return $queryBuilder->getQuery()->toIterable();
     }
 }
