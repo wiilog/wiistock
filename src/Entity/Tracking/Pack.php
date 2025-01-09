@@ -36,6 +36,7 @@ class Pack implements PairedEntity {
     public const CONFIRM_SPLIT_PACK = 'CONFIRM_SPLIT_PACK';
     public const IN_ONGOING_RECEPTION = 'IN_ONGOING_RECEPTION';
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
+    public const PACK_ALREADY_IN_GROUP = 'PACK_ALREADY_IN_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
     public const MAX_SPLIT_LEVEL = 3;
