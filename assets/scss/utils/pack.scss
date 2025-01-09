@@ -110,3 +110,11 @@
     }
 }
 
+tr.active {
+    background-color: rgba($primary, 0.2) !important;
+
+    .logistic-unit-number {
+        color: $primary;
+        font-weight: bold;
+    }
+}

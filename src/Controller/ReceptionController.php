@@ -61,6 +61,7 @@ use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -899,6 +900,7 @@ class ReceptionController extends AbstractController {
                                 ArticleDataService     $articleDataService,
                                 DisputeService         $disputeService,
                                 AttachmentService      $attachmentService,
+                                UserService            $userService,
                                 Request                $request): Response {
         $post = $request->request;
 
@@ -928,6 +930,13 @@ class ReceptionController extends AbstractController {
                 );
             })
             ->count();
+
+        $hasRightToTreatDispute = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $userService->getUser());
+        $statusHasChanged = $statutBeforeId !== $statutAfterId;
+
+        if($statusHasChanged && $statutAfter->isTreated() && !$hasRightToTreatDispute) {
+            throw new FormException("Vous n'avez pas le droit de traiter ce litige.");
+        }
 
         if(!$statutAfter->isTreated()
             && $articlesNotAvailableCounter > 0) {
@@ -975,7 +984,7 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         if ($typeBefore !== $typeAfter
-            || $statutBeforeId !== $statutAfterId
+            || $statusHasChanged
             || $userComment) {
 
             $historyRecord = $disputeService->createDisputeHistoryRecord(

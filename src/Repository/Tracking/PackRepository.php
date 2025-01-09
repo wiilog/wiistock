@@ -36,6 +36,8 @@ class PackRepository extends EntityRepository
         'arrivageType' => 'arrivage',
         'project' => 'project',
         'limitTreatmentDate' => 'limitTreatmentDate',
+        'carrier' => 'carrier',
+        'supplier' => 'supplier',
     ];
 
     public function countPacksByDates(DateTime $dateMin,
@@ -91,9 +93,15 @@ class PackRepository extends EntityRepository
             ->addSelect('pack.groupIteration AS groupIteration')
             ->addSelect('pack.weight AS weight')
             ->addSelect('pack.volume AS volume')
+            ->addSelect('join_supplier.nom AS supplier')
+            ->addSelect('join_carrier.label AS carrier')
+            ->addSelect('join_arrival.numeroCommandeList AS orderNumbers')
             ->andWhere('join_last_action.datetime BETWEEN :dateMin AND :dateMax')
             ->leftJoin('pack.lastAction', 'join_last_action')
             ->leftJoin('pack.group', 'join_group')
+            ->leftJoin('pack.arrivage', 'join_arrival')
+            ->leftJoin('join_arrival.fournisseur', 'join_supplier')
+            ->leftJoin('join_arrival.transporteur', 'join_carrier')
             ->leftJoin('join_last_action.emplacement', 'join_location')
             ->leftJoin('pack.nature', 'join_nature');
         return QueryBuilderHelper::addTrackingEntities($queryBuilder, 'join_last_action')
@@ -236,6 +244,8 @@ class PackRepository extends EntityRepository
                         ->andWhere('receiptAssociationFilter.receptionNumber like :receiptAssociationCode')
                         ->setParameter('receiptAssociationCode', '%' . $filter['value'] . '%');
                     break;
+                default:
+                    break;
             }
         }
 
@@ -251,9 +261,9 @@ class PackRepository extends EntityRepository
                     ];
 
                     $queryBuilder
-                        ->leftJoin('pack.arrivage', 'arrivageSearch')
+                        ->leftJoin('pack.arrivage', 'search_arrival')
                         ->leftJoin('pack.lastAction', 'search_last_action')
-                        ->leftJoin('arrivageSearch.type', 'arrival_type')
+                        ->leftJoin('search_arrival.type', 'arrival_type')
                         ->leftJoin('pack.childArticles', 'child_articles_search');
 
                     foreach ($fields as $field) {
@@ -271,7 +281,7 @@ class PackRepository extends EntityRepository
                                     $searchParams[] = 'natureSearch.label LIKE :value';
                                     break;
                                 case "arrivage":
-                                    $searchParams[] = 'arrivageSearch.numeroArrivage LIKE :value';
+                                    $searchParams[] = 'search_arrival.numeroArrivage LIKE :value';
                                     break;
                                 case "receiptAssociation":
                                     $queryBuilder->leftJoin('pack.receiptAssociations', 'receipt_associations_search');
@@ -288,10 +298,10 @@ class PackRepository extends EntityRepository
                                     $searchParams[] = 'pack.quantity LIKE :value';
                                     break;
                                 case "truckArrivalNumber":
-                                    $queryBuilder->leftJoin('arrivageSearch.truckArrival', 'truckArrivalSearch');
+                                    $queryBuilder->leftJoin('search_arrival.truckArrival', 'truckArrivalSearch');
                                     $searchParams[] = 'truckArrivalSearch.number LIKE :value';
 
-                                    $queryBuilder->leftJoin('arrivageSearch.truckArrivalLines', 'truckArrivalLinesSearch')
+                                    $queryBuilder->leftJoin('search_arrival.truckArrivalLines', 'truckArrivalLinesSearch')
                                         ->leftJoin('truckArrivalLinesSearch.truckArrival', 'truckArrivalByLinesSearch');
 
                                     $searchParams[] = 'truckArrivalByLinesSearch.number LIKE :value';
@@ -299,6 +309,19 @@ class PackRepository extends EntityRepository
                                 case "group":
                                     $queryBuilder->leftJoin('pack.group', 'parentSearch');
                                     $searchParams[] = 'parentSearch.code LIKE :value';
+                                    break;
+                                case 'supplier':
+                                    $queryBuilder->leftJoin('search_arrival.fournisseur', 'search_arrival_supplier');
+                                    $searchParams[] = 'search_arrival_supplier.nom LIKE :value';
+                                    break;
+                                case 'carrier':
+                                    $queryBuilder->leftJoin('search_arrival.transporteur', 'search_arrival_carrier');
+                                    $searchParams[] = 'search_arrival_carrier.label LIKE :value';
+                                    break;
+                                case 'orderNumbers':
+                                    $searchParams[] = 'search_arrival.numeroCommandeList LIKE :value';
+                                    break;
+                                default:
                                     break;
                             }
                         }
@@ -351,7 +374,17 @@ class PackRepository extends EntityRepository
                         $queryBuilder
                             ->leftJoin('pack.trackingDelay', 'order_trackingDelay')
                             ->orderBy('order_trackingDelay.limitTreatmentDate', $order);
-                    } else {
+                    } else if ($column === 'supplier') {
+                        $queryBuilder
+                            ->leftJoin('pack.arrivage', 'order_supplier_arrival')
+                            ->leftJoin('order_supplier_arrival.fournisseur', 'order_supplier')
+                            ->orderBy('order_supplier.nom', $order);
+                    } else if ($column === 'carrier') {
+                        $queryBuilder
+                            ->leftJoin('pack.arrivage', 'order_carrier_arrival')
+                            ->leftJoin('order_carrier_arrival.transporteur', 'order_carrier')
+                            ->orderBy('order_carrier.label', $order);
+                    } else if (property_exists(Pack::class, $column)) {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);
                     }

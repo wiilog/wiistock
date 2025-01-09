@@ -51,7 +51,6 @@ class PackService {
         private ReceptionLineService        $receptionLineService,
         private FormatService               $formatService,
         private FieldModesService           $fieldModesService,
-        private TranslationService          $translation,
         private LanguageService             $languageService,
         private MailerService               $mailerService,
         private TrackingMovementService     $trackingMovementService,
@@ -165,17 +164,17 @@ class PackService {
         $lastPackMovement = $pack->getLastAction();
         return [
             'actions' => $this->getActionButtons($pack, $hasPairing),
-            'cart' => $this->templating->render('pack/cart-column.html.twig', [
+            'cart' => $this->templating->render('pack/list/cart-column.html.twig', [
                 'pack' => $pack,
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'details' => $this->templating->render('pack/content-pack-column.html.twig', [
+            'details' => $this->templating->render('pack/list/content-pack-column.html.twig', [
                 'pack' => $pack,
             ]),
-            'code' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+            'code' => $this->templating->render("pack/list/code-column.html.twig", [
                 "pack" => $pack,
             ]),
             'nature' => $this->formatService->nature($pack->getNature()),
@@ -193,11 +192,15 @@ class PackService {
                     : '')
                 : '',
             'receiptAssociation' => $receptionAssociationFormatted,
-            'truckArrivalNumber' => $this->templating->render('pack/datatableTruckArrivalNumber.html.twig', [
+            'truckArrivalNumber' => $this->templating->render('pack/list/truck-arrival-column.html.twig', [
                 'truckArrival' => $truckArrival
             ]),
             "trackingDelay" => $finalTrackingDelay["delayHTMLRaw"] ?? null,
             "limitTreatmentDate" => $finalTrackingDelay["dateHTML"] ?? null,
+            "orderNumbers" => Stream::from($pack->getArrivage()?->getNumeroCommandeList() ?: [])
+                ->join(', '),
+            "supplier" => $this->formatService->supplier($pack->getArrivage()?->getFournisseur()),
+            "carrier" => $this->formatService->carrier($pack->getArrivage()?->getTransporteur()),
             "group" => $pack->getGroup()
                 ? $this->templating->render('tracking_movement/datatableMvtTracaRowFrom.html.twig', [
                     "entityPath" => "pack_show",
@@ -509,7 +512,7 @@ class PackService {
             $lastOngoingDrop = $pack->getLastOngoingDrop();
 
             $this->mailerService->sendMail(
-                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR. "Unité logistique non récupéré$titleSuffix",
+                $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR. "Unité logistique non récupéré$titleSuffix",
                 $this->templating->render('mails/contents/mailPackDeliveryDone.html.twig', [
                     'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
@@ -540,12 +543,12 @@ class PackService {
         return $this->fieldModesService->getArrayConfig(
             [
                 ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
-                ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],
-                ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
-                ["name" => 'project', 'title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
-                ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
-                ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
-                ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
+                ["name" => 'nature', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],
+                ["name" => 'code', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
+                ["name" => 'project', 'title' => $this->translationService->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
+                ["name" => 'lastMvtDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
+                ["name" => 'lastLocation', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
+                ["name" => 'operator', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
             ],
             [],
             $columnsVisible
@@ -568,6 +571,9 @@ class PackService {
                 ['name' => 'lastMovementDate', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement')],
                 ['name' => 'origin', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Issu de'), 'orderable' => false],
                 ['name' => 'location', 'title' => $this->translationService->translate('Traçabilité', 'Général', 'Emplacement')],
+                ['name' => 'orderNumbers', 'title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'orderable' => false],
+                ['name' => 'supplier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
+                ['name' => 'carrier', 'title' => $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur')],
                 ['name' => 'receiptAssociation', 'title' => 'Association', 'classname' => 'noVis', 'orderable' => false],
                 ['name' => 'truckArrivalNumber', 'title' => 'Arrivage camion', 'className' => 'noVis'],
                 ['name' => 'trackingDelay', 'title' => 'Délai de traitement', 'className' => 'noVis'],
@@ -914,14 +920,16 @@ class PackService {
     }
 
     public function getCsvHeader(): array {
-        $translation = $this->translation;
         return  [
-            $translation->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
-            $translation->translate('Traçabilité', 'Général', 'Nature', false),
-            $translation->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
-            $translation->translate( 'Traçabilité', 'Général', 'Issu de', false),
-            $translation->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
-            $translation->translate( 'Traçabilité', 'Général', 'Emplacement', false),
+            $this->translationService->translate('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', "Numéro d'UL", false),
+            $this->translationService->translate('Traçabilité', 'Général', 'Nature', false),
+            $this->translationService->translate( 'Traçabilité', 'Général', 'Date dernier mouvement', false),
+            $this->translationService->translate( 'Traçabilité', 'Général', 'Issu de', false),
+            $this->translationService->translate( 'Traçabilité', 'Général', 'Issu de (numéro)', false),
+            $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false),
+            $this->translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false),
+            $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
+            $this->translationService->translate( 'Traçabilité', 'Général', 'Emplacement', false),
             'Groupe rattaché',
             'Groupe',
             'Poids (kg)',
@@ -936,20 +944,31 @@ class PackService {
         $packRepository = $entityManager->getRepository(Pack::class);
         $packs = $packRepository->iteratePacksByDates($dateTimeMin, $dateTimeMax);
 
-        return function ($handle) use ($entityManager, $packs) {
+        return function ($handle) use ($packs) {
             foreach ($packs as $pack) {
-                $trackingMovement = [
+                $mvtData = $this->trackingMovementService->getFromColumnData([
                     'entity' => $pack['entity'],
                     'entityId' => $pack['entityId'],
                     'entityNumber' => $pack['entityNumber'],
-                ];
-                $mvtData = $this->trackingMovementService->getFromColumnData($trackingMovement);
-                $pack['fromLabel'] = $mvtData['fromLabel'];
-                $pack['fromTo'] = $mvtData['from'];
-                $this->putPackLine($handle, $pack);
-            }
+                ]);
 
-            $entityManager->flush();
+                $this->CSVExportService->putLine($handle, [
+                    $pack['code'],
+                    $pack['nature'],
+                    $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
+                    $mvtData['fromLabel'],
+                    $mvtData['from'],
+                    $pack['supplier'] ?? null,
+                    $pack['carrier'] ?? null,
+                    Stream::from($pack['orderNumbers'] ?? [])->join(' / ') ?: null,
+                    $pack['location'],
+                    $pack['groupCode'],
+                    $this->formatService->bool($pack['groupIteration'] ?? false),
+                    $pack['weight'],
+                    $pack['volume'],
+                    $pack['volume'],
+                ]);
+            }
         };
     }
 

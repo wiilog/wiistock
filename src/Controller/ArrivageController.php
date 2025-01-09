@@ -1140,8 +1140,7 @@ class ArrivageController extends AbstractController
                                 ArrivageService        $arrivageDataService,
                                 EntityManagerInterface $entityManager,
                                 DisputeService         $disputeService,
-                                AttachmentService      $attachmentService): Response
-    {
+                                AttachmentService      $attachmentService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $packRepository = $entityManager->getRepository(Pack::class);
@@ -1152,6 +1151,7 @@ class ArrivageController extends AbstractController
 
         $currentUser = $this->getUser();
         $hasRightToEditDispute = $this->userService->hasRightFunction(Menu::QUALI, Action::EDIT, $currentUser);
+        $hasRightToTreatDispute = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE, $currentUser);
 
         $dispute = $disputeRepository->find($data->get('disputeId'));
 
@@ -1164,7 +1164,11 @@ class ArrivageController extends AbstractController
         $statutBefore = $dispute->getStatus()->getId();
         $statutAfter = $data->getInt('disputeStatus');
         $newStatus = $statutRepository->find($statutAfter);
-        if ($hasRightToEditDispute || !$newStatus->isTreated()) {
+        $statusHasChanged = $statutAfter !== $statutBefore;
+        if ($hasRightToEditDispute && $statusHasChanged) {
+            if ($newStatus->isTreated() && !$hasRightToTreatDispute) {
+                throw new FormException("Vous n'avez pas le droit de traiter ce litige.");
+            }
             $dispute->setStatus($newStatus);
         }
 
@@ -1193,7 +1197,7 @@ class ArrivageController extends AbstractController
 
         $comment = trim($data->get('commentaire', ''));
         $typeDescription = $dispute->getType()->getDescription();
-        if ($statutBefore !== $statutAfter
+        if ($statusHasChanged
             || $typeBefore !== $typeAfter
             || $comment) {
 
@@ -1211,8 +1215,7 @@ class ArrivageController extends AbstractController
         $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
 
         $entityManager->flush();
-        $isStatutChange = ($statutBefore !== $statutAfter);
-        if ($isStatutChange) {
+        if ($statusHasChanged) {
             $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_ARRIVAGE, true);
         }
 

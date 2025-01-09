@@ -214,8 +214,11 @@ class TruckArrivalRepository extends EntityRepository
             ->addSelect("carrier.id AS carrier_id")
             ->addSelect("carrier.label AS carrier_label")
             ->addSelect("carrier.code AS carrier_code")
+            ->addSelect("driver.id as driver_id")
+            ->addSelect("driver.nom as driver_name")
             ->andWhere("truck_arrival.number LIKE :term")
             ->leftJoin('truck_arrival.carrier', 'carrier')
+            ->leftJoin('truck_arrival.driver', 'driver')
             ->setParameter('term', "%$term%");
 
 
