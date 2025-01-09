@@ -300,6 +300,11 @@ class TrackingMovementService {
                     $errorPackCodes = [];
                     break;
                 } else if($existingPack?->getGroup()) {
+                    if($existingPack->getGroup()->getId() === $parentPack->getId()) {
+                        $errorType = Pack::PACK_ALREADY_IN_GROUP;
+                        $errorPackCodes = [];
+                        break;
+                    }
                     $errorType = Pack::CONFIRM_SPLIT_PACK;
                     $errorPackCodes[] = $existingPack->getCode();
                 }
@@ -428,6 +433,11 @@ class TrackingMovementService {
                 return [
                     "success" => false,
                     "msg" => "Une des UL choisie est un groupe, veuillez choisir une UL valide.",
+                ];
+            } else if ($res["error"] === Pack::PACK_ALREADY_IN_GROUP) {
+                return [
+                    "success" => false,
+                    "msg" => "Une des UL scannée est déjà présente dans ce groupe.",
                 ];
             }
 
