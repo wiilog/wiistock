@@ -155,12 +155,12 @@ export function reloadLogisticUnitTrackingDelay(logisticUnitId, onSuccess) {
         .json()
         .then(({success}) => {
             if (success) {
-                Flash.add(SUCCESS, "Le délai de traitement de l'unité logistique a bien été recalculé", true, true);
+                Flash.add(SUCCESS, `Le ${Translation.of('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement')} de l'unité logistique a bien été recalculé`, true, true);
                 if (onSuccess && typeof onSuccess === 'function') {
                     onSuccess();
                 }
             } else {
-                Flash.add(ERROR, "Une erreur est survenu lors du calcul du délai de traitement de l'unité logistique", true, true);
+                Flash.add(ERROR, `Une erreur est survenu lors du calcul du ${Translation.of('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement')} de l'unité logistique`, true, true);
             }
         });
 }

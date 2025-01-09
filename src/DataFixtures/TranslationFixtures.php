@@ -1173,12 +1173,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Poids (kg)",
                             "en" => "Weight (kg)",
-                            "tooltip" => "Onglet \"Unité logistique\"\nZone liste\nModale Modifier une unité logistique\n____\nOnglet \"Groupes\"\nModale Modifier le groupe\nExport",
+                            "tooltip" => "Page Unité logistique\nZone liste\nModale Modifier une unité logistique\n____\nExport",
                         ],
                         [
                             "fr" => "Volume (m3)",
                             "en" => "Volume (m3)",
-                            "tooltip" => "Onglet \nUnité logistique\nZone liste\nModale Modifier une unité logistique\n____\nOnglet Groupes\nModale Modifier le groupe\nExport",
+                            "tooltip" => "Page Unité logistique\nZone liste\nModale Modifier une unité logistique\n____\nExport",
+                        ],
+                        [
+                            "fr" => "Délai de traitement",
+                            "en" => "Processing Time",
+                            "tooltip" => "Page Unité logistique\nZone liste\nModale Modifier une unité logistique\n____\nExport\n___\nNomade",
                         ],
                     ],
                 ],
