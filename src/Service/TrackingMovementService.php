@@ -515,11 +515,12 @@ class TrackingMovementService {
 
         // must be after movement initialization
         // after set type & location
-        $this->setTrackingEvent($tracking, (bool) $manualDelayStart);
+        // $editedTrackingOnSetEvent is not necessary the same as $tracking one due to WIIS-12109 task
+        $this->setTrackingEvent($tracking, (bool) $manualDelayStart, $editedTrackingOnSetEvent);
 
         $tracking->calculateTrackingDelayData = [
             "previousTrackingEvent" => $this->getLastPackMovement($pack)?->getEvent(),
-            "nextTrackingEvent"     => $tracking->getEvent(),
+            "nextTrackingEvent"     => $editedTrackingOnSetEvent->getEvent(),
             "nextType"              => $tracking->getType()?->getCode(),
         ];
 
@@ -545,7 +546,13 @@ class TrackingMovementService {
             }
         }
 
-        $this->managePackLinksWithTracking($entityManager, $tracking);
+        $this->managePackLinksWithTracking(
+            $entityManager,
+            [
+                $tracking,
+                ...($editedTrackingOnSetEvent !== $tracking ? [$editedTrackingOnSetEvent] : [])
+            ]
+        );
         $this->managePackLinksWithOperations($entityManager, $tracking, [
             "from" => $from,
             "receptionReferenceArticle" => $receptionReferenceArticle,
@@ -763,131 +770,138 @@ class TrackingMovementService {
         return $returnData;
     }
 
+    /**
+     * @param TrackingMovement[] $editedTrackingMovements
+     */
     public function managePackLinksWithTracking(EntityManagerInterface $entityManager,
-                                                TrackingMovement       $tracking): void {
+                                                array                  $editedTrackingMovements): void {
 
-        $pack = $tracking->getPack();
+        foreach($editedTrackingMovements as $tracking) {
+            $pack = $tracking->getPack();
 
-        if (!$pack) {
-            return;
-        }
+            if (!$pack) {
+                return;
+            }
 
-        $lastTrackingMovements = $pack->getTrackingMovements()->toArray();
-        $locationClusterRecordRepository = $entityManager->getRepository(LocationClusterRecord::class);
+            $lastTrackingMovements = $pack->getTrackingMovements()->toArray();
+            $locationClusterRecordRepository = $entityManager->getRepository(LocationClusterRecord::class);
 
-        /** @var TrackingMovement|null $previousLastAction */
-        $previousLastAction = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
-            ? $lastTrackingMovements[1]
-            : null;
+            /** @var TrackingMovement|null $previousLastAction */
+            $previousLastAction = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
+                ? $lastTrackingMovements[1]
+                : null;
 
-        if (!$pack->getFirstAction()
-            || $this->compareMovements($pack->getFirstAction(), $tracking) === TrackingMovementService::COMPARE_A_AFTER_B) {
-            $pack->setFirstAction($tracking);
-        }
+            if (!$pack->getFirstAction()
+                || $this->compareMovements($pack->getFirstAction(), $tracking) === TrackingMovementService::COMPARE_A_AFTER_B) {
+                $pack->setFirstAction($tracking);
+            }
 
-        if (!$pack->getLastAction()
-            || $this->compareMovements($pack->getLastAction(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B) {
-            $pack->setLastAction($tracking);
-        }
+            if (!$pack->getLastAction()
+                || $this->compareMovements($pack->getLastAction(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B) {
+                $pack->setLastAction($tracking);
+            }
 
-        if ($tracking->isPicking()
-            && (
-                !$pack->getLastPicking()
-                || $this->compareMovements($pack->getLastPicking(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
-            )) {
-            $pack->setLastPicking($tracking);
-        }
+            if ($tracking->isPicking()
+                && (
+                    !$pack->getLastPicking()
+                    || $this->compareMovements($pack->getLastPicking(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+                )) {
+                $pack->setLastPicking($tracking);
+            }
 
-        if ($tracking->isDrop()
-            && (
-                !$pack->getLastDrop()
-                || $this->compareMovements($pack->getLastDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
-            )) {
-            $pack->setLastDrop($tracking);
-        }
+            if ($tracking->isDrop()
+                && (
+                    !$pack->getLastDrop()
+                    || $this->compareMovements($pack->getLastDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B
+                )) {
+                $pack->setLastDrop($tracking);
+            }
 
-        if ($tracking->isDrop()
-            && (!$pack->getLastOngoingDrop() || $this->compareMovements($pack->getLastOngoingDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
-            $pack->setLastOngoingDrop($tracking);
-        }
-        else if ($tracking->isPicking()) {
-            $pack->setLastOngoingDrop(null);
-        }
-
-        if ($tracking->isStart()
-            && (!$pack->getLastStart() || $this->compareMovements($pack->getLastStart(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
-            $pack->setLastStart($tracking);
-        }
-
-        if ($tracking->isStop()
-            && (!$pack->getLastStop() || $this->compareMovements($pack->getLastStop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
-            $pack->setLastStop($tracking);
-        }
-
-        $location = $tracking->getEmplacement();
-        if ($location) {
-            /** @var LocationCluster $cluster */
-            foreach ($location->getClusters() as $cluster) {
-                $record = $pack->getId()
-                    ? $locationClusterRecordRepository->findOneByPackAndCluster($cluster, $pack)
-                    : null;
-
-                if (isset($record)) {
-                    $currentFirstDrop = $record->getFirstDrop();
-                    if ($currentFirstDrop && ($currentFirstDrop->getEmplacement() !== $location)) {
-                        $entityManager->remove($record);
-                        $record = null;
-                    }
+            if ($tracking->isDrop()
+                && (!$pack->getLastOngoingDrop() || $this->compareMovements($pack->getLastOngoingDrop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
+                $pack->setLastOngoingDrop($tracking);
+            }
+            else {
+                if ($tracking->isPicking()) {
+                    $pack->setLastOngoingDrop(null);
                 }
+            }
 
-                if (!isset($record)) {
-                    $record = new LocationClusterRecord();
-                    $record
-                        ->setPack($pack)
-                        ->setLocationCluster($cluster);
-                    $entityManager->persist($record);
-                }
+            if ($tracking->isStart()
+                && (!$pack->getLastStart() || $this->compareMovements($pack->getLastStart(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
+                $pack->setLastStart($tracking);
+            }
 
-                if ($tracking->isDrop()) {
-                    $record->setActive(true);
-                    $previousRecordLastTracking = $record->getLastTracking();
-                    // check if pack previous last tracking !== record previous lastTracking
-                    // IF not equals then we set firstDrop
-                    // ELSE that is to say the pack come from the location cluster
-                    if (!$previousRecordLastTracking
-                        || !$previousLastAction
-                        || ($previousRecordLastTracking->getId() !== $previousLastAction->getId())) {
-                        $record->setFirstDrop($tracking);
-                    }
-                    $this->locationClusterService->setMeter(
-                        $entityManager,
-                        LocationClusterService::METER_ACTION_INCREASE,
-                        $tracking->getDatetime(),
-                        $cluster
-                    );
+            if ($tracking->isStop()
+                && (!$pack->getLastStop() || $this->compareMovements($pack->getLastStop(), $tracking) === TrackingMovementService::COMPARE_A_BEFORE_B)) {
+                $pack->setLastStop($tracking);
+            }
 
-                    if ($previousLastAction?->isPicking()) {
-                        $locationPreviousLastTracking = $previousLastAction->getEmplacement();
-                        $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
-                        /** @var LocationCluster $locationClusterPreviousLastTracking */
-                        foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
-                            $this->locationClusterService->setMeter(
-                                $entityManager,
-                                LocationClusterService::METER_ACTION_INCREASE,
-                                $tracking->getDatetime(),
-                                $cluster,
-                                $locationClusterPreviousLastTracking
-                            );
+            $location = $tracking->getEmplacement();
+            if ($location) {
+                /** @var LocationCluster $cluster */
+                foreach ($location->getClusters() as $cluster) {
+                    $record = $pack->getId()
+                        ? $locationClusterRecordRepository->findOneByPackAndCluster($cluster, $pack)
+                        : null;
+
+                    if (isset($record)) {
+                        $currentFirstDrop = $record->getFirstDrop();
+                        if ($currentFirstDrop && ($currentFirstDrop->getEmplacement() !== $location)) {
+                            $entityManager->remove($record);
+                            $record = null;
                         }
                     }
-                }
-                else if (isset($record)) {
-                    $record->setActive(false);
-                }
 
-                if (isset($record)) {
+                    if (!isset($record)) {
+                        $record = new LocationClusterRecord();
+                        $record
+                            ->setPack($pack)
+                            ->setLocationCluster($cluster);
+                        $entityManager->persist($record);
+                    }
+
+                    if ($tracking->isDrop()) {
+                        $record->setActive(true);
+                        $previousRecordLastTracking = $record->getLastTracking();
+                        // check if pack previous last tracking !== record previous lastTracking
+                        // IF not equals then we set firstDrop
+                        // ELSE that is to say the pack come from the location cluster
+                        if (!$previousRecordLastTracking
+                            || !$previousLastAction
+                            || ($previousRecordLastTracking->getId() !== $previousLastAction->getId())) {
+                            $record->setFirstDrop($tracking);
+                        }
+                        $this->locationClusterService->setMeter(
+                            $entityManager,
+                            LocationClusterService::METER_ACTION_INCREASE,
+                            $tracking->getDatetime(),
+                            $cluster
+                        );
+
+                        if ($previousLastAction?->isPicking()) {
+                            $locationPreviousLastTracking = $previousLastAction->getEmplacement();
+                            $locationClustersPreviousLastTracking = $locationPreviousLastTracking
+                                ? $locationPreviousLastTracking->getClusters()
+                                : [];
+                            /** @var LocationCluster $locationClusterPreviousLastTracking */
+                            foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
+                                $this->locationClusterService->setMeter(
+                                    $entityManager,
+                                    LocationClusterService::METER_ACTION_INCREASE,
+                                    $tracking->getDatetime(),
+                                    $cluster,
+                                    $locationClusterPreviousLastTracking
+                                );
+                            }
+                        }
+                    }
+                    else {
+                        $record?->setActive(false);
+                    }
+
                     // set last tracking after check of drop
-                    $record->setLastTracking($tracking);
+                    $record?->setLastTracking($tracking);
                 }
             }
         }
@@ -1848,8 +1862,9 @@ class TrackingMovementService {
         return $this->formatService->list($values);
     }
 
-    public function setTrackingEvent(TrackingMovement $trackingMovement,
-                                     bool             $manualDelayStart): void {
+    public function setTrackingEvent(TrackingMovement  $trackingMovement,
+                                     bool              $manualDelayStart,
+                                     ?TrackingMovement &$trackingToSetEvent = null): void {
         $trackingLocation = $trackingMovement->getEmplacement();
         if (!$trackingLocation) {
             return;
