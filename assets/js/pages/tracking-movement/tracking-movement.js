@@ -227,7 +227,7 @@ function submitNewTrackingMovementForm(data, form) {
         () => AJAX
             .route(POST, 'mvt_traca_new', {})
             .json(data)
-            .then(({success, group, trackingMovementsCounter, ...re}) => {
+            .then(({success, confirmMessage, trackingMovementsCounter, ...re}) => {
                 const $modal = form.element;
                 if (success) {
                     [tableMvt].forEach((table) => {
@@ -237,8 +237,8 @@ function submitNewTrackingMovementForm(data, form) {
                             table.ajax.reload();
                         }
                     })
-                    if (group) {
-                        displayConfirmationModal($modal, group);
+                    if (confirmMessage) {
+                        displayConfirmationModal($modal, confirmMessage);
                     } else {
                         displayOnSuccessCreation(success, trackingMovementsCounter);
                         fillDatePickers('.free-field-date');
@@ -324,12 +324,12 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
-function displayConfirmationModal($trackingMovementModal, group) {
+function displayConfirmationModal($trackingMovementModal, confirmMessage) {
     displayAlertModal(
         undefined,
         $('<div/>', {
             class: 'text-center',
-            html: `Cette unité logistique est présente dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
+            html: confirmMessage,
         }),
         [
             {

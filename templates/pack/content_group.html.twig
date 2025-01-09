@@ -13,7 +13,7 @@
             content: [
                 {label: 'Unité logistique', value: pack.code, bold: 'label'},
                 {label: 'Quantité', value: pack.quantity , bold: 'label'},
-            ] | merge(trackingDelay ? [{label: 'Délai de traitement', raw: true, value: trackingDelay, bold: 'label'}] : [])
+            ] | merge(trackingDelay ? [{label: trans('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement'), raw: true, value: trackingDelay, bold: 'label'}] : [])
         },
     } %}
 </a>

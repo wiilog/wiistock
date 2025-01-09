@@ -655,56 +655,12 @@ class TrackingMovementController extends AbstractController {
             }
 
             if (isset($splitFrom)) {
-
-                if($pack->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
-                    throw new FormException("Impossible de diviser le colis {$splitFrom->getCode()}.");
-                }
-
-                if($splitFrom->getLastOngoingDrop()){
-                    $packSplitTrackingMovement = $trackingMovementService->createTrackingMovement(
-                        $pack,
-                        null,
-                        $this->getUser(),
-                        DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
-                        true,
-                        true,
-                        TrackingMovement::TYPE_PACK_SPLIT,
-                        [
-                            'parent' => $parentPack,
-                        ]
-                    );
-
-                    $trackingMovementService->manageLinksForClonedMovement($splitFrom->getLastOngoingDrop(), $packSplitTrackingMovement);
-
-                    $entityManager->persist($packSplitTrackingMovement);
-
-                    $splitFromLastOnGoingDrop = $splitFrom->getLastOngoingDrop();
-                    $targetDropTrackingMovement = $trackingMovementService->createTrackingMovement(
-                        $pack,
-                        $splitFromLastOnGoingDrop->getEmplacement(),
-                        $splitFromLastOnGoingDrop->getOperateur(),
-                        $splitFromLastOnGoingDrop->getDatetime(),
-                        true,
-                        $splitFromLastOnGoingDrop->getFinished(),
-                        $splitFromLastOnGoingDrop->getType(),
-                        [
-                            "parent" => $splitFromLastOnGoingDrop->getPackGroup(),
-                            "historyTracking" => false,
-                        ]
-                    );
-
-                    $trackingMovementService->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
-                    $entityManager->persist($targetDropTrackingMovement);
-
-                    $pack->setLastOngoingDrop($targetDropTrackingMovement);
-                }
-
-                $packSplit = (new PackSplit())
-                    ->setTarget($pack)
-                    ->setFrom($splitFrom)
-                    ->setSplittingAt(new DateTime());
-
-                $entityManager->persist($packSplit);
+                $trackingMovementService->manageSplitPack(
+                    $entityManager,
+                    $splitFrom,
+                    $pack,
+                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"])
+                );
             }
 
             if (!$pack->getGroup()) {

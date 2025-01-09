@@ -26,9 +26,11 @@ use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\PackSplit;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Serializer\SerializerUsageEnum;
 use DateTime;
 use DateTimeInterface;
@@ -286,24 +288,33 @@ class TrackingMovementService {
                 'msg' => 'Le contenant choisie est une unité logistique, veuillez choisir un groupage valide.',
             ];
         } else {
-            $errors = [];
+            $errorPackCodes = [];
+            $errorType = null;
             $packCodes = explode(',', $data['pack']);
+
             foreach ($packCodes as $packCode) {
-                $pack = $packRepository->findOneBy(['code' => $packCode]);
-                $isParentPack = $pack && $pack->isGroup();
-                $isChildPack = $pack && $pack->getGroup();
-                if ($isParentPack || $isChildPack) {
-                    $errors[] = $packCode;
+                $existingPack = $packRepository->findOneBy(['code' => $packCode]);
+                $isGroup = $existingPack?->isGroup();
+                if ($isGroup) {
+                    $errorType = Pack::PACK_IS_GROUP;
+                    $errorPackCodes = [];
+                    break;
+                } else if($existingPack?->getGroup()) {
+                    if($existingPack->getGroup()->getId() === $parentPack->getId()) {
+                        $errorType = Pack::PACK_ALREADY_IN_GROUP;
+                        $errorPackCodes = [];
+                        break;
+                    }
+                    $errorType = Pack::CONFIRM_SPLIT_PACK;
+                    $errorPackCodes[] = $existingPack->getCode();
                 }
             }
 
-            if (!empty($errors)) {
-                return [
-                    'success' => false,
-                    'msg' => 'Les UL '
-                        . implode(', ', $errors)
-                        . ' sont des groupages ou sont déjà présents dans un groupe, veuillez choisir des UL valides.',
-                ];
+            if ($errorType && (!$data["forced"] ?? false)) {
+                return $this->treatPersistTrackingError([
+                    "packs" => $errorPackCodes,
+                    "error" => $errorType,
+                ]);
             }
             else {
                 $createdMovements = [];
@@ -334,11 +345,23 @@ class TrackingMovementService {
                 }
 
                 foreach ($packCodes as $packCode) {
-                    $pack = $this->packService->persistPack($entityManager, $packCode, 1, null);
-                    $location = $location ?? ($pack->getLastAction() ? $pack->getLastAction()->getEmplacement() : null);
+                    $movedPack = $packRepository->findOneBy(['code' => $packCode]);
+
+                    // case pack splitting
+                    if($movedPack?->getGroup()) {
+                        $childNumber = $movedPack->getSplitTargets()->count();
+                        $packCode = $movedPack->getCode() . '.' . ($childNumber + 1);
+
+                        // in this case, we do not group this pack, we create a new one
+                        $movedPack = null;
+                    }
+
+                    $movedPack ??= $this->packService->persistPack($entityManager, $packCode, 1);
+                    $location = $location
+                        ?? $movedPack->getLastAction()?->getEmplacement();
 
                     $groupingTrackingMovement = $this->createTrackingMovement(
-                        $pack,
+                        $movedPack,
                         null,
                         $operator,
                         $date,
@@ -352,10 +375,13 @@ class TrackingMovementService {
                         ]
                     );
 
-                    $pack->setGroup($parentPack);
-
+                    $movedPack->setGroup($parentPack);
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
+
+                    if($existingPack && $existingPack->getGroup()) {
+                        $this->manageSplitPack($entityManager, $existingPack, $movedPack, $date);
+                    }
                 }
                 return [
                     'success' => true,
@@ -363,6 +389,62 @@ class TrackingMovementService {
                     'createdMovements' => $createdMovements,
                 ];
             }
+        }
+    }
+
+    public function treatPersistTrackingError(array $res): array {
+        if (isset($res["error"])) {
+            if (in_array($res["error"], [
+                Pack::CONFIRM_CREATE_GROUP,
+                Pack::CONFIRM_SPLIT_PACK,
+            ])) {
+                $packs = $res["packs"] ?? [];
+                $packsCount = count($packs);
+                $packsStr = Stream::from($res["packs"] ?? [])->join(', ');
+                $suffixMessage = match($packsCount) {
+                    0 => "Des unités logistiques sont présentes dans des groupes.",
+                    1 => "L'unité logistique {$packsStr} est présente dans un groupe.",
+                    // plural
+                    default => "Les unités logistiques {$packsStr} sont présentes dans des groupes."
+                };
+
+                $message = match ($res["error"]) {
+                    Pack::CONFIRM_CREATE_GROUP => "Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?",
+                    Pack::CONFIRM_SPLIT_PACK => match ($packsCount) {
+                        1 => "Voulez-vous la diviser ?",
+                        // plural or 0
+                        default => "Voulez-vous les diviser ?",
+                    },
+                    default => throw new Exception("Unknown error {$res["error"]}"),
+                };
+
+                return [
+                    "success" => true,
+                    "group" => $res["packs"],
+                    "error" => $res["error"],
+                    "confirmMessage" => "{$suffixMessage} <br/> {$message}",
+                ];
+            } else if ($res['error'] === Pack::IN_ONGOING_RECEPTION) {
+                return [
+                    "success" => false,
+                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementée."),
+                ];
+            } else if ($res["error"] === Pack::PACK_IS_GROUP) {
+                return [
+                    "success" => false,
+                    "msg" => "Une des UL choisie est un groupe, veuillez choisir une UL valide.",
+                ];
+            } else if ($res["error"] === Pack::PACK_ALREADY_IN_GROUP) {
+                return [
+                    "success" => false,
+                    "msg" => "Une des UL scannée est déjà présente dans ce groupe.",
+                ];
+            }
+
+            throw new Exception('untreated error');
+        }
+        else {
+            return $res;
         }
     }
 
@@ -1225,7 +1307,7 @@ class TrackingMovementService {
                     'success' => false,
                     'error' => Pack::CONFIRM_CREATE_GROUP,
                     'msg' => Pack::CONFIRM_CREATE_GROUP,
-                    'group' => $associatedGroup->getCode(),
+                    'packs' => [$associatedPack->getCode()],
                 ];
             } else if ($forced) {
                 $associatedPack->setGroup(null);
@@ -1870,5 +1952,61 @@ class TrackingMovementService {
             self::COMPARE_A_AFTER_B  => $pack->getLastPicking(),
             default                  => $pack->getLastDrop(), // self::COMPARE_A_BEFORE_B or self::COMPARE_A_EQUALS_B or any other value
         };
+    }
+
+    public function manageSplitPack(EntityManagerInterface $entityManager,
+                                    Pack                   $packParent,
+                                    Pack                   $pack,
+                                    DateTime               $date): void {
+        if($pack->getSplitCountFrom() >= Pack::MAX_SPLIT_LEVEL) {
+            throw new FormException("Impossible de diviser le colis {$packParent->getCode()}.");
+        }
+
+        $packSplitTrackingMovement = $this->createTrackingMovement(
+            $pack,
+            null,
+            $this->security->getUser(),
+            $date,
+            true,
+            true,
+            TrackingMovement::TYPE_PACK_SPLIT,
+            [
+                'disableUngrouping' => true,
+            ]
+        );
+
+        $entityManager->persist($packSplitTrackingMovement);
+
+        if($packParent->getLastOngoingDrop()){
+            $this->manageLinksForClonedMovement($packParent->getLastOngoingDrop(), $packSplitTrackingMovement);
+
+            $splitFromLastOnGoingDrop = $packParent->getLastOngoingDrop();
+            $targetDropTrackingMovement = $this->createTrackingMovement(
+                $pack,
+                $splitFromLastOnGoingDrop->getEmplacement(),
+                $splitFromLastOnGoingDrop->getOperateur(),
+                $splitFromLastOnGoingDrop->getDatetime(),
+                true,
+                $splitFromLastOnGoingDrop->getFinished(),
+                $splitFromLastOnGoingDrop->getType(),
+                [
+                    'disableUngrouping' => true,
+                    "parent" => $splitFromLastOnGoingDrop->getPackGroup(),
+                    "historyTracking" => false,
+                ]
+            );
+
+            $this->manageLinksForClonedMovement($splitFromLastOnGoingDrop, $targetDropTrackingMovement);
+            $entityManager->persist($targetDropTrackingMovement);
+
+            $pack->setLastOngoingDrop($targetDropTrackingMovement);
+        }
+
+        $packSplit = (new PackSplit())
+            ->setTarget($pack)
+            ->setFrom($packParent)
+            ->setSplittingAt(new DateTime());
+
+        $entityManager->persist($packSplit);
     }
 }
