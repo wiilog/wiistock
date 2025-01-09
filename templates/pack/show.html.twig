@@ -196,13 +196,13 @@
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false) }}</span>
-                                    <span class="wii-body-text">{{ arrival is defined and arrival.fournisseur ? arrival.fournisseur.nom : "-" }}</span>
+                                    <span class="wii-body-text">{{ arrival ? arrival.fournisseur|format_helper('supplier', '-') : "-" }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false) }}</span>
-                                    <span class="wii-body-text">{{ arrival is defined and arrival.transporteur ? arrival.transporteur.label : "-" }}</span>
+                                    <span class="wii-body-text">{{ arrival ? arrival.transporteur|format_helper('carrier', '-') : "-" }}</span>
                                 </label>
                             </div>
                         </div>
