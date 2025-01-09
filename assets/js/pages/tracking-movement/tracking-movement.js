@@ -227,7 +227,7 @@ function submitNewTrackingMovementForm(data, form) {
         () => AJAX
             .route(POST, 'mvt_traca_new', {})
             .json(data)
-            .then(({success, error, group, confirmMessage, trackingMovementsCounter, ...re}) => {
+            .then(({success, confirmMessage, trackingMovementsCounter, ...re}) => {
                 const $modal = form.element;
                 if (success) {
                     [tableMvt].forEach((table) => {
@@ -237,8 +237,8 @@ function submitNewTrackingMovementForm(data, form) {
                             table.ajax.reload();
                         }
                     })
-                    if (group) {
-                        displayConfirmationModal($modal, group, error, confirmMessage);
+                    if (confirmMessage) {
+                        displayConfirmationModal($modal, confirmMessage);
                     } else {
                         displayOnSuccessCreation(success, trackingMovementsCounter);
                         fillDatePickers('.free-field-date');
@@ -324,7 +324,7 @@ function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);
 }
 
-function displayConfirmationModal($trackingMovementModal, group, error, confirmMessage) {
+function displayConfirmationModal($trackingMovementModal, confirmMessage) {
     displayAlertModal(
         undefined,
         $('<div/>', {
