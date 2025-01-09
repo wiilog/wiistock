@@ -497,6 +497,13 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 });
 
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
+
+                const $nature = $row.find(`[name=nature]`);
+                $nature.off('change').on('change', function () {
+                    const $defaultQuantityForDispatch = $(this).find('option:selected').data('default-quantity-for-dispatch');
+                    const $quantity = $row.find('input[name="quantity"]');
+                    $quantity.val($defaultQuantityForDispatch);
+                });
             })
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {

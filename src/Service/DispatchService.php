@@ -852,6 +852,7 @@ class DispatchService {
                     "value" => $current->getId(),
                     "label" => $this->formatService->nature($current),
                     "selected" => $current->getId() === $nature?->getId() ? "selected" : "",
+                    "default-quantity-for-dispatch" => $current->getDefaultQuantityForDispatch(),
                 ])
                 ->toArray();
 
