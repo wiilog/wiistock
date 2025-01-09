@@ -183,7 +183,6 @@ class MobileApiService {
             ->toArray();
 
         //TODO: récupérer tout en français
-        dump($translations);
         return [
             'translations' => $translations,
         ];
