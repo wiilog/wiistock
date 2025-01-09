@@ -33,7 +33,7 @@ class TrackingDelayService {
         $lastTrackingEvent = $data['lastTrackingEvent'] ?? null;
         $limitTreatmentDate = $data['limitTreatmentDate'] ?? null;
         $calculatedElapsedTime = $data['elapsedTime'] ?? null;
-
+dump($data);
         if (!isset($calculatedElapsedTime)) {
             $trackingDelay = $pack->getTrackingDelay();
             if (isset($trackingDelay)) {
@@ -92,6 +92,7 @@ class TrackingDelayService {
         if (!$pack->shouldHaveTrackingDelay()) {
             return null;
         }
+        dump(1);
 
         [
             "timerStartedAt" => $timerStartedAt,
@@ -110,6 +111,9 @@ class TrackingDelayService {
             && $lastStop->getDatetime() > $timerStartedAt
         );
 
+
+        dump($timerStartedAt);
+        dump($lastStop);
         if (!isset($timerStartedAt)
             || $packHasStopEvent) {
             return null;
@@ -204,6 +208,7 @@ class TrackingDelayService {
             // and we restart until the end of TrackingEvents array
             /** @var TrackingMovement $trackingEvent */
             foreach ($trackingEvents as $trackingEvent) {
+                dump($trackingEvent->getId(), $trackingEvent->getType()->getNom());
                 $lastTrackingEvent = null;
                 if ($intervalStart) {
                     $intervalEnd = clone $trackingEvent->getDatetime();
