@@ -21,6 +21,8 @@ const ENTITY_DISPATCH = "dispatch";
 const ENTITY_PRODUCTION = "production";
 const ENTITY_TRACKING_MOVEMENT = "tracking_movement";
 const ENTITY_PACK = "pack";
+const ENTITY_RECEIPT_ASSOCIATION = "receipt_association";
+const ENTITY_DISPUTE = "dispute";
 const ENTITY_TRUCK_ARRIVAL = "truck_arrival";
 
 global.displayExportModal = displayExportModal;
@@ -304,6 +306,32 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
+                    } else if (content.entityToExport === ENTITY_RECEIPT_ASSOCIATION) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports d'associations BR`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_receipt_association`, {
+                            dateMin,
+                            dateMax,
+                        }));
+                    } else if (content.entityToExport === ENTITY_DISPUTE) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if (!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de litiges`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`dispute_export_csv`, {
+                            dateMin,
+                            dateMax,
+                        }));
                     } else {
                         Flash.add(`danger`, `Une erreur est survenue lors de la génération de l'export`);
                     }
@@ -389,6 +417,8 @@ function onFormEntityChange() {
         case ENTITY_PRODUCTION:
         case ENTITY_PACK:
         case ENTITY_TRUCK_ARRIVAL:
+        case ENTITY_RECEIPT_ASSOCIATION:
+        case ENTITY_DISPUTE:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;

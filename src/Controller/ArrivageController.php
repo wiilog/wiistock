@@ -1065,11 +1065,12 @@ class ArrivageController extends AbstractController
     }
 
     #[Route("/litiges/api/{arrivage}", name: "arrival_diputes_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
-    public function apiArrivageLitiges(EntityManagerInterface $entityManager,
-                                       Arrivage               $arrivage): Response
+    public function apiArrivageLitiges(Arrivage               $arrivage): Response
     {
-        $disputeRepository = $entityManager->getRepository(Dispute::class);
-        $disputes = $disputeRepository->findByArrivage($arrivage);
+        $disputes = Stream::from($arrivage->getPacks())
+            ->flatMap(fn(Pack $pack) => $pack->getDisputes()->toArray())
+            ->toArray();
+
         $rows = [];
         /** @var Utilisateur $user */
         $user = $this->getUser();

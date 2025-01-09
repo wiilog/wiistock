@@ -3,9 +3,13 @@
 namespace App\Serializer;
 
 use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FormatHelper;
 use App\Service\FormatService;
 use App\Service\PackService;
+use App\Service\TrackingMovementService;
+use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -18,11 +22,14 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
     private const SUPPORTED_USAGES = [
         SerializerUsageEnum::MOBILE,
+        SerializerUsageEnum::CSV_EXPORT,
     ];
 
     public function __construct(
-        private FormatService $formatService,
-        private PackService   $packService,
+        private FormatService           $formatService,
+        private PackService             $packService,
+        private EntityManagerInterface  $entityManager,
+        private TrackingMovementService $trackingMovementService
     ) {}
 
     public function normalize(mixed $object, string $format = null, array $context = []): array {
@@ -39,6 +46,7 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
         return match ($usage) {
             SerializerUsageEnum::MOBILE => $this->normalizeForMobile($pack, $format, $context),
+            SerializerUsageEnum::CSV_EXPORT => $this->normalizeForCVSExport($pack, $format, $context),
             default => throw new Exception("Invalid usage {$usageStr}, should be one of {$supportedUsageStr}"),
         };
     }
@@ -97,5 +105,29 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
         }
 
         return $res;
+    }
+
+    public function normalizeForCVSExport (Pack $pack, string $format = null, array $context = []): array {
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+
+        $firstMovements = $trackingMovementRepository->findBy(
+            ["pack" => $pack],
+            ["datetime" => Order::Ascending->value, "orderIndex" => Order::Ascending->value, "id" => Order::Ascending->value],
+            1
+        );
+        $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovements[0] ?? null);
+
+        return [
+            "code" => $pack->getCode(),
+            "nature" => $this->formatService->nature($pack->getNature(), null),
+            "lastMvtDate" => $pack->getLastAction()?->getDatetime(),
+            "fromLabel" => $fromColumnData["fromLabel"] ?? null,
+            "fromTo" =>  $fromColumnData["from"] ?? null,
+            "location" => $this->formatService->location($pack->getLastAction()?->getEmplacement()),
+            "groupCode" => $this->formatService->pack($pack->getGroup()),
+            "groupIteration" => $pack->getGroupIteration(),
+            "weight" => $pack->getWeight(),
+            "volume" => $pack->getVolume(),
+        ];
     }
 }

@@ -27,6 +27,8 @@ use WiiCommon\Helper\Stream;
 class DataExportService
 {
 
+    const FILE_NAME_DATE_FORMAT = 'Y-m-d';
+
     #[Required]
     public EntityManagerInterface $entityManager;
 
@@ -441,6 +443,8 @@ class DataExportService
             Export::ENTITY_PRODUCTION,
             Export::ENTITY_TRACKING_MOVEMENT,
             Export::ENTITY_PACK,
+            Export::ENTITY_DISPUTE,
+            Export::ENTITY_RECEIPT_ASSOCIATION,
             Export::ENTITY_TRUCK_ARRIVAL,
         ])) {
             $export
@@ -487,5 +491,13 @@ class DataExportService
         ]));
 
         $export->setScheduleRule($scheduleRule);
+    }
+
+    public function generateDataArchichingFileName(string $entityToArchive, DateTime $dateToArchive): string {
+        // file name = ARC + APP_LOCALE (env) + entityToArchive + today's date + _ + $dateToArchive + .csv
+        $appLocal = $_ENV['APP_LOCALE'];
+        $now = (new DateTime())->format(self::FILE_NAME_DATE_FORMAT);
+        $date = $dateToArchive->format(self::FILE_NAME_DATE_FORMAT);
+        return "ARC_{$appLocal}_{$entityToArchive}_{$now}_{$date}.csv";
     }
 }

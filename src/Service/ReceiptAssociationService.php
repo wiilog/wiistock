@@ -49,6 +49,9 @@ class ReceiptAssociationService
     #[Required]
     public SettingsService $settingsService;
 
+    #[Required]
+    public TranslationService $translationService;
+
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                                                $params = null): array
     {
@@ -87,20 +90,6 @@ class ReceiptAssociationService
                 'receipt_association' => $receiptAssocation,
             ]),
         ];
-    }
-
-    public function receiptAssociationPutLine($output, array $receiptAssociation): void
-    {
-        $row = [
-            $receiptAssociation['creationDate'],
-            $receiptAssociation['logisticUnit'],
-            $receiptAssociation['receptionNumber'],
-            $receiptAssociation['user'],
-            $receiptAssociation['lastActionDate'],
-            $receiptAssociation['lastActionLocation'],
-        ];
-
-        $this->CSVExportService->putLine($output, $row);
     }
 
     /**
@@ -230,4 +219,43 @@ class ReceiptAssociationService
             $entityManager->persist($dropMvt);
         }
     }
+
+    public function getCsvHeader(): array {
+        $translationService = $this->translationService;
+        return  [
+            $translationService->translate('Traçabilité', 'Général', 'Date',false),
+            $translationService->translate('Traçabilité', 'Général', 'Unité logistique',false),
+            $translationService->translate('Traçabilité', 'Association BR', 'Réception',false),
+            $translationService->translate('Traçabilité', 'Général', 'Utilisateur',false),
+            $translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement',false),
+            $translationService->translate('Traçabilité', 'Général', 'Dernier emplacement',false),
+        ];
+    }
+
+    public function getExportReceiptAssociationFunction(DateTime               $dateTimeMin,
+                                                        DateTime               $dateTimeMax,
+                                                        EntityManagerInterface $entityManager): callable {
+        $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
+        $receiptAssociations = $receiptAssociationRepository->getByDates($dateTimeMin, $dateTimeMax, $this->userService->getUser()?->getDateFormat());
+
+        return function ($handle) use ($entityManager, $receiptAssociations) {
+            foreach ($receiptAssociations as $receiptAssociation) {
+                $this->putReceiptAssociationLine($handle, $receiptAssociation);
+            }
+        };
+    }
+
+    public function putReceiptAssociationLine($output, array $receiptAssociation): void {
+        $row = [
+            $receiptAssociation['creationDate'],
+            $receiptAssociation['logisticUnit'],
+            $receiptAssociation['receptionNumber'],
+            $receiptAssociation['user'],
+            $receiptAssociation['lastActionDate'],
+            $receiptAssociation['lastActionLocation'],
+        ];
+
+        $this->CSVExportService->putLine($output, $row);
+    }
+
 }

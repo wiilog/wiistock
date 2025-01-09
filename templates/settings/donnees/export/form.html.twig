@@ -71,6 +71,18 @@
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_TRUCK_ARRIVAL'),
                 disabled: export.id is not null
             },
+            {
+                label: 'Associations BR',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_RECEIPT_ASSOCIATION'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_RECEIPT_ASSOCIATION'),
+                disabled: export.id is not null
+            },
+            {
+                label: 'Litiges',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPUTE'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPUTE'),
+                disabled: export.id is not null
+            },
         ], {expanded: true}) }}
 
         <label class="references-sentence wii-small-text my-3">Les références exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>

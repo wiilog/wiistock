@@ -972,6 +972,22 @@ class PackService {
         };
     }
 
+    public function putPackLine($handle, array $pack): void {
+        $line = [
+            $pack['code'],
+            $pack['nature'],
+            $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
+            $pack['fromLabel'],
+            $pack['fromTo'],
+            $pack['location'],
+            $pack['groupCode'],
+            $this->formatService->bool($pack['groupIteration'] ?? false),
+            $pack['weight'],
+            $pack['volume'],
+        ];
+        $this->CSVExportService->putLine($handle, $line);
+    }
+
     public function getActionButtons(Pack $pack, bool $hasPairing): string {
         $isGroup = $pack->getGroupIteration() || !$pack->getContent()->isEmpty();
 

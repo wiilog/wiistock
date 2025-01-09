@@ -18,6 +18,8 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Exception;
 use Generator;
@@ -64,9 +66,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect("tracking_movement.freeFields as freeFields")
             ->addSelect("CONCAT(join_packGroup.code, '-', tracking_movement.groupIteration) AS packGroup")
             ->addSelect("IF(SIZE(tracking_movement.attachments) > 0, 'oui', 'non') AS hasAttachments")
-
             ->andWhere("tracking_movement.datetime BETWEEN :dateMin AND :dateMax")
-
             ->innerJoin("tracking_movement.pack", "pack")
             ->leftJoin("tracking_movement.emplacement", "join_location")
             ->leftJoin("tracking_movement.type", "join_type")
@@ -672,6 +672,37 @@ class TrackingMovementRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * Returns an iterable of TrackingMovement older than the given date
+     *
+     * @param DateTime $date
+     * @return iterable<TrackingMovement>
+     */
+    public function iterateOlderThan(DateTime $date): iterable {
+        $queryBuilder = $this->createQueryBuilder("tracking_movement")
+            ->andWhere("tracking_movement.datetime < :date")
+            ->addOrderBy("tracking_movement.pack", Order::Ascending->value)
+            ->setParameter("date", $date);
+
+        return $queryBuilder->getQuery()->toIterable();
+    }
+
+    /**
+     * Counts the number of TrackingMovement older than the given date.
+     *
+     * @param DateTime $date
+     * @return int
+     * @throws NonUniqueResultException|NoResultException
+     */
+    public function countOlderThan(DateTime $date): int {
+        return $this->createQueryBuilder("tracking_movement")
+            ->select("COUNT(tracking_movement.id)")
+            ->andWhere("tracking_movement.datetime < :date")
+            ->setParameter("date", $date)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 }

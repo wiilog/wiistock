@@ -116,12 +116,10 @@ class ReceiptAssociationController extends AbstractController
 
     #[Route("/export", name: "get_receipt_associations_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
-    public function export(EntityManagerInterface    $manager,
+    public function export(EntityManagerInterface    $entityManager,
                            Request                   $request,
                            CSVExportService          $csvService,
-                           ReceiptAssociationService $receiptAssociationService,
-                           TranslationService        $translationService): Response
-    {
+                           ReceiptAssociationService $receiptAssociationService): Response {
 
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
@@ -138,23 +136,16 @@ class ReceiptAssociationController extends AbstractController
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
-            $user = $this->getUser();
 
-            $headers = [
-                $translationService->translate('Traçabilité', 'Général', 'Date',false),
-                $translationService->translate('Traçabilité', 'Général', 'Unité logistique',false),
-                $translationService->translate('Traçabilité', 'Association BR', 'Réception',false),
-                $translationService->translate('Traçabilité', 'Général', 'Utilisateur',false),
-                $translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement',false),
-                $translationService->translate('Traçabilité', 'Général', 'Dernier emplacement',false),
-            ];
-
-            return $csvService->streamResponse(function ($output) use ($manager, $csvService, $dateTimeMin, $dateTimeMax,$receiptAssociationService, $user) {
-                $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->getByDates($dateTimeMin, $dateTimeMax, $user->getDateFormat());
-                foreach ($receiptAssociations as $receiptAssociation) {
-                    $receiptAssociationService->receiptAssociationPutLine($output, $receiptAssociation);
-                }
-            }, "association-br_$today.csv", $headers);
+            return $csvService->streamResponse(
+                $receiptAssociationService->getExportReceiptAssociationFunction(
+                    $dateTimeMin,
+                    $dateTimeMax,
+                    $entityManager,
+                ),
+                "association-br_$today.csv",
+                $receiptAssociationService->getCsvHeader()
+            );
         } else {
             throw new BadRequestHttpException();
         }
