@@ -123,7 +123,6 @@ class DeactivateUserCommand extends Command
         foreach ($users as $user) {
             $this->userService->deactivateUser($user);
             $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
-            $this->entityManager->flush();
         }
 
         return Command::SUCCESS;

@@ -260,6 +260,8 @@ class UserService {
     public function deactivateUser(Utilisateur $user): void
     {
         $user->setStatus(false);
+        $this->entityManager->flush();
+
     }
 
     /** Allow getting all users matching a regex
