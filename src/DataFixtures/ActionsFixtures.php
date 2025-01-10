@@ -152,6 +152,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::GENERATE_OVERCONSUMPTION_BILL,
                 Action::GENERATE_WAY_BILL,
                 Action::GENERATE_DISPATCH_LABEL,
+                Action::GENERATE_SHIPMENT_NOTE,
             ],
             self::SUB_MENU_TRANSFERS => [
                 Action::DISPLAY_TRANSFER_REQ,
