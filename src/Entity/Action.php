@@ -64,6 +64,7 @@ class Action {
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
     const GENERATE_DISPATCH_LABEL = 'générer une étiquette';
+    const GENERATE_SHIPMENT_NOTE = 'générer un bon de transport';
     const DISPATCH_REQUEST_OFFLINE_MODE = "Mode hors ligne pour les demandes d'acheminements et la signature groupée";
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
