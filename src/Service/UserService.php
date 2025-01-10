@@ -25,7 +25,6 @@ use App\Entity\StatusHistory;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Repository\RoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -257,13 +256,9 @@ class UserService {
 
     }
 
-    public function deactivateUser(Utilisateur $user, RoleRepository $roleRepository)
+    public function deactivateUser(Utilisateur $user): void
     {
-        $withoutAccessRole = $roleRepository->findByLabel(Role::NO_ACCESS_USER);
-
-        $user->setRole($withoutAccessRole);
         $user->setStatus(false);
-        $this->entityManager->flush();
     }
 
 }

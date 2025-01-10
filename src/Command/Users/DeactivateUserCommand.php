@@ -2,10 +2,8 @@
 
 namespace App\Command\Users;
 
-use App\Entity\Role;
 use App\Entity\User;
 use App\Entity\Utilisateur;
-use App\Repository\RoleRepository;
 use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,14 +27,12 @@ use WiiCommon\Helper\Stream;
 class DeactivateUserCommand extends Command
 {
     private UtilisateurRepository $userRepository;
-    private RoleRepository $roleRepository;
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserService $userService,
     ) {
         parent::__construct();
         $this->userRepository = $this->entityManager->getRepository(User::class);
-        $this->roleRepository = $this->entityManager->getRepository(Role::class);
     }
 
     protected function configure(): void
@@ -79,7 +75,7 @@ class DeactivateUserCommand extends Command
             return Command::SUCCESS;
         }
 
-        $this->userService->deactivateUser($user, $this->roleRepository);
+        $this->userService->deactivateUser($user);
         $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
 
         return Command::SUCCESS;
@@ -129,9 +125,11 @@ class DeactivateUserCommand extends Command
     private function deactivateUsers(array $users, OutputInterface $output): int
     {
         foreach ($users as $user) {
-            $this->userService->deactivateUser($user, $this->roleRepository);
+            $this->userService->deactivateUser($user);
             $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
         }
+
+        $this->entityManager->flush();
 
         return Command::SUCCESS;
     }

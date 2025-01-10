@@ -22,8 +22,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class ListMatchingUsersCommand extends Command
 {
-    private UtilisateurRepository $utilisateurRepository;
-
     public function __construct(private readonly EntityManagerInterface $entityManager)
     {
         parent::__construct();
