@@ -2587,6 +2587,15 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                     ],
                 ],
+                "Bon de transport" => [
+                    "content" => [
+                        [
+                            "fr" => "Bon de transport",
+                            "en" => "Shipment note",
+                            "tooltip" => "Bouton générer un bon de transport",
+                        ],
+                    ],
+                ],
                 "Bon de surconsommation" => [
                     "content" => [
                         [
