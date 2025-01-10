@@ -75,7 +75,7 @@ class DeactivateUserCommand extends Command
 
         if (!$user->getStatus()) {
             $output->writeln('<error>L\'utilisateur est déjà désactivé.</error>');
-            return Command::FAILURE;
+            return Command::SUCCESS;
         }
 
         $this->userService->deactivateUser($user, $this->roleRepository);
