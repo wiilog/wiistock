@@ -18,6 +18,7 @@ class Setting {
     const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/delivery_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
     const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
+    const DEFAULT_DISPATCH_SHIPMENT_NOTE_VALUE = 'modele/shipment_note/bon_de_transport.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
     const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.dotx';
     const DEFAULT_PURCHASE_ORDER_TEMPLATE_VALUE = 'modele/purchase_order/purchase_order_template.dotx';
@@ -289,6 +290,10 @@ class Setting {
     const CUSTOM_DISPATCH_RECAP_TEMPLATE = "CUSTOM_DISPATCH_RECAP_TEMPLATE";
     const CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME = "CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME";
 
+    const DEFAULT_DISPATCH_SHIPMENT_NOTE = "DEFAULT_DISPATCH_SHIPMENT_NOTE";
+    const CUSTOM_DISPATCH_SHIPMENT_NOTE = "CUSTOM_DISPATCH_SHIPMENT_NOTE";
+    const CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME = "CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME";
+
     const DEFAULT_DELIVERY_SLIP_TEMPLATE = "DEFAULT_DELIVERY_SLIP_TEMPLATE";
     const CUSTOM_DELIVERY_SLIP_TEMPLATE = "CUSTOM_DELIVERY_SLIP_TEMPLATE";
     const CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME";
@@ -493,6 +498,21 @@ class Setting {
                     "documentsref" => "documents associés d'une référence contenue dans l'UL",
                     "commentaireref" => "commentaire d'une référence contenue dans l'UL",
                     "photoref" => "photo d'une référence contenue dans l'UL",
+                ],
+            ],
+            "shipment_note" => [
+                "Champs fixes acheminements" => [
+                    "numach" => "numéro de l'acheminement",
+                    "datevalidationacheminement" => "date de validation de l'acheminement",
+                ],
+                "Champs fixes arrivages UL de l'acheminement" => [
+                    "numprojet" => "numéro de projet",
+                    "destinataire" => "destinataire des UL. Il y aura autant de page que de destinataires différent lié à l'acheminement.",
+                    "numcommande" => "numéro de commande. Il y aura autant de lignes que de numéro de commande différent par page.",
+                    "fournisseur" => "fournisseur",
+                    "totalcolis" => "nombre de colis de l'acheminement de la commande",
+                    "litige" => "présence d'un litige sur un des colis de la commande OUI/NON",
+                    "poidstotal" => "somme des poids des colis lié à cette commande dans l'acheminement",
                 ],
             ],
         ],

@@ -613,6 +613,11 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
+                        self::MENU_TEMPLATE_DISPATCH_SHIPMENT_NOTE => [
+                            "label" => "Bon de transport",
+                            "save" => true,
+                            "discard" => true
+                        ],
                     ],
                 ],
                 self::MENU_TEMPLATE_DELIVERY => [
@@ -745,6 +750,7 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_PURCHASE = "achats";
     public const MENU_TEMPLATE_DISTPACH_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_RECAP_WAYBILL = "compte_rendu";
+    public const MENU_TEMPLATE_DISPATCH_SHIPMENT_NOTE = "bon_de_transport";
     public const MENU_TEMPLATE_DELIVERY_WAYBILL = "lettre_de_voiture";
     public const MENU_TEMPLATE_DELIVERY_SLIP = "bordereau_de_livraison";
     public const MENU_TEMPLATE_PURCHASE_ORDER = "bon_de_commande";
