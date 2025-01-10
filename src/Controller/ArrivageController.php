@@ -1190,7 +1190,7 @@ class ArrivageController extends AbstractController
             $dispute->setEmergencyTriggered($data->getBoolean('emergency'));
         }
 
-        $comment = trim($data->get('commentaire', ''));
+        $comment = trim($data->get('comment', ''));
         $typeDescription = $dispute->getType()->getDescription();
         if ($statusHasChanged
             || $typeBefore !== $typeAfter

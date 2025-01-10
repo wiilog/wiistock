@@ -979,7 +979,7 @@ class ReceptionController extends AbstractController {
             : '';
 
         $trimCommentStatut = trim($commentStatut);
-        $userComment = trim($post->get('commentaire'));
+        $userComment = trim($post->get('comment'));
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
