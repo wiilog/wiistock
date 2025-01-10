@@ -1,0 +1,68 @@
+{% import 'form.html.twig' as form %}
+{% import 'settings/modeles/variables-section.html.twig' as macro %}
+
+<div class="wii-section-title">Choix du modèle</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 d-flex align-items-center">
+            <span class="wii-icon wii-icon-info wii-icon-13px bg-black mr-2"></span>
+            <span class="wii-small-text">Si aucun modèle personnalisé n'est paramétré, le modèle par défaut sera automatiquement utilisé pour générer le bon de transport.</span>
+        </div>
+
+        <div class="default-template col-md-6 col-12 mt-3">
+            <span class="wii-field-name">Modèle par défaut</span>
+            <div class="attachment-item show" style="width: fit-content !important;">
+                <i class="fa fa-file-pdf mr-2"></i>
+                <a class="wii-small-text"
+                   href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('DEFAULT_DISPATCH_SHIPMENT_NOTE') }}"
+                   download="bon_de_transport.dotx">
+                    bon_de_transport.dotx
+                </a>
+            </div>
+        </div>
+
+        <div class="custom-template col-md-6 col-12 mt-3" data-name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_SHIPMENT_NOTE') }}">
+            <div class="wii-field-name">Modèle personnalisé</div>
+            <div class="custom-template-preview">
+                {% if setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE') %}
+                    <p class="attachement pointer" style="width: fit-content !important;">
+                        <a class="wii-small-text"
+                           download="{{ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME') }}"
+                           href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE') }}">
+                            <i class="fa fa-file-pdf mr-2"></i>{{ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME') }}
+                        </a>
+                        <i class="fa fa-times red pointer ml-1 remove-attachment"
+                           onclick="removeAttachment($(this), deleteTemplate)"></i>
+                    </p>
+                {% else %}
+                    <span class="wii-small-text my-2">Aucun modèle personnalisé.</span>
+                {% endif %}
+            </div>
+            <input type="hidden" class="data" name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_SHIPMENT_NOTE') ~ '_DELETED' }}" value="0">
+            <button class="btn btn-primary load-custom-template mt-2 d-flex align-items-center">
+                <span class="wii-icon wii-icon-plus mr-2"></span>Charger un modèle
+            </button>
+            <input type="file"
+                   class="custom-template-file data force-data"
+                   name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_SHIPMENT_NOTE') }}"
+                   accept=".dotx"
+                   hidden>
+            <input type="hidden"
+                   class="custom-template-file-name data"
+                   value="{{ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME') }}"
+                   name="{{ constant('App\\Entity\\Setting::CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME') }}">
+        </div>
+    </div>
+</div>
+
+<div class="wii-section-title">Variables disponibles</div>
+<div class="wii-section">
+    <div class="row">
+        {% set sections = constant('App\\Entity\\Setting::WAYBILL_VARIABLES')['dispatch']['shipment_note'] %}
+        <div class="col-12">
+            {% for section, fields in sections|slice(0, 2) %}
+                {{ macro.variablesSection(section, fields) }}
+            {% endfor %}
+        </div>
+    </div>
+</div>
