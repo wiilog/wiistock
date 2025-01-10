@@ -2,9 +2,9 @@
 
 namespace App\Command\Users;
 
-use App\Entity\User;
 use App\Entity\Utilisateur;
 use App\Repository\UserRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -14,7 +14,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
-use WiiCommon\Helper\Stream;
 
 /** Examples:
  * php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force
@@ -22,7 +21,7 @@ use WiiCommon\Helper\Stream;
  */
 #[AsCommand(
     name: 'app:user:deactivate',
-    description: 'Assign users matching a regex to the no access role and inactive status. Or, if an email is provided, deactivate the corresponding user. Examples: php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force php bin/console app:user:deactivate --email admin@wiilog.fr',
+    description: 'Assign users matching a regex to inactive status. Or, if an email is provided, deactivate the corresponding user. Examples: php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force php bin/console app:user:deactivate --email admin@wiilog.fr',
 )]
 class DeactivateUserCommand extends Command
 {
@@ -32,7 +31,7 @@ class DeactivateUserCommand extends Command
         private readonly UserService $userService,
     ) {
         parent::__construct();
-        $this->userRepository = $this->entityManager->getRepository(User::class);
+        $this->userRepository = $this->entityManager->getRepository(Utilisateur::class);
     }
 
     protected function configure(): void
@@ -83,15 +82,12 @@ class DeactivateUserCommand extends Command
 
     private function deactivateByRegex(string $regex, bool $force, InputInterface $input, OutputInterface $output): int
     {
-        $users = Stream::from($this->userRepository->iterateAllMatching($regex))
-            ->filter(fn(Utilisateur $user) => $user->getStatus())
-            ->toArray();
+        $users = $this->userService->getUsersByRegex($regex);
 
         if (empty($users)) {
-            $output->writeln('<error>No users matching this pattern or all users are already deactivated.</error>');
+            $output->writeln('<error>No users found matching the given regex.</error>');
             return Command::FAILURE;
         }
-
         if ($force) {
             return $this->deactivateUsers($users, $output);
         }

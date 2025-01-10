@@ -256,9 +256,26 @@ class UserService {
 
     }
 
+
     public function deactivateUser(Utilisateur $user): void
     {
         $user->setStatus(false);
+    }
+
+    /** Allow getting all users matching a regex
+     * @param string $regex
+     * @return array
+     */
+    public function getUsersByRegex(string $regex): array
+    {
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+
+        // Add delimiters if missing
+        if (!preg_match('/^\/.*\/$/', $regex)) { // Check if a regex is valid
+            $regex = '/' . str_replace('/', '\/', $regex) . '/';
+        }
+
+        return iterator_to_array($userRepository->iterateAllMatching($regex));
     }
 
 }

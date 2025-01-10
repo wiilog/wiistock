@@ -236,21 +236,30 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     /**
      * Find all users matching a regex pattern
      * @param string $regex
+     * @param bool $userShouldBeActive If true, only active users are returned
      * @return iterable<Utilisateur>
      */
-    public function iterateAllMatching(string $regex): iterable
+    public function iterateAllMatching(string $regex, bool $userShouldBeActive = true): iterable
     {
-        // Add delimiters if missing
-        if (!preg_match('/^.+\/[imsxuADSUX]*$/', $regex)) { // Check if a regex is valid
-            $regex = '/' . str_replace('/', '\/', $regex) . '/';
-        }
-
-        $users = $this->findAll();
+        $users = $this->findAllToIterable();
         foreach ($users as $user) {
             if (preg_match($regex, $user->getEmail())) {
-                yield $user;
+                if (!$userShouldBeActive || $user->getStatus()) {
+                    yield $user;
+                }
             }
         }
     }
 
+
+    /**
+     * Find all users matching a regex pattern
+     * @return iterable<Utilisateur>
+     */
+    public function findAllToIterable(): iterable
+    {
+        return $this->createQueryBuilder("user")
+            ->getQuery()
+            ->toIterable();
+    }
 }
