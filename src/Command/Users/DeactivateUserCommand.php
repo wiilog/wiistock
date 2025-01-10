@@ -86,7 +86,7 @@ class DeactivateUserCommand extends Command
 
     private function deactivateByRegex(string $regex, bool $force, InputInterface $input, OutputInterface $output): int
     {
-        $users = Stream::from($this->userRepository->findAllMatching($regex))
+        $users = Stream::from($this->userRepository->iterateAllMatching($regex))
             ->filter(fn(Utilisateur $user) => $user->getStatus())
             ->toArray();
 

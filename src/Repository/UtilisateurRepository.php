@@ -238,7 +238,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
      * @param string $regex
      * @return iterable<Utilisateur>
      */
-    public function findAllMatching(string $regex): iterable
+    public function iterateAllMatching(string $regex): iterable
     {
         // Ajout des délimiteurs si manquants
         if (!preg_match('/^.+\/[imsxuADSUX]*$/', $regex)) { // Vérifie la validité d'une regex

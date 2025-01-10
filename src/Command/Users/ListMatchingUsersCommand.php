@@ -37,7 +37,6 @@ class ListMatchingUsersCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Récupérer le regex passé en option
         $regex = $input->getOption('regex');
 
         if (!$regex) {
@@ -45,10 +44,8 @@ class ListMatchingUsersCommand extends Command
             return Command::FAILURE;
         }
 
-        // Trouver les utilisateurs correspondant au regex
-        $matchingUsers = $this->utilisateurRepository->findAllMatching($regex);
+        $matchingUsers = $this->utilisateurRepository->iterateAllMatching($regex);
 
-        // Afficher les utilisateurs trouvés
         foreach ($matchingUsers as $matchingUser) {
             $output->writeln($matchingUser->getEmail());
         }
