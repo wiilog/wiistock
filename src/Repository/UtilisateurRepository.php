@@ -240,8 +240,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
      */
     public function iterateAllMatching(string $regex): iterable
     {
-        // Ajout des délimiteurs si manquants
-        if (!preg_match('/^.+\/[imsxuADSUX]*$/', $regex)) { // Vérifie la validité d'une regex
+        // Add delimiters if missing
+        if (!preg_match('/^.+\/[imsxuADSUX]*$/', $regex)) { // Check if a regex is valid
             $regex = '/' . str_replace('/', '\/', $regex) . '/';
         }
 

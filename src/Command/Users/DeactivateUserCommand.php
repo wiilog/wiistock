@@ -3,9 +3,10 @@
 namespace App\Command\Users;
 
 use App\Entity\Role;
+use App\Entity\User;
 use App\Entity\Utilisateur;
 use App\Repository\RoleRepository;
-use App\Repository\UtilisateurRepository;
+use App\Repository\UserRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -17,13 +18,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use WiiCommon\Helper\Stream;
 
-/** Exemples :
+/** Examples:
  * php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force
  * php bin/console app:user:deactivate --email admin@wiilog.fr
  */
 #[AsCommand(
     name: 'app:user:deactivate',
-    description: 'Passe les utilisateurs correspondant à un regex en rôle aucun accès et inactif. Ou si un email est fourni, désactive l\'utilisateur correspondant.',
+    description: 'Assign users matching a regex to the no access role and inactive status. Or, if an email is provided, deactivate the corresponding user. Examples: php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force php bin/console app:user:deactivate --email admin@wiilog.fr',
 )]
 class DeactivateUserCommand extends Command
 {
@@ -34,16 +35,16 @@ class DeactivateUserCommand extends Command
         private readonly UserService $userService,
     ) {
         parent::__construct();
-        $this->userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $this->userRepository = $this->entityManager->getRepository(User::class);
         $this->roleRepository = $this->entityManager->getRepository(Role::class);
     }
 
     protected function configure(): void
     {
         $this
-            ->addOption('regex', null, InputOption::VALUE_OPTIONAL, 'Le pattern regex pour filtrer les emails des utilisateurs.')
-            ->addOption('email', null, InputOption::VALUE_OPTIONAL, 'L\'adresse email d\'un utilisateur à désactiver.')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Désactive directement les utilisateurs correspondant à un regex, sans confirmation.');
+            ->addOption('regex', null, InputOption::VALUE_OPTIONAL, 'The regex pattern to filter users\' emails.')
+            ->addOption('email', null, InputOption::VALUE_OPTIONAL, 'The email address of a user to deactivate.')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Directly deactivate users matching the regex, without confirmation.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -60,7 +61,7 @@ class DeactivateUserCommand extends Command
             return $this->deactivateByRegex($regex, $force, $input, $output);
         }
 
-        $output->writeln('<error>Veuillez spécifier soit un email, soit un pattern regex.</error>');
+        $output->writeln('<error>Please specify either an email or a regex pattern.</error>');
         return Command::FAILURE;
     }
 
@@ -69,17 +70,17 @@ class DeactivateUserCommand extends Command
         $user = $this->userRepository->findOneByEmail($email);
 
         if (!$user) {
-            $output->writeln('<error>L\'utilisateur avec cet email n\'a pas été trouvé.</error>');
+            $output->writeln('<error>User with this email not found.</error>');
             return Command::FAILURE;
         }
 
         if (!$user->getStatus()) {
-            $output->writeln('<error>L\'utilisateur est déjà désactivé.</error>');
+            $output->writeln('<error>The user is already deactivated.</error>');
             return Command::SUCCESS;
         }
 
         $this->userService->deactivateUser($user, $this->roleRepository);
-        $output->writeln(sprintf('<info>%s désactivé avec succès.</info>', $user->getEmail()));
+        $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
 
         return Command::SUCCESS;
     }
@@ -91,7 +92,7 @@ class DeactivateUserCommand extends Command
             ->toArray();
 
         if (empty($users)) {
-            $output->writeln('<error>Aucun utilisateur correspondant à ce pattern ou tous les utilisateurs sont déjà désactivés.</error>');
+            $output->writeln('<error>No users matching this pattern or all users are already deactivated.</error>');
             return Command::FAILURE;
         }
 
@@ -99,7 +100,7 @@ class DeactivateUserCommand extends Command
             return $this->deactivateUsers($users, $output);
         }
 
-        $output->writeln('<info>Utilisateurs trouvés :</info>');
+        $output->writeln('<info>Users found:</info>');
         $userEmails = array_map(fn(Utilisateur $user) => $user->getEmail(), $users);
 
         foreach ($userEmails as $index => $email) {
@@ -108,7 +109,7 @@ class DeactivateUserCommand extends Command
 
         $helper = $this->getHelper('question');
         $question = new ChoiceQuestion(
-            'Choisissez les utilisateurs à désactiver (sélection multiple, séparez par des virgules) :',
+            'Choose the users to deactivate (multiple selections, separate by commas):',
             $userEmails
         );
         $question->setMultiselect(true);
@@ -117,7 +118,7 @@ class DeactivateUserCommand extends Command
         $emailsToDeactivate = $helper->ask($input, $output, $question);
 
         if (empty($emailsToDeactivate)) {
-            $output->writeln('<error>Aucun utilisateur sélectionné.</error>');
+            $output->writeln('<error>No users selected.</error>');
             return Command::FAILURE;
         }
 
@@ -129,7 +130,7 @@ class DeactivateUserCommand extends Command
     {
         foreach ($users as $user) {
             $this->userService->deactivateUser($user, $this->roleRepository);
-            $output->writeln(sprintf('<info>%s désactivé avec succès.</info>', $user->getEmail()));
+            $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
         }
 
         return Command::SUCCESS;
