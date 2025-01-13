@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
 use App\Entity\Dispute;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Setting;
@@ -136,7 +137,7 @@ class CSVExportService {
         return $response;
     }
 
-    public function createAndOpenDataArchivingFiles(array $fileNames,FileSystem $filesystem, string $absoluteCachePath, array $trackingMovementExportableColumnsSorted = []): array {
+    public function createAndOpenDataArchivingFiles(array $fileNames,FileSystem $filesystem, string $absoluteCachePath, array $columnsSorted = []): array {
         $files = [];
         foreach ($fileNames as $entityToArchive => $fileName) {
             // if directory self::TEMPORARY_FOLDER does not exist, create it
@@ -150,7 +151,7 @@ class CSVExportService {
             if (!$fileExists) {
                 //generate the header for the file based on the entity
                 $fileHeader = match ($entityToArchive) {
-                    TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
+                    TrackingMovement::class, Arrivage::class => $columnsSorted["labels"],
                     Pack::class => $this->packService->getCsvHeader(),
                     ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
                     Dispute::class => $this->disputeService->getCsvHeader(),
