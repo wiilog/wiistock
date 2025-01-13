@@ -2,7 +2,9 @@
 
 namespace App\Command\Users;
 
+use App\Entity\Utilisateur;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class ListMatchingUsersCommand extends Command
 {
-    public function __construct(private readonly UserService $userService)
+    public function __construct(private EntityManagerInterface $entityManager)
     {
         parent::__construct();
     }
@@ -39,14 +41,17 @@ class ListMatchingUsersCommand extends Command
             return Command::FAILURE;
         }
 
-        $matchingUsers = $this->userService->getUsersByRegex($regex);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
-        if (empty($matchingUsers)) {
+        $users = $userRepository->iterateAllMatching($regex);
+        $userCount = $userRepository->countAllMatching($regex);
+
+        if ($userCount === 0) {
             $output->writeln('<error>No users found matching the given regex.</error>');
             return Command::FAILURE;
         }
 
-        foreach ($matchingUsers as $matchingUser) {
+        foreach ($users as $matchingUser) {
             $output->writeln($matchingUser->getEmail());
         }
 

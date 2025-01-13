@@ -14,6 +14,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 /** Examples:
  * php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force
@@ -82,18 +84,25 @@ class DeactivateUserCommand extends Command
 
     private function deactivateByRegex(string $regex, bool $force, InputInterface $input, OutputInterface $output): int
     {
-        $users = $this->userService->getUsersByRegex($regex);
+        $users = $this->userRepository->iterateAllMatching($regex);
+        $userCount = $this->userRepository->countAllMatching($regex);
 
-        if (empty($users)) {
+        if ($userCount === 0) {
             $output->writeln('<error>No users found matching the given regex.</error>');
             return Command::FAILURE;
         }
+
         if ($force) {
             return $this->deactivateUsers($users, $output);
         }
 
         $output->writeln('<info>Users found:</info>');
-        $userEmails = array_map(fn(Utilisateur $user) => $user->getEmail(), $users);
+
+        // iterable to array in interactive mode
+        $usersArray = iterator_to_array($users);
+        $userEmails = Stream::from($usersArray)
+            ->map(fn(Utilisateur $user) => $user->getEmail())
+            ->toArray();
 
         foreach ($userEmails as $index => $email) {
             $output->writeln(sprintf('%d. %s', $index + 1, $email));
@@ -113,12 +122,16 @@ class DeactivateUserCommand extends Command
             $output->writeln('<error>No users selected.</error>');
             return Command::FAILURE;
         }
-
-        $selectedUsers = array_filter($users, fn(Utilisateur $user) => in_array($user->getEmail(), $emailsToDeactivate, true));
+        $selectedUsers = Stream::from($usersArray)
+            ->filter(static fn(Utilisateur $user) => in_array($user->getEmail(), $emailsToDeactivate, true))
+            ->toArray();
         return $this->deactivateUsers($selectedUsers, $output);
     }
 
-    private function deactivateUsers(array $users, OutputInterface $output): int
+    /**
+     * @param iterable<Utilisateur> $users
+     */
+    private function deactivateUsers(iterable $users, OutputInterface $output): int
     {
         foreach ($users as $user) {
             $this->userService->deactivateUser($user);

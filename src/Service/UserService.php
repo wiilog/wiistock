@@ -30,6 +30,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 class UserService {
     public const MIN_MOBILE_KEY_LENGTH = 14;
@@ -262,22 +263,6 @@ class UserService {
         $user->setStatus(false);
         $this->entityManager->flush();
 
-    }
-
-    /** Allow getting all users matching a regex
-     * @param string $regex
-     * @return array
-     */
-    public function getUsersByRegex(string $regex): array
-    {
-        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-
-        // Add delimiters if missing
-        if (!preg_match('/^\/.*\/$/', $regex)) { // Check if a regex is valid
-            $regex = '/' . str_replace('/', '\/', $regex) . '/';
-        }
-
-        return iterator_to_array($userRepository->iterateAllMatching($regex));
     }
 
 }
