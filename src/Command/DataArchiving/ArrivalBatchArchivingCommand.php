@@ -77,7 +77,7 @@ class ArrivalBatchArchivingCommand extends Command
             ])
             ->toArray();
 
-        return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath);
+        return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath, $arrivageExportableColumnsSorted);
     }
 
     private function processArrivals(EntityRepository $repository, DateTime $dateToArchive, array $columnsSorted, array $files, SymfonyStyle $io): void {
