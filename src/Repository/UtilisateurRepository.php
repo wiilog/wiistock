@@ -4,11 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Dispute;
-use App\Entity\SessionHistoryRecord;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -232,5 +232,48 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ))
                 ->getQuery()
                 ->toIterable();
+    }
+
+    /**
+     * Return iterable of all users which their emails matching the given regex pattern.
+     * @param bool $active If true, only active users are returned
+     * @return iterable<Utilisateur>
+     */
+    public function iterateAllMatching(string $regex, bool $active = true): iterable
+    {
+        return $this->createQueryBuilderMatching("user", $regex, $active)
+            ->getQuery()
+            ->toIterable();
+    }
+
+    /**
+     * Count users which their emails matching the given regex pattern.
+     * @param bool $active If true, only active users are returned
+     */
+    public function countAllMatching(string $regex, bool $active = true): int
+    {
+        return $this->createQueryBuilderMatching("user", $regex, $active)
+            ->select("COUNT(user)")
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Build query builder for user which email match given pattern regex
+     * @param bool $active If true, only active users are returned
+     */
+    public function createQueryBuilderMatching(string $alias,
+                                               string $regex,
+                                               bool   $active): QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder($alias)
+            ->andWhere("REGEXP($alias.email, :email_pattern) = true")
+            ->setParameter('email_pattern', $regex);
+
+        if ($active) {
+            $queryBuilder->andWhere("$alias.status = true");
+        }
+
+        return $queryBuilder;
     }
 }

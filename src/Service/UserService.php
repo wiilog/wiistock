@@ -28,7 +28,6 @@ use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -254,6 +253,14 @@ class UserService {
                 $userToSendEmail
             );
         }
+
+    }
+
+
+    public function deactivateUser(Utilisateur $user): void
+    {
+        $user->setStatus(false);
+        $this->entityManager->flush();
 
     }
 
