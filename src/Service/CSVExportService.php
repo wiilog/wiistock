@@ -2,7 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Dispute;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Setting;
+use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\TrackingMovement;
+use App\Helper\FileSystem;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -15,8 +20,11 @@ class CSVExportService {
 
     private bool|null $wantsUTF8 = null;
 
-    public function __construct(private  EntityManagerInterface $entityManager,
-                                private  SettingsService        $settingsService){}
+    public function __construct(private EntityManagerInterface    $entityManager,
+                                private SettingsService           $settingsService,
+                                private PackService               $packService,
+                                private ReceiptAssociationService $receiptAssociationService,
+                                private DisputeService            $disputeService){}
 
     /**
      * @deprecated Use CSVExportService::stream instead
@@ -128,4 +136,31 @@ class CSVExportService {
         return $response;
     }
 
+    public function createAndOpenDataArchivingFiles(array $fileNames,FileSystem $filesystem, string $absoluteCachePath, array $trackingMovementExportableColumnsSorted = []): array {
+        $files = [];
+        foreach ($fileNames as $entityToArchive => $fileName) {
+            // if directory self::TEMPORARY_FOLDER does not exist, create it
+            if (!$filesystem->isDir()) {
+                $filesystem->mkdir();
+            }
+
+            $fileExists = $filesystem->exists($fileName);
+            $file = fopen($absoluteCachePath . $fileName, 'a');
+
+            if (!$fileExists) {
+                //generate the header for the file based on the entity
+                $fileHeader = match ($entityToArchive) {
+                    TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
+                    Pack::class => $this->packService->getCsvHeader(),
+                    ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
+                    Dispute::class => $this->disputeService->getCsvHeader(),
+                };
+
+                $this->putLine($file, $fileHeader);
+            }
+            $files[$entityToArchive] = $file;
+        }
+
+        return $files;
+    }
 }

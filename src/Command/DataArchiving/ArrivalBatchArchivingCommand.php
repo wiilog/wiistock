@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command\DataArchiving\arrivalArchiving;
+namespace App\Command\DataArchiving;
 
 use App\Entity\Arrivage;
 use App\Helper\FileSystem;
@@ -25,12 +25,8 @@ use WiiCommon\Helper\Stream;
 class ArrivalBatchArchivingCommand extends Command
 {
     const COMMAND_NAME = 'app:purge:batch-arrival';
-    const ARCHIVE_ARRIVALS_OLDER_THAN = 2;
-    public const DATA_ARCHIVING_THRESHOLD = "years";
-    const TEMPORARY_DIR = '/var/dataArchiving/';
+
     const BATCH_SIZE = 1000;
-    const MEMORY_LIMIT = 2147483648; // 2GB
-    const MEMORY_USAGE_THRESHOLD = 0.75;
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
@@ -44,18 +40,17 @@ class ArrivalBatchArchivingCommand extends Command
         KernelInterface $kernel
     ) {
         parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_DIR;
+        $this->absoluteCachePath = $kernel->getProjectDir() . ArchivingCommand::TEMPORARY_DIR;
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $io = new SymfonyStyle($input, $output);
         $io->title('Archiving arrivals in batches of ' . self::BATCH_SIZE);
 
-        ini_set('memory_limit', (string)self::MEMORY_LIMIT);
+        ini_set('memory_limit', (string)ArchivingCommand::MEMORY_LIMIT);
 
-        $dateToArchive = new DateTime('-' . self::ARCHIVE_ARRIVALS_OLDER_THAN . self::DATA_ARCHIVING_THRESHOLD);
+        $dateToArchive = new DateTime('-' . ArchivingCommand::ARCHIVE_ARRIVALS_OLDER_THAN . ArchivingCommand::DATA_ARCHIVING_THRESHOLD);
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
         $arrivageExportableColumnsSorted = $this->arrivageService->getArrivalExportableColumnsSorted($this->entityManager);
 
@@ -69,44 +64,23 @@ class ArrivalBatchArchivingCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function initializeFiles(DateTime $dateToArchive, array $arrivageExportableColumnsSorted, SymfonyStyle $io): array
-    {
+    private function initializeFiles(DateTime $dateToArchive, array $arrivageExportableColumnsSorted, SymfonyStyle $io): array {
         $fileNames = Stream::from([
             Arrivage::class,
-        ])->keyMap(fn($entityToArchive) => [
-            $entityToArchive,
-            $this->dataExportService->generateDataArchichingFileName(
-                $this->dataExportService->getEntityName($entityToArchive),
-                $dateToArchive
-            ),
-        ])->toArray();
+        ])
+            ->keyMap(fn($entityToArchive) => [
+                $entityToArchive,
+                $this->dataExportService->generateDataArchichingFileName(
+                    $this->dataExportService->getEntityName($entityToArchive),
+                    $dateToArchive
+                ),
+            ])
+            ->toArray();
 
-        $files = [];
-
-        foreach ($fileNames as $entityToArchive => $fileName) {
-            if (!$this->filesystem->isDir()) {
-                $this->filesystem->mkdir();
-            }
-
-            $fileExists = $this->filesystem->exists($fileName);
-            $file = fopen($this->absoluteCachePath . $fileName, 'a');
-
-            if (!$fileExists) {
-                $io->text('Creating file ' . $fileName);
-                $fileHeader = $arrivageExportableColumnsSorted["labels"];
-                $this->csvExportService->putLine($file, $fileHeader);
-            } else {
-                $io->warning('File ' . $fileName . ' already exists. Appending data.');
-            }
-
-            $files[$entityToArchive] = $file;
-        }
-
-        return $files;
+        return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath);
     }
 
-    private function processArrivals(EntityRepository $repository, DateTime $dateToArchive, array $columnsSorted, array $files, SymfonyStyle $io): void
-    {
+    private function processArrivals(EntityRepository $repository, DateTime $dateToArchive, array $columnsSorted, array $files, SymfonyStyle $io): void {
         $totalToArchive = $repository->countOlderThan($dateToArchive);
         $io->progressStart($totalToArchive);
 
@@ -147,8 +121,7 @@ class ArrivalBatchArchivingCommand extends Command
         $io->progressFinish();
     }
 
-    private function archiveBatch(array $arrivals): void
-    {
+    private function archiveBatch(array $arrivals): void {
         foreach ($arrivals as $arrival) {
             $this->detachArrivalRelationships($arrival);
             $this->entityManager->remove($arrival);
@@ -158,8 +131,7 @@ class ArrivalBatchArchivingCommand extends Command
         $this->entityManager->clear();
     }
 
-    private function detachArrivalRelationships(Arrivage $arrival): void
-    {
+    private function detachArrivalRelationships(Arrivage $arrival): void {
         if ($reception = $arrival->getReception()) {
             $reception->setArrival(null);
         }
@@ -177,22 +149,19 @@ class ArrivalBatchArchivingCommand extends Command
         }
     }
 
-    private function finalizeFiles(array $files): void
-    {
+    private function finalizeFiles(array $files): void {
         foreach ($files as $file) {
             fclose($file);
         }
     }
 
-    private function flushFiles(array $files): void
-    {
+    private function flushFiles(array $files): void {
         foreach ($files as $file) {
             fflush($file);
         }
     }
 
-    private function isMemoryLimitReached(): bool
-    {
-        return memory_get_usage() > (self::MEMORY_LIMIT * self::MEMORY_USAGE_THRESHOLD);
+    private function isMemoryLimitReached(): bool {
+        return memory_get_usage() > (ArchivingCommand::MEMORY_LIMIT * ArchivingCommand::MEMORY_USAGE_THRESHOLD);
     }
 }

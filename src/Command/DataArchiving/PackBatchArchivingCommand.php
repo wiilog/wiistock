@@ -35,12 +35,7 @@ use WiiCommon\Helper\Stream;
 class PackBatchArchivingCommand extends Command {
     const COMMAND_NAME = 'app:purge:batch-pack';
 
-    const ARCHIVE_PACK_OLDER_THAN = 2; // year
-    const TEMPORARY_DIR = '/var/dataArchiving/';
     const BATCH_SIZE = 1000;
-
-    // 2GB
-    const MEMORY_LIMIT = 2147483648;
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
@@ -55,11 +50,10 @@ class PackBatchArchivingCommand extends Command {
         private readonly ReceiptAssociationService $receiptAssociationService,
         private readonly FormatService             $formatService,
         private readonly DisputeService            $disputeService,
-
         KernelInterface                            $kernel, private readonly DataExportService $dataExportService,
     ) {
         parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_DIR;
+        $this->absoluteCachePath = $kernel->getProjectDir() . ArchivingCommand::TEMPORARY_DIR;
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
@@ -70,9 +64,9 @@ class PackBatchArchivingCommand extends Command {
 
         $io = new SymfonyStyle($input, $output);
 
-        $functionMemoryLimit = self::MEMORY_LIMIT * 0.75;
+        $functionMemoryLimit = ArchivingCommand::MEMORY_LIMIT * ArchivingCommand::MEMORY_USAGE_THRESHOLD;
         // allow more memory Usage
-        ini_set('memory_limit', self::MEMORY_LIMIT);
+        ini_set('memory_limit', ArchivingCommand::MEMORY_LIMIT);
 
         $io->title("Archiving Pack and TrackingMovement on batch of" . self::BATCH_SIZE);
 
@@ -80,8 +74,7 @@ class PackBatchArchivingCommand extends Command {
         // archiving means that the data will be added to an CSV file and then deleted from the database
         // the CSV file will be stored in the TEMPORARY_FOLDER folder temporarily
 
-
-        $dateToArchive = new DateTime('-' . self::ARCHIVE_PACK_OLDER_THAN . ' years');
+        $dateToArchive = new DateTime('-' . ArchivingCommand::ARCHIVE_ARRIVALS_OLDER_THAN . ArchivingCommand::DATA_ARCHIVING_THRESHOLD);
         $io->warning(TrackingMovement::class);
 
         $fileNames = Stream::from([
@@ -98,34 +91,7 @@ class PackBatchArchivingCommand extends Command {
 
         // the file normally should not exist
         // if the file already exists we keep it and add the new data to it (without deleting the old data, and without rewriting headers)
-        $files = [];
-        foreach ($fileNames as $entityToArchive => $fileName) {
-            // if directory self::TEMPORARY_FOLDER does not exist, create it
-            if (!$this->filesystem->isDir()) {
-                $this->filesystem->mkdir();
-            }
-
-            $fileExists = $this->filesystem->exists($fileName);
-
-            $file = fopen($this->absoluteCachePath . $fileName, 'a');
-
-            if ($fileExists) {
-                $io->warning('File ' . $fileName . ' already exists. The new data will be added to it.');
-            } else {
-                $io->text('Creating file ' . $fileName);
-
-                //generate the header for the file based on the entity
-                $fileHeader = match ($entityToArchive) {
-                    TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
-                    Pack::class => $this->packService->getCsvHeader(),
-                    ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
-                    Dispute::class => $this->disputeService->getCsvHeader(),
-                };
-
-                $this->csvExportService->putLine($file, $fileHeader);
-            }
-            $files[$entityToArchive] = $file;
-        }
+        $files = $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath, $trackingMovementExportableColumnsSorted);
 
         // init progress bar
         $io->progressStart($trackingMovementRepository->countOlderThan($dateToArchive));
