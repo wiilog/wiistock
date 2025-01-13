@@ -3,7 +3,6 @@
 namespace App\Command\Users;
 
 use App\Entity\Utilisateur;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

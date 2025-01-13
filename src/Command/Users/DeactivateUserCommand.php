@@ -3,7 +3,6 @@
 namespace App\Command\Users;
 
 use App\Entity\Utilisateur;
-use App\Repository\UserRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;

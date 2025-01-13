@@ -30,7 +30,6 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class UserService {
     public const MIN_MOBILE_KEY_LENGTH = 14;
