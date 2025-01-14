@@ -2616,7 +2616,7 @@ class SettingsController extends AbstractController {
         $categoryCL = $categoryCLRepository->findBy(["categoryType" => $categoryType]);
         $freeFields = $freeFieldRepository->findBy(["categorieCL" => $categoryCL]);
 
-        $class = "form-control data";
+        $class = "form-control data w-auto";
         $categoryLabels = $categoryCLRepository->findByLabel([
             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
         ]);
@@ -2713,10 +2713,12 @@ class SettingsController extends AbstractController {
                     })
                     ->join("");
 
+                $label = htmlspecialchars($freeField->getLabel());
+
                 $rows[] = [
                     "actions" => "<input type='hidden' class='$class' name='id' value='{$freeField->getId()}'>
                         <button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
-                    "label" => "<input type='text' name='label' class='$class' value='{$freeField->getLabel()}' required/>",
+                    "label" => "<input type='text' name='label' class='$class' value='$label' required/>",
                     "appliesTo" => "<select name='category' class='$class' required>$categories</select>",
                     "type" => $typageCLFr,
                     "defaultValue" => "<form>$defaultValue</form>",
