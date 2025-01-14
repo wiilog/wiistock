@@ -211,6 +211,18 @@ class PackService {
         ];
     }
 
+    public function sortByTrackingDelay(Pack $a, Pack $b): int {
+        $timeA = $this->getTrackingDelayRemainingTime($a);
+        $timeB = $this->getTrackingDelayRemainingTime($b);
+
+        if($timeA == null){
+            return 1;
+        }else if($timeB == null) {
+            return -1;
+        }
+        return ($timeA <= $timeB) ? -1 : 1;
+    }
+
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
         return [
             'group' => $trackingMovement->getPackGroup() ? ($this->formatService->pack($trackingMovement->getPackGroup()) . '-' . $trackingMovement->getGroupIteration()) : '',
