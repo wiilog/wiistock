@@ -25,6 +25,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
         Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
+        Setting::DEFAULT_DISPATCH_SHIPMENT_NOTE,
         Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
         Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE,
     ];
@@ -214,6 +215,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE => [
                 'default' => Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE
             ],
+            Setting::DEFAULT_DISPATCH_SHIPMENT_NOTE => [
+                'default' => Setting::DEFAULT_DISPATCH_SHIPMENT_NOTE_VALUE
+            ],
             Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE => [
                 'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE
             ],
@@ -228,6 +232,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE => [],
+            Setting::CUSTOM_DISPATCH_SHIPMENT_NOTE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
             Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE => [],

@@ -115,6 +115,7 @@ const initializers = {
     modeles_livraison_lettre_de_voiture: initializeTemplate,
     modeles_acheminement_lettre_de_voiture: initializeTemplate,
     modeles_acheminement_compte_rendu: initializeTemplate,
+    modeles_acheminement_bon_de_transport: initializeTemplate,
     modeles_expedition_bordereau_de_livraison: initializeTemplate,
     modeles_achats_bon_de_commande: initializeTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
