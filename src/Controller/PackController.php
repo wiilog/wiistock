@@ -321,6 +321,7 @@ class PackController extends AbstractController {
 
         return $this->json([
             "data" => Stream::from($groupContent["data"])
+                ->sort(fn(Pack $a, Pack $b) => $packService->sortByTrackingDelay($a, $b))
                 ->map(function(Pack $pack) use ($packService, $showPageMode, $itemColor) {
                     $trackingDelay = $packService->formatTrackingDelayData($pack);
                     return [
