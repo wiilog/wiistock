@@ -1,6 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+// check if the script is launched by command line
+if (isset($argv)) {
+    return;
+}
+
+
+
 const ENV_PROD = "prod";
 const ENV_DEV = "dev";
 
@@ -14,7 +21,9 @@ const TMP_DIRECTORY = "/tmp/wiistock-deploy";
 main();
 
 
-
+///////////////////////////////////////////
+////////// function declarations //////////
+///////////////////////////////////////////
 
 
 function main(): void {

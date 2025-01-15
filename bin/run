@@ -1,20 +1,56 @@
 #!/usr/bin/env php
 <?php
 
+// check if the script is launched by command line
+if (isset($argv)) {
+    return;
+}
+
+$mode = $argv[1] ?? null;
+
 const CRONTAB_TMP_FILE = "/tmp/crontabwiistock.txt";
 const CRON_LOG_DIR = "/project/var/log";
 
-// create log dir if not exist
-@mkdir(CRON_LOG_DIR);
+main($mode);
 
-// save bin/console cron:run in crontab
-$crontabContent = sprintf("* * * * * echo -e \"%s\\t%s\\n\" 2>> /project/var/log/cron.log\n", "$(date)", "$(php /project/bin/console cron:run)");
-file_put_contents(CRONTAB_TMP_FILE, $crontabContent);
-exec("crontab " . CRONTAB_TMP_FILE);
-@unlink(CRONTAB_TMP_FILE);
 
-// Launch cron daemon
-exec("crond -d 0");
-exec("supervisord --configuration /project/supervisord.conf --pidfile /tmp/supervisord.pid");
 
-echo "Starting cron" . PHP_EOL;
+///////////////////////////////////////////
+////////// function declarations //////////
+///////////////////////////////////////////
+
+
+function main($mode): void {
+    switch ($mode) {
+        // default mode
+        case null:
+            launchCronDaemon();
+            launchSupervisorDaemon();
+            break;
+        // mode lite without cron & supervisor
+        case 'lite':
+        default:
+            break;
+    }
+
+    echo "Starting instance successfully" . PHP_EOL;
+}
+
+
+function launchCronDaemon(): void {
+    // create log dir if not exist
+    @mkdir(CRON_LOG_DIR);
+
+    // save bin/console cron:run in crontab
+    $crontabContent = sprintf("* * * * * echo -e \"%s\\t%s\\n\" 2>> /project/var/log/cron.log\n", "$(date)", "$(php /project/bin/console cron:run)");
+    file_put_contents(CRONTAB_TMP_FILE, $crontabContent);
+    exec("crontab " . CRONTAB_TMP_FILE);
+    @unlink(CRONTAB_TMP_FILE);
+
+    // Launch cron daemon
+    exec("crond -d 0");
+}
+
+function launchSupervisorDaemon(): void {
+    exec("supervisord --configuration /project/supervisord.conf --pidfile /tmp/supervisord.pid");
+}
