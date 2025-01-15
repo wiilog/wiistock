@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command\DataArchiving;
+namespace App\Command\Purge;
 
 use App\Entity\Arrivage;
 use App\Helper\FileSystem;
@@ -19,14 +19,13 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use WiiCommon\Helper\Stream;
 
 #[AsCommand(
-    name: ArrivalBatchArchivingCommand::COMMAND_NAME,
+    name: ArrivalsPurgeCommand::COMMAND_NAME,
     description: 'Archives arrivals in batches of 1000 until memory usage reaches 75% of the limit or no more arrivals are found.'
 )]
-class ArrivalBatchArchivingCommand extends Command
-{
-    const COMMAND_NAME = 'app:purge:batch-arrival';
+class ArrivalsPurgeCommand extends Command {
+    public const COMMAND_NAME = 'app:purge:arrivals';
 
-    const BATCH_SIZE = 1000;
+    private const BATCH_SIZE = 1000;
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
@@ -40,7 +39,7 @@ class ArrivalBatchArchivingCommand extends Command
         KernelInterface $kernel
     ) {
         parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . ArchivingCommand::TEMPORARY_DIR;
+        $this->absoluteCachePath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
@@ -48,9 +47,9 @@ class ArrivalBatchArchivingCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Archiving arrivals in batches of ' . self::BATCH_SIZE);
 
-        ini_set('memory_limit', (string)ArchivingCommand::MEMORY_LIMIT);
+        ini_set('memory_limit', (string)PurgeAllCommand::MEMORY_LIMIT);
 
-        $dateToArchive = new DateTime('-' . ArchivingCommand::ARCHIVE_ARRIVALS_OLDER_THAN . ArchivingCommand::DATA_ARCHIVING_THRESHOLD);
+        $dateToArchive = new DateTime('-' . PurgeAllCommand::PURGE_ITEMS_OLDER_THAN . PurgeAllCommand::DATA_PURGE_THRESHOLD);
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
         $arrivageExportableColumnsSorted = $this->arrivageService->getArrivalExportableColumnsSorted($this->entityManager);
 
@@ -162,6 +161,6 @@ class ArrivalBatchArchivingCommand extends Command
     }
 
     private function isMemoryLimitReached(): bool {
-        return memory_get_usage() > (ArchivingCommand::MEMORY_LIMIT * ArchivingCommand::MEMORY_USAGE_THRESHOLD);
+        return memory_get_usage() > (PurgeAllCommand::MEMORY_LIMIT * PurgeAllCommand::MEMORY_USAGE_THRESHOLD);
     }
 }

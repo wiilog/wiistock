@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command\DataArchiving;
+namespace App\Command\Purge;
 
 use App\Entity\CategorieCL;
 use App\Entity\Dispute;
@@ -29,31 +29,32 @@ use Symfony\Component\Serializer\SerializerInterface;
 use WiiCommon\Helper\Stream;
 
 #[AsCommand(
-    name: PackBatchArchivingCommand::COMMAND_NAME,
-    description: 'Archiving Pack and TrackingMovement on batch of 1000. The function end when there is no more TrackingMovement to archive of when the memory has reached 75% of the limit',
+    name: PacksPurgeCommand::COMMAND_NAME,
+    description: 'Purge Pack and TrackingMovement on batch of 1000. The function end when there is no more TrackingMovement to archive of when the memory has reached 75% of the limit',
 )]
-class PackBatchArchivingCommand extends Command {
-    const COMMAND_NAME = 'app:purge:batch-pack';
+class PacksPurgeCommand extends Command {
+    public const COMMAND_NAME = 'app:purge:packs';
 
-    const BATCH_SIZE = 1000;
+    private const BATCH_SIZE = 1000;
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
 
     public function __construct(
-        private readonly EntityManagerInterface    $entityManager,
-        private readonly CSVExportService          $csvExportService,
-        private readonly PackService               $packService,
-        private readonly TrackingMovementService   $trackingMovementService,
-        private readonly FreeFieldService          $freeFieldService,
-        private readonly SerializerInterface       $serializer,
-        private readonly ReceiptAssociationService $receiptAssociationService,
-        private readonly FormatService             $formatService,
-        private readonly DisputeService            $disputeService,
-        KernelInterface                            $kernel, private readonly DataExportService $dataExportService,
+        private EntityManagerInterface    $entityManager,
+        private CSVExportService          $csvExportService,
+        private PackService               $packService,
+        private TrackingMovementService   $trackingMovementService,
+        private FreeFieldService          $freeFieldService,
+        private SerializerInterface       $serializer,
+        private ReceiptAssociationService $receiptAssociationService,
+        private FormatService             $formatService,
+        private DisputeService            $disputeService,
+        private DataExportService         $dataExportService,
+        KernelInterface                   $kernel,
     ) {
-        parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . ArchivingCommand::TEMPORARY_DIR;
+        parent::__construct(self::COMMAND_NAME);
+        $this->absoluteCachePath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
@@ -64,9 +65,9 @@ class PackBatchArchivingCommand extends Command {
 
         $io = new SymfonyStyle($input, $output);
 
-        $functionMemoryLimit = ArchivingCommand::MEMORY_LIMIT * ArchivingCommand::MEMORY_USAGE_THRESHOLD;
+        $functionMemoryLimit = PurgeAllCommand::MEMORY_LIMIT * PurgeAllCommand::MEMORY_USAGE_THRESHOLD;
         // allow more memory Usage
-        ini_set('memory_limit', ArchivingCommand::MEMORY_LIMIT);
+        ini_set('memory_limit', PurgeAllCommand::MEMORY_LIMIT);
 
         $io->title("Archiving Pack and TrackingMovement on batch of" . self::BATCH_SIZE);
 
@@ -74,7 +75,7 @@ class PackBatchArchivingCommand extends Command {
         // archiving means that the data will be added to an CSV file and then deleted from the database
         // the CSV file will be stored in the TEMPORARY_FOLDER folder temporarily
 
-        $dateToArchive = new DateTime('-' . ArchivingCommand::ARCHIVE_ARRIVALS_OLDER_THAN . ArchivingCommand::DATA_ARCHIVING_THRESHOLD);
+        $dateToArchive = new DateTime('-' . PurgeAllCommand::PURGE_ITEMS_OLDER_THAN . PurgeAllCommand::DATA_PURGE_THRESHOLD);
         $io->warning(TrackingMovement::class);
 
         $fileNames = Stream::from([
