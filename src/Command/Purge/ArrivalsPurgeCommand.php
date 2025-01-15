@@ -14,6 +14,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\StyleInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpKernel\KernelInterface;
 use WiiCommon\Helper\Stream;
@@ -28,15 +29,16 @@ class ArrivalsPurgeCommand extends Command {
     private const BATCH_SIZE = 1000;
 
     private FileSystem $filesystem;
+    private StyleInterface $io;
     private string $absoluteCachePath;
 
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly CSVExportService $csvExportService,
-        private readonly DataExportService $dataExportService,
-        private readonly ArrivageService $arrivageService,
-        KernelInterface $kernel
+        private EntityManagerInterface $entityManager,
+        private CSVExportService       $csvExportService,
+        private DataExportService      $dataExportService,
+        private ArrivageService        $arrivalService,
+        KernelInterface                $kernel
     ) {
         parent::__construct();
         $this->absoluteCachePath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
@@ -44,26 +46,26 @@ class ArrivalsPurgeCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $io = new SymfonyStyle($input, $output);
-        $io->title('Archiving arrivals in batches of ' . self::BATCH_SIZE);
+        $this->io = new SymfonyStyle($input, $output);
+
+        $this->io->title('Archiving arrivals in batches of ' . self::BATCH_SIZE);
 
         ini_set('memory_limit', (string)PurgeAllCommand::MEMORY_LIMIT);
 
         $dateToArchive = new DateTime('-' . PurgeAllCommand::PURGE_ITEMS_OLDER_THAN . PurgeAllCommand::DATA_PURGE_THRESHOLD);
-        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
-        $arrivageExportableColumnsSorted = $this->arrivageService->getArrivalExportableColumnsSorted($this->entityManager);
+        $arrivageExportableColumnsSorted = $this->arrivalService->getArrivalExportableColumnsSorted($this->entityManager);
 
-        $files = $this->initializeFiles($dateToArchive, $arrivageExportableColumnsSorted, $io);
+        $files = $this->initializeFiles($dateToArchive, $arrivageExportableColumnsSorted);
 
-        $this->processArrivals($arrivageRepository, $dateToArchive, $arrivageExportableColumnsSorted, $files, $io);
+        $this->processArrivals($dateToArchive, $arrivageExportableColumnsSorted, $files);
 
         $this->finalizeFiles($files);
-        $io->success('Arrival archiving completed.');
+        $this->io->success('Arrival archiving completed.');
 
         return Command::SUCCESS;
     }
 
-    private function initializeFiles(DateTime $dateToArchive, array $arrivageExportableColumnsSorted, SymfonyStyle $io): array {
+    private function initializeFiles(DateTime $dateToArchive, array $arrivageExportableColumnsSorted): array {
         $fileNames = Stream::from([
             Arrivage::class,
         ])
@@ -79,18 +81,24 @@ class ArrivalsPurgeCommand extends Command {
         return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath, $arrivageExportableColumnsSorted);
     }
 
-    private function processArrivals(EntityRepository $repository, DateTime $dateToArchive, array $columnsSorted, array $files, SymfonyStyle $io): void {
-        $totalToArchive = $repository->countOlderThan($dateToArchive);
-        $io->progressStart($totalToArchive);
+    private function processArrivals(DateTime     $dateToArchive,
+                                     array        $columnsSorted,
+                                     array        $files): void {
+
+        $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
+        $totalToArchive = $arrivalRepository->countOlderThan($dateToArchive);
+        $this->io->progressStart($totalToArchive);
 
         $batch = [];
         $batchCount = 0;
 
         $to = new DateTime();
 
-        $this->arrivageService->launchExportCache($this->entityManager, $dateToArchive, $to);
-        foreach ($repository->iterateOlderThan($dateToArchive) as $arrival) {
-            $this->arrivageService->putArrivalLine(
+        $this->arrivalService->launchExportCache($this->entityManager, $dateToArchive, $to);
+        $arrivalsArchive = $arrivalRepository->iterateOlderThan($dateToArchive);
+
+        foreach ($arrivalsArchive as $arrival) {
+            $this->arrivalService->putArrivalLine(
                 $files[Arrivage::class],
                 $arrival,
                 $columnsSorted['codes']
@@ -98,7 +106,7 @@ class ArrivalsPurgeCommand extends Command {
 
             $batch[] = $arrival;
             $batchCount++;
-            $io->progressAdvance();
+            $this->io->progressAdvance();
 
             if ($batchCount === self::BATCH_SIZE) {
                 $this->archiveBatch($batch);
@@ -107,7 +115,7 @@ class ArrivalsPurgeCommand extends Command {
                 $batchCount = 0;
 
                 if ($this->isMemoryLimitReached()) {
-                    $io->warning('Memory limit reached. Stopping further processing.');
+                    $this->io->warning('Memory limit reached. Stopping further processing.');
                     break;
                 }
             }
@@ -117,7 +125,7 @@ class ArrivalsPurgeCommand extends Command {
             $this->archiveBatch($batch);
         }
 
-        $io->progressFinish();
+        $this->io->progressFinish();
     }
 
     private function archiveBatch(array $arrivals): void {

@@ -514,15 +514,11 @@ class ArrivageRepository extends EntityRepository
 
     /**
      * Counts the number of TrackingMovement older than the given date.
-     *
-     * @param DateTime $date
-     * @return int
-     * @throws NonUniqueResultException|NoResultException
      */
     public function countOlderThan(DateTime $date): int {
-        return $this->createQueryBuilder('arrivage')
-            ->select('COUNT(arrivage.id)')
-            ->where('arrivage.date < :date')
+        return $this->createQueryBuilder('arrival')
+            ->select('COUNT(arrival.id)')
+            ->andWhere('arrival.date < :date')
             ->setParameter('date', $date)
             ->getQuery()
             ->getSingleScalarResult();
@@ -530,14 +526,15 @@ class ArrivageRepository extends EntityRepository
 
     /**
      * Returns an iterable of TrackingMovement older than the given date
-     *
-     * @param DateTime $date
      * @return iterable<TrackingMovement>
      */
     public function iterateOlderThan(DateTime $date): iterable {
-        $queryBuilder = $this->createQueryBuilder('arrivage')
-            ->where('arrivage.date < :date')
+        $queryBuilder = $this->createQueryBuilder('arrival')
+            ->andWhere('arrival.date < :date')
             ->setParameter('date', $date);
-        return $queryBuilder->getQuery()->toIterable();
+
+        return $queryBuilder
+            ->getQuery()
+            ->toIterable();
     }
 }
