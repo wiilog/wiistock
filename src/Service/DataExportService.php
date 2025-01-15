@@ -500,4 +500,8 @@ class DataExportService
         $date = $dateToArchive->format(self::FILE_NAME_DATE_FORMAT);
         return "ARC_{$appLocal}_{$entityToArchive}_{$now}_{$date}.csv";
     }
+
+    public function getEntityName(string $entity): string {
+        return Stream::explode("\\", $entity)->last();
+    }
 }

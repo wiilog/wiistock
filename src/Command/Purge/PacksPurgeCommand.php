@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command\DataArchiving;
+namespace App\Command\Purge;
 
 use App\Entity\CategorieCL;
 use App\Entity\Dispute;
@@ -29,37 +29,32 @@ use Symfony\Component\Serializer\SerializerInterface;
 use WiiCommon\Helper\Stream;
 
 #[AsCommand(
-    name: PackBatchArchivingCommand::COMMAND_NAME,
-    description: 'Archiving Pack and TrackingMovement on batch of 1000. The function end when there is no more TrackingMovement to archive of when the memory has reached 75% of the limit',
+    name: PacksPurgeCommand::COMMAND_NAME,
+    description: 'Purge Pack and TrackingMovement on batch of 1000. The function end when there is no more TrackingMovement to archive of when the memory has reached 75% of the limit',
 )]
-class PackBatchArchivingCommand extends Command {
-    const COMMAND_NAME = 'app:purge:batch-pack';
+class PacksPurgeCommand extends Command {
+    public const COMMAND_NAME = 'app:purge:packs';
 
-    const ARCHIVE_PACK_OLDER_THAN = 2; // year
-    const TEMPORARY_DIR = '/var/dataArchiving/';
-    const BATCH_SIZE = 1000;
-
-    // 2GB
-    const MEMORY_LIMIT = 2147483648;
+    private const BATCH_SIZE = 1000;
 
     private FileSystem $filesystem;
     private string $absoluteCachePath;
 
     public function __construct(
-        private readonly EntityManagerInterface    $entityManager,
-        private readonly CSVExportService          $csvExportService,
-        private readonly PackService               $packService,
-        private readonly TrackingMovementService   $trackingMovementService,
-        private readonly FreeFieldService          $freeFieldService,
-        private readonly SerializerInterface       $serializer,
-        private readonly ReceiptAssociationService $receiptAssociationService,
-        private readonly FormatService             $formatService,
-        private readonly DisputeService            $disputeService,
-
-        KernelInterface                            $kernel, private readonly DataExportService $dataExportService,
+        private EntityManagerInterface    $entityManager,
+        private CSVExportService          $csvExportService,
+        private PackService               $packService,
+        private TrackingMovementService   $trackingMovementService,
+        private FreeFieldService          $freeFieldService,
+        private SerializerInterface       $serializer,
+        private ReceiptAssociationService $receiptAssociationService,
+        private FormatService             $formatService,
+        private DisputeService            $disputeService,
+        private DataExportService         $dataExportService,
+        KernelInterface                   $kernel,
     ) {
-        parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . self::TEMPORARY_DIR;
+        parent::__construct(self::COMMAND_NAME);
+        $this->absoluteCachePath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
         $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
@@ -70,9 +65,9 @@ class PackBatchArchivingCommand extends Command {
 
         $io = new SymfonyStyle($input, $output);
 
-        $functionMemoryLimit = self::MEMORY_LIMIT * 0.75;
+        $functionMemoryLimit = PurgeAllCommand::MEMORY_LIMIT * PurgeAllCommand::MEMORY_USAGE_THRESHOLD;
         // allow more memory Usage
-        ini_set('memory_limit', self::MEMORY_LIMIT);
+        ini_set('memory_limit', PurgeAllCommand::MEMORY_LIMIT);
 
         $io->title("Archiving Pack and TrackingMovement on batch of" . self::BATCH_SIZE);
 
@@ -80,8 +75,7 @@ class PackBatchArchivingCommand extends Command {
         // archiving means that the data will be added to an CSV file and then deleted from the database
         // the CSV file will be stored in the TEMPORARY_FOLDER folder temporarily
 
-
-        $dateToArchive = new DateTime('-' . self::ARCHIVE_PACK_OLDER_THAN . ' years');
+        $dateToArchive = new DateTime('-' . PurgeAllCommand::PURGE_ITEMS_OLDER_THAN . PurgeAllCommand::DATA_PURGE_THRESHOLD);
         $io->warning(TrackingMovement::class);
 
         $fileNames = Stream::from([
@@ -98,34 +92,7 @@ class PackBatchArchivingCommand extends Command {
 
         // the file normally should not exist
         // if the file already exists we keep it and add the new data to it (without deleting the old data, and without rewriting headers)
-        $files = [];
-        foreach ($fileNames as $entityToArchive => $fileName) {
-            // if directory self::TEMPORARY_FOLDER does not exist, create it
-            if (!$this->filesystem->isDir()) {
-                $this->filesystem->mkdir();
-            }
-
-            $fileExists = $this->filesystem->exists($fileName);
-
-            $file = fopen($this->absoluteCachePath . $fileName, 'a');
-
-            if ($fileExists) {
-                $io->warning('File ' . $fileName . ' already exists. The new data will be added to it.');
-            } else {
-                $io->text('Creating file ' . $fileName);
-
-                //generate the header for the file based on the entity
-                $fileHeader = match ($entityToArchive) {
-                    TrackingMovement::class => $trackingMovementExportableColumnsSorted["labels"],
-                    Pack::class => $this->packService->getCsvHeader(),
-                    ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
-                    Dispute::class => $this->disputeService->getCsvHeader(),
-                };
-
-                $this->csvExportService->putLine($file, $fileHeader);
-            }
-            $files[$entityToArchive] = $file;
-        }
+        $files = $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath, $trackingMovementExportableColumnsSorted);
 
         // init progress bar
         $io->progressStart($trackingMovementRepository->countOlderThan($dateToArchive));
