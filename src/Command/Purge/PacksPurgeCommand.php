@@ -180,7 +180,10 @@ class PacksPurgeCommand extends Command {
         );
 
         $pack->setGroup(null);
-        $this->entityManager->remove($pack);
+        // prevent Detached entity XXX cannot be removed
+        if($this->entityManager->contains($pack)) {
+            $this->entityManager->remove($pack);
+        }
     }
 
     private function archiveReceiptAssociation(ReceiptAssociation $receiptAssociation, Pack $pack, array $files): void {
