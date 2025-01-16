@@ -1,17 +1,10 @@
 #!/usr/bin/env php
 <?php
 
-// check if the script is launched by command line
-if (isset($argv)) {
-    return;
-}
-
-$mode = $argv[1] ?? null;
-
 const CRONTAB_TMP_FILE = "/tmp/crontabwiistock.txt";
 const CRON_LOG_DIR = "/project/var/log";
 
-main($mode);
+main();
 
 
 
@@ -20,7 +13,16 @@ main($mode);
 ///////////////////////////////////////////
 
 
-function main($mode): void {
+function main(): void {
+    global $argv;
+
+    $mode = $argv[1] ?? null;
+
+    // check if the script is launched by command line
+    if (!isset($argv)) {
+        return;
+    }
+
     switch ($mode) {
         // default mode
         case null:

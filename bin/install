@@ -1,13 +1,6 @@
 #!/usr/bin/env php
 <?php
 
-// check if the script is launched by command line
-if (isset($argv)) {
-    return;
-}
-
-
-
 const ENV_PROD = "prod";
 const ENV_DEV = "dev";
 
@@ -27,6 +20,13 @@ main();
 
 
 function main(): void {
+    global $argv;
+
+    // check if the script is launched by command line
+    if (!isset($argv)) {
+        return;
+    }
+
     $start = new DateTime();
 
     $WIISTOCK_VERSION = getenv("WIISTOCK_VERSION") ?: null;
