@@ -32,6 +32,7 @@
 {% set hasRightToGenerateLabel = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_LABEL')) and dispatch.statut.state in [constant('App\\Entity\\Statut::NOT_TREATED'), constant('App\\Entity\\Statut::PARTIAL'), constant('App\\Entity\\Statut::TREATED')] %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
 {% set hasRightToAddReferenceInLu = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::ADD_REFERENCE_IN_LU')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
+{% set hasRightToGenerateShipmentNote = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::GENERATE_SHIPMENT_NOTE')) %}
 
 {% block stylesheets %}
     {{ encore_entry_link_tags('pack-common') }}
@@ -61,6 +62,13 @@
                                            href="{{ path('rollback_draft', {'dispatch': dispatch.id}) }}">
                                             <i class="fas fa-undo-alt mr-2"></i>
                                             {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Retour au statut Brouillon', false) }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightToGenerateShipmentNote %}
+                                        <a class="dropdown-item d-flex align-items-center"
+                                           onclick="generateShipmentNote($(this), {{ dispatch.id }})">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                            {{ trans('Demande', 'Acheminements', 'Bon de transport', 'Générer un bon de transport', false) }}
                                         </a>
                                     {% endif %}
                                     {% if hasRightToGenerateDeliveryNote %}

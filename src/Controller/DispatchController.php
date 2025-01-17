@@ -2006,4 +2006,43 @@ class DispatchController extends AbstractController {
 
         return $response;
     }
+
+    #[Route("/bon-de-transport/{dispatch}",  name: "generate_shipment_note", options: ["expose" => true], methods: "POST")]
+    #[HasPermission([Menu::DEM, Action::GENERATE_SHIPMENT_NOTE])]
+    public function generateShipmentNote(Dispatch $dispatch,
+                                         EntityManagerInterface $entityManager,
+                                         DispatchService $dispatchService): Response {
+        $dispatchPacksWithArrival = Stream::from($dispatch->getDispatchPacks())
+            ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+            ->filter(static fn(Pack $pack) => $pack->getArrivage());
+
+        if($dispatchPacksWithArrival->count() === 0) {
+            throw new FormException("Impossible de générer ce document, au moins une des UL présentes dans cette acheminement doit être liée à un arrivage.");
+        }
+        $dispatchService->generateShipmentNoteAttachment($entityManager, $dispatch, $dispatchPacksWithArrival->toArray());
+
+        try {
+            $entityManager->flush();
+        } catch(Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+
+        return new JsonResponse([
+            "success" => true,
+            "msg" => "Le téléchargement de votre bon de transport va commencer...",
+        ]);
+    }
+
+    #[Route("/bon-de-transport/{dispatch}", name: "print_shipment_note", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::GENERATE_SHIPMENT_NOTE])]
+    public function printShipmentNote(Dispatch                 $dispatch,
+                                      KernelInterface          $kernel): Response
+    {
+        $dispatchShipmentNote = $dispatch->getAttachments()->last();
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $dispatchShipmentNote->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchShipmentNote->getOriginalName());
+
+        return $response;
+    }
 }

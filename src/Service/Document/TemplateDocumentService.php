@@ -2,10 +2,13 @@
 
 namespace App\Service\Document;
 
+use Exception;
+use PhpOffice\PhpWord\Element\PageBreak;
 use PhpOffice\PhpWord\Element\Table;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SGK\BarcodeBundle\Generator\Generator as BarcodeGenerator;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use WiiCommon\Helper\Stream;
 
 class TemplateDocumentService {
 
@@ -14,33 +17,54 @@ class TemplateDocumentService {
     ) {}
 
     /**
-     * @return string Path of the generated docx
+     * @param string $templatePath
+     * @param array $variables The array contains all variables to replace in template
+     * IF the "pages" key exists it means we need multiple page generation
+     * @param array $options ["barcodes"] => Contains the variable who needs to be replaced by a barcode
+     * @return string
      */
     public function generateDocx(string $templatePath,
-                                 array  $variables,
-                                 array  $options): string {
+                                         array  $variables,
+                                         array  $options = []): string {
+        //clone $variables to be able to change its values
+        $variables = [...$variables];
         $templateProcessor = new TemplateProcessor($templatePath);
 
         $barcodeVariables = $options['barcodes'] ?? [];
 
         $availableVariables = $templateProcessor->getVariables();
-        foreach ($variables as $name => $value) {
-            if (in_array($name, $availableVariables)) {
-                if (is_array($value)) {
-                    $templateProcessor->cloneRow($name, count($value));
 
-                    foreach ($value as $rowKey => $rowData) {
-                        $rowNumber = $rowKey + 1;
-                        foreach ($rowData as $macro => $replace) {
-                            $this->setTemplateProcessorValue($templateProcessor, $macro . '#' . $rowNumber, $replace, $barcodeVariables);
-                        }
-                    }
-                }
-                else {
-                    $this->setTemplateProcessorValue($templateProcessor, $name, $value, $barcodeVariables);
+        $specialPageBlockPresents = in_array('pages', $availableVariables) && in_array('/pages', $availableVariables);
+        if($specialPageBlockPresents && !isset($variables['pages'])){
+            throw new Exception('Invalid page config for dotx template.');
+        }
+
+        if($specialPageBlockPresents) {
+            $templateProcessor->setValue("/pages", '${__wiilog__pageBreak}</w:t></w:r></w:p><w:p><w:r><w:t>${/pages}');
+            $templateProcessor->cloneBlock('pages', count($variables['pages']), true, true);
+
+            foreach ($variables["pages"] as $pageIndex => $pageVariables) {
+                $pageNumber = $pageIndex + 1;
+                $pageId ="#$pageNumber";
+                $barcodeVariablesWithPageId = Stream::from($barcodeVariables)
+                    ->map(static fn(string $key) => ($key . $pageId))
+                    ->toArray();
+                $this->replacePageVariables($templateProcessor, $pageVariables, $barcodeVariablesWithPageId, $pageId);
+
+
+                if($pageIndex < (count($variables['pages']) - 1)) {
+                    $pageBreak = new PageBreak();
+                    $templateProcessor->setComplexBlock("__wiilog__pageBreak$pageId", $pageBreak);
+                } else {
+                    $templateProcessor->setValue("__wiilog__pageBreak$pageId", '');
                 }
             }
+
+            unset($variables["pages"]);
         }
+
+        $this->replacePageVariables($templateProcessor, $variables, $barcodeVariables);
+
         /* We update phpword lib to 1.2 and save the document does not work anymore (see issue WIIS-11630)
          * To see the resolution look this issue : https://github.com/PHPOffice/PHPWord/issues/2539
         */
@@ -112,4 +136,32 @@ class TemplateDocumentService {
         return $templateDocumentImage;
     }
 
+    private function replacePageVariables(TemplateProcessor $templateProcessor,
+                                          array $pageVariables,
+                                          array $barcodeVariables,
+                                          string $pageId = "") : void {
+        $availableVariables = $templateProcessor->getVariables();
+        foreach ($pageVariables as $name => $value) {
+            $name .= $pageId;
+            if (in_array($name, $availableVariables)) {
+                if (is_array($value)) {
+                    $templateProcessor->cloneRow($name, count($value));
+
+                    foreach ($value as $rowKey => $rowData) {
+                        $rowNumber = $rowKey + 1;
+                        $rowId = "#$rowNumber";
+                        $barcodeVariablesWithRowId = Stream::from($barcodeVariables)
+                            ->map(static fn(string $key) => ($key . $rowId))
+                            ->toArray();
+                        foreach ($rowData as $macro => $replace) {
+                            $this->setTemplateProcessorValue($templateProcessor, $macro . $pageId . $rowId, $replace, $barcodeVariablesWithRowId);
+                        }
+                    }
+                }
+                else {
+                    $this->setTemplateProcessorValue($templateProcessor, $name, $value, $barcodeVariables);
+                }
+            }
+        }
+    }
 }
