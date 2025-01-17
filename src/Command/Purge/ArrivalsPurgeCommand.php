@@ -30,7 +30,7 @@ class ArrivalsPurgeCommand extends Command {
 
     private FileSystem $filesystem;
     private StyleInterface $io;
-    private string $absoluteCachePath;
+    private string $absoluteArchiveDirPath;
 
 
     public function __construct(
@@ -41,8 +41,8 @@ class ArrivalsPurgeCommand extends Command {
         KernelInterface                $kernel
     ) {
         parent::__construct();
-        $this->absoluteCachePath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
-        $this->filesystem = new FileSystem($this->absoluteCachePath);
+        $this->absoluteArchiveDirPath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
+        $this->filesystem = new FileSystem($this->absoluteArchiveDirPath);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -78,7 +78,7 @@ class ArrivalsPurgeCommand extends Command {
             ])
             ->toArray();
 
-        return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath, $arrivageExportableColumnsSorted);
+        return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $arrivageExportableColumnsSorted);
     }
 
     private function processArrivals(DateTime     $dateToArchive,

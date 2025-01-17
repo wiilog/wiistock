@@ -38,7 +38,7 @@ class PacksPurgeCommand extends Command {
     private const BATCH_SIZE = 1000;
 
     private FileSystem $filesystem;
-    private string $absoluteCachePath;
+    private string $absoluteArchiveDirPath;
 
     public function __construct(
         private EntityManagerInterface    $entityManager,
@@ -54,8 +54,8 @@ class PacksPurgeCommand extends Command {
         KernelInterface                   $kernel,
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->absoluteCachePath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
-        $this->filesystem = new FileSystem($this->absoluteCachePath);
+        $this->absoluteArchiveDirPath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
+        $this->filesystem = new FileSystem($this->absoluteArchiveDirPath);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -92,7 +92,7 @@ class PacksPurgeCommand extends Command {
 
         // the file normally should not exist
         // if the file already exists we keep it and add the new data to it (without deleting the old data, and without rewriting headers)
-        $files = $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteCachePath, $trackingMovementExportableColumnsSorted);
+        $files = $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $trackingMovementExportableColumnsSorted);
 
         // init progress bar
         $io->progressStart($trackingMovementRepository->countOlderThan($dateToArchive));
