@@ -300,7 +300,7 @@ class TrackingMovementService {
                     $errorPackCodes = [];
                     break;
                 } else if($existingPack?->getGroup()) {
-                    if($existingPack->getGroup()->getId() === $parentPack->getId()) {
+                    if($existingPack->getGroup()->getId() === $parentPack?->getId()) {
                         $errorType = Pack::PACK_ALREADY_IN_GROUP;
                         $errorPackCodes = [];
                         break;
@@ -1866,11 +1866,11 @@ class TrackingMovementService {
                                      bool              $manualDelayStart,
                                      ?TrackingMovement &$trackingToSetEvent = null): void {
         $trackingLocation = $trackingMovement->getEmplacement();
+        $trackingToSetEvent = $trackingMovement;
+
         if (!$trackingLocation) {
             return;
         }
-
-        $trackingToSetEvent = $trackingMovement;
 
         if ($trackingMovement->isInitTrackingDelay()) {
             $trackingEvent = TrackingEvent::START;
@@ -1987,6 +1987,7 @@ class TrackingMovementService {
             TrackingMovement::TYPE_PACK_SPLIT,
             [
                 'disableUngrouping' => true,
+                'historyTracking' => false
             ]
         );
 
@@ -2016,6 +2017,14 @@ class TrackingMovementService {
 
             $pack->setLastOngoingDrop($targetDropTrackingMovement);
         }
+
+        $this->packService->persistLogisticUnitHistoryRecord($entityManager,  $packParent, [
+            "message" => $this->buildCustomLogisticUnitHistoryRecord($packSplitTrackingMovement, [], $pack),
+            "historyDate" => $packSplitTrackingMovement->getDatetime(),
+            "user" => $packSplitTrackingMovement->getOperateur(),
+            "type" => ucfirst(TrackingMovement::TYPE_PACK_SPLIT),
+            "location" => $packSplitTrackingMovement->getEmplacement(),
+        ]);
 
         $packSplit = (new PackSplit())
             ->setTarget($pack)
