@@ -10,6 +10,7 @@ import Modal from "@app/modal";
 
 let packsTable;
 
+global.generateShipmentNote = generateShipmentNote;
 global.generateOverconsumptionBill = generateOverconsumptionBill;
 global.generateDispatchLabel = generateDispatchLabel;
 global.openValidateDispatchModal = openValidateDispatchModal;
@@ -213,6 +214,21 @@ function generateDispatchLabel($button, dispatchId) {
             error: "Erreur lors de l'impression de l'étiquette"
         })
         .then(() => window.location.reload())
+}
+
+function generateShipmentNote($button, dispatchId) {
+    AJAX.route(`POST`, `generate_shipment_note`, {dispatch: dispatchId})
+        .json()
+        .then(({success}) => {
+            if(success) {
+                AJAX.route(`GET`, `print_shipment_note`, {dispatch: dispatchId})
+                    .file({
+                        success: "Votre bon a bien été imprimé.",
+                        error: "Erreur lors de l'impression du bon."
+                    })
+                    .then(() => window.location.reload());
+            }
+        });
 }
 
 function forbiddenPhoneNumberValidator($form, data = undefined, errors = undefined) {
