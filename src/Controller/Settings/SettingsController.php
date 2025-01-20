@@ -2713,10 +2713,12 @@ class SettingsController extends AbstractController {
                     })
                     ->join("");
 
+                $label = htmlspecialchars($freeField->getLabel());
+
                 $rows[] = [
                     "actions" => "<input type='hidden' class='$class' name='id' value='{$freeField->getId()}'>
                         <button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
-                    "label" => "<input type='text' name='label' class='$class' value='{$freeField->getLabel()}' required/>",
+                    "label" => "<input type='text' name='label' class='$class w-auto' value='$label' required/>",
                     "appliesTo" => "<select name='category' class='$class' required>$categories</select>",
                     "type" => $typageCLFr,
                     "defaultValue" => "<form>$defaultValue</form>",
