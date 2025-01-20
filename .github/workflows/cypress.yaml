@@ -28,11 +28,11 @@ jobs:
 
             -   name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
                 run: |
-                    sed -i "s/FTP_HOST=ftp\.wiilog\.fr/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
-                    sed -i "s/FTP_USER=ftp/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
-                    sed -i "s/FTP_PASSWORD=ftp/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
-                    sed -i "s/NGINX_PORT=8080/NGINX_PORT=80/g" .env
-                    sed -i "s/OWASP_MODSECURITY_PORT=80/OWASP_MODSECURITY_PORT=8080/g" .env
+                    sed -i "s/^FTP_HOST=.*/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
+                    sed -i "s/^FTP_USER=.*/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
+                    sed -i "s/^FTP_PASSWORD=.*/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
+                    sed -i "s/^NGINX_PORT=.*/NGINX_PORT=80/g" .env
+                    sed -i "s/^OWASP_MODSECURITY_PORT=.*/OWASP_MODSECURITY_PORT=8080/g" .env
 
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
