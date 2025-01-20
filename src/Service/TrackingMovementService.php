@@ -345,20 +345,21 @@ class TrackingMovementService {
                 }
 
                 foreach ($packCodes as $packCode) {
+
+                    $packParent = null;
                     $movedPack = $packRepository->findOneBy(['code' => $packCode]);
 
+                    $packSplittingCase = $movedPack?->getGroup() !== null;
+
                     // case pack splitting
-                    if($movedPack?->getGroup()) {
-                        $childNumber = $movedPack->getSplitTargets()->count();
-                        $packCode = $movedPack->getCode() . '.' . ($childNumber + 1);
+                    if($packSplittingCase) {
+                        $packParent = $movedPack;
 
-                        // in this case, we do not group this pack, we create a new one
-                        $movedPack = null;
+                        $childNumber = $packParent->getSplitTargets()->count();
+                        $packCode = $packParent->getCode() . '.' . ($childNumber + 1);
+
+                        $movedPack = $this->packService->persistPack($entityManager, $packCode, 1);
                     }
-
-                    $movedPack ??= $this->packService->persistPack($entityManager, $packCode, 1);
-                    $location = $location
-                        ?? $movedPack->getLastAction()?->getEmplacement();
 
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $movedPack,
@@ -379,8 +380,8 @@ class TrackingMovementService {
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
 
-                    if($existingPack && $existingPack->getGroup()) {
-                        $this->manageSplitPack($entityManager, $existingPack, $movedPack, $date);
+                    if($packSplittingCase) {
+                        $this->manageSplitPack($entityManager, $packParent, $movedPack, $date);
                     }
                 }
                 return [
@@ -1980,7 +1981,7 @@ class TrackingMovementService {
         $packSplitTrackingMovement = $this->createTrackingMovement(
             $pack,
             null,
-            $this->security->getUser(),
+            $this->userService->getUser(),
             $date,
             true,
             true,
