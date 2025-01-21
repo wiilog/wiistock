@@ -122,7 +122,7 @@ class PackNormalizer implements NormalizerInterface, NormalizerAwareInterface{
             "nature" => $this->formatService->nature($pack->getNature(), null),
             "lastMvtDate" => $pack->getLastAction()?->getDatetime(),
             "fromLabel" => $fromColumnData["fromLabel"] ?? null,
-            "fromTo" =>  $fromColumnData["from"] ?? null,
+            "from" =>  $fromColumnData["from"] ?? null,
             "location" => $this->formatService->location($pack->getLastAction()?->getEmplacement()),
             "groupCode" => $this->formatService->pack($pack->getGroup()),
             "groupIteration" => $pack->getGroupIteration(),

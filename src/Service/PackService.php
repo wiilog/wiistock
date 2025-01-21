@@ -952,22 +952,8 @@ class PackService {
                     'entityNumber' => $pack['entityNumber'],
                 ]);
 
-                $this->CSVExportService->putLine($handle, [
-                    $pack['code'],
-                    $pack['nature'],
-                    $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
-                    $mvtData['fromLabel'],
-                    $mvtData['from'],
-                    $pack['supplier'] ?? null,
-                    $pack['carrier'] ?? null,
-                    Stream::from($pack['orderNumbers'] ?? [])->join(' / ') ?: null,
-                    $pack['location'],
-                    $pack['groupCode'],
-                    $this->formatService->bool($pack['groupIteration'] ?? false),
-                    $pack['weight'],
-                    $pack['volume'],
-                    $pack['volume'],
-                ]);
+                $pack = Stream::from($mvtData, $pack)->toArray();
+                $this->putPackLine($handle, $pack);
             }
         };
     }
@@ -978,7 +964,10 @@ class PackService {
             $pack['nature'],
             $this->formatService->datetime($pack['lastMvtDate'], "", false, $this->userService->getUser()),
             $pack['fromLabel'],
-            $pack['fromTo'],
+            $pack['from'],
+            $pack['supplier'] ?? null,
+            $pack['carrier'] ?? null,
+            Stream::from($pack['orderNumbers'] ?? [])->join(' / ') ?: null,
             $pack['location'],
             $pack['groupCode'],
             $this->formatService->bool($pack['groupIteration'] ?? false),
