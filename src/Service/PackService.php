@@ -973,7 +973,6 @@ class PackService {
             $this->formatService->bool($pack['groupIteration'] ?? false),
             $pack['weight'],
             $pack['volume'],
-            $pack['volume'],
         ];
         $this->CSVExportService->putLine($handle, $line);
     }
