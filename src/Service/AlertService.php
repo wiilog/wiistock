@@ -10,34 +10,29 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 class AlertService {
 
-    #[Required]
-    public TranslationService $translationService;
-
-    private MailerService $mailer;
-    private Environment $templating;
-
-    public function __construct(MailerService $mailer, Environment $templating) {
-        $this->mailer = $mailer;
-        $this->templating = $templating;
+    public function __construct(
+        private MailerService $mailer,
+        private SettingsService $settingsService,
+        private TranslationService $translationService,
+        private Environment $templating,
+    ) {
     }
 
-    public function generateAlerts(EntityManagerInterface $manager): void {
+    public function generateAlerts(EntityManagerInterface $entityManager): void {
         $now = new DateTime("now");
-        $parametrage = $manager->getRepository(Setting::class);
 
-        $expiry = $parametrage->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY);
+        $expiry = $this->settingsService->getValue($entityManager, Setting::STOCK_EXPIRATION_DELAY);
 
-        $expired = $expiry ? $manager->getRepository(Article::class)->findExpiredToGenerate($expiry) : [];
-        $noLongerExpired = $manager->getRepository(Alert::class)->findNoLongerExpired();
+        $expired = $expiry ? $entityManager->getRepository(Article::class)->findExpiredToGenerate($expiry) : [];
+        $noLongerExpired = $entityManager->getRepository(Alert::class)->findNoLongerExpired();
 
         foreach($noLongerExpired as $alert) {
-            $manager->remove($alert);
+            $entityManager->remove($alert);
         }
 
         $managers = [];
@@ -55,7 +50,7 @@ class AlertService {
                 $alert->setType(Alert::EXPIRY);
                 $alert->setDate($now);
 
-                $manager->persist($alert);
+                $entityManager->persist($alert);
             }
             $recipients = $article->getArticleFournisseur()
                 ->getReferenceArticle()
@@ -78,7 +73,7 @@ class AlertService {
             $this->sendExpiryMails($emailConfig['user'], $emailConfig['articles'], $expiry);
         }
 
-        $manager->flush();
+        $entityManager->flush();
     }
 
     public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager): void {

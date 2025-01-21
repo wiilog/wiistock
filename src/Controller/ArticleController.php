@@ -214,6 +214,7 @@ class ArticleController extends AbstractController {
     #[HasPermission([Menu::STOCK, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
+                        SettingsService $settingsService,
                         MouvementStockService $mouvementStockService,
                         ArticleDataService $articleDataService,
                         TrackingMovementService $trackingMovementService): Response {
@@ -224,10 +225,9 @@ class ArticleController extends AbstractController {
         if(!$existingArticle) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $settingRepository = $entityManager->getRepository(Setting::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 
-            $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
+            $rfidPrefix = $settingsService->getValue($entityManager, Setting::RFID_PREFIX);
 
             if (isset($data['rfidTag'])) {
                 if(!empty($rfidPrefix) && !str_starts_with($data['rfidTag'], $rfidPrefix)) {

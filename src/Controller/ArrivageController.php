@@ -537,12 +537,12 @@ class ArrivageController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          ArrivageService        $arrivageDataService,
+                         SettingsService        $settingsService,
                          FreeFieldService       $champLibreService,
                          EntityManagerInterface $entityManager,
                          AttachmentService      $attachmentService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -555,15 +555,11 @@ class ArrivageController extends AbstractController
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
-        $receivers = Stream::from($arrivage->getReceivers())
-            ->map(static fn(Utilisateur $receiver) => $receiver->getId())
-            ->toArray();
-
         $dropLocation = $post->has('dropLocation')
             ? $emplacementRepository->find($post->get('dropLocation'))
             : $arrivage->getDropLocation();
 
-        $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $sendMail = $settingsService->getValue($entityManager, Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
@@ -665,8 +661,7 @@ class ArrivageController extends AbstractController
             : null;
         $isArrivalUrgent = isset($supplierEmergencyAlert);
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $confirmEmergency = boolval($settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
+        $confirmEmergency = boolval($settingsService->getValue($entityManager, Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
         $alertConfig = $isArrivalUrgent
             ? [
                 $supplierEmergencyAlert,
