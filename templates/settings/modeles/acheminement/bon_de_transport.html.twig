@@ -26,9 +26,10 @@
             <div class="custom-template-preview">
                 {% if setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE') %}
                     <p class="attachement pointer" style="width: fit-content !important;">
+                        {% set path = app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE') %}
                         <a class="wii-small-text"
                            download="{{ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME') }}"
-                           href="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE') }}">
+                           href="{{ path }}">
                             <i class="fa fa-file-pdf mr-2"></i>{{ setting_value('CUSTOM_DISPATCH_SHIPMENT_NOTE_FILE_NAME') }}
                         </a>
                         <i class="fa fa-times red pointer ml-1 remove-attachment"

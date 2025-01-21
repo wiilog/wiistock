@@ -40,90 +40,10 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class DispatchService {
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public FixedFieldService $fieldsParamService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public ArrivageService $arrivalService;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public TemplateDocumentService $wordTemplateDocument;
-
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
-    #[Required]
-    public SpecificService $specificService;
-
-    #[Required]
-    public StatusHistoryService $statusHistoryService;
-
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public PackService $packService;
-
-    #[Required]
-    public FormService $formService;
-
-    #[Required]
-    public SettingsService $settingsService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -133,6 +53,35 @@ class DispatchService {
     private ?Nature $defaultNature = null;
     private ?array $dispatchEmergency = null;
     private ?array $dispatchBusinessUnits = null;
+
+    public function __construct(private Twig_Environment $templating,
+                                private UserService $userService,
+                                private EntityManagerInterface $entityManager,
+                                private FreeFieldService $freeFieldService,
+                                private TranslationService $translationService,
+                                private LanguageService $languageService,
+                                private FormatService $formatService,
+                                private MailerService $mailerService,
+                                private TrackingMovementService $trackingMovementService,
+                                private FixedFieldService $fieldsParamService,
+                                private FieldModesService $fieldModesService,
+                                private ArrivageService $arrivalService,
+                                private Security $security,
+                                private CSVExportService $CSVExportService,
+                                private KernelInterface $kernel,
+                                private TemplateDocumentService $wordTemplateDocument,
+                                private PDFGeneratorService $PDFGeneratorService,
+                                private SpecificService $specificService,
+                                private StatusHistoryService $statusHistoryService,
+                                private AttachmentService $attachmentService,
+                                private RefArticleDataService $refArticleDataService,
+                                private UniqueNumberService $uniqueNumberService,
+                                private PackService $packService,
+                                private FormService $formService,
+                                private SettingsService $settingsService)
+    {
+
+    }
 
     public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);

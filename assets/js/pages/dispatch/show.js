@@ -217,11 +217,11 @@ function generateDispatchLabel($button, dispatchId) {
 }
 
 function generateShipmentNote($button, dispatchId) {
-    AJAX.route(`POST`, `generate_shipment_note`, {dispatch: dispatchId})
+    AJAX.route(AJAX.POST, `generate_shipment_note`, {dispatch: dispatchId})
         .json()
         .then(({success}) => {
             if(success) {
-                AJAX.route(`GET`, `print_shipment_note`, {dispatch: dispatchId})
+                AJAX.route(AJAX.GET, `print_shipment_note`, {dispatch: dispatchId})
                     .file({
                         success: "Votre bon a bien été imprimé.",
                         error: "Erreur lors de l'impression du bon."
