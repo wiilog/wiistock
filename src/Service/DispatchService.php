@@ -2454,7 +2454,6 @@ class DispatchService {
     public function generateShipmentNoteAttachment(EntityManagerInterface $entityManager,
                                                    Dispatch               $dispatch): Attachment {
 
-
         $dispatchPacksWithArrival = Stream::from($dispatch->getDispatchPacks())
             ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
             ->filter(static fn(Pack $pack) => $pack->getArrivage())
@@ -2476,44 +2475,51 @@ class DispatchService {
         };
 
         $variablesByPage = Stream::from($dispatchPacksWithArrival)
+
+            // group pack by receiver or project number
             ->keymap(static function(Pack $pack) use ($mode) {
+                /** @var string[]|string $key */
                 $key = match($mode){
                     "project-number" => $pack->getArrivage()?->getProjectNumber(),
                     "receiver" => Stream::from($pack->getArrivage()?->getReceivers() ?? [])
                         ->map(static fn(Utilisateur $receiver) => $receiver->getUsername())
                         ->toArray(),
                 };
-                return !empty($key) ? [$key, $pack] : null;
+                return !empty($key)
+                    ? [$key, $pack]
+                    : null;
             }, true)
+
             ->map(function(array $packs, string $key) use ($mode) {
-                $variables = [];
-                $groupedBy = match($mode){
+                $groupedByKey = match($mode){
                     "project-number" => "numprojet",
                     "receiver" => "destinataire",
                 };
-                $variables[$groupedBy] = $key;
 
-                $variables["numcommande"] = Stream::from($packs)
-                    ->keymap(static function (Pack $pack) {
-                        $orderNumbersList = $pack->getArrivage()?->getNumeroCommandeList();
-                        return !empty($orderNumbersList) ? [$orderNumbersList, $pack] : null;
-                    }, true)
-                    ->map(function(array $packs, $key) {
-                        $totalWeight = Stream::from($packs)->map(static fn(Pack $pack) => $pack->getWeight() ?? 0)->sum();
-                        $hasDispute = Stream::from($packs)->some(static fn(Pack $pack) => !$pack->getDisputes()->isEmpty());
-                        $supplier = Stream::from($packs)->map(fn(Pack $pack) => $this->formatService->supplier($pack->getArrivage()?->getFournisseur()))->filter()->unique()->join(', ');
-                        return [
-                            "numcommande" => $key,
-                            "fournisseur" => $supplier,
-                            "totalcolis" => count($packs),
-                            "litige" => $this->formatService->bool($hasDispute),
-                            "poidstotal" => $totalWeight,
-                        ];
-                    })
-                    ->filter()
-                    ->values();
-
-                return $variables;
+                return [
+                    $groupedByKey => $key,
+                    "numcommande" => Stream::from($packs)
+                        // group all sub list of packs by order number
+                        ->keymap(static function (Pack $pack) {
+                            $orderNumbersList = $pack->getArrivage()?->getNumeroCommandeList();
+                            return !empty($orderNumbersList)
+                                ? [$orderNumbersList, $pack]
+                                : null;
+                        }, true)
+                        ->map(function(array $packs, $key) {
+                            $totalWeight = Stream::from($packs)->map(static fn(Pack $pack) => $pack->getWeight() ?? 0)->sum();
+                            $hasDispute = Stream::from($packs)->some(static fn(Pack $pack) => !$pack->getDisputes()->isEmpty());
+                            $supplier = Stream::from($packs)->map(fn(Pack $pack) => $this->formatService->supplier($pack->getArrivage()?->getFournisseur()))->filter()->unique()->join(', ');
+                            return [
+                                "numcommande" => $key,
+                                "fournisseur" => $supplier,
+                                "totalcolis" => count($packs),
+                                "litige" => $this->formatService->bool($hasDispute),
+                                "poidstotal" => $totalWeight,
+                            ];
+                        })
+                        ->values()
+                ];
             })
         ->values();
 
