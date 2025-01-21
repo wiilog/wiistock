@@ -3,13 +3,15 @@
 namespace App\Command\Purge;
 
 use App\Entity\Arrivage;
+use App\Entity\Dispute;
+use App\Entity\ReceiptAssociation;
+use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FileSystem;
 use App\Service\ArrivageService;
-use App\Service\CSVExportService;
-use App\Service\DataExportService;
+use App\Service\PurgeService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,7 +28,7 @@ use WiiCommon\Helper\Stream;
 class ArrivalsPurgeCommand extends Command {
     public const COMMAND_NAME = 'app:purge:arrivals';
 
-    private const BATCH_SIZE = 1000;
+    private const BATCH_SIZE = 500;
 
     private FileSystem $filesystem;
     private StyleInterface $io;
@@ -35,10 +37,9 @@ class ArrivalsPurgeCommand extends Command {
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private CSVExportService       $csvExportService,
-        private DataExportService      $dataExportService,
         private ArrivageService        $arrivalService,
-        KernelInterface                $kernel
+        private PurgeService           $purgeService,
+        KernelInterface                $kernel,
     ) {
         parent::__construct();
         $this->absoluteArchiveDirPath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
@@ -68,17 +69,21 @@ class ArrivalsPurgeCommand extends Command {
     private function initializeFiles(DateTime $dateToArchive, array $arrivageExportableColumnsSorted): array {
         $fileNames = Stream::from([
             Arrivage::class,
+            TrackingMovement::class,
+            Pack::class,
+            ReceiptAssociation::class,
+            Dispute::class
         ])
             ->keyMap(fn($entityToArchive) => [
                 $entityToArchive,
-                $this->dataExportService->generateDataArchichingFileName(
-                    $this->dataExportService->getEntityName($entityToArchive),
+                $this->purgeService->generateDataPurgeFileName(
+                    $this->purgeService->getEntityName($entityToArchive),
                     $dateToArchive
                 ),
             ])
             ->toArray();
 
-        return $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $arrivageExportableColumnsSorted);
+        return $this->purgeService->createAndOpenPurgeFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $arrivageExportableColumnsSorted);
     }
 
     private function processArrivals(DateTime     $dateToArchive,
@@ -97,12 +102,18 @@ class ArrivalsPurgeCommand extends Command {
         $this->arrivalService->launchExportCache($this->entityManager, $dateToArchive, $to);
         $arrivalsArchive = $arrivalRepository->iterateOlderThan($dateToArchive);
 
+        /** @var Arrivage $arrival */
+
         foreach ($arrivalsArchive as $arrival) {
             $this->arrivalService->putArrivalLine(
                 $files[Arrivage::class],
                 $arrival,
                 $columnsSorted['codes']
             );
+
+            foreach ($arrival->getPacks() as $pack) {
+                $this->purgeService->archivePack($this->entityManager, $pack, $files);
+            }
 
             $batch[] = $arrival;
             $batchCount++;
