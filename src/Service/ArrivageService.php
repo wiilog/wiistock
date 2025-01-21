@@ -61,6 +61,7 @@ class ArrivageService {
         private LanguageService        $languageService,
         private CSVExportService       $CSVExportService,
         private UserService            $userService,
+        private SettingsService        $settingsService,
     ) {
     }
 
@@ -264,9 +265,9 @@ class ArrivageService {
                                      bool                   $urgent,
                                      array                  $emergencies = []): void {
         if ($urgent) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+
+            $dropLocationId = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
             $dropLocation = $dropLocationId ? $locationRepository->find($dropLocationId) : null;
 
             $arrivage->setIsUrgent(true);
@@ -357,8 +358,6 @@ class ArrivageService {
             }
         }
 
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-
         return [
             'autoHide' => (!$askQuestion && !$isArrivalUrgent),
             'message' => ($isArrivalUrgent
@@ -369,7 +368,7 @@ class ArrivageService {
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalKey' => 'emergency',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
-            'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
+            'autoPrint' => !$this->settingsService->getValue($this->entityManager, Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $emergencyOrderNumber
                 ?: $arrivalOrderNumbersStr
@@ -383,14 +382,14 @@ class ArrivageService {
         $supplier = $arrival->getFournisseur();
         $supplierName = $supplier?->getNom();
         $isArrivalUrgent = ($supplier && $supplier->isUrgent() && $supplierName);
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
+
         return $isArrivalUrgent
             ? [
                 'autoHide' => false,
                 'message' => "Attention, les unités logistiques $supplierName doivent être traitées en urgence",
                 'iconType' => 'warning',
                 'modalType' => 'info',
-                'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
+                'autoPrint' => !$this->settingsService->getValue($this->entityManager, Setting::REDIRECT_AFTER_NEW_ARRIVAL),
                 'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
             ]
             : null;
@@ -401,8 +400,7 @@ class ArrivageService {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $confirmEmergency = boolval($settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
+        $confirmEmergency = boolval($this->settingsService->getValue($entityManager, Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
 
         $allMatchingEmergencies = [];
 
@@ -861,13 +859,13 @@ class ArrivageService {
                     'nom' => $this->formatService->status($statut),
                 ])
                 ->toArray();
-            $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocationId = $this->settingsService->getValue($entityManager, Setting::MVT_DEPOSE_DESTINATION);
             $defaultLocation = $defaultLocationId ? $emplacementRepository->find($defaultLocationId) : null;
 
-            $defaultLocationIdIfCustomId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+            $defaultLocationIdIfCustomId = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
             $defaultLocationIfCustoms = $defaultLocationIdIfCustomId ? $emplacementRepository->find($defaultLocationIdIfCustomId) : null;
 
-            $defaultLocationIdifRecipient = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+            $defaultLocationIdifRecipient = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
             $defaultLocationIfRecipient = $defaultLocationIdifRecipient ? $emplacementRepository->find($defaultLocationIdifRecipient) : null;
 
             $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
@@ -908,7 +906,7 @@ class ArrivageService {
                 "defaultLocationIfCustoms" => $defaultLocationIfCustoms,
                 "defaultLocationIfRecipient" => $defaultLocationIfRecipient,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
-                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
+                "autoPrint" => $this->settingsService->getValue($entityManager, Setting::AUTO_PRINT_LU),
                 "fromTruckArrivalOptions" => $fromTruckArrivalOptions,
                 'defaultType' => $typeRepository->findOneBy(['category' => $arrivalCategoryType, 'defaultType' => true]),
             ]);
@@ -926,7 +924,7 @@ class ArrivageService {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+        $emergenciesArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
         if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
             return $locationRepository->find($emergenciesArrivalsLocation);
         }
@@ -935,17 +933,17 @@ class ArrivageService {
             return $enteredLocation;
         }
 
-        $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+        $customsArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
         if($arrivage->getCustoms() && $customsArrivalsLocation) {
             return $locationRepository->find($customsArrivalsLocation);
         }
 
-        $receiverDefaultLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+        $receiverDefaultLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
         if (!$arrivage->getReceivers()->isEmpty() && $receiverDefaultLocation) {
             return $locationRepository->find($receiverDefaultLocation);
         }
 
-        $defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+        $defaultArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::MVT_DEPOSE_DESTINATION);
         if($defaultArrivalsLocation) {
             return $locationRepository->find($defaultArrivalsLocation);
         }
