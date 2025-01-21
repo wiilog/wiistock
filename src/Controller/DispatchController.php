@@ -2007,7 +2007,7 @@ class DispatchController extends AbstractController {
         return $response;
     }
 
-    #[Route("/bon-de-transport/{dispatch}",  name: "generate_shipment_note", options: ["expose" => true], methods: "POST")]
+    #[Route("/bon-de-transport/{dispatch}",  name: "generate_shipment_note", options: ["expose" => true], methods: [self::POST])]
     #[HasPermission([Menu::DEM, Action::GENERATE_SHIPMENT_NOTE])]
     public function generateShipmentNote(Dispatch $dispatch,
                                          EntityManagerInterface $entityManager,
@@ -2023,16 +2023,17 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    #[Route("/bon-de-transport/{dispatch}", name: "print_shipment_note", options: ['expose' => true], methods: "GET")]
+    #[Route("/bon-de-transport/{dispatch}", name: "print_shipment_note", options: ['expose' => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::GENERATE_SHIPMENT_NOTE])]
     public function printShipmentNote(Dispatch                 $dispatch,
                                       KernelInterface          $kernel): Response
     {
         $dispatchShipmentNote = $dispatch->getAttachments()->last();
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $dispatchShipmentNote->getFileName()));
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchShipmentNote->getOriginalName());
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachments/' . $dispatchShipmentNote->getFileName();
+        $binaryFileResponse = new BinaryFileResponse($filePath);
+        $binaryFileResponse->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchShipmentNote->getOriginalName());
 
-        return $response;
+        return $binaryFileResponse;
     }
 }
