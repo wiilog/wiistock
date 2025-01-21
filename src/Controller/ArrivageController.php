@@ -539,8 +539,7 @@ class ArrivageController extends AbstractController
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
                          EntityManagerInterface $entityManager,
-                         AttachmentService      $attachmentService): Response
-    {
+                         AttachmentService      $attachmentService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -559,9 +558,6 @@ class ArrivageController extends AbstractController
         $receivers = Stream::from($arrivage->getReceivers())
             ->map(static fn(Utilisateur $receiver) => $receiver->getId())
             ->toArray();
-        $postedReceivers = $post->has('receivers')
-            ? explode(",", $post->get('receivers'))
-            : [];
 
         $dropLocation = $post->has('dropLocation')
             ? $emplacementRepository->find($post->get('dropLocation'))
@@ -658,11 +654,6 @@ class ArrivageController extends AbstractController
 
         $entityManager->flush();
 
-        $hasNewReceivers = !Stream::diff($postedReceivers, $receivers, true)->isEmpty();
-        if ($sendMail && $hasNewReceivers) {
-            $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
-        }
-
         $attachmentService->removeAttachments($entityManager, $arrivage, $post->all('files') ?: []);
         $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $arrivage]);
 
@@ -686,6 +677,10 @@ class ArrivageController extends AbstractController
         if ($isArrivalUrgent && !$confirmEmergency) {
             $arrivageDataService->setArrivalUrgent($entityManager, $arrivage, true);
             $entityManager->flush();
+        }
+
+        if ($sendMail) {
+            $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
         $response = [
