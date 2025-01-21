@@ -59,8 +59,13 @@
 <div class="wii-section">
     <div class="row">
         {% set sections = constant('App\\Entity\\Setting::WAYBILL_VARIABLES')['dispatch']['shipment_note'] %}
-        <div class="col-12">
+        <div class="col-6">
             {% for section, fields in sections|slice(0, 2) %}
+                {{ macro.variablesSection(section, fields) }}
+            {% endfor %}
+        </div>
+        <div class="col-6">
+            {% for section, fields in sections|slice(2, 3) %}
                 {{ macro.variablesSection(section, fields) }}
             {% endfor %}
         </div>
