@@ -189,7 +189,7 @@ function initTableDispatch(groupedSignatureMode = false) {
         preFilledTypes: $typeFilter.val(),
         pickLocationFilter: $pickLocationFilter.val() || [],
         dropLocationFilter: $dropLocationFilter.val() || [],
-        emergencyFilter: $emergencyFilter.val(),
+        emergencyFilter: $emergencyFilter.val() || [],
     }, true);
 
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);
