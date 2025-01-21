@@ -29,71 +29,40 @@ use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 
 class ArrivageService {
 
-    #[Required]
-    public Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public KeptFieldService $keptFieldService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public UrgenceService $urgenceService;
-
-    #[Required]
-    public SpecificService $specificService;
-
-    #[Required]
-    public StringService $stringService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public FixedFieldService $fieldsParamService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public UserService $userService;
-
     private ?array $freeFieldsConfig = null;
 
     private ?array $exportCache = null;
+
+    public function __construct(
+        private Environment            $templating,
+        private RouterInterface        $router,
+        private Security               $security,
+        private EntityManagerInterface $entityManager,
+        private KeptFieldService       $keptFieldService,
+        private MailerService          $mailerService,
+        private UrgenceService         $urgenceService,
+        private StringService          $stringService,
+        private TranslationService     $translation,
+        private FreeFieldService       $freeFieldService,
+        private FixedFieldService      $fieldsParamService,
+        private FieldModesService      $fieldModesService,
+        private FormatService          $formatService,
+        private LanguageService        $languageService,
+        private CSVExportService       $CSVExportService,
+        private UserService            $userService,
+    ) {
+    }
 
     public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
     {
@@ -790,6 +759,7 @@ class ArrivageService {
                     FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?: '',
                     FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: $this->formatService->truckArrivalLines($arrival->getTruckArrivalLines()),
                     FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()?->getLabel() ?: '',
+                    FixedFieldStandard::FIELD_CODE_EMERGENCY                => $this->formatService->bool($arrival->getIsUrgent()),
                     default                                                 => null
                 };
             }
@@ -803,7 +773,7 @@ class ArrivageService {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $arrivalFields = $fieldsParamRepository->getByEntityForExport(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
         $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::ARRIVAGE]);
-        $natures = $natureRepository->findBy([], ['id' => Criteria::ASC]);
+        $natures = $natureRepository->findBy([], ['id' => Order::Ascending->value]);
 
         $userLanguage = $this->userService->getUser()?->getLanguage() ?: $this->languageService->getDefaultSlug();
         $defaultLanguage = $this->languageService->getDefaultSlug();
@@ -816,6 +786,7 @@ class ArrivageService {
                 ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_STATUS, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut', false)],
                 ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_DATE, "label" => $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false)],
                 ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_EMERGENCY, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgent', false)],
             ],
             Stream::from($arrivalFields)
                 ->filter(fn(FixedFieldStandard $field) => !in_array($field->getFieldCode(), [FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PROJECT]))
