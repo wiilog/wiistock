@@ -21,11 +21,10 @@ class CSVExportService {
 
     private bool|null $wantsUTF8 = null;
 
-    public function __construct(private EntityManagerInterface    $entityManager,
-                                private SettingsService           $settingsService,
-                                private PackService               $packService,
-                                private ReceiptAssociationService $receiptAssociationService,
-                                private DisputeService            $disputeService){}
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private SettingsService        $settingsService
+    ) {}
 
     /**
      * @deprecated Use CSVExportService::stream instead
@@ -135,33 +134,5 @@ class CSVExportService {
         $response->headers->set('Content-Type', "text/csv");
         $response->headers->set('Content-Disposition', $disposition);
         return $response;
-    }
-
-    public function createAndOpenDataArchivingFiles(array $fileNames,FileSystem $filesystem, string $absoluteCachePath, array $columnsSorted = []): array {
-        $files = [];
-        foreach ($fileNames as $entityToArchive => $fileName) {
-            // if directory self::TEMPORARY_FOLDER does not exist, create it
-            if (!$filesystem->isDir()) {
-                $filesystem->mkdir();
-            }
-
-            $fileExists = $filesystem->exists($fileName);
-            $file = fopen($absoluteCachePath . $fileName, 'a');
-
-            if (!$fileExists) {
-                //generate the header for the file based on the entity
-                $fileHeader = match ($entityToArchive) {
-                    TrackingMovement::class, Arrivage::class => $columnsSorted["labels"],
-                    Pack::class => $this->packService->getCsvHeader(),
-                    ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
-                    Dispute::class => $this->disputeService->getCsvHeader(),
-                };
-
-                $this->putLine($file, $fileHeader);
-            }
-            $files[$entityToArchive] = $file;
-        }
-
-        return $files;
     }
 }

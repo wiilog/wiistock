@@ -24,11 +24,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class DataExportService
-{
-
-    const FILE_NAME_DATE_FORMAT = 'Y-m-d';
-
+class DataExportService {
     #[Required]
     public EntityManagerInterface $entityManager;
 
@@ -491,16 +487,5 @@ class DataExportService
         ]));
 
         $export->setScheduleRule($scheduleRule);
-    }
-
-    public function generateDataArchichingFileName(string $entityToArchive, DateTime $dateToArchive): string {
-        // file name = ARC  + entityToArchive + today's date + _ + $dateToArchive + .csv
-        $now = (new DateTime())->format(self::FILE_NAME_DATE_FORMAT);
-        $date = $dateToArchive->format(self::FILE_NAME_DATE_FORMAT);
-        return "ARC_{$entityToArchive}_{$now}_{$date}.csv";
-    }
-
-    public function getEntityName(string $entity): string {
-        return Stream::explode("\\", $entity)->last();
     }
 }

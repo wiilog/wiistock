@@ -9,13 +9,8 @@ use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FileSystem;
 use App\Serializer\SerializerUsageEnum;
-use App\Service\CSVExportService;
-use App\Service\DataExportService;
-use App\Service\DisputeService;
-use App\Service\FormatService;
 use App\Service\FreeFieldService;
-use App\Service\PackService;
-use App\Service\ReceiptAssociationService;
+use App\Service\PurgeService;
 use App\Service\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,17 +36,12 @@ class PacksPurgeCommand extends Command {
     private string $absoluteArchiveDirPath;
 
     public function __construct(
-        private EntityManagerInterface    $entityManager,
-        private CSVExportService          $csvExportService,
-        private PackService               $packService,
-        private TrackingMovementService   $trackingMovementService,
-        private FreeFieldService          $freeFieldService,
-        private SerializerInterface       $serializer,
-        private ReceiptAssociationService $receiptAssociationService,
-        private FormatService             $formatService,
-        private DisputeService            $disputeService,
-        private DataExportService         $dataExportService,
-        KernelInterface                   $kernel,
+        private EntityManagerInterface  $entityManager,
+        private TrackingMovementService $trackingMovementService,
+        private FreeFieldService        $freeFieldService,
+        private SerializerInterface     $serializer,
+        private PurgeService            $purgeService,
+        KernelInterface                 $kernel,
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->absoluteArchiveDirPath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
@@ -86,13 +76,13 @@ class PacksPurgeCommand extends Command {
         ])
             ->keyMap(fn ($entityToArchive) => [
                 $entityToArchive,
-                $this->dataExportService->generateDataArchichingFileName($this->getEntityName($entityToArchive), $dateToArchive),
+                $this->purgeService->generateDataPurgeFileName($this->purgeService->getEntityName($entityToArchive), $dateToArchive),
             ])
             ->toArray();
 
         // the file normally should not exist
         // if the file already exists we keep it and add the new data to it (without deleting the old data, and without rewriting headers)
-        $files = $this->csvExportService->createAndOpenDataArchivingFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $trackingMovementExportableColumnsSorted);
+        $files = $this->purgeService->createAndOpenPurgeFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $trackingMovementExportableColumnsSorted);
 
         // init progress bar
         $io->progressStart($trackingMovementRepository->countOlderThan($dateToArchive));
@@ -153,75 +143,6 @@ class PacksPurgeCommand extends Command {
         return Command::SUCCESS;
     }
 
-    private function archivePack(Pack $pack, array $files): void {
-        foreach ($pack->getReceiptAssociations() as $receiptAssociation) {
-            $this->archiveReceiptAssociation($receiptAssociation, $pack, $files);
-        }
-
-        foreach ($pack->getProjectHistoryRecords() as $projectHistoryRecord) {
-            $this->entityManager->remove($projectHistoryRecord);
-        }
-
-        foreach ($pack->getTransportHistories() as $transportHistory) {
-            $this->entityManager->remove($transportHistory);
-        }
-
-        foreach ($pack->getPairings() as $pairing) {
-            $this->entityManager->remove($pairing);
-        }
-
-        foreach ($pack->getDisputes() as $dispute) {
-            $this->archiveDispute($dispute, $pack, $files);
-        }
-
-        $this->packService->putPackLine(
-            $files[Pack::class],
-            $this->serializer->normalize($pack, null, ["usage" => SerializerUsageEnum::CSV_EXPORT])
-        );
-
-        $pack->setGroup(null);
-        // prevent Detached entity XXX cannot be removed
-        if($this->entityManager->contains($pack)) {
-            $this->entityManager->remove($pack);
-        }
-    }
-
-    private function archiveReceiptAssociation(ReceiptAssociation $receiptAssociation, Pack $pack, array $files): void {
-        $this->receiptAssociationService->putReceiptAssociationLine(
-            $files[ReceiptAssociation::class],
-            [
-                ...$this->serializer->normalize($receiptAssociation, null, ["usage" => SerializerUsageEnum::CSV_EXPORT]),
-                "lastActionDate" => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
-                "lastActionLocation" => $this->formatService->location($pack->getLastAction()?->getEmplacement()),
-                "logisticUnit" => $this->formatService->pack($pack),
-            ]
-        );
-
-
-        $receiptAssociation->removePack($pack);
-
-        if($receiptAssociation->getLogisticUnits()->isEmpty()) {
-            $receiptAssociation->setUser(null);
-            $this->entityManager->remove($receiptAssociation);
-        }
-    }
-
-    private function archiveDispute(Dispute $dispute, Pack $pack, array $files): void {
-        $this->disputeService->putDisputeLine(
-            $files[Dispute::class],
-            $dispute,
-            [
-                "packs" => [$pack],
-            ]
-        );
-
-        $dispute->removePack($pack);
-
-        if($dispute->getPacks()->isEmpty()) {
-            $this->entityManager->remove($dispute);
-        }
-    }
-
     private function treatPackAndFLush(array $packs, array $files): void {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
@@ -233,7 +154,7 @@ class PacksPurgeCommand extends Command {
                     if ($pack->getGroupIteration()) {
                         $groups[$pack->getId()] ??= $pack;
                     } else {
-                        $this->archivePack($pack, $files);
+                        $this->purgeService->archivePack($this->entityManager, $pack, $files);
                     }
                 }
             }
@@ -241,16 +162,11 @@ class PacksPurgeCommand extends Command {
 
         foreach ($groups as $group) {
             if($group->getTrackingMovements()->isEmpty() && $group->getContent()->isEmpty()) {
-                $this->archivePack($group, $files);
+                $this->purgeService->archivePack($this->entityManager, $group, $files);
             }
         }
 
         $this->entityManager->flush();
         $this->entityManager->clear();
     }
-
-    private function getEntityName(string $entity): string {
-        return Stream::explode("\\", $entity)->last();
-    }
-
 }
