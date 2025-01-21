@@ -2452,77 +2452,70 @@ class DispatchService {
     }
 
     public function generateShipmentNoteAttachment(EntityManagerInterface $entityManager,
-                                                   Dispatch               $dispatch,
-                                                   array                  $dispatchPacksWithArrival): Attachment {
+                                                   Dispatch               $dispatch): Attachment {
+
+
+        $dispatchPacksWithArrival = Stream::from($dispatch->getDispatchPacks())
+            ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+            ->filter(static fn(Pack $pack) => $pack->getArrivage())
+            ->toArray();
+
+        if(count($dispatchPacksWithArrival) === 0) {
+            throw new FormException("Impossible de générer ce document, au moins une des UL présentes dans cette acheminement doit être liée à un arrivage.");
+        }
 
         $projectDir = $this->kernel->getProjectDir();
 
-        $variables = [];
         $groupedByProjectNumber = Stream::from($dispatchPacksWithArrival)->some(static fn(Pack $pack) => $pack->getArrivage()->getProjectNumber());
-        $groupedByReceiver = Stream::from($dispatchPacksWithArrival)->some(static fn(Pack $pack) => !$pack->getArrivage()->getReceivers()->isEmpty());
+        $groupedByReceiver = !$groupedByProjectNumber && Stream::from($dispatchPacksWithArrival)->some(static fn(Pack $pack) => !$pack->getArrivage()->getReceivers()->isEmpty());
 
-        if($groupedByProjectNumber) {
-            $groupedBy = Stream::from($dispatchPacksWithArrival)
-                ->map(static fn(Pack $pack) => $pack->getArrivage()->getProjectNumber())
-                ->unique()
-                ->filter();
+        $mode = match(true){
+            $groupedByProjectNumber => "project-number",
+            $groupedByReceiver => "receiver",
+            default => throw new FormException('Imposible de générer le bon de transport'),
+        };
 
-        } else if($groupedByReceiver) {
-            $groupedBy = Stream::from($dispatchPacksWithArrival)
-                ->map(static function(Pack $pack) {
-                    return Stream::from($pack->getArrivage()->getReceivers())
+        $variablesByPage = Stream::from($dispatchPacksWithArrival)
+            ->keymap(static function(Pack $pack) use ($mode) {
+                $key = match($mode){
+                    "project-number" => $pack->getArrivage()?->getProjectNumber(),
+                    "receiver" => Stream::from($pack->getArrivage()?->getReceivers() ?? [])
                         ->map(static fn(Utilisateur $receiver) => $receiver->getUsername())
-                        ->toArray();
-                })
-                ->flatten()
-                ->unique()
-                ->filter();
-        } else {
-            throw new FormException('Imposible de générer le bon de transport');
-        }
+                        ->toArray(),
+                };
+                return !empty($key) ? [$key, $pack] : null;
+            }, true)
+            ->map(function(array $packs, string $key) use ($mode) {
+                $variables = [];
+                $groupedBy = match($mode){
+                    "project-number" => "numprojet",
+                    "receiver" => "destinataire",
+                };
+                $variables[$groupedBy] = $key;
 
-        foreach ($groupedBy as $value) {
-            $variables[] = [
-                ...($groupedByProjectNumber
-                    ? ["numprojet" => $value]
-                    : ($groupedByReceiver
-                        ? ["destinataire" => $value]
-                        : [])),
-                "numcommande" => Stream::from($dispatchPacksWithArrival)
-                    ->keymap(static function (Pack $pack) use ($value, $groupedByReceiver, $groupedByProjectNumber) {
-                        $arrivage = $pack->getArrivage();
-                        if($groupedByProjectNumber && !$arrivage->getProjectNumber()) {
-                            return [];
-                        } else if ($groupedByReceiver && !$groupedByProjectNumber) {
-                            $usernames = Stream::from($arrivage->getReceivers())
-                                ->some(static fn (Utilisateur $receiver) => $receiver->getUsername() === $value);
-                            if(!$usernames) {
-                                return [];
-                            }
-                        }
-
-                        if(empty($arrivage->getNumeroCommandeList())){
-                            return [];
-                        }
-
-                        return [$arrivage->getNumeroCommandeList(), $pack];
+                $variables["numcommande"] = Stream::from($packs)
+                    ->keymap(static function (Pack $pack) {
+                        $orderNumbersList = $pack->getArrivage()?->getNumeroCommandeList();
+                        return !empty($orderNumbersList) ? [$orderNumbersList, $pack] : null;
                     }, true)
-                    ->map(static function(array $packs, $key) {
+                    ->map(function(array $packs, $key) {
                         $totalWeight = Stream::from($packs)->map(static fn(Pack $pack) => $pack->getWeight() ?? 0)->sum();
                         $hasDispute = Stream::from($packs)->some(static fn(Pack $pack) => !$pack->getDisputes()->isEmpty());
-                        $fournisseur = Stream::from($packs)->map(static fn(Pack $pack) => $pack->getArrivage()?->getFournisseur()?->getNom())->filter()->unique()->join(', ');
+                        $supplier = Stream::from($packs)->map(fn(Pack $pack) => $this->formatService->supplier($pack->getArrivage()?->getFournisseur()))->filter()->unique()->join(', ');
                         return [
                             "numcommande" => $key,
-                            "fournisseur" => $fournisseur,
+                            "fournisseur" => $supplier,
                             "totalcolis" => count($packs),
-                            "litige" => $hasDispute ? "Oui" : "Non",
+                            "litige" => $this->formatService->bool($hasDispute),
                             "poidstotal" => $totalWeight,
                         ];
                     })
                     ->filter()
-                    ->values(),
-            ];
-        }
+                    ->values();
+
+                return $variables;
+            })
+        ->values();
 
         $shipmentNoteTemplatePath = $this->settingsService->getValue($entityManager, Setting::CUSTOM_DISPATCH_SHIPMENT_NOTE)
             ?: $this->settingsService->getValue($entityManager, Setting::DEFAULT_DISPATCH_SHIPMENT_NOTE);
@@ -2532,7 +2525,7 @@ class DispatchService {
             [
                 "numach" => $dispatch->getNumber(),
                 "datevalidationacheminement" => $this->formatService->datetime($dispatch->getValidationDate()),
-                "pages" => $variables,
+                "pages" => $variablesByPage,
             ],
         );
 

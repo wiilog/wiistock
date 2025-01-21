@@ -2012,20 +2012,10 @@ class DispatchController extends AbstractController {
     public function generateShipmentNote(Dispatch $dispatch,
                                          EntityManagerInterface $entityManager,
                                          DispatchService $dispatchService): Response {
-        $dispatchPacksWithArrival = Stream::from($dispatch->getDispatchPacks())
-            ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
-            ->filter(static fn(Pack $pack) => $pack->getArrivage());
 
-        if($dispatchPacksWithArrival->count() === 0) {
-            throw new FormException("Impossible de générer ce document, au moins une des UL présentes dans cette acheminement doit être liée à un arrivage.");
-        }
-        $dispatchService->generateShipmentNoteAttachment($entityManager, $dispatch, $dispatchPacksWithArrival->toArray());
 
-        try {
-            $entityManager->flush();
-        } catch(Exception $exception) {
-            throw new Exception($exception->getMessage());
-        }
+        $dispatchService->generateShipmentNoteAttachment($entityManager, $dispatch);
+        $entityManager->flush();
 
         return new JsonResponse([
             "success" => true,
