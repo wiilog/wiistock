@@ -501,6 +501,9 @@ class Setting {
                 ],
             ],
             "shipment_note" => [
+                "Champ obligatoire" => [
+                    "pages" => "Cette variable encadre les éléments a dupliquer sur les différents pages. Elle doit obligatoirement être positionnée sur le modèle de document mais se remplira de façon automatique.",
+                ],
                 "Champs fixes acheminements" => [
                     "numach" => "numéro de l'acheminement",
                     "datevalidationacheminement" => "date de validation de l'acheminement",
