@@ -32,7 +32,6 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -48,38 +47,18 @@ class ArticleDataService
 
     private ?array $freeFieldsConfig = null;
 
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public EmplacementDataService $emplacementDataService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
+    public function __construct(private SettingsService $settingsService,
+                                private EntityManagerInterface $entityManager,
+                                private Twig_Environment $templating,
+                                private RouterInterface $router,
+                                private RefArticleDataService $refArticleDataService,
+                                private FormatService $formatService,
+                                private TranslationService $translation,
+                                private EmplacementDataService $emplacementDataService,
+                                private FieldModesService $fieldModesService,
+                                private CSVExportService $CSVExportService,
+                                private FreeFieldService $freeFieldService,
+                                private UserService $userService) {}
 
     public function getCollecteArticleOrNoByRefArticle(Collecte         $collect,
                                                        ReferenceArticle $refArticle,
@@ -125,7 +104,7 @@ class ArticleDataService
                 $data = [
                     'selection' => $this->templating->render('demande/choiceContent.html.twig', [
                         'maximum' => $availableQuantity,
-                        'showTargetLocationPicking' => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+                        'showTargetLocationPicking' => $this->settingsService->getValue($this->entityManager, Setting::DISPLAY_PICKING_LOCATION)
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
