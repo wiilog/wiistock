@@ -526,7 +526,7 @@ class ArrivageRepository extends EntityRepository
 
     /**
      * Returns an iterable of TrackingMovement older than the given date
-     * @return iterable<TrackingMovement>
+     * @return iterable<Arrivage>
      */
     public function iterateOlderThan(DateTime $date): iterable {
         $queryBuilder = $this->createQueryBuilder('arrival')

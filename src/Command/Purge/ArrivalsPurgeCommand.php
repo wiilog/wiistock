@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Dispute;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Tracking\Pack;
-use App\Entity\Tracking\TrackingMovement;
 use App\Helper\FileSystem;
 use App\Service\ArrivageService;
 use App\Service\PurgeService;
@@ -19,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\StyleInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpKernel\KernelInterface;
-use WiiCommon\Helper\Stream;
+
 
 #[AsCommand(
     name: ArrivalsPurgeCommand::COMMAND_NAME,
@@ -32,18 +31,16 @@ class ArrivalsPurgeCommand extends Command {
 
     private FileSystem $filesystem;
     private StyleInterface $io;
-    private string $absoluteArchiveDirPath;
 
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private ArrivageService        $arrivalService,
-        private PurgeService           $purgeService,
-        KernelInterface                $kernel,
+        private EntityManagerInterface  $entityManager,
+        private ArrivageService         $arrivalService,
+        private PurgeService            $purgeService,
+        KernelInterface                 $kernel,
     ) {
         parent::__construct();
-        $this->absoluteArchiveDirPath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
-        $this->filesystem = new FileSystem($this->absoluteArchiveDirPath);
+        $this->filesystem = new FileSystem($kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -54,36 +51,29 @@ class ArrivalsPurgeCommand extends Command {
         ini_set('memory_limit', (string)PurgeAllCommand::MEMORY_LIMIT);
 
         $dateToArchive = new DateTime('-' . PurgeAllCommand::PURGE_ITEMS_OLDER_THAN . PurgeAllCommand::DATA_PURGE_THRESHOLD);
-        $arrivageExportableColumnsSorted = $this->arrivalService->getArrivalExportableColumnsSorted($this->entityManager);
 
-        $files = $this->initializeFiles($dateToArchive, $arrivageExportableColumnsSorted);
+        $sortedColumns = [
+            Arrivage::class => $this->arrivalService->getArrivalExportableColumnsSorted($this->entityManager),
+        ];
 
-        $this->processArrivals($dateToArchive, $arrivageExportableColumnsSorted, $files);
+        $files = $this->purgeService->createAndOpenPurgeFiles(
+            $dateToArchive,
+            [
+                Arrivage::class,
+                Pack::class,
+                ReceiptAssociation::class,
+                Dispute::class
+            ],
+            $this->filesystem,
+            $sortedColumns
+        );
+
+        $this->processArrivals($dateToArchive, $sortedColumns, $files);
 
         $this->finalizeFiles($files);
         $this->io->success('Arrival archiving completed.');
 
         return Command::SUCCESS;
-    }
-
-    private function initializeFiles(DateTime $dateToArchive, array $arrivageExportableColumnsSorted): array {
-        $fileNames = Stream::from([
-            Arrivage::class,
-            TrackingMovement::class,
-            Pack::class,
-            ReceiptAssociation::class,
-            Dispute::class
-        ])
-            ->keyMap(fn($entityToArchive) => [
-                $entityToArchive,
-                $this->purgeService->generateDataPurgeFileName(
-                    $this->purgeService->getEntityName($entityToArchive),
-                    $dateToArchive
-                ),
-            ])
-            ->toArray();
-
-        return $this->purgeService->createAndOpenPurgeFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $arrivageExportableColumnsSorted);
     }
 
     private function processArrivals(DateTime     $dateToArchive,
@@ -102,13 +92,11 @@ class ArrivalsPurgeCommand extends Command {
         $this->arrivalService->launchExportCache($this->entityManager, $dateToArchive, $to);
         $arrivalsArchive = $arrivalRepository->iterateOlderThan($dateToArchive);
 
-        /** @var Arrivage $arrival */
-
         foreach ($arrivalsArchive as $arrival) {
             $this->arrivalService->putArrivalLine(
                 $files[Arrivage::class],
                 $arrival,
-                $columnsSorted['codes']
+                $columnsSorted[Arrivage::class]['codes']
             );
 
             foreach ($arrival->getPacks() as $pack) {

@@ -19,26 +19,31 @@ class PurgeService {
     const FILE_NAME_DATE_FORMAT = 'Y-m-d';
 
     public function __construct(
-        private PackService $packService,
+        private PackService               $packService,
         private SerializerInterface       $serializer,
         private ReceiptAssociationService $receiptAssociationService,
         private FormatService             $formatService,
         private DisputeService            $disputeService,
         private CSVExportService          $csvExportService,
+        private ArrivageService           $arrivalService,
+        private TrackingMovementService   $trackingMovementService,
     ) {}
 
     public function generateDataPurgeFileName(string $entityToArchive, DateTime $dateToArchive): string {
+
+        $entityStrInFilename = $this->getEntityName($entityToArchive);
+
         // file name = ARC  + entityToArchive + today's date + _ + $dateToArchive + .csv
         $now = (new DateTime())->format(self::FILE_NAME_DATE_FORMAT);
         $date = $dateToArchive->format(self::FILE_NAME_DATE_FORMAT);
 
-        return "ARC_{$entityToArchive}_{$now}_{$date}.csv";
+        return "ARC_{$entityStrInFilename}_{$now}_{$date}.csv";
     }
 
-    public function getEntityName(string $entity): string {
+    private function getEntityName(string $entity): string {
         return match ($entity) {
             Arrivage::class => "Arrivage",
-            TrackingMovement::class => "MovementDeTracabilité",
+            TrackingMovement::class => "MouvementDeTraca",
             Pack::class => "UL",
             ReceiptAssociation::class => "AssociationBR",
             Dispute::class => "Litige",
@@ -115,8 +120,22 @@ class PurgeService {
         }
     }
 
-    public function createAndOpenPurgeFiles(array $fileNames, FileSystem $filesystem, string $absoluteCachePath, array $columnsSorted = []): array {
+    /**
+     * @return resource[] Associated array className => fopen result
+     */
+    public function createAndOpenPurgeFiles(DateTime               $dateToArchive,
+                                            array                  $entitiesToArchive,
+                                            FileSystem             $filesystem,
+                                            array                  $sortedColumns): array {
         $files = [];
+
+        $fileNames = Stream::from($entitiesToArchive)
+            ->keyMap(fn($entityToArchive) => [
+                $entityToArchive,
+                $this->generateDataPurgeFileName($entityToArchive, $dateToArchive),
+            ])
+            ->toArray();
+
         foreach ($fileNames as $entityToArchive => $fileName) {
             // if directory self::TEMPORARY_FOLDER does not exist, create it
             if (!$filesystem->isDir()) {
@@ -124,22 +143,26 @@ class PurgeService {
             }
 
             $fileExists = $filesystem->exists($fileName);
+            $absoluteCachePath = $filesystem->getRoot();
             $file = fopen($absoluteCachePath . $fileName, 'a');
 
             if (!$fileExists) {
-                //generate the header for the file based on the entity
-                $fileHeader = match ($entityToArchive) {
-                    TrackingMovement::class, Arrivage::class => $columnsSorted["labels"],
-                    Pack::class => $this->packService->getCsvHeader(),
-                    ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
-                    Dispute::class => $this->disputeService->getCsvHeader(),
-                };
-
-                $this->csvExportService->putLine($file, $fileHeader);
+                $this->csvExportService->putLine($file, $this->getFileHeader($entityToArchive, $sortedColumns));
             }
             $files[$entityToArchive] = $file;
         }
 
         return $files;
+    }
+
+    public function getFileHeader(string $className,
+                                  array  $sortedColumns): array {
+        return match ($className) {
+            Arrivage::class => $sortedColumns[Arrivage::class]["labels"] ?? [],
+            TrackingMovement::class => $sortedColumns[TrackingMovement::class]["labels"] ?? [],
+            Pack::class => $this->packService->getCsvHeader(),
+            ReceiptAssociation::class => $this->receiptAssociationService->getCsvHeader(),
+            Dispute::class => $this->disputeService->getCsvHeader(),
+        };
     }
 }
