@@ -292,17 +292,20 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
-        $truckArrivalLineService->checkForInvalidNumber($trackingNumbers, $entityManager);
+        $trackingNumbers = $data->get("trackingNumbers");
+        if ($trackingNumbers && $trackingNumbers !== "") {
+            $trackingNumbers = explode(",", $data->get("trackingNumbers") ?? "");
+            $truckArrivalLineService->checkForInvalidNumber($trackingNumbers, $entityManager);
 
-        foreach ($trackingNumbers as $lineNumber) {
-            if ($lineNumber) {
-                $arrivalLine = new TruckArrivalLine();
-                $arrivalLine
-                    ->setTruckArrival($truckArrival)
-                    ->setNumber($lineNumber);
-                $truckArrival->addTrackingLine($arrivalLine);
-                $entityManager->persist($arrivalLine);
+            foreach ($trackingNumbers as $lineNumber) {
+                if ($lineNumber) {
+                    $arrivalLine = new TruckArrivalLine();
+                    $arrivalLine
+                        ->setTruckArrival($truckArrival)
+                        ->setNumber($lineNumber);
+                    $truckArrival->addTrackingLine($arrivalLine);
+                    $entityManager->persist($arrivalLine);
+                }
             }
         }
 
