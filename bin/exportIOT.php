@@ -2,14 +2,17 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Command\Purge\PurgeAllCommand;
+use App\Helper\FileSystem;
 use App\Service\IOT\IOTService;
 
 class SensorDataExporter
 {
     private $connection;
-    private $batchSize = 10000;
-    private $offset = 0;
-    private $outputFile = 'export_iot_sensor_data.csv';
+    private FileSystem $fileSystem;
+    private int $batchSize = 10000;
+    private int $offset = 0;
+    public string $outputFile = 'export_iot_sensor_data.csv';
 
     // CSV columns definition
     private const COLUMNS = [
@@ -27,6 +30,7 @@ class SensorDataExporter
     public function __construct(string $host, string $dbname, string $username, string $password)
     {
         $this->connectToDatabase($host, $dbname, $username, $password);
+        $this->fileSystem = new FileSystem();
     }
 
     /**
@@ -61,7 +65,7 @@ class SensorDataExporter
      */
     private function openFile(): mixed
     {
-        $file = fopen($this->outputFile, 'w');
+        $file = fopen(__DIR__ . '/../' . $this->outputFile, 'w');
         if (!$file) {
             $this->handleError("Impossible d'ouvrir ou de créer le fichier '$this->outputFile'.");
         }
@@ -79,7 +83,7 @@ class SensorDataExporter
     /**
      * Exports data into a CSV file.
      */
-    public function exportData(): void
+    public function exportData(string $dateFilter = null): void
     {
         $file = $this->openFile();
 
@@ -87,7 +91,7 @@ class SensorDataExporter
         $this->writeToCsv($file, self::COLUMNS);
 
         do {
-            $rows = $this->fetchData();
+            $rows = $this->fetchData($dateFilter);
 
             if (!empty($rows)) {
                 foreach ($rows as $row) {
@@ -107,9 +111,9 @@ class SensorDataExporter
     }
 
     /**
-     * Fetches data from the database using batch size and offset.
+     * Fetches data from the database using batch size, offset, and optional date filter.
      */
-    private function fetchData(): array
+    private function fetchData(?string $dateFilter): array
     {
         $sql = "
             SELECT
@@ -127,11 +131,15 @@ class SensorDataExporter
             LEFT JOIN sensor_profile ON sensor.profile_id = sensor_profile.id
             LEFT JOIN sensor_message ON sensor.last_message_id = sensor_message.id
             LEFT JOIN sensor_wrapper ON sensor.id = sensor_wrapper.sensor_id
+            WHERE :dateFilter IS NULL OR sensor_message.date < :dateFilter
             LIMIT {$this->batchSize} OFFSET {$this->offset}
         ";
 
-        $stmt = $this->connection->query($sql);
-        if ($stmt && $stmt->rowCount() > 0) {
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindParam(':dateFilter', $dateFilter);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         return [];
@@ -154,10 +162,32 @@ class SensorDataExporter
             $row['message_brut'],
         ];
     }
+
+    public function getGeneratedOutputFile(string $dateFilter): string
+    {
+        $todayDate = new DateTime("now");
+
+        if (!$this->fileSystem->exists(__DIR__ . '/../var/data-archiving/')) {
+            $this->fileSystem->mkdir(__DIR__ . '/../var/data-archiving/');
+        }
+
+
+        // file name = ARC + entityToArchive + today's date + _ + $dateToArchive + .csv
+        return PurgeAllCommand::ARCHIVE_DIR . "ARC_IOT_" . $todayDate->format("Y-m-d") . "_" . $dateFilter . ".csv";
+    }
 }
 
-// Using the exporter class
 $exporter = new SensorDataExporter("mysql", "test", "root", "example");
-$exporter->exportData();
 
+// check if the dateFilter is set
+if (isset($argv[1])) {
+    $dateFilter = $argv[1];
+
+    $exporter->outputFile = $exporter->getGeneratedOutputFile($dateFilter);
+
+    $exporter->exportData($dateFilter);
+} else {
+    echo "Veuillez fournir une date au format YYYY-MM-DD.\n ";
+    exit(1);
+}
 
