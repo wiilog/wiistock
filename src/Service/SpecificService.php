@@ -4,15 +4,13 @@ namespace App\Service;
 
 use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class SpecificService
 {
-    #[Required]
-    public EntityManagerInterface $entityManager;
 
-    #[Required]
-    public CacheService $cacheService;
+    public function __construct(private SettingsService         $settingsService,
+                                private EntityManagerInterface  $entityManager,
+                                private CacheService            $cacheService) {}
 
     const DEFAULT_CLIENT_LABEL= 'Wiilog';
 
@@ -60,7 +58,7 @@ class SpecificService
         return $this->cacheService->get(
             CacheService::COLLECTION_SETTINGS,
             Setting::APP_CLIENT_LABEL,
-            fn() => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::APP_CLIENT_LABEL) ?? self::DEFAULT_CLIENT_LABEL
+            fn() => $this->settingsService->getValue($this->entityManager, Setting::APP_CLIENT_LABEL, self::DEFAULT_CLIENT_LABEL),
         );
     }
 

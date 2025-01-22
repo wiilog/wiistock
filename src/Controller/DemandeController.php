@@ -585,10 +585,11 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/api-modifier-article", name: "demande_article_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier-article", name: "demande_article_api_edit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function articleEditApi(EntityManagerInterface $entityManager,
-                                   Request $request): Response {
+                                   SettingsService        $settingsService,
+                                   Request                $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
@@ -599,7 +600,7 @@ class DemandeController extends AbstractController
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'line' => $referenceLine,
                 'maximum' => $maximumQuantity,
-                "showTargetLocationPicking" => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+                "showTargetLocationPicking" => $settingsService->getValue($entityManager,Setting::DISPLAY_PICKING_LOCATION)
             ]);
 
             return new JsonResponse($json);

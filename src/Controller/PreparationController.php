@@ -33,6 +33,7 @@ use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
+use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\TranslationService;
 use DateTime;
@@ -246,6 +247,7 @@ class PreparationController extends AbstractController
     public function show(Preparation                $preparation,
                          TagTemplateService         $tagTemplateService,
                          EntityManagerInterface     $entityManager,
+                         SettingsService            $settingsService,
                          TranslationService         $translation): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
@@ -278,7 +280,7 @@ class PreparationController extends AbstractController
         return $this->render('preparation/show/index.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
-            'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
+            'showTargetLocationPicking' => $settingsService->getValue($entityManager,Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),

@@ -53,8 +53,6 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -259,87 +257,7 @@ class ImportService
         ],
     ];
 
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public ArticleDataService $articleDataService;
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    #[Required]
-    public MouvementStockService $mouvementStockService;
-
-    #[Required]
-    public LoggerInterface $logger;
-
-    #[Required]
-    public ExceptionLoggerService $exceptionLoggerService;
-
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public ReceptionService $receptionService;
-
-    #[Required]
-    public DeliveryRequestService $demandeLivraisonService;
-
-    #[Required]
-    public ArticleFournisseurService $articleFournisseurService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public ReceptionLineService $receptionLineService;
-
-    #[Required]
-    public UserPasswordHasherInterface $encoder;
-
-    #[Required]
-    public CacheService $cacheService;
-
-    #[Required]
-    public FTPService $FTPService;
-
-    #[Required]
-    public ScheduleRuleService $scheduleRuleService;
-    #[Required]
-    public ScheduledTaskService $scheduledTaskService;
-
-    #[Required]
-    public StatusHistoryService $statusHistoryService;
-
-    #[Required]
-    public ProductionRequestService $productionRequestService;
-
-    #[Required]
-    public DispatchService $dispatchService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    private EmplacementDataService $emplacementDataService;
-
     private Import $currentImport;
-    private EntityManagerInterface $entityManager;
 
     private array $importStatistics = [];
 
@@ -347,11 +265,35 @@ class ImportService
 
     private array $entityCache = [];
 
-    public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService)
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private EmplacementDataService $emplacementDataService,
+        private SettingsService $settingService,
+        private Twig_Environment $templating,
+        private ArticleDataService $articleDataService,
+        private RefArticleDataService $refArticleDataService,
+        private MouvementStockService $mouvementStockService,
+        private LoggerInterface $logger,
+        private ExceptionLoggerService $exceptionLoggerService,
+        private AttachmentService $attachmentService,
+        private ReceptionService $receptionService,
+        private DeliveryRequestService $demandeLivraisonService,
+        private ArticleFournisseurService $articleFournisseurService,
+        private UserService $userService,
+        private UniqueNumberService $uniqueNumberService,
+        private TranslationService $translationService,
+        private FormatService $formatService,
+        private LanguageService $languageService,
+        private ReceptionLineService $receptionLineService,
+        private UserPasswordHasherInterface $encoder,
+        private FTPService $FTPService,
+        private ScheduledTaskService $scheduledTaskService,
+        private ProductionRequestService $productionRequestService,
+        private DispatchService $dispatchService,
+        private FreeFieldService $freeFieldService
+    )
     {
-        $this->entityManager = $entityManager;
         $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
-        $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
 
@@ -1760,7 +1702,7 @@ class ImportService
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
 
-        $showTargetLocationPicking = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $showTargetLocationPicking = $this->settingService->getValue($this->entityManager,Setting::DISPLAY_PICKING_LOCATION);
         $targetLocationPicking = null;
         if ($showTargetLocationPicking) {
             if (isset($data['targetLocationPicking'])) {
