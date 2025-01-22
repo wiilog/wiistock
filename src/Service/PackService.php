@@ -211,16 +211,14 @@ class PackService {
         ];
     }
 
-    public function sortByTrackingDelay(Pack $a, Pack $b): int {
-        $timeA = $this->getTrackingDelayRemainingTime($a);
-        $timeB = $this->getTrackingDelayRemainingTime($b);
+    public function sortByTrackingDelay(?int $a, ?int $b): int {
 
-        if($timeA == null){
+        if($a == null){
             return 1;
-        }else if($timeB == null) {
+        }else if($b == null) {
             return -1;
         }
-        return ($timeA <= $timeB) ? -1 : 1;
+        return ($a <= $b) ? -1 : 1;
     }
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement): array {
