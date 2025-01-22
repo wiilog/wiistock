@@ -294,7 +294,7 @@ class TruckArrivalController extends AbstractController
 
         $trackingNumbers = $data->get("trackingNumbers");
         if ($trackingNumbers && $trackingNumbers !== "") {
-            $trackingNumbers = explode(",", $data->get("trackingNumbers") ?? "");
+            $trackingNumbers = explode(",", $trackingNumbers);
             $truckArrivalLineService->checkForInvalidNumber($trackingNumbers, $entityManager);
 
             foreach ($trackingNumbers as $lineNumber) {
