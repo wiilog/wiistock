@@ -57,7 +57,7 @@ class DispatchService {
 
     public function __construct(private Twig_Environment $templating,
                                 private UserService $userService,
-                                private Rout $router,
+                                private RouterInterface $router,
                                 private EntityManagerInterface $entityManager,
                                 private FreeFieldService $freeFieldService,
                                 private TranslationService $translationService,
