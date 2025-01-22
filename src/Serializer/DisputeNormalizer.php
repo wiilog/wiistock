@@ -11,7 +11,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
-use function PHPUnit\Framework\isEmpty;
 
 class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface{
 
@@ -79,7 +78,7 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
         // arrival logistic unit dispute
         if (!$dispute->getPacks()->isEmpty()) {
             foreach ($dispute->getPacks() as $pack) {
-                if (isEmpty($packsContext) || in_array($pack, $packsContext)) {
+                if (empty($packsContext) || in_array($pack, $packsContext)) {
                     $arrival = $pack->getArrivage();
                     $result[] = [
                         ...$common,

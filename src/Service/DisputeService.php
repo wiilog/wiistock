@@ -282,10 +282,10 @@ class DisputeService {
 
     public function putDisputeLine($output,
                                    Dispute $dispute,
-                                   array $context): void {
+                                   array $context = []): void {
         $rows = $this->normalizer->normalize($dispute, null, [
             "usage" => SerializerUsageEnum::CSV_EXPORT,
-            ... $context,
+            ...$context,
         ]);
 
         foreach ($rows as $row) {
