@@ -42,6 +42,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use Symfony\Component\Routing\RouterInterface;
 
 class DispatchService {
 
@@ -56,6 +57,7 @@ class DispatchService {
 
     public function __construct(private Twig_Environment $templating,
                                 private UserService $userService,
+                                private Rout $router,
                                 private EntityManagerInterface $entityManager,
                                 private FreeFieldService $freeFieldService,
                                 private TranslationService $translationService,
@@ -1213,17 +1215,16 @@ class DispatchService {
                                                 Utilisateur            $user): Attachment {
 
         $projectDir = $this->kernel->getProjectDir();
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $waybillTypeToUse = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_TYPE_TO_USE);
+        $waybillTypeToUse = $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_TYPE_TO_USE);
         $waybillTemplatePath = match ($waybillTypeToUse) {
             Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD => (
-                $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
-                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE)
+                $this->settingsService->getValue($entityManager, Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE)
+                ?: $this->settingsService->getValue($entityManager, Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE)
             ),
             Setting::DISPATCH_WAYBILL_TYPE_TO_USE_RUPTURE => (
-                $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
-                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+                $this->settingsService->getValue($entityManager, Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
+                ?: $this->settingsService->getValue($entityManager, Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE)
             )
         };
 
