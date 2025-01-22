@@ -3,6 +3,7 @@
 namespace App\Command\Purge;
 
 use App\Entity\Arrivage;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Tracking\TrackingMovement;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,6 +21,7 @@ class PurgeAllCommand extends Command {
 
     public const DATA_PURGE_THRESHOLD = "years";
     public const PURGE_ITEMS_OLDER_THAN = 2;
+    public const PURGE_IOT_DATA_OLDER_THAN = 1;
 
     public const ARCHIVE_DIR = '/var/data-archiving/';
     public const COMMAND_NAME = 'app:purge:all';
@@ -41,6 +43,7 @@ class PurgeAllCommand extends Command {
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
+        $sensorMessageRepository = $this->entityManager->getRepository(SensorMessage::class);
         $io = new SymfonyStyle($input, $output);
 
         // Calculate the date threshold for archiving
@@ -57,6 +60,11 @@ class PurgeAllCommand extends Command {
                 "commandName" => ArrivalsPurgeCommand::COMMAND_NAME,
                 "count" => fn() => $arrivalRepository->countOlderThan($dateToArchive),
             ],
+            [
+                "entity" => "IOT",
+                "commandName" => IOTDataPurgeCommand::COMMAND_NAME,
+                "count" => fn() => $sensorMessageRepository->countOlderThan($dateToArchive),
+            ]
         ];
 
         foreach ($allPurges as $purgeConfig) {
