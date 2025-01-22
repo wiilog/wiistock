@@ -787,7 +787,12 @@ class ArrivageService {
                 ["code" => FixedFieldStandard::FIELD_CODE_EMERGENCY, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgent', false)],
             ],
             Stream::from($arrivalFields)
-                ->filter(fn(FixedFieldStandard $field) => !in_array($field->getFieldCode(), [FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PROJECT]))
+                ->filter(fn(FixedFieldStandard $field) => !in_array($field->getFieldCode(), [
+                    FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE,
+                    FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE,
+                    FixedFieldStandard::FIELD_CODE_PROJECT,
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+                ]))
                 ->map(fn(FixedFieldStandard $field) => [
                     "code" => $field->getFieldCode(),
                     "label" => match($field->getFieldCode()) {
@@ -837,7 +842,6 @@ class ArrivageService {
     public function generateNewForm(EntityManagerInterface $entityManager, array $fromTruckArrivalOptions = []): array
     {
         if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
@@ -921,7 +925,6 @@ class ArrivageService {
     public function getDefaultDropLocation(EntityManagerInterface $entityManager,
                                            Arrivage               $arrivage,
                                            ?Emplacement           $enteredLocation): ?Emplacement {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $emergenciesArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
