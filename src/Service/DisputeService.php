@@ -5,22 +5,17 @@ namespace App\Service;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
-use App\Entity\ReceiptAssociation;
 use App\Entity\ReceptionReferenceArticle;
+use App\Entity\Tracking\Pack;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
-use App\Repository\DisputeRepository;
 use App\Serializer\SerializerUsageEnum;
 use DateTime;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
-use WiiCommon\Helper\StringHelper;
+
 
 class DisputeService {
 
@@ -31,13 +26,13 @@ class DisputeService {
         private RouterInterface        $router,
         private FormatService          $formatService,
         private Twig_Environment       $templating,
-        private Security               $security,
         private EntityManagerInterface $entityManager,
         private TranslationService     $translation,
         private MailerService          $mailerService,
         private FieldModesService      $fieldModesService,
         private CSVExportService       $CSVExportService,
         private NormalizerInterface    $normalizer,
+        private UserService            $userService,
     ) {}
 
     public function getDataForDatatable($params = null, bool $fromDashboard = false, array $preFilledFilters = []): array {
@@ -45,13 +40,15 @@ class DisputeService {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
+        $user = $this->userService->getUser();
+
         if (!$fromDashboard) {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $user);
         } else {
             $filters = $preFilledFilters;
         }
 
-        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser(), $this->fieldModesService);
+        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $user, $this->fieldModesService);
         $disputes = $queryResult['data'];
 
         $rows = [];
@@ -76,11 +73,11 @@ class DisputeService {
 
         $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
         $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
-        $user = $this->security->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : (Utilisateur::DEFAULT_DATE_FORMAT . ' H:i');
+        $user = $this->userService->getUser();
+        $format = ($user?->getDateFormat() ?: Utilisateur::DEFAULT_DATE_FORMAT) . ' H:i';
 
         $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
-            ? ($this->formatService->datetime($lastHistoryRecordDate, "", false, $this->security->getUser()) . ' : ' . nl2br($lastHistoryRecordComment))
+            ? ($this->formatService->datetime($lastHistoryRecordDate, "", false, $user) . ' : ' . nl2br($lastHistoryRecordComment))
             : '';
 
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
@@ -280,6 +277,9 @@ class DisputeService {
         };
     }
 
+    /**
+     * @param array{packs?: Pack[]} $context
+     */
     public function putDisputeLine($output,
                                    Dispute $dispute,
                                    array $context = []): void {

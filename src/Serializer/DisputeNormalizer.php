@@ -4,6 +4,7 @@ namespace App\Serializer;
 
 use App\Entity\Dispute;
 use App\Entity\DisputeHistoryRecord;
+use App\Entity\Tracking\Pack;
 use App\Service\FormatService;
 use App\Service\PackService;
 use Exception;
@@ -25,6 +26,9 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
         private PackService   $packService,
     ) {}
 
+    /**
+     * @param array{usage: SerializerUsageEnum, packs?: Pack[]} $context
+     */
     public function normalize(mixed $object, string $format = null, array $context = []): array {
         /** @var Dispute $dispute */
         $dispute = $object;
