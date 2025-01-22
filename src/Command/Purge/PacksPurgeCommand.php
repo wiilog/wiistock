@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Serializer\SerializerInterface;
-use WiiCommon\Helper\Stream;
+
 
 #[AsCommand(
     name: PacksPurgeCommand::COMMAND_NAME,
@@ -50,7 +50,6 @@ class PacksPurgeCommand extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
-        $trackingMovementExportableColumnsSorted = $this->trackingMovementService->getTrackingMovementExportableColumnsSorted($this->entityManager);
         $trackingMovementFreeFieldsConfig = $this->freeFieldService->createExportArrayConfig($this->entityManager, [CategorieCL::MVT_TRACA]);
 
         $io = new SymfonyStyle($input, $output);
@@ -68,21 +67,21 @@ class PacksPurgeCommand extends Command {
         $dateToArchive = new DateTime('-' . PurgeAllCommand::PURGE_ITEMS_OLDER_THAN . PurgeAllCommand::DATA_PURGE_THRESHOLD);
         $io->warning(TrackingMovement::class);
 
-        $fileNames = Stream::from([
-            TrackingMovement::class,
-            Pack::class,
-            ReceiptAssociation::class,
-            Dispute::class
-        ])
-            ->keyMap(fn ($entityToArchive) => [
-                $entityToArchive,
-                $this->purgeService->generateDataPurgeFileName($this->purgeService->getEntityName($entityToArchive), $dateToArchive),
-            ])
-            ->toArray();
+        $sortedColumns = [
+            TrackingMovement::class => $this->trackingMovementService->getTrackingMovementExportableColumnsSorted($this->entityManager)
+        ];
 
-        // the file normally should not exist
-        // if the file already exists we keep it and add the new data to it (without deleting the old data, and without rewriting headers)
-        $files = $this->purgeService->createAndOpenPurgeFiles($fileNames, $this->filesystem, $this->absoluteArchiveDirPath, $trackingMovementExportableColumnsSorted);
+        $files = $this->purgeService->createAndOpenPurgeFiles(
+            $dateToArchive,
+            [
+                TrackingMovement::class,
+                Pack::class,
+                ReceiptAssociation::class,
+                Dispute::class
+            ],
+            $this->filesystem,
+            $sortedColumns
+        );
 
         // init progress bar
         $io->progressStart($trackingMovementRepository->countOlderThan($dateToArchive));
@@ -95,7 +94,7 @@ class PacksPurgeCommand extends Command {
             $this->trackingMovementService->putMovementLine(
                 $files[TrackingMovement::class],
                 $this->serializer->normalize($trackingMovement, null, ["usage" => SerializerUsageEnum::CSV_EXPORT]),
-                $trackingMovementExportableColumnsSorted["codes"],
+                $sortedColumns[TrackingMovement::class]["codes"],
                 $trackingMovementFreeFieldsConfig
             );
             // we need to keep the pack to delete it later
