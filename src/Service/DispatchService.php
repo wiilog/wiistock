@@ -809,7 +809,14 @@ class DispatchService {
                     "default-quantity-for-dispatch" => $current->getDefaultQuantityForDispatch(),
                 ])
                 ->toArray();
-
+            $natureOptions = [
+                [
+                    "value" => "",
+                    "label" => "",
+                    "selected" => "",
+                ],
+                ... $natureOptions
+            ];
             $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFixedField::class);
 
             $fieldEntities = $subLineFieldsParamRepository->findBy([

@@ -484,7 +484,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     const table = initDataTable($table, {
         serverSide: false,
         ajax: {
-            type: "GET",
+            type: GET,
             url: Routing.generate('dispatch_editable_logistic_units_api', {dispatch: dispatchId}, true),
         },
         rowConfig: {
@@ -540,6 +540,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                     return;
                 }
 
+                console.log('here')
                 savePackLine(dispatchId, $row);
             });
             if(modifiable) {
@@ -654,9 +655,9 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 $quantity.trigger('focus');
             }
 
-            $row.trigger('focusout.keyboardNavigation');
+            // $row.trigger('focusout.keyboardNavigation');
 
-            if(Form.process($row) instanceof FormData) {
+            if(Form.process($row, {hideErrors: true}) instanceof FormData) {
                 addPackRow(table, $(`.add-pack-row`));
             }
         });
