@@ -33,7 +33,7 @@ class PacksPurgeCommand extends Command {
     private const BATCH_SIZE = 1000;
 
     private FileSystem $filesystem;
-    private string $absoluteArchiveDirPath;
+
 
     public function __construct(
         private EntityManagerInterface  $entityManager,
@@ -44,8 +44,7 @@ class PacksPurgeCommand extends Command {
         KernelInterface                 $kernel,
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->absoluteArchiveDirPath = $kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR;
-        $this->filesystem = new FileSystem($this->absoluteArchiveDirPath);
+        $this->filesystem = new FileSystem($kernel->getProjectDir() . PurgeAllCommand::ARCHIVE_DIR);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -142,27 +141,21 @@ class PacksPurgeCommand extends Command {
         return Command::SUCCESS;
     }
 
+    /**
+     * @param Pack[] $packs
+     */
     private function treatPackAndFLush(array $packs, array $files): void {
-        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
-
         $groups = [];
         foreach ($packs as $pack) {
-            // if the pack does not have any more tracking movement, we can archive it
-            if($pack->getTrackingMovements()->isEmpty() && !$trackingMovementRepository->findOneBy(["packGroup" => $pack]) ) {
-                if ($pack->isBasicUnit()) {
-                    if ($pack->getGroupIteration()) {
-                        $groups[$pack->getId()] ??= $pack;
-                    } else {
-                        $this->purgeService->archivePack($this->entityManager, $pack, $files);
-                    }
-                }
+            if ($pack->getGroupIteration()) {
+                $groups[$pack->getId()] ??= $pack;
+            } else {
+                $this->purgeService->archivePack($this->entityManager, $pack, $files);
             }
         }
 
         foreach ($groups as $group) {
-            if($group->getTrackingMovements()->isEmpty() && $group->getContent()->isEmpty()) {
-                $this->purgeService->archivePack($this->entityManager, $group, $files);
-            }
+            $this->purgeService->archivePack($this->entityManager, $group, $files);
         }
 
         $this->entityManager->flush();

@@ -686,7 +686,9 @@ class TrackingMovementRepository extends EntityRepository
             ->addOrderBy("tracking_movement.pack", Order::Ascending->value)
             ->setParameter("date", $date);
 
-        return $queryBuilder->getQuery()->toIterable();
+        return $queryBuilder
+            ->getQuery()
+            ->toIterable();
     }
 
     /**

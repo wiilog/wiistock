@@ -25,8 +25,6 @@ class PurgeService {
         private FormatService             $formatService,
         private DisputeService            $disputeService,
         private CSVExportService          $csvExportService,
-        private ArrivageService           $arrivalService,
-        private TrackingMovementService   $trackingMovementService,
     ) {}
 
     public function generateDataPurgeFileName(string $entityToArchive, DateTime $dateToArchive): string {
@@ -51,7 +49,21 @@ class PurgeService {
         };
     }
 
-    public function archivePack(EntityManagerInterface $entityManager, Pack $pack, array $files): void {
+    public function archivePack(EntityManagerInterface $entityManager,
+                                Pack                   $pack,
+                                array                  $files): void {
+
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        if ($pack->isBasicUnit()
+            || !$pack->getArrivage()
+            || !$pack->getDispatchPacks()->isEmpty()
+            || !$pack->getChildArticles()->isEmpty()
+            || !$pack->getTrackingMovements()->isEmpty()
+            || !$pack->getContent()->isEmpty()
+            || $trackingMovementRepository->findOneBy(["packGroup" => $pack])) {
+            return;
+        }
+
         foreach ($pack->getReceiptAssociations() as $receiptAssociation) {
             $this->archiveReceiptAssociation($entityManager, $receiptAssociation, $pack, $files);
         }
