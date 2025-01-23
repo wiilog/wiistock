@@ -143,6 +143,7 @@ class PacksPurgeCommand extends Command {
 
     /**
      * @param Pack[] $packs
+     * @param resource[]  $files
      */
     private function treatPackAndFLush(array $packs, array $files): void {
         $groups = [];

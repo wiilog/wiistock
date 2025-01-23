@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping\ManyToMany;
 trait AttachmentTrait {
 
     /**
-     * @return Collection<Attachment>
+     * @var Collection<Attachment>
      */
     #[ManyToMany(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private Collection $attachments;
