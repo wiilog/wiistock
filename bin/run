@@ -24,14 +24,14 @@ function main(): void {
     }
 
     switch ($mode) {
-        // default mode
-        case null:
-            launchCronDaemon();
-            launchSupervisorDaemon();
-            break;
         // mode lite without cron & supervisor
         case 'lite':
+            break;
+
+        // default mode with cron & supervisor
         default:
+            launchCronDaemon();
+            launchSupervisorDaemon();
             break;
     }
 
