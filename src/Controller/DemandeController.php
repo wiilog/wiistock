@@ -71,7 +71,6 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $settingRepository = $entityManager->getRepository(Setting::class);
             $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $demande = $demandeRepository->find($data['id']);
@@ -103,7 +102,7 @@ class DemandeController extends AbstractController
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
-                'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+                'restrictedLocations' => $settingsService->getValue($entityManager,Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             ]));
         }
         throw new BadRequestHttpException();
@@ -257,7 +256,7 @@ class DemandeController extends AbstractController
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
-        $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
+        $receiverEqualRequester = boolval($settingsService->getValue($entityManager,Setting::RECEIVER_EQUALS_REQUESTER));
         $userForModal = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
 
@@ -274,7 +273,7 @@ class DemandeController extends AbstractController
             'defaultReceiver' => $userForModal ? '<option selected value="'.$userForModal->getId().'">'.$userForModal->getUsername().'</option>' : '',
             'defaultTypeId' => $defaultType?->getId(),
             'defaultDeliveryLocations' => $defaultDeliveryLocations,
-            'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+            'restrictedLocations' => $settingsService->getValue($entityManager,Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             'projects' => $projectRepository->findActive(),
         ]);
     }

@@ -30,6 +30,7 @@ use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
+use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
@@ -355,6 +356,8 @@ class LivraisonController extends AbstractController {
     #[Route("/{deliveryOrder}/api-delivery-note", name: "api_delivery_note_livraison", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     public function apiDeliveryNote(Request                $request,
                                     EntityManagerInterface $manager,
+                                    EntityManagerInterface $entityManager,
+                                    SettingsService        $settingsService,
                                     Livraison              $deliveryOrder): JsonResponse
     {
         /** @var Utilisateur $loggedUser */
@@ -375,9 +378,9 @@ class LivraisonController extends AbstractController {
         $defaultData = [
             'deliveryNumber' => $deliveryOrder->getNumero(),
             'username' => $loggedUser->getUsername(),
-            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'consignor2' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'userPhone' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
+            'consignor' =>  $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'consignor2' =>  $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'userPhone' =>  $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
         ];
 
         $deliveryNoteData = array_reduce(
@@ -464,9 +467,7 @@ class LivraisonController extends AbstractController {
 
         $entityManager->flush();
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
         // TODO WIIS-8882
-        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
         $client = $specificService->getAppClientLabel();
 
@@ -495,12 +496,13 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    #[Route("/{deliveryOrder}/delivery-note/{attachment}", name: "print_delivery_note_delivery_order", options: ["expose" => true], methods: "GET")]
+    #[Route("/{deliveryOrder}/delivery-note/{attachment}", name: "print_delivery_note_delivery_order", options: ["expose" => true], methods: [self::GET])]
     public function printDeliveryNote(EntityManagerInterface    $entityManager,
                                       Livraison                 $deliveryOrder,
                                       PDFGeneratorService       $pdfService,
                                       SpecificService           $specificService,
                                       TranslationService        $translation,
+                                      SettingsService           $settingsService,
                                       AttachmentService $attachmentService): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
@@ -509,8 +511,7 @@ class LivraisonController extends AbstractController {
             ]);
         }
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
+        $logo = $settingsService->getValue($entityManager, Setting::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
         $client = $specificService->getAppClientLabel();
@@ -547,9 +548,10 @@ class LivraisonController extends AbstractController {
         }
     }
 
-    #[Route("/{deliveryOrder}/api-waybill", name: "api_delivery_waybill", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{deliveryOrder}/api-waybill", name: "api_delivery_waybill", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     public function apiDeliveryWaybill(Request                $request,
                                        EntityManagerInterface $entityManager,
+                                       SettingsService        $settingsService,
                                        Livraison              $deliveryOrder): JsonResponse
     {
 
@@ -563,23 +565,23 @@ class LivraisonController extends AbstractController {
 
         $now = new DateTime('now');
 
-        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_NAME);
         $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
             ? $consignorUsername
             : null;
 
-        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
         $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
             ? $consignorEmail
             :  null;
 
         $defaultData = [
-            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
+            'carrier' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
-            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
-            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
-            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignor' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
             'receiverUsername' => null,

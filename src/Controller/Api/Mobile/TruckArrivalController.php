@@ -16,10 +16,12 @@ use App\Entity\TruckArrivalLine;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\ReserveService;
+use App\Service\SettingsService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,10 +32,9 @@ class TruckArrivalController extends AbstractController {
 
     #[Route("/get-truck-arrival-default-unloading-location", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
-    public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager): Response
+    public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager, SettingsService $settingsService): JsonResponse
     {
-        $settingRepository = $manager->getRepository(Setting::class);
-        $truckArrivalDefaultUnloadingLocation = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+        $truckArrivalDefaultUnloadingLocation = $settingsService->getValue($manager,Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
 
         return $this->json($truckArrivalDefaultUnloadingLocation);
     }

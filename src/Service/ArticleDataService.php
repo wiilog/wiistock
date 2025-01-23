@@ -528,8 +528,8 @@ class ArticleDataService
 
             $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-            $this->clWantedOnLabel = (bool) $settingRepository->getOneParamByLabel(Setting::CL_USED_IN_LABELS);
-            $this->wantCLOnLabel = (bool) $settingRepository->getOneParamByLabel(Setting::INCLUDE_BL_IN_LABEL);
+            $this->clWantedOnLabel = (bool) $this->settingsService->getValue($this->entityManager,Setting::CL_USED_IN_LABELS);
+            $this->wantCLOnLabel = (bool) $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_BL_IN_LABEL);
 
             if (isset($this->clWantedOnLabel)) {
                 $champLibre = $champLibreRepository->findOneBy([
@@ -554,9 +554,9 @@ class ArticleDataService
         $expirationDateArticle = $this->formatService->date($article->getExpiryDate());
         $stockEntryDateArticle = $this->formatService->date($article->getStockEntryDate());
 
-        $wantsRecipient = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
-        $wantsRecipientDropzone = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
-        $wantDestinationLocation = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+        $wantsRecipient = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+        $wantsRecipientDropzone = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+        $wantDestinationLocation = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
 
         // Récupération du username & dropzone de l'utilisateur
         $articleReception = $article->getReceptionReferenceArticle()?->getReceptionLine()?->getReception() ?: null;
@@ -614,10 +614,10 @@ class ArticleDataService
         ];
 
         if(!$fromKiosk){
-            $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
-            $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
-            $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
-            $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+            $includeQuantity = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_QTT_IN_LABEL);
+            $includeBatch = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $includeExpirationDate = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $includeStockEntryDate = $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
             if ($includeBatch && $batchArticle) {
                 $labels[] = "N° lot : $batchArticle";
             }

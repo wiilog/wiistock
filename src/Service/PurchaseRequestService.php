@@ -15,8 +15,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\EmplacementRepository;
-use App\Repository\SettingRepository;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
@@ -75,6 +73,10 @@ class PurchaseRequestService
 
     #[Required]
     public TranslationService $translation;
+
+    public function __construct(private SettingsService $settingService)
+    {
+    }
 
     public function getDataForDatatable($params = null): array {
         $filters = $this->entityManager->getRepository(FiltreSup::class)
@@ -314,10 +316,9 @@ class PurchaseRequestService
     public function getPurchaseRequestOrderData(EntityManagerInterface  $entityManager,
                                                 PurchaseRequest         $purchaseRequest): Attachment {
         $projectDir = $this->kernel->getProjectDir();
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $reportTemplatePath = (
-        $settingRepository->getOneParamByLabel(Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE)
-            ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE)
+        $this->settingService->getValue($this->entityManager, Setting::CUSTOM_PURCHASE_ORDER_TEMPLATE)
+            ?: $this->settingService->getValue($this->entityManager, Setting::DEFAULT_PURCHASE_ORDER_TEMPLATE)
         );
 
         $nowDate = new DateTime("now");
@@ -401,12 +402,11 @@ class PurchaseRequestService
      * @return void
      */
     public function persistAutomaticReceptionWithStatus(EntityManagerInterface $entityManager, PurchaseRequest $purchaseRequest) :void {
-            $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
 
             $receptionsWithCommand = [];
 
-            $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+            $defaultLocationReceptionSetting = $this->settingService->getValue($this->entityManager,Setting::DEFAULT_LOCATION_RECEPTION);
 
             // To disable error in persistReception we check if default location setting is valid
             $defaultLocationReception = $defaultLocationReceptionSetting

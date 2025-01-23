@@ -225,7 +225,7 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
-            'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
+            'preFill' => $this->settingsService->getValue($entityManager, Setting::PREFILL_DUE_DATE_TODAY),
             'types' => $types,
             'notTreatedStatus' => $notTreatedStatus,
             'packs' => $packs,
@@ -741,9 +741,8 @@ class DispatchService {
                             bool $autofocus,
                             bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
-            $settingRepository = $this->entityManager->getRepository(Setting::class);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
-            $this->prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $this->prefixPackCodeWithDispatchNumber = $this->settingsService->getValue($this->entityManager, Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $this->natures = $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]);
             $this->defaultNature = $natureRepository->findOneBy(["defaultNature" => true]);
 
@@ -1161,11 +1160,10 @@ class DispatchService {
     }
 
     public function getOverconsumptionBillData(Dispatch $dispatch): array {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
         $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
-        $overConsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
+        $appLogo = $this->settingsService->getValue($this->entityManager, Setting::LABEL_LOGO);
+        $overConsumptionLogo = $this->settingsService->getValue($this->entityManager, Setting::FILE_OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_BARBECUE)) {
@@ -1214,9 +1212,8 @@ class DispatchService {
     }
 
     public function getDeliveryNoteData(Dispatch $dispatch): array {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
         // TODO WIIS-8882
-        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
+        $logo = $this->settingsService->getValue($this->entityManager, Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
         $client = $this->specificService->getAppClientLabel();
 
@@ -1482,8 +1479,8 @@ class DispatchService {
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $reportTemplatePath = (
-            $settingRepository->getOneParamByLabel(Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE)
-                ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE)
+            $this->settingsService->getValue($entityManager, Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE)
+                ?: $this->settingsService->getValue($entityManager, Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE)
         );
 
         $referenceArticlesStream = Stream::from($dispatch->getDispatchPacks())
@@ -1798,7 +1795,7 @@ class DispatchService {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $dispatchSavedLDV = $settingRepository->getOneParamByLabel(Setting::DISPATCH_SAVE_LDV);
+        $dispatchSavedLDV = $this->settingsService->getValue($entityManager, Setting::DISPATCH_SAVE_LDV);
         $userSavedData = $dispatchSavedLDV ? [] : $user->getSavedDispatchWaybillData();
         $dispatchSavedData = $dispatch?->getWaybillData();
 
@@ -1806,23 +1803,23 @@ class DispatchService {
 
         $isOmelette = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_OMELETTE);
 
-        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_NAME);
         $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
             ? $consignorUsername
             : ($isOmelette ? $user->getUsername() : null);
 
-        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
         $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
             ? $consignorEmail
             : ($isOmelette ? $user->getEmail() : null);
 
         $defaultData = [
-            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
+            'carrier' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
-            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
-            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
-            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignor' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $this->settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
             'receiverUsername' => $isOmelette ? $user->getUsername() : null,
@@ -1856,9 +1853,9 @@ class DispatchService {
         $reference = ($createdReferences[$data['reference']] ?? null)
             ?: $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
         if(!$reference) {
-            $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
-            $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
-            $dispatchNewReferenceQuantityManagement = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
+            $dispatchNewReferenceType = $this->settingsService->getValue($entityManager, Setting::DISPATCH_NEW_REFERENCE_TYPE);
+            $dispatchNewReferenceStatus = $this->settingsService->getValue($entityManager, Setting::DISPATCH_NEW_REFERENCE_STATUS);
+            $dispatchNewReferenceQuantityManagement = $this->settingsService->getValue($entityManager, Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
 
             if($dispatchNewReferenceType === null) {
                 throw new FormException("Vous n'avez pas paramétré de type par défaut pour la création de références.");
@@ -2177,7 +2174,7 @@ class DispatchService {
         $now = new DateTime();
         $dispatch = new Dispatch();
 
-        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        $numberFormat = $this->settingsService->getValue($entityManager, Setting::DISPATCH_NUMBER_FORMAT);
         if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new ImportException("Le format de numéro d'acheminement n'est pas valide.");
         }

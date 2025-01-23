@@ -61,8 +61,10 @@ class HandlingService {
     #[Required]
     public LanguageService $languageService;
 
-    #[Required]
-    public SettingsService $settingsService;
+
+    public function __construct(private SettingsService $settingsService)
+    {
+    }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request): array
     {
@@ -313,13 +315,8 @@ class HandlingService {
                                                            $output,
                                     Handling               $handling,
                                     FormatService          $formatService) {
-        $statusR =
-            //                    $treatmentDelay = $handling['treatmentDelay'];
-            //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
-            //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $includeDesiredTime = !$this->settingService->getValue($entityManager,Setting::REMOVE_HOURS_DATETIME);
         $user = $this->userService->getUser();
         $receiversStr = Stream::from($handling->getReceivers())
             ->map(fn(Utilisateur $receiver) => $formatService->user($receiver))

@@ -40,10 +40,11 @@ class MobileApiService {
     public AlertService $alertService;
 
     #[Required]
-    public SettingsService $settingsService;
-
-    #[Required]
     public RefArticleDataService $refArticleDataService;
+
+    public function __construct(private SettingsService $settingsService)
+    {
+    }
 
     const MOBILE_TRANSLATIONS = [
         "Acheminements",
@@ -309,7 +310,7 @@ class MobileApiService {
 
         $this->refArticleDataService->updateRefArticleQuantities($entityManager, $referenceArticlesToUpdate);
 
-        $expiryDelay = $settingRepository->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
+        $expiryDelay = $this->settingsService->getValue($entityManager, Setting::STOCK_EXPIRATION_DELAY) ?: 0;
         foreach ($referenceArticlesToUpdate as $reference) {
             $this->refArticleDataService->treatAlert($entityManager, $reference);
         }

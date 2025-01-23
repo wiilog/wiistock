@@ -1024,6 +1024,7 @@ class SettingsController extends AbstractController {
 
     #[Route('/afficher/{category}/{menu}/{submenu}', name: 'settings_item', options: ['expose' => true])]
     public function item(EntityManagerInterface $entityManager,
+                         SettingsService $settingsService,
                          string $category,
                          ?string $menu = null,
                          ?string $submenu = null): Response {
@@ -1058,15 +1059,15 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
-            "values" => $this->customValues($entityManager),
+            "values" => $this->customValues($entityManager, $settingsService),
         ]);
     }
 
-    private function smartWorkflowEndingMotives(SettingRepository $settingRepository): array {
+    private function smartWorkflowEndingMotives(SettingsService $settingsService, EntityManagerInterface $entityManager): array {
         $smartItems = [];
 
-        $items = explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES));
-        $values = explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE));
+        $items = explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES));
+        $values = explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE));
 
         foreach ($items as $item) {
             $smartItems[$item] = [
@@ -1096,7 +1097,7 @@ class SettingsController extends AbstractController {
         return $types;
     }
 
-    public function customValues(EntityManagerInterface $entityManager): array {
+    public function customValues(EntityManagerInterface $entityManager, SettingsService $settingsService): array {
         $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationsRepository = $entityManager->getRepository(Emplacement::class);
@@ -1250,12 +1251,12 @@ class SettingsController extends AbstractController {
                     self::MENU_PURCHASE_STATUSES => fn() => [
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
                     ],
-                    self::MENU_SHIPPING => function() use ($settingRepository, $roleRepository) {
-                        $toTreatRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES)
-                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
+                    self::MENU_SHIPPING => function() use ($entityManager, $settingsService, $settingRepository, $roleRepository) {
+                        $toTreatRoleIds = $settingsService->getValue($entityManager,Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES)
+                            ? explode(',', $settingsService->getValue($entityManager,Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
                             : null;
-                        $shippedRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES)
-                            ? explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
+                        $shippedRoleIds = $settingsService->getValue($entityManager,Setting::SHIPPING_SHIPPED_SEND_TO_ROLES)
+                            ? explode(',', $settingsService->getValue($entityManager,Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
                             : null;
 
                         return [
@@ -1548,8 +1549,8 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_PRODUCTION => [
                 self::MENU_FULL_SETTINGS => [
-                    self::MENU_CONFIGURATIONS => function() use ($settingRepository, $userRepository, $fixedFieldByTypeRepository) {
-                        $notificationEmailUsers = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
+                    self::MENU_CONFIGURATIONS => function() use ($settingsService, $entityManager, $settingRepository, $userRepository, $fixedFieldByTypeRepository) {
+                        $notificationEmailUsers = $settingsService->getValue($entityManager,Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
                         $users = $notificationEmailUsers
                             ? $userRepository->findBy(["id" => explode(",", $notificationEmailUsers)])
                             : [];
@@ -1615,7 +1616,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_TRACKING => [
                 self::MENU_ROUNDS => fn() => [
                     "packRejectMotives" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1626,7 +1627,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     "deliveryRejectMotives" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1637,7 +1638,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     "collectRejectMotives" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1647,9 +1648,9 @@ class SettingsController extends AbstractController {
                                 ],
                             ])
                             ->toArray(),
-                    "collectWorkflowEndingMotives" => $this->smartWorkflowEndingMotives($settingRepository),
+                    "collectWorkflowEndingMotives" => $this->smartWorkflowEndingMotives($settingRepository, $entityManager),
                     "transportRoundEndLocations" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager, Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1660,7 +1661,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     "transportRoundCollectedPacksLocations" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1671,7 +1672,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     "transportRoundRejectedPacksLocations" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1682,7 +1683,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     "transportRoundNeededNaturesToDrop" =>
-                        Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP)))
+                        Stream::from(explode(',', $settingsService->getValue($entityManager, Setting::TRANSPORT_ROUND_NEEDED_NATURES_TO_DROP)))
                             ->filter(fn(string $value) => $value)
                             ->keymap(fn(string $value) => [
                                 $value, [
@@ -1708,7 +1709,7 @@ class SettingsController extends AbstractController {
                 self::MENU_TRANSPORT_REQUESTS => [
                     self::MENU_CONFIGURATIONS => fn() => [
                         "transportDeliveryRequestEmergencies" =>
-                            Stream::from(explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
+                            Stream::from(explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_DELIVERY_REQUEST_EMERGENCIES)))
                                 ->filter(fn(string $value) => $value)
                                 ->keymap(fn(string $value) => [
                                     $value, [
@@ -1719,7 +1720,7 @@ class SettingsController extends AbstractController {
                                 ])
                                 ->toArray(),
                         "receiversEmails" =>
-                            Stream::from($userRepository->findBy(['id' => explode(',', $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL))]))
+                            Stream::from($userRepository->findBy(['id' => explode(',', $settingsService->getValue($entityManager,Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL))]))
                                 ->map(fn(Utilisateur $user) => [
                                     "value" => $user->getId(),
                                     "label" => $user->getUsername(),

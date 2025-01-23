@@ -88,6 +88,11 @@ class ReferenceArticleController extends AbstractController
     #[Required]
     public SpecificService $specificService;
 
+
+    public function __construct(private SettingsService $settingsService)
+    {
+    }
+
     #[Route('/api-columns', name: 'ref_article_api_columns', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function apiColumns(RefArticleDataService $refArticleDataService,
@@ -882,11 +887,11 @@ class ReferenceArticleController extends AbstractController
         $shippingSettingsDefaultValues = [];
         if($request->query->has('shipping')){
             $shippingSettingsDefaultValues = [
-                'type' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
-                'supplier' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE)) : null,
-                'supplierCode' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE)) : null,
-                'refArticleSupplierEqualsReference' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
-                'articleSupplierLabelEqualsReferenceLabel' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
+                'type' => $this->settingsService->getValue($entityManager, Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
+                'supplier' => $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE) ? $supplierRepository->find( $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE)) : null,
+                'supplierCode' => $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE) ? $supplierRepository->find( $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE)) : null,
+                'refArticleSupplierEqualsReference' => boolval($this->settingsService->getValue($entityManager, Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
+                'articleSupplierLabelEqualsReferenceLabel' => boolval($this->settingsService->getValue($entityManager, Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
             ];
         }
 
@@ -989,16 +994,15 @@ class ReferenceArticleController extends AbstractController
 
         // repositories
         $refArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
-        $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
-        $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
+        $type = $typeRepository->find($this->settingsService->getValue($entityManager, Setting::TYPE_REFERENCE_CREATE));
+        $articleSuccessMessage = $this->settingsService->getValue($entityManager, Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
+        $referenceSuccessMessage = $this->settingsService->getValue($entityManager, Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
 
         $applicant = $userRepository->find($data->get('applicant'));
         $follower = $userRepository->find($data->get('follower'));
@@ -1006,7 +1010,7 @@ class ReferenceArticleController extends AbstractController
         $referenceExist = $data->has('article') && $reference;
 
         if (!$reference) {
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
+            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $this->settingsService->getValue($entityManager, Setting::STATUT_REFERENCE_CREATE));
 
             $reference = (new ReferenceArticle())
                 ->setReference($data->get('reference'))
@@ -1029,18 +1033,18 @@ class ReferenceArticleController extends AbstractController
             $reference->addManager($follower);
         }
 
-        if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
-            $visibilityGroup = $visibilityGroupRepository->find($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
+        if($this->settingsService->getValue($entityManager, Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
+            $visibilityGroup = $visibilityGroupRepository->find($this->settingsService->getValue($entityManager, Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
             $reference->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
-        if($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
-            $inventoryCategory = $inventoryCategoryRepository->find($settingRepository->getOneParamByLabel(Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
+        if($this->settingsService->getValue($entityManager, Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
+            $inventoryCategory = $inventoryCategoryRepository->find($this->settingsService->getValue($entityManager, Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
             $reference->setCategory($inventoryCategory);
         }
 
         $entityManager->persist($reference);
         if(!$referenceExist) {
-            $provider = $entityManager->getRepository(Fournisseur::class)->find($settingRepository->getOneParamByLabel(Setting::FOURNISSEUR_REFERENCE_CREATE));
+            $provider = $entityManager->getRepository(Fournisseur::class)->find($this->settingsService->getValue($entityManager, Setting::FOURNISSEUR_REFERENCE_CREATE));
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
                 'fournisseur' => $provider,
                 'article-reference' => $reference,

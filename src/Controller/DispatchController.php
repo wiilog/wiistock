@@ -246,18 +246,19 @@ class DispatchController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    #[Route("/creer", name: "dispatch_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/creer", name: "dispatch_new", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::CREATE_ACHE])]
     public function new(Request                  $request,
                         FreeFieldService         $freeFieldService,
                         DispatchService          $dispatchService,
                         AttachmentService        $attachmentService,
                         EntityManagerInterface   $entityManager,
+                        SettingsService          $settingsService,
                         TranslationService       $translationService,
                         UniqueNumberService      $uniqueNumberService,
                         RedirectService          $redirectService,
                         StatusHistoryService     $statusHistoryService,
-                        ProductionRequestService $productionRequestService): Response {
+                        ProductionRequestService $productionRequestService): JsonResponse {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -306,7 +307,7 @@ class DispatchController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $preFill = $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY);
+        $preFill = $settingsService->getValue($entityManager,Setting::PREFILL_DUE_DATE_TODAY);
         $printDeliveryNote = $request->query->get('printDeliveryNote');
 
         $dispatch = new Dispatch();
@@ -375,7 +376,7 @@ class DispatchController extends AbstractController {
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
-        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        $numberFormat = $settingsService->getValue($entityManager,Setting::DISPATCH_NUMBER_FORMAT);
         if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }
@@ -497,10 +498,10 @@ class DispatchController extends AbstractController {
                          Request                $request,
                          EntityManagerInterface $entityManager,
                          DispatchService        $dispatchService,
+                         SettingsService        $settingsService,
                          UserService            $userService,
                          RefArticleDataService  $refArticleDataService): Response {
 
-        $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
@@ -560,7 +561,7 @@ class DispatchController extends AbstractController {
             ],
             'hasRightToRollbackDraft' => $hasRightToRollbackDraft,
             'printBL' => $printBL,
-            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
+            'prefixPackCodeWithDispatchNumber' => $settingsService->getValue($entityManager,Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
@@ -954,6 +955,7 @@ class DispatchController extends AbstractController {
     public function newPack(Request                $request,
                             TranslationService     $translationService,
                             EntityManagerInterface $entityManager,
+                            SettingsService        $settingsService,
                             PackService            $packService,
                             DispatchService        $dispatchService,
                             Dispatch               $dispatch): Response
@@ -992,9 +994,8 @@ class DispatchController extends AbstractController {
             throw new FormException("La nature n'est pas autorisée pour ce type d'acheminement.");
         }
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+        $prefixPackCodeWithDispatchNumber = $settingsService->getValue($entityManager,Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
         if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber()) && !$existing) {
             $packCode = "{$dispatch->getNumber()}-$noPrefixPackCode";
         } else {
@@ -1016,7 +1017,7 @@ class DispatchController extends AbstractController {
                 });
         }
 
-        $packMustBeNew = $settingRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
+        $packMustBeNew = $settingsService->getValue($entityManager,Setting::PACK_MUST_BE_NEW);
         if($packMustBeNew && isset($pack)) {
             $isNotInDispatch = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
@@ -1095,6 +1096,7 @@ class DispatchController extends AbstractController {
     public function validateDispatchRequest(Request                 $request,
                                             EntityManagerInterface  $entityManager,
                                             Dispatch                $dispatch,
+                                            SettingsService         $settingsService,
                                             TranslationService      $translationService,
                                             DispatchService         $dispatchService,
                                             NotificationService     $notificationService,
@@ -1135,9 +1137,9 @@ class DispatchController extends AbstractController {
                         "initiatedBy" => $user
                     ]);
 
-                    $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
+                    $automaticallyCreateMovementOnValidation = (bool) $settingsService->getValue($entityManager,Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
                     if ($automaticallyCreateMovementOnValidation) {
-                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
+                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingsService->getValue($entityManager,Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
                         if(in_array($dispatch->getType()->getId(), $automaticallyCreateMovementOnValidationTypes)) {
                             foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
                                 $pack = $dispatchPack->getPack();

@@ -29,6 +29,7 @@ class UrgenceService
     public FormatService $formatService;
 
     public function __construct(EntityManagerInterface $entityManager,
+                                private SettingsService $settingService,
                                 Twig_Environment $templating,
 								Security $security)
     {
@@ -150,9 +151,7 @@ class UrgenceService
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
         if(!isset($this->__arrival_emergency_fields)) {
-            $arrivalEmergencyFields = $this->entityManager
-                ->getRepository(Setting::class)
-                ->getOneParamByLabel(Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+            $arrivalEmergencyFields = $this->settingService->getValue($this->entityManager, Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
             $this->__arrival_emergency_fields = $arrivalEmergencyFields ? explode(',', $arrivalEmergencyFields) : [];
         }
 

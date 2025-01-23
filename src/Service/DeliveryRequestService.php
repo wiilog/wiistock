@@ -50,9 +50,6 @@ class DeliveryRequestService
     public RouterInterface $router;
 
     #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
     public StringService $stringService;
 
     #[Required]
@@ -103,12 +100,14 @@ class DeliveryRequestService
     #[Required]
     public ArticleDataService $articleDataService;
 
-    #[Required]
-    public SettingsService $settingsService;
-
     private ?array $freeFieldsConfig = null;
 
     private array $cache = [];
+
+    public function __construct(private SettingsService $settingsService,
+                                private EntityManagerInterface $entityManager)
+    {
+    }
 
     public function getDataForDatatable(ParameterBag $params,
                                         ?string $statusFilter,
@@ -914,9 +913,8 @@ class DeliveryRequestService
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+        $defaultLocationReceptionSetting = $this->settingsService->getValue($entityManager, Setting::DEFAULT_LOCATION_RECEPTION);
         $defaultLocationReception = $defaultLocationReceptionSetting
             ? $locationRepository->find($defaultLocationReceptionSetting)
             : null;
@@ -981,14 +979,13 @@ class DeliveryRequestService
         }
 
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
         $isProjectDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
         $isProjectRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
         $isCommentDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
         $isNotesDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
         $isNotesRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
-        $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $isTargetLocationPickingDisplayed = $this->settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION);
         $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
         $columns = [
@@ -1152,7 +1149,7 @@ class DeliveryRequestService
                     : str_replace(
                         "@Destinataire",
                         $this->formatService->user($deliveryRequest->getReceiver()),
-                        $this->cache[Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT] ?? $settingRepository->getOneParamByLabel(Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT)))
+                        $this->cache[Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT] ?? $this->settingsService->getValue($entityManager, Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT)))
                 .'</div>',
             "notes" => $this->formService->macro("textarea", "notes", null, $isCommentRequired, $line?->getNotes(), [
                 "type" => "text",
@@ -1183,7 +1180,7 @@ class DeliveryRequestService
         $emptyCommentSetting = $project ? Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT : Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT;
         if (!($emptyComment = $this->cache[$emptyCommentSetting] ?? null)) {
             $settingRepository = $this->entityManager->getRepository(Setting::class);
-            $emptyComment = $settingRepository->getOneParamByLabel($emptyCommentSetting);
+            $emptyComment = $this->settingsService->getValue($this->entityManager, $emptyCommentSetting);
             $this->cache[$emptyCommentSetting] = $emptyComment;
         }
         if ($project) {
