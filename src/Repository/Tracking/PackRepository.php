@@ -14,6 +14,8 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -141,7 +143,12 @@ class PackRepository extends EntityRepository
         }
 
         $queryBuilder
-            ->addSelect("COUNT_OVER(contained_pack.id) AS __query_count");
+            ->addSelect("COUNT_OVER(contained_pack.id) AS __query_count")
+            ->leftJoin("contained_pack.trackingDelay", "tracking_delay")
+            // We put logistic units without limit treatment date at the end
+            // That is to say we put logistic unit without tracking delay or with a paused tracking delay at the end
+            ->orderBy("CASE WHEN tracking_delay.limitTreatmentDate IS NULL THEN 1 ELSE 0 END", Order::Ascending->value)
+            ->addOrderBy("tracking_delay.limitTreatmentDate", Order::Ascending->value);
 
         if ($params->getInt('start')) {
             $queryBuilder->setFirstResult($params->getInt('start'));

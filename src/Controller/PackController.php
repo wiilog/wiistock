@@ -328,7 +328,7 @@ class PackController extends AbstractController {
                             "pack" => $pack,
                             "trackingDelay" => $trackingDelay["delayHTMLRaw"] ?? null,
                             "itemBgColor" => $itemColor,
-                        ])
+                        ]),
                     ];
                 })
                 ->toArray(),
