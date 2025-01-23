@@ -983,7 +983,7 @@ class DispatchService {
                             ],
                             [
                                 'name' => 'data-global-error',
-                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+                                'value' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)', false)
                             ],
                         ],
                     ]),
@@ -1008,7 +1008,7 @@ class DispatchService {
                             ],
                             [
                                 'name' => 'data-global-error',
-                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
+                                'value' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)', false)
                             ],
                         ],
                     ]),
@@ -1033,7 +1033,7 @@ class DispatchService {
                             ],
                             [
                                 'name' => 'data-global-error',
-                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
+                                'value' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)', false)
                             ],
                         ],
                     ]),
