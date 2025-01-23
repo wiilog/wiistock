@@ -3,6 +3,7 @@
 namespace App\Command\Purge;
 
 use App\Entity\Arrivage;
+use App\Entity\ReceiptAssociation;
 use App\Entity\Tracking\TrackingMovement;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,6 +42,7 @@ class PurgeAllCommand extends Command {
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
+        $receiptAssociationRepository = $this->entityManager->getRepository(ReceiptAssociation::class);
         $io = new SymfonyStyle($input, $output);
 
         // Calculate the date threshold for archiving
@@ -56,6 +58,11 @@ class PurgeAllCommand extends Command {
                 "entity" => "Arrivals",
                 "commandName" => ArrivalsPurgeCommand::COMMAND_NAME,
                 "count" => fn() => $arrivalRepository->countOlderThan($dateToArchive),
+            ],
+            [
+                "entity" => "ReceiptAssociation",
+                "commandName" => ReceiptAssociationsPurgeCommand::COMMAND_NAME,
+                "count" => fn() => $receiptAssociationRepository->countOlderThan($dateToArchive),
             ],
         ];
 
