@@ -1745,8 +1745,7 @@ class TrackingMovementService {
     }
 
     public function treatGroupDrop(EntityManagerInterface $entityManager, Pack $pack, TrackingMovement $tracking): void {
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $autoUngroup = (bool) $this->settingService->getValue($entityManager,Setting::AUTO_UNGROUP);
+        $autoUngroup = (bool) $this->settingsService->getValue($entityManager,Setting::AUTO_UNGROUP);
 
         if (!$autoUngroup
             || !$tracking->isDrop()
@@ -1756,7 +1755,7 @@ class TrackingMovementService {
             return;
         }
 
-        $autoUngroupTypes = Stream::explode(',', $this->settingService->getValue($entityManager,Setting::AUTO_UNGROUP_TYPES) ?: '')
+        $autoUngroupTypes = Stream::explode(',', $this->settingsService->getValue($entityManager,Setting::AUTO_UNGROUP_TYPES) ?: '')
                 ->filter(fn(string $type) => !empty($type))
                 ->map(fn(string $type) => (int) $type)
                 ->toArray();

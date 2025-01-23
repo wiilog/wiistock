@@ -52,7 +52,6 @@ use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
-use App\Repository\SettingRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
@@ -1648,7 +1647,7 @@ class SettingsController extends AbstractController {
                                 ],
                             ])
                             ->toArray(),
-                    "collectWorkflowEndingMotives" => $this->smartWorkflowEndingMotives($settingRepository, $entityManager),
+                    "collectWorkflowEndingMotives" => $this->smartWorkflowEndingMotives($settingsService, $entityManager),
                     "transportRoundEndLocations" =>
                         Stream::from(explode(',', $settingsService->getValue($entityManager, Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS)))
                             ->filter(fn(string $value) => $value)
