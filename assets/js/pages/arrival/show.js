@@ -278,6 +278,7 @@ function initDisputeModals(arrivalId, disputeDatatable) {
         .create($modalEditLitige, {clearOnOpen: true})
         .addProcessor((data) => {
             data.append('reloadArrivage', arrivalId);
+            data.append('comment', $modalEditLitige.find('[name="comment"]').val());
         })
         .onOpen((event) => {
             const disputeId = $(event.relatedTarget).data('dispute');
