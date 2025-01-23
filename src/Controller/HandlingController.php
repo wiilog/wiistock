@@ -22,19 +22,17 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\DateTimeService;
-use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\HandlingService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -50,20 +48,19 @@ use WiiCommon\Helper\Stream;
 #[Route('/services')]
 class HandlingController extends AbstractController {
 
-    #[Route("/", name: "handling_index", options: ["expose" => true], methods: "GET")]
+    #[Route("/", name: "handling_index", options: ["expose" => true], methods: [self::GET])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_HAND])]
     public function index(EntityManagerInterface $entityManager,
                           Request                $request,
                           StatusService          $statusService,
                           HandlingService        $handlingService,
                           TranslationService     $translationService,
+                          SettingsService        $settingsService,
                           LanguageService        $languageService): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $user = $this->getUser();
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING], 'ASC', [
@@ -147,7 +144,7 @@ class HandlingController extends AbstractController {
                     ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
-                'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_SERVICE_DATE_TODAY),
+                'preFill' =>  $settingsService->getValue($entityManager, Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
             "typesFilter" => $typesFilter,
             "fromDashboard" => $fromDashboard,
@@ -192,7 +189,7 @@ class HandlingController extends AbstractController {
         return new JsonResponse($users);
     }
 
-    #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/creer", name: "handling_new", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         Request $request,
@@ -202,13 +199,12 @@ class HandlingController extends AbstractController {
                         TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
-                        ExceptionLoggerService $exceptionLoggerService,
+                        SettingsService $settingsService,
                         StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $post = $request->request;
 
@@ -299,7 +295,7 @@ class HandlingController extends AbstractController {
                 ]);
             }
         }
-        $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $viewHoursOnExpectedDate = !$settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
         $number = '<strong>' . $handling->getNumber() . '</strong>';
@@ -591,14 +587,14 @@ class HandlingController extends AbstractController {
         ]);
     }
 
-    #[Route("/edit-statut", name: "handling_status_edit", options: ['expose' => true], methods: "POST")]
+    #[Route("/edit-statut", name: "handling_status_edit", options: ['expose' => true], methods: [self::POST])]
     public function editStatut(Request $request,
                                EntityManagerInterface $entityManager,
                                StatusHistoryService $statusHistoryService,
+                               SettingsService $settingsService,
                                HandlingService $handlingService): JsonResponse {
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $request = json_decode($request->getContent(), true);
         $status = $statutRepository->find($request['statut']);
@@ -617,7 +613,7 @@ class HandlingController extends AbstractController {
         $entityManager->persist($handling);
         $entityManager->flush();
 
-        $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+        $viewHoursOnExpectedDate = !$settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
 
         return $this->json([

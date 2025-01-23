@@ -30,6 +30,7 @@ use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
@@ -94,6 +95,10 @@ class ShippingRequestService {
 
     #[Required]
     public MouvementStockService $mouvementStockService;
+
+    public function __construct(private SettingsService $settingsService)
+    {
+    }
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getFieldModes('shippingRequest');
@@ -198,7 +203,6 @@ class ShippingRequestService {
     }
 
     public function sendMailForStatus(EntityManagerInterface $entityManager, ShippingRequest $shippingRequest): void {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $roleRepository = $entityManager->getRepository(Role::class);
 
@@ -209,11 +213,11 @@ class ShippingRequestService {
         if($shippingRequest->isToTreat()) {
             $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR .  "Création d'une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
             $title = "Une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " a été créée";
-            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
+            if($this->settingsService->getValue($entityManager, Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
             }
-            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES)){
-                $roleIdsToSendMail = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
+            if($this->settingsService->getValue($entityManager, Setting::SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES)){
+                $roleIdsToSendMail = Stream::explode(',', $this->settingsService->getValue($entityManager, Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
                     ->filter()
                     ->toArray();
                 $rolesToSendMail = !empty($roleIdsToSendMail)
@@ -232,11 +236,11 @@ class ShippingRequestService {
         if($shippingRequest->isShipped()) {
             $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
             $title = "Vos produits ont bien été expédiés";
-            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
+            if($this->settingsService->getValue($entityManager, Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
             }
-            if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES)){
-                $roleIdsToSendMail = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
+            if($this->settingsService->getValue($entityManager, Setting::SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES)){
+                $roleIdsToSendMail = Stream::explode(',', $this->settingsService->getValue($entityManager, Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
                     ->filter()
                     ->toArray();
                 $rolesToSendMail = !empty($roleIdsToSendMail)
@@ -583,10 +587,9 @@ class ShippingRequestService {
                                                      ShippingRequest            $shippingRequest): Attachment {
         $formatService = $this->formatService;
         $projectDir = $this->kernel->getProjectDir();
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $deliverySlipTemplatePath = $settingRepository->getOneParamByLabel(Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE)
-            ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE);
+        $deliverySlipTemplatePath = $this->settingsService->getValue($entityManager, Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE)
+            ?: $this->settingsService->getValue($entityManager, Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE);
 
         $variables = [
             //en-tête

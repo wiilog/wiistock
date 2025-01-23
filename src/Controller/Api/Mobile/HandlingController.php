@@ -9,13 +9,13 @@ use App\Entity\Statut;
 use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
 use App\Service\HandlingService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use App\Annotation as Wii;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route("/api/mobile")]
@@ -28,6 +28,7 @@ class HandlingController extends AbstractController {
                                   EntityManagerInterface $entityManager,
                                   FreeFieldService       $freeFieldService,
                                   StatusService          $statusService,
+                                  SettingsService        $settingsService,
                                   HandlingService        $handlingService,
                                   StatusHistoryService   $statusHistoryService)
     {
@@ -108,7 +109,7 @@ class HandlingController extends AbstractController {
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
+                $viewHoursOnExpectedDate = !$settingsService->getValue($entityManager,Setting::REMOVE_HOURS_DATETIME);
                 $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
             }
 

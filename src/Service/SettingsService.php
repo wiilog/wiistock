@@ -1424,8 +1424,7 @@ class SettingsService {
     }
 
     public function generateSessionConfig(EntityManagerInterface $entityManager) {
-        $sessionLifetime = $entityManager->getRepository(Setting::class)
-            ->getOneParamByLabel(Setting::MAX_SESSION_TIME);
+        $sessionLifetime = $this->getValue($entityManager, Setting::MAX_SESSION_TIME);
 
         $generated = "{$this->kernel->getProjectDir()}/config/generated.yaml";
         $config = [
@@ -1479,10 +1478,9 @@ class SettingsService {
     }
 
     public function getParamLocation(EntityManagerInterface $entityManager, string $label) {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        $locationId = $settingRepository->getOneParamByLabel($label);
+        $locationId = $this->getValue($entityManager, $label);
 
         if ($locationId) {
             $location = $emplacementRepository->find($locationId);

@@ -34,6 +34,7 @@ use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\OperationHistoryService;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\StringService;
 use App\Service\TranslationService;
@@ -165,10 +166,11 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/new", name: "transport_request_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/new", name: "transport_request_new", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::CREATE_TRANSPORT], mode: HasPermission::IN_JSON)]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
+                        SettingsService        $settingsService,
                         TransportService       $transportService,
                         MailerService          $mailerService,
                         Environment            $templating,
@@ -197,7 +199,7 @@ class RequestController extends AbstractController {
         $validationMessage = null;
         if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $paramReceivers = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
+            $paramReceivers = $settingsService->getValue($entityManager,Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
             $receivers = $userRepository->findBy(['id' => explode(',', $paramReceivers)]);
 
             if(!empty($receivers)) {
@@ -214,7 +216,7 @@ class RequestController extends AbstractController {
             $validationMessage = 'Votre demande de transport est en attente de validation';
         }
         else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {
-            $settingMessage = $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE);
+            $settingMessage = $settingsService->getValue($entityManager,Setting::NON_BUSINESS_HOURS_MESSAGE);
             $settingMessage = $settingMessage ? "<br/><br/>$settingMessage" : '';
             $validationMessage = "
                 <div class='text-center'>
@@ -625,15 +627,15 @@ class RequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/{transportRequest}/print-transport-packs", name: "print_transport_packs", options: ['expose' => true], methods: "GET")]
+    #[Route("/{transportRequest}/print-transport-packs", name: "print_transport_packs", options: ['expose' => true], methods: [self::GET])]
     public function printTransportPacks(TransportRequest       $transportRequest,
                                         TransportService       $transportService,
                                         PDFGeneratorService    $PDFGeneratorService,
                                         Request                $request,
-                                        EntityManagerInterface $entityManager): PdfResponse {
+                                        EntityManagerInterface $entityManager,
+                                        SettingsService        $settingsService): PdfResponse {
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $logo = $settingsService->getValue($entityManager,Setting::LABEL_LOGO);
 
         $packsFilter = Stream::explode(',', $request->query->get('packs'))
             ->filter()

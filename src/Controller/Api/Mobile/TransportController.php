@@ -33,12 +33,14 @@ use App\Service\EmplacementDataService;
 use App\Service\NotificationService;
 use App\Service\OperationHistoryService;
 use App\Service\PackService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -366,12 +368,11 @@ class TransportController extends AbstractController {
 
     #[Route("/reject-motives", methods: [self::GET])]
     #[Wii\RestVersionChecked]
-    public function rejectMotives(EntityManagerInterface $manager): Response
+    public function rejectMotives(EntityManagerInterface $manager, SettingsService $settingsService): Response
     {
-        $settingRepository = $manager->getRepository(Setting::class);
-        $packRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES);
-        $deliveryRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
-        $collectRejectMotives = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
+        $packRejectMotives = $settingsService->getValue($manager,Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES);
+        $deliveryRejectMotives = $settingsService->getValue($manager,Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
+        $collectRejectMotives = $settingsService->getValue($manager,Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
 
         $packRejectMotives = $packRejectMotives ? explode(",", $packRejectMotives) : [];
         $deliveryRejectMotives = explode(",", $deliveryRejectMotives);
@@ -910,6 +911,7 @@ class TransportController extends AbstractController {
                                      StatusHistoryService    $statusHistoryService,
                                      OperationHistoryService $historyService,
                                      AttachmentService       $attachmentService,
+                                     SettingsService         $settingsService,
                                      NotificationService     $notificationService,
                                      TranslationService      $translation): Response
     {
@@ -1071,7 +1073,7 @@ class TransportController extends AbstractController {
                 $settingsRepository = $manager->getRepository(Setting::class);
                 $statusRepository = $manager->getRepository(Statut::class);
 
-                $workflowEndMotives = $settingsRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE);
+                $workflowEndMotives = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE);
                 $workflowEndMotives = explode(",", $workflowEndMotives);
 
                 if (!in_array($motive, $workflowEndMotives)) {
@@ -1318,10 +1320,10 @@ class TransportController extends AbstractController {
 
     #[Route("/end-round-locations", methods: [self::GET])]
     #[Wii\RestVersionChecked]
-    public function endRoundLocations(EntityManagerInterface $manager): Response
+    public function endRoundLocations(EntityManagerInterface $manager, SettingsService $settingsService): JsonResponse
     {
         $settingRepository = $manager->getRepository(Setting::class);
-        $endRoundLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS);
+        $endRoundLocations = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_END_ROUND_LOCATIONS);
 
         $endRoundLocations = $endRoundLocations ? explode(",", $endRoundLocations) : [];
         $endRoundLocations = Stream::from($endRoundLocations)->map(fn(string $location) => (int)$location)->toArray();
@@ -1333,11 +1335,10 @@ class TransportController extends AbstractController {
 
     #[Route("/packs-return-locations", methods: [self::GET])]
     #[Wii\RestVersionChecked]
-    public function packsReturnLocations(EntityManagerInterface $manager): Response
+    public function packsReturnLocations(EntityManagerInterface $manager, SettingsService $settingsService): JsonResponse
     {
-        $settingRepository = $manager->getRepository(Setting::class);
-        $undeliveredPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS);
-        $collectedPacksLocations = $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS);
+        $undeliveredPacksLocations = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS);
+        $collectedPacksLocations = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_COLLECTED_PACKS_LOCATIONS);
 
         $undeliveredPacksLocations = $undeliveredPacksLocations ? explode(",", $undeliveredPacksLocations) : [];
         $undeliveredPacksLocations = Stream::from($undeliveredPacksLocations)

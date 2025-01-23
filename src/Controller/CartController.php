@@ -110,9 +110,9 @@ class CartController extends AbstractController {
             "collectTypes" => $collectTypes,
             "referencesByBuyer" => $referencesByBuyer,
             "deliveryFieldsParam" => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
-            "showTargetLocationPicking" => $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
-            "restrictedCollectLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
-            "restrictedDeliveryLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+            "showTargetLocationPicking" => $settingsService->getValue($manager,Setting::DISPLAY_PICKING_LOCATION),
+            "restrictedCollectLocations" => $settingsService->getValue($manager,Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
+            "restrictedDeliveryLocations" => $settingsService->getValue($manager,Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
 

@@ -19,6 +19,7 @@ use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\AttachmentService;
+use App\Service\FieldModesService;
 use App\Service\FilterSupService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReserveService;
@@ -26,7 +27,6 @@ use App\Service\SettingsService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
-use App\Service\FieldModesService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -43,13 +43,13 @@ class TruckArrivalController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
     public function index(TruckArrivalService       $truckArrivalService,
                           EntityManagerInterface    $entityManager,
+                          SettingsService           $settingsService,
                           FilterSupService          $filterSupService ): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+        $defaultLocationId = $settingsService->getValue($entityManager,Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
         $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
 
         return $this->render('truck_arrival/index.html.twig', [
@@ -221,7 +221,6 @@ class TruckArrivalController extends AbstractController
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $autoPrintTruckArrivalLabel = $settingsService->getValue($entityManager, Setting::AUTO_PRINT_TRUCK_ARRIVAL_LABEL);
 
@@ -242,7 +241,7 @@ class TruckArrivalController extends AbstractController
                 $location = $locationId ? $locationRepository->find($locationId) : null;
                 $truckArrival->setUnloadingLocation($location);
             } else {
-                $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+                $defaultLocationId = $settingsService->getValue($entityManager,Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
                 $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
                 $truckArrival->setUnloadingLocation($defaultLocation);
             }

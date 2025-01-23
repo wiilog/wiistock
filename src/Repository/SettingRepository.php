@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Setting;
+use App\Service\SettingsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use JetBrains\PhpStorm\Deprecated;
@@ -16,6 +17,7 @@ use WiiCommon\Helper\Stream;
  */
 class SettingRepository extends EntityRepository
 {
+
     #[Deprecated("Use SettingsService::getValue() instead")]
     public function getOneParamByLabel($label) {
         $result = $this->createQueryBuilder('parameter')
@@ -28,7 +30,6 @@ class SettingRepository extends EntityRepository
 
         return $result ? $result['value'] : null;
     }
-
     public function findByLabel($labels) {
         if(!is_array($labels)) {
             $labels = [$labels];
@@ -45,17 +46,16 @@ class SettingRepository extends EntityRepository
             ->toArray();
     }
 
-    public function getUnusedLogo(Setting $logo, EntityManagerInterface $entityManager){
-        $settingRepository = $entityManager->getRepository(Setting::class);
+    public function getUnusedLogo(Setting $logo, EntityManagerInterface $entityManager, SettingsService $settingsService) {
         return (
             $logo->getValue() != Setting::DEFAULT_WEBSITE_LOGO_VALUE &&
             $logo->getValue() != Setting::DEFAULT_EMAIL_LOGO_VALUE &&
             $logo->getValue() != Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE &&
             $logo->getValue() != Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_WEBSITE_LOGO) &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_EMAIL_LOGO) &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_MOBILE_LOGO_HEADER) &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_MOBILE_LOGO_LOGIN)
+            $logo->getValue() != $settingsService->getValue($entityManager,Setting::FILE_WEBSITE_LOGO) &&
+            $logo->getValue() != $settingsService->getValue($entityManager,Setting::FILE_EMAIL_LOGO) &&
+            $logo->getValue() != $settingsService->getValue($entityManager,Setting::FILE_MOBILE_LOGO_HEADER) &&
+            $logo->getValue() != $settingsService->getValue($entityManager,Setting::FILE_MOBILE_LOGO_LOGIN)
         );
     }
 }

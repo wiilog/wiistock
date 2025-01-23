@@ -46,6 +46,7 @@ class DispatchController extends AbstractController
     public function createNewOfflineDispatchs(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService,
+                                              SettingsService        $settingsService,
                                               ExceptionLoggerService $exceptionLoggerService,
                                               StatusHistoryService   $statusHistoryService,
                                               UniqueNumberService    $uniqueNumberService): Response
@@ -56,7 +57,6 @@ class DispatchController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $dispatchs = json_decode($data->get('dispatches'), true);
         $dispatchReferences = json_decode($data->get('dispatchReferences'), true);
 
@@ -101,7 +101,7 @@ class DispatchController extends AbstractController
                 $requester = $requester ?? $createdBy;
                 $wasDraft = true;
 
-                $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+                $numberFormat = $settingsService->getValue($entityManager,Setting::DISPATCH_NUMBER_FORMAT);
                 if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
                     throw new FormException("Le format de numéro d'acheminement n'est pas valide");
                 }
@@ -381,7 +381,8 @@ class DispatchController extends AbstractController
                                 UniqueNumberService    $uniqueNumberService,
                                 DispatchService        $dispatchService,
                                 MobileApiService       $mobileApiService,
-                                StatusHistoryService   $statusHistoryService): Response
+                                SettingsService        $settingsService,
+                                StatusHistoryService   $statusHistoryService): JsonResponse
     {
 
         $typeRepository = $manager->getRepository(Type::class);
@@ -389,9 +390,8 @@ class DispatchController extends AbstractController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
-        $settingRepository = $manager->getRepository(Setting::class);
 
-        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        $numberFormat = $settingsService->getValue($manager,Setting::DISPATCH_NUMBER_FORMAT);
         if (!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }

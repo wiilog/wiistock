@@ -30,6 +30,7 @@ use App\Service\GeoService;
 use App\Service\IOT\IOTService;
 use App\Service\OperationHistoryService;
 use App\Service\PackService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
@@ -70,6 +71,7 @@ class TransportService {
         private TranslationService      $translation,
         private RouterInterface         $router,
         private WorkPeriodService       $workPeriodService,
+        private SettingsService         $settingsService,
     ) {
     }
 
@@ -193,7 +195,7 @@ class TransportService {
                     'user' => $loggedUser,
                 ]);
                 $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
-                    'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                    'message' => $this->settingsService->getValue($entityManager, Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
                 ]);
             }
             elseif ($status == TransportRequest::STATUS_AWAITING_VALIDATION) {
@@ -236,9 +238,8 @@ class TransportService {
             if ($canChangeStatus) {
                 if ($subcontracted) {
                     if ($oldStatus->getCode() !== TransportRequest::STATUS_SUBCONTRACTED) {
-                        $settingRepository = $entityManager->getRepository(Setting::class);
                         $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
-                            'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                            'message' => $this->settingsService->getValue($entityManager, Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
                         ]);
 
                         $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_SUBCONTRACTED, [

@@ -16,6 +16,7 @@ use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Type;
 use App\Exceptions\FormException;
+use App\Service\SettingsService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -216,10 +217,10 @@ class TypeController extends AbstractController {
     }
 
     #[Route('/champs-libres/{type}', name: 'free_fields_by_type', options: ['expose' => true], methods: [self::POST,], condition: self::IS_XML_HTTP_REQUEST)]
-    public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager): Response
+    public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager, SettingsService $settingsService): JsonResponse
     {
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $selectedFreeFieldId = $settingRepository->getOneParamByLabel(Setting::FREE_FIELD_REFERENCE_CREATE);
+        $selectedFreeFieldId = $settingsService->getValue($entityManager,Setting::FREE_FIELD_REFERENCE_CREATE);
 
         $freeFields = [
             "<option selected value=''></option>"

@@ -3,6 +3,7 @@
 namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -13,18 +14,18 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\OperationHistoryService;
+use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
-use App\Service\OperationHistoryService;
 use App\Service\Transport\TransportService;
 use DateTime;
-use App\Entity\Type;
-use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -144,16 +145,16 @@ class SubcontractController extends AbstractController
         ]);
     }
 
-    #[Route('/treat', name: 'transport_request_treat', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/treat', name: 'transport_request_treat', options: ['expose' => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT_SUBCONTRACT], mode: HasPermission::IN_JSON)]
     public function acceptTransportRequest(Request                 $request,
                                            StatusHistoryService    $statusHistoryService,
                                            OperationHistoryService $operationHistoryService,
                                            EntityManagerInterface  $entityManager,
-                                           TransportService        $transportService): Response {
+                                           SettingsService         $settingsService,
+                                           TransportService        $transportService): JsonResponse {
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $requestId = $request->query->getInt('requestId');
         $buttonType = $request->query->get('buttonType');
@@ -184,7 +185,7 @@ class SubcontractController extends AbstractController
             $transportHistoryType = OperationHistoryService::TYPE_SUBCONTRACTED;
 
             $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
-                'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                'message' => $settingsService->getValue($entityManager,Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
             ]);
         }
 

@@ -5,34 +5,35 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
-use App\Entity\Attachment;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
-use App\Entity\Language;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Language;
 use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\ShippingRequest\ShippingRequestPack;
-use App\Entity\StatusHistory;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
+use App\Entity\ShippingRequest\ShippingRequestPack;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transporteur;
-use App\Service\AttachmentService;
-use App\Service\LanguageService;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
+use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\FormService;
-use App\Service\ShippingRequest\ShippingRequestExpectedLineService;
+use App\Service\LanguageService;
 use App\Service\MouvementStockService;
+use App\Service\SettingsService;
+use App\Service\ShippingRequest\ShippingRequestExpectedLineService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
@@ -571,11 +572,12 @@ class ShippingRequestController extends AbstractController {
         ]);
     }
 
-    #[Route("/submit-packing/{id}", name: "shipping_request_submit_packing", options: ["expose" => true], methods: ['POST'])]
+    #[Route("/submit-packing/{id}", name: "shipping_request_submit_packing", options: ["expose" => true], methods: [self::POST])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function postSubmitPacking(ShippingRequest         $shippingRequest,
                                       Request                 $request,
                                       EntityManagerInterface  $entityManager,
+                                      SettingsService         $settingsService,
                                       ShippingRequestService  $shippingRequestService,
                                       ArticleDataService      $articleDataService,
                                       TrackingMovementService $trackingMovementService,
@@ -610,7 +612,7 @@ class ShippingRequestController extends AbstractController {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $quantityByExpectedLine = [];
 
-        $packLocationId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_FROM);
+        $packLocationId = $settingsService->getValue($entityManager,Setting::SHIPPING_LOCATION_FROM);
         $packLocation = $packLocationId ? $locationRepository->find($packLocationId) : null;
 
         if (!$packLocation) {
@@ -846,6 +848,7 @@ class ShippingRequestController extends AbstractController {
     public function treatShippingRequest(ShippingRequest         $shippingRequest,
                                          StatusHistoryService    $statusHistoryService,
                                          EntityManagerInterface  $entityManager,
+                                         SettingsService         $settingsService,
                                          MouvementStockService   $mouvementStockService,
                                          TrackingMovementService $trackingMovementService,
                                          ShippingRequestService  $shippingRequestService,
@@ -867,9 +870,9 @@ class ShippingRequestController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         // location
-        $shippingLocationFromId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_FROM);
+        $shippingLocationFromId = $settingsService->getValue($entityManager,Setting::SHIPPING_LOCATION_FROM);
         $shippingLocationFrom = $emplacementRepository->findOneBy(['id' => $shippingLocationFromId]);
-        $shippingLocationToId = $settingRepository->getOneParamByLabel(Setting::SHIPPING_LOCATION_TO);
+        $shippingLocationToId = $settingsService->getValue($entityManager,Setting::SHIPPING_LOCATION_TO);
         $shippingLocationTo = $emplacementRepository->findOneBy(['id' => $shippingLocationToId]);
 
         // new status

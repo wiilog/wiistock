@@ -21,6 +21,7 @@ use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
 use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
+use App\Service\SettingsService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -63,18 +64,17 @@ class CollecteController extends AbstractController
         $this->collecteService = $collecteService;
     }
 
-    #[Route('/liste/{filter}', name: 'collecte_index', options: ['expose' => true], methods: ['GET', 'POST'])]
+    #[Route('/liste/{filter}', name: 'collecte_index', options: ['expose' => true], methods: [self::GET, self::POST])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_COLL])]
     public function index(EntityManagerInterface $entityManager,
+                          SettingsService $settingsService,
                           $filter = null): Response
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-        $restrictedResults = $paramGlobalRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
+        $restrictedResults = $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
 
         $typesForModal = Stream::from($types)
             ->filter(static fn(Type $type) => $type->isActive())
@@ -326,22 +326,20 @@ class CollecteController extends AbstractController
     }
 
 
-    #[Route('/api-modifier', name: 'collecte_api_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api-modifier', name: 'collecte_api_edit', options: ['expose' => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
+                            SettingsService $settingsService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $collecte = $collecteRepository->find($data['id']);
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
+                'restrictedLocations' =>  $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             ]);
 
             return new JsonResponse($json);
@@ -350,7 +348,7 @@ class CollecteController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route('/modifier', name: 'collecte_edit', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/modifier', name: 'collecte_edit', options: ['expose' => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,

@@ -3,48 +3,41 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
-use App\Entity\Arrivage;
-use App\Entity\CategoryType;
-use App\Entity\Dispatch;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
-use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-
 use App\Entity\MouvementStock;
-use App\Entity\Setting;
-use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
-
+use App\Entity\Setting;
+use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
+use App\Service\EmplacementDataService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-use App\Service\EmplacementDataService;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 #[Route('/emplacement')]
 class LocationController extends AbstractController {
@@ -297,14 +290,15 @@ class LocationController extends AbstractController {
         );
     }
 
-    #[Route("/autocomplete-locations-by-type", name: "get_locations_by_type", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
-    public function getLocationsByType(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+    #[Route("/autocomplete-locations-by-type", name: "get_locations_by_type", options: ["expose" => true], methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
+    public function getLocationsByType(Request $request,
+                                       EntityManagerInterface $entityManager,
+                                       SettingsService $settingsService): JsonResponse {
         $search = $request->query->get('term');
         $type = $request->query->get('type');
 
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $restrictResults = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
+        $restrictResults = $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
         $locations = $locationRepository->getLocationsByType($type, $search, $restrictResults);
         return $this->json([
             'results' => $locations

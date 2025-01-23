@@ -860,12 +860,12 @@ class ProductionRequestService
         $title = "$state d'une demande de production de type $typeLabel vous concernant :";
 
         $to = [];
-        $sendingEmailEveryStatusChangeIfEmergency = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY);
-        $copyingRequesterNotificationEmailIfEmergency = $settingRepository->getOneParamByLabel(Setting::COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY);
+        $sendingEmailEveryStatusChangeIfEmergency = $this->settingsService->getValue($entityManager, Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY);
+        $copyingRequesterNotificationEmailIfEmergency = $this->settingsService->getValue($entityManager, Setting::COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY);
         $hasEmergency = !!$productionRequest->getEmergency();
         if($hasEmergency) {
             if($sendingEmailEveryStatusChangeIfEmergency) {
-                $sendingEmailEveryStatusChangeIfEmergencyUsers = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
+                $sendingEmailEveryStatusChangeIfEmergencyUsers = $this->settingsService->getValue($entityManager, Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
 
                 if($sendingEmailEveryStatusChangeIfEmergencyUsers) {
                     $users = $userRepository->findBy(["id" => explode(",", $sendingEmailEveryStatusChangeIfEmergencyUsers)]);

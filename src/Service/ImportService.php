@@ -290,7 +290,8 @@ class ImportService
         private ScheduledTaskService $scheduledTaskService,
         private ProductionRequestService $productionRequestService,
         private DispatchService $dispatchService,
-        private FreeFieldService $freeFieldService
+        private FreeFieldService $freeFieldService,
+        private SettingsService $settingsService
     )
     {
         $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
@@ -2285,7 +2286,7 @@ class ImportService
         $fieldsToAssociate = Stream::from(self::FIELDS_TO_ASSOCIATE[$entityCode] ?? []);
 
         if ($entityCode === Import::ENTITY_DELIVERY) {
-            $showTargetLocationPicking = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+            $showTargetLocationPicking = $this->settingService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION);
             if (!$showTargetLocationPicking) {
                 $fieldsToAssociate = $fieldsToAssociate->filter(fn(string $key) => ($key !== "targetLocationPicking"));
             }
@@ -2323,14 +2324,14 @@ class ImportService
     public function resetCache(): void
     {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+        $associatedDocumentTypesStr = $this->settingsService->getValue($this->entityManager,Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
         $associatedDocumentTypes = $associatedDocumentTypesStr
             ? Stream::explode(',', $associatedDocumentTypesStr)
                 ->filter()
                 ->toArray()
             : [];
 
-        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
+        $wantsUFT8 = $this->settingsService->getValue($this->entityManager, Setting::USES_UTF8) ?? true;
 
         $this->entityCache = [];
         $this->scalarCache = [

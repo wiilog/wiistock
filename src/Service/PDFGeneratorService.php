@@ -7,18 +7,18 @@ use App\Entity\DispatchPack;
 use App\Entity\Livraison;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use WiiCommon\Helper\Stream;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Environment as Twig_Environment;
 use Knp\Snappy\PDF as PDFGenerator;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 class PDFGeneratorService {
 
@@ -187,8 +187,7 @@ class PDFGeneratorService {
     }
 
     public function generatePDFDispatchNote(Dispatch $dispatch): string {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $appLogo = $this->settingsService->getValue($this->entityManager, Setting::LABEL_LOGO);
 
         $content = $this->templating->render("prints/dispatchNoteTemplate.html.twig", [
             "app_logo" => $appLogo ?? "",
@@ -225,11 +224,10 @@ class PDFGeneratorService {
     }
 
     public function generatePDFTransport(TransportRequest $transportRequest): string {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $appLogo = $settingRepository->getOneParamByLabel(Setting::FILE_SHIPMENT_NOTE_LOGO);
-        $society = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
-        $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
-        $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
+        $appLogo = $this->settingsService->getValue($this->entityManager,Setting::FILE_SHIPMENT_NOTE_LOGO);
+        $society = $this->settingsService->getValue($this->entityManager,Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
+        $originator = $this->settingsService->getValue($this->entityManager,Setting::SHIPMENT_NOTE_ORIGINATOR);
+        $sender = $this->settingsService->getValue($this->entityManager,Setting::SHIPMENT_NOTE_SENDER_DETAILS);
 
         $content = $this->templating->render("prints/transportTemplate.html.twig", [
             "app_logo" => $appLogo ?? "",
@@ -251,11 +249,10 @@ class PDFGeneratorService {
 
     public function generatePDFTransportRound(TransportRound $transportRound): string
     {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $appLogo = $settingRepository->getOneParamByLabel(Setting::FILE_SHIPMENT_NOTE_LOGO);
-        $society = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
-        $originator = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_ORIGINATOR);
-        $sender = $settingRepository->getOneParamByLabel(Setting::SHIPMENT_NOTE_SENDER_DETAILS);
+        $appLogo = $this->settingsService->getValue($this->entityManager,Setting::FILE_SHIPMENT_NOTE_LOGO);
+        $society = $this->settingsService->getValue($this->entityManager,Setting::SHIPMENT_NOTE_COMPANY_DETAILS);
+        $originator = $this->settingsService->getValue($this->entityManager,Setting::SHIPMENT_NOTE_ORIGINATOR);
+        $sender = $this->settingsService->getValue($this->entityManager,Setting::SHIPMENT_NOTE_SENDER_DETAILS);
         $content = "";
 
         /** @var TransportRoundLine $line */

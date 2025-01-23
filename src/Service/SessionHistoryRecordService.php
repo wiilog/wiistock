@@ -9,20 +9,20 @@ use App\Entity\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
-use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Service\Attribute\Required;
 
 class SessionHistoryRecordService{
-
-    #[Required]
-    public FormatService $formatService;
 
     public const UNLIMITED_SESSIONS = 0;
 
     public const MAX_SESSIONS_POSSIBLE = 2000;
+
+    public function __construct(private SettingsService $settingsService,
+                                private FormatService   $formatService)
+    {
+    }
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
                                             Utilisateur            $user,
@@ -93,10 +93,9 @@ class SessionHistoryRecordService{
 
     public function closeInactiveSessions(EntityManagerInterface $entityManager): void {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $sessionLifetime = $settingRepository->getOneParamByLabel(Setting::MAX_SESSION_TIME);
+        $sessionLifetime = $this->settingsService->getValue($entityManager, Setting::MAX_SESSION_TIME);
         $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
         $sessionsToClose = $sessionHistoryRepository->findSessionHistoryRecordToClose($sessionType, $sessionLifetime);
         $now = new DateTime();

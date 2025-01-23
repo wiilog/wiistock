@@ -59,7 +59,8 @@ class LivraisonService
     #[Required]
     public FieldModesService $fieldModesService;
 
-    public function __construct(RouterInterface $router,
+    public function __construct(private SettingsService $settingService,
+                                RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
                                 Security $security) {
@@ -229,11 +230,10 @@ class LivraisonService
         $preparationOrder = $deliveryOrder->getPreparation();
         $articleLines = $preparationOrder->getArticleLines();
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $waybillTemplatePath = (
-            $settingRepository->getOneParamByLabel(Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE)
-            ?: $settingRepository->getOneParamByLabel(Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE)
+        $this->settingService->getValue($this->entityManager, Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE)
+            ?: $this->settingService->getValue($this->entityManager, Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE)
         );
 
         $waybillData = $deliveryOrder->getWaybillData();

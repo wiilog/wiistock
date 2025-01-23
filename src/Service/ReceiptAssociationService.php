@@ -6,7 +6,6 @@ namespace App\Service;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\ReceiptAssociation;
-use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
@@ -47,10 +46,11 @@ class ReceiptAssociationService
     public FormatService $formatService;
 
     #[Required]
-    public SettingsService $settingsService;
-
-    #[Required]
     public TranslationService $translationService;
+
+    public function __construct(private SettingsService $settingService)
+    {
+    }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                                                $params = null): array
@@ -103,14 +103,13 @@ class ReceiptAssociationService
                                               Utilisateur            $user): array
     {
         $now = new DateTime();
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $logisticUnits = $packRepository->findBy(['code' => $logisticUnitCodes]);
         $logisticUnitsStream = Stream::from($logisticUnits);
 
-        $defaultUlLocationId = $this->settingsService->getValue($entityManager, Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL);
+        $defaultUlLocationId = $this->settingService->getValue($entityManager, Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL);
 
         // get not found logistic units
         $notFoundLogisticUnits = Stream::from($logisticUnitCodes)
@@ -157,7 +156,7 @@ class ReceiptAssociationService
         }
 
         if ($defaultUlLocationId
-            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
+            && $this->settingService->getValue($entityManager,Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
             $this->persistTrackingMovements($entityManager, $receptionNumbers, $logisticUnits, $user, $now);
         }
 
@@ -174,11 +173,10 @@ class ReceiptAssociationService
                                               Utilisateur            $user,
                                               DateTime               $now): void
     {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $defaultLocationUL = $locationRepository->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
-        $defaultLocationReception = $locationRepository->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
+        $defaultLocationUL = $locationRepository->find($this->settingService->getValue($entityManager,Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
+        $defaultLocationReception = $locationRepository->find($this->settingService->getValue($entityManager,Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
 
         foreach ($packs as $pack) {
             //prise UL

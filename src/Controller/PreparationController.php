@@ -352,13 +352,13 @@ class PreparationController extends AbstractController
         ]);
     }
 
-    #[Route("/commencer-scission", name: "start_splitting", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[Route("/commencer-scission", name: "start_splitting", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function startSplitting(EntityManagerInterface $entityManager,
+                                   SettingsService        $settingsService,
                                    Request                $request): Response {
         if ($ligneArticleId = json_decode($request->getContent(), true)) {
             $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
             $articleRepository = $entityManager->getRepository(Article::class);
-            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
@@ -373,7 +373,7 @@ class PreparationController extends AbstractController
                 ->toArray();
 
 
-            $displayTargetPickingLocation = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+            $displayTargetPickingLocation = $settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION);
             $targetLocationPicking = $ligneArticle->getTargetLocationPicking();
             $management = $refArticle->getStockManagement();
 

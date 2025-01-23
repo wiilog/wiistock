@@ -3,6 +3,7 @@
 namespace App\Controller\Transport;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
@@ -24,18 +25,18 @@ use App\Exceptions\GeoException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\GeoService;
-use App\Service\PDFGeneratorService;
-use App\Service\NotificationService;
 use App\Service\IOT\IOTService;
-use App\Service\StatusHistoryService;
+use App\Service\NotificationService;
 use App\Service\OperationHistoryService;
+use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
+use App\Service\StatusHistoryService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -349,13 +350,13 @@ class RoundController extends AbstractController {
         ]);
     }
 
-    #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: "GET")]
+    #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: [self::GET])]
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
     public function plan(Request $request,
                          EntityManagerInterface $entityManager,
+                         SettingsService $settingsService,
                          UniqueNumberService $uniqueNumberService): Response {
         $isOnGoing = false;
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         if ($request->query->get('dateRound')) {
             $round = new TransportRound();
@@ -435,9 +436,9 @@ class RoundController extends AbstractController {
             'contactData' => $contactDataByOrderId,
             'isOnGoing' => $isOnGoing,
             'waitingTime' => json_encode([
-                'deliveries' => $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME),
-                'collects' => $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_COLLECT_AVERAGE_TIME),
-                'deliveryCollects' => $settingRepository->getOneParamByLabel(Setting::TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME),
+                'deliveries' => $settingsService->getValue($entityManager, Setting::TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME),
+                'collects' => $settingsService->getValue($entityManager, Setting::TRANSPORT_ROUND_COLLECT_AVERAGE_TIME),
+                'deliveryCollects' => $settingsService->getValue($entityManager, Setting::TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME),
             ])
         ]);
     }

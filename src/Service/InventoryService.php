@@ -20,19 +20,16 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class InventoryService {
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public MouvementStockService $stockMovementService;
+    public function __construct(private SettingsService $settingService,
+                                private EntityManagerInterface $entityManager,
+                                private TrackingMovementService $trackingMovementService,
+                                private MouvementStockService $stockMovementService)
+    {
+    }
 
     public function doTreatAnomaly(int         $idEntry,
                                    string      $barCode,
@@ -185,10 +182,9 @@ class InventoryService {
                                                array                  $rfidTags): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
-        $tagRFIDPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
+        $tagRFIDPrefix = $this->settingService->getValue($this->entityManager,Setting::RFID_PREFIX) ?: '';
 
         $rfidTags = Stream::from($rfidTags)
             ->filter(fn(string $tag) => str_starts_with($tag, $tagRFIDPrefix))
@@ -204,8 +200,8 @@ class InventoryService {
 
         $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
 
-        $minStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN);
-        $maxStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX);
+        $minStr = $this->settingService->getValue($this->entityManager,Setting::RFID_KPI_MIN);
+        $maxStr = $this->settingService->getValue($this->entityManager,Setting::RFID_KPI_MAX);
         $min = $minStr ? intval($minStr) : null;
         $max = $maxStr ? intval($maxStr) : null;
 
