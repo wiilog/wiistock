@@ -936,13 +936,12 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                     };
                     if (templates.length > 0) {
                         Promise.all(
-                            [AJAX.route('GET', `reception_bar_codes_print`, {forceTagEmpty: true, ...params}).file({})]
-                                .concat(templates.map(function (template) {
-                                    params.template = template;
-                                    return AJAX
-                                        .route('GET', `reception_bar_codes_print`, params)
-                                        .file({})
-                                }))
+                            templates.map(function (template) {
+                                params.template = template;
+                                return AJAX
+                                    .route(AJAX.GET, `reception_bar_codes_print`, params)
+                                    .file({})
+                            })
                         ).then(() => resolve());
                     } else {
                         window.location.href = Routing.generate('reception_bar_codes_print', {
