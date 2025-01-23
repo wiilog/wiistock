@@ -178,7 +178,6 @@ $(function() {
         });
     });
 
-
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
     if(Number(printDeliveryNote)) {
@@ -445,7 +444,10 @@ function reverseFields($button, inputName1, inputName2) {
     $field2.val(val1);
 }
 
-function savePackLine(dispatchId, $row, async = true) {
+function savePackLine(dispatchId,
+                      $row,
+                      async = true,
+                      onSuccess = null) {
     let data = Form.process($row);
     data = data instanceof FormData ? data.asObject() : data;
 
@@ -464,6 +466,10 @@ function savePackLine(dispatchId, $row, async = true) {
 
                     $row.data(`data`, JSON.stringify(data));
                     $row.find('[name=height]').trigger('change');
+
+                    if (onSuccess) {
+                        onSuccess();
+                    }
                 },
             });
 
@@ -522,27 +528,28 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 });
             })
 
-            $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {
-                const $row = $(this);
-                const $target = $(event.target);
-                const $relatedTarget = $(event.relatedTarget);
+            $rows
+                .off(`focusout.keyboardNavigation`)
+                .on(`focusout.keyboardNavigation`, function(event, p, i) {
+                    const $row = $(this);
+                    const $target = $(event.target);
+                    const $relatedTarget = $(event.relatedTarget);
 
-                const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-                const isStillInSelect = ($relatedTarget.is('input') || $relatedTarget.is('select'))
-                    && ($target.closest('label').find('select[name=width]').exists()
-                        || $target.closest('label').find('select[name=length]').exists()
-                        || $target.closest('label').find('select[name=height]').exists());
+                    const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                    const isStillInSelect = ($relatedTarget.is('input') || $relatedTarget.is('select'))
+                        && ($target.closest('label').find('select[name=width]').exists()
+                            || $target.closest('label').find('select[name=length]').exists()
+                            || $target.closest('label').find('select[name=height]').exists());
 
-                if ((event.relatedTarget && $.contains(this, event.relatedTarget))
-                    || $relatedTarget.is(`button.delete-pack-row`)
-                    || wasPackSelect
-                    || isStillInSelect) {
-                    return;
-                }
+                    if ((event.relatedTarget && $.contains(this, event.relatedTarget))
+                        || $relatedTarget.is(`button.delete-pack-row`)
+                        || wasPackSelect
+                        || isStillInSelect) {
+                        return;
+                    }
 
-                console.log('here')
-                savePackLine(dispatchId, $row);
-            });
+                    savePackLine(dispatchId, $row);
+                });
             if(modifiable) {
                 scrollToBottom();
             }
@@ -604,6 +611,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             const $nature = $row.find(`[name=nature]`);
 
             const [value] = $select.select2(`data`);
+
             // only for existing logistic unit
             // for new logistic unit it will be undefined, the quantity field is directly filled
             const defaultQuantity = value.defaultQuantityForDispatch;
@@ -654,11 +662,13 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             if (!($quantity.val() && $nature.val())) {
                 $quantity.trigger('focus');
             }
-
-            // $row.trigger('focusout.keyboardNavigation');
-
-            if(Form.process($row, {hideErrors: true}) instanceof FormData) {
-                addPackRow(table, $(`.add-pack-row`));
+            else if(Form.process($row, {hideErrors: true}) instanceof FormData) {
+                // trigger savePackLine;
+                $row.trigger('focusout.keyboardNavigation', {
+                    onSuccess: () => {
+                        addPackRow(table, $(`.add-pack-row`))
+                    }
+                });
             }
         });
 
@@ -687,6 +697,12 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     $table.on(`click`, `.delete-pack-row`, function() {
         confirmRemovePack(table, $(this));
     });
+
+    $table
+        .off(`select2:open.initializePacksTable`)
+        .on(`select2:open.initializePacksTable`, function() {
+            $table.DataTable().columns.adjust();
+        });
 
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
