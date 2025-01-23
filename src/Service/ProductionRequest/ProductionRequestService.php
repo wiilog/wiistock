@@ -841,7 +841,6 @@ class ProductionRequestService
     }
 
     public function sendUpdateStatusEmail(ProductionRequest $productionRequest): void {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         $typeLabel = $this->formatService->type($productionRequest->getType());
@@ -860,12 +859,12 @@ class ProductionRequestService
         $title = "$state d'une demande de production de type $typeLabel vous concernant :";
 
         $to = [];
-        $sendingEmailEveryStatusChangeIfEmergency = $this->settingsService->getValue($entityManager, Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY);
-        $copyingRequesterNotificationEmailIfEmergency = $this->settingsService->getValue($entityManager, Setting::COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY);
+        $sendingEmailEveryStatusChangeIfEmergency = $this->settingsService->getValue($this->entityManager, Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY);
+        $copyingRequesterNotificationEmailIfEmergency = $this->settingsService->getValue($this->entityManager, Setting::COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY);
         $hasEmergency = !!$productionRequest->getEmergency();
         if($hasEmergency) {
             if($sendingEmailEveryStatusChangeIfEmergency) {
-                $sendingEmailEveryStatusChangeIfEmergencyUsers = $this->settingsService->getValue($entityManager, Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
+                $sendingEmailEveryStatusChangeIfEmergencyUsers = $this->settingsService->getValue($this->entityManager, Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
 
                 if($sendingEmailEveryStatusChangeIfEmergencyUsers) {
                     $users = $userRepository->findBy(["id" => explode(",", $sendingEmailEveryStatusChangeIfEmergencyUsers)]);
