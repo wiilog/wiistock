@@ -670,7 +670,7 @@ class PurchaseRequestController extends AbstractController
         return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
     }
 
-    #[Route('generatePurchaseOrder/{purchaseRequest}', name: 'generate_purchase_order', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/generatePurchaseOrder/{purchaseRequest}', name: 'generate_purchase_order', options: ['expose' => true], methods: [self::GET], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function generatePurchaseOrder(PurchaseRequest        $purchaseRequest,
                                           EntityManagerInterface $entityManager,
@@ -682,16 +682,23 @@ class PurchaseRequestController extends AbstractController
 
         // génère seulement si en cours et tableau remplis
         if (!$purchaseRequest->isPurchaseRequestLinesFilled()) {
-            throw new FormException("La demande d'achat ne peut pas être traitée");
+            throw new FormException("La demande d'achat ne peut pas être traitée si les références n'ont pas été remplies");
         }
 
         if (!$purchaseRequest->getStatus()->isTreated()) {
+            /** @var Statut $nextStatus */
             $nextStatus = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST))
                 ->filter(static fn(Statut $status) => $status->isPassStatusAtPurchaseOrderGeneration())
                 ->first();
 
-            // if next status is not the same as current status then change status
+            // if the next status is different from current status, then change status
             if ($nextStatus && $nextStatus->getId() !== $purchaseRequest->getStatus()?->getId()) {
+
+                // if the parameter "blocage du changement de statut si frais de livraison non rempli" is enabled, check if the purchase request has a delivery fee before changing status
+                if ($nextStatus->isPreventStatusChangeWithoutDeliveryFees() && $purchaseRequest->getDeliveryFee() === null) {
+                    throw new FormException("Les frais de livraisons doivent être renseignés. Vous ne pouvez pas passer de statut sans frais de livraison défini.");
+                }
+
                 $purchaseRequest->setStatus($nextStatus);
 
                 // create automatic reception if parameter is enabled

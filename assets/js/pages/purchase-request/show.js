@@ -226,6 +226,9 @@ function generatePurchaseOrder($button){
     AJAX.route(GET, 'generate_purchase_order', {purchaseRequest: purchaseRequestId})
         .json()
         .then(({attachmentId}) => {
+            if(!attachmentId) {
+                return;
+            }
             AJAX.route(GET, 'print_purchase_order', {
                 purchaseRequest: purchaseRequestId,
                 attachment: attachmentId,

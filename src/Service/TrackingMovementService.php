@@ -963,10 +963,14 @@ class TrackingMovementService {
 
         $freeFieldValues = $movement["freeFields"];
 
-        $fromData = $this->getFromColumnData($movement);
-        $fromLabel = $fromData["fromLabel"] ?? "";
-        $fromNumber = $fromData["from"] ?? "";
-        $from = trim("$fromLabel $fromNumber") ?: null;
+        if ($movement["from"] ?? false) {
+            $from = $movement["from"];
+        } else {
+            $fromData = $this->getFromColumnData($movement);
+            $fromLabel = $fromData["fromLabel"] ?? "";
+            $fromNumber = $fromData["from"] ?? "";
+            $from = trim("$fromLabel $fromNumber") ?: null;
+        }
 
         $line = [];
         foreach ($columnToExport as $column) {
