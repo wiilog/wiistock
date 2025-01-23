@@ -79,8 +79,13 @@ class ReceiptAssociationsPurgeCommand extends Command {
         $receiptAssociationsToArchive = $receiptAssociationRepository->iterateOlderThan($dateToArchive);
 
         foreach ($receiptAssociationsToArchive as $receiptAssociation) {
-            foreach ($receiptAssociation->getLogisticUnits() as $logisticUnit) {
-                $this->purgeService->archivePack($this->entityManager, $logisticUnit, $files);
+            if ($receiptAssociation->getLogisticUnits()->isEmpty()) {
+                $this->purgeService->archiveReceiptAssociation($this->entityManager, $receiptAssociation, null, $files);
+            }
+            else {
+                foreach ($receiptAssociation->getLogisticUnits() as $logisticUnit) {
+                    $this->purgeService->archivePack($this->entityManager, $logisticUnit, $files);
+                }
             }
 
             $batchCount++;

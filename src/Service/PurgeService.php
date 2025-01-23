@@ -54,8 +54,9 @@ class PurgeService {
                                 array                  $files): void {
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        if ($pack->isBasicUnit()
-            || !$pack->getArrivage()
+
+        if (!$pack->isBasicUnit()
+            || $pack->getArrivage()
             || !$pack->getDispatchPacks()->isEmpty()
             || !$pack->getChildArticles()->isEmpty()
             || !$pack->getTrackingMovements()->isEmpty()
@@ -96,19 +97,23 @@ class PurgeService {
         }
     }
 
-    private function archiveReceiptAssociation(EntityManagerInterface $entityManager, ReceiptAssociation $receiptAssociation, Pack $pack, array $files): void {
-        $this->receiptAssociationService->putReceiptAssociationLine(
-            $files[ReceiptAssociation::class],
-            [
-                ...$this->serializer->normalize($receiptAssociation, null, ["usage" => SerializerUsageEnum::CSV_EXPORT]),
-                "lastActionDate" => $this->formatService->datetime($pack->getLastAction()?->getDatetime()),
-                "lastActionLocation" => $this->formatService->location($pack->getLastAction()?->getEmplacement()),
-                "logisticUnit" => $this->formatService->pack($pack),
-            ]
-        );
+    public function archiveReceiptAssociation(EntityManagerInterface $entityManager,
+                                              ReceiptAssociation $receiptAssociation,
+                                              ?Pack $pack,
+                                              array $files): void {
 
+        $receiptAssociationArray = $this->serializer->normalize($receiptAssociation, null, ["usage" => SerializerUsageEnum::CSV_EXPORT]);
+        if ($pack) {
+            $receiptAssociationArray["lastActionDate"] = $this->formatService->datetime($pack->getLastAction()?->getDatetime());
+            $receiptAssociationArray["lastActionLocation"] = $this->formatService->location($pack->getLastAction()?->getEmplacement());
+            $receiptAssociationArray["logisticUnit"] = $this->formatService->pack($pack);
+        }
 
-        $receiptAssociation->removePack($pack);
+        $this->receiptAssociationService->putReceiptAssociationLine($files[ReceiptAssociation::class], $receiptAssociationArray);
+
+        if ($pack) {
+            $receiptAssociation->removePack($pack);
+        }
 
         if($receiptAssociation->getLogisticUnits()->isEmpty()) {
             $receiptAssociation->setUser(null);

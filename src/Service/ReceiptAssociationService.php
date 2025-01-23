@@ -248,11 +248,11 @@ class ReceiptAssociationService
     public function putReceiptAssociationLine($output, array $receiptAssociation): void {
         $row = [
             $receiptAssociation['creationDate'],
-            $receiptAssociation['logisticUnit'],
+            $receiptAssociation['logisticUnit'] ?? null,
             $receiptAssociation['receptionNumber'],
             $receiptAssociation['user'],
-            $receiptAssociation['lastActionDate'],
-            $receiptAssociation['lastActionLocation'],
+            $receiptAssociation['lastActionDate'] ?? null,
+            $receiptAssociation['lastActionLocation'] ?? null,
         ];
 
         $this->CSVExportService->putLine($output, $row);
