@@ -535,7 +535,7 @@ class ArrivageRepository extends EntityRepository
     public function createQueryBuilderOlderThan(string $alias,
                                                 DateTime $date): QueryBuilder {
         return $this->createQueryBuilder($alias)
-            ->andWhere('$alias.date < :date')
+            ->andWhere("$alias.date < :date")
             ->setParameter('date', $date);
     }
 }
