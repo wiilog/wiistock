@@ -815,7 +815,7 @@ class DispatchService {
                     "label" => "",
                     "selected" => "",
                 ],
-                ... $natureOptions
+                ...$natureOptions
             ];
             $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFixedField::class);
 
@@ -876,7 +876,7 @@ class DispatchService {
                         'additionalAttributes' => [
                             [
                                 'name' => 'data-global-error',
-                                'value' => 'Quantité'
+                                'value' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false)
                             ],
                             [
                                 'name' => 'min',
@@ -896,8 +896,14 @@ class DispatchService {
                     [
                         'items' => $natureOptions,
                         'inputClass' => "$class minw-150px",
-                        'labelClass' => $creationMode,
+                        'labelClass' => "d-flex $creationMode",
                         'value' => $nature?->getId(),
+                        'additionalAttributes' => [
+                            [
+                                'name' => 'data-global-error',
+                                'value' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature', false)
+                            ],
+                        ],
                     ],
                 ),
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $this->formService->macro(
@@ -962,7 +968,7 @@ class DispatchService {
                         'type' => '',
                         'editable' => true,
                         'value' => $height,
-                        'labelClass' => "$creationMode w-100",
+                        'labelClass' => "$creationMode w-100 d-flex",
                         'emptyOption' => [
                             'selected' => true,
                         ],
@@ -983,7 +989,7 @@ class DispatchService {
                         'type' => '',
                         'editable' => true,
                         'value' => $width,
-                        'labelClass' => "$creationMode w-100",
+                        'labelClass' => "$creationMode w-100 d-flex",
                         'emptyOption' => [
                             'selected' => true,
                         ],
@@ -1004,7 +1010,7 @@ class DispatchService {
                         'type' => '',
                         'editable' => true,
                         'value' => $length,
-                        'labelClass' => "$creationMode w-100",
+                        'labelClass' => "$creationMode w-100 d-flex",
                         'emptyOption' => [
                             'selected' => true,
                         ],

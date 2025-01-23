@@ -295,7 +295,6 @@ export default class Form {
 
         if(!(config.hideErrors ?? false)) {
             // display errors under each field
-            console.log('show')
             for(const error of errors) {
                 if (error.elements && error.elements.length > 0) {
                     Form.showInvalidFields(error.elements, !error.global ? error.message : undefined)

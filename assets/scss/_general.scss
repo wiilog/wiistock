@@ -323,10 +323,6 @@ a {
 //  reprise du form-control.is-invalid de bootstrap
 .is-invalid:not(label, .wii-radio, .wii-checkbox), input[pattern]:invalid {
     border: 1px solid $danger !important;
-    background-repeat: no-repeat;
-    background-position: center right calc(2.25rem / 4);
-    background-size: calc(2.25rem / 2) calc(2.25rem / 2);
-    height: auto;
 
     .select2-selection {
         border: 1px solid $danger !important;
