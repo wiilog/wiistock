@@ -7,6 +7,7 @@ use App\Entity\ReceiptAssociation;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -198,4 +199,32 @@ class ReceiptAssociationRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Counts the number of ReceiptAssociation older than the given date.
+     */
+    public function countOlderThan(DateTime $date): int {
+        return $this->createQueryBuilderOlderThan('receipt_association', $date)
+            ->select('COUNT(receipt_association.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Returns an iterable of ReceiptAssociation older than the given date
+     * @return iterable<ReceiptAssociation>
+     */
+    public function iterateOlderThan(DateTime $date): iterable {
+        return $this->createQueryBuilderOlderThan('receipt_association', $date)
+            ->getQuery()
+            ->toIterable();
+    }
+
+    public function createQueryBuilderOlderThan(string $alias,
+                                                DateTime $date): QueryBuilder {
+        return $this->createQueryBuilder($alias)
+            ->andWhere("$alias.creationDate < :date")
+            ->setParameter('date', $date);
+    }
+
 }

@@ -100,6 +100,7 @@ class ArrivalsPurgeCommand extends Command {
             );
 
             foreach ($arrival->getPacks() as $pack) {
+                $pack->setArrivage(null);
                 $this->purgeService->archivePack($this->entityManager, $pack, $files);
             }
 
@@ -148,10 +149,6 @@ class ArrivalsPurgeCommand extends Command {
 
         foreach ($arrival->getUrgences() as $urgence) {
             $urgence->setLastArrival(null);
-        }
-
-        foreach ($arrival->getPacks() as $pack) {
-            $pack->setArrivage(null);
         }
     }
 
