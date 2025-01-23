@@ -292,7 +292,9 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
+        $trackingNumbers = $data->get('trackingNumbers')
+            ? explode(',', $data->get('trackingNumbers'))
+            : [];
         $truckArrivalLineService->checkForInvalidNumber($trackingNumbers, $entityManager);
 
         foreach ($trackingNumbers as $lineNumber) {
