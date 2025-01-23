@@ -42,8 +42,8 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
-use App\Service\SpecificService;
 use App\Service\TagTemplateService;
+use App\Service\TrackingDelayService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\TruckArrivalLineService;
@@ -170,6 +170,7 @@ class ArrivageController extends AbstractController
                         PackService             $packService,
                         SettingsService         $settingsService,
                         KeptFieldService        $keptFieldService,
+                        TrackingDelayService    $trackingDelayService,
                         TruckArrivalLineService $truckArrivalLineService,
                         TranslationService      $translation): JsonResponse
     {
@@ -357,7 +358,7 @@ class ArrivageController extends AbstractController
         $project = !empty($data['project']) ? $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
         // packs tracking movement are create at the end of the creation of the arrival, after truckArrivalLine reserve modal
-        $packService->createMultiplePacks(
+        $createdPacks = $packService->createMultiplePacks(
             $entityManager,
             $arrivage,
             $natures->toArray(),
@@ -365,7 +366,9 @@ class ArrivageController extends AbstractController
             false,
             $project
         );
+
         $entityManager->persist($arrivage);
+
         try {
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
@@ -394,6 +397,12 @@ class ArrivageController extends AbstractController
             }
         }
 
+        Stream::from($createdPacks)->each(function(Pack $pack) use ($trackingDelayService, $entityManager) {
+            if($pack->getNature()->getTrackingDelay() !== null){
+                $trackingDelayService->updateTrackingDelay($entityManager, $pack);
+            }
+        });
+        
         $entityManager->flush();
 
         $redirectToArrival = boolval($settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL])?->getValue());
