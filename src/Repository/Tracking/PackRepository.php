@@ -153,6 +153,9 @@ class PackRepository extends EntityRepository
         }
 
         $queryResult = $queryBuilder
+            ->addOrderBy("CASE WHEN tracking_delay.limitTreatmentDate IS NULL THEN 1 ELSE 0 END")
+            ->addOrderBy("tracking_delay.limitTreatmentDate")
+            ->leftJoin("contained_pack.trackingDelay", "tracking_delay")
             ->getQuery()
             ->getResult();
 
