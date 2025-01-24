@@ -664,11 +664,8 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             }
             else if(Form.process($row, {hideErrors: true}) instanceof FormData) {
                 // trigger savePackLine;
-                $row.trigger('focusout.keyboardNavigation', {
-                    onSuccess: () => {
-                        addPackRow(table, $(`.add-pack-row`))
-                    }
-                });
+                $row.trigger('focusout.keyboardNavigation');
+                addPackRow(table, $(`.add-pack-row`))
             }
         });
 
