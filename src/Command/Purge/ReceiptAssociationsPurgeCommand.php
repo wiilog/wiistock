@@ -71,12 +71,12 @@ class ReceiptAssociationsPurgeCommand extends Command {
                                                 array    $files): void {
 
         $receiptAssociationRepository = $this->entityManager->getRepository(ReceiptAssociation::class);
-        $totalToArchive = $receiptAssociationRepository->countOlderThan($dateToArchive);
+        $totalToArchive = $receiptAssociationRepository->countReceiptAssociationToArchive($dateToArchive);
         $this->io->progressStart($totalToArchive);
 
         $batchCount = 0;
 
-        $receiptAssociationsToArchive = $receiptAssociationRepository->iterateOlderThan($dateToArchive);
+        $receiptAssociationsToArchive = $receiptAssociationRepository->iterateReceiptAssociationToArchive($dateToArchive);
 
         foreach ($receiptAssociationsToArchive as $receiptAssociation) {
             if ($receiptAssociation->getLogisticUnits()->isEmpty()) {

@@ -346,7 +346,7 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @return Collection|DispatchPack[]
+     * @return Collection<DispatchPack>
      */
     public function getDispatchPacks(): Collection {
         return $this->dispatchPacks;

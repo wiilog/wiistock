@@ -203,9 +203,9 @@ class ReceiptAssociationRepository extends EntityRepository
     /**
      * Counts the number of ReceiptAssociation older than the given date.
      */
-    public function countOlderThan(DateTime $date): int {
-        return $this->createQueryBuilderOlderThan('receipt_association', $date)
-            ->select('COUNT(receipt_association.id)')
+    public function countReceiptAssociationToArchive(DateTime $date): int {
+        return $this->createQueryBuilderReceiptAssociationToArchive('receipt_association', $date)
+            ->select('COUNT(DISTINCT receipt_association.id)')
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -214,16 +214,25 @@ class ReceiptAssociationRepository extends EntityRepository
      * Returns an iterable of ReceiptAssociation older than the given date
      * @return iterable<ReceiptAssociation>
      */
-    public function iterateOlderThan(DateTime $date): iterable {
-        return $this->createQueryBuilderOlderThan('receipt_association', $date)
+    public function iterateReceiptAssociationToArchive(DateTime $date): iterable {
+        return $this->createQueryBuilderReceiptAssociationToArchive('receipt_association', $date)
             ->getQuery()
             ->toIterable();
     }
 
-    public function createQueryBuilderOlderThan(string $alias,
-                                                DateTime $date): QueryBuilder {
+    public function createQueryBuilderReceiptAssociationToArchive(string   $alias,
+                                                                  DateTime $date): QueryBuilder {
         return $this->createQueryBuilder($alias)
+            ->leftJoin("$alias.logisticUnits", "logistic_unit")
+            ->leftJoin("logistic_unit.trackingMovements", "tracking_movement")
+            ->leftJoin("logistic_unit.dispatchPacks", "dispatch_packs")
+            ->leftJoin("logistic_unit.content", "logistic_unit_inside")
             ->andWhere("$alias.creationDate < :date")
+            ->andWhere("logistic_unit.arrivage IS NULL")
+            ->andWhere("tracking_movement.id IS NULL")
+            ->andWhere("dispatch_packs.id IS NULL")
+            ->andWhere("logistic_unit_inside.id IS NULL")
+            ->distinct()
             ->setParameter('date', $date);
     }
 

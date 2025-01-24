@@ -62,7 +62,7 @@ class PurgeAllCommand extends Command {
             [
                 "entity" => "ReceiptAssociation",
                 "commandName" => ReceiptAssociationsPurgeCommand::COMMAND_NAME,
-                "count" => fn() => $receiptAssociationRepository->countOlderThan($dateToArchive),
+                "count" => fn() => $receiptAssociationRepository->countReceiptAssociationToArchive($dateToArchive),
             ],
         ];
 
