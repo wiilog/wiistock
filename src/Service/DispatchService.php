@@ -923,6 +923,10 @@ class DispatchService {
                                 'name' => 'step',
                                 'value' => '0.001',
                             ],
+                            [
+                                'name' => 'data-global-error',
+                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT,
+                            ],
                         ],
                     ]),
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $this->formService->macro(
@@ -977,6 +981,10 @@ class DispatchService {
                                 'name' => 'data-parent',
                                 'value' => 'body',
                             ],
+                            [
+                                'name' => 'data-global-error',
+                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+                            ],
                         ],
                     ]),
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => $this->formService->macro(
@@ -998,6 +1006,10 @@ class DispatchService {
                                 'name' => 'data-parent',
                                 'value' => 'body',
                             ],
+                            [
+                                'name' => 'data-global-error',
+                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
+                            ],
                         ],
                     ]),
                 SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => $this->formService->macro(
@@ -1018,6 +1030,10 @@ class DispatchService {
                             [
                                 'name' => 'data-parent',
                                 'value' => 'body',
+                            ],
+                            [
+                                'name' => 'data-global-error',
+                                'value' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
                             ],
                         ],
                     ]),
