@@ -3,11 +3,13 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use App\Command\Purge\PurgeAllCommand;
+use App\Helper\FileSystem;
 use App\Service\IOT\IOTService;
 
 class SensorDataExporter
 {
     private $connection;
+    private FileSystem $fileSystem;
     private int $batchSize = 10000;
     private int $offset = 0;
     public string $outputFile = 'export_iot_sensor_data.csv';
@@ -28,6 +30,7 @@ class SensorDataExporter
     public function __construct(string $host, string $dbname, string $username, string $password)
     {
         $this->connectToDatabase($host, $dbname, $username, $password);
+        $this->fileSystem = new FileSystem();
     }
 
     /**
@@ -163,6 +166,12 @@ class SensorDataExporter
     public function getGeneratedOutputFile(string $dateFilter): string
     {
         $todayDate = new DateTime("now");
+
+        if (!$this->fileSystem->exists(__DIR__ . '/../var/data-archiving/')) {
+            $this->fileSystem->mkdir(__DIR__ . '/../var/data-archiving/');
+        }
+
+
         // file name = ARC + entityToArchive + today's date + _ + $dateToArchive + .csv
         return PurgeAllCommand::ARCHIVE_DIR . "ARC_IOT_" . $todayDate->format("Y-m-d") . "_" . $dateFilter . ".csv";
     }
