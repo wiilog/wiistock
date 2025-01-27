@@ -1,6 +1,6 @@
 {% if dispatch.statut and dispatch.statut.draft %}
     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::MANAGE_PACK')) %}
-        <button class="btn btn-silent delete-pack-row" data-id="{{ dispatchPack ? dispatchPack.id }}">
+        <button class="btn btn-silent delete-pack-row d-flex" data-id="{{ dispatchPack ? dispatchPack.id }}">
             <i class="wii-icon wii-icon-trash text-primary"></i>
         </button>
     {% endif %}
