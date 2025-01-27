@@ -15,7 +15,7 @@ Cypress.Commands.add(
                 Cypress.env('OLD_DATABASE_NAME', currentDatabaseName);
 
                 // change APP_URL in .env.local
-                cy.exec(`sed -i 's|APP_URL=http://localhost|APP_URL=http://wiistock-nginx|' .env.local`);
+                cy.exec(`sed -i 's|APP_URL=http://localhost|APP_URL=http://owasp-modsecurity|' .env.local`);
                 // print the current database name
                 cy.log(`Current database name: ${currentDatabaseName}`);
 
