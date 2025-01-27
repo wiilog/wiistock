@@ -24,11 +24,11 @@ use WiiCommon\Helper\Stream;
 
 class InventoryService {
 
-    public function __construct(private SettingsService $settingService,
-                                private EntityManagerInterface $entityManager,
-                                private TrackingMovementService $trackingMovementService,
-                                private MouvementStockService $stockMovementService)
-    {
+    public function __construct(
+        private SettingsService         $settingService,
+        private EntityManagerInterface  $entityManager,
+        private TrackingMovementService $trackingMovementService,
+        private MouvementStockService   $stockMovementService) {
     }
 
     public function doTreatAnomaly(int         $idEntry,
@@ -85,10 +85,8 @@ class InventoryService {
             ]);
 
             if ($isRef) {
-                //TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
                 $refOrArt->setQuantiteStock($newQuantity);
             } else {
-                //TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
                 $refOrArt->setQuantite($newQuantity);
                 if ($newQuantity === 0) {
                     $refOrArt

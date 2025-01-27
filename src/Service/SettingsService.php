@@ -60,7 +60,6 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Yaml;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class SettingsService {
@@ -71,35 +70,19 @@ class SettingsService {
         Setting::FONT_FAMILY => Setting::DEFAULT_FONT_FAMILY,
     ];
 
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public AttachmentService $attachmentService;
-
-    #[Required]
-    public RequestTemplateService $requestTemplateService;
-
-    #[Required]
-    public AlertTemplateService $alertTemplateService;
-
-    #[Required]
-    public StatusService $statusService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public CacheService $cacheService;
-
     private array $settingsConstants;
 
     public function __construct(
-        private DateTimeService   $dateTimeService,
-        private WorkPeriodService $workPeriodService,
+        private DateTimeService        $dateTimeService,
+        private WorkPeriodService      $workPeriodService,
+        private KernelInterface        $kernel,
+        private AttachmentService      $attachmentService,
+        private RequestTemplateService $requestTemplateService,
+        private AlertTemplateService   $alertTemplateService,
+        private StatusService          $statusService,
+        private TranslationService     $translationService,
+        private UserService            $userService,
+        private CacheService           $cacheService,
     ) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
@@ -110,12 +93,19 @@ class SettingsService {
     public function getValue(EntityManagerInterface $entityManager,
                              string                 $settingLabel,
                              string|int|null|bool   $default = null): mixed {
-        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, $settingLabel, static function () use ($settingLabel, $entityManager, $default) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
-            return $settingRepository->getOneParamByLabel($settingLabel)
-                ?? self::DEFAULT_SETTING_VALUES[$settingLabel]
-                ?? $default;
-        });
+        return $this->cacheService->get(
+            CacheService::COLLECTION_SETTINGS,
+            $settingLabel,
+            static function () use ($settingLabel, $entityManager, $default) {
+                $settingRepository = $entityManager->getRepository(Setting::class);
+                $setting = $settingRepository->findOneBy(['label' => $settingLabel]);
+                return $setting
+                    ? $setting->getValue()
+                    : (
+                        self::DEFAULT_SETTING_VALUES[$settingLabel]
+                        ?? $default
+                    );
+            });
     }
 
     public function persistSetting(EntityManagerInterface $entityManager, array &$settings, string $key): ?Setting {
@@ -1423,7 +1413,7 @@ class SettingsService {
         }
     }
 
-    public function generateSessionConfig(EntityManagerInterface $entityManager) {
+    public function generateSessionConfig(EntityManagerInterface $entityManager): void {
         $sessionLifetime = $this->getValue($entityManager, Setting::MAX_SESSION_TIME);
 
         $generated = "{$this->kernel->getProjectDir()}/config/generated.yaml";

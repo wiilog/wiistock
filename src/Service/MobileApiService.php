@@ -19,31 +19,18 @@ use App\Entity\Utilisateur;
 use Composer\Semver\Semver;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class MobileApiService {
 
-    #[Required]
-    public NatureService $natureService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public MouvementStockService $stockMovementService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public AlertService $alertService;
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    public function __construct(private SettingsService $settingsService)
-    {
+    public function __construct(
+        private SettingsService        $settingsService,
+        private NatureService          $natureService,
+        private UserService            $userService,
+        private MouvementStockService  $stockMovementService,
+        private AlertService           $alertService,
+        private RefArticleDataService  $refArticleDataService,
+    ) {
     }
 
     const MOBILE_TRANSLATIONS = [
@@ -209,24 +196,24 @@ class MobileApiService {
 
     public function getMobileParameters(SettingsService $globalsParameters, EntityManagerInterface $entityManager): array {
         return Stream::from([
-            "skipValidationsManualTransfer" => $globalsParameters->getValue($entityManager,Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
-            "skipValidationsLivraisons" => $globalsParameters->getValue($entityManager,Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
-            "skipQuantitiesLivraisons" => $globalsParameters->getValue($entityManager,Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
-            "skipValidationsToTreatTransfer" => $globalsParameters->getValue($entityManager,Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
-            "displayReferencesOnTransferCards" => $globalsParameters->getValue($entityManager,Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
-            "dropOnFreeLocation" => $globalsParameters->getValue($entityManager,Setting::TRANSFER_FREE_DROP) == 1,
-            "displayTargetLocationPicking" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_PICKING_LOCATION) == 1,
-            "skipValidationsPreparations" => $globalsParameters->getValue($entityManager,Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
-            "skipQuantitiesPreparations" => $globalsParameters->getValue($entityManager,Setting::PREPARATION_SKIP_QUANTITIES) == 1,
-            "preparationDisplayArticleWithoutManual" => $globalsParameters->getValue($entityManager,Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
-            "manualDeliveryDisableValidations" => $globalsParameters->getValue($entityManager,Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
-            "rfidPrefix" => $globalsParameters->getValue($entityManager,Setting::RFID_PREFIX) ?: null,
-            "forceDispatchSignature" => $globalsParameters->getValue($entityManager,Setting::FORCE_GROUPED_SIGNATURE),
-            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getValue($entityManager,Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
-            "displayReferenceCodeAndScan" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
-            "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getValue($entityManager,Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
-            "displayWarningWrongLocation" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
-            "displayManualDelayStart" => $globalsParameters->getValue($entityManager,Setting::DISPLAY_MANUAL_DELAY_START) == 1,
+            "skipValidationsManualTransfer" => $globalsParameters->getValue($entityManager, Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "skipValidationsLivraisons" => $globalsParameters->getValue($entityManager, Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesLivraisons" => $globalsParameters->getValue($entityManager, Setting::LIVRAISON_SKIP_QUANTITIES) == 1,
+            "skipValidationsToTreatTransfer" => $globalsParameters->getValue($entityManager, Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
+            "displayReferencesOnTransferCards" => $globalsParameters->getValue($entityManager, Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS) == 1,
+            "dropOnFreeLocation" => $globalsParameters->getValue($entityManager, Setting::TRANSFER_FREE_DROP) == 1,
+            "displayTargetLocationPicking" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION) == 1,
+            "skipValidationsPreparations" => $globalsParameters->getValue($entityManager, Setting::PREPARATION_SKIP_VALIDATIONS) == 1,
+            "skipQuantitiesPreparations" => $globalsParameters->getValue($entityManager, Setting::PREPARATION_SKIP_QUANTITIES) == 1,
+            "preparationDisplayArticleWithoutManual" => $globalsParameters->getValue($entityManager, Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL) == 1,
+            "manualDeliveryDisableValidations" => $globalsParameters->getValue($entityManager, Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
+            "rfidPrefix" => $globalsParameters->getValue($entityManager, Setting::RFID_PREFIX) ?: null,
+            "forceDispatchSignature" => $globalsParameters->getValue($entityManager, Setting::FORCE_GROUPED_SIGNATURE),
+            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getValue($entityManager, Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
+            "displayReferenceCodeAndScan" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
+            "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getValue($entityManager, Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
+            "displayWarningWrongLocation" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
+            "displayManualDelayStart" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_MANUAL_DELAY_START) == 1,
         ])
             ->toArray();
     }

@@ -18,52 +18,26 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class HandlingService {
 
-    #[Required]
-    public Twig_Environment $templating;
 
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public TokenStorageInterface $tokenStorage;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public LanguageService $languageService;
-
-
-    public function __construct(private SettingsService $settingsService)
-    {
+    public function __construct(
+        private SettingsService        $settingsService,
+        private Twig_Environment       $templating,
+        private RouterInterface        $router,
+        private UserService            $userService,
+        private EntityManagerInterface $entityManager,
+        private MailerService          $mailerService,
+        private TranslationService     $translation,
+        private FieldModesService      $fieldModesService,
+        private FreeFieldService       $freeFieldService,
+        private Security               $security,
+        private FormatService          $formatService,
+        private LanguageService        $languageService,
+    ) {
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request): array
@@ -316,7 +290,7 @@ class HandlingService {
                                     Handling               $handling,
                                     FormatService          $formatService) {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $includeDesiredTime = !$this->settingService->getValue($entityManager,Setting::REMOVE_HOURS_DATETIME);
+        $includeDesiredTime = !$this->settingService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
         $user = $this->userService->getUser();
         $receiversStr = Stream::from($handling->getReceivers())
             ->map(fn(Utilisateur $receiver) => $formatService->user($receiver))

@@ -280,7 +280,7 @@ class PreparationController extends AbstractController
         return $this->render('preparation/show/index.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
-            'showTargetLocationPicking' => $settingsService->getValue($entityManager,Setting::DISPLAY_PICKING_LOCATION),
+            'showTargetLocationPicking' => $settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),

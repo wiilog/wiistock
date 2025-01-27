@@ -47,18 +47,20 @@ class ArticleDataService
 
     private ?array $freeFieldsConfig = null;
 
-    public function __construct(private SettingsService $settingsService,
-                                private EntityManagerInterface $entityManager,
-                                private Twig_Environment $templating,
-                                private RouterInterface $router,
-                                private RefArticleDataService $refArticleDataService,
-                                private FormatService $formatService,
-                                private TranslationService $translation,
-                                private EmplacementDataService $emplacementDataService,
-                                private FieldModesService $fieldModesService,
-                                private CSVExportService $CSVExportService,
-                                private FreeFieldService $freeFieldService,
-                                private UserService $userService) {}
+    public function __construct(
+        private SettingsService        $settingsService,
+        private EntityManagerInterface $entityManager,
+        private Twig_Environment       $templating,
+        private RouterInterface        $router,
+        private RefArticleDataService  $refArticleDataService,
+        private FormatService          $formatService,
+        private TranslationService     $translation,
+        private EmplacementDataService $emplacementDataService,
+        private FieldModesService      $fieldModesService,
+        private CSVExportService       $CSVExportService,
+        private FreeFieldService       $freeFieldService,
+        private UserService            $userService
+    ) {}
 
     public function getCollecteArticleOrNoByRefArticle(Collecte         $collect,
                                                        ReferenceArticle $refArticle,

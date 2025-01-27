@@ -352,10 +352,10 @@ class RoundController extends AbstractController {
 
     #[Route("/planifier", name: "transport_round_plan", options: ['expose' => true], methods: [self::GET])]
     #[HasPermission([Menu::ORDRE, Action::SCHEDULE_TRANSPORT_ROUND])]
-    public function plan(Request $request,
+    public function plan(Request                $request,
                          EntityManagerInterface $entityManager,
-                         SettingsService $settingsService,
-                         UniqueNumberService $uniqueNumberService): Response {
+                         SettingsService        $settingsService,
+                         UniqueNumberService    $uniqueNumberService): Response {
         $isOnGoing = false;
 
         if ($request->query->get('dateRound')) {

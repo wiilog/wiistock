@@ -217,10 +217,11 @@ class TypeController extends AbstractController {
     }
 
     #[Route('/champs-libres/{type}', name: 'free_fields_by_type', options: ['expose' => true], methods: [self::POST,], condition: self::IS_XML_HTTP_REQUEST)]
-    public function freeFieldsByType(Type $type, EntityManagerInterface $entityManager, SettingsService $settingsService): JsonResponse
+    public function freeFieldsByType(Type                   $type,
+                                     EntityManagerInterface $entityManager,
+                                     SettingsService        $settingsService): JsonResponse
     {
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $selectedFreeFieldId = $settingsService->getValue($entityManager,Setting::FREE_FIELD_REFERENCE_CREATE);
+        $selectedFreeFieldId = $settingsService->getValue($entityManager, Setting::FREE_FIELD_REFERENCE_CREATE);
 
         $freeFields = [
             "<option selected value=''></option>"

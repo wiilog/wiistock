@@ -607,12 +607,11 @@ class ShippingRequestController extends AbstractController {
 
         $ShippingRequestExpectedLineRepository = $entityManager->getRepository(ShippingRequestExpectedLine::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $quantityByExpectedLine = [];
 
-        $packLocationId = $settingsService->getValue($entityManager,Setting::SHIPPING_LOCATION_FROM);
+        $packLocationId = $settingsService->getValue($entityManager, Setting::SHIPPING_LOCATION_FROM);
         $packLocation = $packLocationId ? $locationRepository->find($packLocationId) : null;
 
         if (!$packLocation) {
@@ -852,7 +851,7 @@ class ShippingRequestController extends AbstractController {
                                          MouvementStockService   $mouvementStockService,
                                          TrackingMovementService $trackingMovementService,
                                          ShippingRequestService  $shippingRequestService,
-                                         TranslationService $translationService): JsonResponse
+                                         TranslationService      $translationService): JsonResponse
     {
         if ($shippingRequest->getStatus()->getCode() !== ShippingRequest::STATUS_SCHEDULED) {
             return $this->json([
@@ -866,13 +865,12 @@ class ShippingRequestController extends AbstractController {
 
         // repository
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         // location
-        $shippingLocationFromId = $settingsService->getValue($entityManager,Setting::SHIPPING_LOCATION_FROM);
+        $shippingLocationFromId = $settingsService->getValue($entityManager, Setting::SHIPPING_LOCATION_FROM);
         $shippingLocationFrom = $emplacementRepository->findOneBy(['id' => $shippingLocationFromId]);
-        $shippingLocationToId = $settingsService->getValue($entityManager,Setting::SHIPPING_LOCATION_TO);
+        $shippingLocationToId = $settingsService->getValue($entityManager, Setting::SHIPPING_LOCATION_TO);
         $shippingLocationTo = $emplacementRepository->findOneBy(['id' => $shippingLocationToId]);
 
         // new status

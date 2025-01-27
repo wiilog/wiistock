@@ -15,59 +15,28 @@ use App\Entity\Tracking\Pack;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class LivraisonService
 {
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
-
-    private $security;
-
-    private $entityManager;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public TemplateDocumentService $wordTemplateDocument;
-
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
-    #[Required]
-    public SpecificService $specificService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    public function __construct(private SettingsService $settingService,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                Security $security) {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->security = $security;
+    public function __construct(
+        private SettingsService         $settingService,
+        private RouterInterface         $router,
+        private EntityManagerInterface  $entityManager,
+        private Twig_Environment        $templating,
+        private UserService             $userService,
+        private FormatService           $formatService,
+        private KernelInterface         $kernel,
+        private TemplateDocumentService $wordTemplateDocument,
+        private PDFGeneratorService     $PDFGeneratorService,
+        private SpecificService         $specificService,
+        private TranslationService      $translation,
+        private FieldModesService       $fieldModesService,
+    ) {
     }
 
     public function getDataForDatatable($params = null, $filterDemandId = null)
@@ -84,7 +53,7 @@ class LivraisonService
             ];
         }
         else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->userService->getUser());
         }
 		$queryResult = $livraisonRepository->findByParamsAndFilters($params, $filters);
 
@@ -341,7 +310,7 @@ class LivraisonService
         return $wayBillAttachment;
     }
 
-    public function getVisibleColumnsShow(EntityManagerInterface $entityManager, Demande $request) :Array {
+    public function getVisibleColumnsShow(EntityManagerInterface $entityManager, Demande $request): array {
         $columnsVisible = $request->getVisibleColumns();
         if ($columnsVisible === null) {
             $request->setVisibleColumns(Demande::DEFAULT_VISIBLE_COLUMNS);

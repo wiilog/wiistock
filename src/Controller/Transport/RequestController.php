@@ -199,7 +199,7 @@ class RequestController extends AbstractController {
         $validationMessage = null;
         if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
             $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $paramReceivers = $settingsService->getValue($entityManager,Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
+            $paramReceivers = $settingsService->getValue($entityManager, Setting::TRANSPORT_DELIVERY_DESTINATAIRES_MAIL);
             $receivers = $userRepository->findBy(['id' => explode(',', $paramReceivers)]);
 
             if(!empty($receivers)) {
@@ -216,7 +216,7 @@ class RequestController extends AbstractController {
             $validationMessage = 'Votre demande de transport est en attente de validation';
         }
         else if ($mainTransportRequest->getStatus()?->getCode() === TransportRequest::STATUS_SUBCONTRACTED) {
-            $settingMessage = $settingsService->getValue($entityManager,Setting::NON_BUSINESS_HOURS_MESSAGE);
+            $settingMessage = $settingsService->getValue($entityManager, Setting::NON_BUSINESS_HOURS_MESSAGE);
             $settingMessage = $settingMessage ? "<br/><br/>$settingMessage" : '';
             $validationMessage = "
                 <div class='text-center'>
@@ -635,7 +635,7 @@ class RequestController extends AbstractController {
                                         EntityManagerInterface $entityManager,
                                         SettingsService        $settingsService): PdfResponse {
 
-        $logo = $settingsService->getValue($entityManager,Setting::LABEL_LOGO);
+        $logo = $settingsService->getValue($entityManager, Setting::LABEL_LOGO);
 
         $packsFilter = Stream::explode(',', $request->query->get('packs'))
             ->filter()

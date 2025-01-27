@@ -328,8 +328,8 @@ class CollecteController extends AbstractController
 
     #[Route('/api-modifier', name: 'collecte_api_edit', options: ['expose' => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editApi(Request $request,
-                            SettingsService $settingsService,
+    public function editApi(Request                $request,
+                            SettingsService        $settingsService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -339,7 +339,7 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'restrictedLocations' =>  $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
+                'restrictedLocations' => $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             ]);
 
             return new JsonResponse($json);

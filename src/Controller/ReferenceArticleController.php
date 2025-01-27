@@ -46,7 +46,6 @@ use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
-use App\Service\SpecificService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
@@ -64,7 +63,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -72,26 +70,6 @@ use WiiCommon\Helper\Stream;
 #[Route('/reference-article')]
 class ReferenceArticleController extends AbstractController
 {
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    #[Required]
-    public ArticleDataService $articleDataService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public SpecificService $specificService;
-
-
-    public function __construct(private SettingsService $settingsService)
-    {
-    }
 
     #[Route('/api-columns', name: 'ref_article_api_columns', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
@@ -115,20 +93,21 @@ class ReferenceArticleController extends AbstractController
 
     #[Route('/api', name: 'ref_article_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
-    public function api(Request $request): Response {
-        return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
+    public function api(Request               $request,
+                        RefArticleDataService $refArticleDataService): Response {
+        return $this->json($refArticleDataService->getRefArticleDataByParams($request->request));
     }
 
     #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
-    public function new(Request $request,
-                        UserService $userService,
-                        FreeFieldService $champLibreService,
-                        EntityManagerInterface $entityManager,
-                        MouvementStockService $mouvementStockService,
-                        TrackingMovementService $trackingMovementService,
-                        RefArticleDataService $refArticleDataService,
+    public function new(Request                   $request,
+                        UserService               $userService,
+                        FreeFieldService          $champLibreService,
+                        EntityManagerInterface    $entityManager,
+                        MouvementStockService     $mouvementStockService,
+                        TrackingMovementService   $trackingMovementService,
+                        RefArticleDataService     $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
-                        AttachmentService $attachmentService): Response {
+                        AttachmentService         $attachmentService): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
             && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
             throw new FormException("Accès refusé");
@@ -202,7 +181,7 @@ class ReferenceArticleController extends AbstractController
                 ->setType($type)
                 ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
-				->setBarCode($this->refArticleDataService->generateBarCode())
+				->setBarCode($refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
                 ->setCreatedAt($now)
@@ -483,6 +462,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
+                         RefArticleDataService  $refArticleDataService,
                          AttachmentService      $attachmentService,
                          TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
@@ -508,7 +488,7 @@ class ReferenceArticleController extends AbstractController
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
                     $attachmentService->removeAttachments($entityManager, $refArticle, $data->all()['files'] ?? []);
-                    $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
+                    $response = $refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     throw new FormException("Vous ne pouvez pas modifier la quantité d'une référence inactive.");
@@ -787,37 +767,37 @@ class ReferenceArticleController extends AbstractController
 
     #[Route('/mouvements/api/{referenceArticle}', name: 'ref_mouvements_api', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     public function apiMouvements(EntityManagerInterface $entityManager,
-                                  MouvementStockService $mouvementStockService,
-                                  ReferenceArticle $referenceArticle): Response
+                                  MouvementStockService  $mouvementStockService,
+                                  Twig_Environment       $templating,
+                                  ReferenceArticle       $referenceArticle): Response
     {
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
-        $data['data'] = array_map(
-            function(MouvementStock $mouvement) use ($mouvementStockService) {
-                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($mouvement);
+        $data['data'] = Stream::from($mouvements)
+            ->map(static function(MouvementStock $movement) use ($mouvementStockService, $templating) {
+                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($movement);
                 $from = $fromColumnConfig['from'];
                 $fromPath = $fromColumnConfig['path'];
                 $fromPathParams = $fromColumnConfig['pathParams'];
 
                 return [
-                    'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
-                    'Quantity' => $mouvement->getQuantity(),
-                    'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
-                    'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
-                    'Type' => $mouvement->getType(),
-                    'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun',
-                    'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
+                    'Date' => $movement->getDate() ? $movement->getDate()->format('d/m/Y H:i:s') : 'aucune',
+                    'Quantity' => $movement->getQuantity(),
+                    'Origin' => $movement->getEmplacementFrom() ? $movement->getEmplacementFrom()->getLabel() : 'aucun',
+                    'Destination' => $movement->getEmplacementTo() ? $movement->getEmplacementTo()->getLabel() : 'aucun',
+                    'Type' => $movement->getType(),
+                    'Operator' => $movement->getUser() ? $movement->getUser()->getUsername() : 'aucun',
+                    'from' => $templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
                         'from' => $from,
-                        'mvt' => $mouvement,
+                        'mvt' => $movement,
                         'path' => $fromPath,
                         'pathParams' => $fromPathParams
                     ]),
-                    'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
+                    'ArticleCode' => $movement->getArticle()?->getBarCode() ?: $movement->getRefArticle()?->getBarCode()
                 ];
-            },
-            $mouvements
-        );
+            })
+            ->toArray();
         return new JsonResponse($data);
     }
 
@@ -878,20 +858,25 @@ class ReferenceArticleController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
 
         $shippingSettingsDefaultValues = [];
         if($request->query->has('shipping')){
+            $supplierLabelReferenceCreate = $settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE);
+            $supplierReferenceCreate = $settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE);
+
             $shippingSettingsDefaultValues = [
-                'type' => $this->settingsService->getValue($entityManager, Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
-                'supplier' => $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE) ? $supplierRepository->find( $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE)) : null,
-                'supplierCode' => $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE) ? $supplierRepository->find( $this->settingsService->getValue($entityManager, Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE)) : null,
-                'refArticleSupplierEqualsReference' => boolval($this->settingsService->getValue($entityManager, Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
-                'articleSupplierLabelEqualsReferenceLabel' => boolval($this->settingsService->getValue($entityManager, Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
+                'type' => $settingsService->getValue($entityManager, Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
+                'supplier' => $supplierLabelReferenceCreate
+                    ? $supplierRepository->find($supplierLabelReferenceCreate)
+                    : null,
+                'supplierCode' => $supplierReferenceCreate
+                    ? $supplierRepository->find($supplierReferenceCreate)
+                    : null,
+                'refArticleSupplierEqualsReference' => boolval($settingsService->getValue($entityManager, Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
+                'articleSupplierLabelEqualsReferenceLabel' => boolval($settingsService->getValue($entityManager, Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
             ];
         }
 
@@ -975,6 +960,7 @@ class ReferenceArticleController extends AbstractController
     #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
     public function validateEntryStock(Request                   $request,
                                        EntityManagerInterface    $entityManager,
+                                       SettingsService           $settingsService,
                                        ArticleFournisseurService $articleFournisseurService,
                                        ArticleDataService        $articleDataService,
                                        RefArticleDataService     $refArticleDataService,
@@ -999,10 +985,11 @@ class ReferenceArticleController extends AbstractController
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
-        $type = $typeRepository->find($this->settingsService->getValue($entityManager, Setting::TYPE_REFERENCE_CREATE));
-        $articleSuccessMessage = $this->settingsService->getValue($entityManager, Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
-        $referenceSuccessMessage = $this->settingsService->getValue($entityManager, Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
+        $type = $typeRepository->find($settingsService->getValue($entityManager, Setting::TYPE_REFERENCE_CREATE));
+        $articleSuccessMessage = $settingsService->getValue($entityManager, Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
+        $referenceSuccessMessage = $settingsService->getValue($entityManager, Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
 
         $applicant = $userRepository->find($data->get('applicant'));
         $follower = $userRepository->find($data->get('follower'));
@@ -1010,7 +997,7 @@ class ReferenceArticleController extends AbstractController
         $referenceExist = $data->has('article') && $reference;
 
         if (!$reference) {
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $this->settingsService->getValue($entityManager, Setting::STATUT_REFERENCE_CREATE));
+            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingsService->getValue($entityManager, Setting::STATUT_REFERENCE_CREATE));
 
             $reference = (new ReferenceArticle())
                 ->setReference($data->get('reference'))
@@ -1033,18 +1020,18 @@ class ReferenceArticleController extends AbstractController
             $reference->addManager($follower);
         }
 
-        if($this->settingsService->getValue($entityManager, Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
-            $visibilityGroup = $visibilityGroupRepository->find($this->settingsService->getValue($entityManager, Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
+        if($settingsService->getValue($entityManager, Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
+            $visibilityGroup = $visibilityGroupRepository->find($settingsService->getValue($entityManager, Setting::VISIBILITY_GROUP_REFERENCE_CREATE));
             $reference->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
-        if($this->settingsService->getValue($entityManager, Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
-            $inventoryCategory = $inventoryCategoryRepository->find($this->settingsService->getValue($entityManager, Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
+        if($settingsService->getValue($entityManager, Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE)){
+            $inventoryCategory = $inventoryCategoryRepository->find($settingsService->getValue($entityManager, Setting::INVENTORIES_CATEGORY_REFERENCE_CREATE));
             $reference->setCategory($inventoryCategory);
         }
 
         $entityManager->persist($reference);
         if(!$referenceExist) {
-            $provider = $entityManager->getRepository(Fournisseur::class)->find($this->settingsService->getValue($entityManager, Setting::FOURNISSEUR_REFERENCE_CREATE));
+            $provider = $supplierRepository->find($settingsService->getValue($entityManager, Setting::FOURNISSEUR_REFERENCE_CREATE));
             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
                 'fournisseur' => $provider,
                 'article-reference' => $reference,

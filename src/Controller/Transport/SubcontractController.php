@@ -185,7 +185,7 @@ class SubcontractController extends AbstractController
             $transportHistoryType = OperationHistoryService::TYPE_SUBCONTRACTED;
 
             $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
-                'message' => $settingsService->getValue($entityManager,Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
+                'message' => $settingsService->getValue($entityManager, Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
             ]);
         }
 

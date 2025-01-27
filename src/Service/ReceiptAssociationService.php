@@ -13,43 +13,22 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class ReceiptAssociationService
 {
-    #[Required]
-    public Twig_Environment $templating;
 
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public PackService $packService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    public function __construct(private SettingsService $settingService)
-    {
+    public function __construct(
+        private SettingsService         $settingService,
+        private Twig_Environment        $templating,
+        private UserService             $userService,
+        private TrackingMovementService $trackingMovementService,
+        private CSVExportService        $CSVExportService,
+        private PackService             $packService,
+        private FormatService           $formatService,
+        private TranslationService      $translationService,
+    ) {
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
@@ -58,11 +37,12 @@ class ReceiptAssociationService
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEIPT_ASSOCIATION, $this->security->getUser());
+        $user = $this->userService->getUser();
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEIPT_ASSOCIATION, $user);
         $queryResult = $receiptAssociationRepository->findByParamsAndFilters($params, $filters);
 
         $receiptAssocations = $queryResult['data'];
-        $user = $this->userService->getUser();
 
         $rows = [];
         foreach ($receiptAssocations as $receiptAssocation) {
@@ -156,7 +136,7 @@ class ReceiptAssociationService
         }
 
         if ($defaultUlLocationId
-            && $this->settingService->getValue($entityManager,Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
+            && $this->settingService->getValue($entityManager, Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
             $this->persistTrackingMovements($entityManager, $receptionNumbers, $logisticUnits, $user, $now);
         }
 
@@ -175,8 +155,8 @@ class ReceiptAssociationService
     {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $defaultLocationUL = $locationRepository->find($this->settingService->getValue($entityManager,Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
-        $defaultLocationReception = $locationRepository->find($this->settingService->getValue($entityManager,Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
+        $defaultLocationUL = $locationRepository->find($this->settingService->getValue($entityManager, Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
+        $defaultLocationReception = $locationRepository->find($this->settingService->getValue($entityManager, Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
 
         foreach ($packs as $pack) {
             //prise UL

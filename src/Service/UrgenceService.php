@@ -13,36 +13,27 @@ use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class UrgenceService
 {
-    private $templating;
 
-    private $entityManager;
+    private array $__arrival_emergency_fields;
 
-    private $security;
-
-    #[Required]
-    public FormatService $formatService;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                private SettingsService $settingService,
-                                Twig_Environment $templating,
-								Security $security)
-    {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->security = $security;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private SettingsService        $settingService,
+        private Twig_Environment       $templating,
+        private FormatService          $formatService,
+        private UserService            $userService,
+    ) {
     }
 
     public function getDataForDatatable($params = null, $filters = [])
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-		$filters = array_merge($filters, $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser()));
+		$filters = array_merge($filters, $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->userService->getUser()));
 
         $queryResult = $urgenceRepository->findByParamsAndFilters($params, $filters);
 
@@ -62,7 +53,7 @@ class UrgenceService
 
     public function dataRowUrgence(Urgence $urgence)
     {
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
         $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
         return [
             'start' => $urgence->getDateStart()->format($format),

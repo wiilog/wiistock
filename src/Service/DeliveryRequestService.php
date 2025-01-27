@@ -31,82 +31,42 @@ use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class DeliveryRequestService
 {
-    #[Required]
-    public FormService $formService;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public StringService $stringService;
-
-    #[Required]
-    public RefArticleDataService $refArticleDataService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    #[Required]
-    public PreparationsManagerService $preparationsManager;
-
-    #[Required]
-    public LivraisonsManagerService $livraisonsManager;
-
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public FixedFieldService $fieldsParamService;
-
-    #[Required]
-    public NotificationService $notificationService;
-
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public ArticleDataService $articleService;
-
-    #[Required]
-    public MouvementStockService $stockMovementService;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public ArticleDataService $articleDataService;
-
-    private ?array $freeFieldsConfig = null;
 
     private array $cache = [];
 
-    public function __construct(private SettingsService $settingsService,
-                                private EntityManagerInterface $entityManager)
-    {
+    private ?array $freeFieldsConfig = null;
+
+    public function __construct(
+        private SettingsService            $settingsService,
+        private EntityManagerInterface     $entityManager,
+        private FormService                $formService,
+        private Twig_Environment           $templating,
+        private RouterInterface            $router,
+        private StringService              $stringService,
+        private RefArticleDataService      $refArticleDataService,
+        private MailerService              $mailerService,
+        private TranslationService         $translation,
+        private PreparationsManagerService $preparationsManager,
+        private LivraisonsManagerService   $livraisonsManager,
+        private FreeFieldService           $freeFieldService,
+        private FixedFieldService          $fieldsParamService,
+        private NotificationService        $notificationService,
+        private FieldModesService          $fieldModesService,
+        private UniqueNumberService        $uniqueNumberService,
+        private FormatService              $formatService,
+        private ArticleDataService         $articleService,
+        private MouvementStockService      $stockMovementService,
+        private TrackingMovementService    $trackingMovementService,
+        private ArticleDataService         $articleDataService,
+        private UserService                $userService,
+    ) {
     }
 
     public function getDataForDatatable(ParameterBag $params,
@@ -477,7 +437,7 @@ class DeliveryRequestService
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                'showDetails' => $this->createHeaderDetailsConfig($demande)
+                'showDetails' => $this->createHeaderDetailsConfig($entityManager, $demande)
             ]);
             $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
@@ -594,7 +554,7 @@ class DeliveryRequestService
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                'showDetails' => $this->createHeaderDetailsConfig($demande)
+                'showDetails' => $this->createHeaderDetailsConfig($entityManager, $demande)
             ]);
             $response['msg'] = 'Votre ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' a bien été validée';
             $response['demande'] = $demande;
@@ -610,7 +570,7 @@ class DeliveryRequestService
             }
 
             $dateEnd = new DateTime('now');
-            $user = $this->security->getUser();
+            $user = $this->userService->getUser();
             if($preparation->getArticleLines()->count()) {
                 $locationEndPrepa = $preparation->getArticleLines()->first()->getArticle()->getEmplacement();
             } else if($preparation->getReferenceLines()->count()) {
@@ -642,17 +602,18 @@ class DeliveryRequestService
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => false,
-                'showDetails' => $this->createHeaderDetailsConfig($demande)
+                'showDetails' => $this->createHeaderDetailsConfig($entityManager, $demande)
             ]);
         }
 
         return $response;
     }
 
-    public function createHeaderDetailsConfig(Demande $demande): array
+    public function createHeaderDetailsConfig(EntityManagerInterface $entityManager,
+                                              Demande                $demande): array
     {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
-            $this->entityManager,
+            $entityManager,
             $demande,
             ['type' => $demande->getType()],
         );
@@ -725,9 +686,10 @@ class DeliveryRequestService
         return $articleLine;
     }
 
-    public function getDataForReferencesDatatable($params = null)
+    public function getDataForReferencesDatatable(EntityManagerInterface $entityManager,
+                                                  $params = null): array
     {
-        $demande = $this->entityManager->find(Demande::class, $params);
+        $demande = $entityManager->find(Demande::class, $params);
         $referenceLines = $demande->getReferenceLines();
 
         $rows = [];
@@ -978,7 +940,10 @@ class DeliveryRequestService
             $columnsVisible = $request->getVisibleColumns();
         }
 
+        $user = $this->userService->getUser();
+
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
+
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
         $isProjectDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
         $isProjectRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
@@ -986,7 +951,7 @@ class DeliveryRequestService
         $isNotesDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
         $isNotesRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $this->settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION);
-        $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+        $isUserRoleQuantityTypeReference = $user->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
         $columns = [
             ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -1145,7 +1110,7 @@ class DeliveryRequestService
             "comment" =>
                 '<div class="text-wrap line-comment">'
                 .($line
-                    ? $this->getDeliveryRequestLineComment($line)
+                    ? $this->getDeliveryRequestLineComment($entityManager, $line)
                     : str_replace(
                         "@Destinataire",
                         $this->formatService->user($deliveryRequest->getReceiver()),
@@ -1173,14 +1138,14 @@ class DeliveryRequestService
         ];
     }
 
-    public function getDeliveryRequestLineComment(DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $requestLine): string {
+    public function getDeliveryRequestLineComment(EntityManagerInterface                                       $entityManager,
+                                                  DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $requestLine): string {
         $request = $requestLine?->getRequest();
         $receiver = $request?->getReceiver();
         $project = $requestLine?->getProject();
         $emptyCommentSetting = $project ? Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT : Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT;
         if (!($emptyComment = $this->cache[$emptyCommentSetting] ?? null)) {
-            $settingRepository = $this->entityManager->getRepository(Setting::class);
-            $emptyComment = $this->settingsService->getValue($this->entityManager, $emptyCommentSetting);
+            $emptyComment = $this->settingsService->getValue($entityManager, $emptyCommentSetting);
             $this->cache[$emptyCommentSetting] = $emptyComment;
         }
         if ($project) {

@@ -37,67 +37,33 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
 class ShippingRequestService {
 
-    #[Required]
-    public FieldModesService $fieldModesService;
-
-    #[Required]
-    public Security $security;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public CSVExportService $CSVExportService;
-
-    #[Required]
-    public PackService $packService;
-
-    #[Required]
-    public TrackingMovementService $trackingMovementService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public SpecificService $specificService;
-
-    #[Required]
-    public TemplateDocumentService $wordTemplateDocument;
-
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public MouvementStockService $mouvementStockService;
-
-    public function __construct(private SettingsService $settingsService)
-    {
+    public function __construct(
+        private SettingsService         $settingsService,
+        private FieldModesService       $fieldModesService,
+        private FormatService           $formatService,
+        private Twig_Environment        $templating,
+        private RouterInterface         $router,
+        private MailerService           $mailerService,
+        private CSVExportService        $CSVExportService,
+        private PackService             $packService,
+        private TrackingMovementService $trackingMovementService,
+        private UserService             $userService,
+        private KernelInterface         $kernel,
+        private SpecificService         $specificService,
+        private TemplateDocumentService $wordTemplateDocument,
+        private PDFGeneratorService     $PDFGeneratorService,
+        private TranslationService      $translationService,
+        private MouvementStockService   $mouvementStockService,
+    ) {
     }
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
@@ -134,14 +100,14 @@ class ShippingRequestService {
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request): array {
         $shippingRepository = $entityManager->getRepository(ShippingRequest::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $this->security->getUser());
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $this->userService->getUser());
 
         $queryResult = $shippingRepository->findByParamsAndFilters(
             $request->request,
             $filters,
             $this->fieldModesService,
             [
-                'user' => $this->security->getUser(),
+                'user' => $this->userService->getUser(),
             ]
         );
 
@@ -434,7 +400,7 @@ class ShippingRequestService {
         $trackingMovement = $this->trackingMovementService->createTrackingMovement(
             $pack,
             $packLocation,
-            $this->security->getUser(),
+            $this->userService->getUser(),
             $date,
             false,
             null,

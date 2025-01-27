@@ -144,7 +144,7 @@ class HandlingController extends AbstractController {
                     ->toArray(),
                 'handlingStatus' => $statutRepository->findStatusByType(CategorieStatut::HANDLING),
                 'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
-                'preFill' =>  $settingsService->getValue($entityManager, Setting::PREFILL_SERVICE_DATE_TODAY),
+                'preFill' => $settingsService->getValue($entityManager, Setting::PREFILL_SERVICE_DATE_TODAY),
             ],
             "typesFilter" => $typesFilter,
             "fromDashboard" => $fromDashboard,

@@ -806,9 +806,9 @@ class ReceptionController extends AbstractController {
 
         $typesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
-        $precheckedDelivery = $settingsService->getValue($entityManager,Setting::CREATE_DL_AFTER_RECEPTION);
-        $needsCurrentUser = $settingsService->getValue($entityManager,Setting::REQUESTER_IN_DELIVERY);
-        $restrictedLocations = $settingsService->getValue($entityManager,Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
+        $precheckedDelivery = $settingsService->getValue($entityManager, Setting::CREATE_DL_AFTER_RECEPTION);
+        $needsCurrentUser = $settingsService->getValue($entityManager, Setting::REQUESTER_IN_DELIVERY);
+        $restrictedLocations = $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         $deliveryRequestBehaviorSettingLabel = $settingRepository->findOneBy([
