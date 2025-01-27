@@ -476,7 +476,6 @@ function savePackLine(dispatchId,
             return true;
         }
     } else {
-        $row.find('.is-invalid').first().trigger('focus');
         return true;
     }
 
@@ -521,16 +520,21 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
 
                 const $nature = $row.find(`[name=nature]`);
-                $nature.off('change').on('change', function () {
-                    const $defaultQuantityForDispatch = $(this).find('option:selected').data('default-quantity-for-dispatch');
-                    const $quantity = $row.find('input[name="quantity"]');
-                    $quantity.val($defaultQuantityForDispatch);
-                });
+                $nature
+                    .off('change.initializePacksTable')
+                    .on('change.initializePacksTable', function () {
+                        const $defaultQuantityForDispatch = $(this).find('option:selected').data('default-quantity-for-dispatch');
+                        const $quantity = $row.find('input[name="quantity"]');
+                        const oldQuantity = $quantity.val();
+                        if (oldQuantity === null || oldQuantity === '') {
+                            $quantity.val($defaultQuantityForDispatch);
+                        }
+                    });
             })
 
             $rows
                 .off(`focusout.keyboardNavigation`)
-                .on(`focusout.keyboardNavigation`, function(event, p, i) {
+                .on(`focusout.keyboardNavigation`, function(event) {
                     const $row = $(this);
                     const $target = $(event.target);
                     const $relatedTarget = $(event.relatedTarget);
@@ -907,21 +911,28 @@ function selectUlChanged($select){
         const defaultNatureLabel = ulData.nature_label || $modal.find('[name=defaultNatureLabel]').val();
         const defaultQuantityNatureForDispatch = ulData.nature_default_quantity_for_dispatch || $modal.find('[name=defaultQuantityNatureForDispatch]').val();
 
-        const ulLastMvtDate = $modal.find('.ul-last-movement-date');
-        const ulLastLocation = $modal.find('.ul-last-location');
-        const ulOperator = $modal.find('.ul-operator');
-        const ulNature = $modal.find('select[name=nature]');
-        const ulQuantity = $modal.find('[name=quantity]');
+        const $ulLastMvtDate = $modal.find('.ul-last-movement-date');
+        const $ulLastLocation = $modal.find('.ul-last-location');
+        const $ulOperator = $modal.find('.ul-operator');
+        const $ulNature = $modal.find('select[name=nature]');
+        const $ulQuantity = $modal.find('[name=quantity]');
+        const oldQuantity = $ulQuantity.val();
 
-        ulLastMvtDate.text(ulData.lastMvtDate || '-');
-        ulLastLocation.text(ulData.lastLocation || '-');
-        ulQuantity.val(defaultQuantityNatureForDispatch);
-        ulOperator.text(ulData.operator || '-');
-        if (defaultNatureId && defaultNatureLabel) {
-            let newOption = new Option(defaultNatureLabel, defaultNatureId, true, true);
-            ulNature.append(newOption).trigger('change');
+        if (oldQuantity === null || oldQuantity === '') {
+            $ulQuantity.val(defaultQuantityNatureForDispatch);
         }
-        $modal.find('[name=packID]').val(ulData.exists ? ulData.id : null);
+
+        $ulLastMvtDate.text(ulData.lastMvtDate || '-');
+        $ulLastLocation.text(ulData.lastLocation || '-');
+        $ulOperator.text(ulData.operator || '-');
+        if (defaultNatureId && defaultNatureLabel) {
+            $ulNature
+                .append(new Option(defaultNatureLabel, defaultNatureId, true, true))
+                .trigger('change');
+        }
+        $modal
+            .find('[name=packID]')
+            .val(ulData.exists ? ulData.id : null);
     }
 }
 
