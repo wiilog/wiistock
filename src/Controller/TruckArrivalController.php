@@ -49,7 +49,7 @@ class TruckArrivalController extends AbstractController
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $defaultLocationId = $settingsService->getValue($entityManager,Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+        $defaultLocationId = $settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
         $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
 
         return $this->render('truck_arrival/index.html.twig', [
@@ -241,7 +241,7 @@ class TruckArrivalController extends AbstractController
                 $location = $locationId ? $locationRepository->find($locationId) : null;
                 $truckArrival->setUnloadingLocation($location);
             } else {
-                $defaultLocationId = $settingsService->getValue($entityManager,Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+                $defaultLocationId = $settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
                 $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
                 $truckArrival->setUnloadingLocation($defaultLocation);
             }

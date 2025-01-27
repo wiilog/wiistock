@@ -21,66 +21,32 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
-class PurchaseRequestService
-{
+class PurchaseRequestService {
 
-    #[Required]
-    public Twig_Environment $templating;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public SpecificService $specificService;
-
-    #[Required]
-    public TemplateDocumentService $wordTemplateDocument;
-
-    #[Required]
-    public UniqueNumberService $uniqueNumberService;
-
-    #[Required]
-    public MailerService $mailerService;
-
-    #[Required]
-    public TokenStorageInterface $tokenStorage;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public PDFGeneratorService $PDFGeneratorService;
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public ReceptionService $receptionService;
-
-    #[Required]
-    public ReceptionLineService $receptionLineService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public TranslationService $translation;
-
-    public function __construct(private SettingsService $settingService)
-    {
+    public function __construct(
+        private SettingsService         $settingService,
+        private Twig_Environment        $templating,
+        private RouterInterface         $router,
+        private TemplateDocumentService $wordTemplateDocument,
+        private UniqueNumberService     $uniqueNumberService,
+        private MailerService           $mailerService,
+        private FormatService           $formatService,
+        private PDFGeneratorService     $PDFGeneratorService,
+        private EntityManagerInterface  $entityManager,
+        private KernelInterface         $kernel,
+        private ReceptionService        $receptionService,
+        private ReceptionLineService    $receptionLineService,
+        private UserService             $userService,
+        private TranslationService      $translation,
+    ) {
     }
 
     public function getDataForDatatable($params = null): array {
         $filters = $this->entityManager->getRepository(FiltreSup::class)
-            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PURCHASE_REQUEST, $this->tokenStorage->getToken()->getUser());
+            ->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PURCHASE_REQUEST, $this->userService->getUser());
 
         $queryResult = $this->entityManager->getRepository(PurchaseRequest::class)
             ->findByParamsAndFilters($params, $filters);

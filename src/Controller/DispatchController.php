@@ -306,8 +306,9 @@ class DispatchController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $preFill = $settingsService->getValue($entityManager,Setting::PREFILL_DUE_DATE_TODAY);
+
+        $preFill = $settingsService->getValue($entityManager, Setting::PREFILL_DUE_DATE_TODAY);
+
         $printDeliveryNote = $request->query->get('printDeliveryNote');
 
         $dispatch = new Dispatch();
@@ -376,7 +377,7 @@ class DispatchController extends AbstractController {
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
-        $numberFormat = $settingsService->getValue($entityManager,Setting::DISPATCH_NUMBER_FORMAT);
+        $numberFormat = $settingsService->getValue($entityManager, Setting::DISPATCH_NUMBER_FORMAT);
         if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }
@@ -561,7 +562,7 @@ class DispatchController extends AbstractController {
             ],
             'hasRightToRollbackDraft' => $hasRightToRollbackDraft,
             'printBL' => $printBL,
-            'prefixPackCodeWithDispatchNumber' => $settingsService->getValue($entityManager,Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
+            'prefixPackCodeWithDispatchNumber' => $settingsService->getValue($entityManager, Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
@@ -995,7 +996,7 @@ class DispatchController extends AbstractController {
         }
 
 
-        $prefixPackCodeWithDispatchNumber = $settingsService->getValue($entityManager,Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+        $prefixPackCodeWithDispatchNumber = $settingsService->getValue($entityManager, Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
         if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber()) && !$existing) {
             $packCode = "{$dispatch->getNumber()}-$noPrefixPackCode";
         } else {
@@ -1017,7 +1018,7 @@ class DispatchController extends AbstractController {
                 });
         }
 
-        $packMustBeNew = $settingsService->getValue($entityManager,Setting::PACK_MUST_BE_NEW);
+        $packMustBeNew = $settingsService->getValue($entityManager, Setting::PACK_MUST_BE_NEW);
         if($packMustBeNew && isset($pack)) {
             $isNotInDispatch = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
@@ -1137,9 +1138,9 @@ class DispatchController extends AbstractController {
                         "initiatedBy" => $user
                     ]);
 
-                    $automaticallyCreateMovementOnValidation = (bool) $settingsService->getValue($entityManager,Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
+                    $automaticallyCreateMovementOnValidation = (bool) $settingsService->getValue($entityManager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
                     if ($automaticallyCreateMovementOnValidation) {
-                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingsService->getValue($entityManager,Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
+                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingsService->getValue($entityManager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
                         if(in_array($dispatch->getType()->getId(), $automaticallyCreateMovementOnValidationTypes)) {
                             foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
                                 $pack = $dispatchPack->getPack();

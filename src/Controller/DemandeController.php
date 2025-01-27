@@ -29,6 +29,7 @@ use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
+use App\Service\FieldModesService;
 use App\Service\FormatService;
 use App\Service\FormService;
 use App\Service\FreeFieldService;
@@ -102,7 +103,7 @@ class DemandeController extends AbstractController
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'defaultDeliveryLocations' => $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager),
-                'restrictedLocations' => $settingsService->getValue($entityManager,Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+                'restrictedLocations' => $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             ]));
         }
         throw new BadRequestHttpException();
@@ -179,7 +180,7 @@ class DemandeController extends AbstractController
                 'header' => $this->renderView('demande/demande-show-header.html.twig', [
                     'demande' => $deliveryRequest,
                     'modifiable' => $deliveryRequest->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                    'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($deliveryRequest)
+                    'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($entityManager, $deliveryRequest)
                 ]),
             ];
 
@@ -256,7 +257,7 @@ class DemandeController extends AbstractController
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
-        $receiverEqualRequester = boolval($settingsService->getValue($entityManager,Setting::RECEIVER_EQUALS_REQUESTER));
+        $receiverEqualRequester = boolval($settingsService->getValue($entityManager, Setting::RECEIVER_EQUALS_REQUESTER));
         $userForModal = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
 
@@ -273,7 +274,7 @@ class DemandeController extends AbstractController
             'defaultReceiver' => $userForModal ? '<option selected value="'.$userForModal->getId().'">'.$userForModal->getUsername().'</option>' : '',
             'defaultTypeId' => $defaultType?->getId(),
             'defaultDeliveryLocations' => $defaultDeliveryLocations,
-            'restrictedLocations' => $settingsService->getValue($entityManager,Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+            'restrictedLocations' => $settingsService->getValue($entityManager, Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             'projects' => $projectRepository->findActive(),
         ]);
     }
@@ -343,7 +344,7 @@ class DemandeController extends AbstractController
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
             'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE),
             "initial_visible_columns" => json_encode($deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest, true)),
-            'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($deliveryRequest),
+            'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($entityManager, $deliveryRequest),
             'showTargetLocationPicking' => $settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $settingsService->getValue($entityManager, Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
             'manageDeliveriesWithoutStockQuantity' => $settingsService->getValue($entityManager, Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY),
@@ -387,7 +388,7 @@ class DemandeController extends AbstractController
                     : null,
                 "articles" => Stream::from($deliveryRequest->getArticleLines())
                     ->filter(fn(DeliveryRequestArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
-                    ->map(function(DeliveryRequestArticleLine $line) use ($deliveryRequestService, $needsQuantitiesCheck, $deliveryRequest, $editable) {
+                    ->map(function(DeliveryRequestArticleLine $line) use ($entityManager, $deliveryRequestService, $needsQuantitiesCheck, $deliveryRequest, $editable) {
                         $article = $line->getArticle();
                         return [
                             "reference" => $article->getArticleFournisseur()->getReferenceArticle()
@@ -404,7 +405,7 @@ class DemandeController extends AbstractController
                                 && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON
                             ),
                             "project" => $this->getFormatter()->project($line->getProject()),
-                            "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($line).'</div>',
+                            "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($entityManager, $line).'</div>',
                             "notes" => '<div class="text-wrap ">'.$line->getNotes().'</div>',
                             "actions" => $this->renderView(
                                 'demande/datatableLigneArticleRow.html.twig',
@@ -423,7 +424,7 @@ class DemandeController extends AbstractController
             ->values();
 
         $references = Stream::from($deliveryRequest->getReferenceLines())
-            ->map(function(DeliveryRequestReferenceLine $line) use ($deliveryRequestService, $needsQuantitiesCheck, $deliveryRequest, $editable) {
+            ->map(function(DeliveryRequestReferenceLine $line) use ($entityManager, $deliveryRequestService, $needsQuantitiesCheck, $deliveryRequest, $editable) {
                 $reference = $line->getReference();
                 return [
                     "reference" => $reference->getReference() ?: '',
@@ -436,7 +437,7 @@ class DemandeController extends AbstractController
                         && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
                         && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                     "project" => $this->getFormatter()->project($line->getProject()),
-                    "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($line).'</div>',
+                    "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($entityManager, $line).'</div>',
                     "notes" => '<div class="text-wrap">'.$line->getNotes().'</div>',
                     "actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
@@ -599,7 +600,7 @@ class DemandeController extends AbstractController
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'line' => $referenceLine,
                 'maximum' => $maximumQuantity,
-                "showTargetLocationPicking" => $settingsService->getValue($entityManager,Setting::DISPLAY_PICKING_LOCATION)
+                "showTargetLocationPicking" => $settingsService->getValue($entityManager, Setting::DISPLAY_PICKING_LOCATION)
             ]);
 
             return new JsonResponse($json);
@@ -784,8 +785,9 @@ class DemandeController extends AbstractController
     #[Route("/api-references", name: "demande_api_references", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function apiReferences(Request                $request,
+                                  EntityManagerInterface $entityManager,
                                   DeliveryRequestService $demandeLivraisonService): Response {
-        $data = $demandeLivraisonService->getDataForReferencesDatatable($request->request->get('deliveryId'));
+        $data = $demandeLivraisonService->getDataForReferencesDatatable($entityManager, $request->request->get('deliveryId'));
 
         return new JsonResponse($data);
     }
@@ -869,7 +871,7 @@ class DemandeController extends AbstractController
             "header" => $this->renderView('demande/demande-show-header.html.twig', [
                 "demande" => $delivery,
                 "modifiable" => $delivery->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                "showDetails" => $demandeLivraisonService->createHeaderDetailsConfig($delivery)
+                "showDetails" => $demandeLivraisonService->createHeaderDetailsConfig($manager, $delivery)
             ]),
         ]);
     }

@@ -8,10 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 class SpecificService
 {
 
-    public function __construct(private SettingsService         $settingsService,
-                                private EntityManagerInterface  $entityManager,
-                                private CacheService            $cacheService) {}
-
     const DEFAULT_CLIENT_LABEL= 'Wiilog';
 
 	const CLIENT_BARBECUE = 'barbecue';
@@ -41,6 +37,13 @@ class SpecificService
 
     public const DEFAULT_DASHBOARD_REFRESH_RATE = 5;
 
+    public function __construct(
+        private SettingsService        $settingsService,
+        private EntityManagerInterface $entityManager,
+        private CacheService           $cacheService,
+    ) {
+    }
+
 	public function isCurrentClientNameFunction(string|array $clientName): bool
 	{
 	    if(!is_array($clientName)) {
@@ -55,10 +58,10 @@ class SpecificService
 	}
 
     public function getAppClientLabel(): string {
-        return $this->cacheService->get(
-            CacheService::COLLECTION_SETTINGS,
+        return $this->settingsService->getValue(
+            $this->entityManager,
             Setting::APP_CLIENT_LABEL,
-            fn() => $this->settingsService->getValue($this->entityManager, Setting::APP_CLIENT_LABEL, self::DEFAULT_CLIENT_LABEL),
+            self::DEFAULT_CLIENT_LABEL
         );
     }
 

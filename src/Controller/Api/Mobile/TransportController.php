@@ -368,11 +368,12 @@ class TransportController extends AbstractController {
 
     #[Route("/reject-motives", methods: [self::GET])]
     #[Wii\RestVersionChecked]
-    public function rejectMotives(EntityManagerInterface $manager, SettingsService $settingsService): Response
+    public function rejectMotives(EntityManagerInterface $manager,
+                                  SettingsService        $settingsService): Response
     {
-        $packRejectMotives = $settingsService->getValue($manager,Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES);
-        $deliveryRejectMotives = $settingsService->getValue($manager,Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
-        $collectRejectMotives = $settingsService->getValue($manager,Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
+        $packRejectMotives = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_PACK_REJECT_MOTIVES);
+        $deliveryRejectMotives = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES);
+        $collectRejectMotives = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_COLLECT_REJECT_MOTIVES);
 
         $packRejectMotives = $packRejectMotives ? explode(",", $packRejectMotives) : [];
         $deliveryRejectMotives = explode(",", $deliveryRejectMotives);
@@ -1070,7 +1071,6 @@ class TransportController extends AbstractController {
             // dans le cas d'une collecte qui n'est pas dans une livraison-collecte
             // en fonction du motif choisit, la collecte repassera dans le workflow
             if ($request instanceof TransportCollectRequest && !$request->getDelivery()) {
-                $settingsRepository = $manager->getRepository(Setting::class);
                 $statusRepository = $manager->getRepository(Statut::class);
 
                 $workflowEndMotives = $settingsService->getValue($manager, Setting::TRANSPORT_ROUND_COLLECT_WORKFLOW_ENDING_MOTIVE);

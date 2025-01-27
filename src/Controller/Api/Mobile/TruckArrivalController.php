@@ -32,9 +32,10 @@ class TruckArrivalController extends AbstractController {
 
     #[Route("/get-truck-arrival-default-unloading-location", methods: [self::GET], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
-    public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager, SettingsService $settingsService): JsonResponse
+    public function getTruckArrivalDefaultUnloadingLocation(EntityManagerInterface $manager,
+                                                            SettingsService        $settingsService): JsonResponse
     {
-        $truckArrivalDefaultUnloadingLocation = $settingsService->getValue($manager,Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+        $truckArrivalDefaultUnloadingLocation = $settingsService->getValue($manager, Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
 
         return $this->json($truckArrivalDefaultUnloadingLocation);
     }

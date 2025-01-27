@@ -19,9 +19,10 @@ class SessionHistoryRecordService{
 
     public const MAX_SESSIONS_POSSIBLE = 2000;
 
-    public function __construct(private SettingsService $settingsService,
-                                private FormatService   $formatService)
-    {
+    public function __construct(
+        private SettingsService $settingsService,
+        private FormatService   $formatService
+    ) {
     }
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,

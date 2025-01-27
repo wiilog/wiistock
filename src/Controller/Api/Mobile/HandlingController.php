@@ -36,7 +36,6 @@ class HandlingController extends AbstractController {
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $data = [];
 
@@ -109,7 +108,7 @@ class HandlingController extends AbstractController {
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $viewHoursOnExpectedDate = !$settingsService->getValue($entityManager,Setting::REMOVE_HOURS_DATETIME);
+                $viewHoursOnExpectedDate = !$settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
                 $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
             }
 

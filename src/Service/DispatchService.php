@@ -1212,7 +1212,6 @@ class DispatchService {
     }
 
     public function getDeliveryNoteData(Dispatch $dispatch): array {
-        // TODO WIIS-8882
         $logo = $this->settingsService->getValue($this->entityManager, Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
         $client = $this->specificService->getAppClientLabel();

@@ -101,7 +101,7 @@ class DispatchController extends AbstractController
                 $requester = $requester ?? $createdBy;
                 $wasDraft = true;
 
-                $numberFormat = $settingsService->getValue($entityManager,Setting::DISPATCH_NUMBER_FORMAT);
+                $numberFormat = $settingsService->getValue($entityManager, Setting::DISPATCH_NUMBER_FORMAT);
                 if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
                     throw new FormException("Le format de numéro d'acheminement n'est pas valide");
                 }
@@ -391,7 +391,7 @@ class DispatchController extends AbstractController
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
 
-        $numberFormat = $settingsService->getValue($manager,Setting::DISPATCH_NUMBER_FORMAT);
+        $numberFormat = $settingsService->getValue($manager, Setting::DISPATCH_NUMBER_FORMAT);
         if (!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }

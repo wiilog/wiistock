@@ -153,10 +153,10 @@ class LivraisonController extends AbstractController {
     #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
     public function logisticUnitsApi(Request                $request,
-                                     EntityManagerInterface $manager,
+                                     EntityManagerInterface $entityManager,
                                      DeliveryRequestService $deliveryRequestService): Response
     {
-        $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
+        $deliveryOrder = $entityManager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
 
         $lines = Stream::from($preparationOrder->getArticleLines())
@@ -181,7 +181,7 @@ class LivraisonController extends AbstractController {
                     : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
                     ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
-                    ->map(function(PreparationOrderArticleLine $line) use ($deliveryRequestService) {
+                    ->map(function(PreparationOrderArticleLine $line) use ($entityManager, $deliveryRequestService) {
                         $article = $line->getArticle();
                         $deliveryRequestLine = $line->getDeliveryRequestArticleLine() ?? $line->getDeliveryRequestReferenceLine();
                         return [
@@ -190,7 +190,7 @@ class LivraisonController extends AbstractController {
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
                             "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
-                            "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                            "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($entityManager, $deliveryRequestLine).'</div>',
                             "notes" => $deliveryRequestLine?->getNotes() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
@@ -202,7 +202,7 @@ class LivraisonController extends AbstractController {
             ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
-            ->map(function(PreparationOrderReferenceLine $line) use ($deliveryRequestService) {
+            ->map(function(PreparationOrderReferenceLine $line) use ($entityManager, $deliveryRequestService) {
                 $reference = $line->getReference();
                 $deliveryRequestLine = $line->getDeliveryRequestReferenceLine();
                 return [
@@ -212,7 +212,7 @@ class LivraisonController extends AbstractController {
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
                     "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
-                    "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                    "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($entityManager, $deliveryRequestLine).'</div>',
                     "notes" => $deliveryRequestLine?->getNotes() ?: '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
@@ -378,9 +378,9 @@ class LivraisonController extends AbstractController {
         $defaultData = [
             'deliveryNumber' => $deliveryOrder->getNumero(),
             'username' => $loggedUser->getUsername(),
-            'consignor' =>  $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'consignor2' =>  $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
-            'userPhone' =>  $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
+            'consignor' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'consignor2' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'userPhone' => $settingsService->getValue($entityManager, Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
         ];
 
         $deliveryNoteData = array_reduce(
@@ -467,7 +467,6 @@ class LivraisonController extends AbstractController {
 
         $entityManager->flush();
 
-        // TODO WIIS-8882
         $now = new DateTime();
         $client = $specificService->getAppClientLabel();
 
@@ -497,13 +496,13 @@ class LivraisonController extends AbstractController {
     }
 
     #[Route("/{deliveryOrder}/delivery-note/{attachment}", name: "print_delivery_note_delivery_order", options: ["expose" => true], methods: [self::GET])]
-    public function printDeliveryNote(EntityManagerInterface    $entityManager,
-                                      Livraison                 $deliveryOrder,
-                                      PDFGeneratorService       $pdfService,
-                                      SpecificService           $specificService,
-                                      TranslationService        $translation,
-                                      SettingsService           $settingsService,
-                                      AttachmentService $attachmentService): Response {
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Livraison              $deliveryOrder,
+                                      PDFGeneratorService    $pdfService,
+                                      SpecificService        $specificService,
+                                      TranslationService     $translation,
+                                      SettingsService        $settingsService,
+                                      AttachmentService      $attachmentService): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
