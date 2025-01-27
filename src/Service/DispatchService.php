@@ -746,7 +746,9 @@ class DispatchService {
             $this->prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $this->natures = $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]);
             $this->defaultNature = $natureRepository->findOneBy(["defaultNature" => true]);
-            if (!isset($this->defaultNature->getAllowedForms()[Nature::DISPATCH_CODE])) {
+
+            $defaultAllowedForms = $this->defaultNature?->getAllowedForms();
+            if (!isset($defaultAllowedForms[Nature::DISPATCH_CODE])) {
                 $this->defaultNature = null;
             }
         }
