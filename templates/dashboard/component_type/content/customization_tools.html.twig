@@ -55,7 +55,7 @@
             </div>
         </div>
     </div>
-    {% if componentType.exampleValues.chartData is defined and componentType.meterKey is not constant('App\\Entity\\Dashboard\\ComponentType::ENTRIES_TO_HANDLE') %}
+    {% if componentType.exampleValues.chartData is defined and componentType.meterKey not in [constant('App\\Entity\\Dashboard\\ComponentType::ENTRIES_TO_HANDLE'), constant('App\\Entity\\Dashboard\\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY')] %}
         <div id="accordion" class="customization-tools-accordion color-picker-accordion">
             <div class="card my-3">
                 <div class="card-header" id="headingOneChartColor">

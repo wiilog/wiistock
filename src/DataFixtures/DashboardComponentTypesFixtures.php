@@ -1087,6 +1087,84 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textUnderline-5' => false,
             ]
         ],
+        //TODO WIIS-12354 Rajouter la valeur par défaut pour la nouvelle case
+        'Entrées à effectuer avec délai de traitement' => [
+            'hint' => "Nombre d’éléments avec délai de livraison actif sur les natures indiquées",
+            'exampleValues' => [
+                'count' => 72,
+                'segments' => ['4', '8', '12', '16'],
+                'nextLocation' => 'EMP1',
+                'chartColors' => [
+                    'Standard' => '#a3d1ff',
+                    'Congelé' => '#a3efdf',
+                    'Consommable' => '#aaafdf',
+                ],
+                'chartData' => [
+                    'Retard' => [
+                        'Standard' => 25,
+                        'Congelé' => 25,
+                        'Consommable' => 12,
+                    ],
+                    'Moins d\'1h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '1h-4h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '4h-12h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '12h-24h' => [
+                        'Standard' => 15,
+                        'Congelé' => 2,
+                        'Consommable' => 12,
+                    ],
+                    '24h-36h' => [
+                        'Standard' => 0,
+                        'Congelé' => 0,
+                        'Consommable' => 0,
+                    ],
+                    '36h-48h' => [
+                        'Standard' => 0,
+                        'Congelé' => 0,
+                        'Consommable' => 0,
+                    ],
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
+                'textColor-2' => "#000000",
+                'textBold-2' => false,
+                'textItalic-2' => false,
+                'textUnderline-2' => false,
+
+                'textColor-3' => "#3353D7",
+                'textBold-3' => false,
+                'textItalic-3' => false,
+                'textUnderline-3' => false,
+
+                'textColor-4' => "#000000",
+                'textBold-4' => false,
+                'textItalic-4' => false,
+                'textUnderline-4' => false,
+
+                'textColor-5' => "#3353d7",
+                'textBold-5' => false,
+                'textItalic-5' => false,
+                'textUnderline-5' => false,
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_ORDERS,
+            'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY,
+            'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY,
+        ],
     ];
 
     public function __construct(SpecificService $specificService) {
