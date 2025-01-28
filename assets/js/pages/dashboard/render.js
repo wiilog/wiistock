@@ -37,6 +37,7 @@ const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
 const ERROR_COMPONENT = 'error_component';
 export const ONGOING_PACK = 'ongoing_packs';
 export const ENTRIES_TO_HANDLE = 'entries_to_handle';
+export const ENTRIES_TO_HANDLE_BY_TRACKING_DELAY = 'entries_to_handle_by_tracking_delay';
 
 const SECURITY_PADDING = 0;
 
@@ -85,6 +86,10 @@ const creators = {
         callback: createPendingRequests
     },
     [ENTRIES_TO_HANDLE]: {
+        callback: createEntriesToHandleElement
+    },
+    //TODO WIIS-12354 Rajouter la nouvelle case : nouvelle fonction ou parametrer celle ci
+    [ENTRIES_TO_HANDLE_BY_TRACKING_DELAY]: {
         callback: createEntriesToHandleElement
     },
     [PACK_TO_TREAT_FROM]: {

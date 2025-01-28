@@ -1,4 +1,4 @@
-import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
+import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
 import {saveAs} from "file-saver";
 
 import {addEntryTimeInterval, onSegmentInputChange, deleteEntryTimeInterval, initializeEntryTimeIntervals, clearSegmentHourValues} from "@app/pages/segment";
@@ -1030,7 +1030,7 @@ function processSecondModalForm($modal) {
     const meterKey = $modal.find(`input[name="meterKey"]`).val();
 
     const processFormResult = ProcessForm($modal, null, () => {
-        if (meterKey === ENTRIES_TO_HANDLE) {
+        if ([ENTRIES_TO_HANDLE, ENTRIES_TO_HANDLE_BY_TRACKING_DELAY].includes(meterKey)) {
             let previous = null;
             const allFilled = $modal
                 .find(`.segment-hour:not(.display-previous)`)
@@ -1068,7 +1068,7 @@ function processSecondModalForm($modal) {
     const remaining = Object.assign({}, processFormResult);
     delete remaining.data;
 
-    if (meterKey === ENTRIES_TO_HANDLE && data.segments) {
+    if ([ENTRIES_TO_HANDLE, ENTRIES_TO_HANDLE_BY_TRACKING_DELAY].includes(meterKey) && data.segments) {
         data.segments = data.segments.map(clearSegmentHourValues);
     }
     if (data.chartColors && !Array.isArray(data.chartColors)) {

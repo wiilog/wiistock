@@ -83,6 +83,9 @@ class DashboardFeedCommand extends Command {
                     case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
                         $this->dashboardService->persistArrivalsAndPacksMeter($this->entityManager, $component);
                         break;
+                    case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                        //TODO WIIS-12423
+                        break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                         $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
                         break;

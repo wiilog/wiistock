@@ -223,6 +223,8 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example, $meter);
                 break;
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                //TODO WIIS-12423
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                 $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
                 break;
@@ -1216,7 +1218,7 @@ class DashboardSettingsService {
      */
     private function validateComponentConfig(Dashboard\ComponentType $componentType,
                                              array $config) {
-        if ($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE) {
+        if (in_array($componentType->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE, Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY])) {
             $defaultLanguage = $this->languageService->getDefaultLanguage();
             $slug = $this->userService->getUser()?->getLanguage()?->getSlug()
                 ?: $this->languageService->getReverseDefaultLanguage($defaultLanguage);
@@ -1451,7 +1453,7 @@ class DashboardSettingsService {
     public function initializeLocationClusters(EntityManagerInterface  $entityManager,
                                                Dashboard\Component     $component,
                                                Dashboard\ComponentType $componentType): void {
-        if(in_array($componentType->getMeterKey(), [ComponentType::ENTRIES_TO_HANDLE, ComponentType::PACK_TO_TREAT_FROM, ComponentType::DROP_OFF_DISTRIBUTED_PACKS])){
+        if(in_array($componentType->getMeterKey(), [ComponentType::ENTRIES_TO_HANDLE, ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, ComponentType::PACK_TO_TREAT_FROM, ComponentType::DROP_OFF_DISTRIBUTED_PACKS])){
             $this->dashboardService->updateComponentLocationCluster($entityManager, $component, 'locations');
             $entityManager->flush();
         }

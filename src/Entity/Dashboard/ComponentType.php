@@ -29,6 +29,7 @@ class ComponentType
     public const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
     public const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
     public const ENTRIES_TO_HANDLE = 'entries_to_handle';
+    public const ENTRIES_TO_HANDLE_BY_TRACKING_DELAY = 'entries_to_handle_by_tracking_delay';
     public const DAILY_ARRIVALS_EMERGENCIES = 'daily_arrivals_emergencies';
     public const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
     public const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
@@ -82,6 +83,7 @@ class ComponentType
         self::CATEGORY_ORDERS => [
             self::PACK_TO_TREAT_FROM,
             self::ENTRIES_TO_HANDLE,
+            self::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY,
             self::ORDERS_TO_TREAT,
             self::DAILY_DELIVERY_ORDERS,
             self::DISPUTES_TO_TREAT,
