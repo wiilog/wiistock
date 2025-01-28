@@ -56,6 +56,9 @@ jobs:
             -   name: Change APP_URL= to APP_URL=http://wiistock-nginx:80
                 run: sed -i 's|^APP_URL=.*|APP_URL=http://owasp-modsecurity|' projects/wiistock/.env.local
 
+            -   name: DEBUG
+                run: cat projects/wiistock/.env
+
             -   name: Add generated.yaml to wiistock
                 run: |
                     touch projects/wiistock/config/generated.yaml &&
