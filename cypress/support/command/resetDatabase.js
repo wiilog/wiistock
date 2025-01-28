@@ -14,10 +14,6 @@ Cypress.Commands.add(
                 const currentDatabaseName = currentLine.split('/').pop();
                 Cypress.env('OLD_DATABASE_NAME', currentDatabaseName);
 
-                // get the CYPRESS_baseUrl environment variable
-                const baseUrl = Cypress.config('baseUrl');
-                // change APP_URL in .env.local
-                cy.exec(`sed -i 's|APP_URL=http://localhost|APP_URL=${baseUrl}|' .env.local`);
                 // print the current database name
                 cy.log(`Current database name: ${currentDatabaseName}`);
 
