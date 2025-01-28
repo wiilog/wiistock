@@ -466,9 +466,6 @@ class DashboardSettingsService {
 
         if ($example) {
             $values = $componentType->getExampleValues();
-            $values['linesCountTooltip'] = !empty($config['linesCountTooltip']) ? $config['linesCountTooltip'] : '';
-            $values['nextLocationTooltip'] = !empty($config['nextLocationTooltip']) ? $config['linesCountTooltip'] : '';
-
             if (!empty($config['natures'])) {
                 $natureRepository = $entityManager->getRepository(Nature::class);
                 $natures = $natureRepository->findBy(['id' => $config['natures']]);
@@ -514,6 +511,7 @@ class DashboardSettingsService {
             $values = [
                 'chartData' => $meterChart->getData(),
                 'nextLocation' => $meterChart->getLocation(),
+                'nextElement' => $meterChart->getNextElement(),
                 'count' => $meterChart->getTotal(),
                 'chartColors' => $meterChart->getChartColors(),
             ];
@@ -521,6 +519,7 @@ class DashboardSettingsService {
             $values = [
                 'chartData' => [],
                 'nextLocation' => '-',
+                'nextElement' => '-',
                 'count' => '-',
                 'chartColors' => []
             ];
@@ -528,6 +527,7 @@ class DashboardSettingsService {
 
         $values['linesCountTooltip'] = $config['linesCountTooltip'] ?? '';
         $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
+        $values['nextElementTooltip'] = $config['nextElementTooltip'] ?? '';
         $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
 
         return $values;

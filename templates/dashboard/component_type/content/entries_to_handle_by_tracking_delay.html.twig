@@ -18,6 +18,13 @@
         </div>
 
         <div class="row form-group">
+            {{ form.input('nextElementTooltip', 'Infobulle "Prochain élément à traiter"', false, values.nextElementTooltip ?? '', {
+                type: 'text',
+                labelClass: 'col-12',
+            }) }}
+        </div>
+
+        <div class="row form-group">
             <div class="col-12">
                 <label class="wii-field-name">Infobulle "Prochain emplacement à traiter"</label>
             </div>

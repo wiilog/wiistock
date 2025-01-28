@@ -25,6 +25,9 @@ class Chart {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $location;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $nextElement;
+
     #[ORM\Column(type: 'json')]
     private $chartColors = [];
 
@@ -82,6 +85,16 @@ class Chart {
 
     public function setLocation(?string $location): self {
         $this->location = $location;
+
+        return $this;
+    }
+
+    public function getNextElement(): ?string {
+        return $this->nextElement;
+    }
+
+    public function setNextElement(?string $nextElement): self {
+        $this->nextElement = $nextElement;
 
         return $this;
     }

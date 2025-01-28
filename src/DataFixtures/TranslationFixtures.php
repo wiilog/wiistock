@@ -377,6 +377,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "tooltip" => "Composant \"Entrées à effectuer\"",
                 ],
                 [
+                    "fr" => "Prochain élément à traiter",
+                    "en" => "Next element to process",
+                    "tooltip" => "Composant \"Entrées à effectuer\"",
+                ],
+                [
                     "fr" => "Retard",
                     "en" => "Delay",
                     "tooltip" => "Composant \"Entrées à effectuer\"",
