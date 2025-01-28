@@ -57,7 +57,7 @@ jobs:
                 run: sed -i 's|^APP_URL=.*|APP_URL=http://owasp-modsecurity|' projects/wiistock/.env.local
 
             -   name: DEBUG
-                run: cat projects/wiistock/.env
+                run: cat projects/wiistock/.env.local
 
             -   name: Add generated.yaml to wiistock
                 run: |
