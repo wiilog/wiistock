@@ -173,7 +173,7 @@ class Setting {
     const FONT_TAHOMA = 'Tahoma';
     const FONT_MYRIAD = 'Myriad';
 
-    const WARNING_HEADER = 'WARNING_HEADER';
+    const USER_MESSAGE_CONFIG = 'USER_MESSAGE_CONFIG';
 
     const FONTS = [
         Setting::FONT_MONTSERRAT => Setting::FONT_MONTSERRAT,
