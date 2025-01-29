@@ -93,7 +93,7 @@ class DisputeNormalizer implements NormalizerInterface, NormalizerAwareInterface
                         "orderNumbers" => Stream::from($arrival?->getNumeroCommandeList() ?? [])->join(' / '),
                         "supplier" => $this->formatService->supplier($arrival?->getFournisseur()),
                         "lineNumber" => null,
-                        "buyers" => $this->formatService->users($arrival?->getAcheteurs()),
+                        "buyers" => $this->formatService->users($arrival?->getAcheteurs() ?: []),
                     ];
                 }
             }

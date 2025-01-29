@@ -55,16 +55,6 @@ class PurgeService {
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-        if (!$pack->isBasicUnit()
-            || $pack->getArrivage()
-            || !$pack->getDispatchPacks()->isEmpty()
-            || !$pack->getChildArticles()->isEmpty()
-            || !$pack->getTrackingMovements()->isEmpty()
-            || !$pack->getContent()->isEmpty()
-            || $trackingMovementRepository->findOneBy(["packGroup" => $pack])) {
-            return;
-        }
-
         foreach ($pack->getReceiptAssociations() as $receiptAssociation) {
             $this->archiveReceiptAssociation($entityManager, $receiptAssociation, $pack, $files);
         }
@@ -83,6 +73,17 @@ class PurgeService {
 
         foreach ($pack->getDisputes() as $dispute) {
             $this->archiveDispute($entityManager, $dispute, $pack, $files);
+        }
+
+        // in this case we archive only sub entities of pack but not the pack
+        if (!$pack->isBasicUnit()
+            || $pack->getArrivage()
+            || !$pack->getDispatchPacks()->isEmpty()
+            || !$pack->getChildArticles()->isEmpty()
+            || !$pack->getTrackingMovements()->isEmpty()
+            || !$pack->getContent()->isEmpty()
+            || $trackingMovementRepository->findOneBy(["packGroup" => $pack])) {
+            return;
         }
 
         $this->packService->putPackLine(
