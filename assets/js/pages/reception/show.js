@@ -930,14 +930,19 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                     } catch (error) {
                         templates = [];
                     }
-                    const params = {
-                        reception,
-                        articleIds
-                    };
+                    templates.push(null)
                     if (templates.length > 0) {
                         Promise.all(
-                            templates.map(function (template) {
-                                params.template = template;
+                            templates.map(function (templateId) {
+                                const params = {
+                                    reception,
+                                    articleIds
+                                };
+                                if(templateId) {
+                                    params.template = templateId;
+                                } else {
+                                    params.forceTagEmpty = true;
+                                }
                                 return AJAX
                                     .route(AJAX.GET, `reception_bar_codes_print`, params)
                                     .file({})
