@@ -292,30 +292,30 @@ export default class Form {
         }
 
         const globalErrors = [];
-
-        if(!(config.hideErrors ?? false)) {
-            // display errors under each field
-            for(const error of errors) {
-                if (error.elements && error.elements.length > 0) {
-                    Form.showInvalidFields(error.elements, !error.global ? error.message : undefined)
-                    if (error.global) {
-                        globalErrors.push(error.message);
-                    }
-                    else {
-                        const currentGlobalErrors = Form.getInvalidGlobalErrors(error.elements, error.message);
-                        if (currentGlobalErrors.length > 0) {
-                            globalErrors.push(...currentGlobalErrors);
-                        }
-                    }
+        // display errors under each field
+        for(const error of errors) {
+            if (error.elements && error.elements.length > 0) {
+                Form.showInvalidFields(error.elements, !error.global ? error.message : undefined)
+                if (error.global) {
+                    globalErrors.push(error.message);
                 }
                 else {
-                    // remove duplicate messages
-                    if (error.message && globalErrors.indexOf(error.message) === -1) {
-                        globalErrors.push(error.message);
+                    const currentGlobalErrors = Form.getInvalidGlobalErrors(error.elements, error.message);
+                    if (currentGlobalErrors.length > 0) {
+                        globalErrors.push(...currentGlobalErrors);
                     }
                 }
             }
+            else {
+                // remove duplicate messages
+                if (error.message && globalErrors.indexOf(error.message) === -1) {
+                    globalErrors.push(error.message);
+                }
+            }
+        }
 
+        const hideGlobalErrors = Boolean(config?.hideGlobalErrors);
+        if (!hideGlobalErrors) {
             // Remove global duplicates errors and show
             const cleanedGlobalErrors = globalErrors.filter((message, index) => message && globalErrors.indexOf(message) === index);
             for(const message of cleanedGlobalErrors) {
