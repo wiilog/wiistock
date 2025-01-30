@@ -21,6 +21,14 @@ class Arrivage implements AttachmentContainer {
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
 
+    public const WITH_HYPHEN = "withHyphen";
+    public const WITHOUT_HYPHEN = "withoutHyphen";
+
+    public const FORMAT_CODE_ARRIVALS = [
+        self::WITH_HYPHEN => "aammjjhhmmss-01",
+        self::WITHOUT_HYPHEN => "aammjjhhmmss01"
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
