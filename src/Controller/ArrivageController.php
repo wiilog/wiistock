@@ -42,7 +42,6 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
-use App\Service\SpecificService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
@@ -189,9 +188,9 @@ class ArrivageController extends AbstractController
         $useTruckArrivals = $settingsService->getValue($entityManager, Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
-        $counter = $arrivageRepository->countByDate($date) + 1;
-        $suffix = $counter < 10 ? ("0" . $counter) : $counter;
-        $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
+        $numberOfArrivalsByDate = $arrivageRepository->countByDate($date) + 1;
+
+        $arrivalNumber = $arrivalService->generateArrivalNumber($numberOfArrivalsByDate, $date);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -216,7 +215,7 @@ class ArrivageController extends AbstractController
             ->setIsUrgent(false)
             ->setDate($date)
             ->setUtilisateur($currentUser)
-            ->setNumeroArrivage($numeroArrivage)
+            ->setNumeroArrivage($arrivalNumber)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
             ->setCommentaire($data['commentaire'] ?? null)

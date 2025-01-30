@@ -963,4 +963,27 @@ class ArrivageService {
         ];
     }
 
+    public function generateArrivalNumber(int $numberOfArrivalsByDate, DateTime $date = null): string {
+        $date = $date ?? new DateTime('now');
+
+        return sprintf('%s%s%s',
+            $date->format('ymdHis'),
+            $this->generateArrivalNumberNeedsHyphen() ? '-' : '',
+            $this->formatCount($numberOfArrivalsByDate)
+        );
+    }
+
+    private function formatCount(int $numberOfArrivalsByDate): string {
+        return $numberOfArrivalsByDate < 10
+            ? "0{$numberOfArrivalsByDate}"
+            : (string)$numberOfArrivalsByDate;
+    }
+
+    private function generateArrivalNumberNeedsHyphen(): bool {
+        return $this->settingsService->getValue(
+                $this->entityManager,
+                Setting::FORMAT_CODE_ARRIVALS
+            ) === Arrivage::WITH_HYPHEN;
+    }
+
 }
