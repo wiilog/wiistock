@@ -116,7 +116,10 @@ export default class Select2 {
                     dataType: `json`,
                     data: params => Select2.includeParams($element, params),
                     processResults: (data) => {
-                        const $search = $(`.select2-search__field`);
+                        const $search = $element.prop('multiple')
+                            ? $element.parent().find(`.select2-search__field`)
+                            : $(`.select2-search__field`);
+
                         if (data.error) {
                             $search.addClass(`is-invalid`);
 
