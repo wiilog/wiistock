@@ -6,14 +6,9 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\LocationGroup;
-use App\Entity\Tracking\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
-use DateTime;
-use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use http\Exception\RuntimeException;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -132,37 +127,5 @@ class SensorMessageRepository extends EntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-
-    /**
-     * Returns an iterable of TrackingMovement older than the given date
-     *
-     * @param DateTime $date
-     * @return iterable<TrackingMovement>
-     */
-    public function iterateOlderThan(DateTime $date): iterable {
-        $queryBuilder = $this->createQueryBuilder("sensor_message")
-            ->andWhere("sensor_message.date < :date")
-            ->addOrderBy("sensor_message.date", Order::Ascending->value)
-            ->setParameter("date", $date);
-
-        return $queryBuilder->getQuery()->toIterable();
-    }
-
-    /**
-     * Counts the number of TrackingMovement older than the given date.
-     *
-     * @param DateTime $date
-     * @return int
-     * @throws NonUniqueResultException|NoResultException
-     */
-    public function countOlderThan(DateTime $date): int {
-        return $this->createQueryBuilder("sensor_message")
-            ->select("COUNT(sensor_message.id)")
-            ->andWhere("sensor_message.date < :date")
-            ->setParameter("date", $date)
-            ->getQuery()
-            ->getSingleScalarResult();
     }
 }

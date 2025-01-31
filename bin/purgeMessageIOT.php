@@ -6,13 +6,13 @@ use App\Command\Purge\PurgeAllCommand;
 use App\Helper\FileSystem;
 use App\Service\IOT\IOTService;
 
-class SensorDataExporter
+class IOTMessagePurger
 {
-    private $connection;
+    private ?PDO $connection;
     private FileSystem $fileSystem;
-    private int $batchSize = 10000;
-    private int $offset = 0;
     public string $outputFile = 'export_iot_sensor_data.csv';
+    private int $batchSize = 5000;
+    private int $offset = 0;
 
     // CSV columns definition
     private const COLUMNS = [
@@ -27,22 +27,38 @@ class SensorDataExporter
         'message_brut',
     ];
 
-    public function __construct(string $host, string $dbname, string $username, string $password)
+    public function __construct()
     {
-        $this->connectToDatabase($host, $dbname, $username, $password);
+        $this->connectToDatabase();
         $this->fileSystem = new FileSystem();
     }
 
     /**
      * Establishes the database connection.
      */
-    private function connectToDatabase(string $host, string $dbname, string $username, string $password): void
+    private function connectToDatabase(): void
     {
+
+        $databaseUrl = getenv("DATABASE_URL") ?: null;
+        preg_match("/mysql:\/\/((?:\w|-)+):((?:\w|-|_)+)@((?:\w|-|_|\.)+):(\d+)\/((?:\w|-)+)/", $databaseUrl, $matches);
+
+        [
+            ,
+            $username,
+            $password,
+            $host,
+            $port,
+            $dbname
+        ] = $matches;
+
+        $databaseSSLConfigJson = getenv("DATABASE_SSL_CONFIG") ?: null;
+        $databaseSSLConfig = @json_decode($databaseSSLConfigJson, true);
         try {
             $this->connection = new PDO(
-                "mysql:host=$host;dbname=$dbname;charset=utf8",
+                "mysql:host=$host;dbname=$dbname;port=$port",
                 $username,
-                $password
+                $password,
+                $databaseSSLConfig ?: null
             );
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
@@ -77,7 +93,7 @@ class SensorDataExporter
      */
     private function writeToCsv($file, array $rowData): void
     {
-        fputcsv($file, $rowData);
+        fputcsv($file, $rowData, ";");
     }
 
     /**
@@ -92,18 +108,17 @@ class SensorDataExporter
 
         do {
             $rows = $this->fetchData($dateFilter);
-
-            if (!empty($rows)) {
-                foreach ($rows as $row) {
-                    $row['type_de_donnee_du_message'] = IOTService::DATA_TYPE[$row['type_de_donnee_du_message_id']] ?? '';
-                    unset($row['type_de_donnee_du_message_id']); // Remove ID after replacement
-                    $rowData = $this->mapRowToCsv($row);
-                    $this->writeToCsv($file, $rowData);
-                }
-                $this->offset += $this->batchSize;
-            } else {
+            if (empty($rows)) {
                 break;
             }
+
+            foreach ($rows as $row) {
+                $row['type_de_donnee_du_message'] = IOTService::DATA_TYPE[$row['type_de_donnee_du_message_id']] ?? '';
+                unset($row['type_de_donnee_du_message_id']); // Remove ID after replacement
+                $rowData = $this->mapRowToCsv($row);
+                $this->writeToCsv($file, $rowData);
+            }
+            $this->offset += $this->batchSize;
         } while (true);
 
         fclose($file);
@@ -113,7 +128,7 @@ class SensorDataExporter
     /**
      * Fetches data from the database using batch size, offset, and optional date filter.
      */
-    private function fetchData(?string $dateFilter): array
+    private function fetchData(?string $dateFilter): iterable
     {
         $sql = "
             SELECT
@@ -126,12 +141,12 @@ class SensorDataExporter
                 sensor_message.content_type AS type_de_donnee_du_message_id,
                 sensor_message.event AS type_de_message,
                 sensor_message.payload AS message_brut
-            FROM sensor
-            LEFT JOIN type ON sensor.type_id = type.id
-            LEFT JOIN sensor_profile ON sensor.profile_id = sensor_profile.id
-            LEFT JOIN sensor_message ON sensor.last_message_id = sensor_message.id
-            LEFT JOIN sensor_wrapper ON sensor.id = sensor_wrapper.sensor_id
-            WHERE :dateFilter IS NULL OR sensor_message.date < :dateFilter
+            FROM sensor_message
+                LEFT JOIN sensor ON sensor_message.sensor_id = sensor.id
+                LEFT JOIN type ON sensor.type_id = type.id
+                LEFT JOIN sensor_profile ON sensor.profile_id = sensor_profile.id
+                LEFT JOIN sensor_wrapper ON sensor.id = sensor_wrapper.sensor_id
+            WHERE sensor_message.date < :dateFilter
             LIMIT {$this->batchSize} OFFSET {$this->offset}
         ";
 
@@ -139,10 +154,23 @@ class SensorDataExporter
         $stmt->bindParam(':dateFilter', $dateFilter);
         $stmt->execute();
 
-        if ($stmt->rowCount() > 0) {
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-        return [];
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Delete all sensor message older than
+     */
+    public function deleteDataOlderThan(?string $dateFilter): void
+    {
+        $sql = "
+            DELETE FROM sensor_message
+            WHERE :dateFilter IS NULL OR sensor_message.date < :dateFilter
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([
+            ':dateFilter' => $dateFilter
+        ]);
     }
 
     /**
@@ -175,17 +203,24 @@ class SensorDataExporter
         // file name = ARC + entityToArchive + today's date + _ + $dateToArchive + .csv
         return PurgeAllCommand::ARCHIVE_DIR . "ARC_IOT_" . $todayDate->format("Y-m-d") . "_" . $dateFilter . ".csv";
     }
+
+    public function close(): void {
+        $this->connection = null;
+    }
 }
 
-$exporter = new SensorDataExporter("mysql", "test", "root", "example");
+$purger = new IOTMessagePurger();
 
 // check if the dateFilter is set
 if (isset($argv[1])) {
     $dateFilter = $argv[1];
 
-    $exporter->outputFile = $exporter->getGeneratedOutputFile($dateFilter);
+    $purger->outputFile = $purger->getGeneratedOutputFile($dateFilter);
 
-    $exporter->exportData($dateFilter);
+    $purger->exportData($dateFilter);
+    $purger->deleteDataOlderThan($dateFilter);
+
+    $purger->close();
 } else {
     echo "Veuillez fournir une date au format YYYY-MM-DD.\n ";
     exit(1);
