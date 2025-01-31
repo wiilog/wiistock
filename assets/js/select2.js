@@ -116,54 +116,7 @@ export default class Select2 {
                     dataType: `json`,
                     data: params => Select2.includeParams($element, params),
                     processResults: (data) => {
-                        const $search = $(`.select2-search__field`);
-                        if (data.error) {
-                            $search.addClass(`is-invalid`);
-
-                            return {
-                                results: [{
-                                    id: `error`,
-                                    html: `<span class="text-danger">${data.error}</span>`,
-                                    disabled: true,
-                                }],
-                            };
-                        } else {
-                            $search.removeClass(`is-invalid`);
-
-                            if(data.availableResults) {
-                                $element
-                                    .data('length', data.availableResults)
-                                    .attr("data-length", data.availableResults);
-                            }
-
-                            const searchValue = $search.val();
-                            if ($element.is(`[data-auto-select]`)
-                                && searchValue) {
-                                const resultWithoutNewItem = (data.results || []).filter(({id}) => id !== "new-item");
-
-                                if (resultWithoutNewItem.length === 1
-                                    && resultWithoutNewItem[0].text === searchValue) {
-                                    setTimeout(() => {
-                                        // prevent duplicates
-                                        const selectedData = $element.select2('data');
-                                        const alreadySelected = selectedData.findIndex(({id}) => id === searchValue) > -1;
-                                        if (!alreadySelected) {
-                                            const [option] = $('.select2-results__option')
-                                                .toArray()
-                                                .filter((element) => !$(element).find('.new-item-container').exists());
-                                            $(option).trigger("mouseup");
-                                            $element.trigger({
-                                                type: "select2:select",
-                                                params: {
-                                                    data: resultWithoutNewItem[0]
-                                                }
-                                            });
-                                        }
-                                    }, 50);
-                                }
-                            }
-                            return data;
-                        }
+                        return processResult($element, data);
                     }
                 };
 
@@ -476,3 +429,61 @@ $(() => {
 $(document).arrive(`[data-s2]`, function() {
     Select2.proceed($(this));
 });
+
+
+function processResult($element, data) {
+    const select2Element = $element.data("select2");
+    const $dropdown = select2Element.$dropdown;
+
+    const $searchInContainer = select2Element.$container.find('.select2-search__field');
+    const $searchInDropdown = $dropdown.find('.select2-search__field');
+    const $search = $searchInContainer.exists() ? $searchInContainer : $searchInDropdown;
+
+    if (data.error) {
+        $search.addClass(`is-invalid`);
+
+        return {
+            results: [{
+                id: `error`,
+                html: `<span class="text-danger">${data.error}</span>`,
+                disabled: true,
+            }],
+        };
+    } else {
+        $search.removeClass(`is-invalid`);
+
+        if(data.availableResults) {
+            $element
+                .data('length', data.availableResults)
+                .attr("data-length", data.availableResults);
+        }
+
+        const searchValue = $search.val();
+        if ($element.is(`[data-auto-select]`)
+            && searchValue) {
+            const resultWithoutNewItem = (data.results || []).filter(({id}) => id !== "new-item");
+
+            if (resultWithoutNewItem.length === 1
+                && resultWithoutNewItem[0].text === searchValue) {
+                setTimeout(() => {
+                    // prevent duplicates
+                    const selectedData = $element.select2('data');
+                    const alreadySelected = selectedData.findIndex(({id}) => id === searchValue) > -1;
+                    if (!alreadySelected) {
+                        const [option] = $dropdown.find('.select2-results__option')
+                            .toArray()
+                            .filter((element) => !$(element).find('.new-item-container').exists());
+                        $(option).trigger("mouseup");
+                        $element.trigger({
+                            type: "select2:select",
+                            params: {
+                                data: resultWithoutNewItem[0]
+                            }
+                        });
+                    }
+                }, 50);
+            }
+        }
+        return data;
+    }
+}
