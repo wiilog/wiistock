@@ -930,32 +930,27 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                     } catch (error) {
                         templates = [];
                     }
-                    templates.push(null)
-                    if (templates.length > 0) {
-                        Promise.all(
-                            templates.map(function (templateId) {
-                                const params = {
-                                    reception,
-                                    articleIds
-                                };
-                                if(templateId) {
-                                    params.template = templateId;
-                                } else {
-                                    params.forceTagEmpty = true;
-                                }
-                                return AJAX
-                                    .route(AJAX.GET, `reception_bar_codes_print`, params)
-                                    .file({})
-                            })
-                        ).then(() => resolve());
-                    } else {
-                        window.location.href = Routing.generate('reception_bar_codes_print', {
-                            forceTagEmpty: true,
-                            reception,
-                            articleIds
-                        }, true);
-                        resolve();
-                    }
+
+                    // call default template by default
+                    templates.push(null);
+
+                    Promise.all(
+                        templates.map(function (templateId) {
+                            const params = {
+                                reception,
+                                articleIds
+                            };
+                            if(templateId) {
+                                params.template = templateId;
+                            } else {
+                                params.forceTagEmpty = true;
+                            }
+                            return AJAX
+                                .route(AJAX.GET, `reception_bar_codes_print`, params)
+                                .file({})
+                        })
+                    ).then(() => resolve());
+
                     loadReceptionLines();
                     $modalNewLigneReception.modal('hide');
                 }
