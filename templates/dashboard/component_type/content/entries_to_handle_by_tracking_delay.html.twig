@@ -69,25 +69,16 @@
             </div>
         </div>
 
-        {# TODO WIIS-12349 Supprimer les deux checkbox + rajouter les nouveaux filtres #}
-        <div class="form-group">
-            <input class="checkbox data needs-default"
-                   type="checkbox"
-                   name="redirect"
-                {{ values.redirect ?? false ? 'checked' }}>
-            <label class="wii-field-text">Rediriger vers la page Encours au clic</label>
+        <div class="row form-group">
+            <div class="col-12">
+                {{ form.switch('traitmentDelayType', 'Délais de traitement', false, [
+                    {label: 'En cours', value: 'in_progress', checked: values.traitmentDelayType == 'in_progress'},
+                    {label: 'En pause', value: 'on_hold', checked: values.traitmentDelayType == 'on_hold'},
+                    {label: 'Les deux', value: 'both', checked: values.traitmentDelayType == 'both'},
+                ]) }}
+            </div>
         </div>
 
-        <div class="form-group">
-            <input class="checkbox data needs-default"
-                   type="checkbox"
-                   name="truckArrivalTime"
-                {{ values.truckArrivalTime ?? false ? 'checked' }}>
-            <label class="wii-field-text">Prendre en compte le temps d’arrivage camion</label>
-            {{ form.tooltip({
-                text: "Ne prends pas en compte l'emplacement de l'arrivage camion mais le délai entre sa création et celle de l'UL"
-            }, false) }}
-        </div>
     </div>
 </div>
 {% endblock %}
