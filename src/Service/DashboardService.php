@@ -573,7 +573,6 @@ class DashboardService {
                                            Dashboard\Component $component): void {
 
         $config = $component->getConfig();
-
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
 
@@ -674,7 +673,12 @@ class DashboardService {
             $graphData = $this->getObjectForTimeSpan([], static fn() => 0);
         }
 
-        $nextElementToDisplay = null;
+        //TODO WIIS-12423 enregister l'id du prochain element à traiter
+        $nextElementToDisplay = $component->getType()->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY
+            ? '3051'
+            : null;
+        $config['nextElement'] = $nextElementToDisplay;
+        $component->setConfig($config);
         $totalToDisplay = $olderPackLocation['locationId'] ? $globalCounter : null;
         $locationToDisplay = $olderPackLocation['locationLabel'] ?: null;
         $chartColors = Stream::from($naturesFilter)

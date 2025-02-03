@@ -1,10 +1,10 @@
 import '@styles/pages/pack/timeline.scss';
 import AJAX, {POST, GET} from "@app/ajax";
 import Flash from "@app/flash";
-import {exportFile} from "@app/utils";
+import {exportFile, getUserFiltersByPage} from "@app/utils";
 import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initializeGroupContentTable, initUngroupModal} from "@app/pages/pack/common";
 
-const packsTableConfig = {
+let packsTableConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
@@ -15,6 +15,11 @@ const packsTableConfig = {
         type: POST,
         data: {
             codeUl: $('#lu-code').val(),
+            onlyLate: $('[name="onlyLate"]').val(),
+            natures: $('[name="natures"]').val(),
+            delayLabel: $('[name="delayLabel"]').val(),
+            locations: $('[name="emplacement"]').val(),
+            fromDashboard: $('[name="fromDashboard"]').val(),
         },
     },
     rowConfig: {
@@ -43,8 +48,9 @@ const packsTableConfig = {
         }
     }
 };
-
 let packsTable;
+
+global.callbackSaveFilter = callbackSaveFilter;
 
 $(function () {
     const $userFormat = $('#userDateFormat');
@@ -52,12 +58,9 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     const codeUl = $('#lu-code').val();
-    if (!codeUl || codeUl.length === 0) {
-        const params = JSON.stringify(PAGE_PACK);
-        let path = Routing.generate('filter_get_by_page');
-        $.post(path, params, function(data) {
-            displayFiltersSup(data, true);
-        }, 'json');
+    const natureLabel = $('[name="natureLabel"]');
+    if ((!codeUl || codeUl.length === 0) && !natureLabel.val()) {
+        getUserFiltersByPage(PAGE_PACK);
     } else {
         displayFiltersSup([{field: 'UL', value: codeUl}], true);
     }
@@ -204,4 +207,8 @@ function closeContentContainer($tableContainer, adjustTable = true) {
     if (adjustTable) {
         packsTable.columns.adjust();
     }
+}
+
+function callbackSaveFilter() {
+    window.location.href = Routing.generate('pack_index');
 }

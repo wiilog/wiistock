@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\Emplacement;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -45,15 +46,35 @@ class PackController extends AbstractController {
     #[Route("/liste/{code}", name: "index", options: ["expose" => true], defaults: ["code" => null], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function index(EntityManagerInterface $entityManager,
+                          Request                $request,
                           LanguageService        $languageService,
                           PackService            $packService,
                                                  $code): Response {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
 
+        $data = $request->query;
+
+        $fromDashboard = $data->getBoolean("fromDashboard");
+        $onlyLate = $data->get("onlyLate");
+        $natureLabel = $data->get("natureLabel");
+        $natureIds = $data->get("natures");
+        $delayLabel = $data->get("delayLabel");
+        $locations = $data->get("locations");
+        $locationsFilter = $locations
+            ? $locationRepository->findBy(['id' => explode(',', $locations)])
+            : [];
+
+        $naturesFilter = $natureLabel
+            ? $naturesRepository->findBy(["label" => $natureLabel])
+            : ($natureIds
+                ? $naturesRepository->findBy(["id" => explode(',', $natureIds)])
+                : []
+            );
         return $this->render('pack/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
@@ -61,7 +82,13 @@ class PackController extends AbstractController {
             'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'projects' => $projectRepository->findActive(),
-            'code' => $code
+            'code' => $code,
+            'onlyLate' => $onlyLate,
+            'natureLabel' => $natureLabel,
+            'delayLabel' => $delayLabel,
+            'locationsFilter' => $locationsFilter,
+            'naturesFilter' => Stream::from($naturesFilter)->map(static fn(Nature $nature) => $nature->getId())->toArray(),
+            'fromDashboard' => $fromDashboard,
         ]);
     }
 

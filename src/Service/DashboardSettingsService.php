@@ -17,6 +17,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ProductionRequest;
+use App\Entity\Tracking\Pack;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -207,7 +208,7 @@ class DashboardSettingsService {
         $redirect = $config['redirect'] ?? false;
 
         if (!$example && $redirect) {
-            $values['componentLink'] = $this->getComponentLink($componentType, $config);
+            $this->getComponentLink($componentType, $config, $values);
         }
 
         switch ($meterKey) {
@@ -508,12 +509,21 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
         } else if (isset($meterChart)) {
+            $nextElement = $meterChart->getNextElement();
+            if($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+                $packRepository = $entityManager->getRepository(Pack::class);
+                $nextElementToTreat = $packRepository->find($nextElement);
+                $nextElement = $nextElementToTreat->getCode();
+                $locations = $config["locations"];
+            }
+
             $values = [
                 'chartData' => $meterChart->getData(),
                 'nextLocation' => $meterChart->getLocation(),
-                'nextElement' => $meterChart->getNextElement(),
+                'nextElement' => $nextElement,
                 'count' => $meterChart->getTotal(),
                 'chartColors' => $meterChart->getChartColors(),
+                ...(isset($locations) ? ['locations' => $locations] : [])
             ];
         } else {
             $values = [
@@ -1307,7 +1317,8 @@ class DashboardSettingsService {
     }
 
     public function getComponentLink(Dashboard\ComponentType $componentType,
-                                     array $config) {
+                                     array $config,
+                                     array &$values): void {
         $meterKey = $componentType->getMeterKey();
         switch ($meterKey) {
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
@@ -1390,12 +1401,33 @@ class DashboardSettingsService {
                     $link = null;
                 }
                 break;
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                $locations = $config['locations'] ?? [];
+                $natures = $config['natures'] ?? [];
+
+                $values["firstComponentLink"] = $this->router->generate('pack_index', [
+                    'locations' => implode(',', $locations),
+                    'natures' => implode(',', $natures),
+                    'fromDashboard' => true,
+                ]);
+                $values["secondComponentLink"] = $this->router->generate('pack_show', [
+                    "id" => $config['nextElement'],
+                    'fromDashboard' => true,
+                ]);
+                $values["thirdComponentLink"] = $this->router->generate('en_cours', [
+                    'locations' => implode(',', $locations),
+                    'natures' => implode(',', $natures),
+                    'fromDashboard' => true,
+                    'useTruckArrivalsFromDashboard' => false,
+                ]);
+                $link = null;
+                break;
             default:
                 $link = null;
                 break;
         }
 
-        return $link;
+        $values["componentLink"] = $link;
     }
 
     /**

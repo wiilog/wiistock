@@ -63,9 +63,28 @@ class PackService {
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->userService->getUser();
 
-        $filters = $params->get("codeUl")
-            ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
-            : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        $onlyLate = $params->getBoolean("onlyLate");
+        $natures = $params->all("natures");
+        $delayLabel = $params->get("delayLabel");
+        $locationsFilter = $params->all("locations");
+        $fromDashboard = $params->getBoolean("fromDashboard");
+
+        $filters = [
+            ...($params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : []),
+            ...($fromDashboard
+                ? [
+                    ...($onlyLate ? [["field"=> "late", "value"=> $onlyLate]] : []),
+                    ...($natures ? [["field"=> "natures", "value"=> $natures]] : []),
+                    ...($locationsFilter ? [["field"=> "emplacement", "value"=> $locationsFilter]] : []),
+//                    ...($delayLabel ? [["field"=> "delay", "value"=> $delayLabel]] : []),
+                ]
+                : []
+            ),
+        ];
+
+        if(!$fromDashboard) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
