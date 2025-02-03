@@ -5,6 +5,8 @@
     {% include 'filters/filter_item/filterPacks.html.twig' %}
     {% include 'filters/filter_item/filterNaturePacks.html.twig' %}
     {% include 'filters/filter_item/filterLocation.html.twig' with {
+        isPreFilled: locationsFilter is defined and locationsFilter is not empty,
+        locationsFilter,
         multiple: true,
         placeholder : "Emplacement"
     } %}

@@ -85,7 +85,6 @@ class DashboardFeedCommand extends Command {
                         break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
                         //TODO WIIS-12423
-                        break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                         $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
                         break;
