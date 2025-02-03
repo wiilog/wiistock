@@ -674,6 +674,7 @@ class DashboardService {
             $graphData = $this->getObjectForTimeSpan([], static fn() => 0);
         }
 
+        $nextElementToDisplay = null;
         $totalToDisplay = $olderPackLocation['locationId'] ? $globalCounter : null;
         $locationToDisplay = $olderPackLocation['locationLabel'] ?: null;
         $chartColors = Stream::from($naturesFilter)
@@ -689,6 +690,7 @@ class DashboardService {
         $meter
             ->setChartColors($chartColors)
             ->setData($graphData)
+            ->setNextElement($nextElementToDisplay ?: '-')
             ->setTotal($totalToDisplay ?: '-')
             ->setLocation($locationToDisplay ?: '-');
     }

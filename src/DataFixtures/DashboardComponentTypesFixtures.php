@@ -1087,11 +1087,11 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                 'textUnderline-5' => false,
             ]
         ],
-        //TODO WIIS-12354 Rajouter la valeur par défaut pour la nouvelle case
         'Entrées à effectuer avec délai de traitement' => [
             'hint' => "Nombre d’éléments avec délai de livraison actif sur les natures indiquées",
             'exampleValues' => [
                 'count' => 72,
+                'nextElement' => 'UL1',
                 'segments' => ['4', '8', '12', '16'],
                 'nextLocation' => 'EMP1',
                 'chartColors' => [

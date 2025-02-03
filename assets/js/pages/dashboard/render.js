@@ -88,7 +88,6 @@ const creators = {
     [ENTRIES_TO_HANDLE]: {
         callback: createEntriesToHandleElement
     },
-    //TODO WIIS-12354 Rajouter la nouvelle case : nouvelle fonction ou parametrer celle ci
     [ENTRIES_TO_HANDLE_BY_TRACKING_DELAY]: {
         callback: createEntriesToHandleElement
     },
@@ -370,6 +369,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
         console.error(`Invalid data for entries element.`);
         return false;
     }
+    const isEntriesToHandleByTrackingDelay = meterKey === ENTRIES_TO_HANDLE_BY_TRACKING_DELAY;
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
     const $firstComponent = $('<div/>', {
@@ -392,7 +392,29 @@ function createEntriesToHandleElement(data, {meterKey}) {
             numberingConfig
         )
     });
-    const $secondComponent = $('<div/>', {
+    let $secondComponent = '';
+    if(isEntriesToHandleByTrackingDelay) {
+        $secondComponent = $('<div/>', {
+            class: `w-100 pt-1 pb-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
+            html: createIndicatorElement(
+                Object.assign(data || {},{
+                    title: Translation.of('Dashboard', 'Prochain élément à traiter'),
+                    tooltip: data.nextElementTooltip,
+                    count: data.nextElement,
+                    componentLink: data.componentLink,
+                    backgroundColor: data.backgroundColor || undefined,
+                }),
+                {
+                    meterKey,
+                    customContainerClass: 'overflow-hidden',
+                    titleBackendNumber: 4,
+                    valueNumber: 5,
+                },
+                numberingConfig
+            )
+        });
+    }
+    const $thirdComponent = $('<div/>', {
         class: `w-100 pt-1 flex-fill dashboard-component h-100 mx-0 mb-0`,
         html: createIndicatorElement(
             Object.assign(data || {},{
@@ -430,7 +452,8 @@ function createEntriesToHandleElement(data, {meterKey}) {
                     class: 'h-100 d-flex flex-column',
                     html: [
                         $firstComponent,
-                        $secondComponent
+                        $secondComponent,
+                        $thirdComponent,
                     ]
                 })
             })
