@@ -4,7 +4,6 @@ namespace App\Entity\Tracking;
 
 use App\Entity\Emplacement;
 use App\Entity\Nature;
-use App\Entity\Pack;
 use App\Repository\Tracking\TrackingDelayRecordRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
@@ -14,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Like a trackingMovement copy
  */
 #[ORM\Entity(repositoryClass: TrackingDelayRecordRepository::class)]
+#[ORM\Index(fields: ["movementDate"], name: "IDX_WIILOG_MOVEMENT_DATE")]
 class TrackingDelayRecord
 {
     #[ORM\Id]
@@ -28,7 +28,10 @@ class TrackingDelayRecord
      * The column contains the delay between the T0 and the movement date
      */
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
-    private ?int $delay = null;
+    private ?int $elapsedTime = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
+    private ?bool $onCurrentTrackingDelay = null;
 
     /**
      * null for unpause event
@@ -41,7 +44,7 @@ class TrackingDelayRecord
     private ?Pack $pack = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]
@@ -101,14 +104,14 @@ class TrackingDelayRecord
         return $this;
     }
 
-    public function getDelay(): ?int
+    public function getElapsedTime(): ?int
     {
-        return $this->delay;
+        return $this->elapsedTime;
     }
 
-    public function setDelay(int $delay): self
+    public function setElapsedTime(int $elapsedTime): self
     {
-        $this->delay = $delay;
+        $this->elapsedTime = $elapsedTime;
 
         return $this;
     }
@@ -119,6 +122,15 @@ class TrackingDelayRecord
 
     public function setTrackingEvent(?TrackingEvent $trackingEvent): self {
         $this->trackingEvent = $trackingEvent;
+        return $this;
+    }
+
+    public function isOnCurrentTrackingDelay(): ?bool {
+        return $this->onCurrentTrackingDelay;
+    }
+
+    public function setOnCurrentTrackingDelay(?bool $onCurrentTrackingDelay): self {
+        $this->onCurrentTrackingDelay = $onCurrentTrackingDelay;
         return $this;
     }
 }
