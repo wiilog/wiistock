@@ -1594,7 +1594,7 @@ class DashboardService {
         $component->setConfig($config);
 
         $totalToDisplay = $globalCounter ?: null;
-        $locationToDisplay = $packToDisplay->getLastOngoingDrop()?->getEmplacement() ?? null;
+        $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
         $chartColors = Stream::from($naturesFilter)
             ->filter(fn (Nature $nature) => $nature->getColor())
             ->keymap(fn(Nature $nature) => [
