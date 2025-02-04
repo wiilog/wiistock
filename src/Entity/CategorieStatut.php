@@ -20,6 +20,7 @@ class CategorieStatut {
     const HANDLING = 'service';
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement_traca';
+    const TRACKING_DELAY_RECORD = 'tracking_delay_record';
     const MVT_STOCK = 'mouvement_stock';
     const DISPUTE_ARR = 'litige arrivage';
     const LITIGE_RECEPT = 'litige reception';
