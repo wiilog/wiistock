@@ -57,7 +57,7 @@ class TrackingDelayRepository extends EntityRepository {
                 ->setParameter('events', $events);
         }
 
-        if ($limit > 0) {
+        if ($limit) {
             $queryBuilder->setMaxResults($limit);
         }
 
