@@ -225,7 +225,6 @@ class DashboardSettingsService {
                 $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                //TODO WIIS-12423
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                 $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
                 break;
@@ -512,7 +511,7 @@ class DashboardSettingsService {
             $nextElement = $meterChart->getNextElement();
             if($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
                 $packRepository = $entityManager->getRepository(Pack::class);
-                $nextElementToTreat = $packRepository->find($nextElement);
+                $nextElementToTreat = $packRepository->findOneBy(["code" => $nextElement]);
                 $nextElement = $nextElementToTreat->getCode();
                 $locations = $config["locations"];
             }
@@ -1410,16 +1409,19 @@ class DashboardSettingsService {
                     'natures' => implode(',', $natures),
                     'fromDashboard' => true,
                 ]);
+
                 $values["secondComponentLink"] = $this->router->generate('pack_show', [
-                    "id" => $config['nextElement'],
+                    'id' => $config['nextElement'],
                     'fromDashboard' => true,
                 ]);
+
                 $values["thirdComponentLink"] = $this->router->generate('en_cours', [
                     'locations' => implode(',', $locations),
                     'natures' => implode(',', $natures),
                     'fromDashboard' => true,
                     'useTruckArrivalsFromDashboard' => false,
                 ]);
+
                 $link = null;
                 break;
             default:
