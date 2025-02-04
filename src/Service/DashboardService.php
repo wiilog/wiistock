@@ -1563,10 +1563,7 @@ class DashboardService {
                         default => $segmentEnd * 60,
                     };
 
-                    if (($remainingTimeInSeconds < 0 && $endSpan < 0) // count late pack
-                            || ($remainingTimeInSeconds >= 0 && $remainingTimeInSeconds < $endSpan)
-                        ) {
-
+                    if ($remainingTimeInSeconds < $endSpan) {
                         $natureLabel = $this->formatService->nature($pack->getNature());
                         $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
                         $counterByEndingSpan[$segmentEnd][$natureLabel]++;
@@ -1576,13 +1573,7 @@ class DashboardService {
                 }
             }
 
-            $graphData = $this->getObjectForTimeSpan($segments, function (int $beginSpan, int $endSpan) use (
-                                                                                                            $entityManager,
-                                                                                                            &$trackingDelayByFilters,
-                                                                                                            $counterByEndingSpan,
-                                                                                                            &$globalCounter) {
-                return $counterByEndingSpan[$endSpan] ?? [];
-            });
+            $graphData = $this->getObjectForTimeSpan($segments, fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? []);
         }
 
         if (empty($graphData)) {
