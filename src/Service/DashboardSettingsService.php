@@ -1410,10 +1410,12 @@ class DashboardSettingsService {
                     'fromDashboard' => true,
                 ]);
 
-                $values["secondComponentLink"] = $this->router->generate('pack_show', [
-                    'id' => $config['nextElement'],
-                    'fromDashboard' => true,
-                ]);
+                $values["secondComponentLink"] = isset($config['nextElement'])
+                    ? $this->router->generate('pack_show', [
+                        'id' => $config['nextElement'],
+                        'fromDashboard' => true,
+                    ])
+                    : null;
 
                 $values["thirdComponentLink"] = $this->router->generate('en_cours', [
                     'locations' => implode(',', $locations),
