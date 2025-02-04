@@ -868,7 +868,7 @@ class PackService {
         ];
     }
 
-    private function getTrackingDelayRemainingTime(Pack $pack): ?int {
+    public function getTrackingDelayRemainingTime(Pack $pack): ?int {
         $packTrackingDelay = $pack->getTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
