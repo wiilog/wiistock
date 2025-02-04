@@ -37,6 +37,7 @@ class TrackingDelayRecord {
 
     /**
      * The column contains the delay between the T0 and the movement date
+     * TODO WIIS-11930 add tracking delay
      */
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $elapsedTime = null;
@@ -65,7 +66,7 @@ class TrackingDelayRecord {
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Nature $nature = null;
+    private ?Nature $oldNature = null;
 
     public function getId(): ?int
     {
@@ -108,14 +109,14 @@ class TrackingDelayRecord {
         return $this;
     }
 
-    public function getNature(): ?Nature
+    public function getOldNature(): ?Nature
     {
-        return $this->nature;
+        return $this->oldNature;
     }
 
-    public function setNature(?Nature $nature): self
+    public function setOldNature(?Nature $oldNature): self
     {
-        $this->nature = $nature;
+        $this->oldNature = $oldNature;
 
         return $this;
     }
