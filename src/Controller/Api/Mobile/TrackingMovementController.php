@@ -10,14 +10,13 @@ use App\Entity\Emplacement;
 use App\Entity\Nature;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
-use App\Entity\Tracking\PackSplit;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
+use App\Service\CacheService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
@@ -46,6 +45,7 @@ class TrackingMovementController extends AbstractController {
     #[Route("/tracking-movements", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postTrackingMovements(Request                 $request,
+                                          CacheService            $cacheService,
                                           MailerService           $mailerService,
                                           ArrivageService         $arrivageDataService,
                                           EmplacementDataService  $locationDataService,
@@ -74,7 +74,6 @@ class TrackingMovementController extends AbstractController {
         $emptyGroups = [];
 
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -90,11 +89,6 @@ class TrackingMovementController extends AbstractController {
                 ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
                 ->toArray()
             : [];
-
-        $trackingTypes = [
-            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
-        ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
@@ -119,26 +113,19 @@ class TrackingMovementController extends AbstractController {
                     $trackingMovementService,
                     $emptyGroups,
                     $emplacementRepository,
-                    $statutRepository,
                     $trackingMovementRepository,
                     $packRepository,
                     $locationDataService,
                     $arrivageDataService,
                     &$mustReloadLocation,
                     $alreadySavedMovements,
-                    $trackingTypes
+                    $cacheService
                 ) {
-                    $trackingTypes = [
-                        TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
-                    ];
 
-                    if (empty($trackingTypes)) {
-                        $trackingTypes = [
-                            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
-                        ];
-                    }
+                    $trackingTypes = [
+                        TrackingMovement::TYPE_PRISE => $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                        TrackingMovement::TYPE_DEPOSE => $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
+                    ];
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
@@ -260,9 +247,7 @@ class TrackingMovementController extends AbstractController {
                     $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-                    $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
-                    $trackingTypes = [];
                     $mustReloadLocation = true;
                 }
 

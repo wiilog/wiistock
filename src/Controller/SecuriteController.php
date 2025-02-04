@@ -2,13 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\CategoryType;
 use App\Entity\Role;
-use App\Entity\Type;
 use App\Security\UserChecker;
 use App\Service\MailerService;
-use App\Service\SessionHistoryRecordService;
-use App\Service\TranslationService;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,7 +18,6 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Service\UserService;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use DateTime;
 
 class SecuriteController extends AbstractController {
 
@@ -48,13 +43,10 @@ class SecuriteController extends AbstractController {
 
     #[Route("/login/{success}", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
     public function login(AuthenticationUtils $authenticationUtils,
-                          EntityManagerInterface $entityManager,
-                          SessionHistoryRecordService $sessionHistoryRecordService,
-                          Request $request,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
         $securityContext = $this->container->get('security.authorization_checker');
-        if ($loggedUser && $loggedUser instanceof Utilisateur && $securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if ($loggedUser instanceof Utilisateur && $securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
             return $this->redirectToRoute('app_index');
         }
 
