@@ -2,15 +2,16 @@
 
 namespace App\Repository\Tracking;
 
+use App\Entity\Tracking\TrackingDelay;
 use Doctrine\ORM\EntityRepository;
 
 class TrackingDelayRepository extends EntityRepository {
     /**
-     * @param array $natures natures set in component
-     * @param array $locations locations set in component
-     * @param array $events TrackingEvent set in component
+     * @param array $natures array of Nature entity set in component
+     * @param array $locations array of Location entity set in component
+     * @param array $events array of TrackingEvent set in component
      * @param int $limit request limit to display value when the limit is reached
-     * @return float|int|mixed|string
+     * @return iterable<TrackingDelay>
      */
     public function findByFilters(array $natures,
                                   array $locations,
