@@ -1532,7 +1532,7 @@ class DashboardService {
 
         if (!empty($naturesFilter) && !empty($locationsFilter)) {
             // TODO WIIS-12353 construire le tableau d'event en fonction du parametrage sur le composant
-            $trackingDelayByFilters = $trackingDelayRepository->findByFilters($naturesFilter, $locationsFilter, [null,0,1,2], $maxResultPack);
+            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, [null,0,1,2], $maxResultPack);
 
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {
