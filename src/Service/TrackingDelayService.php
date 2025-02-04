@@ -2,19 +2,25 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
+use App\Entity\Nature;
+use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
+use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Generator;
+
 
 class TrackingDelayService {
 
     public function __construct(
         private TrackingMovementService $trackingMovementService,
         private DateTimeService         $dateTimeService,
+        private CacheService            $cacheService,
     ) {}
 
     /**
@@ -33,21 +39,20 @@ class TrackingDelayService {
         $lastTrackingEvent = $data['lastTrackingEvent'] ?? null;
         $limitTreatmentDate = $data['limitTreatmentDate'] ?? null;
         $calculatedElapsedTime = $data['elapsedTime'] ?? null;
+        $records = $data['records'] ?? [];
 
         if (!isset($calculatedElapsedTime)) {
-            $trackingDelay = $pack->getTrackingDelay();
-            if (isset($trackingDelay)) {
-                $pack->setTrackingDelay(null);
-                $entityManager->remove($trackingDelay);
-            }
+            $this->removeCurrentTrackingDelay($entityManager, $pack);
         }
         else {
+            $this->persistRecordsOnCurrentDelay($entityManager, $pack, $records);
+
             $this->persistTrackingDelay(
                 $entityManager,
                 $pack,
                 $calculatedElapsedTime,
-                $lastTrackingEvent ?? null,
-                $limitTreatmentDate ?? null
+                $lastTrackingEvent,
+                $limitTreatmentDate
             );
         }
     }
@@ -96,11 +101,13 @@ class TrackingDelayService {
         [
             "timerStartedAt" => $timerStartedAt,
             "timerStoppedAt" => $timerStoppedAt,
+            "timerStartedBy" => $timerStartedBy,
         ] = $this->getTimerData($pack);
 
         // Store tracking event of the second movement of an interval
         // ==> To get the tracking event which finish the delay calculation
         $lastTrackingEvent = null;
+        $records = [];
 
         $lastStop = $pack->getLastStop();
 
@@ -125,21 +132,37 @@ class TrackingDelayService {
         $remainingNatureDelay = $natureTrackingDelay;
         $limitTreatmentDate = clone $timerStartedAt;
 
-        $segments = $this->iteratePackTrackingSegmentsBetween($entityManager, $pack, $timerStartedAt, $timerStoppedAt);
+        $segments = $this->iteratePackTrackingDelaySegmentsBetween(
+            $entityManager,
+            $pack,
+            $timerStartedAt,
+            $timerStoppedAt,
+            $timerStartedBy
+        );
+
+        $pushRecord = static function (TrackingDelayRecord $record) use (&$records) {
+            if (!$record->isNow()) {
+                $records[] = $record;
+            }
+        };
 
         foreach ($segments as $segment) {
             [
-                "start" => $intervalStart,
-                "end" => $intervalEnd,
-                "endEvent" => $lastTrackingEvent,
+                "start" => $segmentStart,
+                "end" => $segmentEnd,
             ] = $segment;
 
-            $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $intervalStart, $intervalEnd);
+            $lastTrackingEvent = $segmentEnd?->getTrackingEvent();
+
+            $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $segmentStart->getDate(), $segmentEnd->getDate());
             $calculationDate->add($workedInterval);
 
             // increment limit treatment date while nature tracking delay is positive
             if ($remainingNatureDelay > 0) {
                 $elapsedSeconds = floor($this->dateTimeService->convertDateIntervalToMilliseconds($workedInterval) / 1000);
+
+                $pushRecord($segmentStart);
+                $pushRecord($segmentEnd);
 
                 if ($remainingNatureDelay > $elapsedSeconds) {
                     $remainingNatureDelay -= $elapsedSeconds;
@@ -164,9 +187,10 @@ class TrackingDelayService {
         }
 
         return [
-            "elapsedTime" => $calculatedElapsedTime ?? null,
+            "elapsedTime"        => $calculatedElapsedTime ?? null,
             "limitTreatmentDate" => $limitTreatmentDate ?? null,
-            "lastTrackingEvent" => $lastTrackingEvent,
+            "lastTrackingEvent"  => $lastTrackingEvent,
+            "records"            => $records,
         ];
     }
 
@@ -176,16 +200,18 @@ class TrackingDelayService {
      * Then we map it as date an ordered.
      * Each couple dates make this "tracking segment".
      *
-     * @return Generator<array{
-     *     start: DateTime,
-     *     end: DateTime,
-     *     endEvent: TrackingEvent|null
+     * @param "movement"|"arrival"|"truckArrival"|null $startedBy
+     *
+     * @return iterable<array{
+     *     start: TrackingDelayRecord,
+     *     end: TrackingDelayRecord
      * }>
      */
-    private function iteratePackTrackingSegmentsBetween(EntityManagerInterface $entityManager,
-                                                        Pack                   $pack,
-                                                        DateTime               $start,
-                                                        ?DateTime              $end): iterable {
+    private function iteratePackTrackingDelaySegmentsBetween(EntityManagerInterface $entityManager,
+                                                             Pack                   $pack,
+                                                             DateTime               $start,
+                                                             ?DateTime              $end,
+                                                             ?string                $startedBy): iterable {
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
@@ -194,10 +220,21 @@ class TrackingDelayService {
         $firstTracking = $trackingEvents->current();
 
         if ($firstTracking) {
-            $intervalStart = null;
-            $intervalEnd = null;
+            /** @var TrackingDelayRecord|null $intervalStartRecord */
+            $intervalStartRecord = null;
+
+            /** @var TrackingDelayRecord|null $intervalEndRecord */
+            $intervalEndRecord = null;
+
             if ($firstTracking->getEvent() !== TrackingEvent::START) {
-                $intervalStart = clone $start;
+                $intervalStartRecord = $this->createTrackingDelayRecord([
+                    "date" => $start,
+                    "type" => match($startedBy) {
+                        "arrival"      => $this->cacheService->getEntity($entityManager, Statut::class, CategorieStatut::class, TrackingDelayRecord::TYPE_ARRIVAL),
+                        "truckArrival" => $this->cacheService->getEntity($entityManager, Statut::class, CategorieStatut::class, TrackingDelayRecord::TYPE_TRUCK_ARRIVAL),
+                        default        => null,
+                    },
+                ]);
             }
 
             // We define a start and a stop for calculate time in an interval,
@@ -205,26 +242,25 @@ class TrackingDelayService {
             /** @var TrackingMovement $trackingEvent */
             foreach ($trackingEvents as $trackingEvent) {
                 $lastTrackingEvent = null;
-                if ($intervalStart) {
-                    $intervalEnd = clone $trackingEvent->getDatetime();
+                if ($intervalStartRecord) {
+                    $intervalEndRecord = $this->createTrackingDelayRecord($trackingEvent);
                 }
                 else {
                     if ($trackingEvent->getEvent() === TrackingEvent::STOP) {
                         break;
                     }
-                    $intervalStart = clone $trackingEvent->getDatetime();
+                    $intervalStartRecord = $this->createTrackingDelayRecord($trackingEvent);
                 }
 
-                if ($intervalStart && $intervalEnd) {
+                if ($intervalStartRecord && $intervalEndRecord) {
                     $lastTrackingEvent = $trackingEvent->getEvent();
                     yield [
-                        "start" => $intervalStart,
-                        "end" => $intervalEnd,
-                        "endEvent" => $lastTrackingEvent,
+                        "start" => $intervalStartRecord,
+                        "end" => $intervalEndRecord,
                     ];
 
-                    $intervalStart = null;
-                    $intervalEnd = null;
+                    $intervalStartRecord = null;
+                    $intervalEndRecord = null;
 
                     if ($lastTrackingEvent === TrackingEvent::STOP) {
                         break;
@@ -232,30 +268,40 @@ class TrackingDelayService {
                 }
             }
 
-            if ($intervalStart && !$intervalEnd) {
-                $intervalEnd = $end ? (clone $end) : new DateTime("now");
+            if ($intervalStartRecord && !$intervalEndRecord) {
+                $calculateDelayUntilNow = !isset($end);
+
+                $intervalEndRecord = $this->createTrackingDelayRecord([
+                    "date" => !$calculateDelayUntilNow ? $end : new DateTime("now"),
+                    "now"  => $calculateDelayUntilNow,
+                ]);
+
                 yield [
-                    "start" => $intervalStart,
-                    "end" => $intervalEnd,
-                    "endEvent" => null,
+                    "start" => $intervalStartRecord,
+                    "end" => $intervalEndRecord,
                 ];
 
-                $intervalStart = null;
-                $intervalEnd = null;
+                $intervalStartRecord = null;
+                $intervalEndRecord = null;
             }
         }
         else { // no movements
-            $intervalStart = $start;
-            $intervalEnd = $end ?? new DateTime();
+            $calculateDelayUntilNow = !isset($end);
+            $intervalStartRecord = $this->createTrackingDelayRecord([
+                "date" => $start,
+            ]);
+            $intervalEndRecord = $this->createTrackingDelayRecord([
+                "date" => !$calculateDelayUntilNow ? $end : new DateTime("now"),
+                "now"  => $calculateDelayUntilNow,
+            ]);
 
             yield [
-                "start" => $intervalStart,
-                "end" => $intervalEnd,
-                "endEvent" => null,
+                "start" => $intervalStartRecord,
+                "end" => $intervalEndRecord,
             ];
 
-            $intervalStart = null;
-            $intervalEnd = null;
+            $intervalStartRecord = null;
+            $intervalEndRecord = null;
         }
     }
 
@@ -283,7 +329,9 @@ class TrackingDelayService {
     /**
      * @return array{
      *     timerStartedAt?: DateTime,
+     *     timerStartedBy?: "movement"|"arrival"|"truckArrival",
      *     timerStoppedAt?: DateTime,
+     *     timerStoppedBy?: "movement"|"arrival"|"truckArrival",
      * }
      */
     private function getTimerData(Pack $pack): array {
@@ -318,6 +366,9 @@ class TrackingDelayService {
                     $timerStartedAt = $firstAction?->getDatetime();
                 }
             }
+            else {
+                $timerStartedBy = $truckArrivalCreatedAt ? "arrival" : "truckArrival";
+            }
 
             if ($timerStartedAt
                 && $lastStop
@@ -328,7 +379,90 @@ class TrackingDelayService {
 
         return [
             "timerStartedAt" => $timerStartedAt ?? null,
+            "timerStartedBy" => $timerStartedBy ?? "movement",
             "timerStoppedAt" => $timerStoppedAt ?? null,
+            "timerStoppedBy" => $timerStoppedBy ?? "movement",
         ];
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Pack $pack
+     * @param TrackingDelayRecord[] $records
+     */
+    public function persistRecordsOnCurrentDelay(EntityManagerInterface $entityManager,
+                                                 Pack                   $pack,
+                                                 array                  $records): void {
+
+        $trackingDelayRecordRepository = $entityManager->getRepository(TrackingDelayRecord::class);
+
+        $recordsToClear = $trackingDelayRecordRepository->findBy([
+            'pack' => $pack,
+        ]);
+
+        foreach ($recordsToClear as $recordToClear) {
+            $entityManager->remove($recordToClear);
+        }
+
+        foreach ($records as $record) {
+            $entityManager->persist($record);
+        }
+    }
+
+    public function removeCurrentTrackingDelay(EntityManagerInterface $entityManager,
+                                               Pack                   $pack): void {
+        // remove current tracking delay of the given pack
+        $trackingDelay = $pack->getTrackingDelay();
+        if (isset($trackingDelay)) {
+            $pack->setTrackingDelay(null);
+            $entityManager->remove($trackingDelay);
+        }
+    }
+
+    /**
+     * @param TrackingMovement|array{
+     *     pack?: Pack,
+     *     location?: Emplacement,
+     *     trackingEvent?: TrackingEvent,
+     *     type?: Statut|string,
+     *     date: DateTime,
+     *     nature?: Nature,
+     *     now?: bool,
+     * } $tracking
+     * @return TrackingDelayRecord
+     */
+    private function createTrackingDelayRecord(TrackingMovement|array $tracking): TrackingDelayRecord {
+        /** @var array{
+         *      pack?: Pack,
+         *      location?: Emplacement,
+         *      trackingEvent?: TrackingEvent,
+         *      type?: Statut,
+         *      date: DateTime,
+         *      nature?: Nature,
+         *      now?: bool,
+         * } $recordArray */
+
+        if ($tracking instanceof TrackingMovement) {
+            $recordArray = [
+                "pack" => $tracking->getPack(),
+                "location" => $tracking->getEmplacement(),
+                "trackingEvent" => $tracking->getEvent(),
+                "date" => $tracking->getDatetime(),
+                "type" => $tracking->getType(),
+                "nature" => $tracking->getOldNature(),
+            ];
+        }
+        else {
+            $recordArray = $tracking;
+        }
+
+        return (new TrackingDelayRecord())
+            ->setLocation($recordArray["location"] ?? null)
+            ->setPack($recordArray["pack"] ?? null)
+            ->setNature($recordArray["nature"] ?? null)
+            ->setType($recordArray["type"] ?? null)
+            ->setTrackingEvent($recordArray["trackingEvent"] ?? null)
+            ->setDate($recordArray["date"] ?? null)
+            ->setNow($recordArray["now"] ?? false);
     }
 }

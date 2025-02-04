@@ -4,6 +4,7 @@ namespace App\Entity\Tracking;
 
 use App\Entity\Emplacement;
 use App\Entity\Nature;
+use App\Entity\Statut;
 use App\Repository\Tracking\TrackingDelayRecordRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
@@ -14,24 +15,31 @@ use Doctrine\ORM\Mapping as ORM;
  */
 #[ORM\Entity(repositoryClass: TrackingDelayRecordRepository::class)]
 #[ORM\Index(fields: ["movementDate"], name: "IDX_WIILOG_MOVEMENT_DATE")]
-class TrackingDelayRecord
-{
+class TrackingDelayRecord {
+
+    public const TYPE_ARRIVAL = 'Arrivage';
+    public const TYPE_TRUCK_ARRIVAL = 'Arrivage camion';
+
+
+    /**
+     * @var bool|null Attribute not saved in database, we don't want it in tracking delay record table.
+     * It is used to calculate tracking delay.
+     */
+    private ?bool $now = false;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
-    private ?DateTime $movementDate = null;
+    private ?DateTime $date = null;
 
     /**
      * The column contains the delay between the T0 and the movement date
      */
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $elapsedTime = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
-    private ?bool $onCurrentTrackingDelay = null;
 
     /**
      * null for unpause event
@@ -43,12 +51,20 @@ class TrackingDelayRecord
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Pack $pack = null;
 
+    /**
+     * @var Statut|null Copy of tracking movement's type if record is based on tracking movement
+     * Or if it's not then it's linked to TrackingDelayRecord::TYPE_ARRIVAL or TrackingDelayRecord::TYPE_TRUCK_ARRIVAL
+     */
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Statut $type = null;
+
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]
-    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Nature $nature = null;
 
     public function getId(): ?int
@@ -68,14 +84,14 @@ class TrackingDelayRecord
         return $this;
     }
 
-    public function getMovementDate(): ?DateTime
+    public function getDate(): ?DateTime
     {
-        return $this->movementDate;
+        return $this->date;
     }
 
-    public function setMovementDate(DateTime $movementDate): self
+    public function setDate(DateTime $date): self
     {
-        $this->movementDate = $movementDate;
+        $this->date = $date;
 
         return $this;
     }
@@ -125,12 +141,21 @@ class TrackingDelayRecord
         return $this;
     }
 
-    public function isOnCurrentTrackingDelay(): ?bool {
-        return $this->onCurrentTrackingDelay;
+    public function getType(): ?Statut {
+        return $this->type;
     }
 
-    public function setOnCurrentTrackingDelay(?bool $onCurrentTrackingDelay): self {
-        $this->onCurrentTrackingDelay = $onCurrentTrackingDelay;
+    public function setType(?Statut $type): self {
+        $this->type = $type;
         return $this;
+    }
+
+    public function setNow(bool $now): self {
+        $this->now = $now;
+        return $this;
+    }
+
+    public function isNow(): bool {
+        return $this->now;
     }
 }
