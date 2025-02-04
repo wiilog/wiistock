@@ -2,21 +2,25 @@
 
 namespace App\Repository\Tracking;
 
+use App\Entity\Emplacement;
+use App\Entity\Nature;
 use App\Entity\Tracking\TrackingDelay;
+use App\Entity\Tracking\TrackingEvent;
 use Doctrine\ORM\EntityRepository;
 
 class TrackingDelayRepository extends EntityRepository {
     /**
-     * @param array $natures array of Nature entity set in component
-     * @param array $locations array of Location entity set in component
-     * @param array $events array of TrackingEvent set in component
+     * @param Nature[] $natures
+     * @param Emplacement[] $locations
+     * @param TrackingEvent[] $events
      * @param int $limit request limit to display value when the limit is reached
      * @return iterable<TrackingDelay>
      */
-    public function findByFilters(array $natures,
+    public function iterateTrackingDelayByFilters(array $natures,
                                   array $locations,
                                   array $events,
                                   int   $limit): iterable {
+        // TODO WIIS-11930 attention si plusieurs tracking delay par pack
         $queryBuilder = $this->createQueryBuilder('tracking_delay')
             ->leftJoin('tracking_delay.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
