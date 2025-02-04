@@ -208,7 +208,7 @@ class DashboardSettingsService {
         $redirect = $config['redirect'] ?? false;
 
         if (!$example && $redirect) {
-            $this->getComponentLink($componentType, $config, $values);
+            $this->setComponentLinks($componentType, $config, $values);
         }
 
         switch ($meterKey) {
@@ -1315,7 +1315,7 @@ class DashboardSettingsService {
         }
     }
 
-    public function getComponentLink(Dashboard\ComponentType $componentType,
+    public function setComponentLinks(Dashboard\ComponentType $componentType,
                                      array $config,
                                      array &$values): void {
         $meterKey = $componentType->getMeterKey();
