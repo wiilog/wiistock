@@ -161,6 +161,7 @@ class TrackingDelayService {
             if ($remainingNatureDelay > 0) {
                 $elapsedSeconds = floor($this->dateTimeService->convertDateIntervalToMilliseconds($workedInterval) / 1000);
 
+                // TODO WIIS-11930 add tracking delay
                 $pushRecord($segmentStart);
                 $pushRecord($segmentEnd);
 
@@ -426,7 +427,7 @@ class TrackingDelayService {
      *     trackingEvent?: TrackingEvent,
      *     type?: Statut|string,
      *     date: DateTime,
-     *     nature?: Nature,
+     *     oldNature?: Nature,
      *     now?: bool,
      * } $tracking
      * @return TrackingDelayRecord
@@ -438,7 +439,7 @@ class TrackingDelayService {
          *      trackingEvent?: TrackingEvent,
          *      type?: Statut,
          *      date: DateTime,
-         *      nature?: Nature,
+         *      oldNature?: Nature,
          *      now?: bool,
          * } $recordArray */
 
@@ -449,7 +450,7 @@ class TrackingDelayService {
                 "trackingEvent" => $tracking->getEvent(),
                 "date" => $tracking->getDatetime(),
                 "type" => $tracking->getType(),
-                "nature" => $tracking->getOldNature(),
+                "oldNature" => $tracking->getOldNature(),
             ];
         }
         else {
@@ -459,7 +460,7 @@ class TrackingDelayService {
         return (new TrackingDelayRecord())
             ->setLocation($recordArray["location"] ?? null)
             ->setPack($recordArray["pack"] ?? null)
-            ->setNature($recordArray["nature"] ?? null)
+            ->setOldNature($recordArray["oldNature"] ?? null)
             ->setType($recordArray["type"] ?? null)
             ->setTrackingEvent($recordArray["trackingEvent"] ?? null)
             ->setDate($recordArray["date"] ?? null)
