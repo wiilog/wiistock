@@ -1532,7 +1532,7 @@ class DashboardService {
 
         if (!empty($naturesFilter) && !empty($locationsFilter)) {
             // TODO WIIS-12353 construire le tableau d'event en fonction du parametrage sur le composant
-            $trackingDelayByFilters = $trackingDelayRepository->findByFilters($config['natures'], $config['locations'], [null,0,1,2], $maxResultPack);
+            $trackingDelayByFilters = $trackingDelayRepository->findByFilters($naturesFilter, $locationsFilter, [null,0,1,2], $maxResultPack);
 
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {
@@ -1542,53 +1542,39 @@ class DashboardService {
             $segments = $config['segments'];
 
             $customSegments = array_merge([-1, 1], $segments);
-            $counterByEndingSpan = [];
+            $counterByEndingSpan = Stream::from($customSegments)
+                ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
+                ->toArray();
             $nextElementToDisplay = [];
 
-            Stream::from($trackingDelayByFilters)
-                ->each(function(TrackingDelay $trackingDelay) use ($countByNatureBase, $customSegments, &$counterByEndingSpan, &$globalCounter, &$nextElementToDisplay) {
-                    $pack = $trackingDelay->getPack();
-                    $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
-                    if(empty($nextElementToDisplay)){
-                        $nextElementToDisplay = [
-                            'remainingTimeInSeconds' => abs($remainingTimeInSeconds),
-                            'pack' => $pack,
-                        ];
-                    } else if(abs($remainingTimeInSeconds) < $nextElementToDisplay['remainingTimeInSeconds']) {
-                        $nextElementToDisplay = [
-                            'remainingTimeInSeconds' => abs($remainingTimeInSeconds),
-                            'pack' => $pack,
-                        ];
+            foreach($trackingDelayByFilters as $trackingDelay){
+                $pack = $trackingDelay->getPack();
+                $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
+                if(empty($nextElementToDisplay) || (abs($remainingTimeInSeconds) < $nextElementToDisplay['remainingTimeInSeconds'])) {
+                    $nextElementToDisplay = [
+                        'remainingTimeInSeconds' => abs($remainingTimeInSeconds),
+                        'pack' => $pack,
+                    ];
+                }
+
+                foreach ($customSegments as $segmentEnd) {
+                    $endSpan = match($segmentEnd) {
+                        -1 => -1,
+                        default => $segmentEnd * 60,
+                    };
+
+                    if (($remainingTimeInSeconds < 0 && $endSpan < 0) // count late pack
+                            || ($remainingTimeInSeconds >= 0 && $remainingTimeInSeconds < $endSpan)
+                        ) {
+
+                        $natureLabel = $this->formatService->nature($pack->getNature());
+                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                        $globalCounter++;
+                        break;
                     }
-
-                    $countByNature = array_merge($countByNatureBase);
-                    foreach ($customSegments as $key => $segmentEnd) {
-                        if(!isset($counterByEndingSpan[$segmentEnd])) {
-                            $counterByEndingSpan[$segmentEnd] = $countByNature;
-                        }
-                        $beginSpan = $segmentEnd === -1
-                            ? -1
-                            : ($segmentEnd === 1
-                                ? 0
-                                : ($customSegments[$key-1] * 60)
-                            );
-                        $endSpan = $segmentEnd === -1
-                            ? -1
-                            : ($segmentEnd * 60);
-
-                        if ($remainingTimeInSeconds
-                            && (
-                                ($remainingTimeInSeconds < 0 && $beginSpan < 0) // count late pack
-                                || ($remainingTimeInSeconds >= 0 && $remainingTimeInSeconds >= $beginSpan && $remainingTimeInSeconds < $endSpan)
-                            )) {
-
-                            $natureLabel = $this->formatService->nature($pack->getNature());
-                            $counterByEndingSpan[$segmentEnd][$natureLabel] = $counterByEndingSpan[$segmentEnd][$natureLabel] ?? 0;
-                            $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                            $globalCounter++;
-                        }
-                    }
-                });
+                }
+            }
 
             $graphData = $this->getObjectForTimeSpan($segments, function (int $beginSpan, int $endSpan) use (
                                                                                                             $entityManager,
@@ -1609,7 +1595,7 @@ class DashboardService {
         $component->setConfig($config);
 
         $totalToDisplay = $globalCounter ?: null;
-        $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
+        $locationToDisplay = $packToDisplay->getLastOngoingDrop()?->getEmplacement() ?? null;
         $chartColors = Stream::from($naturesFilter)
             ->filter(fn (Nature $nature) => $nature->getColor())
             ->keymap(fn(Nature $nature) => [

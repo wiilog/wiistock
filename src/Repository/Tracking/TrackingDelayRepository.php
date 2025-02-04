@@ -5,10 +5,17 @@ namespace App\Repository\Tracking;
 use Doctrine\ORM\EntityRepository;
 
 class TrackingDelayRepository extends EntityRepository {
+    /**
+     * @param array $natures natures set in component
+     * @param array $locations locations set in component
+     * @param array $events TrackingEvent set in component
+     * @param int $limit request limit to display value when the limit is reached
+     * @return float|int|mixed|string
+     */
     public function findByFilters(array $natures,
                                   array $locations,
                                   array $events,
-                                  int   $limit) {
+                                  int   $limit): iterable {
         $queryBuilder = $this->createQueryBuilder('tracking_delay')
             ->leftJoin('tracking_delay.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
@@ -29,6 +36,6 @@ class TrackingDelayRepository extends EntityRepository {
 
         return $queryBuilder
             ->getQuery()
-            ->getResult();
+            ->toIterable();
     }
 }
