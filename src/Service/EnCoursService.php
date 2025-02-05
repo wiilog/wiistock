@@ -81,6 +81,7 @@ class EnCoursService {
             "emplacement.dateMaxTime AS dateMaxTime",
             "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
+            "pack_arrival.numeroCommandeList AS arrivalOrderNumber",
             ...$useTruckArrivals
                 ? ["pack.truckArrivalDelay AS truckArrivalDelay",]
                 : []
@@ -129,6 +130,7 @@ class EnCoursService {
                     'delayTimeStamp' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
+                    'orderNumbers' => $pack['arrivalOrderNumber'] ? Stream::from($pack['arrivalOrderNumber'])->join(",") : null,
                     'emp' => $pack['label'],
                     'libelle' => $pack['reference_label'] ?? null,
                     'reference' => $pack['reference_reference'] ?? null,
@@ -174,6 +176,7 @@ class EnCoursService {
             ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU', 'searchable' => true],
             ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date',  'type' => "customDate",'searchable' => true],
             ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay', 'searchable' => true],
+            ['title' => $this->translationService->translate('Arrivages UL', 'Champs fixes', 'N° commande / BL', false), 'name' => 'orderNumbers', 'orderable' => true, 'searchable' => true],
             ['title' => 'Référence', 'name' => 'reference', 'searchable' => true],
             ['title' => 'Libellé', 'name' => 'libelle', 'searchable' => true],
         ];
