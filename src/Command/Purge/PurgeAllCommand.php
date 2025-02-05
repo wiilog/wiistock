@@ -30,7 +30,7 @@ class PurgeAllCommand extends Command {
 
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private EntityManagerInterface $entityManager,
     ) {
         parent::__construct(self::COMMAND_NAME);
     }

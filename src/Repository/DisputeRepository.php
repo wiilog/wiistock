@@ -137,6 +137,7 @@ class DisputeRepository extends EntityRepository
         if (!empty($statusIds)) {
             $queryBuilder
                 ->andWhere('join_status in (:statuses)')
+                ->leftJoin('dispute.status', 'join_status')
                 ->setParameter('statuses', $statusIds);
         }
 
