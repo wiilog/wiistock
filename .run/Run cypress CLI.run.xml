@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run cypress CLI" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="docker compose -f ../../docker-compose.yml -f ../../docker-compose-cypress.yml -p wiistock-cypress up cypress --abort-on-container-exit" />
+    <option name="SCRIPT_TEXT" value="sh bin/cypress-cli" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="/usr/bin/docker" />
     <option name="SCRIPT_OPTIONS" value="exec -it wiistock_app bash" />

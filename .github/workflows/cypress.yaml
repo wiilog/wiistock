@@ -21,7 +21,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PAT }} #Grégoire Personal Access Token available until Jan 1, 2026
-                    ref: WIIS-12365
+                    ref: main
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
