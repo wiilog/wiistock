@@ -26,9 +26,11 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ProductionRequest;
 use App\Entity\ReceiptAssociation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
+use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
@@ -41,7 +43,6 @@ use App\Exceptions\DashboardException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
-use App\Service\TrackingDelayService;
 use App\Service\WorkPeriod\WorkPeriodItem;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
@@ -60,6 +61,12 @@ class DashboardService {
 
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
+
+    private const TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE = [
+        Setting::TREATMENT_DELAY_IN_PROGRESS =>  [null, TrackingEvent::START],
+        Setting::TREATMENT_DELAY_ON_HOLD => [TrackingEvent::PAUSE],
+        Setting::TREATMENT_DELAY_BOTH => [null, TrackingEvent::START, TrackingEvent::PAUSE],
+    ];
 
     public function __construct(
         private WorkPeriodService       $workPeriodService,
@@ -1531,8 +1538,8 @@ class DashboardService {
         $globalCounter = null;
 
         if (!empty($naturesFilter) && !empty($locationsFilter)) {
-            // TODO WIIS-12353 construire le tableau d'event en fonction du parametrage sur le composant
-            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, [null,0,1,2], $maxResultPack);
+            $eventTypes = self::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
+            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
 
             $countByNatureBase = [];
             foreach ($naturesFilter as $wantedNature) {

@@ -17,25 +17,47 @@ class TrackingDelayRepository extends EntityRepository {
      * @return iterable<TrackingDelay>
      */
     public function iterateTrackingDelayByFilters(array $natures,
-                                  array $locations,
-                                  array $events,
-                                  int   $limit): iterable {
+                                                  array $locations,
+                                                  array $events,
+                                                  int   $limit): iterable
+    {
         // TODO WIIS-11930 attention si plusieurs tracking delay par pack
         $queryBuilder = $this->createQueryBuilder('tracking_delay')
             ->leftJoin('tracking_delay.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
             ->leftJoin('join_pack.lastOngoingDrop', 'join_last_ongoing_drop')
-            ->leftJoin('join_last_ongoing_drop.emplacement', 'join_location')
-//            ->andWhere('tracking_delay.lastTrackingEvent IN (:events)')
-            ->andWhere('join_nature.id IN (:natures)')
-            ->andWhere('join_location.id IN (:locations)')
-            ->setParameters([
-//                'events' => $events,
-                'natures' => $natures,
-                'locations' => $locations,
-            ]);
+            ->leftJoin('join_last_ongoing_drop.emplacement', 'join_location');
 
-        if ($limit) {
+        if (!empty($natures)) {
+            $queryBuilder->andWhere('join_nature.id IN (:natures)')
+                ->setParameter('natures', $natures);
+        }
+
+        if (!empty($locations)) {
+            $queryBuilder->andWhere('join_location.id IN (:locations)')
+                ->setParameter('locations', $locations);
+        }
+
+        if (empty($events)) {
+            return $queryBuilder->getQuery()->toIterable();
+        }
+
+        if (in_array(null, $events, true)) {
+            $filteredEvents = array_filter($events, fn($event) => $event !== null);
+
+            if (empty($filteredEvents)) {
+                $queryBuilder->andWhere('tracking_delay.lastTrackingEvent IS NULL');
+            } else {
+                $queryBuilder->andWhere(
+                    '(tracking_delay.lastTrackingEvent IN (:events) OR tracking_delay.lastTrackingEvent IS NULL)'
+                )->setParameter('events', $filteredEvents);
+            }
+        } else {
+            $queryBuilder->andWhere('tracking_delay.lastTrackingEvent IN (:events)')
+                ->setParameter('events', $events);
+        }
+
+        if ($limit > 0) {
             $queryBuilder->setMaxResults($limit);
         }
 

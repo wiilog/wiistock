@@ -538,6 +538,7 @@ class DashboardSettingsService {
         $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
         $values['nextElementTooltip'] = $config['nextElementTooltip'] ?? '';
         $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
+        $values['treatmentDelayType'] = $config['treatmentDelayType'] ?? null;
 
         return $values;
     }

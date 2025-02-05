@@ -72,10 +72,13 @@
 
         <div class="row form-group">
             <div class="col-12">
-                {{ form.switch('traitmentDelayType', 'Délais de traitement', false, [
-                    {label: 'En cours', value: 'in_progress', checked: values.traitmentDelayType == 'in_progress'},
-                    {label: 'En pause', value: 'on_hold', checked: values.traitmentDelayType == 'on_hold'},
-                    {label: 'Les deux', value: 'both', checked: values.traitmentDelayType == 'both'},
+                {% set inProgress = (constant("App\\Entity\\Setting::TREATMENT_DELAY_IN_PROGRESS")) %}
+                {% set onHold = (constant("App\\Entity\\Setting::TREATMENT_DELAY_ON_HOLD")) %}
+                {% set both = (constant("App\\Entity\\Setting::TREATMENT_DELAY_BOTH")) %}
+                {{ form.switch('treatmentDelayType', 'Délais de traitement', false, [
+                    {label: 'En cours', value: inProgress, checked: (values.treatmentDelayType ?? '') == inProgress },
+                    {label: 'En pause', value: onHold, checked: (values.treatmentDelayType ?? '') == onHold },
+                    {label: 'Les deux', value: both, checked: (values.treatmentDelayType ?? '') == both },
                 ]) }}
             </div>
         </div>
