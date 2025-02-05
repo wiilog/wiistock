@@ -81,7 +81,7 @@ class EnCoursService {
             "emplacement.dateMaxTime AS dateMaxTime",
             "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
-            "pack_arrival.numeroCommandeList AS arrivalOrderNumber",
+            "pack_arrival.numeroCommandeList AS arrivalOrderNumbers",
             ...$useTruckArrivals
                 ? ["pack.truckArrivalDelay AS truckArrivalDelay",]
                 : []
@@ -130,7 +130,7 @@ class EnCoursService {
                     'delayTimeStamp' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
-                    'orderNumbers' => $pack['arrivalOrderNumber'] ? Stream::from($pack['arrivalOrderNumber'])->join(",") : null,
+                    'orderNumbers' => $pack['arrivalOrderNumbers'] ? Stream::from($pack['arrivalOrderNumbers'])->join(",") : null,
                     'emp' => $pack['label'],
                     'libelle' => $pack['reference_label'] ?? null,
                     'reference' => $pack['reference_reference'] ?? null,
