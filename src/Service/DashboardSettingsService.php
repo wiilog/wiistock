@@ -491,12 +491,12 @@ class DashboardSettingsService {
                 $segmentsLabels = [
                     $this->translationService->translate("Dashboard", "Retard", false),
                     $this->translationService->translate("Dashboard", "Moins d'{1}", [
-                        1 => "1h"
+                        1 => "1min"
                     ], false)
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
-                    $segmentsLabels[] = "{$lastKey}h - {$segment}h";
+                    $segmentsLabels[] = "{$lastKey}min - {$segment}min";
                     $lastKey = $segment;
                 }
             } else {

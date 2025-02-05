@@ -262,9 +262,9 @@ class DashboardService {
                 ? $this->translationService->translate("Dashboard", "Retard", false)
                 : ($timeEnd === 1
                     ? $this->translationService->translate("Dashboard", "Moins d'{1}", [
-                        1 => "1h"
+                        1 => "1min"
                     ], false)
-                    : ($timeBegin . "h-" . $timeEnd . 'h'));
+                    : ($timeBegin . "min-" . $timeEnd . 'min'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
