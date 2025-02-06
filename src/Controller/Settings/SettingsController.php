@@ -176,18 +176,18 @@ class SettingsController extends AbstractController {
                     "label" => "Articles",
                     "right" => Action::SETTINGS_DISPLAY_ARTICLES,
                     "menus" => [
-                        self::MENU_LABELS => [
-                            "label" => "Étiquettes",
-                            "save" => true,
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
+                            "wrapped" => false,
                         ],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_TYPES_FREE_FIELDS => [
-                            "label" => "Types et champs libres",
-                            "wrapped" => false,
+                        self::MENU_LABELS => [
+                            "label" => "Étiquettes",
+                            "save" => true,
                         ],
                         self::MENU_NOMADE_RFID_CREATION => [
                             "label" => "Création nomade RFID",
@@ -214,6 +214,31 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_RECEPTIONS => [
+                    "label" => "Réceptions",
+                    "right" => Action::SETTINGS_DISPLAY_RECEP,
+                    "menus" => [
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Réceptions - Champs fixes",
+                            "save" => true,
+                        ],
+                        self::MENU_FREE_FIELDS => [
+                            "label" => "Réceptions - Champs libres",
+                            "wrapped" => false,
+                        ],
+                        self::MENU_RECEPTIONS_STATUSES => [
+                            "label" => "Réceptions - Statuts",
+                            "save" => true,
+                        ],
+                        self::MENU_DISPUTE_TYPES => [
+                            "label" => "Litiges - Types",
+                            "save" => true,
+                        ],
+                        self::MENU_DISPUTE_STATUSES => [
+                            "label" => "Litiges - Statuts"
+                        ],
+                    ],
+                ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
                     "right" => Action::SETTINGS_DISPLAY_REQUESTS,
@@ -222,8 +247,14 @@ class SettingsController extends AbstractController {
                             "label" => "Livraisons",
                             "save" => true,
                         ],
-                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande", "wrapped" => false],
-                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
+                        self::MENU_DELIVERY_REQUEST_TEMPLATES => [
+                            "label" => "Livraisons - Modèle de demande",
+                            "wrapped" => false
+                        ],
+                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => [
+                            "label" => "Livraisons - Types et champs libres",
+                            "wrapped" => false
+                        ],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Livraisons - Champs fixes",
                             "save" => true,
@@ -233,12 +264,16 @@ class SettingsController extends AbstractController {
                             "save" => true,
                         ],
                         self::MENU_COLLECT_REQUEST_TEMPLATES => [
-                            "label" => "Collectes - Modèle de demande", "wrapped" => false,
+                            "label" => "Collectes - Modèle de demande",
+                            "wrapped" => false,
                         ],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => [
-                            "label" => "Collectes - Types et champs libres", "wrapped" => false,
+                            "label" => "Collectes - Types et champs libres",
+                            "wrapped" => false,
                         ],
-                        self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
+                        self::MENU_PURCHASE_STATUSES => [
+                            "label" => "Achats - Statuts"
+                        ],
                         self::MENU_PURCHASE_PLANIFICATION => [
                             "label" => "Achats - Planification",
                             "right" => Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
@@ -266,52 +301,47 @@ class SettingsController extends AbstractController {
                         self::MENU_INVENTORY_PLANIFICATOR => ["label" => "Planificateur d'inventaire"],
                     ],
                 ],
-                self::MENU_RECEPTIONS => [
-                    "label" => "Réceptions",
-                    "right" => Action::SETTINGS_DISPLAY_RECEP,
-                    "menus" => [
-                        self::MENU_RECEPTIONS_STATUSES => [
-                            "label" => "Réceptions - Statuts",
-                            "save" => true,
-                        ],
-                        self::MENU_FIXED_FIELDS => [
-                            "label" => "Réceptions - Champs fixes",
-                            "save" => true,
-                        ],
-                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres",  "wrapped" => false,],
-                        self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
-                        self::MENU_DISPUTE_TYPES => [
-                            "label" => "Litiges - Types",
-                            "save" => true,
-                        ],
-                    ],
-                ],
             ],
         ],
         self::CATEGORY_TRACING => [
             "label" => "Trace",
             "icon" => "menu-trace",
             "menus" => [
-                self::MENU_DISPATCHES => [
-                    "label" => "Acheminements",
-                    "right" => Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
+                self::MENU_TRUCK_ARRIVALS => [
+                    "label" => "Arrivages camion",
+                    "right" => Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => [
-                            "label" => "Configurations",
-                            "save" => true,
-                        ],
-                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
                         ],
-                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_RESERVES => [
+                            "label" => "Réserves",
+                            "save" => false,
+                        ],
                     ],
                 ],
                 self::MENU_ARRIVALS => [
                     "label" => "Arrivages UL",
                     "right" => Action::SETTINGS_DISPLAY_ARRI,
                     "menus" => [
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
+                            "wrapped" => false
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
+                            "wrapped" => false,
+                        ],
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
                             "save" => true,
@@ -322,42 +352,13 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_STATUSES => [
-                            "label" => "Statuts",
-                            "wrapped" => false,
+                        self::MENU_DISPUTE_TYPES => [
+                            "label" => "Litiges - Types"
                         ],
-                        self::MENU_FIXED_FIELDS => [
-                            "label" => "Champs fixes",
-                            "save" => true,
-                        ],
-                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
-                        self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
-                        self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
-                    ],
-                ],
-                self::MENU_TRUCK_ARRIVALS => [
-                    "label" => "Arrivages camion",
-                    "right" => Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
-                    "menus" => [
-                        self::MENU_CONFIGURATIONS => [
-                            "label" => "Configurations",
-                            "save" => true,
-                            "discard" => true,
-                        ],
-                        self::MENU_FIXED_FIELDS => [
-                            "label" => "Champs fixes",
-                            "save" => true,
-                        ],
-                        self::MENU_RESERVES => [
-                            "label" => "Réserves",
-                            "save" => false,
+                        self::MENU_DISPUTE_STATUSES => [
+                            "label" => "Litiges - Statuts"
                         ],
                     ],
-                ],
-                self::MENU_BR_ASSOCIATION => [
-                    "label" => "Association BR",
-                    "right" => Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
-                    "save" => true,
                 ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
@@ -373,22 +374,53 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
-                self::MENU_HANDLINGS => [
-                    "label" => "Services",
-                    "right" => Action::SETTINGS_DISPLAY_TRACING_HAND,
+                self::MENU_DISPATCHES => [
+                    "label" => "Acheminements",
+                    "right" => Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                     "menus" => [
+                        self::MENU_TYPES_FREE_FIELDS => ["
+                            label" => "Types et champs libres",
+                            "wrapped" => false
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
+                            "wrapped" => false
+                        ],
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
                             "save" => true,
                         ],
-                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
+                    ],
+                ],
+                self::MENU_HANDLINGS => [
+                    "label" => "Services",
+                    "right" => Action::SETTINGS_DISPLAY_TRACING_HAND,
+                    "menus" => [
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
+                            "wrapped" => false
+                        ],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande", "wrapped" => false],
-                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
+                            "wrapped" => false
+                        ],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
+                        self::MENU_REQUEST_TEMPLATES => [
+                            "label" => "Modèles de demande",
+                            "wrapped" => false
+                        ],
                     ],
                 ],
                 self::MENU_EMERGENCIES => [
@@ -406,6 +438,12 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
+                self::MENU_BR_ASSOCIATION => [
+                    "label" => "Association BR",
+                    "right" => Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
+                    "save" => true,
+                ],
+
             ],
         ],
         self::CATEGORY_PRODUCTION => [
@@ -416,9 +454,8 @@ class SettingsController extends AbstractController {
                     "label" => "Paramétrage complet",
                     "right" => Action::SETTINGS_DISPLAY_PRODUCTION,
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
-                        self::MENU_STATUSES => [
-                            "label" => "Statuts",
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types & champs libres",
                             "wrapped" => false,
                         ],
                         self::MENU_FIXED_FIELDS => [
@@ -426,9 +463,13 @@ class SettingsController extends AbstractController {
                             "wrapped" => true,
                             "save" => true,
                         ],
-                        self::MENU_TYPES_FREE_FIELDS => [
-                            "label" => "Types & champs libres",
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
                             "wrapped" => false,
+                        ],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true
                         ],
                     ],
                 ],
