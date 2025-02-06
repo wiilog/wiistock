@@ -3,7 +3,11 @@ import AJAX, {POST, GET} from "@app/ajax";
 import Flash from "@app/flash";
 import {exportFile, getUserFiltersByPage} from "@app/utils";
 import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initializeGroupContentTable, initUngroupModal} from "@app/pages/pack/common";
+console.log({
 
+    natures: $('[name="natures"]').val(),
+    locations: $('[name="emplacement"]').val(),
+})
 let packsTableConfig = {
     responsive: true,
     serverSide: true,
@@ -15,11 +19,8 @@ let packsTableConfig = {
         type: POST,
         data: {
             codeUl: $('#lu-code').val(),
-            onlyLate: $('[name="onlyLate"]').val(),
             natures: $('[name="natures"]').val(),
-            delayLabel: $('[name="delayLabel"]').val(),
             locations: $('[name="emplacement"]').val(),
-            fromDashboard: $('[name="fromDashboard"]').val(),
         },
     },
     rowConfig: {
@@ -57,12 +58,15 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
+    const requestQuery = GetRequestQuery();
+
     const codeUl = $('#lu-code').val();
-    const natureLabel = $('[name="natureLabel"]');
-    if ((!codeUl || codeUl.length === 0) && !natureLabel.val()) {
-        getUserFiltersByPage(PAGE_PACK);
-    } else {
-        displayFiltersSup([{field: 'UL', value: codeUl}], true);
+    if (requestQuery.dashboardComponentId) {
+        if ((!codeUl || codeUl.length === 0)) {
+            getUserFiltersByPage(PAGE_PACK);
+        } else {
+            displayFiltersSup([{field: 'UL', value: codeUl}], true);
+        }
     }
 
     $(document).arrive(`.add-cart`, function () {

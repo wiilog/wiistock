@@ -63,26 +63,16 @@ class PackService {
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->userService->getUser();
 
-        $onlyLate = $params->getBoolean("onlyLate");
-        $natures = $params->all("natures");
-        $delayLabel = $params->get("delayLabel");
+        $naturesFilter = $params->all("natures");
         $locationsFilter = $params->all("locations");
-        $fromDashboard = $params->getBoolean("fromDashboard");
 
         $filters = [
-            ...($params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : []),
-            ...($fromDashboard
-                ? [
-                    ...($onlyLate ? [["field"=> "late", "value"=> $onlyLate]] : []),
-                    ...($natures ? [["field"=> "natures", "value"=> $natures]] : []),
-                    ...($locationsFilter ? [["field"=> "emplacement", "value"=> $locationsFilter]] : []),
-//                    ...($delayLabel ? [["field"=> "delay", "value"=> $delayLabel]] : []),
-                ]
-                : []
-            ),
+            ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
+            ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
+            ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
         ];
 
-        if(!$fromDashboard) {
+        if(empty($filters)) {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
         }
 

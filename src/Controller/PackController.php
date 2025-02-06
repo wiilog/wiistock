@@ -19,14 +19,12 @@ use App\Entity\ReceptionLine;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingDelayService;
-use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,8 +35,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Throwable;
 use WiiCommon\Helper\Stream;
+use App\Entity\Dashboard;
 
 #[Route("/unite-logistique", name: 'pack_')]
 class PackController extends AbstractController {
@@ -50,45 +48,49 @@ class PackController extends AbstractController {
                           LanguageService        $languageService,
                           PackService            $packService,
                                                  $code): Response {
-        $naturesRepository = $entityManager->getRepository(Nature::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
 
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
 
         $data = $request->query;
 
-        $fromDashboard = $data->getBoolean("fromDashboard");
-        $onlyLate = $data->get("onlyLate");
+        $dashboardComponentId = $data->get("dashboardComponentId");
         $natureLabel = $data->get("natureLabel");
-        $natureIds = $data->get("natures");
-        $delayLabel = $data->get("delayLabel");
-        $locations = $data->get("locations");
-        $locationsFilter = $locations
-            ? $locationRepository->findBy(['id' => explode(',', $locations)])
-            : [];
 
-        $naturesFilter = $natureLabel
-            ? $naturesRepository->findBy(["label" => $natureLabel])
-            : ($natureIds
-                ? $naturesRepository->findBy(["id" => explode(',', $natureIds)])
-                : []
-            );
+        /** @var Dashboard\Component $dashboardComponent */
+        $dashboardComponent = $dashboardComponentId
+            ? $dashboardComponentRepository->find($dashboardComponentId)
+            : null;
+
+        if ($dashboardComponent?->getType()->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+            $fromDashboard = true;
+            $config = $dashboardComponent->getConfig();
+            $locationsFilter = !empty($config["locations"])
+                ? $locationRepository->findBy(['id' => $config["locations"]])
+                : [];
+            $naturesFilter = !empty($config["natures"])
+                ? Stream::from($natureRepository->findBy(['id' => $config["natures"]]))
+                    ->filter(static fn(Nature $nature) => !isset($natureLabel) || $nature->getLabel() === $natureLabel)
+                    ->map(static fn(Nature $nature) => $nature->getId())
+                    ->toArray()
+                : [];
+        }
+
         return $this->render('pack/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             "fields" => $fields,
-            'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
+            'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'projects' => $projectRepository->findActive(),
             'code' => $code,
-            'onlyLate' => $onlyLate,
-            'natureLabel' => $natureLabel,
-            'delayLabel' => $delayLabel,
-            'locationsFilter' => $locationsFilter,
-            'naturesFilter' => Stream::from($naturesFilter)->map(static fn(Nature $nature) => $nature->getId())->toArray(),
-            'fromDashboard' => $fromDashboard,
+            'locationsFilter' => $locationsFilter ?? [],
+            'naturesFilter' => $naturesFilter ?? [],
+            'fromDashboard' => $fromDashboard ?? false,
         ]);
     }
 

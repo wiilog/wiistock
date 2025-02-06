@@ -126,6 +126,8 @@ class DashboardSettingsService {
                                             ->toArray();
                                     }
 
+                                    $config['__componentId'] = $component->getId();
+
                                     return [
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
@@ -1412,9 +1414,7 @@ class DashboardSettingsService {
                 $natures = $config['natures'] ?? [];
 
                 $values["firstComponentLink"] = $this->router->generate('pack_index', [
-                    'locations' => implode(',', $locations),
-                    'natures' => implode(',', $natures),
-                    'fromDashboard' => true,
+                    'dashboardComponentId' => $config['__componentId'],
                 ]);
 
                 $values["secondComponentLink"] = isset($config['nextElement'])

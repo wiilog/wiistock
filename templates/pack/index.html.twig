@@ -14,9 +14,10 @@
     {% include 'filters/filtersPack.html.twig' with {
         page: 'PAGE_PACK',
         tableSelector: '#packsTable',
-        callback: fromDashboard ? 'callbackSaveFilter()' : 'null',
+        callback: fromDashboard ? 'callbackSaveFilter' : 'null',
         needsDateFormatting: true,
         locationsFilter,
+        naturesFilter,
     } %}
 {% endblock %}
 
@@ -56,11 +57,6 @@
         </div>
     </div>
     <input hidden value="{{ code }}" id="lu-code" class="data">
-
-    {{ form.hidden('fromDashboard', fromDashboard) }}
-    {{ form.hidden('onlyLate', onlyLate) }}
-    {{ form.hidden('natureLabel', natureLabel) }}
-    {{ form.hidden('delayLabel', delayLabel) }}
 
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'group/ungroup.html.twig' %}

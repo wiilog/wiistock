@@ -1547,10 +1547,12 @@ class DashboardService {
             $eventTypes = self::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
             $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
 
-            $countByNatureBase = [];
-            foreach ($naturesFilter as $wantedNature) {
-                $countByNatureBase[$this->formatService->nature($wantedNature)] = 0;
-            }
+            $countByNatureBase = Stream::from($naturesFilter)
+                ->keymap(fn(Nature $nature) => [
+                    $this->formatService->nature($nature),
+                    0,
+                ])
+                ->toArray();
 
             $segments = $config['segments'];
 
@@ -1564,9 +1566,9 @@ class DashboardService {
                 $pack = $trackingDelay->getPack();
                 $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
 
-                if(empty($nextElementToDisplay)
-                    || (($nextElementToDisplay['remainingTimeInSeconds'] > 0) && ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds']))
-                    || (($nextElementToDisplay['remainingTimeInSeconds'] < 0) && ($remainingTimeInSeconds < 0) && ($remainingTimeInSeconds > $nextElementToDisplay['remainingTimeInSeconds']))) {
+                // we save pack with the smallest tracking delay
+                if (empty($nextElementToDisplay)
+                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
                     $nextElementToDisplay = [
                         'remainingTimeInSeconds' => $remainingTimeInSeconds,
                         'pack' => $pack,
@@ -1589,20 +1591,34 @@ class DashboardService {
                 }
             }
 
-            $graphData = $this->getObjectForTimeSpan($segments, fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [], $component->getType()->getMeterKey());
+            $graphData = $this->getObjectForTimeSpan(
+                $segments,
+                static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
+                $component->getType()->getMeterKey()
+            );
         }
 
         if (empty($graphData)) {
             $graphData = $this->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
         }
 
-        $packToDisplay = $nextElementToDisplay['pack'] ?? null;
-        $nextElementIdToDisplay = $packToDisplay?->getId();
-        $config['nextElement'] = $nextElementIdToDisplay;
+        // sum of counters > 1, at least one pack
+        if (isset($nextElementToDisplay)) {
+            $packToDisplay = $nextElementToDisplay['pack'] ?? null;
+
+            $nextElementIdToDisplay = $packToDisplay?->getId();
+            $config['nextElement'] = $nextElementIdToDisplay;
+
+            $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
+        }
+        else {
+            $packToDisplay = null;
+            $locationToDisplay = null;
+        }
+
         $component->setConfig($config);
 
         $totalToDisplay = $globalCounter ?: null;
-        $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
         $chartColors = Stream::from($naturesFilter)
             ->filter(fn (Nature $nature) => $nature->getColor())
             ->keymap(fn(Nature $nature) => [

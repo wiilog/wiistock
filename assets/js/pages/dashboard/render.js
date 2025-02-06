@@ -167,6 +167,7 @@ const creators = {
  */
 export function renderComponent(component, $container, data) {
     data.__meterKey = component.meterKey;
+    data.__componentId = component.id;
     $container.empty();
 
     if(!creators[component.meterKey]) {
@@ -863,6 +864,7 @@ function newChart($canvasId, data, redForLastData = false, disableAnimation = fa
     let chart = null;
     if($canvasId.length) {
         const fontSize = currentChartsFontSize;
+        console.log(data);
 
         chart = new Chart($canvasId, {
             type: 'bar',
@@ -1379,15 +1381,10 @@ function onEntriesToHandleBarClicked(event, chart, data) {
         const barClickedData = barClickedEvent[0]._view;
         const natureLabel = barClickedData.datasetLabel;
         const delayLabel = barClickedData.label;
-        const onlyLate = delayLabel === "Retard";
-        const locations = data.locations.join(',');
 
         window.open(Routing.generate(`pack_index`, {
-            'fromDashboard': true,
-            'onlyLate': onlyLate,
-            'natureLabel': natureLabel,
-            'delayLabel': delayLabel.replace(/[^\d.-]/g, ''),
-            'locations': locations,
+            dashboardComponentId: data.__componentId,
+            natureLabel,
         }), '_blank');
     }
 }
