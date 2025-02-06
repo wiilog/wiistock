@@ -3,10 +3,14 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterPacks.html.twig' %}
-    {% include 'filters/filter_item/filterNaturePacks.html.twig' %}
+    {% include 'filters/filter_item/filterNaturePacks.html.twig' with {
+        naturesFilter,
+    } %}
     {% include 'filters/filter_item/filterLocation.html.twig' with {
+        isPreFilled: locationsFilter is defined and locationsFilter is not empty,
+        locationsFilter,
         multiple: true,
-        placeholder : "Emplacement"
+        placeholder: "Emplacement",
     } %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
         title: trans('Traçabilité', 'Unités logistiques', 'Divers', 'N° d\'arrivage UL', false)

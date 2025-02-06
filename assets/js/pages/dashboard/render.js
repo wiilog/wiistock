@@ -167,6 +167,7 @@ const creators = {
  */
 export function renderComponent(component, $container, data) {
     data.__meterKey = component.meterKey;
+    data.__componentId = component.id;
     $container.empty();
 
     if(!creators[component.meterKey]) {
@@ -373,14 +374,13 @@ function createEntriesToHandleElement(data, {meterKey}) {
     const numberingConfig = {numbering: 0};
     const $graph = createChart(data, {route: null, variable: null, cssClass: 'multiple'}, true, numberingConfig);
     const $firstComponent = $('<div/>', {
-
         class: `w-100 pb-1 flex-fill dashboard-component h-100 mx-0 mt-0`,
         html: createIndicatorElement(
             Object.assign(data || {}, {
                 title: Translation.of('Dashboard', 'Nombre de lignes à traiter'),
                 tooltip: data.linesCountTooltip,
                 count: data.count,
-                componentLink: data.componentLink,
+                componentLink: isEntriesToHandleByTrackingDelay ? data.firstComponentLink : data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
             }),
             {
@@ -401,7 +401,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
                     title: Translation.of('Dashboard', 'Prochain élément à traiter'),
                     tooltip: data.nextElementTooltip,
                     count: data.nextElement,
-                    componentLink: data.componentLink,
+                    componentLink: isEntriesToHandleByTrackingDelay ? data.secondComponentLink : data.componentLink,
                     backgroundColor: data.backgroundColor || undefined,
                 }),
                 {
@@ -421,7 +421,7 @@ function createEntriesToHandleElement(data, {meterKey}) {
                 title: Translation.of('Dashboard', 'Prochain emplacement à traiter'),
                 tooltip: data.nextLocationTooltip,
                 count: data.nextLocation,
-                componentLink: data.componentLink,
+                componentLink: isEntriesToHandleByTrackingDelay ? data.thirdComponentLink : data.componentLink,
                 backgroundColor: data.backgroundColor || undefined,
             }),
             {
@@ -861,10 +861,11 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
 }
 
 function newChart($canvasId, data, redForLastData = false, disableAnimation = false) {
+    let chart = null;
     if($canvasId.length) {
         const fontSize = currentChartsFontSize;
 
-        return new Chart($canvasId, {
+        chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
             options: {
@@ -930,12 +931,21 @@ function newChart($canvasId, data, redForLastData = false, disableAnimation = fa
                     onComplete() {
                         buildLabelOnBarChart(this, redForLastData);
                     }
-                }
+                },
+                onClick: (e) => {
+                    switch (data.__meterKey ?? null) {
+                        case ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                            onEntriesToHandleBarClicked(e, chart, data);
+                            break;
+                        default:
+                            break;
+                    }
+                },
             }
         });
-    } else {
-        return null;
     }
+
+    return chart;
 }
 
 function buildLabelOnBarChart(chartInstance, redForFirstData) {
@@ -1362,4 +1372,17 @@ function applyChartTranslations(data, legends = null){
         });
     }
     return data;
+}
+
+function onEntriesToHandleBarClicked(event, chart, data) {
+    const barClickedEvent = chart.getElementAtEvent(event);
+    if(barClickedEvent.length > 0) {
+        const barClickedData = barClickedEvent[0]._view;
+        const natureLabel = barClickedData.datasetLabel;
+
+        window.open(Routing.generate(`pack_index`, {
+            dashboardComponentId: data.__componentId,
+            natureLabel,
+        }), '_blank');
+    }
 }

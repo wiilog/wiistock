@@ -1,5 +1,8 @@
+import {ENTRIES_TO_HANDLE_BY_TRACKING_DELAY} from "@app/pages/dashboard/render";
+
 export function addEntryTimeInterval($button, time = null, notEmptySegment = false, fromNature = false, color = null) {
     const current = $button.data(`current`);
+    let segmentUnit = getSegmentUnit($button);
 
     if (notEmptySegment) {
         const lastSegmentHourEndValue = $('.segment-hour').last().val();
@@ -18,7 +21,7 @@ export function addEntryTimeInterval($button, time = null, notEmptySegment = fal
                 <div class="input-group ${fromNature ? 'col-6' : 'col-7'}">
                     <input type="text"
                            class="data needed form-control text-center display-previous segment-hour"
-                           ${current === 0 ? "value=" + (fromNature ? "00h00" : "1h") : ''}
+                           ${current === 0 ? "value=" + (fromNature ? "00h00" : `1${segmentUnit}`) : ''}
                            title="Heure de début du segment"
                            style="border: none; background-color: #e9ecef; color: #b1b1b1"
                            disabled />
@@ -117,10 +120,11 @@ export function initializeEntryTimeIntervals($modal, fromNature = false) {
 }
 
 export function onSegmentInputChange($input, isChanged = false, fromNature = false) {
+    let segmentUnit = getSegmentUnit($input);
     if(!fromNature) {
         const value = $input.val();
         const smartValue = clearSegmentHourValues(value);
-        const newVal = smartValue && (parseInt(smartValue) + (isChanged ? 'h' : ''));
+        const newVal = smartValue && (parseInt(smartValue) + (isChanged ? segmentUnit : ''));
 
         $input.val(newVal);
     }
@@ -149,4 +153,18 @@ function getInputColor(name, value = false, inputClass = '') {
             <option>#D73353</option>
         </datalist>
     `
+}
+function getSegmentUnit($formElement) {
+    const meterKey = $formElement.closest('.modal').data('meter-key');
+    let segmentUnit;
+    switch(meterKey) {
+        case ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+            segmentUnit = "min";
+            break;
+        default:
+            segmentUnit = "h";
+            break;
+    }
+
+    return segmentUnit;
 }

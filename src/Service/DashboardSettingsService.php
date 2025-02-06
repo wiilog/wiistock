@@ -17,6 +17,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ProductionRequest;
+use App\Entity\Tracking\Pack;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -125,6 +126,8 @@ class DashboardSettingsService {
                                             ->toArray();
                                     }
 
+                                    $config['__componentId'] = $component->getId();
+
                                     return [
                                         "id" => $component->getId(),
                                         "type" => $type->getId(),
@@ -207,7 +210,7 @@ class DashboardSettingsService {
         $redirect = $config['redirect'] ?? false;
 
         if (!$example && $redirect) {
-            $values['componentLink'] = $this->getComponentLink($componentType, $config);
+            $this->setComponentLinks($componentType, $config, $values);
         }
 
         switch ($meterKey) {
@@ -224,7 +227,6 @@ class DashboardSettingsService {
                 $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                //TODO WIIS-12423
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                 $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
                 break;
@@ -487,16 +489,22 @@ class DashboardSettingsService {
             }
 
             $segments = $config['segments'] ?? [];
+
+            $segmentUnit = match ($componentType->getMeterKey()) {
+                Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY => "min",
+                default => 'h',
+            };
+
             if (!empty($segments)) {
                 $segmentsLabels = [
                     $this->translationService->translate("Dashboard", "Retard", false),
                     $this->translationService->translate("Dashboard", "Moins d'{1}", [
-                        1 => "1h"
+                        1 => "1$segmentUnit"
                     ], false)
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
-                    $segmentsLabels[] = "{$lastKey}h - {$segment}h";
+                    $segmentsLabels[] = "{$lastKey}$segmentUnit - {$segment}$segmentUnit";
                     $lastKey = $segment;
                 }
             } else {
@@ -508,12 +516,21 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
         } else if (isset($meterChart)) {
+            $nextElement = $meterChart->getNextElement();
+            if($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+                $packRepository = $entityManager->getRepository(Pack::class);
+                $nextElementToTreat = $packRepository->findOneBy(["code" => $nextElement]);
+                $nextElement = $nextElementToTreat->getCode();
+                $locations = $config["locations"];
+            }
+
             $values = [
                 'chartData' => $meterChart->getData(),
                 'nextLocation' => $meterChart->getLocation(),
-                'nextElement' => $meterChart->getNextElement(),
+                'nextElement' => $nextElement,
                 'count' => $meterChart->getTotal(),
                 'chartColors' => $meterChart->getChartColors(),
+                ...(isset($locations) ? ['locations' => $locations] : [])
             ];
         } else {
             $values = [
@@ -529,6 +546,7 @@ class DashboardSettingsService {
         $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
         $values['nextElementTooltip'] = $config['nextElementTooltip'] ?? '';
         $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
+        $values['treatmentDelayType'] = $config['treatmentDelayType'] ?? null;
 
         return $values;
     }
@@ -1306,8 +1324,9 @@ class DashboardSettingsService {
         }
     }
 
-    public function getComponentLink(Dashboard\ComponentType $componentType,
-                                     array $config) {
+    public function setComponentLinks(Dashboard\ComponentType $componentType,
+                                     array $config,
+                                     array &$values): void {
         $meterKey = $componentType->getMeterKey();
         switch ($meterKey) {
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
@@ -1390,12 +1409,35 @@ class DashboardSettingsService {
                     $link = null;
                 }
                 break;
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                $locations = $config['locations'] ?? [];
+                $natures = $config['natures'] ?? [];
+
+                $values["firstComponentLink"] = $this->router->generate('pack_index', [
+                    'dashboardComponentId' => $config['__componentId'],
+                ]);
+
+                $values["secondComponentLink"] = isset($config['nextElement'])
+                    ? $this->router->generate('pack_show', [
+                        'id' => $config['nextElement'],
+                    ])
+                    : null;
+
+                $values["thirdComponentLink"] = $this->router->generate('en_cours', [
+                    'locations' => implode(',', $locations),
+                    'natures' => implode(',', $natures),
+                    'fromDashboard' => true,
+                    'useTruckArrivalsFromDashboard' => false,
+                ]);
+
+                $link = null;
+                break;
             default:
                 $link = null;
                 break;
         }
 
-        return $link;
+        $values["componentLink"] = $link;
     }
 
     /**

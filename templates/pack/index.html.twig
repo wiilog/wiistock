@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Général', 'Unités logistiques') }}{% endblock %}
 {% block title_tooltip %}Traçabilité | Unités logistiques{% endblock %}
@@ -13,8 +14,10 @@
     {% include 'filters/filtersPack.html.twig' with {
         page: 'PAGE_PACK',
         tableSelector: '#packsTable',
-        callback: 'null',
-        needsDateFormatting: true
+        callback: fromDashboard ? 'callbackSaveFilter' : 'null',
+        needsDateFormatting: true,
+        locationsFilter,
+        naturesFilter,
     } %}
 {% endblock %}
 

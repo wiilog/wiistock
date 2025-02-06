@@ -187,7 +187,9 @@ class PackRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'emplacement':
-                    $emplacementValue = explode(',', $filter['value']);
+                    $emplacementValue = !is_array($filter['value'])
+                        ? explode(',', $filter['value'])
+                        : $filter['value'];
                     $queryBuilder
                         ->join('pack.lastAction', 'mFilter0')
                         ->join('mFilter0.emplacement', 'e')
@@ -233,7 +235,9 @@ class PackRepository extends EntityRepository
                     }
                     break;
                 case 'natures':
-                    $natures = explode(',', $filter['value']);
+                    $natures = !is_array($filter['value'])
+                        ? explode(',', $filter['value'])
+                        : $filter['value'];
                     $queryBuilder
                         ->join('pack.nature', 'natureFilter')
                         ->andWhere('natureFilter.id IN (:naturesFilter)')

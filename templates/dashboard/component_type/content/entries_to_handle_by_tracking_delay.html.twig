@@ -2,6 +2,7 @@
 {% import 'form.html.twig' as form %}
 
 {% block content %}
+{{ form.hidden('redirect', true) }}
 <div class="row">
     <div class="col-12">
         <div class="row form-group">
@@ -69,24 +70,23 @@
             </div>
         </div>
 
-        {# TODO WIIS-12349 Supprimer les deux checkbox + rajouter les nouveaux filtres #}
-        <div class="form-group">
-            <input class="checkbox data needs-default"
-                   type="checkbox"
-                   name="redirect"
-                {{ values.redirect ?? false ? 'checked' }}>
-            <label class="wii-field-text">Rediriger vers la page Encours au clic</label>
+        <div class="row form-group">
+            <div class="col-12">
+                {% set inProgress = (constant("App\\Entity\\Setting::TREATMENT_DELAY_IN_PROGRESS")) %}
+                {% set onHold = (constant("App\\Entity\\Setting::TREATMENT_DELAY_ON_HOLD")) %}
+                {% set both = (constant("App\\Entity\\Setting::TREATMENT_DELAY_BOTH")) %}
+                {{ form.switch('treatmentDelayType', 'Délais de traitement', true, [
+                    {label: 'En cours', value: inProgress, checked: (values.treatmentDelayType ?? inProgress) == inProgress },
+                    {label: 'En pause', value: onHold, checked: (values.treatmentDelayType ?? '') == onHold },
+                    {label: 'Les deux', value: both, checked: (values.treatmentDelayType ?? '') == both },
+                ]) }}
+            </div>
         </div>
 
-        <div class="form-group">
-            <input class="checkbox data needs-default"
-                   type="checkbox"
-                   name="truckArrivalTime"
-                {{ values.truckArrivalTime ?? false ? 'checked' }}>
-            <label class="wii-field-text">Prendre en compte le temps d’arrivage camion</label>
-            {{ form.tooltip({
-                text: "Ne prends pas en compte l'emplacement de l'arrivage camion mais le délai entre sa création et celle de l'UL"
-            }, false) }}
+        <div class="mb-3">
+            <i class="fas fa-info-circle"></i>
+            <span class="font-weight-bold">Granularité des éléments</span>
+            <p class="ml-3">Les groupes sont pris en compte dans ce graphique et comptent pour un élément. Les UL contenues dans un groupe ne sont pas comptées.</p>
         </div>
     </div>
 </div>

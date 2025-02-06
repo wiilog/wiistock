@@ -63,9 +63,18 @@ class PackService {
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->userService->getUser();
 
-        $filters = $params->get("codeUl")
-            ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
-            : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        $naturesFilter = $params->all("natures");
+        $locationsFilter = $params->all("locations");
+
+        $filters = [
+            ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
+            ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
+            ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
+        ];
+
+        if(empty($filters)) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
@@ -849,7 +858,7 @@ class PackService {
         ];
     }
 
-    private function getTrackingDelayRemainingTime(Pack $pack): ?int {
+    public function getTrackingDelayRemainingTime(Pack $pack): ?int {
         $packTrackingDelay = $pack->getTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
