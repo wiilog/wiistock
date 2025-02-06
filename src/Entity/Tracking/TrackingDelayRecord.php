@@ -36,11 +36,10 @@ class TrackingDelayRecord {
     private ?DateTime $date = null;
 
     /**
-     * The column contains the delay between the T0 and the movement date
-     * TODO WIIS-11930 add tracking delay
+     * The column contains the remaining time: the nature tracking delay without the pack elapsed time
      */
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
-    private ?int $elapsedTime = null;
+    private ?int $remainingTrackingDelay = null;
 
     /**
      * null for unpause event
@@ -66,70 +65,56 @@ class TrackingDelayRecord {
 
     #[ORM\ManyToOne(targetEntity: Nature::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Nature $oldNature = null;
+    private ?Nature $newNature = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getPack(): ?Pack
-    {
+    public function getPack(): ?Pack {
         return $this->pack;
     }
 
-    public function setPack(?Pack $pack): self
-    {
+    public function setPack(?Pack $pack): self {
         $this->pack = $pack;
 
         return $this;
     }
 
-    public function getDate(): ?DateTime
-    {
+    public function getDate(): ?DateTime {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
-    {
+    public function setDate(DateTime $date): self {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getLocation(): ?Emplacement
-    {
+    public function getLocation(): ?Emplacement {
         return $this->location;
     }
 
-    public function setLocation(?Emplacement $location): self
-    {
+    public function setLocation(?Emplacement $location): self {
         $this->location = $location;
-
         return $this;
     }
 
-    public function getOldNature(): ?Nature
-    {
-        return $this->oldNature;
+    public function getNewNature(): ?Nature {
+        return $this->newNature;
     }
 
-    public function setOldNature(?Nature $oldNature): self
-    {
-        $this->oldNature = $oldNature;
-
+    public function setNewNature(?Nature $newNature): self {
+        $this->newNature = $newNature;
         return $this;
     }
 
-    public function getElapsedTime(): ?int
-    {
-        return $this->elapsedTime;
+    public function getRemainingTrackingDelay(): ?int {
+        return $this->remainingTrackingDelay;
     }
 
-    public function setElapsedTime(int $elapsedTime): self
-    {
-        $this->elapsedTime = $elapsedTime;
-
+    public function setRemainingTrackingDelay(int $remainingTrackingDelay): self {
+        $this->remainingTrackingDelay = $remainingTrackingDelay;
         return $this;
     }
 
