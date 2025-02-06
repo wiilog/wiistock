@@ -1,7 +1,6 @@
 {% extends 'filters/filters.html.twig' %}
 
 {% block filters %}
-    {{  dump(callback) }}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterPacks.html.twig' %}
     {% include 'filters/filter_item/filterNaturePacks.html.twig' with {

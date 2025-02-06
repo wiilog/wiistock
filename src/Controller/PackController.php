@@ -66,7 +66,7 @@ class PackController extends AbstractController {
             ? $dashboardComponentRepository->find($dashboardComponentId)
             : null;
 
-        if ($dashboardComponent?->getType()->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+        if ($dashboardComponent?->getType()?->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
             $fromDashboard = true;
             $config = $dashboardComponent->getConfig();
             $locationsFilter = !empty($config["locations"])

@@ -3,11 +3,7 @@ import AJAX, {POST, GET} from "@app/ajax";
 import Flash from "@app/flash";
 import {exportFile, getUserFiltersByPage} from "@app/utils";
 import {initEditPackModal, deletePack, getTrackingHistory, reloadLogisticUnitTrackingDelay, addToCart, initializeGroupContentTable, initUngroupModal} from "@app/pages/pack/common";
-console.log({
 
-    natures: $('[name="natures"]').val(),
-    locations: $('[name="emplacement"]').val(),
-})
 let packsTableConfig = {
     responsive: true,
     serverSide: true,
@@ -61,7 +57,7 @@ $(function () {
     const requestQuery = GetRequestQuery();
 
     const codeUl = $('#lu-code').val();
-    if (requestQuery.dashboardComponentId) {
+    if (!requestQuery.dashboardComponentId) {
         if ((!codeUl || codeUl.length === 0)) {
             getUserFiltersByPage(PAGE_PACK);
         } else {
