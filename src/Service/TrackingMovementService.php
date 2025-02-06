@@ -755,7 +755,9 @@ class TrackingMovementService {
                     ];
                 } else {
                     $pack->setNature($newNature);
-                    $trackingMovement->setOldNature($oldNature);
+                    $trackingMovement
+                        ->setOldNature($oldNature)
+                        ->setNewNature($newNature);
 
                     $returnData =[
                         "natureChanged" => true,
