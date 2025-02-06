@@ -124,7 +124,7 @@ class TrackingDelayService {
 
         // date for calculate sum of all found worked intervals
         $calculationDate = new DateTime();
-        $calculationDate2 = clone $calculationDate;
+        $calculationDateInit = clone $calculationDate;
 
         // begin limitTreatmentDate on date which start the timer
         // we will increment it with all worked intervals found (nature tracking delay as max)
@@ -146,6 +146,16 @@ class TrackingDelayService {
             }
         };
 
+        $getRemainingDelay = static function (int      $delay,
+                                              DateTime $begin,
+                                              DateTime $end) {
+            $intervalTime = $end->getTimestamp() - $begin->getTimestamp();
+            return [
+                "delay"        => $delay - $intervalTime,
+                "intervalTime" => $intervalTime,
+            ];
+        };
+
         foreach ($segments as $segment) {
             [
                 "start" => $segmentStart,
@@ -157,13 +167,18 @@ class TrackingDelayService {
             $workedInterval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $segmentStart->getDate(), $segmentEnd->getDate());
             $calculationDate->add($workedInterval);
 
+            $oldRemainingNatureDelay = $remainingNatureDelay ?? $natureTrackingDelay;
+            ["delay" => $remainingNatureDelay] = $getRemainingDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
+
+            $segmentStart->setRemainingTrackingDelay($oldRemainingNatureDelay);
+            $segmentEnd->setRemainingTrackingDelay($remainingNatureDelay);
+
+            $pushRecord($segmentStart);
+            $pushRecord($segmentEnd);
+
             // increment limit treatment date while nature tracking delay is positive
             if ($remainingNatureDelay > 0) {
                 $elapsedSeconds = floor($this->dateTimeService->convertDateIntervalToMilliseconds($workedInterval) / 1000);
-
-                // TODO WIIS-11930 add tracking delay
-                $pushRecord($segmentStart);
-                $pushRecord($segmentEnd);
 
                 if ($remainingNatureDelay > $elapsedSeconds) {
                     $remainingNatureDelay -= $elapsedSeconds;
@@ -180,8 +195,11 @@ class TrackingDelayService {
         // If the pack tracking delay is positive, then the limit treatment date is in the future
         // We calculate it now
         // Else the limit treatment date is already the final one
-        $calculatedElapsedTime = $calculationDate->getTimestamp() - $calculationDate2->getTimestamp();
-        $remainingNatureDelay = $natureTrackingDelay - $calculatedElapsedTime;
+        [
+            "delay"        => $remainingNatureDelay,
+            "intervalTime" => $calculatedElapsedTime,
+        ] = $getRemainingDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
+
         if ($remainingNatureDelay > 0) {
             $remainingNatureDelayInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingNatureDelay);
             $limitTreatmentDate = $this->dateTimeService->addWorkedPeriodToDateTime($entityManager, $limitTreatmentDate, $remainingNatureDelayInterval);
@@ -257,7 +275,7 @@ class TrackingDelayService {
                     $lastTrackingEvent = $trackingEvent->getEvent();
                     yield [
                         "start" => $intervalStartRecord,
-                        "end" => $intervalEndRecord,
+                        "end"   => $intervalEndRecord,
                     ];
 
                     $intervalStartRecord = null;
@@ -279,7 +297,7 @@ class TrackingDelayService {
 
                 yield [
                     "start" => $intervalStartRecord,
-                    "end" => $intervalEndRecord,
+                    "end"   => $intervalEndRecord,
                 ];
 
                 $intervalStartRecord = null;
@@ -298,7 +316,7 @@ class TrackingDelayService {
 
             yield [
                 "start" => $intervalStartRecord,
-                "end" => $intervalEndRecord,
+                "end"   => $intervalEndRecord,
             ];
 
             $intervalStartRecord = null;
@@ -427,7 +445,7 @@ class TrackingDelayService {
      *     trackingEvent?: TrackingEvent,
      *     type?: Statut|string,
      *     date: DateTime,
-     *     oldNature?: Nature,
+     *     newNature?: Nature,
      *     now?: bool,
      * } $tracking
      * @return TrackingDelayRecord
@@ -439,7 +457,7 @@ class TrackingDelayService {
          *      trackingEvent?: TrackingEvent,
          *      type?: Statut,
          *      date: DateTime,
-         *      oldNature?: Nature,
+         *      newNature?: Nature,
          *      now?: bool,
          * } $recordArray */
 
@@ -450,7 +468,7 @@ class TrackingDelayService {
                 "trackingEvent" => $tracking->getEvent(),
                 "date" => $tracking->getDatetime(),
                 "type" => $tracking->getType(),
-                "oldNature" => $tracking->getOldNature(),
+                "newNature" => $tracking->getNewNature(),
             ];
         }
         else {
@@ -460,7 +478,7 @@ class TrackingDelayService {
         return (new TrackingDelayRecord())
             ->setLocation($recordArray["location"] ?? null)
             ->setPack($recordArray["pack"] ?? null)
-            ->setOldNature($recordArray["oldNature"] ?? null)
+            ->setNewNature($recordArray["newNature"] ?? null)
             ->setType($recordArray["type"] ?? null)
             ->setTrackingEvent($recordArray["trackingEvent"] ?? null)
             ->setDate($recordArray["date"] ?? null)
