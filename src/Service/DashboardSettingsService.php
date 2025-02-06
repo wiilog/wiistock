@@ -487,16 +487,22 @@ class DashboardSettingsService {
             }
 
             $segments = $config['segments'] ?? [];
+
+            $segmentUnit = match ($componentType->getMeterKey()) {
+                Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY => "min",
+                default => 'h',
+            };
+
             if (!empty($segments)) {
                 $segmentsLabels = [
                     $this->translationService->translate("Dashboard", "Retard", false),
                     $this->translationService->translate("Dashboard", "Moins d'{1}", [
-                        1 => "1min"
+                        1 => "1$segmentUnit"
                     ], false)
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
-                    $segmentsLabels[] = "{$lastKey}min - {$segment}min";
+                    $segmentsLabels[] = "{$lastKey}$segmentUnit - {$segment}$segmentUnit";
                     $lastKey = $segment;
                 }
             } else {

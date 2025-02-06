@@ -242,7 +242,7 @@ class DashboardService {
      * @param callable $getObject
      * @return array
      */
-    public function getObjectForTimeSpan(array $steps, callable $getObject): array {
+    public function getObjectForTimeSpan(array $steps, callable $getObject, string $meterKey): array {
         $timeSpanToObject = [];
 
         $timeSpans = [
@@ -258,14 +258,19 @@ class DashboardService {
                 return $carry;
             }, []);
 
+        $segmentUnit = match ($meterKey) {
+            Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY => "min",
+            default => 'h',
+        };
+
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
                 ? $this->translationService->translate("Dashboard", "Retard", false)
                 : ($timeEnd === 1
                     ? $this->translationService->translate("Dashboard", "Moins d'{1}", [
-                        1 => "1min"
+                        1 => "1$segmentUnit"
                     ], false)
-                    : ($timeBegin . "min-" . $timeEnd . 'min'));
+                    : ($timeBegin . "$segmentUnit-" . $timeEnd . $segmentUnit));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
@@ -677,11 +682,11 @@ class DashboardService {
                 $packsOnCluster = $packUntreated;
 
                 return $countByNature;
-            });
+            }, $component->getType()->getMeterKey());
         }
 
         if (empty($graphData)) {
-            $graphData = $this->getObjectForTimeSpan([], static fn() => 0);
+            $graphData = $this->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
         }
 
         $totalToDisplay = $olderPackLocation['locationId'] ? $globalCounter : null;
@@ -1558,9 +1563,12 @@ class DashboardService {
             foreach($trackingDelayByFilters as $trackingDelay){
                 $pack = $trackingDelay->getPack();
                 $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
-                if(empty($nextElementToDisplay) || (abs($remainingTimeInSeconds) < $nextElementToDisplay['remainingTimeInSeconds'])) {
+
+                if(empty($nextElementToDisplay)
+                    || (($nextElementToDisplay['remainingTimeInSeconds'] > 0) && ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds']))
+                    || (($nextElementToDisplay['remainingTimeInSeconds'] < 0) && ($remainingTimeInSeconds < 0) && ($remainingTimeInSeconds > $nextElementToDisplay['remainingTimeInSeconds']))) {
                     $nextElementToDisplay = [
-                        'remainingTimeInSeconds' => abs($remainingTimeInSeconds),
+                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
                         'pack' => $pack,
                     ];
                 }
@@ -1581,11 +1589,11 @@ class DashboardService {
                 }
             }
 
-            $graphData = $this->getObjectForTimeSpan($segments, fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? []);
+            $graphData = $this->getObjectForTimeSpan($segments, fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [], $component->getType()->getMeterKey());
         }
 
         if (empty($graphData)) {
-            $graphData = $this->getObjectForTimeSpan([], static fn() => 0);
+            $graphData = $this->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
         }
 
         $packToDisplay = $nextElementToDisplay['pack'] ?? null;

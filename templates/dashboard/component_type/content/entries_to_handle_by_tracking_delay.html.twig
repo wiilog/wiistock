@@ -75,8 +75,8 @@
                 {% set inProgress = (constant("App\\Entity\\Setting::TREATMENT_DELAY_IN_PROGRESS")) %}
                 {% set onHold = (constant("App\\Entity\\Setting::TREATMENT_DELAY_ON_HOLD")) %}
                 {% set both = (constant("App\\Entity\\Setting::TREATMENT_DELAY_BOTH")) %}
-                {{ form.switch('treatmentDelayType', 'Délais de traitement', false, [
-                    {label: 'En cours', value: inProgress, checked: (values.treatmentDelayType ?? '') == inProgress },
+                {{ form.switch('treatmentDelayType', 'Délais de traitement', true, [
+                    {label: 'En cours', value: inProgress, checked: (values.treatmentDelayType ?? inProgress) == inProgress },
                     {label: 'En pause', value: onHold, checked: (values.treatmentDelayType ?? '') == onHold },
                     {label: 'Les deux', value: both, checked: (values.treatmentDelayType ?? '') == both },
                 ]) }}
