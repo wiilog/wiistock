@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
@@ -26,8 +27,7 @@ use WiiCommon\Helper\Stream;
  * @method Arrivage[]    findAll()
  * @method Arrivage[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArrivageRepository extends EntityRepository
-{
+class ArrivageRepository extends EntityRepository {
     private const DtToDbLabels = [
         'creationDate' => 'date',
         'arrivalNumber' => 'numeroArrivage',
@@ -51,10 +51,9 @@ class ArrivageRepository extends EntityRepository
 
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
-                                 array $arrivalStatusesFilter = [],
-                                 array $arrivalTypesFilter = []): int
-    {
-		$queryBuilder = $this->createQueryBuilderByDates($dateMin, $dateMax)
+                                 array    $arrivalStatusesFilter = [],
+                                 array    $arrivalTypesFilter = []): int {
+        $queryBuilder = $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->select('COUNT(arrivage)');
 
         if (!empty($arrivalStatusesFilter)) {
@@ -74,9 +73,8 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countByDate(DateTime $date): ?int
-    {
-		return $this->createQueryBuilder('arrivage')
+    public function countByDate(DateTime $date): ?int {
+        return $this->createQueryBuilder('arrivage')
             ->select('COUNT(arrivage)')
             ->where('arrivage.date = :date')
             ->setParameter('date', $date)
@@ -87,15 +85,13 @@ class ArrivageRepository extends EntityRepository
     /**
      * @return Arrivage[]|null
      */
-    public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array
-    {
-		return $this->createQueryBuilderByDates($dateMin, $dateMax)
+    public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array {
+        return $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->getQuery()
             ->execute();
     }
 
-    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder
-    {
+    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
         return $this->createQueryBuilder('arrivage')
             ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
             ->setParameters([
@@ -104,9 +100,8 @@ class ArrivageRepository extends EntityRepository
             ]);
     }
 
-    public function countByChauffeur($chauffeur)
-    {
-        $em = $this->getEntityManager();
+    public function countByChauffeur($chauffeur) {
+        $em    = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(a)
@@ -117,8 +112,7 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countUnsolvedDisputesByArrivage($arrivage)
-    {
+    public function countUnsolvedDisputesByArrivage($arrivage) {
         return $this->createQueryBuilder('arrival')
             ->select('COUNT(dispute.id)')
             ->join('arrival.packs', 'pack')
@@ -133,11 +127,10 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countByDays($firstDay, $lastDay)
-    {
-        $from = new DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
-        $to = new DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
-        $em = $this->getEntityManager();
+    public function countByDays($firstDay, $lastDay) {
+        $from  = new DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
+        $to    = new DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
+        $em    = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT COUNT(a) as count, a.date as date
                 FROM App\Entity\Arrivage a
@@ -150,8 +143,7 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, FieldModesService $fieldModesService, array $options = []): array
-    {
+    public function findByParamsAndFilters(InputBag $params, array $filters, FieldModesService $fieldModesService, array $options = []): array {
         $qb = $this->createQueryBuilder("arrival")
             ->addSelect('SUM(main_packs.weight) AS totalWeight')
             ->addSelect('COUNT(main_packs.id) AS packsCount')
@@ -346,7 +338,7 @@ class ArrivageRepository extends EntityRepository
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $orderData = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-                    $column = self::DtToDbLabels[$orderData] ?? $orderData;
+                    $column    = self::DtToDbLabels[$orderData] ?? $orderData;
 
                     if ($column === 'carrier') {
                         $qb
@@ -388,10 +380,10 @@ class ArrivageRepository extends EntityRepository
                             ->orderBy('order_dropLocation.label', $order);
                     } else {
                         $freeFieldId = FieldModesService::extractFreeFieldId($column);
-                        if(is_numeric($freeFieldId)) {
+                        if (is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
-                            if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                            if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
                                 $qb->orderBy("CAST(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
                             } else {
                                 $qb->orderBy("JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"')", $order);
@@ -404,7 +396,7 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-        if(!$params->has("order")) {
+        if (!$params->has("order")) {
             $qb->addOrderBy("arrival.date", "DESC");
         }
 
@@ -419,7 +411,7 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-        if($options['dispatchMode']) {
+        if ($options['dispatchMode']) {
             $qb->orderBy("arrival.date", "DESC");
         }
 
@@ -448,7 +440,7 @@ class ArrivageRepository extends EntityRepository
 
     public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array {
         $queryBuilder = $this->createQueryBuilder("arrival");
-        $expr = $queryBuilder->expr();
+        $expr         = $queryBuilder->expr();
 
         $result = $queryBuilder
             ->select("arrival.id AS id")
@@ -532,10 +524,26 @@ class ArrivageRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function createQueryBuilderOlderThan(string $alias,
+    public function createQueryBuilderOlderThan(string   $alias,
                                                 DateTime $date): QueryBuilder {
         return $this->createQueryBuilder($alias)
             ->andWhere("$alias.date < :date")
             ->setParameter('date', $date);
     }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('arrival')
+            ->select('arrival.numeroArrivage as number')
+            ->where('arrival.numeroArrivage LIKE :value')
+            ->orderBy('arrival.date', 'DESC')
+            ->addOrderBy('arrival.numeroArrivage', 'DESC')
+            ->setParameter('value', $date . '%')
+            ->getQuery()
+            ->execute();
+
+        dump($result);
+
+        return $result ? $result[0]['number'] : null;
+    }
 }
+

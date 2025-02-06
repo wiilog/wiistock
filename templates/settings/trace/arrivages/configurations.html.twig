@@ -65,11 +65,13 @@
 <div class="wii-section-title">Format du numéro d'arrivage UL</div>
 <div class="wii-section">
     <div class="row">
-        {{ form.select(setting('FORMAT_CODE_ARRIVALS'), "Format du numéro généré pour l'arrivage UL", true, {
-            value: setting_value('FORMAT_CODE_ARRIVALS')|split(','),
-            items: constant('App\\Entity\\Arrivage::FORMAT_CODE_ARRIVALS'),
-            type: null,
-            noEmptyOption: true,
-        }) }}
+        <div class="col-md-6 col-12 my-1">
+            {{ form.select(setting('FORMAT_CODE_ARRIVALS'), "Format du numéro généré pour l'arrivage UL", true, {
+                value: setting_value('FORMAT_CODE_ARRIVALS')|split(','),
+                items: constant('App\\Entity\\Arrivage::FORMAT_CODE_ARRIVALS'),
+                type: null,
+                noEmptyOption: true,
+            }) }}
+        </div>
     </div>
 </div>
