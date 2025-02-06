@@ -1420,7 +1420,6 @@ class DashboardSettingsService {
                 $values["secondComponentLink"] = isset($config['nextElement'])
                     ? $this->router->generate('pack_show', [
                         'id' => $config['nextElement'],
-                        'fromDashboard' => true,
                     ])
                     : null;
 
