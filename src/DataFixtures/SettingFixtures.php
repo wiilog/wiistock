@@ -443,6 +443,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPLAY_MANUAL_DELAY_START => [
                 'default' => 0,
             ],
+            Setting::FORMAT_CODE_ARRIVALS => [
+                'default' => UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG,
+            ]
         ];
 
         $appClient = $this->specificService->getAppClient();

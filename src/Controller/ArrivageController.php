@@ -170,8 +170,8 @@ class ArrivageController extends AbstractController
                         SettingsService         $settingsService,
                         KeptFieldService        $keptFieldService,
                         TruckArrivalLineService $truckArrivalLineService,
-                        TranslationService      $translation): JsonResponse
-    {
+                        UniqueNumberService     $uniqueNumberService,
+                        TranslationService      $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -188,9 +188,11 @@ class ArrivageController extends AbstractController
         $useTruckArrivals = $settingsService->getValue($entityManager, Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
-        $numberOfArrivalsByDate = $arrivageRepository->countByDate($date) + 1;
 
-        $arrivalNumber = $arrivalService->generateArrivalNumber($numberOfArrivalsByDate, $date);
+        $numberFormat = $settingsService->getValue($entityManager, Setting::FORMAT_CODE_ARRIVALS)
+            ?: UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG ;
+
+        $arrivalNumber = $uniqueNumberService->create($entityManager, null, Arrivage::class, $numberFormat);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();

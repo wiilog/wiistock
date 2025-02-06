@@ -8,6 +8,7 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArrivageRepository;
+use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,12 +22,9 @@ class Arrivage implements AttachmentContainer {
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
 
-    public const WITH_HYPHEN = "withHyphen";
-    public const WITHOUT_HYPHEN = "withoutHyphen";
-
     public const FORMAT_CODE_ARRIVALS = [
-        self::WITH_HYPHEN => "aammjjhhmmss-01",
-        self::WITHOUT_HYPHEN => "aammjjhhmmss01"
+        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG => "aammjjhhmmss-01",
+        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmss01",
     ];
 
     #[ORM\Id]
@@ -396,12 +394,12 @@ class Arrivage implements AttachmentContainer {
         return $this;
     }
 
-    public function removeAttachment(Attachment $attachement): self {
-        if($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachements->contains($attachment)) {
+            $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if($attachement->getArrivage() === $this) {
-                $attachement->setArrivage(null);
+            if($attachment->getArrivage() === $this) {
+                $attachment->setArrivage(null);
             }
         }
 
