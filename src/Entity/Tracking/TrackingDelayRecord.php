@@ -36,7 +36,7 @@ class TrackingDelayRecord {
     private ?DateTime $date = null;
 
     /**
-     * The column contains the remaining time: the nature tracking delay without the pack elapsed time
+     * The column contains the remaining time: the nature tracking delay less the pack elapsed time
      */
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $remainingTrackingDelay = null;
