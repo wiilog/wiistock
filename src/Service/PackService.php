@@ -65,13 +65,13 @@ class PackService {
 
         $naturesFilter = $params->all("natures");
         $locationsFilter = $params->all("locations");
-        $packWithTracking = $params->getBoolean("packWithTracking");
+        $isPackWithTracking = $params->getBoolean("isPackWithTracking");
 
         $filters = [
             ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
             ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
             ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
-            ...($packWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $packWithTracking]] : []),
+            ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
         ];
 
         if(empty($filters)) {

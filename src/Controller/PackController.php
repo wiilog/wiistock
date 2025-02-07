@@ -67,7 +67,7 @@ class PackController extends AbstractController {
         $dashboardComponent = $dashboardComponentId
             ? $dashboardComponentRepository->find($dashboardComponentId)
             : null;
-        $packWithTracking = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("packWithTracking", 'pack', $this->getUser());
+        $isPackWithTracking = boolval($filterSupRepository->findOnebyFieldAndPageAndUser("packWithTracking", 'pack', $this->getUser()));
 
         if ($dashboardComponent?->getType()?->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
             $fromDashboard = true;
