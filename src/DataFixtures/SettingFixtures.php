@@ -393,7 +393,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES => [
                 'default' => null,
             ],
-            Setting::WARNING_HEADER => [
+            Setting::USER_MESSAGE_CONFIG => [
                 "default" => null,
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [

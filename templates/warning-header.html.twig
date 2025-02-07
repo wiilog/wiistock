@@ -1,17 +1,17 @@
 {% import 'form.html.twig' as form %}
 
-{% set warning_header = setting_value('WARNING_HEADER') is not empty ? setting_value('WARNING_HEADER') : false %}
-{% if warning_header %}
-    {% set warning_header = warning_header | json_decode %}
+{% set user_message_config = setting_value('USER_MESSAGE_CONFIG') is not empty ? setting_value('USER_MESSAGE_CONFIG') : false %}
+{% if user_message_config %}
+    {% set user_message_config = user_message_config | json_decode %}
 {% endif %}
-{% set color_warning_header = warning_header and warning_header.color is not empty ? warning_header.color : false %}
-{% set message_warning_header = warning_header and warning_header.message is not empty ? warning_header.message : false %}
+{% set color_user_message = user_message_config and user_message_config.color is not empty ? user_message_config.color : false %}
+{% set message_user_message = user_message_config and user_message_config.message is not empty ? user_message_config.message : false %}
 
-{% if color_warning_header and message_warning_header %}
+{% if color_user_message and message_user_message %}
     <div class="row justify-content-center align-items-center banner-warning-header d-none"
-         style="background-color: {{ color_warning_header }}">
+         style="background-color: {{ color_user_message }}">
         <div class="col text-center">
-            <div class="text-white bold p-2">{{ message_warning_header }}</div>
+            <div class="text-white bold p-2">{{ message_user_message }}</div>
         </div>
         <div class="col-auto">
             <button type="button"
@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    {{ form.hidden('warning-header-hash', warning_header.messageHash) }}
+    {{ form.hidden('warning-header-hash', user_message_config.messageHash) }}
 {% endif %}
 
 {% block javascripts %}
