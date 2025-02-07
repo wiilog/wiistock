@@ -263,7 +263,6 @@ class StockMovementController extends AbstractController {
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                     $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
-                    $trackingTypes = [];
                     $mustReloadLocation = true;
                     $trackingMovementService->stockStatuses = [];
                 }
