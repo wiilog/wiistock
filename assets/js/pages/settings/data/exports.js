@@ -156,6 +156,9 @@ function createForm() {
         .on('change', '[name=periodInterval]', function() {
             onPeriodIntervalChange($modal);
         })
+        .on('change', '[name=scheduled-date-radio]', function() {
+            onFormDateTypeChange();
+        })
         .addProcessor((data, errors, form) => {
             const destinationType = Number(data.get('destinationType'));
             const recipientUsers = data.get('recipientUsers');
@@ -366,6 +369,25 @@ function createForm() {
                 }
             });
         });
+}
+
+function onFormDateTypeChange(){
+
+    let $modal = $("#modalExport");
+    const radioArticleChecked = $modal.find('[name=scheduled-date-radio]:checked').val();
+    const $scheduledDateMin = $modal.find('[name=scheduledDateMin]');
+    const $scheduledDateMax = $modal.find('[name=scheduledDateMax]');
+    const $minusDay = $modal.find('[name=minus-day]');
+    const $additionalDay = $modal.find('[name=additional-day]');
+
+    if(radioArticleChecked === "fixed-date"){
+        $minusDay.val(0);
+        $additionalDay.val(0);
+    }
+    if(radioArticleChecked === "relative-date"){
+        $scheduledDateMin.val(null);
+        $scheduledDateMax.val(null);
+    }
 }
 
 function onFormEntityChange() {
