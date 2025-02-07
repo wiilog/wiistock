@@ -17,6 +17,7 @@ use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
+use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
@@ -111,6 +112,10 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TrackingMovement::TYPE_PICK_LU,
                 TrackingMovement::TYPE_INIT_TRACKING_DELAY,
                 TrackingMovement::TYPE_PACK_SPLIT,
+            ],
+            CategorieStatut::TRACKING_DELAY_RECORD => [
+                TrackingDelayRecord::TYPE_ARRIVAL,
+                TrackingDelayRecord::TYPE_TRUCK_ARRIVAL,
             ],
             CategorieStatut::MVT_STOCK => [
                 MouvementStock::TYPE_ENTREE,
