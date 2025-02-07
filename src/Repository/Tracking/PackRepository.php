@@ -257,7 +257,6 @@ class PackRepository extends EntityRepository
                         ->setParameter('receiptAssociationCode', '%' . $filter['value'] . '%');
                     break;
                 case FiltreSup::FIELD_PACK_WITH_TRACKING:
-                    dump($filter);
                     if ($filter['value']) {
                         $queryBuilder
                             ->join('pack.trackingDelay', 'filter_tracking_delay')
