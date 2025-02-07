@@ -843,6 +843,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
 
                 case 'emergency':
                 case 'attachmentAssigned':
+                case 'packWithTracking':
                 case 'customs':
                 case 'frozen':
                 case 'carrierTrackingNumberNotAssigned':

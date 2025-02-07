@@ -32,4 +32,9 @@
             placeholder: 'Type',
         },
     } %}
+    {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
+        label: 'Délai de traitement',
+        name: 'packWithTracking',
+        checked: packWithTracking,
+    }%}
 {% endblock %}

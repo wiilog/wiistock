@@ -5,6 +5,7 @@ namespace App\Repository\Tracking;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Reception;
@@ -255,6 +256,13 @@ class PackRepository extends EntityRepository
                         ->andWhere('receiptAssociationFilter.receptionNumber like :receiptAssociationCode')
                         ->setParameter('receiptAssociationCode', '%' . $filter['value'] . '%');
                     break;
+                case FiltreSup::FIELD_PACK_WITH_TRACKING:
+                    if (boolval($filter['value'])) {
+                        $queryBuilder
+                            ->join('pack.trackingDelay', 'filter_tracking_delay')
+                            ->andWhere('filter_tracking_delay IS NOT NULL');
+                        break;
+                    }
                 default:
                     break;
             }

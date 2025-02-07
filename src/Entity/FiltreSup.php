@@ -74,6 +74,7 @@ class FiltreSup {
     const FIELD_SUBJECT = 'subject';
     const FIELD_DESTINATION = 'destination';
     const FIELD_RECEIPT_ASSOCIATION = 'receiptAssociation';
+    const FIELD_PACK_WITH_TRACKING = 'packWithTracking';
 
 
     const PAGE_PURCHASE_REQUEST = 'rpurchase';

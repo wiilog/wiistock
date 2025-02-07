@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -52,6 +53,7 @@ class PackController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
 
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
@@ -65,6 +67,7 @@ class PackController extends AbstractController {
         $dashboardComponent = $dashboardComponentId
             ? $dashboardComponentRepository->find($dashboardComponentId)
             : null;
+        $isPackWithTracking = boolval($filterSupRepository->findOnebyFieldAndPageAndUser("packWithTracking", 'pack', $this->getUser()));
 
         if ($dashboardComponent?->getType()?->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
             $fromDashboard = true;
@@ -78,6 +81,7 @@ class PackController extends AbstractController {
                     ->map(static fn(Nature $nature) => $nature->getId())
                     ->toArray()
                 : [];
+            $packWithTracking = true;
         }
 
         return $this->render('pack/index.html.twig', [
@@ -91,6 +95,7 @@ class PackController extends AbstractController {
             'locationsFilter' => $locationsFilter ?? [],
             'naturesFilter' => $naturesFilter ?? [],
             'fromDashboard' => $fromDashboard ?? false,
+            'packWithTracking' => $packWithTracking,
         ]);
     }
 
