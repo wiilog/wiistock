@@ -81,7 +81,7 @@ class PackController extends AbstractController {
                     ->map(static fn(Nature $nature) => $nature->getId())
                     ->toArray()
                 : [];
-            $packWithTracking = true;
+            $isPackWithTracking = true;
         }
 
         return $this->render('pack/index.html.twig', [
@@ -95,7 +95,7 @@ class PackController extends AbstractController {
             'locationsFilter' => $locationsFilter ?? [],
             'naturesFilter' => $naturesFilter ?? [],
             'fromDashboard' => $fromDashboard ?? false,
-            'packWithTracking' => $packWithTracking,
+            'packWithTracking' => $isPackWithTracking,
         ]);
     }
 
