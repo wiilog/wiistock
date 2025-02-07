@@ -17,6 +17,7 @@ let packsTableConfig = {
             codeUl: $('#lu-code').val(),
             natures: $('[name="natures"]').val(),
             locations: $('[name="emplacement"]').val(),
+            packWithTracking: $('[name="packWithTracking"]').is(':checked'),
         },
     },
     rowConfig: {
