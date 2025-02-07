@@ -101,7 +101,7 @@ class ArrivageRepository extends EntityRepository {
     }
 
     public function countByChauffeur($chauffeur) {
-        $em    = $this->getEntityManager();
+        $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(a)
@@ -128,9 +128,9 @@ class ArrivageRepository extends EntityRepository {
     }
 
     public function countByDays($firstDay, $lastDay) {
-        $from  = new DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
-        $to    = new DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
-        $em    = $this->getEntityManager();
+        $from = new DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
+        $to = new DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
+        $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT COUNT(a) as count, a.date as date
                 FROM App\Entity\Arrivage a
@@ -277,13 +277,13 @@ class ArrivageRepository extends EntityRepository {
                             'filter_truckArrival.number LIKE :numTruckArrival',
                             'filter_arrival_truckArrival.number LIKE :numTruckArrival'
                         ))
-                        ->setParameter('numTruckArrival' , '%'.$filter['value'].'%');
+                        ->setParameter('numTruckArrival', '%' . $filter['value'] . '%');
                     break;
                 case 'noTracking':
                     $qb
                         ->leftJoin('arrival.truckArrivalLines', 'truckArrivalLines')
                         ->andWhere('arrival.noTracking LIKE :noTracking OR truckArrivalLines.number LIKE :noTracking')
-                        ->setParameter('noTracking', '%'.$filter['value'].'%');
+                        ->setParameter('noTracking', '%' . $filter['value'] . '%');
                     break;
             }
         }
@@ -338,7 +338,7 @@ class ArrivageRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $orderData = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-                    $column    = self::DtToDbLabels[$orderData] ?? $orderData;
+                    $column = self::DtToDbLabels[$orderData] ?? $orderData;
 
                     if ($column === 'carrier') {
                         $qb
@@ -440,7 +440,7 @@ class ArrivageRepository extends EntityRepository {
 
     public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array {
         $queryBuilder = $this->createQueryBuilder("arrival");
-        $expr         = $queryBuilder->expr();
+        $expr = $queryBuilder->expr();
 
         $result = $queryBuilder
             ->select("arrival.id AS id")
@@ -540,8 +540,6 @@ class ArrivageRepository extends EntityRepository {
             ->setParameter('value', $date . '%')
             ->getQuery()
             ->execute();
-
-        dump($result);
 
         return $result ? $result[0]['number'] : null;
     }
