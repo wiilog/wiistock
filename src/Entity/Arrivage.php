@@ -23,8 +23,8 @@ class Arrivage implements AttachmentContainer {
     use AttachmentTrait;
 
     public const FORMAT_CODE_ARRIVALS = [
-        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG => "aammjjhhmmss-01",
-        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmss01",
+        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG => "aammjjhhmmss-xx",
+        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmssxx",
     ];
 
     #[ORM\Id]
