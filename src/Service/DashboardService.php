@@ -63,7 +63,7 @@ class DashboardService {
     public const DAILY_PERIOD_NEXT_DAYS = 'nextDays';
     public const DAILY_PERIOD_PREVIOUS_DAYS = 'previousDays';
 
-    private const TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE = [
+    public const TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE = [
         Setting::TREATMENT_DELAY_IN_PROGRESS =>  [null, TrackingEvent::START],
         Setting::TREATMENT_DELAY_ON_HOLD => [TrackingEvent::PAUSE],
         Setting::TREATMENT_DELAY_BOTH => [null, TrackingEvent::START, TrackingEvent::PAUSE],
@@ -1635,5 +1635,50 @@ class DashboardService {
             ->setTotal($totalToDisplay ?: '-')
             ->setNextElement($packToDisplay?->getCode() ?: '-')
             ->setLocation($locationToDisplay ?: '-');
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Dashboard\Component $component
+     * @throws Exception
+     */
+    public function persistOngoingPacksWithTrackingDelay(EntityManagerInterface $entityManager,
+                                                         Dashboard\Component $component): void {
+        $config = $component->getConfig();
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $trackingDelayRepository = $entityManager->getRepository(TrackingDelay::class);
+
+        $maxResultPack = 200;
+        $naturesFilter = !empty($config['natures'])
+            ? $natureRepository->findBy(['id' => $config['natures']])
+            : [];
+
+        $locationsFilter = !empty($config['locations'])
+            ? $locationRepository->findBy(['id' => $config['locations']])
+            : [];
+
+        if (!empty($naturesFilter) && !empty($locationsFilter)){
+            $trackingDelayLessThan = $config['trackingDelayLessThan'] * 60;
+            $eventTypes = self::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
+            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
+
+            $globalCounter = Stream::from($trackingDelayByFilters)
+                ->filter(function (TrackingDelay $trackingDelay) use ($trackingDelayLessThan) {
+                    $pack = $trackingDelay->getPack();
+                    $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
+
+                    return $remainingTimeInSeconds < $trackingDelayLessThan;
+                })
+                ->count();
+            $subtitle = $this->formatService->locations($locationsFilter);
+        }
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+
+        $meter
+            ->setCount($globalCounter ?? 0)
+            ->setSubtitle($subtitle ?? null);
     }
 }

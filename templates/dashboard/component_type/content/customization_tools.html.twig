@@ -101,7 +101,7 @@
             </div>
         </div>
     {% endif %}
-    {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::ONGOING_PACKS') %}
+    {% if componentType.meterKey in [constant('App\\Entity\\Dashboard\\ComponentType::ONGOING_PACKS'), constant('App\\Entity\\Dashboard\\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY')] %}
         <div id="accordion" class="customization-tools-accordion">
             <div class="card my-3">
                 <div class="card-header" id="titleLogo">
