@@ -188,6 +188,7 @@ class DashboardSettingsController extends AbstractController {
             "disputeStatuses" => [],
             "disputeEmergency" => false,
             "treatmentDelayType" => null,
+            "trackingDelayLessThan" => null,
         ];
         $entities = [];
         $entityTypes = [];

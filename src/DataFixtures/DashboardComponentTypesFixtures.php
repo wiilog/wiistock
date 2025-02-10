@@ -1165,6 +1165,42 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             'template' => Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY,
             'meterKey' => Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY,
         ],
+        'Quantité en cours sur n emplacement(s) avec délai' => [
+            'hint' => 'Nombre d\'unités logistiques avec délai sur les emplacements sélectionnés',
+            'exampleValues' => [
+                'title' => 'Litige en cours',
+                'count' => 5,
+                'subtitle' => 'Litige',
+
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+
+                'textColor-2' => "#D73353",
+                'textColor-3' => "#3353D7",
+                'textColor-4' => "#000000",
+                'textColor-5' => "#3353d7",
+
+                'textBold-2' => false,
+                'textBold-3' => false,
+                'textBold-4' => false,
+                'textBold-5' => false,
+
+                'textItalic-2' => false,
+                'textItalic-3' => false,
+                'textItalic-4' => false,
+                'textItalic-5' => false,
+
+                'textUnderline-2' => false,
+                'textUnderline-3' => false,
+                'textUnderline-4' => false,
+                'textUnderline-5' => false,
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_TRACKING,
+            'template' => Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY,
+            'meterKey' => Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY,
+        ],
     ];
 
     public function __construct(SpecificService $specificService) {

@@ -36,6 +36,7 @@ const HANDLING_TRACKING = 'handling_tracking';
 const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
 const ERROR_COMPONENT = 'error_component';
 export const ONGOING_PACK = 'ongoing_packs';
+export const ONGOING_PACK_WITH_TRACKING_DELAY = 'ongoing_packs_with_tracking_delay';
 export const ENTRIES_TO_HANDLE = 'entries_to_handle';
 export const ENTRIES_TO_HANDLE_BY_TRACKING_DELAY = 'entries_to_handle_by_tracking_delay';
 
@@ -60,6 +61,9 @@ $(document).arrive('.scroll, .dashboard-box .title', function() {
 
 const creators = {
     [ONGOING_PACK]: {
+        callback: createIndicatorElement
+    },
+    [ONGOING_PACK_WITH_TRACKING_DELAY]: {
         callback: createIndicatorElement
     },
     [CARRIER_TRACKING]: {

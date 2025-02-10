@@ -19,6 +19,7 @@ use App\Entity\Project;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
@@ -61,11 +62,15 @@ class PackService {
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
+        $trackingDelayRepository = $this->entityManager->getRepository(TrackingDelay::class);
         $currentUser = $this->userService->getUser();
 
+        $fromDashboard = $params->getBoolean("fromDashboard");
         $naturesFilter = $params->all("natures");
         $locationsFilter = $params->all("locations");
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
+        $trackingDelayEventFilter = $params->get("trackingDelayEventFilter");
+        $trackingDelayLessThanFilter = $params->get("trackingDelayLessThanFilter");
         $filters = [
             ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
             ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
@@ -80,14 +85,36 @@ class PackService {
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $currentUser->getLanguage() ?: $defaultLanguage;
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
-            'defaultLanguage' => $defaultLanguage,
-            'language' => $language,
-            'fields' => $this->getPackListColumnVisibleConfig($currentUser),
-        ]);
+
+        $trackingDelayLessThan = $trackingDelayLessThanFilter ? $trackingDelayLessThanFilter * 60 : null;
+        $eventTypes = $trackingDelayEventFilter ? DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$trackingDelayEventFilter] : null;
+
+        if($fromDashboard && $naturesFilter && $locationsFilter && $eventTypes && $trackingDelayLessThan){
+            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, 200);
+            $packsByFilters = Stream::from($trackingDelayByFilters)
+                ->filter(function (TrackingDelay $trackingDelay) use ($trackingDelayLessThan) {
+                    $pack = $trackingDelay->getPack();
+                    $remainingTimeInSeconds = $this->getTrackingDelayRemainingTime($pack);
+
+                    return $remainingTimeInSeconds < $trackingDelayLessThan;
+                })
+                ->map(fn(TrackingDelay $trackingDelay) => $trackingDelay->getPack())
+                ->toArray();
+            $queryResult = [
+                "data" => $packsByFilters,
+                "count" => count($packsByFilters),
+                "total" => count($packsByFilters),
+            ];
+        } else {
+            $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
+                'defaultLanguage' => $defaultLanguage,
+                'language' => $language,
+                'fields' => $this->getPackListColumnVisibleConfig($currentUser),
+            ]);
+
+        }
 
         $packs = $queryResult["data"];
-
         $rows = [];
         foreach ($packs as $pack) {
             $rows[] = $this->dataRowPack($pack);

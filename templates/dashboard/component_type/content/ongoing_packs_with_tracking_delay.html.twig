@@ -1,0 +1,76 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block content %}
+    <div class="row form-group">
+        <div class="col-12">
+            <label class="wii-field-name">Natures*</label>
+        </div>
+        <div class="col-12">
+            <select class="data form-control w-100 needed select2"
+                    name="natures"
+                    multiple
+                    title="Natures">
+                {% for nature in natures %}
+                    <option value="{{ nature.id }}" {{ nature in values.natures ? 'selected' }}>{{ nature.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row form-group">
+        <div class="col-12">
+            <label class="wii-field-name">Emplacements*</label>
+        </div>
+        <div class="col-12">
+            <select class="ajax-autocomplete-location data form-control w-100 needed"
+                    name="locations"
+                    multiple
+                    title="Emplacements">
+                {% for location in values.locations %}
+                    <option value="{{ location.id }}" selected>{{ location.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row form-group">
+        <div class="col-12">
+            {% set inProgress = (constant("App\\Entity\\Setting::TREATMENT_DELAY_IN_PROGRESS")) %}
+            {% set onHold = (constant("App\\Entity\\Setting::TREATMENT_DELAY_ON_HOLD")) %}
+            {% set both = (constant("App\\Entity\\Setting::TREATMENT_DELAY_BOTH")) %}
+            {{ form.switch('treatmentDelayType', 'Délais de traitement', true, [
+                {label: 'En cours', value: inProgress, checked: (values.treatmentDelayType ?? inProgress) == inProgress },
+                {label: 'En pause', value: onHold, checked: (values.treatmentDelayType ?? '') == onHold },
+                {label: 'Les deux', value: both, checked: (values.treatmentDelayType ?? '') == both },
+            ]) }}
+        </div>
+    </div>
+
+    <div class="row form-group">
+        <div class="col-12">
+            {{ form.input('trackingDelayLessThan', 'Délai de livraison restant inférieur à (en minutes)', true, values.trackingDelayLessThan ?? '', {
+                type: 'number',
+                additionalAttributes: [{
+                    'name': 'min',
+                    'value': '0'
+                }],
+            }) }}
+        </div>
+    </div>
+
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="redirect"
+                       {{ values.redirect ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            <span class="wii-field-text">Rediriger au clic vers la page des unités logistiqus filtrée et triée par date max de livraison</span>
+        </div>
+    </div>
+{% endblock %}

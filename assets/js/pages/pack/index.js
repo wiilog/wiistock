@@ -18,6 +18,9 @@ let packsTableConfig = {
             natures: $('[name="natures"]').val(),
             locations: $('[name="emplacement"]').val(),
             isPackWithTracking: $('[name="packWithTracking"]').is(':checked'),
+            fromDashboard: $('[name="fromDashboard"]').val(),
+            trackingDelayEventFilter: $('[name="trackingDelayEventFilter"]').val(),
+            trackingDelayLessThanFilter: $('[name="trackingDelayLessThanFilter"]').val(),
         },
     },
     rowConfig: {

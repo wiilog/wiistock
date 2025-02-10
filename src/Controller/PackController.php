@@ -69,7 +69,7 @@ class PackController extends AbstractController {
             : null;
         $isPackWithTracking = boolval($filterSupRepository->findOnebyFieldAndPageAndUser("packWithTracking", 'pack', $this->getUser()));
 
-        if ($dashboardComponent?->getType()?->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+        if ($dashboardComponent?->getType()?->getMeterKey() && in_array($dashboardComponent?->getType()?->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY])) {
             $fromDashboard = true;
             $config = $dashboardComponent->getConfig();
             $locationsFilter = !empty($config["locations"])
@@ -81,6 +81,8 @@ class PackController extends AbstractController {
                     ->map(static fn(Nature $nature) => $nature->getId())
                     ->toArray()
                 : [];
+            $trackingDelayEventFilter = $config['treatmentDelayType'] ?? null;
+            $trackingDelayLessThanFilter = $config['trackingDelayLessThan'] ?? null;
             $isPackWithTracking = true;
         }
 
@@ -95,6 +97,8 @@ class PackController extends AbstractController {
             'locationsFilter' => $locationsFilter ?? [],
             'naturesFilter' => $naturesFilter ?? [],
             'fromDashboard' => $fromDashboard ?? false,
+            'trackingDelayEventFilter' => $trackingDelayEventFilter ?? null,
+            'trackingDelayLessThanFilter' => $trackingDelayLessThanFilter ?? null,
             'packWithTracking' => $isPackWithTracking,
         ]);
     }

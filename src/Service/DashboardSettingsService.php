@@ -217,6 +217,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
                 $values += $this->serializeReferenceArticles($entityManager, $componentType, $example, $meter, $currentUser);
                 break;
+            case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
+                $values += $this->serializeOngoingPacksWithTrackingDelay($entityManager, $componentType, $config, $example, $meter);
+                break;
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
                 break;
@@ -547,6 +550,7 @@ class DashboardSettingsService {
         $values['nextElementTooltip'] = $config['nextElementTooltip'] ?? '';
         $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
         $values['treatmentDelayType'] = $config['treatmentDelayType'] ?? null;
+        $values['trackingDelayLessThan'] = $config['trackingDelayLessThan'] ?? null;
 
         return $values;
     }
@@ -1351,6 +1355,14 @@ class DashboardSettingsService {
                     ])
                     : null;
                 break;
+            case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
+                $redirect = $config['redirect'] ?? false;
+                $link = $redirect
+                    ? $this->router->generate('pack_index', [
+                        'dashboardComponentId' => $config['__componentId'],
+                    ])
+                    : null;
+                break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $redirect = isset($config['redirect']) && $config['redirect'];
                 $link = $redirect ? $this->router->generate('truck_arrival_index', ['unassociated' => true]) : null;
@@ -1571,6 +1583,40 @@ class DashboardSettingsService {
             $values['date'] = $config['date'] ?? "";
         }
         $values['multiple'] = $separateType;
+        return $values;
+    }
+
+    private function serializeOngoingPacksWithTrackingDelay(EntityManagerInterface $manager,
+                                           Dashboard\ComponentType $componentType,
+                                           array $config,
+                                           bool $example = false,
+                                           DashboardMeter\Indicator $meter = null): array {
+        if ($example) {
+            $values = $componentType->getExampleValues();
+            if (!empty($config['locations'])) {
+                $locationRepository = $manager->getRepository(Emplacement::class);
+                $locations = $locationRepository->findBy(['id' => $config['locations']]);
+                $values['subtitle'] = $this->formatService->locations($locations);
+            }
+        } else {
+            if ($meter) {
+                $values = [
+                    'subtitle' => $meter->getSubtitle(),
+                    'count' => $meter->getCount(),
+                ];
+            } else {
+                $values = [
+                    'subtitle' => '-',
+                    'count' => '-',
+                ];
+            }
+        }
+        $values['logoURL'] = $config['logoURL'] ?? null;
+        $values['titleComponentLogo'] = $config['titleComponentLogo'] ?? null;
+        if (empty($values['subtitle'])) {
+            $values['subtitle'] = '-';
+        }
+
         return $values;
     }
 }
