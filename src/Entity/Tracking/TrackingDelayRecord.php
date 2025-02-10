@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Like a trackingMovement copy
  */
 #[ORM\Entity(repositoryClass: TrackingDelayRecordRepository::class)]
-#[ORM\Index(fields: ["date"], name: "IDX_WIILOG_MOVEMENT_DATE")]
+#[ORM\Index(fields: ["date"], name: "IDX_WIILOG_DATE")]
 class TrackingDelayRecord {
 
     public const TYPE_ARRIVAL = 'Arrivage';
@@ -47,9 +47,9 @@ class TrackingDelayRecord {
     #[ORM\Column(type: Types::INTEGER, nullable: true, enumType: TrackingEvent::class)]
     private ?TrackingEvent $trackingEvent;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\ManyToOne(targetEntity: TrackingDelay::class, inversedBy: "records")]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?Pack $pack = null;
+    private ?TrackingDelay $trackingDelay = null;
 
     /**
      * @var Statut|null Copy of tracking movement's type if record is based on tracking movement
@@ -69,16 +69,6 @@ class TrackingDelayRecord {
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    public function getPack(): ?Pack {
-        return $this->pack;
-    }
-
-    public function setPack(?Pack $pack): self {
-        $this->pack = $pack;
-
-        return $this;
     }
 
     public function getDate(): ?DateTime {
@@ -143,5 +133,19 @@ class TrackingDelayRecord {
 
     public function isNow(): bool {
         return $this->now;
+    }
+
+    public function getTrackingDelay(): ?TrackingDelay {
+        return $this->trackingDelay;
+    }
+
+    public function setTrackingDelay(?TrackingDelay $trackingDelay): self {
+        if ($this->trackingDelay && $this->trackingDelay !== $trackingDelay) {
+            $this->trackingDelay->removeRecord($this);
+        }
+        $this->trackingDelay = $trackingDelay;
+        $trackingDelay?->addRecord($this);
+
+        return $this;
     }
 }
