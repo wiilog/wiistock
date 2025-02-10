@@ -831,10 +831,12 @@ class PackService {
                 ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
 
             $firstPackChild = $packChildSortedByDelay->first()["pack"] ?? null;
+
+            /** @var Pack $pack */
             $pack = $firstPackChild ?: $pack;
         }
 
-        $packTrackingDelay = $pack->getTrackingDelay();
+        $packTrackingDelay = $pack->getCurrentTrackingDelay();
 
         $remainingTime = $this->getTrackingDelayRemainingTime($pack);
 
@@ -866,7 +868,7 @@ class PackService {
     }
 
     public function getTrackingDelayRemainingTime(Pack $pack): ?int {
-        $packTrackingDelay = $pack->getTrackingDelay();
+        $packTrackingDelay = $pack->getCurrentTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
 

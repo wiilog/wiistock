@@ -189,8 +189,9 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $truckArrivalDelay = null;
 
-    #[ORM\OneToOne(mappedBy: "pack", targetEntity: TrackingDelay::class, cascade: ["persist", "remove"])]
-    private ?TrackingDelay $trackingDelay = null;
+    #[ORM\OneToOne(targetEntity: TrackingDelay::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?TrackingDelay $lastTrackingDelay = null;
 
     /**
      * @var Collection<int, PackSplit>
@@ -307,8 +308,7 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @param string $order
-     * @return Collection|TrackingMovement[]
+     * @return Collection<int, TrackingMovement>
      */
     public function getTrackingMovements(Order $order = Order::Descending): Collection {
         $criteria = Criteria::create()
@@ -818,23 +818,6 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getTrackingDelay(): ?TrackingDelay {
-        return $this->trackingDelay;
-    }
-
-    public function setTrackingDelay(?TrackingDelay $trackingDelay): self {
-        if ($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
-            $oldTrackingDelay = $this->trackingDelay;
-            $this->trackingDelay = null;
-            $oldTrackingDelay->setPack(null);
-        }
-        $this->trackingDelay = $trackingDelay;
-        if ($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
-            $this->trackingDelay->setPack($this);
-        }
-        return $this;
-    }
-
     public function getLastStart(): ?TrackingMovement {
         return $this->lastStart;
     }
@@ -949,6 +932,42 @@ class Pack implements PairedEntity {
         return $parent
             ? 1 + $parent->getSplitCountFrom()
             : 0;
+    }
+
+    public function getLastTrackingDelay(): ?TrackingDelay {
+        return $this->lastTrackingDelay;
+    }
+
+    public function setLastTrackingDelay(?TrackingDelay $trackingDelay): self {
+        $this->lastTrackingDelay = $trackingDelay;
+        return $this;
+    }
+
+    /**
+     * Current tracking delay of a pack is the last one if it's not stopped.
+     */
+    public function getCurrentTrackingDelay(): ?TrackingDelay {
+        $lastTrackingDelay = $this->getLastTrackingDelay();
+
+        if (!$lastTrackingDelay
+            || $lastTrackingDelay->isStoppedByMovementEdit()) {
+            return null;
+        }
+
+        // we get last record to define if the last tracking delay of the pack is unstopped
+        $criteria = Criteria::create()
+            ->setMaxResults(1)
+            ->orderBy([
+                "calculatedAt" => Order::Descending,
+                "id" => Order::Descending,
+            ]);
+
+        /** @var TrackingDelayRecord|null $lastRecord */
+        $lastRecord = $lastTrackingDelay->getRecords()->matching($criteria)->last()
+            ?: null;
+        return ($lastRecord?->getTrackingEvent() !== TrackingEvent::STOP)
+            ? $lastTrackingDelay
+            : null;
     }
 
 }
