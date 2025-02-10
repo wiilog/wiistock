@@ -67,6 +67,9 @@ class DashboardFeedCommand extends Command {
             $component->setErrorMessage(null);
             try {
                 switch ($meterKey) {
+                    case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
+                        $this->dashboardService->persistOngoingPacksWithTrackingDelay($this->entityManager, $component);
+                        break;
                     case Dashboard\ComponentType::ONGOING_PACKS:
                         $this->dashboardService->persistOngoingPack($this->entityManager, $component);
                         break;
