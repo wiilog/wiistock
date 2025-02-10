@@ -378,8 +378,8 @@ class SettingsController extends AbstractController {
                     "label" => "Acheminements",
                     "right" => Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                     "menus" => [
-                        self::MENU_TYPES_FREE_FIELDS => ["
-                            label" => "Types et champs libres",
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
                             "wrapped" => false
                         ],
                         self::MENU_FIXED_FIELDS => [
