@@ -16,6 +16,11 @@ describe('Get the right permissions for logistic units arrivals', () => {
     })
 
     it('should get the right permissions', () => {
+        cy.get(`[data-menu=configurations]`)
+            .eq(0)
+            .first()
+            .click();
+
         cy.get(`[data-menu=configurations] input[type=checkbox]`)
             .uncheck({force: true});
         cy.get(`[data-menu=configurations] [data-name=AUTO_PRINT_LU] input[type=checkbox]`)
