@@ -732,8 +732,7 @@ class ReferenceArticleController extends AbstractController
     public function getBarCodes(Request $request,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
-                                PDFGeneratorService $PDFGeneratorService): Response
-    {
+                                PDFGeneratorService $PDFGeneratorService): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 

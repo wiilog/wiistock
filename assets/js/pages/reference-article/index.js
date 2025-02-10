@@ -210,12 +210,15 @@ function displayFilterValue(elem) {
 function printReferenceArticleBarCode($button, event) {
     if (!$button.hasClass('disabled')) {
         if (pageTables.data().count() > 0) {
+            let searchValue = $('#tableRefArticle_filter input').val();
+            // remove white space at the start and end of the string
+            searchValue = searchValue.replace(/^\s+|\s+$/g, '');
             window.location.href = Routing.generate(
                 'reference_article_bar_codes_print',
                 {
                     length: pageTables.page.info().length,
                     start: pageTables.page.info().start,
-                    search: {"value": $('#tableRefArticle_filter input').val()},
+                    search: {"value": searchValue},
                 },
                 true
             );
