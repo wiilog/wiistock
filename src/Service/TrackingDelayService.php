@@ -42,42 +42,43 @@ class TrackingDelayService {
         $records = $data['records'] ?? [];
 
         if (!isset($calculatedElapsedTime)) {
-            $this->removeCurrentTrackingDelay($entityManager, $pack);
+            $pack->getCurrentTrackingDelay()
+                ?->setStoppedByMovementEdit(true);
         }
         else {
-            $this->persistRecordsOnCurrentDelay($entityManager, $pack, $records);
-
-            $this->persistTrackingDelay(
-                $entityManager,
+            $trackingDelay = $this->createTrackingDelay(
                 $pack,
                 $calculatedElapsedTime,
                 $lastTrackingEvent,
-                $limitTreatmentDate
+                $limitTreatmentDate,
+                $records
             );
+
+            $pack->setLastTrackingDelay($trackingDelay);
+            $entityManager->persist($trackingDelay);
         }
     }
 
-    private function persistTrackingDelay(EntityManagerInterface $entityManager,
-                                          Pack                   $pack,
-                                          int                    $elapsedTime,
-                                          ?TrackingEvent         $lastTrackingEvent,
-                                          ?DateTime              $limitTreatmentDate): void {
-
-        $trackingDelay = $pack->getTrackingDelay();
-        if (!isset($trackingDelay)) {
-            $trackingDelay = new TrackingDelay();
-            $trackingDelay->setPack($pack);
-        }
-
+    /**
+     * @param TrackingDelayRecord[] $records
+     */
+    private function createTrackingDelay(Pack           $pack,
+                                         int            $elapsedTime,
+                                         ?TrackingEvent $lastTrackingEvent,
+                                         ?DateTime      $limitTreatmentDate,
+                                         array          $records): TrackingDelay {
         $now = new DateTime();
 
+        $trackingDelay = new TrackingDelay();
         $trackingDelay
+            ->setPack($pack)
             ->setElapsedTime($elapsedTime)
             ->setCalculatedAt($now)
             ->setLastTrackingEvent($lastTrackingEvent)
-            ->setLimitTreatmentDate($limitTreatmentDate);
+            ->setLimitTreatmentDate($limitTreatmentDate)
+            ->setRecords($records);
 
-        $entityManager->persist($trackingDelay);
+        return $trackingDelay;
     }
 
     /**
@@ -109,16 +110,7 @@ class TrackingDelayService {
         $lastTrackingEvent = null;
         $records = [];
 
-        $lastStop = $pack->getLastStop();
-
-        $packHasStopEvent = (
-            isset($timerStartedAt)
-            && $lastStop
-            && $lastStop->getDatetime() > $timerStartedAt
-        );
-
-        if (!isset($timerStartedAt)
-            || $packHasStopEvent) {
+        if (!isset($timerStartedAt)) {
             return null;
         }
 
@@ -374,9 +366,13 @@ class TrackingDelayService {
 
             $timerStartedAt = $truckArrivalCreatedAt ?: $arrivalCreatedAt;
 
-            // if any truck arrival or logistic unit arrival
-            // we get the first tracking movement on pack
-            if (!$timerStartedAt) {
+            if ($timerStartedAt) {
+                $timerStartedBy = $truckArrivalCreatedAt ? "arrival" : "truckArrival";
+            }
+            else {
+                // if any truck arrival or logistic unit arrival
+                // we get the first tracking movement on pack
+
                 $firstAction = $pack->getFirstAction();
                 // if the first tracking was not on a stop location (like a picking on stop location)
                 // we get as timerStartedAt the date of the tracking
@@ -384,9 +380,6 @@ class TrackingDelayService {
                 if (!($firstAction?->getEmplacement()?->isStopTrackingTimerOnDrop())) {
                     $timerStartedAt = $firstAction?->getDatetime();
                 }
-            }
-            else {
-                $timerStartedBy = $truckArrivalCreatedAt ? "arrival" : "truckArrival";
             }
 
             if ($timerStartedAt
@@ -402,40 +395,6 @@ class TrackingDelayService {
             "timerStoppedAt" => $timerStoppedAt ?? null,
             "timerStoppedBy" => $timerStoppedBy ?? "movement",
         ];
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Pack $pack
-     * @param TrackingDelayRecord[] $records
-     */
-    public function persistRecordsOnCurrentDelay(EntityManagerInterface $entityManager,
-                                                 Pack                   $pack,
-                                                 array                  $records): void {
-
-        $trackingDelayRecordRepository = $entityManager->getRepository(TrackingDelayRecord::class);
-
-        $recordsToClear = $trackingDelayRecordRepository->findBy([
-            'pack' => $pack,
-        ]);
-
-        foreach ($recordsToClear as $recordToClear) {
-            $entityManager->remove($recordToClear);
-        }
-
-        foreach ($records as $record) {
-            $entityManager->persist($record);
-        }
-    }
-
-    public function removeCurrentTrackingDelay(EntityManagerInterface $entityManager,
-                                               Pack                   $pack): void {
-        // remove current tracking delay of the given pack
-        $trackingDelay = $pack->getTrackingDelay();
-        if (isset($trackingDelay)) {
-            $pack->setTrackingDelay(null);
-            $entityManager->remove($trackingDelay);
-        }
     }
 
     /**
