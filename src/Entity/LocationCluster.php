@@ -24,13 +24,13 @@ class LocationCluster {
     #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'clusters')]
     private Collection $locations;
 
-    #[ORM\OneToMany(mappedBy: 'locationCluster', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'locationCluster', targetEntity: LocationClusterRecord::class)]
     private Collection $locationClusterRecords;
 
-    #[ORM\OneToMany(mappedBy: 'locationClusterFrom', targetEntity: LocationClusterMeter::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'locationClusterFrom', targetEntity: LocationClusterMeter::class)]
     private Collection $metersFrom;
 
-    #[ORM\OneToMany(mappedBy: 'locationClusterInto', targetEntity: LocationClusterMeter::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'locationClusterInto', targetEntity: LocationClusterMeter::class)]
     private Collection $metersInto;
 
     #[ORM\ManyToOne(targetEntity: Dashboard\Component::class, inversedBy: 'locationClusters')]
