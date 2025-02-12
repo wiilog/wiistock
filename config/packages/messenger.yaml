@@ -24,9 +24,19 @@ framework:
           queue_name: "tracking-delay_waiting"
           unique_messages: "queue"
 
+      async_dashboard_feeding:
+        dsn: "doctrine://default"
+        retry_strategy:
+          max_retries: 0
+        options:
+          queue_name: "dashboard-feeding"
+          unique_messages: true
     # Route your messages to the transports
     routing:
       App\Messenger\TrackingDelay\CalculateTrackingDelayMessage: async_tracking_delay
+      App\Messenger\Dashboard\CalculateDashboardFeedingMessage: async_dashboard_feeding
+      App\Messenger\Dashboard\CalculateLatePackComponentsMessage: async_dashboard_feeding
+      App\Messenger\Dashboard\CalculateComponentsWithDelayMessage: async_dashboard_feeding
 
 # when@test:
 #    framework:
