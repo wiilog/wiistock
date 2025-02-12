@@ -5,6 +5,7 @@ namespace App\Entity\IOT;
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
+use App\Entity\Tracking\TrackingEvent;
 use App\Repository\IOT\DeliveryRequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -26,8 +27,8 @@ class DeliveryRequestTemplate extends RequestTemplate {
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $buttonIcon = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => true])]
-    private ?bool $templateWithReference = null;
+    #[ORM\Column(type: Types::STRING, nullable: false, enumType: DeliveryRequestTemplateTypeEnum::class)]
+    private ?DeliveryRequestTemplateTypeEnum $deliveryRequestTemplateType;
 
     public function __construct() {
         parent::__construct();
@@ -91,13 +92,12 @@ class DeliveryRequestTemplate extends RequestTemplate {
         return $this;
     }
 
-    public function isTemplateWithReference(): ?bool {
-        return $this->templateWithReference;
+    public function getDeliveryRequestTemplateType(): ?DeliveryRequestTemplateTypeEnum {
+        return $this->deliveryRequestTemplateType;
     }
 
-    public function setTemplateWithReference(bool $templateWithReference): self {
-        $this->templateWithReference = $templateWithReference;
-
+    public function setDeliveryRequestTemplateType(?TrackingEvent $deliveryRequestTemplateType): self {
+        $this->deliveryRequestTemplateType = $deliveryRequestTemplateType;
         return $this;
     }
 }
