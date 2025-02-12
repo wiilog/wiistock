@@ -256,7 +256,7 @@ class SelectController extends AbstractController {
                         'redirect-route' => $redirectRoute,
                         'redirect-route-params' => $redirectParams
                     ]),
-                    "html" => "<div class='can-create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
+                    "html" => "<div class='create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
                 ]);
         }
 
@@ -654,8 +654,8 @@ class SelectController extends AbstractController {
         $search = $request->query->get("term");
         $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
         array_unshift($customers, [
-            "id" => "can-create-new",
-            "html" => "<div class='can-create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
+            "id" => "create-new",
+            "html" => "<div class='create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
         ]);
 
         return $this->json([
@@ -734,13 +734,13 @@ class SelectController extends AbstractController {
         $term = $request->query->get("term");
         $carrierId = $request->query->get("carrier-id") ?? $request->query->get("transporteur");
         $truckArrivalId = $request->query->get("truck-arrival-id") ?? $request->query->get("noTruckArrival");
-        $canCreateNew = $request->query->get("can-create-new");
+        $canCreateNew = $request->query->get("create-new");
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
 
         if($canCreateNew && $term){
             array_unshift($lines, [
-                "id" => "can-create-new",
-                "html" => "<div class='can-create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau numéro tracking</b></div>",
+                "id" => "create-new",
+                "html" => "<div class='create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau numéro tracking</b></div>",
             ]);
         }
 

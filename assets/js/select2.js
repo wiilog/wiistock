@@ -139,7 +139,7 @@ export default class Select2 {
                             const searchValue = $search.val();
                             if ($element.is(`[data-auto-select]`)
                                 && searchValue) {
-                                const resultWithoutNewItem = (data.results || []).filter(({id}) => id !== "can-create-new");
+                                const resultWithoutNewItem = (data.results || []).filter(({id}) => id !== "create-new");
 
                                 if (resultWithoutNewItem.length === 1
                                     && resultWithoutNewItem[0].text === searchValue) {
@@ -150,7 +150,7 @@ export default class Select2 {
                                         if (!alreadySelected) {
                                             const [option] = $('.select2-results__option')
                                                 .toArray()
-                                                .filter((element) => !$(element).find('.can-create-new-container').exists());
+                                                .filter((element) => !$(element).find('.create-new-container').exists());
                                             $(option).trigger("mouseup");
                                             $element.trigger({
                                                 type: "select2:select",
@@ -221,12 +221,12 @@ export default class Select2 {
             $element.on(`change`, () => {
                 const [selected] = $element.select2('data').reverse();
                 if (selected) {
-                    if (selected.id === `can-create-new` && search && search.length) {
+                    if (selected.id === `create-new` && search && search.length) {
                         $element.append(
                             $(new Option(search, search, true, true))
                         )
                         $element
-                            .find('option[value="can-create-new"]')
+                            .find('option[value="create-new"]')
                             .remove();
                         $element.trigger('change');
                         const newItem = $element.select2('data').find(({id}) => id === search);

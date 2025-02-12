@@ -103,7 +103,7 @@ $select-height: 36px;
     }
 }
 
-.can-create-new-container {
+.create-new-container {
     display: flex;
     align-items: center;
 
@@ -119,7 +119,7 @@ $select-height: 36px;
     }
 }
 
-.select2-results__option--highlighted .can-create-new-container {
+.select2-results__option--highlighted .create-new-container {
     i, svg, span {
         background: $white !important;
     }
