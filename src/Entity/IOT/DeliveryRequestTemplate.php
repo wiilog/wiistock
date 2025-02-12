@@ -81,28 +81,23 @@ class DeliveryRequestTemplate extends RequestTemplate {
         return $this;
     }
 
-    public function getButtonIcon(): ?Attachment
-    {
+    public function getButtonIcon(): ?Attachment {
         return $this->buttonIcon;
     }
 
-    public function setButtonIcon(?Attachment $buttonIcon): self
-    {
+    public function setButtonIcon(?Attachment $buttonIcon): self {
         $this->buttonIcon = $buttonIcon;
 
         return $this;
     }
 
-    public function isTemplateWithReference(): ?bool
-    {
+    public function isTemplateWithReference(): ?bool {
         return $this->templateWithReference;
     }
 
-    public function setTemplateWithReference(bool $templateWithReference): self
-    {
+    public function setTemplateWithReference(bool $templateWithReference): self {
         $this->templateWithReference = $templateWithReference;
 
         return $this;
     }
-
 }
