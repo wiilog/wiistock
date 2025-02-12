@@ -734,10 +734,10 @@ class SelectController extends AbstractController {
         $term = $request->query->get("term");
         $carrierId = $request->query->get("carrier-id") ?? $request->query->get("transporteur");
         $truckArrivalId = $request->query->get("truck-arrival-id") ?? $request->query->get("noTruckArrival");
-        $canCreateNew = $request->query->get("create-new");
+        $createNew = $request->query->get("create-new");
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
 
-        if($canCreateNew && $term){
+        if($createNew && $term){
             array_unshift($lines, [
                 "id" => "create-new",
                 "html" => "<div class='create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau numéro tracking</b></div>",
