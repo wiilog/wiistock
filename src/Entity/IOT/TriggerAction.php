@@ -2,6 +2,7 @@
 
 namespace App\Entity\IOT;
 
+use App\Entity\RequestTemplate\RequestTemplate;
 use App\Repository\IOT\TriggerActionRepository;
 use App\Service\IOT\IOTService;
 use DateTimeInterface;

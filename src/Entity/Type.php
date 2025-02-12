@@ -4,8 +4,8 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField\FreeFieldManagementRule;
-use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
+use App\Entity\RequestTemplate\RequestTemplate;
 use App\Helper\LanguageHelper;
 use App\Repository\TypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;

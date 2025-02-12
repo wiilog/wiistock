@@ -4,18 +4,17 @@ namespace App\Service;
 
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
-use App\Entity\IOT\CollectRequestTemplate;
-use App\Entity\IOT\DeliveryRequestTemplate;
-use App\Entity\IOT\HandlingRequestTemplate;
-use App\Entity\IOT\RequestTemplate;
-use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\ReferenceArticle;
+use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\HandlingRequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplateLine;
 use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\StringHelper;
 
 class RequestTemplateService {
 

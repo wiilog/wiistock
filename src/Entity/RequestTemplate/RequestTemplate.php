@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
-use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\RequestTemplate\RequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RequestTemplateRepository::class)]
@@ -22,20 +24,20 @@ abstract class RequestTemplate {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'requestTemplates')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'requestTypeTemplates')]
     private ?Type $requestType = null;
 
-    #[ORM\OneToMany(targetEntity: TriggerAction::class, mappedBy: 'requestTemplate')]
+    #[ORM\OneToMany(mappedBy: 'requestTemplate', targetEntity: TriggerAction::class)]
     private Collection $triggerActions;
 
     public function __construct() {

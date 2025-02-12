@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\IOT\RequestTemplateLineRepository;
+use App\Repository\RequestTemplate\RequestTemplateLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RequestTemplateLineRepository::class)]
