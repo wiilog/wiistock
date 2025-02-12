@@ -9,6 +9,7 @@ use App\Repository\LocationClusterRecordRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LocationClusterRecordRepository::class)]
+#[ORM\Index(fields: ["active"], name: "IDX_WIILOG_ACTIVE")]
 class LocationClusterRecord {
 
     /**
