@@ -6,17 +6,18 @@ namespace App\Command\Cron;
 
 use App\Entity\Dashboard;
 use App\Entity\Wiilock;
-use App\Exceptions\DashboardException;
+use App\Messenger\Dashboard\CalculateDashboardFeedingMessage;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
+use WiiCommon\Helper\Stream;
 
 #[AsCommand(
     name: DashboardFeedCommand::COMMAND_NAME,
@@ -27,13 +28,16 @@ class DashboardFeedCommand extends Command {
 
     private EntityManagerInterface $entityManager;
     private DashboardService $dashboardService;
+    private MessageBusInterface $messageBus;
     private WiilockService $wiilockService;
 
-    public function __construct(EntityManagerInterface $entityManager,
-                                DashboardService $dashboardService,
-                                WiilockService $wiilockService) {
+    public function __construct(EntityManagerInterface  $entityManager,
+                                DashboardService        $dashboardService,
+                                MessageBusInterface     $messageBus,
+                                WiilockService          $wiilockService) {
         parent::__construct();
         $this->entityManager = $entityManager;
+        $this->messageBus = $messageBus;
         $this->dashboardService = $dashboardService;
         $this->wiilockService = $wiilockService;
     }
@@ -57,132 +61,28 @@ class DashboardFeedCommand extends Command {
 
         $components = $dashboardComponentRepository->findAll();
 
-        $latePackComponents = [];
+        $latePackComponentIds = Stream::from($components)
+            ->filter(static fn(Dashboard\Component $component) => $component->getType()->getMeterKey() === Dashboard\ComponentType::LATE_PACKS)
+            ->map(static fn(Dashboard\Component $component) => $component->getId())
+            ->toArray();
 
-        $calculateLatePack = false;
+        $calculateLatePack = count($latePackComponentIds) > 0;
+
+        $components = Stream::from($components)
+            ->filter(static fn(Dashboard\Component $component) => $component->getType()->getMeterKey() !== Dashboard\ComponentType::LATE_PACKS)
+            ->toArray();
 
         foreach ($components as $component) {
-            $componentType = $component->getType();
-            $meterKey = $componentType->getMeterKey();
-            $component->setErrorMessage(null);
-            try {
-                switch ($meterKey) {
-                    case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
-                        $this->dashboardService->persistOngoingPacksWithTrackingDelay($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::ONGOING_PACKS:
-                        $this->dashboardService->persistOngoingPack($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DAILY_HANDLING_INDICATOR:
-                        $this->dashboardService->persistDailyHandlingIndicator($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
-                        $this->dashboardService->persistDroppedPacks($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::CARRIER_TRACKING:
-                        $this->dashboardService->persistCarriers($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
-                    case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
-                        $this->dashboardService->persistArrivalsAndPacksMeter($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                        $this->dashboardService->persistEntriesToHandleByTrackingDelay($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
-                        $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::PACK_TO_TREAT_FROM:
-                        $this->dashboardService->persistPackToTreatFrom($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
-                    case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
-                        $this->dashboardService->persistArrivalsEmergencies(
-                            $this->entityManager,
-                            $component,
-                            $meterKey === Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES,
-                            $meterKey === Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE
-                        );
-                        break;
-                    case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
-                        $this->dashboardService->persistActiveReferenceAlerts($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH:
-                        $this->dashboardService->persistMonetaryReliabilityGraph($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
-                        $this->dashboardService->persistMonetaryReliabilityIndicator($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::REFERENCE_RELIABILITY:
-                        $this->dashboardService->persistReferenceReliability($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DAILY_DISPATCHES:
-                        $this->dashboardService->persistDailyDispatches($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DAILY_PRODUCTION:
-                        $this->dashboardService->persistDailyProductions($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DAILY_HANDLING:
-                    case Dashboard\ComponentType::DAILY_OPERATIONS:
-                        $this->dashboardService->persistDailyHandlingOrOperations($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DAILY_DELIVERY_ORDERS:
-                        $this->dashboardService->persistDailyDeliveryOrders($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::REQUESTS_TO_TREAT:
-                    case Dashboard\ComponentType::ORDERS_TO_TREAT:
-                        $this->dashboardService->persistEntitiesToTreat($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::DISPUTES_TO_TREAT:
-                        $this->dashboardService->persistDisputesToTreat($this->entityManager, $component);
-                        break;
-                    case Dashboard\ComponentType::LATE_PACKS:
-                        $calculateLatePack = true;
-                        $latePackComponents[] = $component;
-                        break;
-                    case Dashboard\ComponentType::HANDLING_TRACKING:
-                        $this->dashboardService->persistHandlingTracking($this->entityManager, $component);
-                        break;
-                    default:
-                        break;
-                }
-            } catch (Throwable $exception) {
-                if ($exception instanceof DashboardException) {
-                    $component->setErrorMessage($exception->getMessage());
-                } else {
-                    $component->setErrorMessage("Erreur : Impossible de charger le composant");
-                }
-                $this->entityManager = $this->getEntityManager();
-            }
+            $this->messageBus->dispatch(new CalculateDashboardFeedingMessage($component->getId(), null));
+            $this->entityManager->flush();
         }
 
-        try {
-            if ($calculateLatePack) {
-                $this->dashboardService->persistEntitiesLatePack($this->entityManager);
-            }
-        } catch (Throwable $exception) {
-            foreach ($latePackComponents as $latePackComponent) {
-                $latePackComponent->setErrorMessage("Erreur : Impossible de charger le composant");
-            }
-            $this->entityManager = $this->getEntityManager();
+        if ($calculateLatePack) {
+            $this->messageBus->dispatch(new CalculateDashboardFeedingMessage(null, $latePackComponentIds));
         }
 
-        $this->entityManager->flush();
-
-        $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
-        $this->entityManager->flush();
+        $this->messageBus->dispatch(new CalculateDashboardFeedingMessage(null, null));
 
         return 0;
     }
-
-    /**
-     * @return EntityManagerInterface
-     * @throws ORMException
-     */
-    private function getEntityManager(): EntityManagerInterface {
-        return $this->entityManager->isOpen()
-            ? $this->entityManager
-            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
-    }
-
 }
