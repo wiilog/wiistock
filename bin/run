@@ -18,6 +18,8 @@ function main(): void {
 
     $mode = $argv[1] ?? null;
 
+
+
     // check if the script is launched by command line
     if (!isset($argv)) {
         return;
@@ -26,6 +28,8 @@ function main(): void {
     switch ($mode) {
         // mode lite without cron & supervisor
         case 'lite':
+            // never end this script
+            passthru("php-fpm --allow-to-run-as-root");
             break;
 
         // default mode with cron & supervisor
