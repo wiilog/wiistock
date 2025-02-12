@@ -27,7 +27,7 @@ class DeliveryRequestTemplate extends RequestTemplate {
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $buttonIcon = null;
 
-    #[ORM\Column(type: Types::STRING, nullable: false, enumType: DeliveryRequestTemplateTypeEnum::class)]
+    #[ORM\Column(type: Types::STRING, nullable: false, enumType: DeliveryRequestTemplateTypeEnum::class, options: ["default" => DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION])]
     private ?DeliveryRequestTemplateTypeEnum $deliveryRequestTemplateType;
 
     public function __construct() {
