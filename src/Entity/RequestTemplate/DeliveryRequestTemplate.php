@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Entity\Tracking\TrackingEvent;
-use App\Repository\IOT\DeliveryRequestTemplateRepository;
+use App\Repository\RequestTemplate\DeliveryRequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

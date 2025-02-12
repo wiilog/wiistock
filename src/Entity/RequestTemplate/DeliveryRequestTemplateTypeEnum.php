@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
 enum DeliveryRequestTemplateTypeEnum: string {
     case TRIGGER_ACTION = "TriggerAction";

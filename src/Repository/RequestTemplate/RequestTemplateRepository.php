@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\IOT;
+namespace App\Repository\RequestTemplate;
 
-use App\Entity\IOT\RequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplate;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;

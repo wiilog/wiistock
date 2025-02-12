@@ -3,8 +3,8 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\StatutRepository;

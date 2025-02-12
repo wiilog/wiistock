@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
-use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\RequestTemplate\RequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

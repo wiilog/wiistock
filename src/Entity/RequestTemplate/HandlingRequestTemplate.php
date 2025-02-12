@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
 use App\Entity\Interfaces\AttachmentContainer;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
-use App\Repository\IOT\HandlingRequestTemplateRepository;
+use App\Repository\RequestTemplate\HandlingRequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 

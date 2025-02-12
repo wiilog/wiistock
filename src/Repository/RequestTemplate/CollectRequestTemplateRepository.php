@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\IOT;
+namespace App\Repository\RequestTemplate;
 
-use App\Entity\IOT\CollectRequestTemplate;
+use App\Entity\RequestTemplate\CollectRequestTemplate;
 
 /**
  * @method CollectRequestTemplate|null find($id, $lockMode = null, $lockVersion = null)

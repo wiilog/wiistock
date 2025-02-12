@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\IOT;
+namespace App\Repository\RequestTemplate;
 
-use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplate;
 
 /**
  * @method DeliveryRequestTemplate|null find($id, $lockMode = null, $lockVersion = null)

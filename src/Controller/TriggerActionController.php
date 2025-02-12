@@ -4,23 +4,23 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
-use App\Entity\IOT\AlertTemplate;
-use App\Entity\IOT\RequestTemplate;
+use App\Entity\Action;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
-use App\Entity\Action;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\RequestTemplate\RequestTemplate;
 use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route("/iot/actionneurs")]
 class TriggerActionController extends AbstractController

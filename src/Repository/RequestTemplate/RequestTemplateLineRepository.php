@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Repository\IOT;
+namespace App\Repository\RequestTemplate;
 
-use App\Entity\IOT\CollectRequestTemplate;
-use App\Entity\IOT\DeliveryRequestTemplate;
-use App\Entity\IOT\RequestTemplate;
-use App\Entity\IOT\RequestTemplateLine;
+use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplateLine;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
