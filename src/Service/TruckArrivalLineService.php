@@ -93,16 +93,16 @@ class TruckArrivalLineService
 
     // TODO WIIS-11888
     public function lineIsLate(TruckArrivalLine $line, EntityManagerInterface $entityManager): bool {
-        if (!$line->getArrivals()->isEmpty()) {
-            return false;
-        }
+        $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
         $beforeStart = $this->settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_START);
         $beforeEnd = $this->settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END);
         $afterStart = $this->settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START);
         $afterEnd = $this->settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END);
 
-        if (!$beforeStart || !$beforeEnd || !$afterStart || !$afterEnd) {
+        if (!$beforeStart || !$beforeEnd || !$afterStart || !$afterEnd
+            || empty($workedDays)
+            || !$line->getArrivals()->isEmpty()) {
             return false;
         }
 
@@ -132,14 +132,6 @@ class TruckArrivalLineService
 
         $nextWorkedDay = clone $dateLine;
         $nextWorkedDay->setTime(0, 0, 0);
-        $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
-
-        /**
-         * Prevent infinite loop
-         */
-        if(empty($workedDays)){
-           return false;
-        }
 
         do {
             $nextWorkedDay->modify('+1 day');
