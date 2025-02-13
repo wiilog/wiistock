@@ -113,51 +113,70 @@ class CacheService
     }
 
     /**
-     * TODO WIIS-11930
+     * This method let us get a setting entity without any database request.
+     * $keys parameters is a set of key associated to the requested entity.
+     * If the id of this entity is known in cache we call the EntityManagerInterface::getReference to create a related object.
+     * Else by a database request we get the requested entity and we save its id in the cache (single case of database request).
+     * A setting entity could be a Status or a Type which don't change (or rarely).
      *
-     * @template T
-     * @param class-string<T> $className Classname of requested entity
+     * If the requested entity is not known in database we return null
+     *
+     * @param class-string<T> $class Class name of requested entity
      * @param string|int ...$keys Set of parameters associated to the requested entity
      *
-     * @return T
+     * @return T|null
+     *@see EntityManagerInterface::getReference()
+     *
+     * @template T
      */
     public function getEntity(EntityManagerInterface $entityManager,
-                              string                 $className,
+                              string                 $class,
                               string|int             ...$keys): mixed {
 
         if (empty($data)) {
             throw new \Exception("Invalid usage: you should pass keys associated to the entity");
         }
 
-        $dictionaryCacheKey = str_replace("\\", "_", $className);
+        $dictionaryCacheKey = str_replace("\\", "_", $class);
         $entityDictionary = $this->get(self::COLLECTION_ENTITIES_DICTIONARY, $dictionaryCacheKey) ?: [];
 
         $keyInDictionary = Stream::from($keys)->join('_');
+        $savedInCache = array_key_exists($keyInDictionary, $entityDictionary);
         $entityId = $entityDictionary[$keyInDictionary] ?? null;
-        if (!$entityId) {
-            $entity = $this->getEntityInDatabase($entityManager, $className, ...$keys);
-            $entityDictionary[$keyInDictionary] = $entity->getId();
+
+        if (!$savedInCache) {
+            $entity = $this->getEntityInDatabase($entityManager, $class, ...$keys);
+
+            $entityDictionary[$keyInDictionary] = $entity?->getId();
             $this->set(self::COLLECTION_ENTITIES_DICTIONARY, $dictionaryCacheKey, $entityDictionary);
+
             return $entity;
         }
 
-        return $entityManager->getReference($className, $entityId);
+        return $entityId
+            ? $entityManager->getReference($class, $entityId)
+            : null;
     }
 
     /**
-     * TODO WIIS-11930
+     * Method associated to self::getEntity
+     * Retrieve entity corresponding to $keys parameters (set of key associated to the requested entity).
+     * Call right method of the right repository for the requested class
+     *
      * @template T
-     * @param class-string<T> $className
+     * @param class-string<T> $class Class name of requested entity
+     * @param string|int ...$keys Set of parameters associated to the requested entity
+     *
      * @return T|null
      */
     private function getEntityInDatabase(EntityManagerInterface $entityManager,
-                                         string                 $className,
+                                         string                 $class,
                                          string|int             ...$keys): mixed {
         $statusRepository = $entityManager->getRepository(Statut::class);
 
-        return match ($className) {
+        return match ($class) {
             Statut::class => $statusRepository->findOneByCategorieNameAndStatutCode(...$keys),
-            default       => throw new \Exception('Unavailable classname given'),
+            default       => throw new \Exception('Unavailable $class parameter given'),
         };
     }
 }
