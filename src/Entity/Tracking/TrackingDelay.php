@@ -141,13 +141,25 @@ class TrackingDelay {
         return $this;
     }
 
-    public function setRecords(?iterable $records): self {
+    /**
+     * @param iterable<TrackingDelayRecord> $records
+     */
+    public function setRecords(iterable $records): self {
         foreach($this->getRecords()->toArray() as $record) {
             $this->removeRecord($record);
         }
 
         $this->records = new ArrayCollection();
-        foreach($records ?? [] as $record) {
+        $this->addRecords($records);
+
+        return $this;
+    }
+
+    /**
+     * @param iterable<TrackingDelayRecord> $records
+     */
+    public function addRecords(iterable $records): self {
+        foreach($records as $record) {
             $this->addRecord($record);
         }
 
