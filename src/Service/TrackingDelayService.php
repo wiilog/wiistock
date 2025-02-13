@@ -38,6 +38,7 @@ class TrackingDelayService {
 
         $lastTrackingEvent = $data['lastTrackingEvent'] ?? null;
         $limitTreatmentDate = $data['limitTreatmentDate'] ?? null;
+        $calculatedDelayInheritCurrent = $data['calculatedDelayInheritCurrent'] ?? null;
         $calculatedElapsedTime = $data['elapsedTime'] ?? null;
         $records = $data['records'] ?? [];
 
@@ -46,16 +47,22 @@ class TrackingDelayService {
                 ?->setStoppedByMovementEdit(true);
         }
         else {
-            $trackingDelay = $this->createTrackingDelay(
-                $pack,
-                $calculatedElapsedTime,
-                $lastTrackingEvent,
-                $limitTreatmentDate,
-                $records
-            );
+            $trackingDelay = $pack->getCurrentTrackingDelay();
+            if ($calculatedDelayInheritCurrent && $trackingDelay) {
+                $trackingDelay->addRecords($records);
+            }
+            else {
+                $trackingDelay = $this->createTrackingDelay(
+                    $pack,
+                    $calculatedElapsedTime,
+                    $lastTrackingEvent,
+                    $limitTreatmentDate,
+                    $records
+                );
 
-            $pack->setLastTrackingDelay($trackingDelay);
-            $entityManager->persist($trackingDelay);
+                $pack->setLastTrackingDelay($trackingDelay);
+                $entityManager->persist($trackingDelay);
+            }
         }
     }
 
@@ -108,7 +115,7 @@ class TrackingDelayService {
         // Store tracking event of the second movement of an interval
         // ==> To get the tracking event which finish the delay calculation
         $lastTrackingEvent = null;
-        $records = [];
+        $calculatedRecords = [];
 
         if (!isset($timerStartedAt)) {
             return null;
@@ -132,11 +139,10 @@ class TrackingDelayService {
             $timerStartedBy
         );
 
-        $pushRecord = static function (TrackingDelayRecord $record) use (&$records) {
-            if (!$record->isNow()) {
-                $records[] = $record;
-            }
-        };
+        $previousRecords = $pack->getCurrentTrackingDelay()?->getRecords()?->toArray() ?: [];
+        $previousRecordsCursor = -1;
+        $calculatedDelayInheritCurrent = !empty($previousRecords);
+        $previousCurrentRecord = null;
 
         $getRemainingDelay = static function (int      $delay,
                                               DateTime $begin,
@@ -162,11 +168,12 @@ class TrackingDelayService {
             $oldRemainingNatureDelay = $remainingNatureDelay ?? $natureTrackingDelay;
             ["delay" => $remainingNatureDelay] = $getRemainingDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
 
+            // set remaining time before check push records in calculated records array
             $segmentStart->setRemainingTrackingDelay($oldRemainingNatureDelay);
             $segmentEnd->setRemainingTrackingDelay($remainingNatureDelay);
 
-            $pushRecord($segmentStart);
-            $pushRecord($segmentEnd);
+            $this->pushTrackingDelayRecord($calculatedRecords, $segmentStart, $calculatedDelayInheritCurrent, $previousRecords, $previousRecordsCursor, $previousCurrentRecord);
+            $this->pushTrackingDelayRecord($calculatedRecords, $segmentEnd, $calculatedDelayInheritCurrent, $previousRecords, $previousRecordsCursor, $previousCurrentRecord);
 
             // increment limit treatment date while nature tracking delay is positive
             if ($remainingNatureDelay > 0) {
@@ -198,10 +205,11 @@ class TrackingDelayService {
         }
 
         return [
-            "elapsedTime"        => $calculatedElapsedTime ?? null,
+            "elapsedTime" => $calculatedElapsedTime ?? null,
             "limitTreatmentDate" => $limitTreatmentDate ?? null,
-            "lastTrackingEvent"  => $lastTrackingEvent,
-            "records"            => $records,
+            "lastTrackingEvent" => $lastTrackingEvent,
+            "calculatedDelayInheritCurrent" => $calculatedDelayInheritCurrent,
+            "records" => $calculatedRecords,
         ];
     }
 
@@ -442,5 +450,33 @@ class TrackingDelayService {
             ->setTrackingEvent($recordArray["trackingEvent"] ?? null)
             ->setDate($recordArray["date"] ?? null)
             ->setNow($recordArray["now"] ?? false);
+    }
+
+    /**
+     * @param TrackingDelayRecord[] $records
+     */
+    private function pushTrackingDelayRecord(array                &$records,
+                                             TrackingDelayRecord  $record,
+                                             bool                 &$calculatedDelayInheritCurrent,
+                                             array                  $previousRecords,
+                                             int                &$previousRecordsCursor,
+                                             ?TrackingDelayRecord &$previousRecord): void {
+
+        $previousRecord = $calculatedDelayInheritCurrent && $previousRecord
+            ? ($previousRecords[++$previousRecordsCursor] ?? null)
+            : null;
+
+        if (!$record->isNow()) {
+            if ($calculatedDelayInheritCurrent
+                && $previousRecord
+                && !$record->equals($previousRecord)) {
+                $calculatedDelayInheritCurrent = false;
+            }
+
+            if (!$calculatedDelayInheritCurrent
+                || !$previousRecord) {
+                $records[] = $record;
+            }
+        }
     }
 }
