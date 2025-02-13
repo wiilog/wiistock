@@ -83,6 +83,7 @@ Encore
     .addEntry('security-reset-password', '/assets/js/pages/security/reset-password.js')
     .addEntry('arrival-show', './assets/js/pages/arrival/show.js')
     .addEntry('arrival-index', './assets/js/pages/arrival/index.js')
+    .addEntry('arrival-ai-dn-reader', './assets/js/pages/arrival/ai-dn-reader.js')
     .addEntry('dispatch-index', '/assets/js/pages/dispatch/index.js')
     .addEntry('dispatch-show', '/assets/js/pages/dispatch/show.js')
     .addEntry('dispute-index', '/assets/js/pages/dispute/index.js')
