@@ -3,9 +3,10 @@
 <div>
     {% if export.id %}
         <input type="hidden" name="exportId" value="{{ export.id }}"/>
-        {% set isRelativeDate = export.stockEntryMinusDay and export.stockEntryAdditionalDay %}
+        {% set isRelativeDate = export.stockEntryMinusDay is not null and export.stockEntryAdditionalDay is not null %}
+
     {% else %}
-        {% set isRelativeDate = null %}
+        {% set isRelativeDate = false %}
     {% endif %}
     {{ form.radio('type', null, false, [
         {label: 'Export CSV unique', value: constant('App\\Controller\\Settings\\DataExportController::EXPORT_UNIQUE'), checked: not export.type or export.type.label == constant('App\\Entity\\Type::LABEL_UNIQUE_EXPORT'), disabled: export.id is not null},
@@ -189,7 +190,7 @@
                         label: "Date fixe d'entrée en stock",
                         class: "fixed-date",
                         value: "fixed-date",
-                        checked: isRelativeDate ? not isRelativeDate : true
+                        checked: not isRelativeDate
                     }
                 ]) }}
                 <div class="fixed-date-inputs form-group col-6 pl-0 mt-2">
@@ -228,7 +229,7 @@
                 ]) }}
                 <div class="d-flex align-items-center mt-2">
                     Entre la date du jour -
-                    {{ form.input('minus-day', null, false, export.stockEntryMinusDay ?? 0, {
+                    {{ form.input('minus-day', null, false, export.stockEntryMinusDay, {
                         type: 'number',
                         isLabelFree: true,
                         inputClass: 'form-control-sm mx-2 w-px-70 minus-day-data',
@@ -238,7 +239,7 @@
                         }]
                     }) }}
                     et
-                    {{ form.input('additional-day', null, false, export.stockEntryAdditionalDay ?? 0, {
+                    {{ form.input('additional-day', null, false, export.stockEntryAdditionalDay, {
                         type: 'number',
                         isLabelFree: true,
                         inputClass: 'form-control-sm mx-2 w-px-70 additional-day-data',

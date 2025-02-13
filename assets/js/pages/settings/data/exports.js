@@ -359,6 +359,13 @@ function createForm() {
                         return Promise.resolve();
                     }
 
+                    if ($modal.find(`[name=minus-day]`).val()
+                        && $modal.find(`[name=additional-day]`).val()
+                        && $modal.find(`[name=minus-day]`).val() < 0 && $modal.find(`[name=additional-day]`).val() < 0 ) {
+                        Flash.add(`danger`, `Les dates relative d'entrée en stock sont invalides`);
+                        return Promise.resolve();
+                    }
+
                     return AJAX.route(POST, route, params)
                         .json(data)
                         .then(({success}) => {
@@ -380,13 +387,15 @@ function onFormDateTypeChange(){
     const $minusDay = $modal.find('[name=minus-day]');
     const $additionalDay = $modal.find('[name=additional-day]');
 
-    if(radioArticleChecked === "fixed-date"){
-        $minusDay.val(0);
-        $additionalDay.val(0);
-    }
-    if(radioArticleChecked === "relative-date"){
-        $scheduledDateMin.val(null);
-        $scheduledDateMax.val(null);
+    switch(radioArticleChecked){
+        case "fixed-date":
+            $minusDay.val(null);
+            $additionalDay.val(null);
+            break;
+        case "relative-date":
+            $scheduledDateMin.val(null);
+            $scheduledDateMax.val(null);
+            break;
     }
 }
 
