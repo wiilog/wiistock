@@ -36,6 +36,7 @@ use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
 use App\Service\FilterSupService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
@@ -58,7 +59,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
@@ -1530,5 +1534,46 @@ class ArrivageController extends AbstractController
 
         $columns = $packService->getArrivalPackColumnVisibleConfig($currentUser);
         return new JsonResponse($columns);
+    }
+
+
+    #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: self::POST, condition: self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::TRACA, Action::CREATE])]
+    public function apiDeliveryNoteFile( Request                $request,
+                                         HttpClientInterface    $client): JsonResponse {
+        if ($request->files->has('file')) {
+            $dnReaderUrl = $_SERVER['DN_READER_URL'] ?? null;
+            if (!$dnReaderUrl) {
+                throw new FormException("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
+            }
+
+            $uploadedFile = $request->files->get('file');
+            $file = DataPart::fromPath($uploadedFile->getRealPath(), $uploadedFile->getClientOriginalName());
+            $formData = new FormDataPart([
+                "file" => $file,
+            ]);
+
+            $headers = $formData->getPreparedHeaders()->toArray();
+
+            try {
+                $apiRequest = $client->request(self::POST, $dnReaderUrl, [
+                    "headers" => $headers,
+                    "body" => $formData->bodyToIterable(),
+                ]);
+
+                $apiOutput = json_decode($apiRequest->getContent(), true);
+            } catch (\Throwable $e) {
+                if ($e->getCode() === 400 && $e->getMessage()) {
+                    throw new FormException($e->getMessage());
+                }
+            }
+
+            return $this->json([
+                "success" => true,
+                "data" => $apiOutput,
+            ]);
+        } else {
+            throw new FormException('Aucun fichier n\'a été importé');
+        }
     }
 }

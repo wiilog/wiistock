@@ -2,7 +2,7 @@
 
 {% set addPhotoButton = addPhotoButton is defined and addPhotoButton %}
 
-<div class="attachments-container">
+<div class="attachments-container {{ containerClass is defined ? containerClass : "" }}">
     <div class="{{ bigger is defined ? bigger }} {{ addPhotoButton ? "d-flex flex-column" }}">
         {% set multiple = multiple is defined and multiple %}
         {% set required = required is defined and required %}
@@ -44,7 +44,7 @@
                             <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
                         {% endif %}
                         <button onclick="openFileExplorer($(this))"
-                                class="btn btn-primary {{ buttonOnly ? 'w-fit-content' }}"
+                                class="btn btn-primary {{ buttonOnly ? 'mr-2 w-fit-content' }}"
                                 type="button" {{ disabled ? 'disabled' }}>
                             <i class="fa fa-folder-open mr-2"></i>
                             {% if buttonOnly %}
