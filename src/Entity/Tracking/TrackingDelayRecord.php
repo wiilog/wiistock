@@ -148,4 +148,16 @@ class TrackingDelayRecord {
 
         return $this;
     }
+
+    public function equals(TrackingDelayRecord $record): bool {
+        return (
+            $record->getDate() === $this->getDate()
+            && $record->getTrackingEvent() === $this->getTrackingEvent()
+            && $record->getRemainingTrackingDelay() === $this->getRemainingTrackingDelay()
+            && $record->getType()?->getId() === $this->getType()?->getId()
+            && $record->getLocation()?->getId() === $this->getLocation()?->getId()
+            && $record->getNewNature()?->getId() === $this->getNewNature()?->getId()
+        );
+    }
+
 }
