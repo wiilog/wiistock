@@ -417,25 +417,21 @@ class Export extends ScheduledTask {
         return $this;
     }
 
-    public function getStockEntryMinusDay(): ?int
-    {
+    public function getStockEntryMinusDay(): ?int {
         return $this->stockEntryMinusDay;
     }
 
-    public function setStockEntryMinusDay(?int $stockEntryMinusDay): static
-    {
+    public function setStockEntryMinusDay(?int $stockEntryMinusDay): self {
         $this->stockEntryMinusDay = $stockEntryMinusDay;
 
         return $this;
     }
 
-    public function getStockEntryAdditionalDay(): ?int
-    {
+    public function getStockEntryAdditionalDay(): ?int {
         return $this->stockEntryAdditionalDay;
     }
 
-    public function setStockEntryAdditionalDay(?int $stockEntryAdditionalDay): static
-    {
+    public function setStockEntryAdditionalDay(?int $stockEntryAdditionalDay): self {
         $this->stockEntryAdditionalDay = $stockEntryAdditionalDay;
 
         return $this;
