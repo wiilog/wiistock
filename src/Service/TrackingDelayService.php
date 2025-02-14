@@ -32,8 +32,8 @@ class TrackingDelayService {
      * @see Pack::isBasicUnit()
      * @see Nature::getTrackingDelay()
      */
-    public function updateTrackingDelay(EntityManagerInterface $entityManager,
-                                        Pack                   $pack): void {
+    public function updatePackTrackingDelay(EntityManagerInterface $entityManager,
+                                            Pack                   $pack): void {
         $data = $this->calculateTrackingDelayData($entityManager, $pack);
 
         $lastTrackingEvent = $data['lastTrackingEvent'] ?? null;
@@ -43,49 +43,61 @@ class TrackingDelayService {
         $records = $data['records'] ?? [];
 
         if (!isset($calculatedElapsedTime)) {
-            $pack->getCurrentTrackingDelay()
-                ?->setStoppedByMovementEdit(true);
+            $pack->setCurrentTrackingDelay(null);
         }
         else {
             $trackingDelay = $pack->getCurrentTrackingDelay();
-            if ($calculatedDelayInheritCurrent && $trackingDelay) {
-                $trackingDelay->addRecords($records);
-            }
-            else {
-                $trackingDelay = $this->createTrackingDelay(
-                    $pack,
-                    $calculatedElapsedTime,
-                    $lastTrackingEvent,
-                    $limitTreatmentDate,
-                    $records
-                );
 
-                $pack->setLastTrackingDelay($trackingDelay);
+            $isTrackingDelayUpdate = $calculatedDelayInheritCurrent && $trackingDelay;
+
+            if (!$isTrackingDelayUpdate) {
+                $trackingDelay = new TrackingDelay();
+                $trackingDelay->setPack($pack);
+
                 $entityManager->persist($trackingDelay);
             }
+
+            $this->updateTrackingDelay(
+                $trackingDelay,
+                $calculatedElapsedTime,
+                $lastTrackingEvent,
+                $limitTreatmentDate,
+                $records,
+                !$isTrackingDelayUpdate
+            );
+
+            // after updateTrackingDelay
+            $pack->setCurrentTrackingDelay(
+                $trackingDelay->getLastTrackingEvent() !== TrackingEvent::STOP
+                    ? $trackingDelay
+                    : null
+            );
         }
     }
 
     /**
      * @param TrackingDelayRecord[] $records
      */
-    private function createTrackingDelay(Pack           $pack,
+    private function updateTrackingDelay(TrackingDelay  $trackingDelay,
                                          int            $elapsedTime,
                                          ?TrackingEvent $lastTrackingEvent,
                                          ?DateTime      $limitTreatmentDate,
-                                         array          $records): TrackingDelay {
+                                         array          $records,
+                                         bool           $replaceRecords = true): void {
         $now = new DateTime();
 
-        $trackingDelay = new TrackingDelay();
         $trackingDelay
-            ->setPack($pack)
             ->setElapsedTime($elapsedTime)
             ->setCalculatedAt($now)
             ->setLastTrackingEvent($lastTrackingEvent)
-            ->setLimitTreatmentDate($limitTreatmentDate)
-            ->setRecords($records);
+            ->setLimitTreatmentDate($limitTreatmentDate);
 
-        return $trackingDelay;
+        if ($replaceRecords) {
+            $trackingDelay->setRecords($records);
+        }
+        else {
+            $trackingDelay->addRecords($records);
+        }
     }
 
     /**
@@ -93,11 +105,17 @@ class TrackingDelayService {
      *  - The elapsed time of the pack to be treated,
      *  - the limit treatment date of the pack according to its nature
      *  - lastTrackingEvent: the event of the last movement on the pack
+     *  - calculatedDelayInheritCurrent: If TRUE then records array contains records in addition
+     *    of the records already existing in database. If FALSE then the calculated elapsedTime can replace existing one in database
+     *    and records array contains some record which can replace some records already existing in database
+     *  - records: Records representing the returned elapsedTime
      *
      * @return null|array{
      *     lastTrackingEvent?: TrackingEvent|null,
      *     limitTreatmentDate?: DateTime|null,
      *     elapsedTime?: int|null,
+     *     calculatedDelayInheritCurrent: boolean,
+     *     records: TrackingDelayRecord[],
      * }
      */
     private function calculateTrackingDelayData(EntityManagerInterface $entityManager,
@@ -458,8 +476,8 @@ class TrackingDelayService {
     private function pushTrackingDelayRecord(array                &$records,
                                              TrackingDelayRecord  $record,
                                              bool                 &$calculatedDelayInheritCurrent,
-                                             array                  $previousRecords,
-                                             int                &$previousRecordsCursor,
+                                             array                $previousRecords,
+                                             int                  &$previousRecordsCursor,
                                              ?TrackingDelayRecord &$previousRecord): void {
 
         $previousRecord = $calculatedDelayInheritCurrent && $previousRecord

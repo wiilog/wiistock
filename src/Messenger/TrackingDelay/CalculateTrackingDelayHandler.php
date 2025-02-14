@@ -35,7 +35,7 @@ class CalculateTrackingDelayHandler extends LoggedHandler
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $pack = $packRepository->findOneBy(["code" => $packCode]);
 
-        $this->trackingDelayService->updateTrackingDelay($this->entityManager, $pack);
+        $this->trackingDelayService->updatePackTrackingDelay($this->entityManager, $pack);
         $this->entityManager->flush();
     }
 }
