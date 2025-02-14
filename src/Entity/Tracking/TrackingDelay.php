@@ -32,9 +32,6 @@ class TrackingDelay {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $limitTreatmentDate = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
-    private ?bool $stoppedByMovementEdit = false;
-
     #[ORM\ManyToOne(targetEntity: Pack::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Pack $pack = null;
@@ -103,15 +100,6 @@ class TrackingDelay {
     public function setLimitTreatmentDate(?DateTime $limitTreatmentDate): self {
         $this->limitTreatmentDate = $limitTreatmentDate;
 
-        return $this;
-    }
-
-    public function isStoppedByMovementEdit(): ?bool {
-        return $this->stoppedByMovementEdit;
-    }
-
-    public function setStoppedByMovementEdit(?bool $stoppedByMovementEdit): self {
-        $this->stoppedByMovementEdit = $stoppedByMovementEdit;
         return $this;
     }
 
