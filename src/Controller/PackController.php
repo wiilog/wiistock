@@ -448,7 +448,7 @@ class PackController extends AbstractController {
     public function postTrackingDelay(EntityManagerInterface $entityManager,
                                       TrackingDelayService   $trackingDelayService,
                                       Pack                   $logisticUnit): JsonResponse {
-        $trackingDelayService->updateTrackingDelay($entityManager, $logisticUnit);
+        $trackingDelayService->updatePackTrackingDelay($entityManager, $logisticUnit);
 
         $entityManager->flush();
 

@@ -38,7 +38,7 @@ class CalculateTrackingDelayCommand extends Command {
             "code" => $input->getArgument("code"),
         ]);
 
-        $this->trackingDelayService->updateTrackingDelay($this->entityManager, $pack);
+        $this->trackingDelayService->updatePackTrackingDelay($this->entityManager, $pack);
         $this->entityManager->flush();
 
         return 0;
