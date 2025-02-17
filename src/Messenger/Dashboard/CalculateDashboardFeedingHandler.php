@@ -4,13 +4,11 @@ namespace App\Messenger\Dashboard;
 
 use App\Entity\Dashboard\Component;
 use App\Entity\Dashboard\ComponentType;
-use App\Entity\Wiilock;
 use App\Exceptions\DashboardException;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
 use App\Service\DashboardService;
 use App\Service\ExceptionLoggerService;
-use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
@@ -25,7 +23,6 @@ class CalculateDashboardFeedingHandler extends LoggedHandler
         private EntityManagerInterface $entityManager,
         private DashboardService       $dashboardService,
         private ExceptionLoggerService $loggerService,
-        private WiilockService         $wiilockService,
     ) {
         parent::__construct($this->loggerService);
     }
@@ -39,7 +36,6 @@ class CalculateDashboardFeedingHandler extends LoggedHandler
      */
     protected function process(MessageInterface $message): void {
         $componentId = $message->getComponentId();
-        $latePackComponentIds = $message->getLatePackComponentIds();
         $componentRepository = $this->entityManager->getRepository(Component::class);
 
         if($componentId) {
@@ -70,7 +66,6 @@ class CalculateDashboardFeedingHandler extends LoggedHandler
                         $this->dashboardService->persistEntriesToHandleByTrackingDelay($this->entityManager, $component);
                         break;
                     case ComponentType::ENTRIES_TO_HANDLE:
-                        throw new DashboardException("Erreur entrées à effectuer");
                         $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
                         break;
                     case ComponentType::PACK_TO_TREAT_FROM:
@@ -132,19 +127,6 @@ class CalculateDashboardFeedingHandler extends LoggedHandler
                 }
                 $this->entityManager = $this->getEntityManager();
             }
-            $this->entityManager->flush();
-        } else if(!empty($latePackComponentIds)) {
-            try {
-                $this->dashboardService->persistEntitiesLatePack($this->entityManager);
-            } catch (Throwable $exception) {
-                $latePackComponents = $componentRepository->findBy(["id" => $latePackComponentIds]);
-                foreach ($latePackComponents as $latePackComponent) {
-                    $latePackComponent->setErrorMessage("Erreur : Impossible de charger le composant");
-                }
-                $this->entityManager = $this->getEntityManager();
-            }
-        } else {
-            $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
             $this->entityManager->flush();
         }
     }
