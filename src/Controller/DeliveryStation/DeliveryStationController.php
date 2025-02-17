@@ -59,8 +59,7 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/formulaire/{token}", name: "delivery_station_form", options: ["expose" => true])]
-    public function form(string $token, Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function form(string $token, Request $request, EntityManagerInterface $entityManager): Response {
         if(!$this->getUser()) {
             return $this->redirectToRoute("login");
         }
@@ -229,19 +228,17 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
-    public function getFreeFields(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $freeFieldManagementRuleRepository = $entityManager->getRepository(FreeFieldManagementRule::class);
-        $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $request->query->get('token')]);
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($line->getDeliveryType(), CategorieCL::DEMANDE_LIVRAISON);
+    public function getFreeFields(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
 
-        $deliveryFreeFieldManagementRules = $freeFieldManagementRuleRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $line = $deliveryStationLineRepository->findOneBy(['token' => $request->query->get('token')]);
+        $deliveryFreeFieldManagementRules = $line?->getDeliveryType()?->getFreeFieldManagementRules();
+
         return $this->json([
-            'empty' => empty($freeFields),
-            'template' => !empty($freeFields) ?
+            'empty' => empty($deliveryFreeFieldManagementRules),
+            'template' => !empty($deliveryFreeFieldManagementRules) ?
                 $this->renderView('free_field/freeFieldsEdit.html.twig', [
                     'freeFieldManagementRules' => $deliveryFreeFieldManagementRules,
-                    'freeFields' => $freeFields,
                     'freeFieldValues' => [],
                     'colType' => "col-6",
                     'actionType' => "new",
