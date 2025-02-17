@@ -29,6 +29,7 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\IOT\AlertTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\Import;
@@ -3520,6 +3521,9 @@ class SettingsController extends AbstractController {
                 "label" => $template->getName(),
                 "value" => $template->getId(),
                 "selected" => $index === 0,
+                "delivery-request-type" => $template instanceof DeliveryRequestTemplate
+                    ? $template->getDeliveryRequestTemplateType()->value
+                    : null,
             ])
             ->toArray();
 

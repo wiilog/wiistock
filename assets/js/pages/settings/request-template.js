@@ -59,11 +59,32 @@ export function initializeRequestTemplates($container, canEdit) {
 
         $container.find(`.main-entity-content-item[data-type="${$(this).val()}"]`).each(function() {
             $(this).removeClass(`d-none`);
-        })
+        });
     }
 
     $container.arrive(`[name="deliveryType"],[name="collectType"],[name="handlingType"]`, onTypeChange);
     $container.on(`change`, `[name="deliveryType"],[name="collectType"],[name="handlingType"]`, onTypeChange);
+
+
+    function onDeliveryRequestTemplateTypeChange() {
+        const $deliveryRequestTemplateTypeSelect = $container.find(`[name="deliveryRequestTemplateType"]`);
+
+        if($deliveryRequestTemplateTypeSelect.length > 0) {
+            const isTriggerActionTemplate = $deliveryRequestTemplateTypeSelect.val() === 'TriggerAction';
+            $container.find('.template-references-table-container').toggleClass('d-none', !isTriggerActionTemplate);
+            table.config.minimumRows = isTriggerActionTemplate ? 1 : 0;
+        }
+    }
+
+    $entitySelect.on('change', function() {
+        const deliveryRequestType = $(this).find('option:selected').data('delivery-request-type');
+        const isTriggerActionTemplate = deliveryRequestType === 'TriggerAction';
+
+        $container.find('.template-references-table-container').toggleClass('d-none', !isTriggerActionTemplate);
+    });
+
+    $container.arrive(`[name="deliveryRequestTemplateType"]`, onDeliveryRequestTemplateTypeChange);
+    $container.on(`change`, `[name="deliveryRequestTemplateType"]`, onDeliveryRequestTemplateTypeChange);
 
     $container.on(`change`, `[name="reference"]`, function() {
         const $select = $(this);

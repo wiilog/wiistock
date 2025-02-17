@@ -25,6 +25,7 @@ use App\Entity\Reception;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
@@ -1264,6 +1265,9 @@ class SettingsService {
 
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
+            if($template instanceof DeliveryRequestTemplate && $template->getDeliveryRequestTemplateType()->value !== DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value) {
+                $tables["requestTemplates"] = [];
+            }
             $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
             $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($line) => [$line->getId(), $line])
