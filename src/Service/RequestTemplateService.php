@@ -7,6 +7,7 @@ use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
@@ -64,8 +65,11 @@ class RequestTemplateService {
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 
+            $attachments = $this->attachmentService->persistAttachments($this->manager, $files);
             $template->setRequestType($typeRepository->find($data["deliveryType"]))
                 ->setDestination($locationRepository->find($data["destination"]))
+                ->setDeliveryRequestTemplateType(DeliveryRequestTemplateTypeEnum::from($data['deliveryRequestTemplateType']))
+                ->setButtonIcon(!empty($attachments) ? $attachments[0] : null)
                 ->setComment($data["comment"] ?? null);
         } else if ($template instanceof CollectRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);

@@ -5,7 +5,6 @@ namespace App\Entity\RequestTemplate;
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
-use App\Entity\Tracking\TrackingEvent;
 use App\Repository\RequestTemplate\DeliveryRequestTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,6 +13,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepository::class)]
 class DeliveryRequestTemplate extends RequestTemplate {
+
+    const DELIVERY_REQUEST_TEMPLATE_TYPES = [
+        DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value => "Avec Référence",
+        DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK->value => "Sans Référence",
+    ];
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestTemplates')]
     private ?Emplacement $destination = null;
@@ -96,7 +100,7 @@ class DeliveryRequestTemplate extends RequestTemplate {
         return $this->deliveryRequestTemplateType;
     }
 
-    public function setDeliveryRequestTemplateType(?TrackingEvent $deliveryRequestTemplateType): self {
+    public function setDeliveryRequestTemplateType(?DeliveryRequestTemplateTypeEnum $deliveryRequestTemplateType): self {
         $this->deliveryRequestTemplateType = $deliveryRequestTemplateType;
         return $this;
     }
