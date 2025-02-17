@@ -28,10 +28,11 @@ class AlertRepository extends EntityRepository {
             $types = [$types];
         }
 
-        return $this->createQueryBuilder("a")
-            ->where("a.reference = :reference")
-            ->andWhere("a.type IN (:types)")
-            ->setParameter("reference", $reference)
+        return $this->createQueryBuilder("alert")
+            ->where("reference.barCode = :referenceBarCode")
+            ->andWhere("alert.type IN (:types)")
+            ->leftJoin("alert.reference", "reference")
+            ->setParameter("referenceBarCode", $reference->getBarCode())
             ->setParameter("types", $types)
             ->getQuery()
             ->getResult();
