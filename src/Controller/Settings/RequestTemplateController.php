@@ -12,12 +12,14 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\FixedFieldService;
+use App\Service\FormService;
 use App\Service\FreeFieldService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,11 +35,11 @@ use WiiCommon\Helper\Stream;
 #[Route('/parametrage')]
 class RequestTemplateController extends AbstractController {
 
-    #[Required]
-    public FixedFieldService $fieldsParamService;
-
-    #[Required]
-    public TranslationService $translation;
+    public function __construct(
+        private FixedFieldService $fieldsParamService,
+        private TranslationService $translation,
+        private FormService $formService
+    ) {}
 
     #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true], defaults: ["template" => null])]
     public function requestTemplateHeader(Request                   $request,
@@ -105,6 +107,40 @@ class RequestTemplateController extends AbstractController {
                 $data[] = [
                     "label" => "Commentaire",
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
+                ];
+
+                $data[] = [
+                    "label" => "Utilisation du modèle",
+                    "value" => $this->formService->macro(
+                        "select",
+                        "deliveryRequestTemplateType",
+                        null,
+                        true,
+                        [
+                            'items' => Stream::from(DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES)
+                                ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
+                                        "label" => $deliveryRequestTemplateType,
+                                        "value" => $key,
+                                        "selected" => $template?->getDeliveryRequestTemplateType()->value === $key,
+                                ])
+                                ->toArray()
+                            ,
+                        ]
+                    ),
+                ];
+
+                $buttonIcon = $template?->getButtonIcon();
+                $data[] = [
+                    "label" => "Icone du bouton",
+                    "value" => $this->renderView("form_element.html.twig", [
+                        "element" => "image",
+                        "arguments" => [
+                            "logo",
+                            null,
+                            false,
+                            $buttonIcon?->getFullPath(),
+                        ],
+                    ]),
                 ];
             }
             else if ($category === Type::LABEL_COLLECT) {
@@ -293,6 +329,16 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Destination",
                     "value" => FormatHelper::location($template->getDestination()),
                 ];
+                $data[] = [
+                    "label" => "Utilisation du modèle",
+                    "value" => DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES[$template->getDeliveryRequestTemplateType()->value],
+                ];
+                $data[] = $template->getButtonIcon()
+                    ? [
+                        "label" => "Icone du bouton",
+                        "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>",
+                    ]
+                    : [];
             } else if ($template instanceof CollectRequestTemplate) {
                 $data[] = [
                     "label" => "Objet",
