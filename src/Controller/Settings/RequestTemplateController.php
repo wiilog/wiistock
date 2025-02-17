@@ -19,6 +19,7 @@ use App\Entity\RequestTemplate\RequestTemplateLine;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\FixedFieldService;
+use App\Service\FormService;
 use App\Service\FreeFieldService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,11 +35,11 @@ use WiiCommon\Helper\Stream;
 #[Route('/parametrage')]
 class RequestTemplateController extends AbstractController {
 
-    #[Required]
-    public FixedFieldService $fieldsParamService;
-
-    #[Required]
-    public TranslationService $translation;
+    public function __construct(
+        private FixedFieldService $fieldsParamService,
+        private TranslationService $translation,
+        private FormService $formService
+    ) {}
 
     #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true], defaults: ["template" => null])]
     public function requestTemplateHeader(Request                   $request,
@@ -108,16 +109,24 @@ class RequestTemplateController extends AbstractController {
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
 
-                $deliveryRequestTemplateTypeOptions = Stream::from(DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES)
-                    ->map(function (string $deliveryRequestTemplateType, string $key) use ($template) {
-                        $selected = $template->getDeliveryRequestTemplateType()->value === $key ? "selected" : "";
-                        return "<option value='$key' $selected>$deliveryRequestTemplateType</option>";
-                    })
-                    ->join('');
-
                 $data[] = [
                     "label" => "Type du modèle",
-                    "value" => "<select name='deliveryRequestTemplateType' class='data form-control' required>$deliveryRequestTemplateTypeOptions</select>",
+                    "value" => $this->formService->macro(
+                        "select",
+                        "deliveryRequestTemplateType",
+                        null,
+                        true,
+                        [
+                            'items' => Stream::from(DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES)
+                                ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
+                                        "label" => $deliveryRequestTemplateType,
+                                        "value" => $key,
+                                        "selected" => $template->getDeliveryRequestTemplateType()->value === $key,
+                                ])
+                                ->toArray()
+                            ,
+                        ]
+                    ),
                 ];
 
                 $buttonIcon = $template?->getButtonIcon();
