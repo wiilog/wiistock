@@ -15,8 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 class DeliveryRequestTemplate extends RequestTemplate {
 
     const DELIVERY_REQUEST_TEMPLATE_TYPES = [
-        DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value => "Avec Référence",
-        DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK->value => "Sans Référence",
+        DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value => "Actionneur",
+        DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK->value => "Stock dormant",
     ];
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestTemplates')]
