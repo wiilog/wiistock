@@ -360,21 +360,9 @@ class TriggerActionController extends AbstractController
         if($type === TriggerAction::ALERT) {
             $templates = $alertTemplateRepository->getTemplateForSelect();
         } else {
-            $templates = Stream::from($requestTemplateRepository->findAll())
-                ->filterMap(static function(RequestTemplate $requestTemplate) {
-                    if((!$requestTemplate instanceof DeliveryRequestTemplate)
-                        || ($requestTemplate->getDeliveryRequestTemplateType()->value === DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value)) {
-                        return [
-                            "id" => $requestTemplate->getId(),
-                            "text" => $requestTemplate->getName(),
-                        ];
-                    }
-
-                    return null;
-                })
-                ->reindex()
-                ->toArray();
+            $templates = $requestTemplateRepository->getTemplateForSelect($entityManager);
         }
+
         return $this->json([
             "results" => $templates
         ]);

@@ -2,9 +2,15 @@
 
 namespace App\Repository\RequestTemplate;
 
+use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
+use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -55,11 +61,29 @@ class RequestTemplateRepository extends EntityRepository {
         ];
     }
 
-    public function getTemplateForSelect(){
+    public function getTemplateForSelect(EntityManagerInterface $entityManager){
         $qb = $this->createQueryBuilder("request_template");
 
+        $exprBuilder = $qb->expr();
         $qb->select("request_template.id AS id")
-            ->addSelect("request_template.name AS text");
+            ->addSelect("request_template.name AS text")
+            ->leftJoin(DeliveryRequestTemplate::class, 'deliveryRequestTemplate', Join::WITH, 'request_template.id = deliveryRequestTemplate.id')
+            ->leftJoin(CollectRequestTemplate::class, 'collectRequestTemplate', Join::WITH, 'request_template.id = collectRequestTemplate.id')
+            ->leftJoin(HandlingRequestTemplate::class, 'handlingRequestTemplate', Join::WITH, 'request_template.id = handlingRequestTemplate.id')
+            ->andWhere($exprBuilder->orX(
+                $exprBuilder->andX(
+                    "request_template INSTANCE OF :deliveryRequestTemplateClass",
+                    "deliveryRequestTemplate.deliveryRequestTemplateType = :deliveryRequestTemplateType",
+                ),
+                "request_template INSTANCE OF :collectRequestTemplateClass",
+                "request_template INSTANCE OF :handlingRequestTemplateClass",
+            ))
+            ->setParameters([
+                'deliveryRequestTemplateClass' => $entityManager->getClassMetadata(DeliveryRequestTemplate::class),
+                'collectRequestTemplateClass' => $entityManager->getClassMetadata(CollectRequestTemplate::class),
+                'handlingRequestTemplateClass' => $entityManager->getClassMetadata(HandlingRequestTemplate::class),
+                'deliveryRequestTemplateType' => DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value,
+            ]);
 
         return $qb->getQuery()->getResult();
     }
