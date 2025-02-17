@@ -1422,9 +1422,6 @@ class DashboardSettingsService {
                 }
                 break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                $locations = $config['locations'] ?? [];
-                $natures = $config['natures'] ?? [];
-
                 $values["firstComponentLink"] = $this->router->generate('pack_index', [
                     'dashboardComponentId' => $config['__componentId'],
                 ]);
@@ -1435,11 +1432,8 @@ class DashboardSettingsService {
                     ])
                     : null;
 
-                $values["thirdComponentLink"] = $this->router->generate('en_cours', [
-                    'locations' => implode(',', $locations),
-                    'natures' => implode(',', $natures),
-                    'fromDashboard' => true,
-                    'useTruckArrivalsFromDashboard' => false,
+                $values["thirdComponentLink"] = $this->router->generate('pack_index', [
+                    'dashboardComponentId' => $config['__componentId'],
                 ]);
 
                 $link = null;
