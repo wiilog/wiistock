@@ -110,7 +110,7 @@ class RequestTemplateController extends AbstractController {
                 ];
 
                 $data[] = [
-                    "label" => "Type du modèle",
+                    "label" => "Utilisation du modèle",
                     "value" => $this->formService->macro(
                         "select",
                         "deliveryRequestTemplateType",
@@ -121,7 +121,7 @@ class RequestTemplateController extends AbstractController {
                                 ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
                                         "label" => $deliveryRequestTemplateType,
                                         "value" => $key,
-                                        "selected" => $template->getDeliveryRequestTemplateType()->value === $key,
+                                        "selected" => $template?->getDeliveryRequestTemplateType()->value === $key,
                                 ])
                                 ->toArray()
                             ,
@@ -330,7 +330,7 @@ class RequestTemplateController extends AbstractController {
                     "value" => FormatHelper::location($template->getDestination()),
                 ];
                 $data[] = [
-                    "label" => "Type du modèle",
+                    "label" => "Utilisation du modèle",
                     "value" => DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES[$template->getDeliveryRequestTemplateType()->value],
                 ];
                 $data[] = $template->getButtonIcon()
