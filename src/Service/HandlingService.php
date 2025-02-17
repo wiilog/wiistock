@@ -68,7 +68,7 @@ class HandlingService {
     {
         $handlingRepository = $entityManager->getRepository(Handling::class);
 
-        $includeDesiredTime = (bool) $this->settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
+        $includeDesiredTime = !$this->settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
 
         $user = $this->userService->getUser();
 
