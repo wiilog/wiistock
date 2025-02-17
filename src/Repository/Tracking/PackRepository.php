@@ -264,6 +264,12 @@ class PackRepository extends EntityRepository
                             ->andWhere('filter_tracking_delay IS NOT NULL');
                         break;
                     }
+                case 'trackingEventTypes':
+                    $queryBuilder
+                        ->leftJoin('pack.trackingDelay', 'filter_tracking_delay_for_event')
+                        ->andWhere('filter_tracking_delay_for_event.lastTrackingEvent IN (:eventTypes)')
+                        ->setParameter('eventTypes', $filter['value']);
+                    break;
                 default:
                     break;
             }

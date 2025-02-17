@@ -1637,11 +1637,6 @@ class DashboardService {
             ->setLocation($locationToDisplay ?: '-');
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Dashboard\Component $component
-     * @throws Exception
-     */
     public function persistOngoingPacksWithTrackingDelay(EntityManagerInterface $entityManager,
                                                          Dashboard\Component $component): void {
         $config = $component->getConfig();

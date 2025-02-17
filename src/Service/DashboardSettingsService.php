@@ -1587,10 +1587,10 @@ class DashboardSettingsService {
     }
 
     private function serializeOngoingPacksWithTrackingDelay(EntityManagerInterface $manager,
-                                           Dashboard\ComponentType $componentType,
-                                           array $config,
-                                           bool $example = false,
-                                           DashboardMeter\Indicator $meter = null): array {
+                                                            Dashboard\ComponentType $componentType,
+                                                            array $config,
+                                                            bool $example = false,
+                                                            DashboardMeter\Indicator $meter = null): array {
         if ($example) {
             $values = $componentType->getExampleValues();
             if (!empty($config['locations'])) {

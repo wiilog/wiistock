@@ -19,8 +19,6 @@ let packsTableConfig = {
             locations: $('[name="emplacement"]').val(),
             isPackWithTracking: $('[name="packWithTracking"]').is(':checked'),
             fromDashboard: $('[name="fromDashboard"]').val(),
-            trackingDelayEventFilter: $('[name="trackingDelayEventFilter"]').val(),
-            trackingDelayLessThanFilter: $('[name="trackingDelayLessThanFilter"]').val(),
         },
     },
     rowConfig: {
@@ -61,7 +59,7 @@ $(function () {
     const requestQuery = GetRequestQuery();
 
     const codeUl = $('#lu-code').val();
-    if (!requestQuery.dashboardComponentId) {
+    if (!requestQuery.dashboardcomponentid) {
         if ((!codeUl || codeUl.length === 0)) {
             getUserFiltersByPage(PAGE_PACK);
         } else {
