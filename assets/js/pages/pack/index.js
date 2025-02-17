@@ -9,7 +9,11 @@ let packsTableConfig = {
     serverSide: true,
     processing: true,
     page: 'packList',
-    order: [['lastMovementDate', "desc"]],
+    order: [
+        $('[name="fromDashboard"]').val()
+            ? ['limitTreatmentDate', "asc"]
+            : ['lastMovementDate', "desc"]
+    ],
     ajax: {
         url: Routing.generate('pack_api', true),
         type: POST,
