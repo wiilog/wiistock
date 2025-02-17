@@ -86,9 +86,7 @@ function onDeliveryRequestTemplateTypeChange($container, table) {
     const $deliveryRequestTemplateTypeSelect = $container.find(`[name="deliveryRequestTemplateType"]`);
 
     if($deliveryRequestTemplateTypeSelect.length > 0) {
-        console.log('ddddd');
         const isTriggerActionTemplate = $deliveryRequestTemplateTypeSelect.val() === 'TriggerAction';
-        console.log(isTriggerActionTemplate);
         $container.find('.template-references-table-container').toggleClass('d-none', !isTriggerActionTemplate);
         table.config.minimumRows = isTriggerActionTemplate ? 1 : 0;
     }
