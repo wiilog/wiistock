@@ -12,6 +12,7 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
@@ -105,6 +106,32 @@ class RequestTemplateController extends AbstractController {
                 $data[] = [
                     "label" => "Commentaire",
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
+                ];
+
+                $deliveryRequestTemplateTypeOptions = Stream::from(DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES)
+                    ->map(function (string $deliveryRequestTemplateType, string $key) use ($template) {
+                        $selected = $template->getDeliveryRequestTemplateType()->value === $key ? "selected" : "";
+                        return "<option value='$key' $selected>$deliveryRequestTemplateType</option>";
+                    })
+                    ->join('');
+
+                $data[] = [
+                    "label" => "Type du modèle",
+                    "value" => "<select name='deliveryRequestTemplateType' class='data form-control' required>$deliveryRequestTemplateTypeOptions</select>",
+                ];
+
+                $buttonIcon = $template?->getButtonIcon();
+                $data[] = [
+                    "label" => "Icone du bouton",
+                    "value" => $this->renderView("form_element.html.twig", [
+                        "element" => "image",
+                        "arguments" => [
+                            "logo",
+                            null,
+                            false,
+                            $buttonIcon?->getFullPath(),
+                        ],
+                    ]),
                 ];
             }
             else if ($category === Type::LABEL_COLLECT) {
@@ -293,6 +320,16 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Destination",
                     "value" => FormatHelper::location($template->getDestination()),
                 ];
+                $data[] = [
+                    "label" => "Type du modèle",
+                    "value" => DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES[$template->getDeliveryRequestTemplateType()->value],
+                ];
+                $data[] = $template->getButtonIcon()
+                    ? [
+                        "label" => "Icone du bouton",
+                        "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>",
+                    ]
+                    : [];
             } else if ($template instanceof CollectRequestTemplate) {
                 $data[] = [
                     "label" => "Objet",
