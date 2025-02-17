@@ -62,21 +62,21 @@ class PackService {
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
-        $trackingDelayRepository = $this->entityManager->getRepository(TrackingDelay::class);
         $currentUser = $this->userService->getUser();
 
+        $filters = [];
         $fromDashboard = $params->getBoolean("fromDashboard");
         $naturesFilter = $params->all("natures");
         $locationsFilter = $params->all("locations");
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
-        $trackingDelayEventFilter = $params->get("trackingDelayEventFilter");
-        $trackingDelayLessThanFilter = $params->get("trackingDelayLessThanFilter");
-        $filters = [
-            ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
-            ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
-            ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
-            ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
-        ];
+        if($fromDashboard) {
+            $filters = [
+                ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
+                ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
+                ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
+                ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
+            ];
+        }
 
         if(empty($filters)) {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
@@ -86,33 +86,11 @@ class PackService {
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $currentUser->getLanguage() ?: $defaultLanguage;
 
-        $trackingDelayLessThan = $trackingDelayLessThanFilter ? $trackingDelayLessThanFilter * 60 : null;
-        $eventTypes = $trackingDelayEventFilter ? DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$trackingDelayEventFilter] : null;
-
-        if($fromDashboard && $naturesFilter && $locationsFilter && $eventTypes && $trackingDelayLessThan){
-            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, 200);
-            $packsByFilters = Stream::from($trackingDelayByFilters)
-                ->filter(function (TrackingDelay $trackingDelay) use ($trackingDelayLessThan) {
-                    $pack = $trackingDelay->getPack();
-                    $remainingTimeInSeconds = $this->getTrackingDelayRemainingTime($pack);
-
-                    return $remainingTimeInSeconds < $trackingDelayLessThan;
-                })
-                ->map(fn(TrackingDelay $trackingDelay) => $trackingDelay->getPack())
-                ->toArray();
-            $queryResult = [
-                "data" => $packsByFilters,
-                "count" => count($packsByFilters),
-                "total" => count($packsByFilters),
-            ];
-        } else {
-            $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
-                'defaultLanguage' => $defaultLanguage,
-                'language' => $language,
-                'fields' => $this->getPackListColumnVisibleConfig($currentUser),
-            ]);
-
-        }
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
+            'defaultLanguage' => $defaultLanguage,
+            'language' => $language,
+            'fields' => $this->getPackListColumnVisibleConfig($currentUser),
+        ]);
 
         $packs = $queryResult["data"];
         $rows = [];
