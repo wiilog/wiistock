@@ -23,15 +23,16 @@ use WiiCommon\Helper\Stream;
  */
 class AlertRepository extends EntityRepository {
 
-    public function findForReference($reference, $types) {
-        if(!is_array($types)) {
-            $types = [$types];
-        }
-
+    /**
+     * @param int[] $types
+     * @return Alert[]
+     */
+    public function findForReference(ReferenceArticle $reference,
+                                     array            $types): array {
         return $this->createQueryBuilder("alert")
-            ->where("reference.barCode = :referenceBarCode")
+            ->andWhere("reference.barCode = :referenceBarCode")
             ->andWhere("alert.type IN (:types)")
-            ->leftJoin("alert.reference", "reference")
+            ->innerJoin("alert.reference", "reference")
             ->setParameter("referenceBarCode", $reference->getBarCode())
             ->setParameter("types", $types)
             ->getQuery()
