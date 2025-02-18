@@ -14,7 +14,7 @@ class CalculateDashboardFeedingMessage implements UniqueMessage, MessageInterfac
     }
 
     public function getUniqueKey(): string {
-        return "Id du composant : $this->componentId";
+        return $this->componentId;
     }
 
     public function normalize(): array {

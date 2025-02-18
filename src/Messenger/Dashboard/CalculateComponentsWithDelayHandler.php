@@ -13,7 +13,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Throwable;
 
 #[AsMessageHandler]
-class CalculateLatePackComponentsFeedingHandler extends LoggedHandler
+class CalculateComponentsWithDelayHandler extends LoggedHandler
 {
 
     public function __construct(

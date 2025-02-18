@@ -6,8 +6,9 @@ namespace App\Command\Cron;
 
 use App\Entity\Dashboard;
 use App\Entity\Wiilock;
+use App\Messenger\Dashboard\CalculateComponentsWithDelayMessage;
 use App\Messenger\Dashboard\CalculateDashboardFeedingMessage;
-use App\Messenger\Dashboard\CalculateLatePackComponentsFeedingMessage;
+use App\Messenger\Dashboard\CalculateLatePackComponentsMessage;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
@@ -52,21 +53,29 @@ class DashboardFeedCommand extends Command {
         $components = $dashboardComponentRepository->findAll();
 
         $latePackComponentIds = [];
-        $components = Stream::from($components)
-            ->filter(static fn(Dashboard\Component $component) => $component->getType()->getMeterKey() !== Dashboard\ComponentType::LATE_PACKS)
-            ->toArray();
+        $componentsWithDelay = [];
 
         foreach ($components as $component) {
             if($component->getType()->getMeterKey() === Dashboard\ComponentType::LATE_PACKS) {
                 $latePackComponentIds[] = $component->getId();
+            } else if (in_array($component->getType()->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY])) {
+                $componentsWithDelay[] = $component;
             } else {
                 $this->messageBus->dispatch(new CalculateDashboardFeedingMessage($component->getId()));
                 $this->entityManager->flush();
             }
         }
 
+        Stream::from($componentsWithDelay)->reduce(function(array $carry, $component) {
+            dump($component);
+        }, []);
+
+        if (count($componentsWithDelay) > 0) {
+            $this->messageBus->dispatch(new CalculateComponentsWithDelayMessage([]));
+        }
+
         if (count($latePackComponentIds) > 0) {
-            $this->messageBus->dispatch(new CalculateLatePackComponentsFeedingMessage($latePackComponentIds));
+            $this->messageBus->dispatch(new CalculateLatePackComponentsMessage($latePackComponentIds));
         }
 
         return 0;

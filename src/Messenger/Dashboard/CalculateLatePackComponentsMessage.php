@@ -5,7 +5,7 @@ namespace App\Messenger\Dashboard;
 use App\Messenger\MessageInterface;
 use Symfony\Component\Messenger\Bridge\Doctrine\Transport\UniqueMessage;
 
-class CalculateLatePackComponentsFeedingMessage implements UniqueMessage, MessageInterface {
+class CalculateLatePackComponentsMessage implements UniqueMessage, MessageInterface {
 
     public function __construct(private array  $latePackComponentIds) {}
 
