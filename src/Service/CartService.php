@@ -193,11 +193,10 @@ class CartService {
             $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
 
-            $receiverUsername = $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE] ?? null;
-            if ($receiverUsername) {
-                $receiver = $utilisateurRepository->findOneBy(['username' => $receiverUsername]);
+            $receiverId = $data[FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE] ?? null;
+            if ($receiverId) {
+                $receiver = $utilisateurRepository->findOneBy(['id' => $receiverId]);
             }
-
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
@@ -210,7 +209,6 @@ class CartService {
                 UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
             );
             $deliveryRequest = new Demande();
-
             $deliveryRequest
                 ->setNumero($number)
                 ->setUtilisateur($user)
