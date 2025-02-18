@@ -235,8 +235,8 @@ class DeliveryStationController extends AbstractController
         $deliveryFreeFieldManagementRules = $line?->getDeliveryType()?->getFreeFieldManagementRules();
 
         return $this->json([
-            'empty' => empty($deliveryFreeFieldManagementRules),
-            'template' => !empty($deliveryFreeFieldManagementRules) ?
+            'empty' => $deliveryFreeFieldManagementRules->isEmpty(),
+            'template' => !$deliveryFreeFieldManagementRules->isEmpty() ?
                 $this->renderView('free_field/freeFieldsEdit.html.twig', [
                     'freeFieldManagementRules' => $deliveryFreeFieldManagementRules,
                     'freeFieldValues' => [],
