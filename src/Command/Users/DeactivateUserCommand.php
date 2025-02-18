@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
@@ -24,15 +25,15 @@ use WiiCommon\Helper\StringHelper;
     name: 'app:user:deactivate',
     description: 'Assign users matching a regex to inactive status. Or, if an email is provided, deactivate the corresponding user. Examples: php bin/console app:user:deactivate --regex ".*@wiilog\.fr" --force php bin/console app:user:deactivate --email admin@wiilog.fr',
 )]
-class DeactivateUserCommand extends Command
-{
-    private UtilisateurRepository $userRepository;
+class DeactivateUserCommand extends Command {
+
+    private SymfonyStyle $symfonyStyle;
+
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly UserService $userService,
+        private EntityManagerInterface $entityManager,
+        private UserService            $userService,
     ) {
         parent::__construct();
-        $this->userRepository = $this->entityManager->getRepository(Utilisateur::class);
     }
 
     protected function configure(): void
@@ -45,6 +46,8 @@ class DeactivateUserCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->symfonyStyle = new SymfonyStyle($input, $output);
+
         $email = $input->getOption('email');
         $regex = $input->getOption('regex');
         $force = $input->getOption('force');
@@ -63,7 +66,8 @@ class DeactivateUserCommand extends Command
 
     private function deactivateByEmail(string $email, OutputInterface $output): int
     {
-        $user = $this->userRepository->findOneByEmail($email);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $user = $userRepository->findOneByEmail($email);
 
         if (!$user) {
             $output->writeln('<error>User with this email not found.</error>');
@@ -76,6 +80,9 @@ class DeactivateUserCommand extends Command
         }
 
         $this->userService->deactivateUser($user);
+
+        $this->entityManager->flush();
+
         $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
 
         return Command::SUCCESS;
@@ -83,8 +90,9 @@ class DeactivateUserCommand extends Command
 
     private function deactivateByRegex(string $regex, bool $force, InputInterface $input, OutputInterface $output): int
     {
-        $users = $this->userRepository->iterateAllMatching($regex);
-        $userCount = $this->userRepository->countAllMatching($regex);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $users = $userRepository->iterateAllMatching($regex);
+        $userCount = $userRepository->countAllMatching($regex);
 
         if ($userCount === 0) {
             $output->writeln('<error>No users found matching the given regex.</error>');
@@ -92,7 +100,7 @@ class DeactivateUserCommand extends Command
         }
 
         if ($force) {
-            return $this->deactivateUsers($users, $output);
+            return $this->deactivateUsers($users, $userCount);
         }
 
         $output->writeln('<info>Users found:</info>');
@@ -124,18 +132,34 @@ class DeactivateUserCommand extends Command
         $selectedUsers = Stream::from($usersArray)
             ->filter(static fn(Utilisateur $user) => in_array($user->getEmail(), $emailsToDeactivate, true))
             ->toArray();
-        return $this->deactivateUsers($selectedUsers, $output);
+        return $this->deactivateUsers($selectedUsers, count($selectedUsers));
     }
 
     /**
      * @param iterable<Utilisateur> $users
      */
-    private function deactivateUsers(iterable $users, OutputInterface $output): int
+    private function deactivateUsers(iterable $users,
+                                     int $count): int
     {
+
+        $this->symfonyStyle->progressStart($count);
+
+        $treatedUsers = 0;
+
         foreach ($users as $user) {
             $this->userService->deactivateUser($user);
-            $output->writeln(sprintf('<info>%s successfully deactivated.</info>', $user->getEmail()));
+            $treatedUsers++;
+            if ($treatedUsers % 100 === 0) {
+                $this->entityManager->flush();
+                $this->symfonyStyle->progressAdvance(100);
+            }
         }
+
+        $this->entityManager->flush();
+        $this->symfonyStyle->progressFinish();
+
+        $sUser = $count > 1 ? 's' : '';
+        $this->symfonyStyle->writeln("<info>$count user$sUser successfully deactivated.</info>");
 
         return Command::SUCCESS;
     }

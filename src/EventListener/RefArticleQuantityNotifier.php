@@ -5,6 +5,9 @@ namespace App\EventListener;
 use App\Entity\ReferenceArticle;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\PostFlushEventArgs;
+use Doctrine\ORM\Event\PrePersistEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use JetBrains\PhpStorm\Deprecated;
 use Symfony\Contracts\Service\Attribute\Required;
 
@@ -14,41 +17,48 @@ class RefArticleQuantityNotifier {
     #[Required]
     public RefArticleDataService $refArticleService;
 
-    #[Required]
-    public EntityManagerInterface $entityManager;
-
     public static bool $disableReferenceUpdate = false;
 
     private static array $untreatedReferences = [];
 
     #[Deprecated]
-    public function preUpdate(ReferenceArticle $referenceArticle): void {
-        $this->handleReference($referenceArticle);
+    public function preUpdate(ReferenceArticle $referenceArticle,
+                              PreUpdateEventArgs $args): void {
+        $this->handleReference(
+            $args->getObjectManager(),
+            $referenceArticle
+        );
     }
 
     #[Deprecated]
-    public function prePersist(ReferenceArticle $referenceArticle): void {
-        $this->handleReference($referenceArticle);
+    public function prePersist(ReferenceArticle $referenceArticle,
+                               PrePersistEventArgs $args): void {
+        $this->handleReference(
+            $args->getObjectManager(),
+            $referenceArticle
+        );
     }
 
 
     #[Deprecated]
-    public function postFlush(): void {
+    public function postFlush(PostFlushEventArgs $args): void {
+        $entityManager = $args->getObjectManager();
         if (!self::$disableReferenceUpdate
-            && $this->entityManager->isOpen()
+            && $entityManager->isOpen()
             && !empty(self::$untreatedReferences)) {
             foreach (self::$untreatedReferences as $referenceArticle) {
-                $this->refArticleService->treatAlert($this->entityManager, $referenceArticle);
+                $this->refArticleService->treatAlert($entityManager, $referenceArticle);
             }
             self::$untreatedReferences = [];
-            $this->entityManager->flush();
+            $entityManager->flush();
         }
     }
 
     #[Deprecated]
-    private function handleReference(ReferenceArticle $referenceArticle): void
+    private function handleReference(EntityManagerInterface $entityManager,
+                                     ReferenceArticle $referenceArticle): void
     {
-        if (!self::$disableReferenceUpdate && $this->entityManager->isOpen()) {
+        if (!self::$disableReferenceUpdate && $entityManager->isOpen()) {
             $barCode = $referenceArticle->getBarCode();
             $available = ($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
             $referenceArticle->setQuantiteDisponible($available);
