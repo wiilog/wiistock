@@ -24,12 +24,12 @@ class CalculateLatePackComponentsHandler extends LoggedHandler
         parent::__construct($this->loggerService);
     }
 
-    public function __invoke(CalculateDashboardFeedingMessage $message): void {
+    public function __invoke(CalculateLatePackComponentsMessage $message): void {
         $this->handle($message);
     }
 
     /**
-     * @param CalculateDashboardFeedingMessage $message Not typed in php to implement LoggedHandler
+     * @param CalculateLatePackComponentsMessage $message Not typed in php to implement LoggedHandler
      */
     protected function process(MessageInterface $message): void {
         $latePackComponentIds = $message->getLatePackComponentIds();

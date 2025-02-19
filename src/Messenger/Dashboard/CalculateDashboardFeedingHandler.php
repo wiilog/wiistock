@@ -62,9 +62,6 @@ class CalculateDashboardFeedingHandler extends LoggedHandler
                     case ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
                         $this->dashboardService->persistArrivalsAndPacksMeter($this->entityManager, $component);
                         break;
-                    case ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                        $this->dashboardService->persistEntriesToHandleByTrackingDelay($this->entityManager, $component);
-                        break;
                     case ComponentType::ENTRIES_TO_HANDLE:
                         $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
                         break;

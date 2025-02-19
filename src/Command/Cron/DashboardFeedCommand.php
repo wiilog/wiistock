@@ -53,29 +53,28 @@ class DashboardFeedCommand extends Command {
         $components = $dashboardComponentRepository->findAll();
 
         $latePackComponentIds = [];
-        $componentsWithDelay = [];
+        $componentsWithDelayIds = [];
 
         foreach ($components as $component) {
             if($component->getType()->getMeterKey() === Dashboard\ComponentType::LATE_PACKS) {
                 $latePackComponentIds[] = $component->getId();
-            } else if (in_array($component->getType()->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY])) {
-                $componentsWithDelay[] = $component;
+//            } else if (in_array($component->getType()->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY])) {
+            } else if (in_array($component->getType()->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY])) {
+                $componentsWithDelayIds[] = $component->getId();
             } else {
                 $this->messageBus->dispatch(new CalculateDashboardFeedingMessage($component->getId()));
                 $this->entityManager->flush();
             }
         }
 
-        Stream::from($componentsWithDelay)->reduce(function(array $carry, $component) {
-            dump($component);
-        }, []);
-
-        if (count($componentsWithDelay) > 0) {
-            $this->messageBus->dispatch(new CalculateComponentsWithDelayMessage([]));
+        if (count($componentsWithDelayIds) > 0) {
+            $this->messageBus->dispatch(new CalculateComponentsWithDelayMessage($componentsWithDelayIds));
+            $this->entityManager->flush();
         }
 
         if (count($latePackComponentIds) > 0) {
             $this->messageBus->dispatch(new CalculateLatePackComponentsMessage($latePackComponentIds));
+            $this->entityManager->flush();
         }
 
         return 0;
