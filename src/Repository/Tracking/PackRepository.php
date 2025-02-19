@@ -265,22 +265,28 @@ class PackRepository extends EntityRepository
                         break;
                     }
                 case 'trackingEventTypes':
-                    $queryBuilder->leftJoin('pack.trackingDelay', 'filter_tracking_delay_for_event');
 
-                    if (in_array(null, $filter['value'], true)) {
-                        $filteredEvents = array_filter($filter['value'], fn($event) => $event !== null);
+                    $events = $filter['value'];
+                    $expr = $queryBuilder->expr();
+                    $orX = $expr->orX();
 
-                        if (empty($filteredEvents)) {
-                            $queryBuilder->andWhere('filter_tracking_delay_for_event.lastTrackingEvent IS NULL');
-                        } else {
-                            $queryBuilder->andWhere(
-                                '(filter_tracking_delay_for_event.lastTrackingEvent IN (:events) OR filter_tracking_delay_for_event.lastTrackingEvent IS NULL)'
-                            )->setParameter('events', $filteredEvents);
-                        }
-                    } else {
-                        $queryBuilder->andWhere('filter_tracking_delay_for_event.lastTrackingEvent IN (:events)')
-                            ->setParameter('events', $filter['value']);
+                    if (in_array(null, $events, true)) {
+                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IS NULL');
                     }
+
+                    $filteredEvents = Stream::from($events)
+                        ->filter(static fn($event) => $event !== null)
+                        ->toArray();
+                    if (!empty($filteredEvents)) {
+                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IN (:events)');
+                        $queryBuilder->setParameter('events', $filteredEvents);
+                    }
+
+                    // TODO WIIS-11930 change join
+                    $queryBuilder
+                        ->innerJoin('pack.trackingDelay', 'filter_tracking_delay_for_event')
+                        ->andWhere($orX);
+                    break;
                 default:
                     break;
             }

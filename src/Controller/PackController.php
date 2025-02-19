@@ -83,7 +83,7 @@ class PackController extends AbstractController {
                 : [];
             $isPackWithTracking = true;
 
-            $trackingDelayEvent = $config["treatmentDelayType"];
+            $trackingDelayEvent = $config["treatmentDelayType"] ?? null;
         }
 
         return $this->render('pack/index.html.twig', [
