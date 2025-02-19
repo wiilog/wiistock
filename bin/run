@@ -18,6 +18,8 @@ function main(): void {
 
     $mode = $argv[1] ?? null;
 
+
+
     // check if the script is launched by command line
     if (!isset($argv)) {
         return;
@@ -26,6 +28,8 @@ function main(): void {
     switch ($mode) {
         // mode lite without cron & supervisor
         case 'lite':
+            // never end this script
+            passthru("php-fpm --allow-to-run-as-root");
             break;
 
         // default mode with cron & supervisor
@@ -53,6 +57,8 @@ function launchCronDaemon(): void {
     exec("crond -d 0");
 }
 
+// be careful to launch everything before calling this function
+// otherwise it will fail. This function normally should never end
 function launchSupervisorDaemon(): void {
-    exec("supervisord --configuration /project/supervisord.conf --pidfile /tmp/supervisord.pid");
+    passthru("supervisord -n --configuration /project/supervisord.conf --pidfile /tmp/supervisord.pid");
 }
