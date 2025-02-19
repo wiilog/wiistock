@@ -66,9 +66,9 @@
 <div class="wii-section">
     <div class="row">
         <div class="col-md-6 col-12 my-1">
-            {{ form.select(setting('FORMAT_CODE_ARRIVALS'), "Format du numéro généré pour l'arrivage UL", true, {
-                value: setting_value('FORMAT_CODE_ARRIVALS')|split(','),
-                items: constant('App\\Entity\\Arrivage::FORMAT_CODE_ARRIVALS'),
+            {{ form.select(setting('ARRIVAL_NUMBER_FORMAT'), "Format du numéro généré pour l'arrivage UL", true, {
+                value: setting_value('ARRIVAL_NUMBER_FORMAT')|split(','),
+                items: constant('App\\Entity\\Arrivage::AVAILABLE_ARRIVAL_NUMBER_FORMATS'),
                 type: null,
                 noEmptyOption: true,
             }) }}
