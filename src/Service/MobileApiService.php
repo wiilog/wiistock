@@ -215,6 +215,7 @@ class MobileApiService {
             "displayWarningWrongLocation" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
             "displayManualDelayStart" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_MANUAL_DELAY_START) == 1,
             "arrivalNumberFormat" => $globalsParameters->getValue($entityManager, Setting::ARRIVAL_NUMBER_FORMAT),
+            "rfidOnMobileTrackingMovements" => $globalsParameters->getValue($entityManager, Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS) == 1,
         ])
             ->toArray();
     }
