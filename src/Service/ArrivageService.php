@@ -962,5 +962,4 @@ class ArrivageService {
             FixedFieldEnum::comment->value => $this->formatService->html($arrival->getCommentaire() ?? ''),
         ];
     }
-
 }

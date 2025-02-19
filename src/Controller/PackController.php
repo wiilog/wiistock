@@ -8,6 +8,8 @@ use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -18,14 +20,12 @@ use App\Entity\ReceptionLine;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\TrackingDelayService;
-use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,8 +36,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Throwable;
 use WiiCommon\Helper\Stream;
+use App\Entity\Dashboard;
 
 #[Route("/unite-logistique", name: 'pack_')]
 class PackController extends AbstractController {
@@ -45,23 +45,57 @@ class PackController extends AbstractController {
     #[Route("/liste/{code}", name: "index", options: ["expose" => true], defaults: ["code" => null], methods: [self::GET])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK])]
     public function index(EntityManagerInterface $entityManager,
+                          Request                $request,
                           LanguageService        $languageService,
                           PackService            $packService,
                                                  $code): Response {
-        $naturesRepository = $entityManager->getRepository(Nature::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $projectRepository = $entityManager->getRepository(Project::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
 
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
+
+        $data = $request->query;
+
+        $dashboardComponentId = $data->get("dashboardComponentId");
+        $natureLabel = $data->get("natureLabel");
+
+        /** @var Dashboard\Component $dashboardComponent */
+        $dashboardComponent = $dashboardComponentId
+            ? $dashboardComponentRepository->find($dashboardComponentId)
+            : null;
+        $isPackWithTracking = boolval($filterSupRepository->findOnebyFieldAndPageAndUser("packWithTracking", 'pack', $this->getUser()));
+
+        if ($dashboardComponent?->getType()?->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+            $fromDashboard = true;
+            $config = $dashboardComponent->getConfig();
+            $locationsFilter = !empty($config["locations"])
+                ? $locationRepository->findBy(['id' => $config["locations"]])
+                : [];
+            $naturesFilter = !empty($config["natures"])
+                ? Stream::from($natureRepository->findBy(['id' => $config["natures"]]))
+                    ->filter(static fn(Nature $nature) => !isset($natureLabel) || $nature->getLabel() === $natureLabel)
+                    ->map(static fn(Nature $nature) => $nature->getId())
+                    ->toArray()
+                : [];
+            $isPackWithTracking = true;
+        }
 
         return $this->render('pack/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             "fields" => $fields,
-            'natures' => $naturesRepository->findBy([], ['label' => 'ASC']),
+            'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
             'types' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'projects' => $projectRepository->findActive(),
-            'code' => $code
+            'code' => $code,
+            'locationsFilter' => $locationsFilter ?? [],
+            'naturesFilter' => $naturesFilter ?? [],
+            'fromDashboard' => $fromDashboard ?? false,
+            'packWithTracking' => $isPackWithTracking,
         ]);
     }
 

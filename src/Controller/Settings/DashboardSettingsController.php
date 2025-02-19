@@ -3,6 +3,7 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -22,7 +23,6 @@ use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -187,6 +187,7 @@ class DashboardSettingsController extends AbstractController {
             "disputeTypes" => [],
             "disputeStatuses" => [],
             "disputeEmergency" => false,
+            "treatmentDelayType" => null,
         ];
         $entities = [];
         $entityTypes = [];
@@ -508,7 +509,7 @@ class DashboardSettingsController extends AbstractController {
      * @param Dashboard\ComponentType $componentType
      * @return Response
      */
-    #[Route('/api-component-type/{componentType}/example-values', name: 'dashboard_component_type_example_values', methods: ['POST'], options: ['expose' => true])]
+    #[Route('/api-component-type/{componentType}/example-values', name: 'dashboard_component_type_example_values', options: ['expose' => true], methods: ['POST'])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
     public function apiComponentTypeExample(Request $request,
                                             EntityManagerInterface $entityManager,

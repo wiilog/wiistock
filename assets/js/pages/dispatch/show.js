@@ -444,11 +444,24 @@ function reverseFields($button, inputName1, inputName2) {
     $field2.val(val1);
 }
 
+/**
+ * @param {number} dispatchId
+ * @param {jQuery} $row
+ * @param {{
+ *     async?: boolean,
+ *     hideGlobalErrors?: boolean,
+ *     onSuccess?: callback,
+ *     onError?: callback,
+ * }} options
+ * @returns {boolean}
+ */
 function savePackLine(dispatchId,
                       $row,
-                      async = true,
-                      onSuccess = null) {
-    let data = Form.process($row);
+                      options = {}) {
+    let data = Form.process($row, {
+        hideGlobalErrors: Boolean(options?.hideGlobalErrors),
+    });
+
     data = data instanceof FormData ? data.asObject() : data;
 
     if(data) {
@@ -457,7 +470,7 @@ function savePackLine(dispatchId,
                 type: `POST`,
                 url: Routing.generate(`dispatch_new_pack`, {dispatch: dispatchId}),
                 data,
-                async,
+                async: Boolean(options?.async ?? true),
                 success: response => {
                     $row.find(`.delete-pack-row`).data(`id`, response.id);
                     if(!response.success) {
@@ -467,8 +480,8 @@ function savePackLine(dispatchId,
                     $row.data(`data`, JSON.stringify(data));
                     $row.find('[name=height]').trigger('change');
 
-                    if (onSuccess) {
-                        onSuccess();
+                    if (options.onSuccess) {
+                        options.onSuccess();
                     }
                 },
             });
@@ -476,6 +489,9 @@ function savePackLine(dispatchId,
             return true;
         }
     } else {
+        if (options.onError) {
+            options.onError();
+        }
         return true;
     }
 
@@ -514,7 +530,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             $rows.each(function() {
                 const $row = $(this);
                 const data = Form.process($row, {
-                    ignoreErrors: true,
+                    hideGlobalErrors: true,
                 });
 
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
@@ -534,7 +550,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
 
             $rows
                 .off(`focusout.keyboardNavigation`)
-                .on(`focusout.keyboardNavigation`, function(event) {
+                .on(`focusout.keyboardNavigation`, function(event, options) {
                     const $row = $(this);
                     const $target = $(event.target);
                     const $relatedTarget = $(event.relatedTarget);
@@ -552,7 +568,12 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                         return;
                     }
 
-                    savePackLine(dispatchId, $row);
+                    savePackLine(dispatchId, $row, {
+                        async: true,
+                        hideGlobalErrors: options?.hideGlobalErrors,
+                        onSuccess: options?.onSuccess,
+                        onError: options?.onError,
+                    });
                 });
             if(modifiable) {
                 scrollToBottom();
@@ -653,7 +674,9 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
             $row.find(`.width`).text(value.width);
             $row.find(`.length`).text(value.length);
 
-            if (defaultQuantity !== undefined) {
+            // if nature of current pack has a default quantity for dispatch
+            // else the quantity is the default quantity of the default nature
+            if (defaultQuantity) {
                 $quantity.val(defaultQuantity);
             }
 
@@ -661,16 +684,16 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
                 $nature.val(value.nature_id);
             }
 
-            table.columns.adjust().draw();
-
-            if (!($quantity.val() && $nature.val())) {
-                $quantity.trigger('focus');
-            }
-            else if(Form.process($row, {hideErrors: true}) instanceof FormData) {
-                // trigger savePackLine;
-                $row.trigger('focusout.keyboardNavigation');
-                addPackRow(table, $(`.add-pack-row`))
-            }
+            // trigger form validation
+            $row.trigger('focusout.keyboardNavigation', {
+                hideGlobalErrors: true,
+                onSuccess: () => {
+                    addPackRow(table, $(`.add-pack-row`));
+                },
+                onError: () => {
+                    $row.find('.is-invalid').first().trigger('focus');
+                }
+            });
         });
 
         $table.on(`click`, `.add-pack-row`, function() {
@@ -708,7 +731,7 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
         if($focus.exists()) {
-            if(savePackLine(dispatchId, $focus.closest(`tr`), false)) {
+            if(savePackLine(dispatchId, $focus.closest(`tr`), {async: false})) {
                 return true;
             }
         }

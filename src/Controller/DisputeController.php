@@ -122,10 +122,7 @@ class DisputeController extends AbstractController
     public function exportCSVDispute(Request                $request,
                                      EntityManagerInterface $entityManager,
                                      DisputeService         $disputeService,
-                                     CSVExportService       $CSVExportService): Response
-    {
-
-
+                                     CSVExportService       $CSVExportService): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
         $status = $request->query->get('statut');

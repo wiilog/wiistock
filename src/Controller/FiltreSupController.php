@@ -66,6 +66,7 @@ class FiltreSupController extends AbstractController
                 'productArticleCode' => FiltreSup::FIELD_PRODUCT_ARTICLE_CODE,
                 'attachmentAssigned' => FiltreSup::FIELD_ATTACHMENTS_ASSIGNED,
                 'receiptAssociation' => FiltreSup::FIELD_RECEIPT_ASSOCIATION,
+                'packWithTracking' => FiltreSup::FIELD_PACK_WITH_TRACKING,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {

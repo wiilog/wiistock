@@ -42,7 +42,6 @@ use App\Service\LanguageService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
-use App\Service\SpecificService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
@@ -171,8 +170,8 @@ class ArrivageController extends AbstractController
                         SettingsService         $settingsService,
                         KeptFieldService        $keptFieldService,
                         TruckArrivalLineService $truckArrivalLineService,
-                        TranslationService      $translation): JsonResponse
-    {
+                        UniqueNumberService     $uniqueNumberService,
+                        TranslationService      $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -189,9 +188,11 @@ class ArrivageController extends AbstractController
         $useTruckArrivals = $settingsService->getValue($entityManager, Setting::USE_TRUCK_ARRIVALS);
 
         $date = new DateTime('now');
-        $counter = $arrivageRepository->countByDate($date) + 1;
-        $suffix = $counter < 10 ? ("0" . $counter) : $counter;
-        $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
+
+        $numberFormat = $settingsService->getValue($entityManager, Setting::FORMAT_CODE_ARRIVALS)
+            ?: UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG ;
+
+        $arrivalNumber = $uniqueNumberService->create($entityManager, null, Arrivage::class, $numberFormat);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -216,7 +217,7 @@ class ArrivageController extends AbstractController
             ->setIsUrgent(false)
             ->setDate($date)
             ->setUtilisateur($currentUser)
-            ->setNumeroArrivage($numeroArrivage)
+            ->setNumeroArrivage($arrivalNumber)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
             ->setCommentaire($data['commentaire'] ?? null)

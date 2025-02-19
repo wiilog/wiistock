@@ -323,10 +323,6 @@ function createArrival(form = null) {
             .on(`select2:select.new-arrival`, function (event) {
                 onNoTrackingSelected($modal, event);
             })
-            .off(`select2:unselecting.new-arrival`)
-            .on(`select2:unselecting.new-arrival`, function () {
-                $(this).find('option').remove().trigger('change');
-            })
             .off(`change.new-arrival`)
             .on(`change.new-arrival`, function () {
                 const $selectedOptions = $(this).find(`option:selected`);

@@ -19,9 +19,7 @@ global.onConfirmPageDeleted = onConfirmPageDeleted;
 global.addEntryTimeInterval = addEntryTimeInterval;
 global.deleteEntryTimeInterval = deleteEntryTimeInterval;
 global.drawChartWithHisto = drawChartWithHisto;
-global.addEntryTimeInterval = addEntryTimeInterval;
 global.onSegmentInputChange  = onSegmentInputChange;
-global.deleteEntryTimeInterval  = deleteEntryTimeInterval;
 global.initializeEntryTimeIntervals  = initializeEntryTimeIntervals;
 global.renderComponent = renderComponent;
 global.hideOrShowStackButton = hideOrShowStackButton;
@@ -1127,7 +1125,9 @@ function initSecondStep(html, component) {
     $modalComponentTypeSecondStepContent.html('');
     $modalComponentTypeSecondStepContent.html(html);
 
-    $modalComponentTypeSecondStep.attr(`data-meter-key`, component.meterKey);
+    $modalComponentTypeSecondStep
+        .attr(`data-meter-key`, component.meterKey)
+        .data(`meter-key`, component.meterKey);
 
     const $entitySelect = $modalComponentTypeSecondStepContent.find('.init-entity-change');
     if ($entitySelect.length > 0) {

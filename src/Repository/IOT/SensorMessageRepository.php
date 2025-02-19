@@ -8,9 +8,10 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\LocationGroup;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
-use http\Exception\RuntimeException;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
+
 
 /**
  * @method SensorMessage|null find($id, $lockMode = null, $lockVersion = null)

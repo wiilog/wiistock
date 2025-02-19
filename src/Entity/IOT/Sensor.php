@@ -77,7 +77,7 @@ class Sensor {
      * @var null|SensorMessage
      */
     #[ORM\OneToOne(inversedBy: 'linkedSensorLastMessage', targetEntity: SensorMessage::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?SensorMessage $lastMessage = null;
 
     #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorWrapper::class)]

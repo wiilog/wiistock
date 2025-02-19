@@ -14,8 +14,6 @@ Cypress.Commands.add(
                 const currentDatabaseName = currentLine.split('/').pop();
                 Cypress.env('OLD_DATABASE_NAME', currentDatabaseName);
 
-                // change APP_URL in .env.local
-                cy.exec(`sed -i 's|APP_URL=http://localhost|APP_URL=http://wiistock-nginx|' .env.local`);
                 // print the current database name
                 cy.log(`Current database name: ${currentDatabaseName}`);
 
@@ -39,9 +37,9 @@ Cypress.Commands.add(
                 //load fixtures
                 cy.doctrineFixturesLoad();
                 //clear cache before build
-                cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console app:cache:clear'`);
+                cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console app:cache:clear'`);
                 //fixtures fixed fields
-                cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console app:update:fixed-fields'`);
+                cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console app:update:fixed-fields'`);
                  // build assets
                 //cy.exec(`${SSH_ON_APP} 'cd /project && yarn build'`, {timeout: 120000});
             }
@@ -74,15 +72,15 @@ Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName
 })
 
 Cypress.Commands.add('doctrineMakeMigration', () => {
-    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console d:m:m --no-interaction'`);
+    cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console d:m:m --no-interaction'`);
 })
 
 Cypress.Commands.add('doctrineSchemaUpdate', () => {
-    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console d:s:u --force --no-interaction --dump-sql --complete'`);
+    cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console d:s:u --force --no-interaction --dump-sql --complete'`);
 })
 
 Cypress.Commands.add('doctrineFixturesLoad', () => {
-    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console d:f:l --append --group=types --no-interaction'`);
-    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /project/bin/console d:f:l --append --group=fixtures --no-interaction'`);
+    cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console d:f:l --append --group=types --no-interaction'`);
+    cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console d:f:l --append --group=fixtures --no-interaction'`);
 })
 

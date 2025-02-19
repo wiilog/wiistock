@@ -22,6 +22,8 @@ class UniqueNumberService
     const DATE_COUNTER_FORMAT_DISPATCH_LONG = 'YmdHis-CCCC';
     const DATE_COUNTER_FORMAT_DISPATCH = 'ymdHisCC';
     const DATE_COUNTER_FORMAT_COLLECT = 'ymdHisCC';
+    const DATE_COUNTER_FORMAT_ARRIVAL_SHORT = 'ymdHiCC';
+    const DATE_COUNTER_FORMAT_ARRIVAL_LONG = 'ymdHis-CC';
     const DATE_COUNTER_FORMAT_PRODUCTION_REQUEST = 'YmdHiCCCC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
@@ -52,10 +54,7 @@ class UniqueNumberService
                            string                 $entity,
                            string                 $format,
                            ?DateTime              $numberDate = null,
-                           array                  $params = []): string
-    {
-
-
+                           array                  $params = []): string {
         $date = $numberDate ?? new DateTime('now');
         $entityRepository = $entityManager->getRepository($entity);
 
@@ -72,13 +71,15 @@ class UniqueNumberService
         $counterFormat = $matches[2];
 
         $dateStr = $date->format($dateFormat);
+
         $lastNumber = $this->lastNumberByEntity[$entity] ?? $entityRepository->getLastNumberByDate($dateStr, $prefix, $format);
+
         $counterLen = strlen($counterFormat);
-        $lastCounter = (
-        (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
+
+        $lastCounter = (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
             ? (int)substr($lastNumber, -$counterLen, $counterLen)
-            : 0
-        );
+            : 0;
+
         $currentCounterStr = sprintf("%0{$counterLen}u", $lastCounter + 1);
         $dateStr = !empty($dateFormat) ? $date->format($dateFormat) : '';
         $smartPrefix = !empty($prefix) && !in_array($format, self::FORMAT_NUMBER_WITHOUT_PREFIX_AND_DASH)
@@ -101,8 +102,7 @@ class UniqueNumberService
                                     string                 $entity,
                                     string                 $format,
                                     callable               $flush,
-                                    int                    $maxNbRetry = self::MAX_RETRY): void
-    {
+                                    int                    $maxNbRetry = self::MAX_RETRY): void {
         $nbTry = 0;
         do {
             try {
