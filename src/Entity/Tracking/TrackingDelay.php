@@ -4,6 +4,8 @@ namespace App\Entity\Tracking;
 
 use App\Repository\Tracking\TrackingDelayRepository;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -27,11 +29,22 @@ class TrackingDelay {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $calculatedAt = null;
 
-    #[ORM\OneToOne(inversedBy: "trackingDelay", targetEntity: Pack::class)]
-    private ?Pack $pack = null;
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $limitTreatmentDate = null;
+
+    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+    private ?Pack $pack = null;
+
+    /**
+     * @var Collection<int, TrackingDelayRecord>
+     */
+    #[ORM\OneToMany(mappedBy: "trackingDelay", targetEntity: TrackingDelayRecord::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $records;
+
+    public function __construct() {
+        $this->records = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;
@@ -60,15 +73,7 @@ class TrackingDelay {
     }
 
     public function setPack(?Pack $pack): self {
-        if($this->pack && $this->pack->getTrackingDelay() !== $this) {
-            $oldPack = $this->pack;
-            $this->pack = null;
-            $oldPack->setTrackingDelay(null);
-        }
         $this->pack = $pack;
-        if($this->pack && $this->pack->getTrackingDelay() !== $this) {
-            $this->pack->setTrackingDelay($this);
-        }
 
         return $this;
     }
@@ -88,14 +93,63 @@ class TrackingDelay {
         return $this;
     }
 
-    public function getLimitTreatmentDate(): ?DateTime
-    {
+    public function getLimitTreatmentDate(): ?DateTime {
         return $this->limitTreatmentDate;
     }
 
-    public function setLimitTreatmentDate(?DateTime $limitTreatmentDate): self
-    {
+    public function setLimitTreatmentDate(?DateTime $limitTreatmentDate): self {
         $this->limitTreatmentDate = $limitTreatmentDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TrackingDelayRecord>
+     */
+    public function getRecords(): Collection {
+        return $this->records;
+    }
+
+    public function addRecord(TrackingDelayRecord $record): self {
+        if (!$this->records->contains($record)) {
+            $this->records[] = $record;
+            $record->setTrackingDelay($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecord(TrackingDelayRecord $record): self {
+        if ($this->records->removeElement($record)) {
+            if ($record->getTrackingDelay() === $this) {
+                $record->setTrackingDelay(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param iterable<TrackingDelayRecord> $records
+     */
+    public function setRecords(iterable $records): self {
+        foreach($this->getRecords()->toArray() as $record) {
+            $this->removeRecord($record);
+        }
+
+        $this->records = new ArrayCollection();
+        $this->addRecords($records);
+
+        return $this;
+    }
+
+    /**
+     * @param iterable<TrackingDelayRecord> $records
+     */
+    public function addRecords(iterable $records): self {
+        foreach($records as $record) {
+            $this->addRecord($record);
+        }
 
         return $this;
     }

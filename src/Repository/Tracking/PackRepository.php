@@ -258,11 +258,10 @@ class PackRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_PACK_WITH_TRACKING:
                     if ($filter['value']) {
-                        $queryBuilder
-                            ->join('pack.trackingDelay', 'filter_tracking_delay')
-                            ->andWhere('filter_tracking_delay IS NOT NULL');
-                        break;
+                        // only pack with a current tracking delay
+                        $queryBuilder->join('pack.currentTrackingDelay', 'filter_tracking_delay');
                     }
+                    break;
                 default:
                     break;
             }
