@@ -59,6 +59,7 @@
     </div>
     <input hidden value="{{ code }}" id="lu-code" class="data">
     {{ form.hidden('fromDashboard', fromDashboard) }}
+    {{ form.hidden('trackingDelayEvent', trackingDelayEvent) }}
 
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'group/ungroup.html.twig' %}

@@ -69,17 +69,18 @@ class PackService {
         $naturesFilter = $params->all("natures");
         $locationsFilter = $params->all("locations");
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
+        $trackingDelayEvent = $params->get("trackingDelayEvent");
         if($fromDashboard) {
             $filters = [
-                ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
                 ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
                 ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
                 ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
+                ...($trackingDelayEvent ? [["field" => "trackingEventTypes", "value" => DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$trackingDelayEvent]]] : []),
             ];
-        }
-
-        if(empty($filters)) {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        } else {
+            $filters = $params->get("codeUl")
+                ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
+                : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
         }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());

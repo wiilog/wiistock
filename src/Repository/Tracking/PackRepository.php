@@ -265,11 +265,22 @@ class PackRepository extends EntityRepository
                         break;
                     }
                 case 'trackingEventTypes':
-                    $queryBuilder
-                        ->leftJoin('pack.trackingDelay', 'filter_tracking_delay_for_event')
-                        ->andWhere('filter_tracking_delay_for_event.lastTrackingEvent IN (:eventTypes)')
-                        ->setParameter('eventTypes', $filter['value']);
-                    break;
+                    $queryBuilder->leftJoin('pack.trackingDelay', 'filter_tracking_delay_for_event');
+
+                    if (in_array(null, $filter['value'], true)) {
+                        $filteredEvents = array_filter($filter['value'], fn($event) => $event !== null);
+
+                        if (empty($filteredEvents)) {
+                            $queryBuilder->andWhere('filter_tracking_delay_for_event.lastTrackingEvent IS NULL');
+                        } else {
+                            $queryBuilder->andWhere(
+                                '(filter_tracking_delay_for_event.lastTrackingEvent IN (:events) OR filter_tracking_delay_for_event.lastTrackingEvent IS NULL)'
+                            )->setParameter('events', $filteredEvents);
+                        }
+                    } else {
+                        $queryBuilder->andWhere('filter_tracking_delay_for_event.lastTrackingEvent IN (:events)')
+                            ->setParameter('events', $filter['value']);
+                    }
                 default:
                     break;
             }
