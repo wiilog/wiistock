@@ -23,6 +23,7 @@ let packsTableConfig = {
             locations: $('[name="emplacement"]').val(),
             isPackWithTracking: $('[name="packWithTracking"]').is(':checked'),
             fromDashboard: $('[name="fromDashboard"]').val(),
+            trackingDelayEvent: $('[name="trackingDelayEvent"]').val(),
         },
     },
     rowConfig: {

@@ -82,6 +82,8 @@ class PackController extends AbstractController {
                     ->toArray()
                 : [];
             $isPackWithTracking = true;
+
+            $trackingDelayEvent = $config["treatmentDelayType"];
         }
 
         return $this->render('pack/index.html.twig', [
@@ -96,6 +98,7 @@ class PackController extends AbstractController {
             'naturesFilter' => $naturesFilter ?? [],
             'fromDashboard' => $fromDashboard ?? false,
             'packWithTracking' => $isPackWithTracking,
+            'trackingDelayEvent' => $trackingDelayEvent ?? null,
         ]);
     }
 

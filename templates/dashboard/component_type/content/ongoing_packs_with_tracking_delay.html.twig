@@ -59,7 +59,7 @@
 
     <div class="row form-group align-items-center">
         <div class="col-auto">
-            {{ form.checkbox('redirect', 'Rediriger au clic vers la page des unités logistiqus filtrée et triée par date max de livraison', false, values.redirect, {
+            {{ form.checkbox('redirect', 'Rediriger au clic vers la page des unités logistiqus filtrée et triée par date max de livraison', false, values.redirect ?? false, {
                 isSlider: true,
             } ) }}
         </div>
