@@ -189,7 +189,7 @@ class ArrivageController extends AbstractController
 
         $date = new DateTime('now');
 
-        $numberFormat = $settingsService->getValue($entityManager, Setting::FORMAT_CODE_ARRIVALS)
+        $numberFormat = $settingsService->getValue($entityManager, Setting::ARRIVAL_NUMBER_FORMAT)
             ?: UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG ;
 
         $arrivalNumber = $uniqueNumberService->create($entityManager, null, Arrivage::class, $numberFormat);
