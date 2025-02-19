@@ -906,8 +906,8 @@ class PackService {
     public function getFormatedKeyboardPackGenerator(Iterator $packs, bool $completeMatch): Iterator {
         if (!$completeMatch) {
             $firstElement = [
-                "id" => "new-item",
-                "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
+                "id" => "create-new",
+                "html" => "<div class='create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
             ];
 
             $firstElement["highlighted"] = !$packs->valid();
