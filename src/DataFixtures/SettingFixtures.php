@@ -445,7 +445,10 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::ARRIVAL_NUMBER_FORMAT => [
                 'default' => UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG,
-            ]
+            ],
+            Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();
