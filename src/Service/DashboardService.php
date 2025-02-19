@@ -1526,70 +1526,55 @@ class DashboardService {
     }
 
     public function persistEntriesToHandleByTrackingDelay(EntityManagerInterface $entityManager,
-                                                          Dashboard\Component $component): void {
+                                                          Dashboard\Component $component,
+                                                          array $naturesFilter,
+                                                          iterable $trackingDelayByFilters): void {
         $config = $component->getConfig();
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $trackingDelayRepository = $entityManager->getRepository(TrackingDelay::class);
-
-        $naturesFilter = !empty($config['natures'])
-            ? $natureRepository->findBy(['id' => $config['natures']])
-            : [];
-
-        $locationsFilter = !empty($config['locations'])
-            ? $locationRepository->findBy(['id' => $config['locations']])
-            : [];
-
-        $maxResultPack = 1000;
         $globalCounter = null;
 
-        if (!empty($naturesFilter) && !empty($locationsFilter)) {
-            $eventTypes = self::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
-            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
+        $countByNatureBase = Stream::from($naturesFilter)
+            ->keymap(fn(Nature $nature) => [
+                $this->formatService->nature($nature),
+                0,
+            ])
+            ->toArray();
 
-            $countByNatureBase = Stream::from($naturesFilter)
-                ->keymap(fn(Nature $nature) => [
-                    $this->formatService->nature($nature),
-                    0,
-                ])
-                ->toArray();
+        $segments = $config['segments'];
 
-            $segments = $config['segments'];
+        $customSegments = array_merge([-1, 1], $segments);
+        $counterByEndingSpan = Stream::from($customSegments)
+            ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
+            ->toArray();
+        $nextElementToDisplay = [];
 
-            $customSegments = array_merge([-1, 1], $segments);
-            $counterByEndingSpan = Stream::from($customSegments)
-                ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
-                ->toArray();
-            $nextElementToDisplay = [];
+        foreach($trackingDelayByFilters as $trackingDelay){
+            $pack = $trackingDelay->getPack();
+            $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
 
-            foreach($trackingDelayByFilters as $trackingDelay){
-                $pack = $trackingDelay->getPack();
-                $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
+            // we save pack with the smallest tracking delay
+            if (empty($nextElementToDisplay)
+                || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+                $nextElementToDisplay = [
+                    'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                    'pack' => $pack,
+                ];
+            }
 
-                // we save pack with the smallest tracking delay
-                if (empty($nextElementToDisplay)
-                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
-                    $nextElementToDisplay = [
-                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
-                        'pack' => $pack,
-                    ];
-                }
+            foreach ($customSegments as $segmentEnd) {
+                $endSpan = match($segmentEnd) {
+                    -1 => -1,
+                    default => $segmentEnd * 60,
+                };
 
-                foreach ($customSegments as $segmentEnd) {
-                    $endSpan = match($segmentEnd) {
-                        -1 => -1,
-                        default => $segmentEnd * 60,
-                    };
-
-                    if ($remainingTimeInSeconds < $endSpan) {
-                        $natureLabel = $this->formatService->nature($pack->getNature());
-                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                        $globalCounter++;
-                        break;
-                    }
+                if ($remainingTimeInSeconds < $endSpan) {
+                    $natureLabel = $this->formatService->nature($pack->getNature());
+                    $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                    $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                    $globalCounter++;
+                    break;
                 }
             }
+
 
             $graphData = $this->getObjectForTimeSpan(
                 $segments,
