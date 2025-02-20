@@ -537,10 +537,6 @@ class PackRepository extends EntityRepository
                 ->getSingleScalarResult();
         }
 
-        dump($queryBuilder
-            ->getQuery()
-            ->execute());
-
         return $queryBuilder
             ->getQuery()
             ->execute();
