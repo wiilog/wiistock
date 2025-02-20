@@ -18,7 +18,7 @@ function main(): void {
 
     $mode = $argv[1] ?? null;
 
-
+    echo("Starting instance in " . $mode . " mode" . PHP_EOL);
 
     // check if the script is launched by command line
     if (!isset($argv)) {
@@ -27,6 +27,24 @@ function main(): void {
 
     switch ($mode) {
         // mode lite without cron & supervisor
+        case 'cypress':
+            echo("Starting ssh daemon" . PHP_EOL);
+            exec("/usr/sbin/sshd -D > /dev/null &");
+
+
+            echo("exporting environment variables" . PHP_EOL);
+            exec("rm /etc/environment");
+            exec("env > /etc/environment");
+
+
+            echo("fixing environment variables" . PHP_EOL);
+            // exec("sed -i 's/^\([^#]*=[^"].*\)$/\1"/; s/=\([^"].*\)$/="\1/' /etc/environment");
+            echo("sed -i 's/^\([^#]*=[^".'""'."].*\)$/\1".'""'."/; s/=\([^".'""'."].*\)$/=".'""'."\1/' /etc/environment");
+            exec("sed -i 's/^\([^#]*=[^".'""'."].*\)$/\1".'""'."/; s/=\([^".'""'."].*\)$/=".'""'."\1/' /etc/environment");
+
+            echo("starting lite mode" . PHP_EOL);
+            $argv[1] = 'lite';
+            main();
         case 'lite':
             // never end this script
             passthru("php-fpm --allow-to-run-as-root");
