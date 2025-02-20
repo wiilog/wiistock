@@ -44,14 +44,30 @@ class OngoingPacksWithTrackingDelayService implements DashboardComponentService 
             $eventTypes = DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
             $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
 
-            $globalCounter = Stream::from($trackingDelayByFilters)
-                ->filter(function (TrackingDelay $trackingDelay) use ($trackingDelayLessThan) {
-                    $pack = $trackingDelay->getPack();
-                    $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
+            $globalCounter = 0;
+            $alreadySavedGroups = [];
 
-                    return $remainingTimeInSeconds < $trackingDelayLessThan;
-                })
-                ->count();
+            // This is not a stream to don't call iterator_to_array and don't consume the iterator
+            foreach ($trackingDelayByFilters as $trackingDelay) {
+                $pack = $trackingDelay->getPack();
+                $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
+
+                if ($remainingTimeInSeconds < $trackingDelayLessThan) {
+                    $group = $pack->getGroup();
+
+                    // count group only one time if pack is in a group.
+                    if ($group) {
+                        $groupCode = $group->getCode();
+                        $alreadySavedGroup = $alreadySavedGroups[$groupCode] ?? false;
+                        if (!$alreadySavedGroup) {
+                            break;
+                        }
+                        $alreadySavedGroups[$groupCode] = true;
+                    }
+
+                    $globalCounter++;
+                }
+            }
             $subtitle = $this->formatService->locations($locationsFilter);
         }
 
