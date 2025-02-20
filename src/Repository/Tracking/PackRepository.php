@@ -448,8 +448,8 @@ class PackRepository extends EntityRepository
                 ->leftJoin('pack.article', 'join_article')
                 ->leftJoin("join_article.articleFournisseur", "join_article_supplierArticle")
                 ->leftJoin("join_article_supplierArticle.referenceArticle", "join_article_referenceArticle")
-                ->leftJoin("pack.lastAction", "join_last_action");
-            $queryBuilder = QueryBuilderHelper::addTrackingEntities($queryBuilder, "join_last_action");
+                ->leftJoin("pack.firstAction", "join_first_action");
+            $queryBuilder = QueryBuilderHelper::addTrackingEntities($queryBuilder, "join_first_action");
         }
 
         if (!empty($locations)) {
@@ -500,6 +500,10 @@ class PackRepository extends EntityRepository
                 ->getQuery()
                 ->getSingleScalarResult();
         }
+
+        dump($queryBuilder
+            ->getQuery()
+            ->execute());
 
         return $queryBuilder
             ->getQuery()
