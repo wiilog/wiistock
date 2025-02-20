@@ -4,6 +4,7 @@ namespace App\Service\Dashboard;
 
 use App\Entity\Emplacement;
 use App\Entity\Nature;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
 use App\Service\FormatService;
 use App\Service\PackService;
@@ -12,7 +13,7 @@ use WiiCommon\Helper\Stream;
 use App\Entity\Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 
-class EntriesToHandleByTrackingDelayService implements DashboardComponent {
+class EntriesToHandleByTrackingDelayService implements DashboardComponentService {
 
     public function __construct(
         private PackService $packService,
@@ -39,7 +40,7 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponent {
             : [];
 
         $maxResultPack = 1000;
-        $globalCounter = null;
+        $globalCounter = 0;
 
         if (!empty($naturesFilter) && !empty($locationsFilter)) {
             $eventTypes = DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
@@ -84,31 +85,14 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponent {
                     break;
                 }
 
-                // we save pack with the smallest tracking delay
-                if (!isset($nextElementToDisplay)
-                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
-                    $nextElementToDisplay = [
-                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
-                        'pack' => $pack,
-                    ];
-                }
-
-                foreach ($customSegments as $segmentEnd) {
-                    $endSpan = match($segmentEnd) {
-                        -1 => -1,
-                        default => $segmentEnd * 60,
-                    };
-
-                    if ($remainingTimeInSeconds < $endSpan) {
-                        $natureLabel = $this->formatService->nature($pack->getNature());
-
-                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                        $globalCounter++;
-
-                        break;
-                    }
-                }
+                $this->treatPack(
+                    $pack,
+                    $remainingTimeInSeconds,
+                    $customSegments,
+                    $counterByEndingSpan,
+                    $globalCounter,
+                    $nextElementToDisplay
+                );
             }
 
             foreach ($treatedGroups as $group) {
@@ -116,31 +100,15 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponent {
                 $pack = $group['pack'];
                 $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
 
-                // we save pack with the smallest tracking delay
-                if (!isset($nextElementToDisplay)
-                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
-                    $nextElementToDisplay = [
-                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
-                        'pack' => $group,
-                    ];
-                }
-
-                foreach ($customSegments as $segmentEnd) {
-                    $endSpan = match($segmentEnd) {
-                        -1 => -1,
-                        default => $segmentEnd * 60,
-                    };
-
-                    if ($remainingTimeInSeconds < $endSpan) {
-                        $natureLabel = $this->formatService->nature($pack->getNature());
-
-                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                        $globalCounter++;
-
-                        break;
-                    }
-                }
+                $this->treatPack(
+                    $group,
+                    $remainingTimeInSeconds,
+                    $customSegments,
+                    $counterByEndingSpan,
+                    $globalCounter,
+                    $nextElementToDisplay,
+                    $pack
+                );
             }
 
             $graphData = $this->dashboardService->getObjectForTimeSpan(
@@ -189,5 +157,40 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponent {
             ->setLocation($locationToDisplay ?: '-');
     }
 
+
+    private function treatPack(Pack   $pack,
+                               int    $remainingTimeInSeconds,
+                               array  $customSegments,
+                               array  &$counterByEndingSpan,
+                               int    &$globalCounter,
+                               ?array &$nextElementToDisplay,
+                               ?Pack  $packToGetNature = null): void {
+        // we save pack with the smallest tracking delay
+        if (!isset($nextElementToDisplay)
+            || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+            $nextElementToDisplay = [
+                'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                'pack' => $pack,
+            ];
+        }
+
+        foreach ($customSegments as $segmentEnd) {
+            $endSpan = match($segmentEnd) {
+                -1 => -1,
+                default => $segmentEnd * 60,
+            };
+
+            if ($remainingTimeInSeconds < $endSpan) {
+                $packToGetNature ??= $pack;
+                $natureLabel = $this->formatService->nature($packToGetNature->getNature());
+
+                $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                $globalCounter++;
+
+                break;
+            }
+        }
+    }
 
 }

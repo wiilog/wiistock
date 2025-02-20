@@ -9,6 +9,7 @@ use App\Entity\Wiilock;
 use App\Exceptions\DashboardException;
 use App\Service\Dashboard\DashboardService;
 use App\Service\Dashboard\EntriesToHandleByTrackingDelayService;
+use App\Service\Dashboard\OngoingPacksWithTrackingDelayService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,6 +30,7 @@ class DashboardFeedCommand extends Command {
     public function __construct(private EntityManagerInterface $entityManager,
                                 private DashboardService $dashboardService,
                                 private EntriesToHandleByTrackingDelayService $entriesToHandleByTrackingDelayService,
+                                private OngoingPacksWithTrackingDelayService $ongoingPacksWithTrackingDelayService,
                                 private WiilockService $wiilockService) {
         parent::__construct();
     }
@@ -56,7 +58,7 @@ class DashboardFeedCommand extends Command {
             try {
                 switch ($meterKey) {
                     case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
-                        $this->dashboardService->persistOngoingPacksWithTrackingDelay($this->entityManager, $component);
+                        $this->ongoingPacksWithTrackingDelayService->persist($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::ONGOING_PACKS:
                         $this->dashboardService->persistOngoingPack($this->entityManager, $component);
@@ -75,7 +77,7 @@ class DashboardFeedCommand extends Command {
                         $this->dashboardService->persistArrivalsAndPacksMeter($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                        $this->entriesToHandleByTrackingDelayService->persistEntriesToHandleByTrackingDelay($this->entityManager, $component);
+                        $this->entriesToHandleByTrackingDelayService->persist($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                         $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);
