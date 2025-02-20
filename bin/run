@@ -38,9 +38,7 @@ function main(): void {
 
 
             echo("fixing environment variables" . PHP_EOL);
-            // exec("sed -i 's/^\([^#]*=[^"].*\)$/\1"/; s/=\([^"].*\)$/="\1/' /etc/environment");
-            echo("sed -i 's/^\([^#]*=[^".'""'."].*\)$/\1".'""'."/; s/=\([^".'""'."].*\)$/=".'""'."\1/' /etc/environment");
-            exec("sed -i 's/^\([^#]*=[^".'""'."].*\)$/\1".'""'."/; s/=\([^".'""'."].*\)$/=".'""'."\1/' /etc/environment");
+            exec("sed -i 's/^\([^#]*=[^\"].*\\)$/\\1\"/; s/=\\([^\"].*\\)$/=\"\\1/' /etc/environment");
 
             echo("starting lite mode" . PHP_EOL);
             $argv[1] = 'lite';
