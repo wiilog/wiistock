@@ -459,8 +459,7 @@ function processResult($element, data) {
         }
 
         const searchValue = $search.val();
-        if ($element.is(`[data-auto-select]`)
-            && searchValue) {
+        if ($element.is(`[data-auto-select]`) && searchValue) {
             const resultWithoutNewItem = (data.results || []).filter(({id}) => id !== "create-new");
 
             if (resultWithoutNewItem.length === 1
@@ -472,7 +471,7 @@ function processResult($element, data) {
                     if (!alreadySelected) {
                         const [option] = $dropdown.find('.select2-results__option')
                             .toArray()
-                            .filter((element) => !$(element).find('.new-item-container').exists());
+                            .filter((element) => !$(element).find('.create-new-container').exists());
                         $(option).trigger("mouseup");
                         $element.trigger({
                             type: "select2:select",
