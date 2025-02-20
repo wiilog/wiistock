@@ -22,6 +22,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\Dashboard\DashboardService;
 use App\Service\ProductionRequest\ProductionRequestService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

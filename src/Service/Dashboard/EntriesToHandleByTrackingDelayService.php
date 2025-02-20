@@ -1,0 +1,193 @@
+<?php
+
+namespace App\Service\Dashboard;
+
+use App\Entity\Emplacement;
+use App\Entity\Nature;
+use App\Entity\Tracking\TrackingDelay;
+use App\Service\FormatService;
+use App\Service\PackService;
+use Doctrine\ORM\EntityManagerInterface;
+use WiiCommon\Helper\Stream;
+use App\Entity\Dashboard;
+use App\Entity\Dashboard\Meter as DashboardMeter;
+
+class EntriesToHandleByTrackingDelayService implements DashboardComponent {
+
+    public function __construct(
+        private PackService $packService,
+        private FormatService $formatService,
+        private DashboardService $dashboardService,
+    ) {
+    }
+
+    public function persist(EntityManagerInterface $entityManager,
+                            Dashboard\Component    $component,
+                            array                  $options = []): void {
+
+        $config = $component->getConfig();
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $trackingDelayRepository = $entityManager->getRepository(TrackingDelay::class);
+
+        $naturesFilter = !empty($config['natures'])
+            ? $natureRepository->findBy(['id' => $config['natures']])
+            : [];
+
+        $locationsFilter = !empty($config['locations'])
+            ? $locationRepository->findBy(['id' => $config['locations']])
+            : [];
+
+        $maxResultPack = 1000;
+        $globalCounter = null;
+
+        if (!empty($naturesFilter) && !empty($locationsFilter)) {
+            $eventTypes = DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
+            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
+
+            $countByNatureBase = Stream::from($naturesFilter)
+                ->keymap(fn(Nature $nature) => [
+                    $this->formatService->nature($nature),
+                    0,
+                ])
+                ->toArray();
+
+            $segments = $config['segments'];
+
+            $customSegments = array_merge([-1, 1], $segments);
+            $counterByEndingSpan = Stream::from($customSegments)
+                ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
+                ->toArray();
+            $nextElementToDisplay = null;
+
+            $treatedGroups = [];
+
+            foreach($trackingDelayByFilters as $trackingDelay){
+                $pack = $trackingDelay->getPack();
+                $group = $pack->getGroup();
+
+                $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
+
+                if ($group) {
+                    $groupId = $group->getId();
+                    $oldRemainingTime = $treatedGroups[$groupId]["remainingTimeInSeconds"] ?? null;
+                    if (!isset($oldRemainingTime) || $remainingTimeInSeconds < $oldRemainingTime) {
+                        $treatedGroups[$group->getId()] = [
+                            "group" => $group,
+                            "pack" => $pack,
+                            "remainingTimeInSeconds" => $remainingTimeInSeconds,
+                        ];
+                    }
+
+                    // We increment counter for group in next foreach
+                    // to do not count two times a same group
+                    break;
+                }
+
+                // we save pack with the smallest tracking delay
+                if (!isset($nextElementToDisplay)
+                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+                    $nextElementToDisplay = [
+                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                        'pack' => $pack,
+                    ];
+                }
+
+                foreach ($customSegments as $segmentEnd) {
+                    $endSpan = match($segmentEnd) {
+                        -1 => -1,
+                        default => $segmentEnd * 60,
+                    };
+
+                    if ($remainingTimeInSeconds < $endSpan) {
+                        $natureLabel = $this->formatService->nature($pack->getNature());
+
+                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                        $globalCounter++;
+
+                        break;
+                    }
+                }
+            }
+
+            foreach ($treatedGroups as $group) {
+                $group = $group['group'];
+                $pack = $group['pack'];
+                $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
+
+                // we save pack with the smallest tracking delay
+                if (!isset($nextElementToDisplay)
+                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+                    $nextElementToDisplay = [
+                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                        'pack' => $group,
+                    ];
+                }
+
+                foreach ($customSegments as $segmentEnd) {
+                    $endSpan = match($segmentEnd) {
+                        -1 => -1,
+                        default => $segmentEnd * 60,
+                    };
+
+                    if ($remainingTimeInSeconds < $endSpan) {
+                        $natureLabel = $this->formatService->nature($pack->getNature());
+
+                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                        $globalCounter++;
+
+                        break;
+                    }
+                }
+            }
+
+            $graphData = $this->dashboardService->getObjectForTimeSpan(
+                $segments,
+                static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
+                $component->getType()->getMeterKey()
+            );
+        }
+
+        if (empty($graphData)) {
+            $graphData = $this->dashboardService->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
+        }
+
+        // sum of counters > 1, at least one pack
+        if (isset($nextElementToDisplay)) {
+            $packToDisplay = $nextElementToDisplay['pack'] ?? null;
+
+            $nextElementIdToDisplay = $packToDisplay?->getId();
+            $config['nextElement'] = $nextElementIdToDisplay;
+
+            $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
+        }
+        else {
+            $packToDisplay = null;
+            $locationToDisplay = null;
+        }
+
+        $component->setConfig($config);
+
+        $totalToDisplay = $globalCounter ?: null;
+        $chartColors = Stream::from($naturesFilter)
+            ->filter(fn (Nature $nature) => $nature->getColor())
+            ->keymap(fn(Nature $nature) => [
+                $this->formatService->nature($nature),
+                $nature->getColor()
+            ])
+            ->toArray();
+
+        $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+
+        $meter
+            ->setChartColors($chartColors)
+            ->setData($graphData)
+            ->setTotal($totalToDisplay ?: '-')
+            ->setNextElement($packToDisplay?->getCode() ?: '-')
+            ->setLocation($locationToDisplay ?: '-');
+    }
+
+
+}

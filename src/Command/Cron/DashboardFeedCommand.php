@@ -7,7 +7,8 @@ namespace App\Command\Cron;
 use App\Entity\Dashboard;
 use App\Entity\Wiilock;
 use App\Exceptions\DashboardException;
-use App\Service\DashboardService;
+use App\Service\Dashboard\DashboardService;
+use App\Service\Dashboard\EntriesToHandleByTrackingDelayService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,26 +26,13 @@ use Throwable;
 class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
-    private EntityManagerInterface $entityManager;
-    private DashboardService $dashboardService;
-    private WiilockService $wiilockService;
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                DashboardService $dashboardService,
-                                WiilockService $wiilockService) {
+    public function __construct(private EntityManagerInterface $entityManager,
+                                private DashboardService $dashboardService,
+                                private EntriesToHandleByTrackingDelayService $entriesToHandleByTrackingDelayService,
+                                private WiilockService $wiilockService) {
         parent::__construct();
-        $this->entityManager = $entityManager;
-        $this->dashboardService = $dashboardService;
-        $this->wiilockService = $wiilockService;
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     * @throws ORMException
-     * @throws Throwable
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int {
         if(!$this->wiilockService->dashboardNeedsFeeding($this->entityManager)) {
             $output->writeln("Dashboards are being fed, aborting");
@@ -87,7 +75,7 @@ class DashboardFeedCommand extends Command {
                         $this->dashboardService->persistArrivalsAndPacksMeter($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                        $this->dashboardService->persistEntriesToHandleByTrackingDelay($this->entityManager, $component);
+                        $this->entriesToHandleByTrackingDelayService->persistEntriesToHandleByTrackingDelay($this->entityManager, $component);
                         break;
                     case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                         $this->dashboardService->persistEntriesToHandle($this->entityManager, $component);

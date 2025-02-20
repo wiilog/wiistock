@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Dashboard\ComponentType;
 use App\Entity\LatePack;
 use App\Entity\Utilisateur;
-use App\Service\DashboardService;
+use App\Service\Dashboard\DashboardService;
 use App\Service\DashboardSettingsService;
 use App\Service\SpecificService;
 use Doctrine\ORM\EntityManagerInterface;
