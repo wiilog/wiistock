@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Dashboard;
 
 use App\Entity\Alert;
 use App\Entity\Arrivage;
@@ -43,7 +43,13 @@ use App\Exceptions\DashboardException;
 use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
-use App\Service\TrackingDelayService;
+use App\Service\DateTimeService;
+use App\Service\EnCoursService;
+use App\Service\FormatService;
+use App\Service\LanguageService;
+use App\Service\PackService;
+use App\Service\TranslationService;
+use App\Service\TruckArrivalLineService;
 use App\Service\WorkPeriod\WorkPeriodItem;
 use App\Service\WorkPeriod\WorkPeriodService;
 use DateTime;
@@ -475,7 +481,7 @@ class DashboardService {
      * @param string $class
      * @return DashboardMeter\Indicator|DashboardMeter\Chart
      */
-    private function persistDashboardMeter(EntityManagerInterface $entityManager,
+    public function persistDashboardMeter(EntityManagerInterface $entityManager,
                                            Dashboard\Component $component,
                                            string $class) {
 
@@ -1523,118 +1529,6 @@ class DashboardService {
 
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
         $meter->setCount($count ?? 0);
-    }
-
-    public function persistEntriesToHandleByTrackingDelay(EntityManagerInterface $entityManager,
-                                                          Dashboard\Component $component): void {
-        $config = $component->getConfig();
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $trackingDelayRepository = $entityManager->getRepository(TrackingDelay::class);
-
-        $naturesFilter = !empty($config['natures'])
-            ? $natureRepository->findBy(['id' => $config['natures']])
-            : [];
-
-        $locationsFilter = !empty($config['locations'])
-            ? $locationRepository->findBy(['id' => $config['locations']])
-            : [];
-
-        $maxResultPack = 1000;
-        $globalCounter = null;
-
-        if (!empty($naturesFilter) && !empty($locationsFilter)) {
-            $eventTypes = self::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$config['treatmentDelayType']];
-            $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, $maxResultPack);
-
-            $countByNatureBase = Stream::from($naturesFilter)
-                ->keymap(fn(Nature $nature) => [
-                    $this->formatService->nature($nature),
-                    0,
-                ])
-                ->toArray();
-
-            $segments = $config['segments'];
-
-            $customSegments = array_merge([-1, 1], $segments);
-            $counterByEndingSpan = Stream::from($customSegments)
-                ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
-                ->toArray();
-            $nextElementToDisplay = [];
-
-            foreach($trackingDelayByFilters as $trackingDelay){
-                $pack = $trackingDelay->getPack();
-                $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
-
-                // we save pack with the smallest tracking delay
-                if (empty($nextElementToDisplay)
-                    || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
-                    $nextElementToDisplay = [
-                        'remainingTimeInSeconds' => $remainingTimeInSeconds,
-                        'pack' => $pack,
-                    ];
-                }
-
-                foreach ($customSegments as $segmentEnd) {
-                    $endSpan = match($segmentEnd) {
-                        -1 => -1,
-                        default => $segmentEnd * 60,
-                    };
-
-                    if ($remainingTimeInSeconds < $endSpan) {
-                        $natureLabel = $this->formatService->nature($pack->getNature());
-                        $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                        $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                        $globalCounter++;
-                        break;
-                    }
-                }
-            }
-
-            $graphData = $this->getObjectForTimeSpan(
-                $segments,
-                static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
-                $component->getType()->getMeterKey()
-            );
-        }
-
-        if (empty($graphData)) {
-            $graphData = $this->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
-        }
-
-        // sum of counters > 1, at least one pack
-        if (isset($nextElementToDisplay)) {
-            $packToDisplay = $nextElementToDisplay['pack'] ?? null;
-
-            $nextElementIdToDisplay = $packToDisplay?->getId();
-            $config['nextElement'] = $nextElementIdToDisplay;
-
-            $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
-        }
-        else {
-            $packToDisplay = null;
-            $locationToDisplay = null;
-        }
-
-        $component->setConfig($config);
-
-        $totalToDisplay = $globalCounter ?: null;
-        $chartColors = Stream::from($naturesFilter)
-            ->filter(fn (Nature $nature) => $nature->getColor())
-            ->keymap(fn(Nature $nature) => [
-                $this->formatService->nature($nature),
-                $nature->getColor()
-            ])
-            ->toArray();
-
-        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
-
-        $meter
-            ->setChartColors($chartColors)
-            ->setData($graphData)
-            ->setTotal($totalToDisplay ?: '-')
-            ->setNextElement($packToDisplay?->getCode() ?: '-')
-            ->setLocation($locationToDisplay ?: '-');
     }
 
     public function persistOngoingPacksWithTrackingDelay(EntityManagerInterface $entityManager,
