@@ -29,7 +29,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Tracking\Pack;
-use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferOrder;
@@ -84,7 +83,6 @@ class DashboardService {
         private TruckArrivalLineService $truckArrivalLineService,
         private FormatService           $formatService,
         private EnCoursService          $enCoursService,
-        private PackService             $packService,
     ) {}
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
