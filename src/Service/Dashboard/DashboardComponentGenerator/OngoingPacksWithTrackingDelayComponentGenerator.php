@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Service\Dashboard;
+namespace App\Service\Dashboard\DashboardComponentGenerator;
 
+use App\Entity\Dashboard;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
 use App\Entity\Tracking\TrackingDelay;
+use App\Service\Dashboard\DashboardService;
 use App\Service\FormatService;
 use App\Service\PackService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Dashboard;
-use App\Entity\Dashboard\Meter as DashboardMeter;
 
-class OngoingPacksWithTrackingDelayService implements DashboardComponentService {
+class OngoingPacksWithTrackingDelayComponentGenerator implements DashboardComponentGenerator {
 
     public function __construct(
         private PackService $packService,
@@ -21,8 +22,7 @@ class OngoingPacksWithTrackingDelayService implements DashboardComponentService 
     }
 
     public function persist(EntityManagerInterface $entityManager,
-                            Dashboard\Component    $component,
-                            array                  $options = []): void {
+                            Dashboard\Component    $component): void {
         $config = $component->getConfig();
 
         $natureRepository = $entityManager->getRepository(Nature::class);
