@@ -3,7 +3,7 @@ name: run-cypress
 on:
     pull_request:
         branches:
-            - "*"
+            - "WIIS-12071"
 
 concurrency:
     group: ${{ github.head_ref }}-cypress
