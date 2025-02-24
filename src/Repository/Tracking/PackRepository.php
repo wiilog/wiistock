@@ -259,7 +259,7 @@ class PackRepository extends EntityRepository
                 case FiltreSup::FIELD_PACK_WITH_TRACKING:
                     if ($filter['value']) {
                         // only pack with a current tracking delay
-                        $queryBuilder->join('pack.currentTrackingDelay', 'filter_tracking_delay');
+                        $queryBuilder->join('pack.currentTrackingDelay', 'filter_pack_with_tracking_tracking_delay');
                     }
                     break;
                 case 'trackingEventTypes':
@@ -269,20 +269,19 @@ class PackRepository extends EntityRepository
                     $orX = $expr->orX();
 
                     if (in_array(null, $events, true)) {
-                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IS NULL');
+                        $orX->add('filter_tracking_event_tracking_delay.lastTrackingEvent IS NULL');
                     }
 
                     $filteredEvents = Stream::from($events)
                         ->filter(static fn($event) => $event !== null)
                         ->toArray();
                     if (!empty($filteredEvents)) {
-                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IN (:events)');
+                        $orX->add('filter_tracking_event_tracking_delay.lastTrackingEvent IN (:events)');
                         $queryBuilder->setParameter('events', $filteredEvents);
                     }
 
-                    // TODO WIIS-11930 change join
                     $queryBuilder
-                        ->innerJoin('pack.trackingDelay', 'filter_tracking_delay_for_event')
+                        ->innerJoin('pack.currentTrackingDelay', 'filter_tracking_event_tracking_delay')
                         ->andWhere($orX);
                     break;
                 default:
