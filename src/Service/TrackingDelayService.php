@@ -111,9 +111,9 @@ class TrackingDelayService {
      *  - records: Records representing the returned elapsedTime
      *
      * @return null|array{
-     *     lastTrackingEvent?: TrackingEvent|null,
-     *     limitTreatmentDate?: DateTime|null,
-     *     elapsedTime?: int|null,
+     *     lastTrackingEvent: TrackingEvent|null,
+     *     limitTreatmentDate: DateTime|null,
+     *     elapsedTime: int|null,
      *     calculatedDelayInheritCurrent: boolean,
      *     records: TrackingDelayRecord[],
      * }
@@ -162,16 +162,6 @@ class TrackingDelayService {
         $calculatedDelayInheritCurrent = !empty($previousRecords);
         $previousCurrentRecord = null;
 
-        $getRemainingDelay = static function (int      $delay,
-                                              DateTime $begin,
-                                              DateTime $end) {
-            $intervalTime = $end->getTimestamp() - $begin->getTimestamp();
-            return [
-                "delay"        => $delay - $intervalTime,
-                "intervalTime" => $intervalTime,
-            ];
-        };
-
         foreach ($segments as $segment) {
             [
                 "start" => $segmentStart,
@@ -184,7 +174,7 @@ class TrackingDelayService {
             $calculationDate->add($workedInterval);
 
             $oldRemainingNatureDelay = $remainingNatureDelay ?? $natureTrackingDelay;
-            ["delay" => $remainingNatureDelay] = $getRemainingDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
+            ["delay" => $remainingNatureDelay] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
 
             // set remaining time before check push records in calculated records array
             $segmentStart->setRemainingTrackingDelay($oldRemainingNatureDelay);
@@ -215,7 +205,7 @@ class TrackingDelayService {
         [
             "delay"        => $remainingNatureDelay,
             "intervalTime" => $calculatedElapsedTime,
-        ] = $getRemainingDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
+        ] = $this->dateTimeService->subtractDelay($natureTrackingDelay, $calculationDateInit, $calculationDate);
 
         if ($remainingNatureDelay > 0) {
             $remainingNatureDelayInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingNatureDelay);
@@ -365,10 +355,10 @@ class TrackingDelayService {
 
     /**
      * @return array{
-     *     timerStartedAt?: DateTime,
-     *     timerStartedBy?: "movement"|"arrival"|"truckArrival",
-     *     timerStoppedAt?: DateTime,
-     *     timerStoppedBy?: "movement"|"arrival"|"truckArrival",
+     *     timerStartedAt: DateTime|null,
+     *     timerStartedBy: "movement"|"arrival"|"truckArrival"|null,
+     *     timerStoppedAt: DateTime|null,
+     *     timerStoppedBy: "movement"|"arrival"|"truckArrival"|null,
      * }
      */
     private function getTimerData(Pack $pack): array {
@@ -377,10 +367,12 @@ class TrackingDelayService {
 
         if ($lastStart) {
             $timerStartedAt = $lastStart->getDatetime();
+            $timerStartedBy = "movement";
 
             if ($lastStop
                 && $this->trackingMovementService->compareMovements($lastStart, $lastStop) === TrackingMovementService::COMPARE_A_BEFORE_B) {
                 $timerStoppedAt = $lastStop->getDatetime();
+                $timerStoppedBy = "movement";
             }
         }
         else {
@@ -398,13 +390,14 @@ class TrackingDelayService {
             else {
                 // if any truck arrival or logistic unit arrival
                 // we get the first tracking movement on pack
-
                 $firstAction = $pack->getFirstAction();
+
                 // if the first tracking was not on a stop location (like a picking on stop location)
                 // we get as timerStartedAt the date of the tracking
                 // because we know that the pack has never been pick and that the timer has never been started
                 if (!($firstAction?->getEmplacement()?->isStopTrackingTimerOnDrop())) {
                     $timerStartedAt = $firstAction?->getDatetime();
+                    $timerStartedBy = "movement";
                 }
             }
 
@@ -412,14 +405,15 @@ class TrackingDelayService {
                 && $lastStop
                 && $timerStartedAt <= $lastStop->getDatetime()) {
                 $timerStoppedAt = $lastStop->getDatetime();
+                $timerStoppedBy = "movement";
             }
         }
 
         return [
             "timerStartedAt" => $timerStartedAt ?? null,
-            "timerStartedBy" => $timerStartedBy ?? "movement",
+            "timerStartedBy" => $timerStartedBy ?? null,
             "timerStoppedAt" => $timerStoppedAt ?? null,
-            "timerStoppedBy" => $timerStoppedBy ?? "movement",
+            "timerStoppedBy" => $timerStoppedBy ?? null,
         ];
     }
 
@@ -462,7 +456,6 @@ class TrackingDelayService {
 
         return (new TrackingDelayRecord())
             ->setLocation($recordArray["location"] ?? null)
-            ->setPack($recordArray["pack"] ?? null)
             ->setNewNature($recordArray["newNature"] ?? null)
             ->setType($recordArray["type"] ?? null)
             ->setTrackingEvent($recordArray["trackingEvent"] ?? null)
