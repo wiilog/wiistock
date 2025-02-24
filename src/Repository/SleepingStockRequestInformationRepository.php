@@ -3,14 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\SleepingStockRequestInformation;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<SleepingStockRequestInformation>
+ * @extends EntityRepository<SleepingStockRequestInformation>
  */
-class SleepingStockRequestInformationRepository extends ServiceEntityRepository {
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, SleepingStockRequestInformation::class);
-    }
+class SleepingStockRequestInformationRepository extends EntityRepository {
 }
