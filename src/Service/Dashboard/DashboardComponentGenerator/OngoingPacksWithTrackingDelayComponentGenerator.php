@@ -9,7 +9,7 @@ use App\Entity\Nature;
 use App\Entity\Tracking\TrackingDelay;
 use App\Service\Dashboard\DashboardService;
 use App\Service\FormatService;
-use App\Service\PackService;
+use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 
 class OngoingPacksWithTrackingDelayComponentGenerator implements DashboardComponentGenerator {

@@ -16,6 +16,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ProductionRequest\ProductionRequestService;
 use App\Service\ShippingRequest\ShippingRequestService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

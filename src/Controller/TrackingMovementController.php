@@ -25,7 +25,7 @@ use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\SettingsService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
