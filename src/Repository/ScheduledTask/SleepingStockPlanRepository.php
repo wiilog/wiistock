@@ -3,15 +3,10 @@
 namespace App\Repository\ScheduledTask;
 
 use App\Entity\ScheduledTask\SleepingStockPlan;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends ServiceEntityRepository<SleepingStockPlan>
+ * @extends EntityRepository<SleepingStockPlan>
  */
-class SleepingStockPlanRepository extends ServiceEntityRepository {
-
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, SleepingStockPlan::class);
-    }
+class SleepingStockPlanRepository extends EntityRepository {
 }
