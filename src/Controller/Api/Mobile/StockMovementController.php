@@ -17,7 +17,7 @@ use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FreeFieldService;
 use App\Service\ProjectHistoryRecordService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;

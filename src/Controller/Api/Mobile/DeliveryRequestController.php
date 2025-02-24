@@ -16,7 +16,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PreparationsManagerService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

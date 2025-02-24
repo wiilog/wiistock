@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Tracking;
 
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
@@ -11,6 +11,8 @@ use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Tracking\TrackingMovement;
+use App\Service\CacheService;
+use App\Service\DateTimeService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -227,7 +229,7 @@ class TrackingDelayService {
      * Then we map it as date an ordered.
      * Each couple dates make this "tracking segment".
      *
-     * @param "movement"|"arrival"|"truckArrival"|null $startedBy
+     * @param TrackingTimerEvent|null $startedBy
      *
      * @return iterable<array{
      *     start: TrackingDelayRecord,
@@ -238,7 +240,7 @@ class TrackingDelayService {
                                                              Pack                   $pack,
                                                              DateTime               $start,
                                                              ?DateTime              $end,
-                                                             ?string                $startedBy): iterable {
+                                                             ?TrackingTimerEvent    $startedBy): iterable {
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
@@ -257,9 +259,9 @@ class TrackingDelayService {
                 $intervalStartRecord = $this->createTrackingDelayRecord([
                     "date" => $start,
                     "type" => match($startedBy) {
-                        "arrival"      => $this->cacheService->getEntity($entityManager, Statut::class, CategorieStatut::class, TrackingDelayRecord::TYPE_ARRIVAL),
-                        "truckArrival" => $this->cacheService->getEntity($entityManager, Statut::class, CategorieStatut::class, TrackingDelayRecord::TYPE_TRUCK_ARRIVAL),
-                        default        => null,
+                        TrackingTimerEvent::ARRIVAL       => $this->cacheService->getEntity($entityManager, Statut::class, CategorieStatut::class, TrackingDelayRecord::TYPE_ARRIVAL),
+                        TrackingTimerEvent::TRUCK_ARRIVAL => $this->cacheService->getEntity($entityManager, Statut::class, CategorieStatut::class, TrackingDelayRecord::TYPE_TRUCK_ARRIVAL),
+                        default                           => null,
                     },
                 ]);
             }
@@ -356,9 +358,9 @@ class TrackingDelayService {
     /**
      * @return array{
      *     timerStartedAt: DateTime|null,
-     *     timerStartedBy: "movement"|"arrival"|"truckArrival"|null,
+     *     timerStartedBy: TrackingTimerEvent|null,
      *     timerStoppedAt: DateTime|null,
-     *     timerStoppedBy: "movement"|"arrival"|"truckArrival"|null,
+     *     timerStoppedBy: TrackingTimerEvent|null,
      * }
      */
     private function getTimerData(Pack $pack): array {
@@ -367,12 +369,12 @@ class TrackingDelayService {
 
         if ($lastStart) {
             $timerStartedAt = $lastStart->getDatetime();
-            $timerStartedBy = "movement";
+            $timerStartedBy = TrackingTimerEvent::MOVEMENT;
 
             if ($lastStop
                 && $this->trackingMovementService->compareMovements($lastStart, $lastStop) === TrackingMovementService::COMPARE_A_BEFORE_B) {
                 $timerStoppedAt = $lastStop->getDatetime();
-                $timerStoppedBy = "movement";
+                $timerStoppedBy = TrackingTimerEvent::MOVEMENT;
             }
         }
         else {
@@ -385,7 +387,7 @@ class TrackingDelayService {
             $timerStartedAt = $truckArrivalCreatedAt ?: $arrivalCreatedAt;
 
             if ($timerStartedAt) {
-                $timerStartedBy = $truckArrivalCreatedAt ? "arrival" : "truckArrival";
+                $timerStartedBy = $truckArrivalCreatedAt ? TrackingTimerEvent::ARRIVAL : TrackingTimerEvent::TRUCK_ARRIVAL;
             }
             else {
                 // if any truck arrival or logistic unit arrival
@@ -397,7 +399,7 @@ class TrackingDelayService {
                 // because we know that the pack has never been pick and that the timer has never been started
                 if (!($firstAction?->getEmplacement()?->isStopTrackingTimerOnDrop())) {
                     $timerStartedAt = $firstAction?->getDatetime();
-                    $timerStartedBy = "movement";
+                    $timerStartedBy = TrackingTimerEvent::MOVEMENT;
                 }
             }
 
@@ -405,7 +407,7 @@ class TrackingDelayService {
                 && $lastStop
                 && $timerStartedAt <= $lastStop->getDatetime()) {
                 $timerStoppedAt = $lastStop->getDatetime();
-                $timerStoppedBy = "movement";
+                $timerStoppedBy = TrackingTimerEvent::MOVEMENT;
             }
         }
 
