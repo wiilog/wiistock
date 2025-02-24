@@ -5,9 +5,9 @@ imports:
 parameters:
   cards_directory: "%kernel.project_dir%/public/uploads/cards"
   locale: '%env(APP_LOCALE)%'
-  web_version: '7.25.12'
-  nomade_version: '=7.25.6'
-  nomade_apk: 'https://github.com/wiilog/wiistock-mobile/releases/download/v7.25.6/wiistock.apk'
+  web_version: '7.25.13'
+  nomade_version: '=7.25.13'
+  nomade_apk: 'https://github.com/wiilog/wiistock-mobile/releases/download/v7.25.13/wiistock.apk'
   wiispool_exe: 'https://github.com/wiilog/wiispool/releases/download/v3.0.2/wiispool.exe'
 
   client: '%env(APP_CLIENT)%'
