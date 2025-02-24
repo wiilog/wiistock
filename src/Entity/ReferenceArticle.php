@@ -20,12 +20,12 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReferenceArticleRepository::class)]
-class ReferenceArticle implements AttachmentContainer
-{
+class ReferenceArticle implements AttachmentContainer {
 
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
@@ -53,91 +53,121 @@ class ReferenceArticle implements AttachmentContainer
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $libelle = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     private ?string $reference = null;
 
-    #[ORM\Column(type: 'string', length: 15, unique: true, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 15, unique: true, nullable: false)]
     private ?string $barCode = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $quantiteDisponible;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $quantiteReservee;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $quantiteStock;
 
+    /**
+     * @return Collection<int, DeliveryRequestReferenceLine>
+     */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: DeliveryRequestReferenceLine::class)]
     private Collection $deliveryRequestLines;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'referenceArticles')]
     private ?Type $type = null;
 
+    /**
+     * @return Collection<int, ArticleFournisseur>
+     */
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: ArticleFournisseur::class)]
     private Collection $articlesFournisseur;
 
-    #[ORM\Column(type: 'string', length: 16, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true)]
     private ?string $typeQuantite = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'referenceArticles')]
     private ?Statut $statut = null;
 
+    /**
+     * @return Collection<int, CollecteReference>
+     */
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: CollecteReference::class)]
     private Collection $collecteReferences;
 
+    /**
+     * @return Collection<int, OrdreCollecteReference>
+     */
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: OrdreCollecteReference::class)]
     private Collection $ordreCollecteReferences;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
+    /**
+     * @return Collection<int, ReceptionReferenceArticle>
+     */
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: ReceptionReferenceArticle::class)]
     private Collection $receptionReferenceArticles;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'referenceArticles')]
     private ?Emplacement $emplacement = null;
 
+    /**
+     * @return Collection<int, MouvementStock>
+     */
     #[ORM\OneToMany(mappedBy: 'refArticle', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
     #[ORM\ManyToOne(targetEntity: InventoryCategory::class)]
     private ?InventoryCategory $category = null;
 
+    /**
+     * @return Collection<int, InventoryEntry>
+     */
     #[ORM\OneToMany(mappedBy: 'refArticle', targetEntity: InventoryEntry::class)]
     private Collection $inventoryEntries;
 
+    /**
+     * @return Collection<int, InventoryCategoryHistory>
+     */
     #[ORM\OneToMany(mappedBy: 'refArticle', targetEntity: InventoryCategoryHistory::class)]
     private Collection $inventoryCategoryHistory;
 
+    /**
+     * @return Collection<int, InventoryMission>
+     */
     #[ORM\ManyToMany(targetEntity: InventoryMission::class, mappedBy: 'refArticles')]
     private Collection $inventoryMissions;
 
-    #[ORM\Column(type: 'float', nullable: true)]
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $prixUnitaire = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateLastInventory = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $limitSecurity = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $limitWarning = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $isUrgent = false;
 
+    /**
+     * @return Collection<int, PreparationOrderReferenceLine>
+     */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PreparationOrderReferenceLine::class)]
     private Collection $preparationOrderReferenceLines;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $emergencyComment = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $emergencyQuantity = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
@@ -146,33 +176,51 @@ class ReferenceArticle implements AttachmentContainer
     #[ORM\OneToOne(mappedBy: 'referenceArticle', targetEntity: Pack::class)]
     private ?Pack $trackingPack = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $needsMobileSync = null;
 
+    /**
+     * @return Collection<int, TransferRequest>
+     */
     #[ORM\ManyToMany(targetEntity: TransferRequest::class, mappedBy: 'references')]
     private Collection $transferRequests;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $stockManagement = null;
 
+    /**
+     * @return Collection<int, Utilisateur>
+     */
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $managers;
 
+    /**
+     * @return Collection<int, >
+     */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: Alert::class, cascade: ['remove'])]
     private Collection $alerts;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesBuyer')]
     private ?Utilisateur $buyer = null;
 
+    /**
+     * @return Collection<int, Cart>
+     */
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'references')]
     private ?Collection $carts;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $orderState = null;
 
+    /**
+     * @return Collection<int, PurchaseRequestLine>
+     */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PurchaseRequestLine::class)]
     private Collection $purchaseRequestLines;
 
+    /**
+     * @return Collection<int, RequestTemplateLine>
+     */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: RequestTemplateLine::class, orphanRemoval: true)]
     private Collection $requestTemplateLines;
 
@@ -185,44 +233,53 @@ class ReferenceArticle implements AttachmentContainer
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $createdBy = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $createdAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $editedBy = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $editedAt = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $lastStockEntry = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $lastStockExit = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $upToDateInventory;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $description = [];
 
+    /**
+     * @return Collection<int, StorageRule>
+     */
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
     private Collection $storageRules;
 
-    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $ndpCode = null;
 
-    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $onuCode = null;
 
-    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $productClass = null;
 
-    #[ORM\Column(type:'boolean')]
+    #[ORM\Column(type: Types::BOOLEAN)]
     private ?bool $dangerousGoods;
 
     #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
+
+    /**
+     * the null value mean 'never responded'.
+     */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTimeInterface $lastSleepingStockAlertAnswer = null;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -309,7 +366,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|DeliveryRequestReferenceLine[]
+     * @return Collection<int, DeliveryRequestReferenceLine>
      */
     public function getDeliveryRequestLines(): Collection {
         return $this->deliveryRequestLines;
@@ -395,7 +452,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|CollecteReference[]
+     * @return Collection<int, CollecteReference>
      */
     public function getCollecteReferences(): Collection {
         return $this->collecteReferences;
@@ -434,7 +491,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|ReceptionReferenceArticle[]
+     * @return Collection<int,ReceptionReferenceArticle>
      */
     public function getReceptionReferenceArticles(): Collection {
         return $this->receptionReferenceArticles;
@@ -491,7 +548,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|MouvementStock[]
+     * @return Collection<int,MouvementStock>
      */
     public function getMouvements(): Collection {
         return $this->mouvements;
@@ -519,7 +576,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|InventoryEntry[]
+     * @return Collection<int, InventoryEntry>
      */
     public function getInventoryEntries(): Collection {
         return $this->inventoryEntries;
@@ -547,7 +604,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|InventoryCategoryHistory[]
+     * @return Collection<int, InventoryCategoryHistory>
      */
     public function getInventoryCategoryHistory(): Collection {
         return $this->inventoryCategoryHistory;
@@ -595,7 +652,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|InventoryMission[]
+     * @return Collection<int, InventoryMission>
      */
     public function getInventoryMissions(): Collection {
         return $this->inventoryMissions;
@@ -658,7 +715,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|OrdreCollecteReference[]
+     * @return Collection<int,OrdreCollecteReference>
      */
     public function getOrdreCollecteReferences(): Collection {
         return $this->ordreCollecteReferences;
@@ -696,7 +753,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|PreparationOrderReferenceLine[]
+     * @return Collection<int, PreparationOrderReferenceLine>
      */
     public function getPreparationOrderReferenceLines(): Collection {
         return $this->preparationOrderReferenceLines;
@@ -777,7 +834,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|Utilisateur[]
+     * @return Collection<int, Utilisateur>
      */
     public function getManagers(): Collection {
         return $this->managers;
@@ -868,7 +925,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|Alert[]
+     * @return Collection<int, Alert>
      */
     public function getAlerts(): Collection {
         return $this->alerts;
@@ -906,7 +963,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|Cart[]
+     * @return Collection<int, Cart>
      */
     public function getCarts(): Collection {
         return $this->carts;
@@ -929,7 +986,10 @@ class ReferenceArticle implements AttachmentContainer
         return $this;
     }
 
-    public function getPurchaseRequestLines(): ?Collection {
+    /**
+     * @return Collection<int, PurchaseRequestLine>
+     */
+    public function getPurchaseRequestLines(): Collection {
         return $this->purchaseRequestLines;
     }
 
@@ -992,7 +1052,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return Collection|RequestTemplateLine[]
+     * @return Collection<int, RequestTemplateLine>
      */
     public function getRequestTemplateLines(): Collection {
         return $this->requestTemplateLines;
@@ -1019,7 +1079,7 @@ class ReferenceArticle implements AttachmentContainer
     }
 
     /**
-     * @return VisibilityGroup
+     * @return VisibilityGroup|null
      */
     public function getVisibilityGroup(): ?VisibilityGroup {
         return $this->visibilityGroup;
@@ -1138,6 +1198,9 @@ class ReferenceArticle implements AttachmentContainer
         return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE;
     }
 
+    /**
+     * @return Collection<int, StorageRule>
+     */
     public function getStorageRules(): Collection {
         return $this->storageRules;
     }
@@ -1174,49 +1237,41 @@ class ReferenceArticle implements AttachmentContainer
         return $this;
     }
 
-    public function getNdpCode(): ?string
-    {
+    public function getNdpCode(): ?string {
         return $this->ndpCode;
     }
 
-    public function setNdpCode(?string $ndpCode): self
-    {
+    public function setNdpCode(?string $ndpCode): self {
         $this->ndpCode = $ndpCode;
 
         return $this;
     }
 
-    public function getOnuCode(): ?string
-    {
+    public function getOnuCode(): ?string {
         return $this->onuCode;
     }
 
-    public function setOnuCode(?string $onuCode): self
-    {
+    public function setOnuCode(?string $onuCode): self {
         $this->onuCode = $onuCode;
 
         return $this;
     }
 
-    public function getProductClass(): ?string
-    {
+    public function getProductClass(): ?string {
         return $this->productClass;
     }
 
-    public function setProductClass(?string $productClass): self
-    {
+    public function setProductClass(?string $productClass): self {
         $this->productClass = $productClass;
 
         return $this;
     }
 
-    public function isDangerousGoods(): ?bool
-    {
+    public function isDangerousGoods(): ?bool {
         return $this->dangerousGoods;
     }
 
-    public function setDangerousGoods(bool $dangerousGoods): self
-    {
+    public function setDangerousGoods(bool $dangerousGoods): self {
         $this->dangerousGoods = $dangerousGoods;
 
         return $this;
@@ -1235,6 +1290,19 @@ class ReferenceArticle implements AttachmentContainer
         if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
             $this->sheet->setReferenceArticleSheet($this);
         }
+
+        return $this;
+    }
+
+    public function getLastSleepingStockAlertAnswer(): ?DateTimeInterface {
+        return $this->lastSleepingStockAlertAnswer;
+    }
+
+    /**
+     * @param DateTimeInterface $lastSleepingStockAlertAnswer cannot be null, because if a user has responded once, it cannot be reset to 'never responded'.
+     */
+    public function setLastSleepingStockAlertAnswer(DateTimeInterface $lastSleepingStockAlertAnswer): self {
+        $this->lastSleepingStockAlertAnswer = $lastSleepingStockAlertAnswer;
 
         return $this;
     }
