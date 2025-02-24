@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Dashboard;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -37,7 +38,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
-use App\Entity\Dashboard;
 
 #[Route("/unite-logistique", name: 'pack_')]
 class PackController extends AbstractController {
