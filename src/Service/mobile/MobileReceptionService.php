@@ -14,7 +14,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\MouvementStockService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\Common\Collections\Collection;

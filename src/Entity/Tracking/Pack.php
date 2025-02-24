@@ -19,7 +19,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Repository\Tracking\PackRepository;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;

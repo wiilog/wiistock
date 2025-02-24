@@ -32,7 +32,7 @@ use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;

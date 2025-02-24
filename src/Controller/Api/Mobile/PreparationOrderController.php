@@ -19,7 +19,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\NotificationService;
 use App\Service\PreparationsManagerService;
 use App\Service\SettingsService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;
