@@ -21,7 +21,7 @@ class SleepingStockRequestInformation {
     private ?string $buttonActionLabel = null;
 
 
-    /*
+    /**
      * Only DeliveryRequestTemplate with type DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK are allowed.
      */
     #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplate::class)]
