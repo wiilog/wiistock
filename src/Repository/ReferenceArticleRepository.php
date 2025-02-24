@@ -638,7 +638,7 @@ class ReferenceArticleRepository extends EntityRepository {
                         case FreeField::TYPE_LIST_MULTIPLE:
                             $value = Stream::from(json_decode($value) ?: [])
                                 ->map(function (?string $value) {
-                                    return '%' . ($value ?? '') . '%';
+                                    return $value ?? '';
                                 })
                                 ->toArray();
                             break;
