@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\Tracking;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
@@ -32,6 +32,19 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Serializer\SerializerUsageEnum;
+use App\Service\AttachmentService;
+use App\Service\CSVExportService;
+use App\Service\FieldModesService;
+use App\Service\FormatService;
+use App\Service\FreeFieldService;
+use App\Service\GroupService;
+use App\Service\LanguageService;
+use App\Service\LocationClusterService;
+use App\Service\MouvementStockService;
+use App\Service\ProjectHistoryRecordService;
+use App\Service\SettingsService;
+use App\Service\TranslationService;
+use App\Service\UserService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;

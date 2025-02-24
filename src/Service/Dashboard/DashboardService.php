@@ -46,7 +46,6 @@ use App\Service\DateTimeService;
 use App\Service\EnCoursService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
-use App\Service\PackService;
 use App\Service\TranslationService;
 use App\Service\TruckArrivalLineService;
 use App\Service\WorkPeriod\WorkPeriodItem;

@@ -5,8 +5,8 @@
 namespace App\Command\Cron;
 
 use App\Entity\Setting;
-use App\Service\PackService;
 use App\Service\SettingsService;
+use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

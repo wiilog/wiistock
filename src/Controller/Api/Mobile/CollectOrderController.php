@@ -13,7 +13,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Repository\Tracking\TrackingMovementRepository;
 use App\Service\ExceptionLoggerService;
 use App\Service\OrdreCollecteService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManager;

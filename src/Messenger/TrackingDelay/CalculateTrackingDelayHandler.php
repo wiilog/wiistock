@@ -6,7 +6,7 @@ use App\Entity\Tracking\Pack;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
 use App\Service\ExceptionLoggerService;
-use App\Service\TrackingDelayService;
+use App\Service\Tracking\TrackingDelayService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 

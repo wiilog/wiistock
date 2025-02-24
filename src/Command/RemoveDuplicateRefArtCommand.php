@@ -2,14 +2,10 @@
 
 namespace App\Command;
 
-use App\Entity\LocationClusterRecord;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
-use App\Entity\Tracking\TrackingMovement;
 use App\Repository\PackRepository;
-use App\Serializer\SerializerUsageEnum;
 use App\Service\FormatService;
-use App\Service\TrackingMovementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

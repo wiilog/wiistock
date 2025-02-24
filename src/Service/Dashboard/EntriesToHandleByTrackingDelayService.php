@@ -2,16 +2,16 @@
 
 namespace App\Service\Dashboard;
 
+use App\Entity\Dashboard;
+use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
 use App\Service\FormatService;
-use App\Service\PackService;
+use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
-use App\Entity\Dashboard;
-use App\Entity\Dashboard\Meter as DashboardMeter;
 
 class EntriesToHandleByTrackingDelayService implements DashboardComponentService {
 
