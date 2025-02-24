@@ -899,16 +899,4 @@ class PackRepository extends EntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
-
-    // TODO WIIS-12167: remove
-    public function findDuplicateCode() {
-        // get all packs having a non-unique code
-        return $this->createQueryBuilder("pack")
-            ->select("pack.code AS code")
-            ->addSelect("COUNT(pack.code) AS count")
-            ->groupBy("pack.code")
-            ->having("COUNT(pack.code) > 1")
-            ->getQuery()
-            ->getResult();
-    }
 }
