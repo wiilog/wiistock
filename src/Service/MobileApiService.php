@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
@@ -195,6 +196,7 @@ class MobileApiService {
     }
 
     public function getMobileParameters(SettingsService $globalsParameters, EntityManagerInterface $entityManager): array {
+        $arrivalNumberFormat = $globalsParameters->getValue($entityManager, Setting::ARRIVAL_NUMBER_FORMAT);
         return Stream::from([
             "skipValidationsManualTransfer" => $globalsParameters->getValue($entityManager, Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS) == 1,
             "skipValidationsLivraisons" => $globalsParameters->getValue($entityManager, Setting::LIVRAISON_SKIP_VALIDATIONS) == 1,
@@ -214,7 +216,8 @@ class MobileApiService {
             "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getValue($entityManager, Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
             "displayWarningWrongLocation" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
             "displayManualDelayStart" => $globalsParameters->getValue($entityManager, Setting::DISPLAY_MANUAL_DELAY_START) == 1,
-            "arrivalNumberFormat" => $globalsParameters->getValue($entityManager, Setting::ARRIVAL_NUMBER_FORMAT),
+            "arrivalNumberFormat" => Arrivage::AVAILABLE_ARRIVAL_NUMBER_FORMATS[$arrivalNumberFormat]
+                ?? Arrivage::AVAILABLE_ARRIVAL_NUMBER_FORMATS[UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG],
             "rfidOnMobileTrackingMovements" => $globalsParameters->getValue($entityManager, Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS) == 1,
         ])
             ->toArray();

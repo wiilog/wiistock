@@ -24,7 +24,7 @@ class Arrivage implements AttachmentContainer {
 
     public const AVAILABLE_ARRIVAL_NUMBER_FORMATS = [
         UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG => "aammjjhhmmss-xx",
-        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmssxx",
+        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmxx",
     ];
 
     #[ORM\Id]
