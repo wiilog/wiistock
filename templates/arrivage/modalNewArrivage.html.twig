@@ -12,6 +12,27 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
+
+                {% set useAiArrivals = app.request.server.get('DN_READER_URL') ?? false %}
+                {% if useAiArrivals %}
+                    <div class="d-flex justify-content-between">
+                        {% include 'attachment/attachment.html.twig' with {
+                            nameInput: 'uploadAndScan',
+                            'isNew': true,
+                            'required': false,
+                            fieldNameClass : 'wii-subtitle',
+                            override: true,
+                            noLabel: true,
+                            buttonOnly: true,
+                            containerClass: "d-flex",
+                            buttonTitle: 'Importer BL',
+                            bigger: 'form-group d-flex',
+                            formats: 'image/png, image/jpeg, image/jpg, application/pdf',
+                        } %}
+                        <button type="submit" class="d-none"></button>
+                    </div>
+                {% endif %}
+
                 <div class="row fly-form">
                     {% set supplierFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
