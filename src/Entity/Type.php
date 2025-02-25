@@ -6,6 +6,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\IOT\Sensor;
 use App\Entity\RequestTemplate\RequestTemplate;
+use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Helper\LanguageHelper;
 use App\Repository\TypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -179,6 +180,10 @@ class Type {
 
     #[ORM\ManyToOne(targetEntity: Nature::class, cascade: ["persist"])]
     private ?Nature $createdIdentifierNature = null;
+
+    #[ORM\OneToOne(inversedBy: "type", targetEntity: SleepingStockPlan::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?SleepingStockPlan $sleepingStockPlan = null;
 
     public function __construct() {
         $this->referenceArticles = new ArrayCollection();
@@ -948,6 +953,16 @@ class Type {
 
     public function setCreatedIdentifierNature(?Nature $createdIdentifierNature): self {
         $this->createdIdentifierNature = $createdIdentifierNature;
+
+        return $this;
+    }
+
+    public function getSleepingStockPlan(): ?SleepingStockPlan {
+        return $this->sleepingStockPlan;
+    }
+
+    public function setSleepingStockPlan(?SleepingStockPlan $sleepingStockPlan): self {
+        $this->sleepingStockPlan = $sleepingStockPlan;
 
         return $this;
     }
