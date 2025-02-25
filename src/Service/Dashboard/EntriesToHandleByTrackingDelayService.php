@@ -132,6 +132,7 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponentService
             $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
         }
         else {
+            $config['nextElement'] = null;
             $packToDisplay = null;
             $locationToDisplay = null;
         }
