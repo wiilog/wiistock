@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\Project;
 use App\Entity\ProjectHistoryRecord;
 use App\Entity\Tracking\Pack;
+use App\Service\Tracking\PackService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;

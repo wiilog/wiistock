@@ -6,7 +6,7 @@ use App\Entity\Tracking\Pack;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
 use App\Service\ExceptionLoggerService;
-use App\Service\TrackingDelayService;
+use App\Service\Tracking\TrackingDelayService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -35,7 +35,7 @@ class CalculateTrackingDelayHandler extends LoggedHandler
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $pack = $packRepository->findOneBy(["code" => $packCode]);
 
-        $this->trackingDelayService->updateTrackingDelay($this->entityManager, $pack);
+        $this->trackingDelayService->updatePackTrackingDelay($this->entityManager, $pack);
         $this->entityManager->flush();
     }
 }

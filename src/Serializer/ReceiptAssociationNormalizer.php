@@ -3,11 +3,7 @@
 namespace App\Serializer;
 
 use App\Entity\ReceiptAssociation;
-use App\Entity\Tracking\Pack;
-use App\Entity\Tracking\TrackingMovement;
 use App\Service\FormatService;
-use App\Service\PackService;
-use App\Service\TrackingMovementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;

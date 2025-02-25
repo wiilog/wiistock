@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\Dashboard;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -22,10 +23,10 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
-use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
-use App\Service\TrackingDelayService;
+use App\Service\Tracking\PackService;
+use App\Service\Tracking\TrackingDelayService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,7 +38,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
-use App\Entity\Dashboard;
 
 #[Route("/unite-logistique", name: 'pack_')]
 class PackController extends AbstractController {
@@ -448,7 +448,7 @@ class PackController extends AbstractController {
     public function postTrackingDelay(EntityManagerInterface $entityManager,
                                       TrackingDelayService   $trackingDelayService,
                                       Pack                   $logisticUnit): JsonResponse {
-        $trackingDelayService->updateTrackingDelay($entityManager, $logisticUnit);
+        $trackingDelayService->updatePackTrackingDelay($entityManager, $logisticUnit);
 
         $entityManager->flush();
 

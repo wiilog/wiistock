@@ -18,6 +18,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;

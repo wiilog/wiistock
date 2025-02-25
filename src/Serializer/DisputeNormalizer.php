@@ -6,7 +6,7 @@ use App\Entity\Dispute;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\Tracking\Pack;
 use App\Service\FormatService;
-use App\Service\PackService;
+use App\Service\Tracking\PackService;
 use Exception;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
