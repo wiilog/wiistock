@@ -412,7 +412,7 @@ class PackRepository extends EntityRepository
                             ->orderBy('order_truckArrivalNumber_pack_arrivage.noTracking', $order);
                     } else if ($column === 'limitTreatmentDate') {
                         $queryBuilder
-                            ->leftJoin('pack.trackingDelay', 'order_trackingDelay')
+                            ->leftJoin('pack.currentTrackingDelay', 'order_trackingDelay')
                             ->orderBy('order_trackingDelay.limitTreatmentDate', $order);
                     } else if ($column === 'supplier') {
                         $queryBuilder
