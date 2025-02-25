@@ -14,7 +14,7 @@ class SleepingStockPlan extends ScheduledTask {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: Type::class)]
+    #[ORM\OneToOne(inversedBy: "sleepingStockPlan", targetEntity: Type::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
