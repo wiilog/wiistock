@@ -524,7 +524,7 @@ class DashboardSettingsService {
             if($componentType->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
                 $packRepository = $entityManager->getRepository(Pack::class);
                 $nextElementToTreat = $packRepository->findOneBy(["code" => $nextElement]);
-                $nextElement = $nextElementToTreat->getCode();
+                $nextElement = $nextElementToTreat ? $nextElementToTreat->getCode() : '-';
                 $locations = $config["locations"];
             }
 
