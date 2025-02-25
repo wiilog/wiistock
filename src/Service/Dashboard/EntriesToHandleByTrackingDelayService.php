@@ -73,7 +73,7 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponentService
                     $groupId = $group->getId();
                     $oldRemainingTime = $treatedGroups[$groupId]["remainingTimeInSeconds"] ?? null;
                     if (!isset($oldRemainingTime) || $remainingTimeInSeconds < $oldRemainingTime) {
-                        $treatedGroups[$group->getId()] = [
+                        $treatedGroups[$groupId] = [
                             "group" => $group,
                             "pack" => $pack,
                             "remainingTimeInSeconds" => $remainingTimeInSeconds,
@@ -95,10 +95,10 @@ class EntriesToHandleByTrackingDelayService implements DashboardComponentService
                 );
             }
 
-            foreach ($treatedGroups as $group) {
-                $group = $group['group'];
-                $pack = $group['pack'];
-                $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
+            foreach ($treatedGroups as $groupArray) {
+                $group = $groupArray['group'];
+                $pack = $groupArray['pack'];
+                $remainingTimeInSeconds = $groupArray['remainingTimeInSeconds'];
 
                 $this->treatPack(
                     $group,
