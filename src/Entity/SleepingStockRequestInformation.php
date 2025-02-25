@@ -26,15 +26,14 @@ class SleepingStockRequestInformation {
      */
     #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplate::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Assert\Callback([self::class, 'validateDeliveryRequestTemplate'])]
     private ?DeliveryRequestTemplate $DeliveryRequestTemplate = null;
 
-    public static function validateDeliveryRequestTemplate(SleepingStockRequestInformation $sleepingStockRequestInformation, ExecutionContextInterface $context): void {
-        if ($sleepingStockRequestInformation->getDeliveryRequestTemplate()
-            && $sleepingStockRequestInformation->getDeliveryRequestTemplate()->getDeliveryRequestTemplateType() !== DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK) {
-            $context->buildViolation('Only DeliveryRequestTemplate with type SLEEPING_STOCK are allowed')
-                ->atPath('DeliveryRequestTemplate')
-                ->addViolation();
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function validateDeliveryRequestTemplate(): void {
+        if ($this->DeliveryRequestTemplate
+            && $this->DeliveryRequestTemplate->getDeliveryRequestTemplateType() !== DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK) {
+            throw new \InvalidArgumentException('Only DeliveryRequestTemplate with type SLEEPING_STOCK are allowed');
         }
     }
 
