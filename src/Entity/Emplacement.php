@@ -195,7 +195,6 @@ class Emplacement implements PairedEntity {
         $this->allowedDeliveryTypes = new ArrayCollection();
         $this->allowedCollectTypes = new ArrayCollection();
         $this->pairings = new ArrayCollection();
-        $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->deliveryRequestArticleLines = new ArrayCollection();

@@ -25,7 +25,7 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate {
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToMany(mappedBy: 'deliveryRequestTemplate', targetEntity: RequestTemplateLine::class, cascade: ["remove"])]
+    #[ORM\OneToMany(mappedBy: 'deliveryRequestTemplateTriggerAction', targetEntity: RequestTemplateLine::class, cascade: ["remove"])]
     private Collection $lines;
 
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
