@@ -86,9 +86,9 @@ function onDeliveryRequestTemplateTypeChange($container, table) {
     const $deliveryRequestTemplateTypeSelect = $container.find(`[name="deliveryRequestTemplateType"]`);
 
     if($deliveryRequestTemplateTypeSelect.length > 0) {
-        const isTriggerActionTemplate = $deliveryRequestTemplateTypeSelect.val() === 'TriggerAction';
-        $container.find('.template-references-table-container').toggleClass('d-none', !isTriggerActionTemplate);
-        table.config.minimumRows = isTriggerActionTemplate ? 1 : 0;
+        const isLinesNeeded = $deliveryRequestTemplateTypeSelect.val() === 'TriggerAction';
+        $container.find('.template-references-table-container').toggleClass('d-none', !isLinesNeeded);
+        table.config.minimumRows = isLinesNeeded ? 1 : 0;
     }
 }
 
