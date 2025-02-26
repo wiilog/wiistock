@@ -3,7 +3,7 @@
 namespace App\Repository\RequestTemplate;
 
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
@@ -67,7 +67,7 @@ class RequestTemplateRepository extends EntityRepository {
         $exprBuilder = $qb->expr();
         $qb->select("request_template.id AS id")
             ->addSelect("request_template.name AS text")
-            ->leftJoin(DeliveryRequestTemplate::class, 'deliveryRequestTemplate', Join::WITH, 'request_template.id = deliveryRequestTemplate.id')
+            ->leftJoin(DeliveryRequestTemplateTriggerAction::class, 'deliveryRequestTemplate', Join::WITH, 'request_template.id = deliveryRequestTemplate.id')
             ->leftJoin(CollectRequestTemplate::class, 'collectRequestTemplate', Join::WITH, 'request_template.id = collectRequestTemplate.id')
             ->leftJoin(HandlingRequestTemplate::class, 'handlingRequestTemplate', Join::WITH, 'request_template.id = handlingRequestTemplate.id')
             ->andWhere($exprBuilder->orX(
@@ -79,7 +79,7 @@ class RequestTemplateRepository extends EntityRepository {
                 "request_template INSTANCE OF :handlingRequestTemplateClass",
             ))
             ->setParameters([
-                'deliveryRequestTemplateClass' => $entityManager->getClassMetadata(DeliveryRequestTemplate::class),
+                'deliveryRequestTemplateClass' => $entityManager->getClassMetadata(DeliveryRequestTemplateTriggerAction::class),
                 'collectRequestTemplateClass' => $entityManager->getClassMetadata(CollectRequestTemplate::class),
                 'handlingRequestTemplateClass' => $entityManager->getClassMetadata(HandlingRequestTemplate::class),
                 'deliveryRequestTemplateType' => DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value,

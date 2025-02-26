@@ -14,8 +14,8 @@ class RequestTemplateLine {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplate::class, inversedBy: 'lines')]
-    private ?DeliveryRequestTemplate $deliveryRequestTemplate = null;
+    #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplateTriggerAction::class, inversedBy: 'lines')]
+    private ?DeliveryRequestTemplateTriggerAction $deliveryRequestTemplate = null;
 
     #[ORM\ManyToOne(targetEntity: CollectRequestTemplate::class, inversedBy: 'lines')]
     private ?CollectRequestTemplate $collectRequestTemplate = null;
@@ -31,11 +31,11 @@ class RequestTemplateLine {
         return $this->id;
     }
 
-    public function getDeliveryRequestTemplate(): ?DeliveryRequestTemplate {
+    public function getDeliveryRequestTemplate(): ?DeliveryRequestTemplateTriggerAction {
         return $this->deliveryRequestTemplate;
     }
 
-    public function setDeliveryRequestTemplate(?DeliveryRequestTemplate $requestTemplate): self {
+    public function setDeliveryRequestTemplate(?DeliveryRequestTemplateTriggerAction $requestTemplate): self {
         $this->deliveryRequestTemplate = $requestTemplate;
 
         return $this;
@@ -52,7 +52,7 @@ class RequestTemplateLine {
     }
 
     public function setRequestTemplate(?RequestTemplate $requestTemplate): self {
-        if($requestTemplate instanceof DeliveryRequestTemplate) {
+        if($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
             $this->setDeliveryRequestTemplate($requestTemplate);
         } else if($requestTemplate instanceof CollectRequestTemplate) {
             $this->setCollectRequestTemplate($requestTemplate);
