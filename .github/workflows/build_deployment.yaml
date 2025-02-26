@@ -82,7 +82,7 @@ jobs:
                 run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
             -   name: Generate fixedField Enum
-                run: php bin/console app:update:fixed-fields
+                run: php bin/console app:update:enums
 
             -   name: Build js - production
                 run: yarn build:only:production
