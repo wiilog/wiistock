@@ -32,8 +32,16 @@ class SleepingStockPlan extends ScheduledTask {
         return $this->type;
     }
 
-    public function setType(Type $type): self {
+    public function setType(?Type $type): self {
+        if($this->type && $this->type->getSleepingStockPlan() !== $this){
+            $oldType = $this->type;
+            $this->type = null;
+            $oldType->setSleepingStockPlan(null);
+        }
         $this->type = $type;
+        if($this->type && $this->type->getSleepingStockPlan() !== $this){
+            $this->type->setSleepingStockPlan($this);
+        }
 
         return $this;
     }

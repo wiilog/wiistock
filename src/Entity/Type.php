@@ -181,8 +181,7 @@ class Type {
     #[ORM\ManyToOne(targetEntity: Nature::class, cascade: ["persist"])]
     private ?Nature $createdIdentifierNature = null;
 
-    #[ORM\OneToOne(inversedBy: "type", targetEntity: SleepingStockPlan::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\OneToOne(mappedBy: "type", targetEntity: SleepingStockPlan::class)]
     private ?SleepingStockPlan $sleepingStockPlan = null;
 
     public function __construct() {
@@ -962,7 +961,15 @@ class Type {
     }
 
     public function setSleepingStockPlan(?SleepingStockPlan $sleepingStockPlan): self {
+        if($this->sleepingStockPlan && $this->sleepingStockPlan->getType() !== $this) {
+            $oldSleepingStockPlan = $this->sleepingStockPlan;
+            $this->sleepingStockPlan = null;
+            $oldSleepingStockPlan->setType(null);
+        }
         $this->sleepingStockPlan = $sleepingStockPlan;
+        if($this->sleepingStockPlan && $this->sleepingStockPlan->getType() !== $this){
+            $this->sleepingStockPlan->setType($this);
+        }
 
         return $this;
     }
