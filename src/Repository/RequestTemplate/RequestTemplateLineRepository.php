@@ -22,7 +22,7 @@ class RequestTemplateLineRepository extends EntityRepository {
         $qb = $this->createQueryBuilder("line");
 
         if ($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
-            $qb->andWhere("line.deliveryRequestTemplate = :requestTemplate")
+            $qb->andWhere("line.deliveryRequestTemplateTriggerAction = :requestTemplate")
                 ->setParameter("requestTemplate", $requestTemplate);
         } else if ($requestTemplate instanceof CollectRequestTemplate) {
             $qb->andWhere("line.collectRequestTemplate = :requestTemplate")
