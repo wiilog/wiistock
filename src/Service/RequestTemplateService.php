@@ -6,7 +6,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
@@ -62,7 +62,7 @@ class RequestTemplateService {
                 ->setComment($data["comment"] ?? null);
 
             $this->attachmentService->persistAttachments($this->manager, $files, ["attachmentContainer" => $template]);
-        } else if ($template instanceof DeliveryRequestTemplate) {
+        } else if ($template instanceof DeliveryRequestTemplateTriggerAction) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 
             $attachments = $this->attachmentService->persistAttachments($this->manager, $files);

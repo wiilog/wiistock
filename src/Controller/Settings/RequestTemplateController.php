@@ -11,7 +11,7 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
@@ -87,7 +87,7 @@ class RequestTemplateController extends AbstractController {
 
             if($category === Type::LABEL_DELIVERY) {
                 /**
-                 * @var DeliveryRequestTemplate $template
+                 * @var DeliveryRequestTemplateTriggerAction $template
                  */
                 $option = "";
                 if($template && $template->getDestination()) {
@@ -117,7 +117,7 @@ class RequestTemplateController extends AbstractController {
                         null,
                         true,
                         [
-                            'items' => Stream::from(DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES)
+                            'items' => Stream::from(DeliveryRequestTemplateTriggerAction::DELIVERY_REQUEST_TEMPLATE_TYPES)
                                 ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
                                         "label" => $deliveryRequestTemplateType,
                                         "value" => $key,
@@ -320,7 +320,7 @@ class RequestTemplateController extends AbstractController {
         }
         else if($template) {
             $data = [];
-            if ($template instanceof DeliveryRequestTemplate) {
+            if ($template instanceof DeliveryRequestTemplateTriggerAction) {
                 $data[] = [
                     "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                     "value" => FormatHelper::type($template->getRequestType()),
@@ -331,7 +331,7 @@ class RequestTemplateController extends AbstractController {
                 ];
                 $data[] = [
                     "label" => "Utilisation du modèle",
-                    "value" => DeliveryRequestTemplate::DELIVERY_REQUEST_TEMPLATE_TYPES[$template->getDeliveryRequestTemplateType()->value],
+                    "value" => DeliveryRequestTemplateTriggerAction::DELIVERY_REQUEST_TEMPLATE_TYPES[$template->getDeliveryRequestTemplateType()->value],
                 ];
                 $data[] = $template->getButtonIcon()
                     ? [
@@ -437,7 +437,7 @@ class RequestTemplateController extends AbstractController {
 
         $class = "form-control data";
 
-        if($template instanceof DeliveryRequestTemplate || $template instanceof CollectRequestTemplate) {
+        if($template instanceof DeliveryRequestTemplateTriggerAction || $template instanceof CollectRequestTemplate) {
             $lines = $template->getLines();
         }
 

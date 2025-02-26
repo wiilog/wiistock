@@ -3,7 +3,7 @@
 namespace App\Repository\RequestTemplate;
 
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
 use Doctrine\ORM\EntityRepository;
@@ -21,7 +21,7 @@ class RequestTemplateLineRepository extends EntityRepository {
                                  InputBag $params) {
         $qb = $this->createQueryBuilder("line");
 
-        if ($requestTemplate instanceof DeliveryRequestTemplate) {
+        if ($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
             $qb->andWhere("line.deliveryRequestTemplate = :requestTemplate")
                 ->setParameter("requestTemplate", $requestTemplate);
         } else if ($requestTemplate instanceof CollectRequestTemplate) {

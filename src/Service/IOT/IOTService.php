@@ -25,7 +25,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\Statut;
@@ -327,7 +327,7 @@ class IOTService
     private function treatRequestTemplateTriggerType(RequestTemplate $requestTemplate, EntityManagerInterface $entityManager, SensorWrapper $wrapper) {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        if ($requestTemplate instanceof DeliveryRequestTemplate) {
+        if ($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
             $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
 
             $this->uniqueNumberService->createWithRetry(
@@ -421,10 +421,10 @@ class IOTService
 
     }
 
-    private function cleanCreateDeliveryRequest(StatutRepository $statutRepository,
-                                                EntityManagerInterface $entityManager,
-                                                SensorWrapper $wrapper,
-                                                DeliveryRequestTemplate $requestTemplate): Demande {
+    private function cleanCreateDeliveryRequest(StatutRepository                     $statutRepository,
+                                                EntityManagerInterface               $entityManager,
+                                                SensorWrapper                        $wrapper,
+                                                DeliveryRequestTemplateTriggerAction $requestTemplate): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $date = new DateTime('now');
 
