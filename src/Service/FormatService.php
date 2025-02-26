@@ -481,6 +481,44 @@ class FormatService
         return $else;
     }
 
+    /**
+     * @param DateInterval|null $delay
+     * @param string $into
+     * @return string|null
+     */
+    public function convert(?DateInterval $delay, string $into) : ?string {
+        if($delay) {
+            $precision = 1;
+
+            $DateIntervalInSecond = [
+                "day" => $delay->d * 86400,
+                "hour" => $delay->h * 3600,
+                "minute" => $delay->i * 60,
+                "second" => $delay->s
+            ];
+
+            if(array_key_exists($into, $DateIntervalInSecond)) {
+                $total = 0;
+                $find = false;
+                foreach ($DateIntervalInSecond as $key => $value) {
+                    if ($key === $into) {
+                        $find = true;
+                    }
+                    if ($find) {
+                        $total += $value;
+                    }
+                }
+                return match ($into) {
+                    "day" => round($total / 86400, $precision),
+                    "hour" => round($total / 3600, $precision),
+                    "minute" => round($total / 60, $precision),
+                    "second" => round($total, $precision)
+                };
+            }
+        }
+        return null;
+    }
+
     public function list(array $values, bool $ignoreEmpty = true): string {
         return Stream::from($values)
             ->filterMap(static function(?string $value, string $key) use ($ignoreEmpty) {

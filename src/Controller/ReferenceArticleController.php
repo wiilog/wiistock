@@ -50,6 +50,7 @@ use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
+use DateInterval;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -678,6 +679,9 @@ class ReferenceArticleController extends AbstractController
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $articleRepository = $entityManager->getRepository(Article::class);
 
+        $maxStorageTimeInSecond = $referenceArticle->getType()->getSleepingStockPlan()?->getMaxStorageTime();
+        $maxStorageDateInterval = $maxStorageTimeInSecond ? new DateInterval('PT' . $maxStorageTimeInSecond . 'S') : null;
+
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
                 $carry[] = [
@@ -691,6 +695,7 @@ class ReferenceArticleController extends AbstractController
                 }, []);
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
+            'maxStorageTime' => $this->formatService->convert($maxStorageDateInterval, 'day'),
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
