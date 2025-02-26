@@ -5,21 +5,21 @@ namespace App\Entity\RequestTemplate;
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
-use App\Repository\RequestTemplate\DeliveryRequestTemplateRepository;
+use App\Repository\RequestTemplate\DeliveryRequestTemplateRepositoryTriggerAction;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepository::class)]
-class DeliveryRequestTemplate extends RequestTemplate {
+#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositoryTriggerAction::class)]
+class DeliveryRequestTemplateTriggerAction extends RequestTemplate {
 
     const DELIVERY_REQUEST_TEMPLATE_TYPES = [
         DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value => "Actionneur",
         DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK->value => "Stock dormant",
     ];
 
-    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'deliveryRequestTemplates')]
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $destination = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -44,13 +44,7 @@ class DeliveryRequestTemplate extends RequestTemplate {
     }
 
     public function setDestination(?Emplacement $destination): self {
-        if($this->destination && $this->destination !== $destination) {
-            $this->destination->removeDeliveryRequestTemplate($this);
-        }
         $this->destination = $destination;
-        if($destination) {
-            $destination->addDeliveryRequestTemplate($this);
-        }
 
         return $this;
     }
@@ -66,7 +60,7 @@ class DeliveryRequestTemplate extends RequestTemplate {
     }
 
     /**
-     * @return Collection|RequestTemplateLine[]
+     * @return Collection<RequestTemplateLine>
      */
     public function getLines(): Collection {
         return $this->lines;

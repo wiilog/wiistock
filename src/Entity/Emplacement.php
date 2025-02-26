@@ -12,7 +12,6 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\LitePropertiesSetterTrait;
@@ -104,9 +103,6 @@ class Emplacement implements PairedEntity {
 
     #[ORM\OneToMany(mappedBy: 'location', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
-
-    #[ORM\OneToMany(mappedBy: 'destination', targetEntity: DeliveryRequestTemplate::class)]
-    private Collection $deliveryRequestTemplates;
 
     #[ORM\OneToMany(mappedBy: 'collectPoint', targetEntity: CollectRequestTemplate::class)]
     private Collection $collectRequestTemplates;
@@ -771,34 +767,7 @@ class Emplacement implements PairedEntity {
     }
 
     /**
-     * @return Collection|DeliveryRequestTemplate[]
-     */
-    public function getDeliveryRequestTemplates(): Collection {
-        return $this->deliveryRequestTemplates;
-    }
-
-    public function addDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self {
-        if(!$this->deliveryRequestTemplates->contains($deliveryRequestTemplate)) {
-            $this->deliveryRequestTemplates[] = $deliveryRequestTemplate;
-            $deliveryRequestTemplate->setDestination($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self {
-        if($this->deliveryRequestTemplates->removeElement($deliveryRequestTemplate)) {
-            // set the owning side to null (unless already changed)
-            if($deliveryRequestTemplate->getDestination() === $this) {
-                $deliveryRequestTemplate->setDestination(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|CollectRequestTemplate[]
+     * @return Collection<int, CollectRequestTemplate>
      */
     public function getCollectRequestTemplates(): Collection {
         return $this->collectRequestTemplates;
