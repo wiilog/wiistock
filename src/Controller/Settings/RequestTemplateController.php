@@ -102,15 +102,32 @@ class RequestTemplateController extends AbstractController {
                 ];
 
                 $usage = $template?->getUsage();
+                $usageTemplate = $usage
+                    ? $this->formService->macro(
+                        "select",
+                        "deliveryRequestTemplateType",
+                        null,
+                        true,
+                        [
+                            'items' => Stream::from(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES)
+                                ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
+                                    "label" => $deliveryRequestTemplateType,
+                                    "value" => $key,
+                                    "selected" => $template?->getUsage()->value === $key,
+                                ])
+                                ->toArray(),
+                        ]
+                    )
+                    :(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage?->value] ?? "")
+                    .$this->formService->macro(
+                        "hidden",
+                        "deliveryRequestTemplateType",
+                        $usage?->value,
+                    );
 
                 $data[] = [
                     "label" => "Utilisation du modèle",
-                    "value" => $template::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage?->value]
-                        .$this->formService->macro(
-                            "hidden",
-                            "deliveryRequestTemplateType",
-                            $usage?->value,
-                        ),
+                    "value" => $usageTemplate,
                 ];
 
                 $data[] = [
