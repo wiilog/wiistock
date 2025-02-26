@@ -305,7 +305,7 @@
                             <img src="{{ asset('svg/clock-blue.svg') }}" alt="Icône durée max" width="20px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Durée max autorisée en stock (j)</span>
-                                <span class="wii-body-text">{{ referenceArticle.type.sleepingStockPlan ? referenceArticle.type.sleepingStockPlan.maxStorageTime : '-' }}</span>
+                                <span class="wii-body-text">{{ maxStorageTime ?? '-' }}</span>
                             </label>
                         </div>
                         <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex d-flex">
