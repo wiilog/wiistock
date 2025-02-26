@@ -6,7 +6,8 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
@@ -61,9 +62,12 @@ class RequestTemplateService {
                 ->setComment($data["comment"] ?? null);
 
             $this->attachmentService->persistAttachments($this->manager, $files, ["attachmentContainer" => $template]);
-        } else if ($template instanceof DeliveryRequestTemplate) {
+        } else if ($template instanceof DeliveryRequestTemplateInterface) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
-
+            if ($template instanceof DeliveryRequestTemplateSleepingStock) {
+                $attachments = $this->attachmentService->persistAttachments($this->manager, $files);
+                $template->setButtonIcon(!empty($attachments) ? $attachments[0] : null);
+            }
             $template->setRequestType($typeRepository->find($data["deliveryType"]))
                 ->setDestination($locationRepository->find($data["destination"]))
                 ->setComment($data["comment"] ?? null);

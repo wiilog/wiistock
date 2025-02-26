@@ -24,7 +24,8 @@ use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
@@ -1246,7 +1247,7 @@ class SettingsService {
                 $template = $entityManager->find(RequestTemplate::class, $data["typeId"]);
             } else {
                 $template = $data["entityType"] === Type::LABEL_DELIVERY
-                    ? new DeliveryRequestTemplate()
+                    ? new DeliveryRequestTemplateTriggerAction()
                     : ($data["entityType"] === Type::LABEL_COLLECT
                         ? new CollectRequestTemplate()
                         : new HandlingRequestTemplate()
@@ -1264,6 +1265,9 @@ class SettingsService {
 
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
+            if($template instanceof DeliveryRequestTemplateTriggerAction && $template->getUsage() !== DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION) {
+                $tables["requestTemplates"] = [];
+            }
             $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
             $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($line) => [$line->getId(), $line])

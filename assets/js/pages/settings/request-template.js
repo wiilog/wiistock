@@ -1,5 +1,8 @@
 import {createManagementPage} from "./utils";
 import Routing from '@app/fos-routing';
+import DeliveryRequestTemplateUsageEnum from "@generated/delivery-request-template-usage-enum.js";
+
+const USAGES_LINES_NEEDED = [DeliveryRequestTemplateUsageEnum.TRIGGER_ACTION.value];
 
 export function initializeRequestTemplates($container, canEdit) {
     const delivery = $container.find('#delivery-template-type').length > 0;
@@ -54,16 +57,20 @@ export function initializeRequestTemplates($container, canEdit) {
         }
     });
 
-    function onTypeChange() {
-        $container.find(`.main-entity-content-item[data-type]`).addClass(`d-none`);
+    $(document)
+        .off('change.templateType')
+        .on('change.templateType', `[name="deliveryType"],[name="collectType"],[name="handlingType"]`, () => onTypeChange($container));
 
-        $container.find(`.main-entity-content-item[data-type="${$(this).val()}"]`).each(function() {
-            $(this).removeClass(`d-none`);
-        })
-    }
+    $(document)
+        .off('change.entitySelect')
+        .on('change.entitySelect', function() {
+            const deliveryRequestUsage= $(this).find('option:selected').data('delivery-request-type');
+            onDeliveryRequestTemplateTypeChange($container, deliveryRequestUsage, table);
+        });
 
-    $container.arrive(`[name="deliveryType"],[name="collectType"],[name="handlingType"]`, onTypeChange);
-    $container.on(`change`, `[name="deliveryType"],[name="collectType"],[name="handlingType"]`, onTypeChange);
+    $(document)
+        .off('change.deliveryRequestTemplateType')
+        .on('change.deliveryRequestTemplateType', '[name="deliveryRequestTemplateType"]', () => onDeliveryRequestTemplateTypeChange($container, $container.find(`[name="deliveryRequestTemplateType"]`).val(), table));
 
     $container.on(`change`, `[name="reference"]`, function() {
         const $select = $(this);
@@ -73,5 +80,21 @@ export function initializeRequestTemplates($container, canEdit) {
         $row.find(`.template-label`).text(data.label)
         $row.find(`.template-location`).text(data.location)
         table.table.draw();
+    });
+}
+
+function onDeliveryRequestTemplateTypeChange($container, usage,  table) {
+    if(usage) {
+        const isLinesNeeded = USAGES_LINES_NEEDED.includes(usage);
+        $container.find('.template-references-table-container').toggleClass('d-none', !isLinesNeeded);
+        table.config.minimumRows = isLinesNeeded ? 1 : 0;
+    }
+}
+
+function onTypeChange($container) {
+    $container.find(`.main-entity-content-item[data-type]`).addClass(`d-none`);
+
+    $container.find(`.main-entity-content-item[data-type="${$(this).val()}"]`).each(function() {
+        $(this).removeClass(`d-none`);
     });
 }

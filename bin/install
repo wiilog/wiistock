@@ -159,7 +159,7 @@ function main(): void {
         [
             STEP_DESCRIPTION => "Symfony - update fixed fields",
             STEP_COMMANDS => function() {
-                execCommand("php bin/console app:update:fixed-fields");
+                execCommand("php bin/console app:update:enums");
             },
             STEP_FILTER => fn() => !file_exists("/project/public/build") || $mode === ENV_DEV,
         ],

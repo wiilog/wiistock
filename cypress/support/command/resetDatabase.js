@@ -39,7 +39,7 @@ Cypress.Commands.add(
                 //clear cache before build
                 cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console app:cache:clear'`);
                 //fixtures fixed fields
-                cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console app:update:fixed-fields'`);
+                cy.exec(`${SSH_ON_APP} 'set -a; source /etc/environment; set +a; /usr/local/bin/php /project/bin/console app:update:enums'`);
                  // build assets
                 //cy.exec(`${SSH_ON_APP} 'cd /project && yarn build'`, {timeout: 120000});
             }
