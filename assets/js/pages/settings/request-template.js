@@ -1,5 +1,8 @@
 import {createManagementPage} from "./utils";
 import Routing from '@app/fos-routing';
+import DeliveryRequestTemplateUsageEnum from "@generated/delivery-request-template-usage-enum.js";
+
+const USAGES_LINES_NEEDED = [DeliveryRequestTemplateUsageEnum.TRIGGER_ACTION.value];
 
 export function initializeRequestTemplates($container, canEdit) {
     const delivery = $container.find('#delivery-template-type').length > 0;
@@ -61,15 +64,13 @@ export function initializeRequestTemplates($container, canEdit) {
     $(document)
         .off('change.entitySelect')
         .on('change.entitySelect', function() {
-            const deliveryRequestType = $(this).find('option:selected').data('delivery-request-type');
-            const isTriggerActionTemplate = deliveryRequestType === 'TriggerAction';
-
-            $container.find('.template-references-table-container').toggleClass('d-none', !isTriggerActionTemplate);
+            const deliveryRequestUsage= $(this).find('option:selected').data('delivery-request-type');
+            onDeliveryRequestTemplateTypeChange($container, deliveryRequestUsage, table);
         });
 
     $(document)
         .off('change.deliveryRequestTemplateType')
-        .on('change.deliveryRequestTemplateType', '[name="deliveryRequestTemplateType"]', () => onDeliveryRequestTemplateTypeChange($container, table));
+        .on('change.deliveryRequestTemplateType', '[name="deliveryRequestTemplateType"]', () => onDeliveryRequestTemplateTypeChange($container, $container.find(`[name="deliveryRequestTemplateType"]`).val(), table));
 
     $container.on(`change`, `[name="reference"]`, function() {
         const $select = $(this);
@@ -82,11 +83,9 @@ export function initializeRequestTemplates($container, canEdit) {
     });
 }
 
-function onDeliveryRequestTemplateTypeChange($container, table) {
-    const $deliveryRequestTemplateTypeSelect = $container.find(`[name="deliveryRequestTemplateType"]`);
-
-    if($deliveryRequestTemplateTypeSelect.length > 0) {
-        const isLinesNeeded = $deliveryRequestTemplateTypeSelect.val() === 'TriggerAction';
+function onDeliveryRequestTemplateTypeChange($container, usage,  table) {
+    if(usage) {
+        const isLinesNeeded = USAGES_LINES_NEEDED.includes(usage);
         $container.find('.template-references-table-container').toggleClass('d-none', !isLinesNeeded);
         table.config.minimumRows = isLinesNeeded ? 1 : 0;
     }
