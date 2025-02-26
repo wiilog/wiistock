@@ -12,11 +12,11 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositoryTriggerAction::class)]
-class DeliveryRequestTemplateTriggerAction extends RequestTemplate {
+class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements DeliveryRequestTemplateInterface {
 
-    const DELIVERY_REQUEST_TEMPLATE_TYPES = [
-        DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value => "Actionneur",
-        DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK->value => "Stock dormant",
+    const DELIVERY_REQUEST_TEMPLATE_USAGE = [
+        DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION->value => "Actionneur",
+        DeliveryRequestTemplateUsageEnum::SLEEPING_STOCK->value => "Stock dormant",
     ];
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
@@ -31,8 +31,8 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate {
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $buttonIcon = null;
 
-    #[ORM\Column(type: Types::STRING, nullable: false, enumType: DeliveryRequestTemplateTypeEnum::class, options: ["default" => DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION])]
-    private ?DeliveryRequestTemplateTypeEnum $deliveryRequestTemplateType;
+    #[ORM\Column(type: Types::STRING, nullable: false, enumType: DeliveryRequestTemplateUsageEnum::class, options: ["default" => DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION])]
+    private ?DeliveryRequestTemplateUsageEnum $deliveryRequestTemplateType;
 
     public function __construct() {
         parent::__construct();
@@ -90,12 +90,16 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate {
         return $this;
     }
 
-    public function getDeliveryRequestTemplateType(): ?DeliveryRequestTemplateTypeEnum {
+    public function getDeliveryRequestTemplateType(): ?DeliveryRequestTemplateUsageEnum {
         return $this->deliveryRequestTemplateType;
     }
 
-    public function setDeliveryRequestTemplateType(?DeliveryRequestTemplateTypeEnum $deliveryRequestTemplateType): self {
+    public function setDeliveryRequestTemplateType(?DeliveryRequestTemplateUsageEnum $deliveryRequestTemplateType): self {
         $this->deliveryRequestTemplateType = $deliveryRequestTemplateType;
         return $this;
+    }
+
+    public function getUsage(): DeliveryRequestTemplateUsageEnum {
+        return DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION;
     }
 }

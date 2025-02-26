@@ -4,7 +4,7 @@ namespace App\Repository\RequestTemplate;
 
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
-use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Helper\QueryBuilderHelper;
@@ -82,7 +82,7 @@ class RequestTemplateRepository extends EntityRepository {
                 'deliveryRequestTemplateClass' => $entityManager->getClassMetadata(DeliveryRequestTemplateTriggerAction::class),
                 'collectRequestTemplateClass' => $entityManager->getClassMetadata(CollectRequestTemplate::class),
                 'handlingRequestTemplateClass' => $entityManager->getClassMetadata(HandlingRequestTemplate::class),
-                'deliveryRequestTemplateType' => DeliveryRequestTemplateTypeEnum::TRIGGER_ACTION->value,
+                'deliveryRequestTemplateType' => DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION->value,
             ]);
 
         return $qb->getQuery()->getResult();

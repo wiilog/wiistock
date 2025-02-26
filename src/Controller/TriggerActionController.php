@@ -11,7 +11,7 @@ use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
-use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
