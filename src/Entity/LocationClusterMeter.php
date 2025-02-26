@@ -34,14 +34,14 @@ class LocationClusterMeter {
      * @var LocationCluster|null
      */
     #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'metersFrom')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private $locationClusterFrom;
 
     /**
      * @var LocationCluster|null
      */
     #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'metersInto')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private $locationClusterInto;
 
     public function __construct() {

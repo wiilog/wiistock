@@ -73,7 +73,7 @@ class EntriesToHandleByTrackingDelayComponentGenerator implements DashboardCompo
                     $groupId = $group->getId();
                     $oldRemainingTime = $treatedGroups[$groupId]["remainingTimeInSeconds"] ?? null;
                     if (!isset($oldRemainingTime) || $remainingTimeInSeconds < $oldRemainingTime) {
-                        $treatedGroups[$group->getId()] = [
+                        $treatedGroups[$groupId] = [
                             "group" => $group,
                             "pack" => $pack,
                             "remainingTimeInSeconds" => $remainingTimeInSeconds,
@@ -95,10 +95,10 @@ class EntriesToHandleByTrackingDelayComponentGenerator implements DashboardCompo
                 );
             }
 
-            foreach ($treatedGroups as $group) {
-                $group = $group['group'];
-                $pack = $group['pack'];
-                $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
+            foreach ($treatedGroups as $groupArray) {
+                $group = $groupArray['group'];
+                $pack = $groupArray['pack'];
+                $remainingTimeInSeconds = $groupArray['remainingTimeInSeconds'];
 
                 $this->treatPack(
                     $group,
@@ -132,6 +132,7 @@ class EntriesToHandleByTrackingDelayComponentGenerator implements DashboardCompo
             $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
         }
         else {
+            $config['nextElement'] = null;
             $packToDisplay = null;
             $locationToDisplay = null;
         }
