@@ -1265,7 +1265,7 @@ class SettingsService {
 
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
-            if($template instanceof DeliveryRequestTemplateTriggerAction && $template->getDeliveryRequestTemplateType()->value !== DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION->value) {
+            if($template instanceof DeliveryRequestTemplateTriggerAction && $template->getUsage() !== DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION) {
                 $tables["requestTemplates"] = [];
             }
             $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);

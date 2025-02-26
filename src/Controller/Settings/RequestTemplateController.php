@@ -11,6 +11,7 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
@@ -117,11 +118,11 @@ class RequestTemplateController extends AbstractController {
                         null,
                         true,
                         [
-                            'items' => Stream::from(DeliveryRequestTemplateTriggerAction::DELIVERY_REQUEST_TEMPLATE_USAGE)
+                            'items' => Stream::from(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGE)
                                 ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
                                         "label" => $deliveryRequestTemplateType,
                                         "value" => $key,
-                                        "selected" => $template?->getDeliveryRequestTemplateType()->value === $key,
+                                        "selected" => $template?->getUsage()->value === $key,
                                 ])
                                 ->toArray()
                             ,
@@ -331,7 +332,7 @@ class RequestTemplateController extends AbstractController {
                 ];
                 $data[] = [
                     "label" => "Utilisation du modèle",
-                    "value" => DeliveryRequestTemplateTriggerAction::DELIVERY_REQUEST_TEMPLATE_USAGE[$template->getDeliveryRequestTemplateType()->value],
+                    "value" => DeliveryRequestTemplateTriggerAction::DELIVERY_REQUEST_TEMPLATE_USAGE[$template->getUsage()->value],
                 ];
                 $data[] = $template->getButtonIcon()
                     ? [
