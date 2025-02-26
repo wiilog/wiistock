@@ -12,6 +12,7 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
@@ -88,7 +89,7 @@ class RequestTemplateController extends AbstractController {
 
             if($category === Type::LABEL_DELIVERY) {
                 /**
-                 * @var DeliveryRequestTemplateTriggerAction $template
+                 * @var DeliveryRequestTemplateTriggerAction|DeliveryRequestTemplateSleepingStock $template
                  */
                 $option = "";
                 if($template && $template->getDestination()) {
@@ -98,6 +99,18 @@ class RequestTemplateController extends AbstractController {
                 $data[] = [
                     "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . "*",
                     "value" => "<select name='deliveryType' class='data form-control' required>$typeOptions</select>",
+                ];
+
+                $usage = $template?->getUsage();
+
+                $data[] = [
+                    "label" => "Utilisation du modèle",
+                    "value" => $template::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage?->value]
+                        .$this->formService->macro(
+                            "hidden",
+                            "deliveryRequestTemplateType",
+                            $usage?->value,
+                        ),
                 ];
 
                 $data[] = [
@@ -110,39 +123,21 @@ class RequestTemplateController extends AbstractController {
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
 
-                $data[] = [
-                    "label" => "Utilisation du modèle",
-                    "value" => $this->formService->macro(
-                        "select",
-                        "deliveryRequestTemplateType",
-                        null,
-                        true,
-                        [
-                            'items' => Stream::from(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGE)
-                                ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
-                                        "label" => $deliveryRequestTemplateType,
-                                        "value" => $key,
-                                        "selected" => $template?->getUsage()->value === $key,
-                                ])
-                                ->toArray()
-                            ,
-                        ]
-                    ),
-                ];
-
-                $buttonIcon = $template?->getButtonIcon();
-                $data[] = [
-                    "label" => "Icone du bouton",
-                    "value" => $this->renderView("form_element.html.twig", [
-                        "element" => "image",
-                        "arguments" => [
-                            "logo",
-                            null,
-                            false,
-                            $buttonIcon?->getFullPath(),
-                        ],
-                    ]),
-                ];
+                if ($template instanceof DeliveryRequestTemplateSleepingStock) {
+                    $buttonIcon = $template?->getButtonIcon();
+                    $data[] = [
+                        "label" => "Icone du bouton",
+                        "value" => $this->renderView("form_element.html.twig", [
+                            "element" => "image",
+                            "arguments" => [
+                                "logo",
+                                null,
+                                false,
+                                $buttonIcon?->getFullPath(),
+                            ],
+                        ]),
+                    ];
+                }
             }
             else if ($category === Type::LABEL_COLLECT) {
                 /**
@@ -321,7 +316,7 @@ class RequestTemplateController extends AbstractController {
         }
         else if($template) {
             $data = [];
-            if ($template instanceof DeliveryRequestTemplateTriggerAction) {
+            if ($template instanceof DeliveryRequestTemplateInterface) {
                 $data[] = [
                     "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                     "value" => FormatHelper::type($template->getRequestType()),
@@ -332,14 +327,16 @@ class RequestTemplateController extends AbstractController {
                 ];
                 $data[] = [
                     "label" => "Utilisation du modèle",
-                    "value" => DeliveryRequestTemplateTriggerAction::DELIVERY_REQUEST_TEMPLATE_USAGE[$template->getUsage()->value],
+                    "value" => DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$template->getUsage()->value],
                 ];
-                $data[] = $template->getButtonIcon()
-                    ? [
-                        "label" => "Icone du bouton",
-                        "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>",
-                    ]
-                    : [];
+                if ($template instanceof DeliveryRequestTemplateSleepingStock) {
+                    $data[] = $template->getButtonIcon()
+                        ? [
+                            "label" => "Icone du bouton",
+                            "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>",
+                        ]
+                        : [];
+                }
             } else if ($template instanceof CollectRequestTemplate) {
                 $data[] = [
                     "label" => "Objet",

@@ -6,8 +6,8 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
-use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
@@ -62,14 +62,14 @@ class RequestTemplateService {
                 ->setComment($data["comment"] ?? null);
 
             $this->attachmentService->persistAttachments($this->manager, $files, ["attachmentContainer" => $template]);
-        } else if ($template instanceof DeliveryRequestTemplateTriggerAction) {
+        } else if ($template instanceof DeliveryRequestTemplateInterface) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
-
-            $attachments = $this->attachmentService->persistAttachments($this->manager, $files);
+            if ($template instanceof DeliveryRequestTemplateSleepingStock) {
+                $attachments = $this->attachmentService->persistAttachments($this->manager, $files);
+                $template->setButtonIcon(!empty($attachments) ? $attachments[0] : null);
+            }
             $template->setRequestType($typeRepository->find($data["deliveryType"]))
                 ->setDestination($locationRepository->find($data["destination"]))
-                ->setDeliveryRequestTemplateType(DeliveryRequestTemplateUsageEnum::from($data['deliveryRequestTemplateType']))
-                ->setButtonIcon(!empty($attachments) ? $attachments[0] : null)
                 ->setComment($data["comment"] ?? null);
         } else if ($template instanceof CollectRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
