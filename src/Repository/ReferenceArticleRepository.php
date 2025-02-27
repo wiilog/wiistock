@@ -301,6 +301,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
+            ->addSelect('referenceArticle.lastSleepingStockAlertAnswer')
             ->addSelect('join_visibilityGroup.label AS visibilityGroup')
             ->addSelect("GROUP_CONCAT(DISTINCT join_manager.username SEPARATOR ',') AS managers")
             ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.codeReference SEPARATOR ',') AS supplierCodes")
