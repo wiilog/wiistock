@@ -105,11 +105,18 @@ function createDatatableDomFooter({information, length, pagination}) {
 
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo, removeLength, removeTableHeader}) {
 
+    // doc here: https://datatables.net/reference/option/dom
+    const datatableShortcut = {
+        table: 't',
+        processing: 'r',
+        filtering: 'f',
+    };
+
     const domHeader = removeTableHeader
         ? ``
         : (
             `<"row mb-2"` +
-                `<"col-auto d-none"f>` +
+                `<"col-auto d-none"${datatableShortcut.filtering}>` +
             `>`
         );
     const domFooter = createDatatableDomFooter({
@@ -119,20 +126,20 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
     });
     let dtDefaultValue = (
         domHeader +
-        `t` +
+        datatableShortcut.table +
         domFooter +
-        `r`
+        datatableShortcut.processing
     );
     return needsFullDomOverride
         ? dtDefaultValue
         : needsPartialDomOverride
             ? (
-                `r` +
-                `t` +
+                datatableShortcut.processing +
+                datatableShortcut.table +
                 createDatatableDomFooter({length: true, pagination: true})
             )
             : needsMinimalDomOverride
-                ? `tr`
+                ? `${datatableShortcut.table}${datatableShortcut.processing}`
                 : dtDefaultValue;
 }
 

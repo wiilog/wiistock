@@ -466,11 +466,10 @@ class FormatService
     public function delay(?DateInterval $delay,
                           ?string       $else = null,
                           array         $options = []): ?string {
-
-        $minus = $options["minus"] ?? true;
-        $separator = $options["separator"] ?? "h";
-
         if (isset($delay)) {
+            $minus = $options["minus"] ?? true;
+            $separator = $options["separator"] ?? "h";
+
             $hours = sprintf('%02d', ($delay->d * 24) + $delay->h);
             $minutes = sprintf('%02d', $delay->i);
 
