@@ -312,7 +312,7 @@
                             <img src="{{ asset('svg/calendar-checked.svg') }}" alt="Icône dernière réponse" width="20px">
                             <label class="box-item ml-3">
                                 <span class="wii-field-name">Dernière réponse au stockage</span>
-                                <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer ? referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') : '-' }}</span>
+                                <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
                             </label>
                         </div>
                         </div>
@@ -442,7 +442,7 @@
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Date de dernier inventaire</span>
                                         <span class="wii-body-text">
-                                            {{ referenceArticle.dateLastInventory ? (referenceArticle.dateLastInventory | format_helper('datetime', '', true)) : '-' }}
+                                            {{ referenceArticle.dateLastInventory | format_helper('datetime', '', true) }}
                                         </span>
                                     </div>
                                 </div>

@@ -481,38 +481,6 @@ class FormatService
         return $else;
     }
 
-    /** Convert day, hour, minute and second into day, hour, minute and second
-     * @param DateInterval|null $delay
-     * @param string $into
-     * @return string|null
-     */
-    public function convert(?DateInterval $delay, string $into) : ?int {
-        if($delay) {
-            $precision = 1;
-            $secondInDay = 86400;
-            $secondInHour = 3600;
-            $secondInMinute = 60;
-
-            $DateIntervalInSecond = [
-                "day" => $delay->d * $secondInDay,
-                "hour" => $delay->h * $secondInHour,
-                "minute" => $delay->i * $secondInMinute,
-                "second" => $delay->s
-            ];
-
-            if(array_key_exists($into, $DateIntervalInSecond)) {
-                $total = Stream::from($DateIntervalInSecond)->sum();
-                return match ($into) {
-                    "day" => round($total / $secondInDay, $precision),
-                    "hour" => round($total / $secondInHour, $precision),
-                    "minute" => round($total / $secondInMinute, $precision),
-                    "second" => round($total, $precision)
-                };
-            }
-        }
-        return null;
-    }
-
     public function list(array $values, bool $ignoreEmpty = true): string {
         return Stream::from($values)
             ->filterMap(static function(?string $value, string $key) use ($ignoreEmpty) {
