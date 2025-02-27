@@ -481,37 +481,31 @@ class FormatService
         return $else;
     }
 
-    /**
+    /** Convert day, hour, minute and second into day, hour, minute and second
      * @param DateInterval|null $delay
      * @param string $into
      * @return string|null
      */
-    public function convert(?DateInterval $delay, string $into) : ?string {
+    public function convert(?DateInterval $delay, string $into) : ?int {
         if($delay) {
             $precision = 1;
+            $secondInDay = 86400;
+            $secondInHour = 3600;
+            $secondInMinute = 60;
 
             $DateIntervalInSecond = [
-                "day" => $delay->d * 86400,
-                "hour" => $delay->h * 3600,
-                "minute" => $delay->i * 60,
+                "day" => $delay->d * $secondInDay,
+                "hour" => $delay->h * $secondInHour,
+                "minute" => $delay->i * $secondInMinute,
                 "second" => $delay->s
             ];
 
             if(array_key_exists($into, $DateIntervalInSecond)) {
-                $total = 0;
-                $find = false;
-                foreach ($DateIntervalInSecond as $key => $value) {
-                    if ($key === $into) {
-                        $find = true;
-                    }
-                    if ($find) {
-                        $total += $value;
-                    }
-                }
+                $total = Stream::from($DateIntervalInSecond)->sum();
                 return match ($into) {
-                    "day" => round($total / 86400, $precision),
-                    "hour" => round($total / 3600, $precision),
-                    "minute" => round($total / 60, $precision),
+                    "day" => round($total / $secondInDay, $precision),
+                    "hour" => round($total / $secondInHour, $precision),
+                    "minute" => round($total / $secondInMinute, $precision),
                     "second" => round($total, $precision)
                 };
             }
