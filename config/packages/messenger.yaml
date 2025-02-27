@@ -34,9 +34,8 @@ framework:
     # Route your messages to the transports
     routing:
       App\Messenger\TrackingDelay\CalculateTrackingDelayMessage: async_tracking_delay
-      App\Messenger\Dashboard\CalculateDashboardFeedingMessage: async_dashboard_feeding
-      App\Messenger\Dashboard\CalculateLatePackComponentsMessage: async_dashboard_feeding
-      App\Messenger\Dashboard\CalculateComponentsWithDelayMessage: async_dashboard_feeding
+      App\Messenger\Dashboard\FeedDashboardComponentMessage: async_dashboard_feeding
+      App\Messenger\Dashboard\FeedMultipleDashboardComponentMessage: async_dashboard_feeding
 
 # when@test:
 #    framework:
