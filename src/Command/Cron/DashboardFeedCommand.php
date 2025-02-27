@@ -4,9 +4,30 @@ namespace App\Command\Cron;
 
 use App\Entity\Dashboard;
 use App\Entity\Wiilock;
-use App\Messenger\Dashboard\CalculateComponentsWithDelayMessage;
-use App\Messenger\Dashboard\CalculateDashboardFeedingMessage;
-use App\Messenger\Dashboard\CalculateLatePackComponentsMessage;
+use App\Messenger\Dashboard\FeedDashboardComponentMessage;
+use App\Messenger\Dashboard\FeedMultipleDashboardComponentMessage;
+use App\Service\Dashboard\DashboardComponentGenerator\ActiveReferenceAlertsComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsAndPacksComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsEmergenciesComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\CarrierTrackingComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyDeliveryOrdersComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyDispatchesComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyHandlingIndicatorComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyHandlingOrOperationsComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyProductionsComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DisputeToTreatComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DropOffDistributedPacksComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\EntriesToHandleComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\HandlingTrackingComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\MonetaryReliabilityComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\MonetaryReliabilityGraphComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\MonetaryReliabilityIndicatorComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\OngoingPackComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\PackToTreatFromComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\RequestsOrdersToTreatComponentGenerator;
+use App\Service\Dashboard\MultipleDashboardComponentGenerator\DashboardComponentsWithDelayGenerator;
+use App\Service\Dashboard\MultipleDashboardComponentGenerator\LatePackComponentGenerator;
+use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -40,28 +61,53 @@ class DashboardFeedCommand extends Command {
 
         $components = $dashboardComponentRepository->findAll();
 
-        $latePackComponentIds = [];
-        $componentsWithDelayIds = [];
+        $multipleComponentIds = [];
 
         foreach ($components as $component) {
-            if($component->getType()->getMeterKey() === Dashboard\ComponentType::LATE_PACKS) {
-                $latePackComponentIds[] = $component->getId();
-//            } else if (in_array($component->getType()->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY])) {
-            } else if (in_array($component->getType()->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY])) {
-                $componentsWithDelayIds[] = $component->getId();
+            $componentType = $component->getType();
+            $meterKey = $componentType->getMeterKey();
+
+            $component->setErrorMessage(null);
+            $generatorClass = match ($meterKey) {
+                Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY, Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY => DashboardComponentsWithDelayGenerator::class,
+                Dashboard\ComponentType::ONGOING_PACKS => OngoingPackComponentGenerator::class,
+                Dashboard\ComponentType::DAILY_HANDLING_INDICATOR => DailyHandlingIndicatorComponentGenerator::class,
+                Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS => DropOffDistributedPacksComponentGenerator::class,
+                Dashboard\ComponentType::CARRIER_TRACKING => CarrierTrackingComponentGenerator::class,
+                Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS, Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS => ArrivalsAndPacksComponentGenerator::class,
+                Dashboard\ComponentType::ENTRIES_TO_HANDLE => EntriesToHandleComponentGenerator::class,
+                Dashboard\ComponentType::PACK_TO_TREAT_FROM => PackToTreatFromComponentGenerator::class,
+                Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE, Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES => ArrivalsEmergenciesComponentGenerator::class,
+                Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS => ActiveReferenceAlertsComponentGenerator::class,
+                Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH => MonetaryReliabilityGraphComponentGenerator::class,
+                Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR => MonetaryReliabilityIndicatorComponentGenerator::class,
+                Dashboard\ComponentType::REFERENCE_RELIABILITY => MonetaryReliabilityComponentGenerator::class,
+                Dashboard\ComponentType::DAILY_DISPATCHES => DailyDispatchesComponentGenerator::class,
+                Dashboard\ComponentType::DAILY_PRODUCTION => DailyProductionsComponentGenerator::class,
+                Dashboard\ComponentType::DAILY_HANDLING, Dashboard\ComponentType::DAILY_OPERATIONS => DailyHandlingOrOperationsComponentGenerator::class,
+                Dashboard\ComponentType::DAILY_DELIVERY_ORDERS => DailyDeliveryOrdersComponentGenerator::class,
+                Dashboard\ComponentType::REQUESTS_TO_TREAT, Dashboard\ComponentType::ORDERS_TO_TREAT => RequestsOrdersToTreatComponentGenerator::class,
+                Dashboard\ComponentType::DISPUTES_TO_TREAT => DisputeToTreatComponentGenerator::class,
+                Dashboard\ComponentType::HANDLING_TRACKING => HandlingTrackingComponentGenerator::class,
+                Dashboard\ComponentType::LATE_PACKS => LatePackComponentGenerator::class,
+                default => null,
+            };
+
+            if(!$generatorClass) {
+                continue;
+            }
+
+            if (is_subclass_of($generatorClass, MultipleDashboardComponentGenerator::class)) {
+                $multipleComponentIds[$generatorClass] ??= [];
+                $multipleComponentIds[$generatorClass][] = $component->getId();
             } else {
-                $this->messageBus->dispatch(new CalculateDashboardFeedingMessage($component->getId()));
+                $this->messageBus->dispatch(new FeedDashboardComponentMessage($component->getId(), $generatorClass));
                 $this->entityManager->flush();
             }
         }
 
-        if (count($componentsWithDelayIds) > 0) {
-            $this->messageBus->dispatch(new CalculateComponentsWithDelayMessage($componentsWithDelayIds));
-            $this->entityManager->flush();
-        }
-
-        if (count($latePackComponentIds) > 0) {
-            $this->messageBus->dispatch(new CalculateLatePackComponentsMessage($latePackComponentIds));
+        foreach($multipleComponentIds as $generatorClass => $componentIds) {
+            $this->messageBus->dispatch(new FeedMultipleDashboardComponentMessage($componentIds, $generatorClass));
             $this->entityManager->flush();
         }
 

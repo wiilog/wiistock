@@ -12,6 +12,7 @@ use App\Service\FormatService;
 use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 
+// TODO WIIS-12419 SUPPRIMER CE FICHIER
 class OngoingPacksWithTrackingDelayComponentGenerator implements DashboardComponentGenerator {
 
     public function __construct(

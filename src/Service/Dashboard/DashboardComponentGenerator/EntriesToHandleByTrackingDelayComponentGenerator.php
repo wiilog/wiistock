@@ -14,6 +14,7 @@ use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
 
+// TODO WIIS-12419 SUPPRIMER CE FICHIER
 class EntriesToHandleByTrackingDelayComponentGenerator implements DashboardComponentGenerator {
 
     public function __construct(
