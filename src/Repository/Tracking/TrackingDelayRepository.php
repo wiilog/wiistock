@@ -7,7 +7,9 @@ use App\Entity\Nature;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingEvent;
+use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use WiiCommon\Helper\Stream;
 
 class TrackingDelayRepository extends EntityRepository {
@@ -68,5 +70,23 @@ class TrackingDelayRepository extends EntityRepository {
         return $queryBuilder
             ->getQuery()
             ->toIterable();
+    }
+
+    /**
+     * Find last ten tracking delay calculated for the given pack.
+     * The current tracking delay is put first, next elements are ordered with calculatedAt column (most recent first)
+     * @return array<TrackingDelay>
+     */
+    public function findLastTrackingDelaysByPack(Pack $pack,
+                                                 int  $limit = 10): iterable {
+        return $this->createQueryBuilder('tracking_delay')
+            ->leftJoin(Pack::class, 'current_pack', Join::WITH, 'current_pack.currentTrackingDelay = tracking_delay.id')
+            ->andWhere("tracking_delay.pack = :pack")
+            ->orderBy('IF(current_pack.id IS NULL, 0, 1)', Order::Descending->value)
+            ->addOrderBy('tracking_delay.calculatedAt', Order::Descending->value)
+            ->setMaxResults($limit)
+            ->setParameter("pack", $pack)
+            ->getQuery()
+            ->getResult();
     }
 }
