@@ -133,7 +133,7 @@ class CacheService
                               string                 $class,
                               string|int             ...$keys): mixed {
 
-        if (empty($data)) {
+        if (empty($keys)) {
             throw new \Exception("Invalid usage: you should pass keys associated to the entity");
         }
 
