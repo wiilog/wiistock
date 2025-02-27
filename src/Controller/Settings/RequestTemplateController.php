@@ -33,6 +33,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
+use function PHPUnit\Framework\isNull;
 
 #[Route('/parametrage')]
 class RequestTemplateController extends AbstractController {
@@ -102,27 +103,27 @@ class RequestTemplateController extends AbstractController {
                 ];
 
                 $usage = $template?->getUsage();
-                $usageTemplate = $usage
-                    ? $this->formService->macro(
+                $usageTemplate = $usage instanceof DeliveryRequestTemplateUsageEnum
+                    ? (DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage?->value] ?? "")
+                        . $this->formService->macro(
+                            "hidden",
+                            "deliveryRequestTemplateUsage",
+                            $usage?->value,
+                        )
+                    : $this->formService->macro(
                         "select",
-                        "deliveryRequestTemplateType",
+                        "deliveryRequestTemplateUsage",
                         null,
                         true,
                         [
                             'items' => Stream::from(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES)
-                                ->map(static fn(string $deliveryRequestTemplateType, string $key) => [
-                                    "label" => $deliveryRequestTemplateType,
+                                ->map(static fn(string $deliveryRequestTemplateUsage, string $key) => [
+                                    "label" => $deliveryRequestTemplateUsage,
                                     "value" => $key,
                                     "selected" => $template?->getUsage()->value === $key,
                                 ])
                                 ->toArray(),
                         ]
-                    )
-                    :(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage?->value] ?? "")
-                    .$this->formService->macro(
-                        "hidden",
-                        "deliveryRequestTemplateType",
-                        $usage?->value,
                     );
 
                 $data[] = [
@@ -140,7 +141,7 @@ class RequestTemplateController extends AbstractController {
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
 
-                if ($template instanceof DeliveryRequestTemplateSleepingStock) {
+                if (!isset($template) || $template instanceof DeliveryRequestTemplateSleepingStock) {
                     $buttonIcon = $template?->getButtonIcon();
                     $data[] = [
                         "label" => "Icone du bouton",
