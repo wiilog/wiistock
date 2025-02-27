@@ -24,6 +24,7 @@ use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
@@ -58,6 +59,7 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Yaml;
@@ -1246,12 +1248,17 @@ class SettingsService {
             if (is_numeric($data["typeId"])){
                 $template = $entityManager->find(RequestTemplate::class, $data["typeId"]);
             } else {
-                $template = $data["entityType"] === Type::LABEL_DELIVERY
-                    ? new DeliveryRequestTemplateTriggerAction()
-                    : ($data["entityType"] === Type::LABEL_COLLECT
-                        ? new CollectRequestTemplate()
-                        : new HandlingRequestTemplate()
-                    );
+                $template = match ($data["entityType"]) {
+                    Type::LABEL_DELIVERY => match ($data["deliveryRequestTemplateUsage"] ?? null) {
+                        DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION->value => new DeliveryRequestTemplateTriggerAction(),
+                        DeliveryRequestTemplateUsageEnum::SLEEPING_STOCK->value => new DeliveryRequestTemplateSleepingStock(),
+                        default => throw new BadRequestException()
+                    },
+                    Type::LABEL_COLLECT => new CollectRequestTemplate(),
+                    default => new HandlingRequestTemplate(),
+
+                };
+
                 $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entityType"]));
 
                 $entityManager->persist($template);

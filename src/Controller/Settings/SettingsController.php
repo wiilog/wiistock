@@ -3480,9 +3480,7 @@ class SettingsController extends AbstractController {
                 "label" => $template->getName(),
                 "value" => $template->getId(),
                 "selected" => $index === 0,
-                "delivery-request-type" => $template instanceof DeliveryRequestTemplateTriggerAction
-                    ? $template->getUsage()->value
-                    : null,
+                "delivery-request-usage" => $template->getUsage()->value
             ])
             ->toArray();
 
