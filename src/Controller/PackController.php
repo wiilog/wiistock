@@ -19,8 +19,11 @@ use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
 use App\Entity\Tracking\Pack;
+use App\Entity\Tracking\TrackingDelay;
+use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
+use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PDFGeneratorService;
@@ -35,8 +38,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
 
 #[Route("/unite-logistique", name: 'pack_')]
@@ -108,6 +112,8 @@ class PackController extends AbstractController {
                          EntityManagerInterface $entityManager,
                          PackService            $packService): Response {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $trackingDelayRepository = $entityManager->getRepository(TrackingDelay::class);
+
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($logisticUnit);
 
         $arrival = $logisticUnit->getArrivage();
@@ -119,6 +125,10 @@ class PackController extends AbstractController {
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
         $lastMessage = $logisticUnit->getLastMessage();
         $hasPairing = !$logisticUnit->getPairings()->isEmpty() || $lastMessage;
+
+        // get last tracking delay for select
+        // only last 10
+        $lastTenTrackingDelays = $trackingDelayRepository->findLastTrackingDelaysByPack($logisticUnit);
 
         return $this->render('pack/show.html.twig', [
             "packActionButtons" => $packService->getActionButtons($logisticUnit, $hasPairing),
@@ -133,7 +143,8 @@ class PackController extends AbstractController {
                 "width" => 10,
                 "type" => 'qrcode',
             ],
-            "trackingDelay" => $packService->formatTrackingDelayData($logisticUnit),
+            "currentTrackingDelay" => $packService->formatTrackingDelayData($logisticUnit),
+            "lastTenTrackingDelays" => $lastTenTrackingDelays,
             "hasPairing" => $hasPairing,
         ]);
     }
@@ -317,16 +328,37 @@ class PackController extends AbstractController {
 
     }
 
-    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [self::GET, self::POST])]
-    public function groupHistory(Request $request, PackService $packService, $pack): JsonResponse {
-        if ($request->isXmlHttpRequest()) {
-            $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
-            return $this->json($data);
-        }
-        throw new BadRequestHttpException();
+    #[Route("/group_history/{pack}", name: "group_history_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function groupHistory(Request     $request,
+                                 PackService $packService,
+                                 Pack        $pack): JsonResponse {
+        $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
+        return $this->json($data);
     }
 
-    #[Route("/{logisticUnit}/group_content", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST])]
+    #[Route("/{pack}/tracking-delay/{trackingDelay}/records", name: "tracking_delay_history_api", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function trackingDelayHistory(Request                $request,
+                                         Pack                   $pack,
+                                         TrackingDelay          $trackingDelay,
+                                         EntityManagerInterface $entityManager,
+                                         NormalizerInterface    $normalizer): JsonResponse {
+        if ($pack->getId() !== $trackingDelay->getPack()->getId()) {
+            throw new NotFoundHttpException();
+        }
+
+        $trackingDelayRecordRepository = $entityManager->getRepository(TrackingDelayRecord::class);
+        ["data" => $records, "total" => $total] = $trackingDelayRecordRepository->iterateByTrackingDelay($trackingDelay, $request->request);
+
+        return $this->json([
+            "data" => $normalizer->normalize($records, null, [
+                "usage" => SerializerUsageEnum::PACK_SHOW,
+            ]),
+            "recordsFiltered" => $total,
+            "recordsTotal" => $total,
+        ]);
+    }
+
+    #[Route("/{logisticUnit}/group_content", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function groupContentApi(Request                $request,
                                     EntityManagerInterface $entityManager,
                                     PackService            $packService,
