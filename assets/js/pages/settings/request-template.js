@@ -3,6 +3,7 @@ import Routing from '@app/fos-routing';
 import DeliveryRequestTemplateUsageEnum from "@generated/delivery-request-template-usage-enum.js";
 
 const USAGES_LINES_NEEDED = [DeliveryRequestTemplateUsageEnum.TRIGGER_ACTION.value];
+const USAGES_LOGO_NEEDED = [DeliveryRequestTemplateUsageEnum.SLEEPING_STOCK.value];
 
 export function initializeRequestTemplates($container, canEdit) {
     const delivery = $container.find('#delivery-template-type').length > 0;
@@ -63,16 +64,17 @@ export function initializeRequestTemplates($container, canEdit) {
 
     $(document)
         .off('change.entitySelect')
-        .on('change.entitySelect', function() {
-            const deliveryRequestUsage= $(this).find('option:selected').data('delivery-request-type');
-            onDeliveryRequestTemplateTypeChange($container, deliveryRequestUsage, table);
+        .on('change.entitySelect', function () {
+            const deliveryRequestUsage = $(this).find('option:selected').data('delivery-request-usage');
+            console.log(deliveryRequestUsage)
+            onDeliveryRequestTemplateUsageChange($container, deliveryRequestUsage, table);
         });
 
     $(document)
-        .off('change.deliveryRequestTemplateType')
-        .on('change.deliveryRequestTemplateType', '[name="deliveryRequestTemplateType"]', () => onDeliveryRequestTemplateTypeChange($container, $container.find(`[name="deliveryRequestTemplateType"]`).val(), table));
+        .off('change.deliveryRequestTemplateUsage')
+        .on('change.deliveryRequestTemplateUsage', '[name="deliveryRequestTemplateUsage"]', () => onDeliveryRequestTemplateUsageChange($container, $container.find(`[name="deliveryRequestTemplateUsage"]`).val(), table));
 
-    $container.on(`change`, `[name="reference"]`, function() {
+    $container.on(`change`, `[name="reference"]`, function () {
         const $select = $(this);
         const $row = $select.closest(`tr`);
         const data = $select.select2(`data`)[0];
@@ -83,18 +85,21 @@ export function initializeRequestTemplates($container, canEdit) {
     });
 }
 
-function onDeliveryRequestTemplateTypeChange($container, usage,  table) {
+function onDeliveryRequestTemplateUsageChange($container, usage,  table) {
     if(usage) {
         const isLinesNeeded = USAGES_LINES_NEEDED.includes(usage);
         $container.find('.template-references-table-container').toggleClass('d-none', !isLinesNeeded);
         table.config.minimumRows = isLinesNeeded ? 1 : 0;
+
+        const isLogoNeeded = USAGES_LOGO_NEEDED.includes(usage);
+        $container.find('.main-entity-content-item [name="logo"]').closest('.main-entity-content-item').toggleClass('d-none', !isLogoNeeded);
     }
 }
 
 function onTypeChange($container) {
     $container.find(`.main-entity-content-item[data-type]`).addClass(`d-none`);
 
-    $container.find(`.main-entity-content-item[data-type="${$(this).val()}"]`).each(function() {
+    $container.find(`.main-entity-content-item[data-type="${$(this).val()}"]`).each(function () {
         $(this).removeClass(`d-none`);
     });
 }
