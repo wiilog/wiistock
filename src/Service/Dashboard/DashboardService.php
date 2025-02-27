@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\LocationCluster;
 use App\Entity\ReceiptAssociation;
 use App\Entity\Setting;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Wiilock;
 use App\Service\FormatService;
@@ -324,5 +325,40 @@ class DashboardService {
         }
 
         return $weekCountersToReturn;
+    }
+
+    public function treatPack(Pack   $pack,
+                               int    $remainingTimeInSeconds,
+                               array  $customSegments,
+                               array  &$counterByEndingSpan,
+                               int    &$globalCounter,
+                               ?array &$nextElementToDisplay,
+                               ?Pack  $packToGetNature = null): void {
+        // we save pack with the smallest tracking delay
+        if (!isset($nextElementToDisplay)
+            || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+            $nextElementToDisplay = [
+                'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                'pack' => $pack,
+            ];
+        }
+
+        foreach ($customSegments as $segmentEnd) {
+            $endSpan = match($segmentEnd) {
+                -1 => -1,
+                default => $segmentEnd * 60,
+            };
+
+            if ($remainingTimeInSeconds < $endSpan) {
+                $packToGetNature ??= $pack;
+                $natureLabel = $this->formatService->nature($packToGetNature->getNature());
+
+                $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                $globalCounter++;
+
+                break;
+            }
+        }
     }
 }
