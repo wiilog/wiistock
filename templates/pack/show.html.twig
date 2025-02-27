@@ -272,6 +272,7 @@
                     <div class="content p-2">
                         {{ form.select('trackingdelayFilter', null, false, {
                             type: '',
+                            noSearch: true,
                             items: lastTenTrackingDelays | map((trackingDelay, index) => ({
                                 label: logisticUnit.currentTrackingDelay and logisticUnit.currentTrackingDelay.id == trackingDelay.id
                                     ? "Délai en cours"
@@ -328,5 +329,4 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('pack-show') }}
-    {{ encore_entry_script_tags('pack-index') }}
 {% endblock %}

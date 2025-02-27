@@ -118,7 +118,7 @@ $(function () {
 
         $parent.find(`.content`).addClass(`d-none`);
         $parent.find(`.content${$tab.data(`target`)}`).removeClass(`d-none`);
-    })
+    });
 
     if (!packsTable) {
         const $packTable = $('#packsTable');

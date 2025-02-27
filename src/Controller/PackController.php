@@ -358,7 +358,7 @@ class PackController extends AbstractController {
         ]);
     }
 
-    #[Route("/{logisticUnit}/group_content", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    #[Route("/{logisticUnit}/group-content", name: "group_content_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function groupContentApi(Request                $request,
                                     EntityManagerInterface $entityManager,
                                     PackService            $packService,
