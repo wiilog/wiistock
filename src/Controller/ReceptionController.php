@@ -208,7 +208,7 @@ class ReceptionController extends AbstractController {
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($entityManager, $reception),
                 ]),
                 'success' => true,
                 'msg' => 'La réception <strong>' . $reception->getNumber() . '</strong> a bien été modifiée.',
@@ -481,7 +481,7 @@ class ReceptionController extends AbstractController {
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($entityManager, $reception),
                 ]),
                 'msg' => 'La référence <strong>' . $ligneArticleLabel . '</strong> a bien été supprimée.',
             ]);
@@ -595,7 +595,7 @@ class ReceptionController extends AbstractController {
                     'entete' => $this->renderView('reception/show/header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
-                        'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
+                        'showDetails' => $receptionService->createHeaderDetailsConfig($entityManager, $reception),
                     ]),
                 ];
             }
@@ -784,7 +784,7 @@ class ReceptionController extends AbstractController {
                 'entete' => $this->renderView('reception/show/header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($entityManager, $reception),
                 ]),
             ]);
         }
@@ -833,7 +833,7 @@ class ReceptionController extends AbstractController {
             'deliverySwitchLabel' => $deliverySwitchLabel,
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
-            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
+            'detailsHeader' => $receptionService->createHeaderDetailsConfig($entityManager, $reception),
             'restrictedLocations' => $restrictedLocations,
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),

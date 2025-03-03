@@ -2,7 +2,7 @@
 
 namespace App\Entity\RequestTemplate;
 
-enum DeliveryRequestTemplateTypeEnum: string {
+enum DeliveryRequestTemplateUsageEnum: string {
     case TRIGGER_ACTION = "TriggerAction";
     case SLEEPING_STOCK = "SleepingStock";
 }

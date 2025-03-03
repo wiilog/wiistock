@@ -11,13 +11,17 @@ use App\Entity\FreeField\FreeField;
 use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Menu;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\FixedFieldService;
+use App\Service\FormService;
 use App\Service\FreeFieldService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,27 +30,22 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
 #[Route('/parametrage')]
 class RequestTemplateController extends AbstractController {
 
-    #[Required]
-    public FixedFieldService $fieldsParamService;
-
-    #[Required]
-    public TranslationService $translation;
-
     #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true], defaults: ["template" => null])]
-    public function requestTemplateHeader(Request                   $request,
-                                          string                    $category,
-                                          Environment               $twig,
-                                          EntityManagerInterface    $entityManager,
-                                          FreeFieldService          $freeFieldService,
-                                          TranslationService        $translation,
-                                          ?RequestTemplate          $template): Response {
+    public function requestTemplateHeader(Request                $request,
+                                          string                 $category,
+                                          Environment            $twig,
+                                          EntityManagerInterface $entityManager,
+                                          FreeFieldService       $freeFieldService,
+                                          TranslationService     $translation,
+                                          FormService            $formService,
+                                          FixedFieldService      $fieldsParamService,
+                                          ?RequestTemplate       $template): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
@@ -85,7 +84,7 @@ class RequestTemplateController extends AbstractController {
 
             if($category === Type::LABEL_DELIVERY) {
                 /**
-                 * @var DeliveryRequestTemplate $template
+                 * @var DeliveryRequestTemplateTriggerAction|DeliveryRequestTemplateSleepingStock $template
                  */
                 $option = "";
                 if($template && $template->getDestination()) {
@@ -97,6 +96,34 @@ class RequestTemplateController extends AbstractController {
                     "value" => "<select name='deliveryType' class='data form-control' required>$typeOptions</select>",
                 ];
 
+                $usage = $template?->getUsage();
+                $usageTemplate = $usage instanceof DeliveryRequestTemplateUsageEnum
+                    ? (DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage->value] ?? "")
+                        . $formService->macro(
+                            "hidden",
+                            "deliveryRequestTemplateUsage",
+                            $usage->value,
+                        )
+                    : $formService->macro(
+                        "select",
+                        "deliveryRequestTemplateUsage",
+                        null,
+                        true,
+                        [
+                            'items' => Stream::from(DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES)
+                                ->map(static fn(string $deliveryRequestTemplateUsage, string $key) => [
+                                    "label" => $deliveryRequestTemplateUsage,
+                                    "value" => $key,
+                                ])
+                                ->toArray(),
+                        ]
+                    );
+
+                $data[] = [
+                    "label" => "Utilisation du modèle",
+                    "value" => $usageTemplate,
+                ];
+
                 $data[] = [
                     "label" => "Destination*",
                     "value" => "<select name='destination' data-s2='location' data-parent='body' class='data form-control' required>$option</select>",
@@ -106,6 +133,22 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Commentaire",
                     "value" => "<div class='wii-one-line-wysiwyg ql-editor data' data-wysiwyg='comment'>$comment</div>",
                 ];
+
+                if (!isset($template) || $template instanceof DeliveryRequestTemplateSleepingStock) {
+                    $buttonIcon = $template?->getButtonIcon();
+                    $data[] = [
+                        "label" => "Icone du bouton",
+                        "value" => $this->renderView("form_element.html.twig", [
+                            "element" => "image",
+                            "arguments" => [
+                                "logo",
+                                null,
+                                false,
+                                $buttonIcon?->getFullPath(),
+                            ],
+                        ]),
+                    ];
+                }
             }
             else if ($category === Type::LABEL_COLLECT) {
                 /**
@@ -151,14 +194,14 @@ class RequestTemplateController extends AbstractController {
                 $status = "";
                 $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
                 $action = $template ? 'requiredEdit' : 'requiredCreate';
-                $emergencyIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_EMERGENCY, $action);
-                $sourceIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_LOADING_ZONE, $action)
+                $emergencyIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_EMERGENCY, $action);
+                $sourceIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_LOADING_ZONE, $action)
                     ? 'required'
                     : '';
-                $destinationIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, $action)
+                $destinationIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, $action)
                     ? 'required'
                     : '';
-                $carriedOutOperationsIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
+                $carriedOutOperationsIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
                     ? 'required'
                     : '';
                 if($template && $template->getRequestStatus()) {
@@ -284,7 +327,7 @@ class RequestTemplateController extends AbstractController {
         }
         else if($template) {
             $data = [];
-            if ($template instanceof DeliveryRequestTemplate) {
+            if ($template instanceof DeliveryRequestTemplateInterface) {
                 $data[] = [
                     "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                     "value" => FormatHelper::type($template->getRequestType()),
@@ -293,6 +336,18 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Destination",
                     "value" => FormatHelper::location($template->getDestination()),
                 ];
+                $data[] = [
+                    "label" => "Utilisation du modèle",
+                    "value" => DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$template->getUsage()->value],
+                ];
+                if ($template instanceof DeliveryRequestTemplateSleepingStock) {
+                    $data[] = $template->getButtonIcon()
+                        ? [
+                            "label" => "Icone du bouton",
+                            "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>",
+                        ]
+                        : [];
+                }
             } else if ($template instanceof CollectRequestTemplate) {
                 $data[] = [
                     "label" => "Objet",
@@ -330,7 +385,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Urgence",
-                    "value" => $template->getEmergency() ?: $this->translation->translate('Demande', 'Général', 'Non urgent'),
+                    "value" => $template->getEmergency() ?: $translation->translate('Demande', 'Général', 'Non urgent'),
                 ];
 
                 $data[] = [
@@ -391,7 +446,7 @@ class RequestTemplateController extends AbstractController {
 
         $class = "form-control data";
 
-        if($template instanceof DeliveryRequestTemplate || $template instanceof CollectRequestTemplate) {
+        if($template instanceof DeliveryRequestTemplateTriggerAction || $template instanceof CollectRequestTemplate) {
             $lines = $template->getLines();
         }
 

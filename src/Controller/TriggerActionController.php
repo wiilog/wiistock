@@ -10,6 +10,8 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\IOT\AlertTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
@@ -21,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use WiiCommon\Helper\Stream;
 
 #[Route("/iot/actionneurs")]
 class TriggerActionController extends AbstractController
@@ -349,7 +352,6 @@ class TriggerActionController extends AbstractController
 
         $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
-        $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
 
         $query = $request->query;
 
@@ -358,8 +360,9 @@ class TriggerActionController extends AbstractController
         if($type === TriggerAction::ALERT) {
             $templates = $alertTemplateRepository->getTemplateForSelect();
         } else {
-            $templates = $requestTemplateRepository->getTemplateForSelect();
+            $templates = $requestTemplateRepository->getTemplateForSelect($entityManager);
         }
+
         return $this->json([
             "results" => $templates
         ]);

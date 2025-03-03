@@ -610,8 +610,7 @@ class DeliveryRequestService
     }
 
     public function createHeaderDetailsConfig(EntityManagerInterface $entityManager,
-                                              Demande                $demande): array
-    {
+                                              Demande                $demande): array {
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $entityManager,
             $demande,
@@ -638,7 +637,7 @@ class DeliveryRequestService
             ],
         ];
 
-        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DEMANDE);
+        $configFiltered = $this->fieldsParamService->filterHeaderConfig($entityManager, $config, FixedFieldStandard::ENTITY_CODE_DEMANDE);
         return array_merge(
             $configFiltered,
             $freeFieldArray,
