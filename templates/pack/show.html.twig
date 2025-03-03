@@ -273,6 +273,7 @@
                         {{ form.select('trackingdelayFilter', null, false, {
                             type: '',
                             noSearch: true,
+                            noEmptyOption: true,
                             items: lastTenTrackingDelays | map((trackingDelay, index) => ({
                                 label: logisticUnit.currentTrackingDelay and logisticUnit.currentTrackingDelay.id == trackingDelay.id
                                     ? "Délai en cours"

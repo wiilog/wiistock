@@ -399,7 +399,7 @@ class TrackingDelayService {
             $timerStartedAt = $truckArrivalCreatedAt ?: $arrivalCreatedAt;
 
             if ($timerStartedAt) {
-                $timerStartedBy = $truckArrivalCreatedAt ? TrackingTimerEvent::ARRIVAL : TrackingTimerEvent::TRUCK_ARRIVAL;
+                $timerStartedBy = $truckArrivalCreatedAt ? TrackingTimerEvent::TRUCK_ARRIVAL : TrackingTimerEvent::ARRIVAL;
             }
             else {
                 // if any truck arrival or logistic unit arrival
