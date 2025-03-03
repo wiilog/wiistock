@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositoryTriggerAction::class)]
 class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements DeliveryRequestTemplateInterface  {
 
-    use deliveryRequestTemplateTrait;
+    use DeliveryRequestTemplateTrait;
     #[ORM\OneToOne(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $buttonIcon = null;
 
