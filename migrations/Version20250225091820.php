@@ -17,7 +17,7 @@ final class Version20250225091820 extends AbstractMigration
     public function up(Schema $schema): void
     {
         if (!$schema->getTable("pack")->hasColumn("current_tracking_delay_id")) {
-            $this->addSql('ALTER TABLE pack ADD current_tracking_delay_id INT NOT NULL');
+            $this->addSql('ALTER TABLE pack ADD current_tracking_delay_id INT DEFAULT NULL');
         }
 
         // this up() migration is auto-generated, please modify it to your needs
