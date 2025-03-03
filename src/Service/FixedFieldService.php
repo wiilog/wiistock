@@ -16,23 +16,15 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class FixedFieldService
-{
-
-    private $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
+class FixedFieldService {
 
     public function isFieldRequired(array $config, string $fieldName, string $action): bool {
         return isset($config[$fieldName]) && isset($config[$fieldName][$action]) && $config[$fieldName][$action];
     }
 
-    public function filterHeaderConfig(array $config, string $entityCode, ?Type $type = null): array {
+    public function filterHeaderConfig(EntityManagerInterface $entityManager, array $config, string $entityCode, ?Type $type = null): array {
         if ($type) {
-            $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
+            $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
             $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                 ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
                     FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($type),
@@ -40,7 +32,7 @@ class FixedFieldService
                 ]])
                 ->toArray();
         } else {
-            $fixedFieldStandardRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+            $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
             $fieldsParam = $fixedFieldStandardRepository->getByEntity($entityCode);
         }
 
