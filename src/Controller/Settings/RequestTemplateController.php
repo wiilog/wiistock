@@ -30,28 +30,22 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
-use function PHPUnit\Framework\isNull;
 
 #[Route('/parametrage')]
 class RequestTemplateController extends AbstractController {
 
-    public function __construct(
-        private FixedFieldService $fieldsParamService,
-        private TranslationService $translation,
-        private FormService $formService
-    ) {}
-
     #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true], defaults: ["template" => null])]
-    public function requestTemplateHeader(Request                   $request,
-                                          string                    $category,
-                                          Environment               $twig,
-                                          EntityManagerInterface    $entityManager,
-                                          FreeFieldService          $freeFieldService,
-                                          TranslationService        $translation,
-                                          ?RequestTemplate          $template): Response {
+    public function requestTemplateHeader(Request                $request,
+                                          string                 $category,
+                                          Environment            $twig,
+                                          EntityManagerInterface $entityManager,
+                                          FreeFieldService       $freeFieldService,
+                                          TranslationService     $translation,
+                                          FormService            $formService,
+                                          FixedFieldService      $fieldsParamService,
+                                          ?RequestTemplate       $template): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
@@ -104,13 +98,13 @@ class RequestTemplateController extends AbstractController {
 
                 $usage = $template?->getUsage();
                 $usageTemplate = $usage instanceof DeliveryRequestTemplateUsageEnum
-                    ? (DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage?->value] ?? "")
-                        . $this->formService->macro(
+                    ? (DeliveryRequestTemplateInterface::DELIVERY_REQUEST_TEMPLATE_USAGES[$usage->value] ?? "")
+                        . $formService->macro(
                             "hidden",
                             "deliveryRequestTemplateUsage",
-                            $usage?->value,
+                            $usage->value,
                         )
-                    : $this->formService->macro(
+                    : $formService->macro(
                         "select",
                         "deliveryRequestTemplateUsage",
                         null,
@@ -120,7 +114,6 @@ class RequestTemplateController extends AbstractController {
                                 ->map(static fn(string $deliveryRequestTemplateUsage, string $key) => [
                                     "label" => $deliveryRequestTemplateUsage,
                                     "value" => $key,
-                                    "selected" => $template?->getUsage()->value === $key,
                                 ])
                                 ->toArray(),
                         ]
@@ -201,14 +194,14 @@ class RequestTemplateController extends AbstractController {
                 $status = "";
                 $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
                 $action = $template ? 'requiredEdit' : 'requiredCreate';
-                $emergencyIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_EMERGENCY, $action);
-                $sourceIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_LOADING_ZONE, $action)
+                $emergencyIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_EMERGENCY, $action);
+                $sourceIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_LOADING_ZONE, $action)
                     ? 'required'
                     : '';
-                $destinationIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, $action)
+                $destinationIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, $action)
                     ? 'required'
                     : '';
-                $carriedOutOperationsIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
+                $carriedOutOperationsIsNeeded = $fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
                     ? 'required'
                     : '';
                 if($template && $template->getRequestStatus()) {
@@ -392,7 +385,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Urgence",
-                    "value" => $template->getEmergency() ?: $this->translation->translate('Demande', 'Général', 'Non urgent'),
+                    "value" => $template->getEmergency() ?: $translation->translate('Demande', 'Général', 'Non urgent'),
                 ];
 
                 $data[] = [

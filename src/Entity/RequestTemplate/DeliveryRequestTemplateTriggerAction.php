@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositoryTriggerAction::class)]
 class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements DeliveryRequestTemplateInterface  {
 
-    use deliveryRequestTemplateTrait;
+    use DeliveryRequestTemplateTrait;
 
     #[ORM\OneToMany(mappedBy: 'deliveryRequestTemplateTriggerAction', targetEntity: RequestTemplateLine::class, cascade: ["remove"])]
     private Collection $lines;

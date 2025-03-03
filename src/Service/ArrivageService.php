@@ -48,7 +48,6 @@ class ArrivageService {
         private Environment            $templating,
         private RouterInterface        $router,
         private Security               $security,
-        private EntityManagerInterface $entityManager,
         private KeptFieldService       $keptFieldService,
         private MailerService          $mailerService,
         private UrgenceService         $urgenceService,
@@ -65,10 +64,9 @@ class ArrivageService {
     ) {
     }
 
-    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
-    {
-        $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
-        $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request, ?int $userIdArrivalFilter) {
+        $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+        $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->security->getUser();
@@ -76,7 +74,7 @@ class ArrivageService {
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LU_ARRIVAL, $currentUser);
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
-        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
@@ -95,7 +93,7 @@ class ArrivageService {
 
         $rows = [];
         foreach ($arrivals as $arrival) {
-            $rows[] = $this->dataRowArrivage($arrival[0], [
+            $rows[] = $this->dataRowArrivage($entityManager, $arrival[0], [
                 'totalWeight' => $arrival['totalWeight'],
                 'packsCount' => $arrival['packsCount'],
                 'dispatchMode' => $dispatchMode,
@@ -110,8 +108,7 @@ class ArrivageService {
         ];
     }
 
-    public function dataRowArrivage(Arrivage $arrival, array $options = []): array
-    {
+    public function dataRowArrivage(EntityManagerInterface $entityManager, Arrivage $arrival, array $options = []): array {
         $user = $this->security->getUser();
         $arrivalId = $arrival->getId();
         $url = $this->router->generate('arrivage_show', [
@@ -119,7 +116,7 @@ class ArrivageService {
         ]);
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
         }
 
         $acheteursUsernames = [];
@@ -207,7 +204,7 @@ class ArrivageService {
                 2 => $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y à H:i')
             ]];
             $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
-                $this->entityManager,
+                $entityManager,
                 $arrival,
                 ['type' => $arrival->getType()],
                 $this->security->getUser()
@@ -301,10 +298,10 @@ class ArrivageService {
         ];
     }
 
-    public function createArrivalAlertConfig(Arrivage $arrivage,
-                                             bool $askQuestion,
-                                             array $urgences = []): array
-    {
+    public function createArrivalAlertConfig(EntityManagerInterface $entityManager,
+                                             Arrivage               $arrivage,
+                                             bool                   $askQuestion,
+                                             array                  $urgences = []): array {
         $isArrivalUrgent = count($urgences);
         $emergencyOrderNumber = null;
         $arrivalOrderNumbersStr = null;
@@ -368,7 +365,7 @@ class ArrivageService {
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalKey' => 'emergency',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
-            'autoPrint' => !$this->settingsService->getValue($this->entityManager, Setting::REDIRECT_AFTER_NEW_ARRIVAL),
+            'autoPrint' => !$this->settingsService->getValue($entityManager, Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $emergencyOrderNumber
                 ?: $arrivalOrderNumbersStr
@@ -378,7 +375,7 @@ class ArrivageService {
         ];
     }
 
-    public function createSupplierEmergencyAlert(Arrivage $arrival): ?array {
+    public function createSupplierEmergencyAlert(EntityManagerInterface $entityManager, Arrivage $arrival): ?array {
         $supplier = $arrival->getFournisseur();
         $supplierName = $supplier?->getNom();
         $isArrivalUrgent = ($supplier && $supplier->isUrgent() && $supplierName);
@@ -389,14 +386,13 @@ class ArrivageService {
                 'message' => "Attention, les unités logistiques $supplierName doivent être traitées en urgence",
                 'iconType' => 'warning',
                 'modalType' => 'info',
-                'autoPrint' => !$this->settingsService->getValue($this->entityManager, Setting::REDIRECT_AFTER_NEW_ARRIVAL),
+                'autoPrint' => !$this->settingsService->getValue($entityManager, Setting::REDIRECT_AFTER_NEW_ARRIVAL),
                 'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
             ]
             : null;
     }
 
-    public function processEmergenciesOnArrival(EntityManagerInterface $entityManager, Arrivage $arrival): array
-    {
+    public function processEmergenciesOnArrival(EntityManagerInterface $entityManager, Arrivage $arrival): array {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
 
@@ -418,8 +414,9 @@ class ArrivageService {
                         $this->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
-                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $confirmEmergency) {
+                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($entityManager, $arrival, $confirmEmergency) {
                             return $this->createArrivalAlertConfig(
+                                $entityManager,
                                 $arrival,
                                 $confirmEmergency,
                                 [$urgence]
@@ -435,6 +432,7 @@ class ArrivageService {
             && $arrival->getIsUrgent()
             && !empty($allMatchingEmergencies)) {
             $alertConfigs[] = $this->createArrivalAlertConfig(
+                $entityManager,
                 $arrival,
                 false,
                 $allMatchingEmergencies
@@ -442,14 +440,14 @@ class ArrivageService {
         }
 
         if (empty($alertConfigs)) {
-            $alertConfigs[] = $this->createArrivalAlertConfig($arrival, $confirmEmergency);
+            $alertConfigs[] = $this->createArrivalAlertConfig($entityManager, $arrival, $confirmEmergency);
         }
 
         return $alertConfigs;
     }
 
-    public function createHeaderDetailsConfig(Arrivage $arrivage): array {
-        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+    public function createHeaderDetailsConfig(EntityManagerInterface $entityManager, Arrivage $arrivage): array {
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $provider = $arrivage->getFournisseur();
@@ -472,7 +470,7 @@ class ArrivageService {
             ->join(', ');
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
-            $this->entityManager,
+            $entityManager,
             $arrivage,
             ['type' => $arrivage->getType()],
             $this->security->getUser()
@@ -576,7 +574,7 @@ class ArrivageService {
             ],
         ];
 
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($entityManager, $config, FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         return array_merge(
             $configFiltered,
@@ -605,8 +603,8 @@ class ArrivageService {
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur $currentUser,
-                                           bool $dispatchMode = false): array {
+                                           Utilisateur            $currentUser,
+                                           bool                   $dispatchMode = false): array {
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
