@@ -141,4 +141,7 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('arrival-index') }}
+    {% if app.request.server.get('DN_READER_URL') ?? false %}
+        {{ encore_entry_script_tags('arrival-ai-dn-reader') }}
+    {% endif %}
 {% endblock %}
