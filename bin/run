@@ -7,7 +7,12 @@ const MODE_DEFAULT = "default";
 
 const SUPERVISOR_ALLOWED_MODES = [MODE_DEFAULT, MODE_LITE];
 
-main();
+// check if the script is launched by command line
+if (!isset($argv)) {
+    return;
+}
+
+main($argv[1] ?? null);
 
 
 
@@ -16,46 +21,23 @@ main();
 ///////////////////////////////////////////
 
 
-function main(): void {
-    global $argv;
-
-    $mode = $argv[1] ?? null;
-
-    echo("Starting instance in " . $mode . " mode" . PHP_EOL);
-
-    // check if the script is launched by command line
-    if (!isset($argv)) {
-        return;
-    }
+function main(?string $mode): void {
+    echo "Starting instance in " . $mode . " mode" . PHP_EOL;
 
     switch ($mode) {
         // mode lite without cron & supervisor
         case MODE_CYPRESS:
-            echo("Starting ssh daemon" . PHP_EOL);
-            exec("/usr/sbin/sshd -D > /dev/null &");
-
-            echo("exporting environment variables" . PHP_EOL);
-            exec("rm /etc/environment");
-            exec("env > /etc/environment");
-
-            echo("fixing environment variables" . PHP_EOL);
-            exec("sed -i 's/^\([^#]*=[^\"].*\\)$/\\1\"/; s/=\\([^\"].*\\)$/=\"\\1/' /etc/environment");
-
-            echo("starting lite mode" . PHP_EOL);
-            $argv[1] = $mode = MODE_LITE;
-            main();
-            return;
-
+            initCypressEnvironment();
+            $mode = MODE_LITE;
+            break;
         case MODE_LITE:
             break;
-
         default:
             $mode = MODE_DEFAULT;
             break;
     }
 
     launchSupervisorDaemon($mode);
-    echo "Starting instance successfully" . PHP_EOL;
 }
 
 
@@ -64,11 +46,26 @@ function main(): void {
  * otherwise it will fail. This function normally should never end
  * @throws Exception in case of invalid mode
  */
-function launchSupervisorDaemon($mode = MODE_DEFAULT): void {
+function launchSupervisorDaemon(string $mode = MODE_DEFAULT): void {
     if (!in_array($mode, SUPERVISOR_ALLOWED_MODES)) {
-        throw new Exception("Supervisor mode $mode is not allowed");
+        throw new Exception("Supervisor mode '$mode' is not allowed");
     }
-    echo("supervisord -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid" . PHP_EOL);
 
-    passthru("supervisord -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid");
+    $launchCommand = "supervisord -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid";
+
+    echo " -- " . $launchCommand . PHP_EOL;
+
+    passthru($launchCommand);
+}
+
+function initCypressEnvironment(): void {
+    echo " -- Starting ssh daemon" . PHP_EOL;
+    exec("/usr/sbin/sshd -D > /dev/null &");
+
+    echo " -- Exporting environment variables" . PHP_EOL;
+    exec("rm /etc/environment");
+    exec("env > /etc/environment");
+
+    echo " -- Fixing environment variables" . PHP_EOL;
+    exec("sed -i 's/^\([^#]*=[^\"].*\\)$/\\1\"/; s/=\\([^\"].*\\)$/=\"\\1/' /etc/environment");
 }
