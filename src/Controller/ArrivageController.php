@@ -36,7 +36,6 @@ use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
 use App\Service\FilterSupService;
-use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
@@ -1539,8 +1538,8 @@ class ArrivageController extends AbstractController
 
     #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: self::POST, condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::CREATE])]
-    public function apiDeliveryNoteFile( Request                $request,
-                                         HttpClientInterface    $client): JsonResponse {
+    public function apiDeliveryNoteFile(Request             $request,
+                                        HttpClientInterface $client): JsonResponse {
         if ($request->files->has('file')) {
             $dnReaderUrl = $_SERVER['DN_READER_URL'] ?? null;
             if (!$dnReaderUrl) {
@@ -1573,7 +1572,7 @@ class ArrivageController extends AbstractController
                 "data" => $apiOutput,
             ]);
         } else {
-            throw new FormException('Aucun fichier n\'a été importé');
+            throw new FormException("Aucun fichier n'a été importé");
         }
     }
 }
