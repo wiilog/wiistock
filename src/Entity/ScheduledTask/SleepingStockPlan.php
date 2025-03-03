@@ -14,7 +14,7 @@ class SleepingStockPlan extends ScheduledTask {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: Type::class)]
+    #[ORM\OneToOne(inversedBy: "sleepingStockPlan", targetEntity: Type::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
@@ -32,8 +32,16 @@ class SleepingStockPlan extends ScheduledTask {
         return $this->type;
     }
 
-    public function setType(Type $type): self {
+    public function setType(?Type $type): self {
+        if($this->type && $this->type->getSleepingStockPlan() !== $this){
+            $oldType = $this->type;
+            $this->type = null;
+            $oldType->setSleepingStockPlan(null);
+        }
         $this->type = $type;
+        if($this->type && $this->type->getSleepingStockPlan() !== $this){
+            $this->type->setSleepingStockPlan($this);
+        }
 
         return $this;
     }

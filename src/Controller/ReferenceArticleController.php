@@ -38,6 +38,7 @@ use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\ArticleFournisseurService;
 use App\Service\AttachmentService;
+use App\Service\DateTimeService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\Kiosk\KioskService;
@@ -50,6 +51,7 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
+use DateInterval;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -63,6 +65,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -70,6 +73,8 @@ use WiiCommon\Helper\Stream;
 #[Route('/reference-article')]
 class ReferenceArticleController extends AbstractController
 {
+    #[Required]
+    public DateTimeService $dateTimeService;
 
     #[Route('/api-columns', name: 'ref_article_api_columns', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
@@ -678,6 +683,9 @@ class ReferenceArticleController extends AbstractController
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $articleRepository = $entityManager->getRepository(Article::class);
 
+        $maxStorageTimeInSecond = $referenceArticle->getType()->getSleepingStockPlan()?->getMaxStorageTime();
+        $maxStorageDateInterval = $maxStorageTimeInSecond ? new DateInterval('PT' . $maxStorageTimeInSecond . 'S') : null;
+
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
                 $carry[] = [
@@ -691,6 +699,7 @@ class ReferenceArticleController extends AbstractController
                 }, []);
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
+            'maxStorageTime' => $this->dateTimeService->convertTimeValue($maxStorageDateInterval, 'day'),
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
