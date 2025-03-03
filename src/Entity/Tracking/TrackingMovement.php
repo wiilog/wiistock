@@ -24,8 +24,8 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Utilisateur;
 use App\Repository\Tracking\TrackingMovementRepository;
-use App\Service\TrackingDelayService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingDelayService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -177,6 +177,14 @@ class TrackingMovement implements AttachmentContainer {
     #[ORM\ManyToOne(targetEntity: Nature::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Nature $oldNature = null;
+
+    /**
+     * The column is filled only if the movement has triggered the nature changement
+     * It contains the nature after the nature changement
+     */
+    #[ORM\ManyToOne(targetEntity: Nature::class)]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Nature $newNature = null;
 
     public function __construct() {
         $this->firstDropRecords = new ArrayCollection();
@@ -588,9 +596,19 @@ class TrackingMovement implements AttachmentContainer {
         return $this->oldNature;
     }
 
-    public function setOldNature(?Nature $oldNature): static
+    public function setOldNature(?Nature $oldNature): self
     {
         $this->oldNature = $oldNature;
+
+        return $this;
+    }
+
+    public function getNewNature(): ?Nature {
+        return $this->newNature;
+    }
+
+    public function setNewNature(?Nature $newNature): self {
+        $this->newNature = $newNature;
 
         return $this;
     }

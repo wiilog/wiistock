@@ -11,7 +11,7 @@ use App\Helper\FileSystem;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\FreeFieldService;
 use App\Service\PurgeService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;

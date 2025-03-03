@@ -36,7 +36,7 @@ use App\Service\SettingsService;
 use App\Service\ShippingRequest\ShippingRequestExpectedLineService;
 use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\StatusHistoryService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
