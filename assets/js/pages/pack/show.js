@@ -57,7 +57,7 @@ function reloadTrackingDelayHistoryTable(logisticUnitId) {
 
     if ($table.exists()) {
         const $container = $table.closest('.wii-box');
-        const $trackingDelayFilter = $container.find('[name="trackingdelayFilter"]');
+        const $trackingDelayFilter = $container.find('[name="trackingDelayFilter"]');
         const trackingDelayFilter = $trackingDelayFilter.val();
 
         if (!trackingDelayFilter) {
@@ -100,7 +100,7 @@ function reloadTrackingDelayHistoryTable(logisticUnitId) {
 }
 
 function initTrackingDelayRecordSection(logisticUnitId) {
-    const $trackingDelayFilter = $('[name="trackingdelayFilter"]');
+    const $trackingDelayFilter = $('[name="trackingDelayFilter"]');
     if ($trackingDelayFilter.exists()) {
         $trackingDelayFilter
             .off('change.trackingDelayRecordSection')
