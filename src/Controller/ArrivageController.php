@@ -80,8 +80,7 @@ class ArrivageController extends AbstractController
                           EntityManagerInterface $entityManager,
                           TagTemplateService     $tagTemplateService,
                           ArrivageService        $arrivageService,
-                          FilterSupService       $filterSupService): Response
-    {
+                          FilterSupService       $filterSupService): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -123,7 +122,7 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
-            "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
+            "initial_arrivals" => $this->api($request, $arrivageService, $entityManager)->getContent(),
             "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
