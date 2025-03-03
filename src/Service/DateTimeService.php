@@ -40,31 +40,18 @@ class DateTimeService {
 
     public function secondsToDateInterval(int $seconds): DateInterval {
 
-        $days = (int)floor($seconds / self::SECONDS_IN_DAY);
-        $remainingSeconds = ($seconds % self::SECONDS_IN_DAY);
+        if ($seconds === 0) {
+            return new DateInterval('PT0S');
+        }
 
-        $hours = (int)floor($remainingSeconds / self::SECONDS_IN_HOUR);
-        $remainingSeconds = ($seconds % self::SECONDS_IN_HOUR);
+        $secondToAdd = $seconds > 0
+            ? "+$seconds seconds"
+            : "$seconds seconds";
 
-        $minutes = (int)floor($remainingSeconds / self::SECONDS_IN_MINUTE);
-        $remainingSeconds = ($seconds % self::SECONDS_IN_MINUTE);
+        $now = new DateTime();
+        $dateTime = (clone $now)->modify($secondToAdd);
 
-        $dateInterval = new DateInterval('P0Y');
-        $dateInterval->d = $days;
-        $dateInterval->h = $hours;
-        $dateInterval->i = $minutes;
-        $dateInterval->s = $remainingSeconds;
-
-        return $dateInterval;
-    }
-
-    public function intervalToStr(DateInterval $delay): string {
-        return (
-            ($delay->d ? "{$delay->d}j" : '')
-            . ($delay->h ? " {$delay->h}h" : '')
-            . ($delay->i ? " {$delay->i}m" : '')
-            . ($delay->s ? " {$delay->s}s" : '')
-        );
+        return $now->diff($dateTime);
     }
 
     /**
