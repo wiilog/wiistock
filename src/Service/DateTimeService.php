@@ -58,15 +58,6 @@ class DateTimeService {
         return $dateInterval;
     }
 
-    public function intervalToStr(DateInterval $delay): string {
-        return (
-            ($delay->d ? "{$delay->d}j" : '')
-            . ($delay->h ? " {$delay->h}h" : '')
-            . ($delay->i ? " {$delay->i}m" : '')
-            . ($delay->s ? " {$delay->s}s" : '')
-        );
-    }
-
     /**
      * @param string $time the time in HH:MM format
      * @return int the number of minutes
@@ -336,5 +327,23 @@ class DateTimeService {
         while ($this->workPeriodService->isWorkFreeDay($entityManager, $finalDate));
 
         return $this->addWorkedPeriodToDateTime($entityManager, $finalDate, $finalInterval);
+    }
+
+    /**
+     * Subtract the given delay in seconds with diff in seconds between the two given dates.
+     *
+     * @return array{
+     *     delay: int,
+     *     intervalTime: int,
+     * }
+     */
+    public function subtractDelay(int      $initialDelay,
+                                  DateTime $begin,
+                                  DateTime $end): array {
+        $intervalTime = $end->getTimestamp() - $begin->getTimestamp();
+        return [
+            "delay" => $initialDelay - $intervalTime,
+            "intervalTime" => $intervalTime,
+        ];
     }
 }

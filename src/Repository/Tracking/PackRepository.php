@@ -145,7 +145,7 @@ class PackRepository extends EntityRepository
 
         $queryBuilder
             ->addSelect("COUNT_OVER(contained_pack.id) AS __query_count")
-            ->leftJoin("contained_pack.trackingDelay", "tracking_delay")
+            ->leftJoin("contained_pack.currentTrackingDelay", "tracking_delay")
             // We put logistic units without limit treatment date at the end
             // That is to say we put logistic unit without tracking delay or with a paused tracking delay at the end
             ->orderBy("CASE WHEN tracking_delay.limitTreatmentDate IS NULL THEN 1 ELSE 0 END", Order::Ascending->value)
@@ -257,13 +257,11 @@ class PackRepository extends EntityRepository
                         ->setParameter('receiptAssociationCode', '%' . $filter['value'] . '%');
                     break;
                 case FiltreSup::FIELD_PACK_WITH_TRACKING:
-                    // TODO WIIS-11930 changer si plusieurs délai par pack
                     if ($filter['value']) {
-                        $queryBuilder
-                            ->join('pack.trackingDelay', 'filter_tracking_delay')
-                            ->andWhere('filter_tracking_delay IS NOT NULL');
-                        break;
+                        // only pack with a current tracking delay
+                        $queryBuilder->join('pack.currentTrackingDelay', 'filter_pack_with_tracking_tracking_delay');
                     }
+                    break;
                 case 'trackingEventTypes':
 
                     $events = $filter['value'];
@@ -271,20 +269,19 @@ class PackRepository extends EntityRepository
                     $orX = $expr->orX();
 
                     if (in_array(null, $events, true)) {
-                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IS NULL');
+                        $orX->add('filter_tracking_event_tracking_delay.lastTrackingEvent IS NULL');
                     }
 
                     $filteredEvents = Stream::from($events)
                         ->filter(static fn($event) => $event !== null)
                         ->toArray();
                     if (!empty($filteredEvents)) {
-                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IN (:events)');
+                        $orX->add('filter_tracking_event_tracking_delay.lastTrackingEvent IN (:events)');
                         $queryBuilder->setParameter('events', $filteredEvents);
                     }
 
-                    // TODO WIIS-11930 change join
                     $queryBuilder
-                        ->innerJoin('pack.trackingDelay', 'filter_tracking_delay_for_event')
+                        ->innerJoin('pack.currentTrackingDelay', 'filter_tracking_event_tracking_delay')
                         ->andWhere($orX);
                     break;
                 default:
@@ -415,7 +412,7 @@ class PackRepository extends EntityRepository
                             ->orderBy('order_truckArrivalNumber_pack_arrivage.noTracking', $order);
                     } else if ($column === 'limitTreatmentDate') {
                         $queryBuilder
-                            ->leftJoin('pack.trackingDelay', 'order_trackingDelay')
+                            ->leftJoin('pack.currentTrackingDelay', 'order_trackingDelay')
                             ->orderBy('order_trackingDelay.limitTreatmentDate', $order);
                     } else if ($column === 'supplier') {
                         $queryBuilder
@@ -901,17 +898,5 @@ class PackRepository extends EntityRepository
             ->setParameter("code", $code)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    // TODO WIIS-12167: remove
-    public function findDuplicateCode() {
-        // get all packs having a non-unique code
-        return $this->createQueryBuilder("pack")
-            ->select("pack.code AS code")
-            ->addSelect("COUNT(pack.code) AS count")
-            ->groupBy("pack.code")
-            ->having("COUNT(pack.code) > 1")
-            ->getQuery()
-            ->getResult();
     }
 }

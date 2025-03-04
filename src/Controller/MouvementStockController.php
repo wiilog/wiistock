@@ -15,7 +15,7 @@ use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\MouvementStockService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

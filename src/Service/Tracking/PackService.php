@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Service;
+namespace App\Service\Tracking;
 
 use App\Controller\FieldModesController;
 use App\Entity\Action;
@@ -24,7 +24,20 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
+use App\Service\ArrivageService;
+use App\Service\CSVExportService;
 use App\Service\Dashboard\DashboardService;
+use App\Service\DateTimeService;
+use App\Service\FieldModesService;
+use App\Service\FormatService;
+use App\Service\LanguageService;
+use App\Service\MailerService;
+use App\Service\ProjectHistoryRecordService;
+use App\Service\ReceptionLineService;
+use App\Service\SettingsService;
+use App\Service\TranslationService;
+use App\Service\TruckArrivalService;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -831,10 +844,12 @@ class PackService {
                 ->sort(static fn(array $data1, array $data2) => ($data1["remainingTime"] <=> $data2["remainingTime"]));
 
             $firstPackChild = $packChildSortedByDelay->first()["pack"] ?? null;
+
+            /** @var Pack $pack */
             $pack = $firstPackChild ?: $pack;
         }
 
-        $packTrackingDelay = $pack->getTrackingDelay();
+        $packTrackingDelay = $pack->getCurrentTrackingDelay();
 
         $remainingTime = $this->getTrackingDelayRemainingTime($pack);
 
@@ -866,7 +881,7 @@ class PackService {
     }
 
     public function getTrackingDelayRemainingTime(Pack $pack): ?int {
-        $packTrackingDelay = $pack->getTrackingDelay();
+        $packTrackingDelay = $pack->getCurrentTrackingDelay();
         $nature = $pack->getNature();
         $natureTrackingDelay = $nature?->getTrackingDelay();
 

@@ -56,7 +56,7 @@ use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TagTemplateService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
 use App\Service\TranslationService;

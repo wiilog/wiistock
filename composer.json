@@ -39,7 +39,7 @@
         "symfony/asset": "6.4.*",
         "symfony/console": "6.4.*",
         "symfony/css-selector": "6.4.*",
-        "symfony/doctrine-messenger": "6.4.13",
+        "symfony/doctrine-messenger": "6.4.*",
         "symfony/dom-crawler": "6.4.*",
         "symfony/dotenv": "6.4.*",
         "symfony/expression-language": "6.4.*",
@@ -145,22 +145,8 @@
             "url": "https://github.com/wiilog/zpl-generator.git"
         },
         {
-            "type": "git",
-            "url": "https://github.com/wiilog/doctrine-messenger.git"
-        },
-        {
-            "type": "package",
-            "package": {
-                "name": "symfony/doctrine-messenger",
-                "version": "6.4.13",
-                "extra": {
-                    "installer-name": "doctrine-messenger"
-                },
-                "dist": {
-                    "type": "zip",
-                    "url": "https://github.com/wiilog/doctrine-messenger/archive/refs/tags/v6.4.13.zip"
-                }
-            }
+          "type": "git",
+          "url": "https://github.com/wiilog/doctrine-messenger.git"
         }
     ]
 }

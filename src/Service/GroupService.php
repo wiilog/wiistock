@@ -6,6 +6,8 @@ use App\Entity\Emplacement;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Service\Tracking\PackService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;

@@ -32,7 +32,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

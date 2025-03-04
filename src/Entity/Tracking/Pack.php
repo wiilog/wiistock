@@ -19,7 +19,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Repository\Tracking\PackRepository;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -189,8 +189,9 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $truckArrivalDelay = null;
 
-    #[ORM\OneToOne(mappedBy: "pack", targetEntity: TrackingDelay::class, cascade: ["persist", "remove"])]
-    private ?TrackingDelay $trackingDelay = null;
+    #[ORM\OneToOne(targetEntity: TrackingDelay::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?TrackingDelay $currentTrackingDelay = null;
 
     /**
      * @var Collection<int, PackSplit>
@@ -307,8 +308,7 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @param string $order
-     * @return Collection|TrackingMovement[]
+     * @return Collection<int, TrackingMovement>
      */
     public function getTrackingMovements(Order $order = Order::Descending): Collection {
         $criteria = Criteria::create()
@@ -818,23 +818,6 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getTrackingDelay(): ?TrackingDelay {
-        return $this->trackingDelay;
-    }
-
-    public function setTrackingDelay(?TrackingDelay $trackingDelay): self {
-        if ($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
-            $oldTrackingDelay = $this->trackingDelay;
-            $this->trackingDelay = null;
-            $oldTrackingDelay->setPack(null);
-        }
-        $this->trackingDelay = $trackingDelay;
-        if ($this->trackingDelay && $this->trackingDelay->getPack() !== $this) {
-            $this->trackingDelay->setPack($this);
-        }
-        return $this;
-    }
-
     public function getLastStart(): ?TrackingMovement {
         return $this->lastStart;
     }
@@ -949,6 +932,15 @@ class Pack implements PairedEntity {
         return $parent
             ? 1 + $parent->getSplitCountFrom()
             : 0;
+    }
+
+    public function getCurrentTrackingDelay(): ?TrackingDelay {
+        return $this->currentTrackingDelay;
+    }
+
+    public function setCurrentTrackingDelay(?TrackingDelay $trackingDelay): self {
+        $this->currentTrackingDelay = $trackingDelay;
+        return $this;
     }
 
 }

@@ -118,7 +118,7 @@ $(function () {
 
         $parent.find(`.content`).addClass(`d-none`);
         $parent.find(`.content${$tab.data(`target`)}`).removeClass(`d-none`);
-    })
+    });
 
     if (!packsTable) {
         const $packTable = $('#packsTable');
@@ -136,9 +136,7 @@ $(function () {
             deletePack({ 'pack' : $(this).data('id') }, packsTable);
         })
         .on('click', '.reload-tracking-delay', function () {
-            reloadLogisticUnitTrackingDelay($(this).data('id'), () => {
-                packsTable.ajax?.reload();
-            });
+            reloadLogisticUnitTrackingDelay($(this).data('id'));
         });
 
     $('.exportPacks').on('click', function () {

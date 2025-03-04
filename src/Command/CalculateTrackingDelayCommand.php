@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Tracking\Pack;
-use App\Service\TrackingDelayService;
+use App\Service\Tracking\TrackingDelayService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -38,7 +38,7 @@ class CalculateTrackingDelayCommand extends Command {
             "code" => $input->getArgument("code"),
         ]);
 
-        $this->trackingDelayService->updateTrackingDelay($this->entityManager, $pack);
+        $this->trackingDelayService->updatePackTrackingDelay($this->entityManager, $pack);
         $this->entityManager->flush();
 
         return 0;

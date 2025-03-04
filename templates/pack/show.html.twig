@@ -38,7 +38,7 @@
                                 </div>
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
-                                {% set trackingDelayDelay = trackingDelay["delayHTMLRaw"] ?? null %}
+                                {% set trackingDelayDelay = currentTrackingDelay["delayHTMLRaw"] ?? null %}
 
                                 {% if trackingDelayDelay %}
                                     <div class="wii-field-name">
@@ -257,12 +257,38 @@
 
                 {% endif %}
                 {% if not isGroup %}
-                <div class="wii-box">
-                    <div class="header wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}</div>
-                    <div class="content p-2">
-                        <table id="groupHistoryTable" class="table w-100"></table>
+                    <div class="wii-box">
+                        <div class="header wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}</div>
+                        <div class="content p-2">
+                            <table id="groupHistoryTable" class="table w-100"></table>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
+                {% if lastTenTrackingDelays | length > 0 %}
+                    <div class="wii-box">
+                        <div class="header wii-title">
+                            {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des délais de traitement') }}
+                        </div>
+                        <div class="content p-2">
+                            {{ form.select('trackingDelayFilter', null, false, {
+                                type: '',
+                                noSearch: true,
+                                noEmptyOption: true,
+                                items: lastTenTrackingDelays | map((trackingDelay, index) => ({
+                                    label: logisticUnit.currentTrackingDelay and logisticUnit.currentTrackingDelay.id == trackingDelay.id
+                                        ? "Délai en cours"
+                                        : trackingDelay.calculatedAt | format_helper('datetime'),
+                                    value: trackingDelay.id,
+                                    selected: index == 0
+                                })),
+                                additionalAttributes: [
+                                    {name: 'data-other-params'},
+                                    {name: 'data-other-params-pack', value: logisticUnit.id}
+                                ],
+                            }) }}
+                            <table id="trackingDelayHistoryTable" class="table w-100"></table>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
             <div class="col-12 col-md-6">
@@ -304,6 +330,4 @@
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('pack-show') }}
-    {{ encore_entry_script_tags('pack-index') }}
-    <script src="{{ asset('js/pages/arrival/common.js') }}?v={{ web_version }}"></script>
 {% endblock %}

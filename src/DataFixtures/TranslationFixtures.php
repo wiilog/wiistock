@@ -1210,6 +1210,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Modifier une unité logistique",
                         ],
                         [
+                            "fr" => "Historique des délais de traitement",
+                            "en" => "Tracking delays history",
+                            "tooltip" => "Page Unité logistique",
+                        ],
+                        [
                             "fr" => "Historique des données",
                             "en" => "Data history",
                             "tooltip" => "Zone liste",

@@ -20,7 +20,7 @@ use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\MouvementStockService;
 use App\Service\SettingsService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;

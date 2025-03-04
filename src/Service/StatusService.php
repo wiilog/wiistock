@@ -5,13 +5,9 @@ namespace App\Service;
 use App\Controller\Settings\StatusController;
 use App\Entity\Statut;
 use JetBrains\PhpStorm\ArrayShape;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class StatusService {
-
-    #[Required]
-    public FormatService $formatService;
 
     #[ArrayShape([
         'success' => "bool",

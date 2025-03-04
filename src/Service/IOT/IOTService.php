@@ -42,7 +42,7 @@ use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
-use App\Service\TrackingMovementService;
+use App\Service\Tracking\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use DateInterval;

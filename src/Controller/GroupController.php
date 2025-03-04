@@ -7,19 +7,12 @@ use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Tracking\Pack;
-use App\Service\CSVExportService;
 use App\Service\GroupService;
-use App\Service\TrackingMovementService;
-use App\Service\TranslationService;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Throwable;
 
 
 #[Route('/groupes', name: 'group_')]
