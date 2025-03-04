@@ -465,12 +465,9 @@ class DataExportService {
                 }
             } else {
                 if (isset($data["minus-day"]) && isset($data["additional-day"])) {
-                    $now = new DateTime("now");
-                    $endDate = (clone $now)->modify("-{$data["minus-day"]} days");
-                    $startDate = (clone $endDate)->modify("-{$data["additional-day"]} days");
-
-                    $export->setStockEntryStartDate($startDate)
-                        ->setStockEntryEndDate($endDate);
+                    $export
+                        ->setStockEntryMinusDay($data["minus-day"])
+                        ->setStockEntryAdditionalDay($data["additional-day"]);
                 }
             }
         }

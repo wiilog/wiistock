@@ -126,7 +126,6 @@ class StockMovementController extends AbstractController {
 
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
-                        $fromStock = isset($mvt['fromStock']) && $mvt['fromStock'];
 
                         //trouve les ULs sans association à un article car les ULs
                         //associés a des articles SONT des articles donc on les traite normalement
@@ -135,7 +134,7 @@ class StockMovementController extends AbstractController {
                         //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
-                        if (!$fromStock && $pack) {
+                        if ($pack && !$pack->getChildArticles()->isEmpty()) {
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
@@ -263,7 +262,6 @@ class StockMovementController extends AbstractController {
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                     $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
-                    $trackingTypes = [];
                     $mustReloadLocation = true;
                     $trackingMovementService->stockStatuses = [];
                 }

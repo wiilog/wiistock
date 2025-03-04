@@ -46,7 +46,7 @@ class LocationClusterRecord {
     private ?TrackingMovement $lastTracking = null;
 
     #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'locationClusterRecords')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?LocationCluster $locationCluster = null;
 
     /**

@@ -22,9 +22,9 @@ class Arrivage implements AttachmentContainer {
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
 
-    public const FORMAT_CODE_ARRIVALS = [
+    public const AVAILABLE_ARRIVAL_NUMBER_FORMATS = [
         UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG => "aammjjhhmmss-xx",
-        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmssxx",
+        UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_SHORT => "aammjjhhmmxx",
     ];
 
     #[ORM\Id]

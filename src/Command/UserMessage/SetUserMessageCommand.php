@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command\WarningHeader;
+namespace App\Command\UserMessage;
 
 use App\Entity\Setting;
 use App\Service\CacheService;
@@ -14,17 +14,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'app:warning-header:set',
-    description: 'This command sets the warning header message. It can be used to hide the warning header message.'
+    name: 'app:user-message:set',
+    description: 'This command sets a user message.'
 )]
-class WarningHeaderSetCommand extends Command
-{
+class SetUserMessageCommand extends Command {
     private const DEFAULT_COLOR = '#d9534f';
 
-    public function __construct(private  EntityManagerInterface  $entityManager,
-                                private  SettingsService         $settingsService,
-                                private  CacheService            $cacheService)
-    {
+    public function __construct(private EntityManagerInterface $entityManager,
+                                private SettingsService        $settingsService,
+                                private CacheService           $cacheService) {
         parent::__construct();
     }
 
@@ -54,14 +52,14 @@ class WarningHeaderSetCommand extends Command
             ]
         );
 
-        $settings = [Setting::WARNING_HEADER];
+        $settings = [Setting::USER_MESSAGE_CONFIG];
 
-        $settingMessage = $this->settingsService->persistSetting($this->entityManager, $settings, Setting::WARNING_HEADER);
+        $settingMessage = $this->settingsService->persistSetting($this->entityManager, $settings, Setting::USER_MESSAGE_CONFIG);
         $settingMessage->setValue($warningHeader);
 
         $this->entityManager->flush();
 
-        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::WARNING_HEADER);
+        $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, Setting::USER_MESSAGE_CONFIG);
 
         return Command::SUCCESS;
     }

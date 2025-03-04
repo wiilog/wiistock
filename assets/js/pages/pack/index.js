@@ -9,7 +9,11 @@ let packsTableConfig = {
     serverSide: true,
     processing: true,
     page: 'packList',
-    order: [['lastMovementDate', "desc"]],
+    order: [
+        $('[name="fromDashboard"]').val()
+            ? ['limitTreatmentDate', "asc"]
+            : ['lastMovementDate', "desc"]
+    ],
     ajax: {
         url: Routing.generate('pack_api', true),
         type: POST,
@@ -18,6 +22,8 @@ let packsTableConfig = {
             natures: $('[name="natures"]').val(),
             locations: $('[name="emplacement"]').val(),
             isPackWithTracking: $('[name="packWithTracking"]').is(':checked'),
+            fromDashboard: $('[name="fromDashboard"]').val(),
+            trackingDelayEvent: $('[name="trackingDelayEvent"]').val(),
         },
     },
     rowConfig: {
@@ -58,7 +64,7 @@ $(function () {
     const requestQuery = GetRequestQuery();
 
     const codeUl = $('#lu-code').val();
-    if (!requestQuery.dashboardComponentId) {
+    if (!requestQuery.dashboardcomponentid) {
         if ((!codeUl || codeUl.length === 0)) {
             getUserFiltersByPage(PAGE_PACK);
         } else {

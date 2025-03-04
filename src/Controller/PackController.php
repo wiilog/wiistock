@@ -69,7 +69,7 @@ class PackController extends AbstractController {
             : null;
         $isPackWithTracking = boolval($filterSupRepository->findOnebyFieldAndPageAndUser("packWithTracking", 'pack', $this->getUser()));
 
-        if ($dashboardComponent?->getType()?->getMeterKey() === Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY) {
+        if (in_array($dashboardComponent?->getType()?->getMeterKey(), [Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY, Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY])) {
             $fromDashboard = true;
             $config = $dashboardComponent->getConfig();
             $locationsFilter = !empty($config["locations"])
@@ -82,6 +82,8 @@ class PackController extends AbstractController {
                     ->toArray()
                 : [];
             $isPackWithTracking = true;
+
+            $trackingDelayEvent = $config["treatmentDelayType"] ?? null;
         }
 
         return $this->render('pack/index.html.twig', [
@@ -96,6 +98,7 @@ class PackController extends AbstractController {
             'naturesFilter' => $naturesFilter ?? [],
             'fromDashboard' => $fromDashboard ?? false,
             'packWithTracking' => $isPackWithTracking,
+            'trackingDelayEvent' => $trackingDelayEvent ?? null,
         ]);
     }
 

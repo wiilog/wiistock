@@ -1,10 +1,18 @@
 #!/usr/bin/env php
 <?php
 
-const CRONTAB_TMP_FILE = "/tmp/crontabwiistock.txt";
-const CRON_LOG_DIR = "/project/var/log";
+const MODE_LITE = "lite";
+const MODE_CYPRESS = "cypress";
+const MODE_DEFAULT = "default";
 
-main();
+const SUPERVISOR_ALLOWED_MODES = [MODE_DEFAULT, MODE_LITE];
+
+// check if the script is launched by command line
+if (!isset($argv)) {
+    return;
+}
+
+main($argv[1] ?? null);
 
 
 
@@ -13,46 +21,51 @@ main();
 ///////////////////////////////////////////
 
 
-function main(): void {
-    global $argv;
-
-    $mode = $argv[1] ?? null;
-
-    // check if the script is launched by command line
-    if (!isset($argv)) {
-        return;
-    }
+function main(?string $mode): void {
+    echo "Starting instance in " . $mode . " mode" . PHP_EOL;
 
     switch ($mode) {
         // mode lite without cron & supervisor
-        case 'lite':
+        case MODE_CYPRESS:
+            initCypressEnvironment();
+            $mode = MODE_LITE;
             break;
-
-        // default mode with cron & supervisor
+        case MODE_LITE:
+            break;
         default:
-            launchCronDaemon();
-            launchSupervisorDaemon();
+            $mode = MODE_DEFAULT;
             break;
     }
 
-    echo "Starting instance successfully" . PHP_EOL;
+    launchSupervisorDaemon($mode);
 }
 
 
-function launchCronDaemon(): void {
-    // create log dir if not exist
-    @mkdir(CRON_LOG_DIR);
+/**
+ * be careful to launch everything before calling this function
+ * otherwise it will fail. This function normally should never end
+ * @throws Exception in case of invalid mode
+ */
+function launchSupervisorDaemon(string $mode = MODE_DEFAULT): void {
+    if (!in_array($mode, SUPERVISOR_ALLOWED_MODES)) {
+        throw new Exception("Supervisor mode '$mode' is not allowed");
+    }
 
-    // save bin/console cron:run in crontab
-    $crontabContent = sprintf("* * * * * echo -e \"%s\\t%s\\n\" 2>> /project/var/log/cron.log\n", "$(date)", "$(php /project/bin/console cron:run)");
-    file_put_contents(CRONTAB_TMP_FILE, $crontabContent);
-    exec("crontab " . CRONTAB_TMP_FILE);
-    @unlink(CRONTAB_TMP_FILE);
+    $launchCommand = "supervisord -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid";
 
-    // Launch cron daemon
-    exec("crond -d 0");
+    echo " -- " . $launchCommand . PHP_EOL;
+
+    passthru($launchCommand);
 }
 
-function launchSupervisorDaemon(): void {
-    exec("supervisord --configuration /project/supervisord.conf --pidfile /tmp/supervisord.pid");
+function initCypressEnvironment(): void {
+    echo " -- Starting ssh daemon" . PHP_EOL;
+    exec("/usr/sbin/sshd -D > /dev/null &");
+
+    echo " -- Exporting environment variables" . PHP_EOL;
+    exec("rm /etc/environment");
+    exec("env > /etc/environment");
+
+    echo " -- Fixing environment variables" . PHP_EOL;
+    exec("sed -i 's/^\([^#]*=[^\"].*\\)$/\\1\"/; s/=\\([^\"].*\\)$/=\"\\1/' /etc/environment");
 }

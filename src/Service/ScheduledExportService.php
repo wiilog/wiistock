@@ -78,6 +78,10 @@ class ScheduledExportService {
             if ($exportToRun->getStockEntryStartDate() !== null && $exportToRun->getStockEntryEndDate() !== null) {
                 $options["dateMin"] = $exportToRun->getStockEntryStartDate();
                 $options["dateMax"] = $exportToRun->getStockEntryEndDate();
+            }else if ($exportToRun->getStockEntryMinusDay() !== null && $exportToRun->getStockEntryAdditionalDay() !== null){
+                $now = new DateTime("now");
+                $options["dateMin"] = (clone $now)->modify("-{$exportToRun->getStockEntryMinusDay()} days");
+                $options["dateMax"] = (clone $options["dateMin"])->modify("-{$exportToRun->getStockEntryAdditionalDay()} days");
             }
             if (!empty($exportToRun->getReferenceTypes())) {
                 $options["referenceTypes"] = $exportToRun->getReferenceTypes();
@@ -344,6 +348,10 @@ class ScheduledExportService {
             ->setDestinationType($export->getDestinationType())
             ->setCreator($export->getCreator())
             ->setColumnToExport($export->getColumnToExport())
+            ->setStockEntryStartDate($export->getStockEntryStartDate())
+            ->setStockEntryEndDate($export->getStockEntryEndDate())
+            ->setStockEntryMinusDay($export->getStockEntryMinusDay())
+            ->setStockEntryAdditionalDay($export->getStockEntryAdditionalDay())
             ->setType($export->getType())
             ->setStatus($export->getStatus())
             ->setCreatedAt($export->getCreatedAt())

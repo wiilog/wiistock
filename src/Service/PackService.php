@@ -24,6 +24,7 @@ use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
+use App\Service\Dashboard\DashboardService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -63,23 +64,29 @@ class PackService {
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $currentUser = $this->userService->getUser();
 
+        $filters = [];
+        $fromDashboard = $params->getBoolean("fromDashboard");
         $naturesFilter = $params->all("natures");
         $locationsFilter = $params->all("locations");
         $isPackWithTracking = $params->getBoolean("isPackWithTracking");
-        $filters = [
-            ...($params->get("codeUl") ? [["field" => "UL", "value" => $params->get("codeUl")]] : []),
-            ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
-            ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
-            ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
-        ];
-
-        if(empty($filters)) {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
+        $trackingDelayEvent = $params->get("trackingDelayEvent");
+        if($fromDashboard) {
+            $filters = [
+                ...($naturesFilter ? [["field" => "natures", "value" => $naturesFilter]] : []),
+                ...($locationsFilter ? [["field" => "emplacement", "value" => $locationsFilter]] : []),
+                ...($isPackWithTracking ? [["field" => FiltreSup::FIELD_PACK_WITH_TRACKING, "value" => $isPackWithTracking]] : []),
+                ...($trackingDelayEvent ? [["field" => "trackingEventTypes", "value" => DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$trackingDelayEvent]]] : []),
+            ];
+        } else {
+            $filters = $params->get("codeUl")
+                ? [["field"=> "UL", "value"=> $params->get("codeUl")]]
+                : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $currentUser);
         }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $currentUser->getLanguage() ?: $defaultLanguage;
+
         $queryResult = $packRepository->findByParamsAndFilters($params, $filters, [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
@@ -87,7 +94,6 @@ class PackService {
         ]);
 
         $packs = $queryResult["data"];
-
         $rows = [];
         foreach ($packs as $pack) {
             $rows[] = $this->dataRowPack($pack);
@@ -906,8 +912,8 @@ class PackService {
     public function getFormatedKeyboardPackGenerator(Iterator $packs, bool $completeMatch): Iterator {
         if (!$completeMatch) {
             $firstElement = [
-                "id" => "new-item",
-                "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
+                "id" => "create-new",
+                "html" => "<div class='create-new-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
             ];
 
             $firstElement["highlighted"] = !$packs->valid();

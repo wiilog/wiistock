@@ -636,11 +636,7 @@ class ReferenceArticleRepository extends EntityRepository {
                             break;
                         case FreeField::TYPE_LIST:
                         case FreeField::TYPE_LIST_MULTIPLE:
-                            $value = Stream::from(json_decode($value) ?: [])
-                                ->map(function (?string $value) {
-                                    return '%' . ($value ?? '') . '%';
-                                })
-                                ->toArray();
+                            $value = json_decode($value);
                             break;
                         case FreeField::TYPE_NUMBER:
                             break;

@@ -128,6 +128,12 @@ class Export extends ScheduledTask {
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $error = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $stockEntryMinusDay = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $stockEntryAdditionalDay = null;
+
     public function __construct() {
         $this->recipientUsers = new ArrayCollection();
     }
@@ -408,6 +414,26 @@ class Export extends ScheduledTask {
     public function setError(?string $error): self
     {
         $this->error = $error;
+        return $this;
+    }
+
+    public function getStockEntryMinusDay(): ?int {
+        return $this->stockEntryMinusDay;
+    }
+
+    public function setStockEntryMinusDay(?int $stockEntryMinusDay): self {
+        $this->stockEntryMinusDay = $stockEntryMinusDay;
+
+        return $this;
+    }
+
+    public function getStockEntryAdditionalDay(): ?int {
+        return $this->stockEntryAdditionalDay;
+    }
+
+    public function setStockEntryAdditionalDay(?int $stockEntryAdditionalDay): self {
+        $this->stockEntryAdditionalDay = $stockEntryAdditionalDay;
+
         return $this;
     }
 

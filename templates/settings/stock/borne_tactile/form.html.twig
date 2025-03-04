@@ -9,11 +9,14 @@
     </div>
     <div class="form-group col-6 mb-2 w-100">
         {{ form.select('deliveryType', 'Type de livraison', true, {
-            type: 'deliveryType',
+            type: 'types',
             items: deliveryType is defined ? [deliveryType] : [],
             placeholder: 'Sélectionnez un type',
-            search: false,
+            search: true,
             disabled: deliveryStationLine.id ?? false,
+            additionalAttributes: [
+                {name: 'data-other-params-category', value: constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON')}
+            ],
         }) }}
     </div>
     <div class="form-group col-6 mb-2 w-100">

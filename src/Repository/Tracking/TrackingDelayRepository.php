@@ -9,6 +9,7 @@ use App\Entity\Tracking\TrackingEvent;
 use Doctrine\ORM\EntityRepository;
 
 class TrackingDelayRepository extends EntityRepository {
+
     /**
      * @param Nature[] $natures
      * @param Emplacement[] $locations

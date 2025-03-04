@@ -257,12 +257,36 @@ class PackRepository extends EntityRepository
                         ->setParameter('receiptAssociationCode', '%' . $filter['value'] . '%');
                     break;
                 case FiltreSup::FIELD_PACK_WITH_TRACKING:
+                    // TODO WIIS-11930 changer si plusieurs délai par pack
                     if ($filter['value']) {
                         $queryBuilder
                             ->join('pack.trackingDelay', 'filter_tracking_delay')
                             ->andWhere('filter_tracking_delay IS NOT NULL');
                         break;
                     }
+                case 'trackingEventTypes':
+
+                    $events = $filter['value'];
+                    $expr = $queryBuilder->expr();
+                    $orX = $expr->orX();
+
+                    if (in_array(null, $events, true)) {
+                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IS NULL');
+                    }
+
+                    $filteredEvents = Stream::from($events)
+                        ->filter(static fn($event) => $event !== null)
+                        ->toArray();
+                    if (!empty($filteredEvents)) {
+                        $orX->add('filter_tracking_delay_for_event.lastTrackingEvent IN (:events)');
+                        $queryBuilder->setParameter('events', $filteredEvents);
+                    }
+
+                    // TODO WIIS-11930 change join
+                    $queryBuilder
+                        ->innerJoin('pack.trackingDelay', 'filter_tracking_delay_for_event')
+                        ->andWhere($orX);
+                    break;
                 default:
                     break;
             }
@@ -460,8 +484,8 @@ class PackRepository extends EntityRepository
                 ->leftJoin('pack.article', 'join_article')
                 ->leftJoin("join_article.articleFournisseur", "join_article_supplierArticle")
                 ->leftJoin("join_article_supplierArticle.referenceArticle", "join_article_referenceArticle")
-                ->leftJoin("pack.lastAction", "join_last_action");
-            $queryBuilder = QueryBuilderHelper::addTrackingEntities($queryBuilder, "join_last_action");
+                ->leftJoin("pack.firstAction", "join_first_action");
+            $queryBuilder = QueryBuilderHelper::addTrackingEntities($queryBuilder, "join_first_action");
         }
 
         if (!empty($locations)) {

@@ -393,7 +393,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES => [
                 'default' => null,
             ],
-            Setting::WARNING_HEADER => [
+            Setting::USER_MESSAGE_CONFIG => [
                 "default" => null,
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [
@@ -443,9 +443,12 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPLAY_MANUAL_DELAY_START => [
                 'default' => 0,
             ],
-            Setting::FORMAT_CODE_ARRIVALS => [
+            Setting::ARRIVAL_NUMBER_FORMAT => [
                 'default' => UniqueNumberService::DATE_COUNTER_FORMAT_ARRIVAL_LONG,
-            ]
+            ],
+            Setting::RFID_ON_MOBILE_TRACKING_MOVEMENTS => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

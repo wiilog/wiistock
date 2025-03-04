@@ -20,6 +20,7 @@ class ComponentType
     public const CATEGORY_OTHER = "Autre";
 
     public const ONGOING_PACKS = 'ongoing_packs';
+    public const ONGOING_PACKS_WITH_TRACKING_DELAY = 'ongoing_packs_with_tracking_delay';
     public const DAILY_ARRIVALS = 'daily_arrivals';
     public const LATE_PACKS = 'late_packs';
     public const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
@@ -70,6 +71,7 @@ class ComponentType
     public const COMPONENT_ORDER = [
         self::CATEGORY_TRACKING => [
             self::ONGOING_PACKS,
+            self::ONGOING_PACKS_WITH_TRACKING_DELAY,
             self::DAILY_ARRIVALS,
             self::LATE_PACKS,
             self::DAILY_ARRIVALS_AND_PACKS,

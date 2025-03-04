@@ -353,11 +353,15 @@ class TrackingMovementService {
                     $packSplittingCase = $movedPack?->getGroup() !== null;
 
                     // case pack splitting
-                    if($packSplittingCase) {
-                        $packParent = $movedPack;
+                    if(!isset($movedPack)
+                        || $packSplittingCase) {
 
-                        $childNumber = $packParent->getSplitTargets()->count();
-                        $packCode = $packParent->getCode() . '.' . ($childNumber + 1);
+                        if ($packSplittingCase) {
+                            $packParent = $movedPack;
+
+                            $childNumber = $packParent->getSplitTargets()->count();
+                            $packCode = $packParent->getCode() . '.' . ($childNumber + 1);
+                        }
 
                         $movedPack = $this->packService->persistPack($entityManager, $packCode, 1);
                     }
