@@ -443,7 +443,7 @@ class DispatchController extends AbstractController {
 
             foreach ($receiverIds as $receiverId) {
                 if (!empty($receiverId)) {
-                    $receiver = $receiverId ? $userRepository->find($receiverId) : null;
+                    $receiver = $userRepository->find($receiverId);
                     if ($receiver) {
                         $dispatch->addReceiver($receiver);
                     }
@@ -1117,8 +1117,6 @@ class DispatchController extends AbstractController {
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
-                    $settingRepository = $entityManager->getRepository(Setting::class);
-
                     if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
@@ -1173,7 +1171,7 @@ class DispatchController extends AbstractController {
                         )) {
                         $notificationService->toTreat($dispatch);
                     }
-                } catch (Exception $e) {
+                } catch (Exception) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => "L'envoi de l'email ou de la notification a échoué. Veuillez rééssayer."
@@ -1288,8 +1286,7 @@ class DispatchController extends AbstractController {
                                      DispatchService        $dispatchService,
                                      FreeFieldService       $freeFieldService,
                                      CSVExportService       $CSVExportService,
-                                     EntityManagerInterface $entityManager,
-                                     DataExportService      $dataExportService): Response
+                                     EntityManagerInterface $entityManager): Response
     {
 
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMin') . ' 00:00:00');

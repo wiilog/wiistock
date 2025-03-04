@@ -28,10 +28,8 @@ use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
@@ -45,22 +43,21 @@ class ArrivageService {
     private ?array $exportCache = null;
 
     public function __construct(
-        private Environment            $templating,
-        private RouterInterface        $router,
-        private Security               $security,
-        private KeptFieldService       $keptFieldService,
-        private MailerService          $mailerService,
-        private UrgenceService         $urgenceService,
-        private StringService          $stringService,
-        private TranslationService     $translation,
-        private FreeFieldService       $freeFieldService,
-        private FixedFieldService      $fieldsParamService,
-        private FieldModesService      $fieldModesService,
-        private FormatService          $formatService,
-        private LanguageService        $languageService,
-        private CSVExportService       $CSVExportService,
-        private UserService            $userService,
-        private SettingsService        $settingsService,
+        private Environment        $templating,
+        private RouterInterface    $router,
+        private KeptFieldService   $keptFieldService,
+        private MailerService      $mailerService,
+        private UrgenceService     $urgenceService,
+        private StringService      $stringService,
+        private TranslationService $translation,
+        private FreeFieldService   $freeFieldService,
+        private FixedFieldService  $fieldsParamService,
+        private FieldModesService  $fieldModesService,
+        private FormatService      $formatService,
+        private LanguageService    $languageService,
+        private CSVExportService   $CSVExportService,
+        private UserService        $userService,
+        private SettingsService    $settingsService,
     ) {
     }
 
@@ -69,20 +66,20 @@ class ArrivageService {
         $supFilterRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
-        $currentUser = $this->security->getUser();
+        $currentUser = $this->userService->getUser();
         $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LU_ARRIVAL, $currentUser);
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
-        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $language = $currentUser->getLanguage() ?: $defaultLanguage;
         $queryResult = $arrivalRepository->findByParamsAndFilters(
             $request->request,
             $filters,
             $this->fieldModesService,
             [
                 'userIdArrivalFilter' => $userIdArrivalFilter,
-                'user' => $this->security->getUser(),
+                'user' => $currentUser,
                 'dispatchMode' => $dispatchMode,
                 'defaultLanguage' => $defaultLanguage,
                 'language' => $language,
@@ -109,7 +106,7 @@ class ArrivageService {
     }
 
     public function dataRowArrivage(EntityManagerInterface $entityManager, Arrivage $arrival, array $options = []): array {
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
         $arrivalId = $arrival->getId();
         $url = $this->router->generate('arrivage_show', [
             'id' => $arrivalId,
@@ -169,7 +166,7 @@ class ArrivageService {
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->fieldModesService->getFreeFieldName($freeFieldId);
             $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
-            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $this->security->getUser());
+            $row[$freeFieldName] = $this->formatService->freeField($freeFieldValue, $freeField, $this->userService->getUser());
         }
 
         return $row;
@@ -177,7 +174,7 @@ class ArrivageService {
 
     public function sendArrivalEmails(EntityManagerInterface $entityManager, Arrivage $arrival, array $emergencies = []): void {
         /** @var Utilisateur $user */
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
 
         $isUrgentArrival = !empty($emergencies);
         $finalRecipients = [];
@@ -207,7 +204,7 @@ class ArrivageService {
                 $entityManager,
                 $arrival,
                 ['type' => $arrival->getType()],
-                $this->security->getUser()
+                $this->userService->getUser()
             );
 
             $natures = $entityManager->getRepository(Nature::class)->findAll();
@@ -473,7 +470,7 @@ class ArrivageService {
             $entityManager,
             $arrivage,
             ['type' => $arrivage->getType()],
-            $this->security->getUser()
+            $this->userService->getUser()
         );
 
         $config = [
@@ -702,7 +699,7 @@ class ArrivageService {
         $arrivalRepository = $entityManager->getRepository(Arrivage::class);
         $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
         $this->exportCache = [
-            "natures" => $natureRepository->findBy([], ['id' => Criteria::ASC]),
+            "natures" => $natureRepository->findBy([], ['id' => Order::Ascending->value]),
             "packs" => $packRepository->countPacksByArrival($from, $to),
             "packsTotalWeight" => $arrivalRepository->getTotalWeightByArrivals($from, $to),
             "freeFields" => $freeFieldsConfig['freeFields']
