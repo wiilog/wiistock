@@ -863,7 +863,7 @@ class PackService {
 
         $color = $this->getTrackingDelayColor($pack, $remainingTime);
 
-        $remainingInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingTime);
+        $remainingInterval = $this->dateTimeService->secondsToDateInterval($remainingTime);
         $remainingInterval->invert = $remainingTime < 0;
         $delayHTML = $this->formatService->delay($remainingInterval);
 

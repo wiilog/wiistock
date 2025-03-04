@@ -38,20 +38,22 @@ class DateTimeService {
     public function __construct(private WorkPeriodService $workPeriodService) {}
 
 
-    public function secondsToDateInterval(int $seconds): DateInterval {
+    public function secondsToDateInterval(?int $seconds): ?DateInterval {
+        if($seconds !== null) {
+            if ($seconds === 0) {
+                return new DateInterval('PT0S');
+            }
 
-        if ($seconds === 0) {
-            return new DateInterval('PT0S');
+            $secondToAdd = $seconds > 0
+                ? "+$seconds seconds"
+                : "$seconds seconds";
+
+            $now = new DateTime();
+            $dateTime = (clone $now)->modify($secondToAdd);
+
+            return $now->diff($dateTime);
         }
-
-        $secondToAdd = $seconds > 0
-            ? "+$seconds seconds"
-            : "$seconds seconds";
-
-        $now = new DateTime();
-        $dateTime = (clone $now)->modify($secondToAdd);
-
-        return $now->diff($dateTime);
+        return null;
     }
 
     /**
@@ -229,19 +231,6 @@ class DateTimeService {
         $dateTime1->add($interval);
 
         return ($dateTime1->getTimestamp() - $dateTime2->getTimestamp()) * 1000;
-    }
-
-    public function convertSecondsToDateInterval(?int $seconds): ?DateInterval {
-        if($seconds) {
-            $dateTime1 = new DateTime();
-            $dateTime2 = clone $dateTime1;
-            $dateTime1->modify("+{$seconds} seconds");
-
-            return $dateTime1 < $dateTime2
-                ? $dateTime1->diff($dateTime2)
-                : $dateTime2->diff($dateTime1);
-        }
-        return null;
     }
 
     /**

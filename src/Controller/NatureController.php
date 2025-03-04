@@ -103,7 +103,7 @@ class NatureController extends AbstractController {
             });
 
         $natureDelayInterval = $nature->getTrackingDelay()
-            ? $dateTimeService->convertSecondsToDateInterval($nature->getTrackingDelay())
+            ? $dateTimeService->secondsToDateInterval($nature->getTrackingDelay())
             : null;
         $trackingDelay = $nature->getTrackingDelay()
             ? $this->getFormatter()->delay($natureDelayInterval)

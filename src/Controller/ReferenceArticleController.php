@@ -696,7 +696,7 @@ class ReferenceArticleController extends AbstractController
                 }, []);
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
-            'maxStorageTime' => $dateTimeService->convertSecondsToDateInterval($maxStorageTimeInSecond)?->format("%a"), //not decimal : 60H -> 2 days
+            'maxStorageTime' => $dateTimeService->secondsToDateInterval($maxStorageTimeInSecond)?->format("%a"), //not decimal : 60H -> 2 days
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
