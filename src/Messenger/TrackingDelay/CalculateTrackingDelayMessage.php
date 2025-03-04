@@ -3,9 +3,9 @@
 namespace App\Messenger\TrackingDelay;
 
 use App\Messenger\MessageInterface;
-use Symfony\Component\Messenger\Bridge\Doctrine\Transport\UniqueMessage;
+use Symfony\Component\Messenger\Bridge\Doctrine\Transport\UniqueWaitingMessage;
 
-class CalculateTrackingDelayMessage implements UniqueMessage, MessageInterface {
+class CalculateTrackingDelayMessage extends UniqueWaitingMessage implements MessageInterface {
 
     public function __construct(private string $packCode) {}
 

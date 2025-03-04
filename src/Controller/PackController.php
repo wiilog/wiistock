@@ -23,13 +23,13 @@ use App\Entity\Tracking\TrackingDelay;
 use App\Entity\Tracking\TrackingDelayRecord;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Type;
+use App\Messenger\TrackingDelay\CalculateTrackingDelayMessage;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PDFGeneratorService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\Tracking\PackService;
-use App\Service\Tracking\TrackingDelayService;
 use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,6 +39,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use WiiCommon\Helper\Stream;
@@ -477,15 +478,12 @@ class PackController extends AbstractController {
     }
 
     #[Route("/{logisticUnit}/tracking-delay", name: "force_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
-    public function postTrackingDelay(EntityManagerInterface $entityManager,
-                                      TrackingDelayService   $trackingDelayService,
-                                      Pack                   $logisticUnit): JsonResponse {
-        $trackingDelayService->updatePackTrackingDelay($entityManager, $logisticUnit);
-
-        $entityManager->flush();
+    public function postTrackingDelay(MessageBusInterface $messageBus,
+                                      Pack                $logisticUnit): JsonResponse {
+        $messageBus->dispatch(new CalculateTrackingDelayMessage($logisticUnit->getCode()));
 
         return $this->json([
-            "success" =>true,
+            "success" => true,
         ]);
     }
 

@@ -10,7 +10,7 @@ use App\Service\Tracking\TrackingDelayService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler]
+#[AsMessageHandler(fromTransport: "async_tracking_delay")]
 class CalculateTrackingDelayHandler extends LoggedHandler
 {
 
