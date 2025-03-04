@@ -31,7 +31,6 @@ use App\Service\EmplacementDataService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -43,9 +42,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 #[Route('/emplacement')]
 class LocationController extends AbstractController {
-
-    #[Required]
-    public UserService $userService;
 
     #[Required]
     public TranslationService $translation;

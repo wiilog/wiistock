@@ -32,6 +32,7 @@ use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
@@ -70,7 +71,7 @@ class DeliveryRequestService
     ) {
     }
 
-    public function getDataForDatatable(ParameterBag $params,
+    public function getDataForDatatable(InputBag $params,
                                         ?string $statusFilter,
                                         ?string $receptionFilter,
                                         Utilisateur $user)
@@ -984,7 +985,6 @@ class DeliveryRequestService
                                        Utilisateur                                                  $currentUser,
                                        DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $line = null): array {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $this->cache['subLineFieldsParams'] = $this->cache['subLineFieldsParams']
             ?? $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);

@@ -83,9 +83,6 @@ class ReceptionController extends AbstractController {
     #[Required]
     public NotificationService $notificationService;
 
-    #[Required]
-    public FreeFieldService $freeFieldService;
-
     #[Route('/new', name: 'reception_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::ORDRE, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
@@ -104,7 +101,7 @@ class ReceptionController extends AbstractController {
                 $entityManager->flush();
             }
             /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
+            catch (UniqueConstraintViolationException) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => $translation->translate('Ordre', 'Réceptions', 'Une autre réception est en cours de création, veuillez réessayer.', false),
@@ -224,9 +221,7 @@ class ReceptionController extends AbstractController {
     public function apiEdit(EntityManagerInterface $entityManager,
                             Request $request): Response {
         if($data = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
@@ -296,7 +291,6 @@ class ReceptionController extends AbstractController {
         }
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
@@ -911,7 +905,6 @@ class ReceptionController extends AbstractController {
 
         $dispute = $disputeRepository->find($post->get('id'));
         $typeBefore = $dispute->getType()->getId();
-        $typeBeforeName = $dispute->getType()->getLabel();
         $typeAfter = (int)$post->get('disputeType');
         $statutBeforeId = $dispute->getStatus()->getId();
         $statutAfterId = (int)$post->get('disputeStatus');
@@ -1081,7 +1074,7 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
+        catch (UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate('Ordre', 'Réception', 'Un autre litige de réception est en cours de création, veuillez réessayer.', false),
@@ -1658,7 +1651,7 @@ class ReceptionController extends AbstractController {
                                 $this->notificationService->toTreat($delivery);
                             }
                         } /** @noinspection PhpRedundantCatchClauseInspection */
-                        catch (UniqueConstraintViolationException $e) {
+                        catch (UniqueConstraintViolationException) {
                             return new JsonResponse([
                                 'success' => false,
                                 'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
@@ -1709,7 +1702,7 @@ class ReceptionController extends AbstractController {
                     ->setReception($reception)
                     ->setValidationDate($now);
 
-                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);;
+                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
 
                 $entityManager->persist($transferRequest);
                 $entityManager->persist($order);
@@ -1720,7 +1713,7 @@ class ReceptionController extends AbstractController {
                         $this->notificationService->toTreat($order);
                     }
                 } /** @noinspection PhpRedundantCatchClauseInspection */
-                catch (UniqueConstraintViolationException $e) {
+                catch (UniqueConstraintViolationException) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Une autre demande de transfert est en cours de création, veuillez réessayer.',
@@ -2048,7 +2041,6 @@ class ReceptionController extends AbstractController {
         $packId = $request->query->get('pack');
         $supplierReference = $request->query->get('supplierReference');
 
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $supplierReferenceRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $packRepository = $entityManager->getRepository(Pack::class);

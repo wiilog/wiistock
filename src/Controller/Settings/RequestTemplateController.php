@@ -19,7 +19,6 @@ use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplateLine;
 use App\Entity\Type;
-use App\Helper\FormatHelper;
 use App\Service\FixedFieldService;
 use App\Service\FormService;
 use App\Service\FreeFieldService;
@@ -47,7 +46,6 @@ class RequestTemplateController extends AbstractController {
                                           FixedFieldService      $fieldsParamService,
                                           ?RequestTemplate       $template): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $edit = $request->query->getBoolean("edit");
@@ -274,8 +272,6 @@ class RequestTemplateController extends AbstractController {
                     </div>');
 
             foreach ($types as $type) {
-
-
                 $filteredFreeFieldManagementRules = Stream::from($type->getFreeFieldManagementRules())
                     ->filter(fn(FreeFieldManagementRule $freeFieldManagementRule) => (!$template && $freeFieldManagementRule->isDisplayedCreate()) || $template)
                     ->toArray();
@@ -330,11 +326,11 @@ class RequestTemplateController extends AbstractController {
             if ($template instanceof DeliveryRequestTemplateInterface) {
                 $data[] = [
                     "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
-                    "value" => FormatHelper::type($template->getRequestType()),
+                    "value" => $this->getFormatter()->type($template->getRequestType()),
                 ];
                 $data[] = [
                     "label" => "Destination",
-                    "value" => FormatHelper::location($template->getDestination()),
+                    "value" => $this->getFormatter()->location($template->getDestination()),
                 ];
                 $data[] = [
                     "label" => "Utilisation du modèle",
@@ -355,11 +351,11 @@ class RequestTemplateController extends AbstractController {
                 ];
                 $data[] = [
                     "label" => "Type de la collecte",
-                    "value" => FormatHelper::type($template->getRequestType()),
+                    "value" => $this->getFormatter()->type($template->getRequestType()),
                 ];
                 $data[] = [
                     "label" => "Point de collecte",
-                    "value" => FormatHelper::location($template->getCollectPoint()),
+                    "value" => $this->getFormatter()->location($template->getCollectPoint()),
                 ];
                 $data[] = [
                     "label" => "Destination",
@@ -368,7 +364,7 @@ class RequestTemplateController extends AbstractController {
             } else if ($template instanceof HandlingRequestTemplate) {
                 $data[] = [
                     "label" => "Type de service",
-                    "value" => FormatHelper::type($template->getRequestType()),
+                    "value" => $this->getFormatter()->type($template->getRequestType()),
                 ];
                 $data[] = [
                     "label" => "Objet",
@@ -376,7 +372,7 @@ class RequestTemplateController extends AbstractController {
                 ];
                 $data[] = [
                     "label" => "Statut",
-                    "value" => FormatHelper::status($template->getRequestStatus()),
+                    "value" => $this->getFormatter()->status($template->getRequestStatus()),
                 ];
                 $data[] = [
                     "label" => "Date attendue",
@@ -452,7 +448,7 @@ class RequestTemplateController extends AbstractController {
 
         $rows = [];
         foreach($lines ?? [] as $line) {
-            $location = FormatHelper::location($line->getReference()->getEmplacement());
+            $location = $this->getFormatter()->location($line->getReference()->getEmplacement());
             $actions = "
                 <input type='hidden' class='$class' name='id' value='{$line->getId()}'>
                 <button class='btn btn-silent delete-row' data-id='{$line->getId()}'>

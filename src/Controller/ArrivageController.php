@@ -174,7 +174,6 @@ class ArrivageController extends AbstractController
                         TranslationService      $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -699,7 +698,6 @@ class ArrivageController extends AbstractController
                            Arrivage               $arrival,
                            EntityManagerInterface $entityManager): Response {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            /** @var Arrivage $arrival */
 
             $canBeDeleted = ($arrivageRepository->countUnsolvedDisputesByArrivage($arrival) == 0);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -934,7 +932,7 @@ class ArrivageController extends AbstractController
         try {
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
+        catch (UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate('Arrivages UL', 'Divers', 'Un autre litige d\'arrivage est en cours de création, veuillez réessayer') . '.'
@@ -1309,7 +1307,7 @@ class ArrivageController extends AbstractController
             : null;
 
         $firstCustomIconInclude = $settingsService->getValue($entityManager, Setting::INCLUDE_EMERGENCY_IN_LABEL);
-        $secondCustomIconName = $settingsService->getValue($entityManager, Setting::EMERGENCY_ICON);;
+        $secondCustomIconName = $settingsService->getValue($entityManager, Setting::EMERGENCY_ICON);
         $secondCustomIconText = $settingsService->getValue($entityManager, Setting::EMERGENCY_TEXT_LABEL);
 
         $secondCustomIconConfig = ($firstCustomIconInclude && $secondCustomIconName && $secondCustomIconText)

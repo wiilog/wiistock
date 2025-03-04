@@ -37,7 +37,6 @@ use App\Service\Tracking\PackService;
 use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,7 +68,6 @@ class DispatchService {
                                 private FixedFieldService $fieldsParamService,
                                 private FieldModesService $fieldModesService,
                                 private ArrivageService $arrivalService,
-                                private Security $security,
                                 private CSVExportService $CSVExportService,
                                 private KernelInterface $kernel,
                                 private TemplateDocumentService $wordTemplateDocument,
@@ -98,7 +96,7 @@ class DispatchService {
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
-        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $language = $this->userService->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->fieldModesService,  [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
@@ -247,7 +245,7 @@ class DispatchService {
 
     public function createHeaderDetailsConfig(EntityManagerInterface $entityManager, Dispatch $dispatch): array {
         /** @var Utilisateur $user */
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
 
         $carrier = $dispatch->getCarrier();
         $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
@@ -401,7 +399,7 @@ class DispatchService {
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
         $date = null;
         foreach ([$user->getDateFormat(), 'Y-m-d', 'd/m/Y'] as $format) {
             $date = (!empty($dateStr) && empty($date) && !empty($format))
@@ -1088,7 +1086,7 @@ class DispatchService {
             $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
                 "message" => $this->formatService->list($this->serialize($dispatch)),
                 "historyDate" => $dispatch->getCreationDate(),
-                "user" => $dispatch->getTreatedBy() ?? $this->security->getUser(),
+                "user" => $dispatch->getTreatedBy() ?? $this->userService->getUser(),
                 "type" => "Acheminement",
                 "location" => $dispatch->getLocationFrom(),
             ]);
