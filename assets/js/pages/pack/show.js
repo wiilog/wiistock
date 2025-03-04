@@ -37,9 +37,7 @@ $(function() {
     });
 
     $('.reload-tracking-delay').on('click', function () {
-        reloadLogisticUnitTrackingDelay($(this).data('id'), function () {
-            window.location.reload();
-        });
+        reloadLogisticUnitTrackingDelay($(this).data('id'));
     });
 
     $('.add-cart-btn').on('click', function () {

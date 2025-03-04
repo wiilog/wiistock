@@ -149,18 +149,15 @@ function initializeProjectHistoryTable(packId) {
     });
 }
 
-export function reloadLogisticUnitTrackingDelay(logisticUnitId, onSuccess) {
+export function reloadLogisticUnitTrackingDelay(logisticUnitId) {
     AJAX
         .route(POST, "pack_force_tracking_delay_calculation", {logisticUnit: logisticUnitId})
         .json()
         .then(({success}) => {
             if (success) {
-                Flash.add(SUCCESS, `Le ${Translation.of('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement')} de l'unité logistique a bien été recalculé`, true, true);
-                if (onSuccess && typeof onSuccess === 'function') {
-                    onSuccess();
-                }
+                Flash.add(SUCCESS, `Le calcul du ${Translation.of('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement')} a bien été relancé. Veuillez patienter...`, true, true);
             } else {
-                Flash.add(ERROR, `Une erreur est survenu lors du calcul du ${Translation.of('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement')} de l'unité logistique`, true, true);
+                Flash.add(ERROR, `Une erreur est survenu lors du calcul du ${Translation.of('Traçabilité', 'Unités logistiques', 'Divers', 'Délai de traitement')} de l'unité logistique. Veuillez réessayer ultérieurement.`, true, true);
             }
         });
 }

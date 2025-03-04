@@ -136,9 +136,7 @@ $(function () {
             deletePack({ 'pack' : $(this).data('id') }, packsTable);
         })
         .on('click', '.reload-tracking-delay', function () {
-            reloadLogisticUnitTrackingDelay($(this).data('id'), () => {
-                packsTable.ajax?.reload();
-            });
+            reloadLogisticUnitTrackingDelay($(this).data('id'));
         });
 
     $('.exportPacks').on('click', function () {
