@@ -26,13 +26,10 @@ class TrackingDelayRepository extends EntityRepository {
                                                   array $events,
                                                   int   $limit): iterable
     {
-        $queryBuilder = $this->getEntityManager()
-            ->createQueryBuilder()
-            ->from(Pack::class, 'pack')
-            ->select('tracking_delay')
-            ->join('pack.currentTrackingDelay', 'tracking_delay')
-            ->leftJoin('pack.nature', 'join_nature')
-            ->leftJoin('pack.lastOngoingDrop', 'join_last_ongoing_drop')
+        $queryBuilder = $this->createQueryBuilder('tracking_delay')
+            ->leftJoin(Pack::class, 'join_pack', JOIN::WITH, 'join_pack.currentTrackingDelay = tracking_delay.id')
+            ->leftJoin('join_pack.nature', 'join_nature')
+            ->leftJoin('join_pack.lastOngoingDrop', 'join_last_ongoing_drop')
             ->leftJoin('join_last_ongoing_drop.emplacement', 'join_location')
             ->setMaxResults($limit);
 
