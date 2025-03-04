@@ -12,7 +12,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use WiiCommon\Helper\Stream;
 
-class DateTimeService {
+class DateTimeService
+{
 
     const ENG_TO_FR_MONTHS = [
         'Jan' => 'Janv.',
@@ -35,11 +36,14 @@ class DateTimeService {
 
     const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
 
-    public function __construct(private WorkPeriodService $workPeriodService) {}
+    public function __construct(private WorkPeriodService $workPeriodService)
+    {
+    }
 
 
-    public function secondsToDateInterval(?int $seconds): ?DateInterval {
-        if($seconds !== null) {
+    public function secondsToDateInterval(?int $seconds): ?DateInterval
+    {
+        if ($seconds !== null) {
             if ($seconds === 0) {
                 return new DateInterval('PT0S');
             }
@@ -62,15 +66,15 @@ class DateTimeService {
      */
     public function calculateMinuteFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int
     {
-        if (!preg_match("/". $regex ."/", $time)) {
+        if (!preg_match("/" . $regex . "/", $time)) {
             throw new \InvalidArgumentException("Le format de l'heure doit être HH{$separator}MM");
         }
 
         // separate hours and minutes
         list($hours, $minutes) = explode($separator, $time);
 
-        $hours = (int) $hours;
-        $minutes = (int) $minutes;
+        $hours = (int)$hours;
+        $minutes = (int)$minutes;
 
         // calculate minutes
         return $hours * DateTimeService::SECONDS_IN_MINUTE + $minutes;
@@ -82,7 +86,8 @@ class DateTimeService {
         return $minutes * DateTimeService::SECONDS_IN_MINUTE;
     }
 
-    function validateHoursFormat(string $hours): void {
+    function validateHoursFormat(string $hours): void
+    {
         if (!preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
             throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM ou HH:MM-HH:MM");
         }
@@ -92,7 +97,8 @@ class DateTimeService {
         }
     }
 
-    function validateTimeRange(string $start, string $end): void {
+    function validateTimeRange(string $start, string $end): void
+    {
         $startTime = strtotime($start);
         $endTime = strtotime($end);
 
@@ -101,7 +107,8 @@ class DateTimeService {
         }
     }
 
-    function checkForOverlaps(iterable $timeSlots): void {
+    function checkForOverlaps(iterable $timeSlots): void
+    {
         $timeRanges = [];
 
         foreach ($timeSlots as $timeSlot) {
@@ -126,7 +133,8 @@ class DateTimeService {
     /**
      * @param WorkedDay[] $days
      */
-    function processWorkingHours(array $workingHours, array &$days): void {
+    function processWorkingHours(array $workingHours, array &$days): void
+    {
         foreach ($workingHours as $workingHour) {
             $hours = $workingHour["hours"] ?? null;
             $timeSlots = null;
@@ -163,14 +171,14 @@ class DateTimeService {
      */
     public function getWorkedPeriodBetweenDates(EntityManagerInterface $entityManager,
                                                 DateTime               $date1,
-                                                DateTime               $date2): DateInterval {
+                                                DateTime               $date2): DateInterval
+    {
         $workedDays = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
         if ($date1 <= $date2) {
             $start = $date1;
             $end = $date2;
-        }
-        else {
+        } else {
             $start = $date2;
             $end = $date1;
         }
@@ -225,7 +233,8 @@ class DateTimeService {
         return new DateInterval("P0Y");
     }
 
-    public function convertDateIntervalToMilliseconds(DateInterval $interval): int {
+    public function convertDateIntervalToMilliseconds(DateInterval $interval): int
+    {
         $dateTime1 = new DateTime();
         $dateTime2 = clone $dateTime1;
         $dateTime1->add($interval);
@@ -240,7 +249,8 @@ class DateTimeService {
      */
     public function addWorkedPeriodToDateTime(EntityManagerInterface $entityManager,
                                               DateTime               $startDate,
-                                              DateInterval           $workedInterval): ?DateTime {
+                                              DateInterval           $workedInterval): ?DateTime
+    {
         $workedSegments = $this->workPeriodService->get($entityManager, WorkPeriodItem::WORKED_DAYS);
 
         $finalDate = clone $startDate;
@@ -333,33 +343,5 @@ class DateTimeService {
             "delay" => $initialDelay - $intervalTime,
             "intervalTime" => $intervalTime,
         ];
-    }
-
-    /** Convert day, hour, minute and second into day, hour, minute and second
-     * @param DateInterval|null $delay
-     * @param string $into
-     * @return string|null
-     */
-    public function convertTimeValue(?DateInterval $delay, string $into) : ?int {
-        if($delay) {
-            $precision = 1;
-            $DateIntervalInSecond = [
-                "day" => $delay->d * self::SECONDS_IN_DAY,
-                "hour" => $delay->h * self::SECONDS_IN_HOUR,
-                "minute" => $delay->i * self::SECONDS_IN_MINUTE,
-                "second" => $delay->s
-            ];
-
-            if(array_key_exists($into, $DateIntervalInSecond)) {
-                $total = Stream::from($DateIntervalInSecond)->sum();
-                return match ($into) {
-                    "day" => round($total / self::SECONDS_IN_DAY, $precision),
-                    "hour" => round($total / self::SECONDS_IN_HOUR, $precision),
-                    "minute" => round($total / self::SECONDS_IN_MINUTE, $precision),
-                    "second" => round($total, $precision)
-                };
-            }
-        }
-        return null;
     }
 }
