@@ -210,7 +210,7 @@ class HandlingService {
         if (isset($averageTime)) {
             $today = new DateTime();
             $expectedDate = (clone $handling->getCreationDate())
-                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->convertSecondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de traitement prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');

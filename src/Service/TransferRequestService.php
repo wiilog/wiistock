@@ -171,7 +171,7 @@ class TransferRequestService {
 
         if (isset($averageTime) && $request->getValidationDate()) {
             $expectedDate = (clone $request->getValidationDate())
-                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->convertSecondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de transfert prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');

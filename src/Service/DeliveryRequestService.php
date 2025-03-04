@@ -184,7 +184,7 @@ class DeliveryRequestService
 
         if (isset($averageTime)) {
             $expectedDate = (clone $demande->getCreatedAt())
-                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->convertSecondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de livraison prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');

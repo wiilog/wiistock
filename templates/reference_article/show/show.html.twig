@@ -301,20 +301,20 @@
                             </div>
                         </div>
                         <div class="row mt-3">
-                        <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
-                            <img src="{{ asset('svg/clock-blue.svg') }}" alt="Icône durée max" width="20px">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Durée max autorisée en stock (j)</span>
-                                <span class="wii-body-text">{{ maxStorageTime ?? '-' }}</span>
-                            </label>
-                        </div>
-                        <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex d-flex">
-                            <img src="{{ asset('svg/calendar-checked.svg') }}" alt="Icône dernière réponse" width="20px">
-                            <label class="box-item ml-3">
-                                <span class="wii-field-name">Dernière réponse au stockage</span>
-                                <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
-                            </label>
-                        </div>
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                                <img src="{{ asset('svg/clock-blue.svg') }}" alt="Icône durée max" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Durée max autorisée en stock (j)</span>
+                                    <span class="wii-body-text">{{ maxStorageTime ?? '-' }}</span>
+                                </label>
+                            </div>
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex d-flex">
+                                <span class="wii-icon fa-solid fa-calendar-check primary"></span>
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Dernière réponse au stockage</span>
+                                    <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
+                                </label>
+                            </div>
                         </div>
                         {% if referenceArticle.isUrgent %}
                             <div class="row mt-3">

@@ -688,7 +688,7 @@ class DispatchService {
 
         if (isset($averageTime)) {
             $expectedDate = (clone $dispatch->getCreationDate())
-                ->add($dateTimeService->secondsToDateInterval($averageTime->getAverage()));
+                ->add($dateTimeService->convertSecondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure d\'acheminement prévue';
                 $deliveryDateEstimated = $expectedDate->format('d/m/Y H:i');

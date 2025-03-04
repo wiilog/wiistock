@@ -73,9 +73,6 @@ use WiiCommon\Helper\Stream;
 #[Route('/reference-article')]
 class ReferenceArticleController extends AbstractController
 {
-    #[Required]
-    public DateTimeService $dateTimeService;
-
     #[Route('/api-columns', name: 'ref_article_api_columns', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function apiColumns(RefArticleDataService $refArticleDataService,
@@ -675,7 +672,8 @@ class ReferenceArticleController extends AbstractController
     public function showPage(Request                $request,
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
-                             EntityManagerInterface $entityManager): Response {
+                             EntityManagerInterface $entityManager,
+                             DateTimeService $dateTimeService): Response {
         $hasIaParams = $_SERVER['STOCK_FORECAST_URL'] ?? false;
 
         $type = $referenceArticle->getType();
@@ -684,7 +682,6 @@ class ReferenceArticleController extends AbstractController
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $maxStorageTimeInSecond = $referenceArticle->getType()->getSleepingStockPlan()?->getMaxStorageTime();
-        $maxStorageDateInterval = $maxStorageTimeInSecond ? new DateInterval('PT' . $maxStorageTimeInSecond . 'S') : null;
 
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
@@ -699,7 +696,7 @@ class ReferenceArticleController extends AbstractController
                 }, []);
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
-            'maxStorageTime' => $this->dateTimeService->convertTimeValue($maxStorageDateInterval, 'day'),
+            'maxStorageTime' => $dateTimeService->convertSecondsToDateInterval($maxStorageTimeInSecond)?->format("%a"), //not decimal : 60H -> 2 days
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,

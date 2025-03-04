@@ -231,14 +231,17 @@ class DateTimeService {
         return ($dateTime1->getTimestamp() - $dateTime2->getTimestamp()) * 1000;
     }
 
-    public function convertSecondsToDateInterval(int $seconds): DateInterval {
-        $dateTime1 = new DateTime();
-        $dateTime2 = clone $dateTime1;
-        $dateTime1->modify("+{$seconds} seconds");
+    public function convertSecondsToDateInterval(?int $seconds): ?DateInterval {
+        if($seconds) {
+            $dateTime1 = new DateTime();
+            $dateTime2 = clone $dateTime1;
+            $dateTime1->modify("+{$seconds} seconds");
 
-        return $dateTime1 < $dateTime2
-            ? $dateTime1->diff($dateTime2)
-            : $dateTime2->diff($dateTime1);
+            return $dateTime1 < $dateTime2
+                ? $dateTime1->diff($dateTime2)
+                : $dateTime2->diff($dateTime1);
+        }
+        return null;
     }
 
     /**
