@@ -56,7 +56,7 @@ class TrackingDelayRecordNormalizer implements NormalizerInterface, NormalizerAw
         $remainingDelaySeconds = $record->getRemainingTrackingDelay();
 
         if (isset($remainingDelaySeconds)) {
-            $remainingDelayInterval = $this->dateTimeService->convertSecondsToDateInterval($remainingDelaySeconds);
+            $remainingDelayInterval = $this->dateTimeService->secondsToDateInterval($remainingDelaySeconds);
             $remainingDelayInterval->invert = $remainingDelaySeconds < 0;
         }
 
