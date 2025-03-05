@@ -64,9 +64,8 @@ export function initializeRequestTemplates($container, canEdit) {
 
     $(document)
         .off('change.entitySelect')
-        .on('change.entitySelect', function () {
-            const deliveryRequestUsage = $(this).find('option:selected').data('delivery-request-usage');
-            console.log(deliveryRequestUsage)
+        .on('change.entitySelect', function (event) {
+            const deliveryRequestUsage = $(event.target).find('option:selected').data('delivery-request-usage');
             onDeliveryRequestTemplateUsageChange($container, deliveryRequestUsage, table);
         });
 
@@ -79,8 +78,8 @@ export function initializeRequestTemplates($container, canEdit) {
         const $row = $select.closest(`tr`);
         const data = $select.select2(`data`)[0];
 
-        $row.find(`.template-label`).text(data.label)
-        $row.find(`.template-location`).text(data.location)
+        $row.find(`.template-label`).text(data.label);
+        $row.find(`.template-location`).text(data.location);
         table.table.draw();
     });
 }
