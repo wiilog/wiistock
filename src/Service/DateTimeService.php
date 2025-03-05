@@ -12,9 +12,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use WiiCommon\Helper\Stream;
 
-class DateTimeService {
+class DateTimeService
+{
 
-    const ENG_TO_FR_MONTHS = [
+    public const ENG_TO_FR_MONTHS = [
         'Jan' => 'Janv.',
         'Feb' => 'Févr.',
         'Mar' => 'Mars',
@@ -29,62 +30,60 @@ class DateTimeService {
         'Dec' => 'Déc.',
     ];
 
-    const SECONDS_IN_DAY = 86400;
-    const SECONDS_IN_HOUR = 3600;
-    const SECONDS_IN_MINUTE = 60;
+    public const SECONDS_IN_DAY = 86400;
+    public const SECONDS_IN_HOUR = 3600;
+    public const SECONDS_IN_MINUTE = 60;
 
-    const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
+    public const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
 
-    public function __construct(private WorkPeriodService $workPeriodService) {}
+    public function __construct(private WorkPeriodService $workPeriodService) {
+    }
 
 
-    public function secondsToDateInterval(int $seconds): DateInterval {
+    public function secondsToDateInterval(?int $seconds): ?DateInterval {
+        if ($seconds === 0) {
+            return new DateInterval('PT0S');
+        }
 
-        $days = (int)floor($seconds / self::SECONDS_IN_DAY);
-        $remainingSeconds = ($seconds % self::SECONDS_IN_DAY);
+        if ($seconds === null) {
+            return null;
+        }
 
-        $hours = (int)floor($remainingSeconds / self::SECONDS_IN_HOUR);
-        $remainingSeconds = ($seconds % self::SECONDS_IN_HOUR);
+        $secondToAdd = $seconds > 0
+            ? "+$seconds seconds"
+            : "$seconds seconds";
 
-        $minutes = (int)floor($remainingSeconds / self::SECONDS_IN_MINUTE);
-        $remainingSeconds = ($seconds % self::SECONDS_IN_MINUTE);
+        $now = new DateTime();
+        $dateTime = (clone $now)->modify($secondToAdd);
 
-        $dateInterval = new DateInterval('P0Y');
-        $dateInterval->d = $days;
-        $dateInterval->h = $hours;
-        $dateInterval->i = $minutes;
-        $dateInterval->s = $remainingSeconds;
-
-        return $dateInterval;
+        return $now->diff($dateTime);
     }
 
     /**
      * @param string $time the time in HH:MM format
      * @return int the number of minutes
      */
-    public function calculateMinuteFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int
-    {
-        if (!preg_match("/". $regex ."/", $time)) {
+    public function calculateMinuteFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int {
+        if (!preg_match("/" . $regex . "/", $time)) {
             throw new \InvalidArgumentException("Le format de l'heure doit être HH{$separator}MM");
         }
 
         // separate hours and minutes
         list($hours, $minutes) = explode($separator, $time);
 
-        $hours = (int) $hours;
-        $minutes = (int) $minutes;
+        $hours = (int)$hours;
+        $minutes = (int)$minutes;
 
         // calculate minutes
         return $hours * DateTimeService::SECONDS_IN_MINUTE + $minutes;
     }
 
-    public function calculateSecondsFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int
-    {
+    public function calculateSecondsFrom(string $time, string $regex = DateTimeService::AVERAGE_TIME_REGEX, string $separator = ":"): int {
         $minutes = $this->calculateMinuteFrom($time, $regex, $separator);
         return $minutes * DateTimeService::SECONDS_IN_MINUTE;
     }
 
-    function validateHoursFormat(string $hours): void {
+    public function validateHoursFormat(string $hours): void {
         if (!preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
             throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM ou HH:MM-HH:MM");
         }
@@ -94,7 +93,7 @@ class DateTimeService {
         }
     }
 
-    function validateTimeRange(string $start, string $end): void {
+    public function validateTimeRange(string $start, string $end): void {
         $startTime = strtotime($start);
         $endTime = strtotime($end);
 
@@ -103,7 +102,7 @@ class DateTimeService {
         }
     }
 
-    function checkForOverlaps(iterable $timeSlots): void {
+    public function checkForOverlaps(iterable $timeSlots): void {
         $timeRanges = [];
 
         foreach ($timeSlots as $timeSlot) {
@@ -128,7 +127,7 @@ class DateTimeService {
     /**
      * @param WorkedDay[] $days
      */
-    function processWorkingHours(array $workingHours, array &$days): void {
+    public function processWorkingHours(array $workingHours, array &$days): void {
         foreach ($workingHours as $workingHour) {
             $hours = $workingHour["hours"] ?? null;
             $timeSlots = null;
@@ -171,8 +170,7 @@ class DateTimeService {
         if ($date1 <= $date2) {
             $start = $date1;
             $end = $date2;
-        }
-        else {
+        } else {
             $start = $date2;
             $end = $date1;
         }
@@ -233,16 +231,6 @@ class DateTimeService {
         $dateTime1->add($interval);
 
         return ($dateTime1->getTimestamp() - $dateTime2->getTimestamp()) * 1000;
-    }
-
-    public function convertSecondsToDateInterval(int $seconds): DateInterval {
-        $dateTime1 = new DateTime();
-        $dateTime2 = clone $dateTime1;
-        $dateTime1->modify("+{$seconds} seconds");
-
-        return $dateTime1 < $dateTime2
-            ? $dateTime1->diff($dateTime2)
-            : $dateTime2->diff($dateTime1);
     }
 
     /**
