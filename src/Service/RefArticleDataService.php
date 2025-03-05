@@ -1192,7 +1192,7 @@ class RefArticleDataService
             $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
             $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
             $reference["lastSleepingStockAlertAnswer"] ? $reference["lastSleepingStockAlertAnswer"]->format("d/m/Y H:i:s") : "",
-            //$reference["maxStorageTime"],
+            $reference["maxStorageTime"],
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
