@@ -308,8 +308,8 @@
                                     <span class="wii-body-text">{{ maxStorageTime ?? '-' }}</span>
                                 </label>
                             </div>
-                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex d-flex">
-                                <span class="wii-icon fa-solid fa-calendar-check primary"></span>
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                                <span class="wii-icon fa-solid fa-calendar-check text-primary mt-2"></span>
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Dernière réponse au stockage</span>
                                     <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
