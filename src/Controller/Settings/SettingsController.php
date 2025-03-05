@@ -29,6 +29,7 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\IOT\AlertTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\Role;
@@ -3521,7 +3522,11 @@ class SettingsController extends AbstractController {
                 "label" => $template->getName(),
                 "value" => $template->getId(),
                 "selected" => $index === 0,
-                "delivery-request-usage" => $template->getUsage()->value
+                ... $template instanceof DeliveryRequestTemplateInterface
+                    ? [
+                        "delivery-request-usage" => $template->getUsage()->value
+                    ]
+                    : [],
             ])
             ->toArray();
 
