@@ -15,7 +15,7 @@ use WiiCommon\Helper\Stream;
 class DateTimeService
 {
 
-    const ENG_TO_FR_MONTHS = [
+    public const ENG_TO_FR_MONTHS = [
         'Jan' => 'Janv.',
         'Feb' => 'Févr.',
         'Mar' => 'Mars',
@@ -30,32 +30,33 @@ class DateTimeService
         'Dec' => 'Déc.',
     ];
 
-    const SECONDS_IN_DAY = 86400;
-    const SECONDS_IN_HOUR = 3600;
-    const SECONDS_IN_MINUTE = 60;
+    public const SECONDS_IN_DAY = 86400;
+    public const SECONDS_IN_HOUR = 3600;
+    public const SECONDS_IN_MINUTE = 60;
 
-    const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
+    public const AVERAGE_TIME_REGEX = "^(?:[01]\d|2[0-3]):[0-5]\d$";
 
     public function __construct(private WorkPeriodService $workPeriodService) {
     }
 
 
     public function secondsToDateInterval(?int $seconds): ?DateInterval {
-        if ($seconds !== null) {
-            if ($seconds === 0) {
-                return new DateInterval('PT0S');
-            }
-
-            $secondToAdd = $seconds > 0
-                ? "+$seconds seconds"
-                : "$seconds seconds";
-
-            $now = new DateTime();
-            $dateTime = (clone $now)->modify($secondToAdd);
-
-            return $now->diff($dateTime);
+        if ($seconds === 0) {
+            return new DateInterval('PT0S');
         }
-        return null;
+
+        if ($seconds === null) {
+            return null;
+        }
+
+        $secondToAdd = $seconds > 0
+            ? "+$seconds seconds"
+            : "$seconds seconds";
+
+        $now = new DateTime();
+        $dateTime = (clone $now)->modify($secondToAdd);
+
+        return $now->diff($dateTime);
     }
 
     /**
@@ -82,7 +83,7 @@ class DateTimeService
         return $minutes * DateTimeService::SECONDS_IN_MINUTE;
     }
 
-    function validateHoursFormat(string $hours): void {
+    public function validateHoursFormat(string $hours): void {
         if (!preg_match("/^\d{2}:\d{2}-\d{2}:\d{2}(;\d{2}:\d{2}-\d{2}:\d{2})?$/", $hours)) {
             throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM ou HH:MM-HH:MM");
         }
@@ -92,7 +93,7 @@ class DateTimeService
         }
     }
 
-    function validateTimeRange(string $start, string $end): void {
+    public function validateTimeRange(string $start, string $end): void {
         $startTime = strtotime($start);
         $endTime = strtotime($end);
 
@@ -101,7 +102,7 @@ class DateTimeService
         }
     }
 
-    function checkForOverlaps(iterable $timeSlots): void {
+    public function checkForOverlaps(iterable $timeSlots): void {
         $timeRanges = [];
 
         foreach ($timeSlots as $timeSlot) {
@@ -126,7 +127,7 @@ class DateTimeService
     /**
      * @param WorkedDay[] $days
      */
-    function processWorkingHours(array $workingHours, array &$days): void {
+    public function processWorkingHours(array $workingHours, array &$days): void {
         foreach ($workingHours as $workingHour) {
             $hours = $workingHour["hours"] ?? null;
             $timeSlots = null;
