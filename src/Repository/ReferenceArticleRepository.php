@@ -303,7 +303,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
-            //->addSelect('sleeping_stock_plan.maxStorageTime')
+            ->addSelect('sleeping_stock_plan.maxStorageTime')
             ->addSelect('join_visibilityGroup.label AS visibilityGroup')
             ->addSelect("GROUP_CONCAT(DISTINCT join_manager.username SEPARATOR ',') AS managers")
             ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.codeReference SEPARATOR ',') AS supplierCodes")
@@ -311,7 +311,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
-            //->leftJoin('typeRef.sleepingStockPlan', 'sleeping_stock_plan')
+            ->leftJoin('typeRef.sleepingStockPlan', 'sleeping_stock_plan')
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->leftJoin('referenceArticle.buyer', 'join_buyer')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
@@ -492,7 +492,7 @@ class ReferenceArticleRepository extends EntityRepository {
             'Dernière sortie le' => ['field' => 'lastStockExit', 'typage' => 'date'],
             'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'date'],
             'Dernière réponse au stockage' => ['field' => "lastSleepingStockAlertAnswer", 'typage' => 'date'],
-            //'Durée max autorisée en stock' => ['field' => "maxStorageTime", 'typage' => 'number'],
+            'Durée max autorisée en stock' => ['field' => "maxStorageTime", 'typage' => 'number'],
         ];
 
         $queryBuilder = $this->createQueryBuilder("ra");
