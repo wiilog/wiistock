@@ -89,7 +89,7 @@ class RefArticleDataService
         ["title" => "Gestion quantité", "name" => "quantityType", "type" => "text"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
         ["title" => "Dernière réponse au stockage", "name" => "lastSleepingStockAlertAnswer", "type" => "date"],
-        ["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"]
+        //["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"]
     ];
 
     private $filtreRefRepository;
@@ -597,7 +597,7 @@ class RefArticleDataService
             'supplierCode' => implode(",", $providerCodes),
             "lastInventory" => $formatService->date($refArticle->getDateLastInventory()),
             "lastSleepingStockAlertAnswer" => $formatService->date($refArticle->getLastSleepingStockAlertAnswer()),
-            "maxStorageTime" => $refArticle->getType()->getSleepStockPlan()->getMaxStorageTime(),
+            //"maxStorageTime" => $refArticle->getType()->getSleepStockPlan()?->getMaxStorageTime(),
             "stockManagement" => $refArticle->getStockManagement(),
             'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur())
                 ->map(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getReference())
