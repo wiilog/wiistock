@@ -216,18 +216,28 @@
                     <div class="header wii-title">Gestion quantité</div>
                     <div class="content">
                         <div class="row">
-                            <div class="col-auto d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
                                 <img src="{{ asset('svg/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'reference_article/article.svg')) }}"
                                      alt="Icône UL" width="20px">
-                                <span class="wii-field-name ml-3">
-                                    Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
-                                </span>
+                                <div class="box-item ml-3">
+                                    <span class="wii-field-name">Type de gestion de quantité</span>
+                                    <span class="wii-body-text">Gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
                             {% if isReferenceManagementQuantity %}
-                                <div class="col-6 d-flex">
+                                <div class="col-sm-6 col-12 my-2 d-flex">
+                                    <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="20px">
+                                    <div class="box-item ml-3">
+                                        <span class="wii-field-name">Prix unitaire (€)</span>
+                                        <span class="wii-body-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            {% if isReferenceManagementQuantity %}
+                                <div class="col-sm-6 col-12 my-2 d-flex">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Emplacement</span>
@@ -236,7 +246,7 @@
                                     </div>
                                 </div>
                             {% endif %}
-                            <div class="col-6 d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Quantité en stock</span>
@@ -244,7 +254,7 @@
                                 </div>
                             </div>
                             {% if not isReferenceManagementQuantity %}
-                                <div class="col-6 d-flex">
+                                <div class="col-sm-6 col-12 my-2 d-flex">
                                     <img src="{{ asset('svg/reference_article/stock-management.svg') }}" alt="Icône gestion de stock" width="20px">
                                     <div class="box-item ml-3">
                                         <span class="wii-field-name">Gestion de stock</span>
@@ -253,10 +263,8 @@
                                     </div>
                                 </div>
                             {% endif %}
-                        </div>
 
-                        <div class="row mt-3">
-                            <div class="col-6 d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     {% set plural = referenceArticle.managers | length > 1 ? 's' : '' %}
@@ -267,72 +275,57 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="col-6 d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Acheteur</span>
                                     <span class="wii-body-text">{{ referenceArticle.buyer ? referenceArticle.buyer.username : '-' }}</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
-                            {% if isReferenceManagementQuantity %}
-                                <div class="col-4 d-flex">
-                                    <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="20px">
-                                    <div class="box-item ml-3">
-                                        <span class="wii-field-name">Prix unitaire (€)</span>
-                                        <span class="wii-body-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
-                                    </div>
-                                </div>
-                            {% endif %}
-                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Seuil d'alerte</span>
                                     <span class="wii-body-text">{{ referenceArticle.limitWarning ?? '-' }}</span>
                                 </div>
                             </div>
-                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Seuil de sécurité</span>
                                     <span class="wii-body-text">{{ referenceArticle.limitSecurity ?? '-' }}</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                            <div class="col-sm-6 col-12 d-flex">
                                 <img src="{{ asset('svg/clock-blue.svg') }}" alt="Icône durée max" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Durée max autorisée en stock (j)</span>
                                     <span class="wii-body-text">{{ maxStorageTime ?? '-' }}</span>
                                 </label>
                             </div>
-                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                            <div class="col-sm-6 col-12 my-2 d-flex">
                                 <span class="wii-icon fa-solid fa-calendar-check text-primary mt-2"></span>
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Dernière réponse au stockage</span>
                                     <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
                                 </label>
                             </div>
-                        </div>
-                        {% if referenceArticle.isUrgent %}
-                            <div class="row mt-3">
-                                <div class="col-6 d-flex align-items-center">
+                            {% if referenceArticle.isUrgent %}
+                                <div class="col-sm-6 col-12 my-2 d-flex align-items-center">
                                     <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
                                     <div class="d-flex flex-column ml-3">
                                         <span class="wii-field-name">Référence urgente</span>
                                         <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
                                     </div>
                                 </div>
-                                <div class="col-6 d-flex align-items-center">
+                                <div class="col-6 my-2 d-flex align-items-center">
                                     <div class="d-flex flex-column ml-3">
                                         <span class="wii-field-name">Quantité d'urgence</span>
                                         <div class="wii-body-text">{{ referenceArticle.emergencyQuantity ?? '-' }}</div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endif %}
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="details-page-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
                         <label for="touch">
