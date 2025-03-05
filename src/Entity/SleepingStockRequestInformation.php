@@ -2,13 +2,10 @@
 
 namespace App\Entity;
 
-use App\Entity\RequestTemplate\DeliveryRequestTemplate;
-use App\Entity\RequestTemplate\DeliveryRequestTemplateTypeEnum;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Repository\SleepingStockRequestInformationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: SleepingStockRequestInformationRepository::class)]
 class SleepingStockRequestInformation {
@@ -20,22 +17,9 @@ class SleepingStockRequestInformation {
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $buttonActionLabel = null;
 
-
-    /**
-     * Only DeliveryRequestTemplate with type DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK are allowed.
-     */
-    #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplate::class)]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private ?DeliveryRequestTemplate $DeliveryRequestTemplate = null;
-
-    #[ORM\PrePersist]
-    #[ORM\PreUpdate]
-    public function validateDeliveryRequestTemplate(): void {
-        if ($this->DeliveryRequestTemplate
-            && $this->DeliveryRequestTemplate->getDeliveryRequestTemplateType() !== DeliveryRequestTemplateTypeEnum::SLEEPING_STOCK) {
-            throw new \InvalidArgumentException('Only DeliveryRequestTemplate with type SLEEPING_STOCK are allowed');
-        }
-    }
+    private ?DeliveryRequestTemplateSleepingStock $deliveryRequestTemplate = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -51,12 +35,14 @@ class SleepingStockRequestInformation {
         return $this;
     }
 
-    public function getDeliveryRequestTemplate(): ?DeliveryRequestTemplate {
-        return $this->DeliveryRequestTemplate;
+    public function getDeliveryRequestTemplate(): ?DeliveryRequestTemplateSleepingStock
+    {
+        return $this->deliveryRequestTemplate;
     }
 
-    public function setDeliveryRequestTemplate(?DeliveryRequestTemplate $DeliveryRequestTemplate): self {
-        $this->DeliveryRequestTemplate = $DeliveryRequestTemplate;
+    public function setDeliveryRequestTemplate(?DeliveryRequestTemplateSleepingStock $deliveryRequestTemplate): self
+    {
+        $this->deliveryRequestTemplate = $deliveryRequestTemplate;
 
         return $this;
     }
