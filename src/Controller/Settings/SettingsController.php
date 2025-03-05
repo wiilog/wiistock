@@ -3522,11 +3522,11 @@ class SettingsController extends AbstractController {
                 "label" => $template->getName(),
                 "value" => $template->getId(),
                 "selected" => $index === 0,
-                ... $template instanceof DeliveryRequestTemplateInterface
+                ...($template instanceof DeliveryRequestTemplateInterface
                     ? [
                         "delivery-request-usage" => $template->getUsage()->value
                     ]
-                    : [],
+                    : []),
             ])
             ->toArray();
 
