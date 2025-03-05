@@ -99,6 +99,9 @@ class RefArticleDataService
     public UserService $userService;
 
     #[Required]
+    public DateTimeService $dateTimeService;
+
+    #[Required]
     public CSVExportService $CSVExportService;
 
     /**
@@ -148,8 +151,8 @@ class RefArticleDataService
     private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface  $tokenStorage,
-                                EntityManagerInterface $entityManager)
-    {
+                                EntityManagerInterface $entityManager) {
+
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
     }
@@ -1192,7 +1195,7 @@ class RefArticleDataService
             $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
             $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
             $reference["lastSleepingStockAlertAnswer"] ? $reference["lastSleepingStockAlertAnswer"]->format("d/m/Y H:i:s") : "",
-            $reference["maxStorageTime"],
+            $reference["maxStorageTime"] ? $this->dateTimeService->secondsToDateInterval($reference["maxStorageTime"])->format("%a") : "",
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
