@@ -9,7 +9,7 @@ use App\Entity\Nature;
 use App\Entity\Tracking\TrackingDelay;
 use App\Service\Dashboard\DashboardService;
 use App\Service\FormatService;
-use App\Service\PackService;
+use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
 
@@ -101,8 +101,6 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
                     }
                     $alreadySavedGroups[$groupCode] = true;
                 }
-
-                $globalCounter++;
             } else {
                 if ($group) {
                     $groupId = $group->getId();
@@ -119,7 +117,9 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
                     // to do not count two times a same group
                     break;
                 }
+            }
 
+            if(!empty($segments)) {
                 $this->dashboardService->treatPack(
                     $pack,
                     $remainingTimeInSeconds,
@@ -128,6 +128,8 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
                     $globalCounter,
                     $nextElementToDisplay
                 );
+            } else {
+                $globalCounter++;
             }
         }
 
