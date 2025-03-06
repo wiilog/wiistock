@@ -1,0 +1,41 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">Informations de la demande de livraison</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Pour chaque référence avec gestionnaire, vous pourrez envoyer un email à la fréquence renseignée pour demander si le gestionnaire souhaite pousser une action sur les articles de la référence gérée.
+        </div>
+    </div>
+    <table id="sleepingStockRequestInformations" data-table-processing="sleepingStockRequestInformations"></table>
+</div>
+
+<div class="wii-section-title">Fréquence d’interrogation des gestionnaires</div>
+<div class="wii-section">
+    {{ form.switch('planType', null, false, types, {expanded: true}) }}
+    <div class="row sleeping-stock-plan-setting">
+    </div>
+</div>
+
+<template id="deliveryRequestTemplate">
+    {{ form.select(
+        "deliveryRequestTemplate",
+        null,
+        true,
+        {
+            type: "",
+            items: deleveryRequestTemplatesSleepingStock| map(template => ({
+                label: template.text,
+                value: template.id,
+            })),
+        }
+    ) }}
+</template>
+<template id="buttonLabel">
+    {{ form.input(
+        "buttonLabel",
+        null,
+        true,
+        null,
+    ) }}
+</template>

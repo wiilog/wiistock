@@ -30,14 +30,16 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
-use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\ScheduleRule;
+use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
+use App\Entity\SleepingStockRequestInformation;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
@@ -200,6 +202,10 @@ class SettingsController extends AbstractController {
                             "label" => "Pays d'origine",
                             "save" => true,
                         ],
+                        self::MENU_SLEEPING_STOCK_ALERT => [
+                            "label" => "Alerte stock dormant",
+                            "save" => true,
+                        ]
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => [
@@ -798,6 +804,7 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_PURCHASE_ORDER = "bon_de_commande";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
+    public const MENU_SLEEPING_STOCK_ALERT = "alerte_stock_dormant";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
 
     #[Route('/', name: 'settings_index')]
@@ -1155,9 +1162,9 @@ class SettingsController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
-        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $roleRepository = $entityManager->getRepository(Role::class);
+        $deleveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1193,15 +1200,6 @@ class SettingsController extends AbstractController {
                     ],
                     self::MENU_TYPES_FREE_FIELDS => function() use ($entityManager, $typeRepository) {
                         $categoryType = CategoryType::ARTICLE;
-                        $types = Stream::from($typeRepository->findByCategoryLabels([$categoryType]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
                         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
                         $categories = Stream::from($categorieCLRepository->findByLabel([
                             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
@@ -1210,19 +1208,14 @@ class SettingsController extends AbstractController {
                             ->join("");
 
                         return [
-                            "types" => $types,
+                            "types" => $this->typeGenerator($categoryType),
                             "category" => $categoryType,
                             "categories" => "<select name='category' class='form-control data'>$categories</select>",
                         ];
                     },
-                    self::MENU_NATIVE_COUNTRY => fn() => [
-                        "native_countries" => Stream::from($nativeCountryRepository->findAll())
-                            ->map(fn(NativeCountry $nativeCountry) => [
-                                "code" => $nativeCountry->getCode(),
-                                "label" => $nativeCountry->getLabel(),
-                                "active" => $nativeCountry->isActive(),
-                            ])
-                            ->toArray(),
+                    self::MENU_SLEEPING_STOCK_ALERT => fn () => [
+                        "types" => $this->typeGenerator(CategoryType::ARTICLE),
+                        "deleveryRequestTemplatesSleepingStock" => $deleveryRequestTemplateSleepingStockRepository->getForSelect(),
                     ],
                 ],
                 self::MENU_REQUESTS => [
@@ -3791,7 +3784,7 @@ class SettingsController extends AbstractController {
 
     #[Route('/native-countries-api', name: 'settings_native_countries_api', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function nativeCountriesApi(Request $request, EntityManagerInterface $manager) {
+    public function nativeCountriesApi(Request $request, EntityManagerInterface $manager): JsonResponse {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
         $nativeCountryRepository = $manager->getRepository(NativeCountry::class);
@@ -3867,5 +3860,83 @@ class SettingsController extends AbstractController {
         $url = $this->getParameter("nomade_apk");
 
         return $this->redirect($url);
+    }
+
+    #[Route('/sleeping-stock-request-informations-api', name: 'settings_sleeping_stock_request_informations', options: ['expose' => true], methods: [self::GET])]
+    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
+    public function sleepingStockRequestInformationApi(EntityManagerInterface $manager,
+                                                       FormService            $formService): JsonResponse {
+        $sleepingStockRequestInformationRepository = $manager->getRepository(SleepingStockRequestInformation::class);
+        $deliveryRequestTemplateSleepingStockRepository = $manager->getRepository(DeliveryRequestTemplateSleepingStock::class);
+
+        $deliveryRequestTemplate = Stream::from($deliveryRequestTemplateSleepingStockRepository->getForSelect())
+            ->keymap(fn(array $deleveryRequestTemplat) => [
+                $deleveryRequestTemplat["id"],
+                [
+                    "value" => $deleveryRequestTemplat["id"],
+                    "label" => $deleveryRequestTemplat["text"],
+                ]
+            ])
+            ->toArray();
+
+        $data = Stream::from($sleepingStockRequestInformationRepository->findAll())
+            ->map(function(SleepingStockRequestInformation $sleepingStockRequestInformation) use ($deliveryRequestTemplate, $formService) {
+                $items = $deliveryRequestTemplate;
+                $items[$sleepingStockRequestInformation->getDeliveryRequestTemplate()->getId()]["selected"] = true;
+                return [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$sleepingStockRequestInformation->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>".
+                        $formService->macro("hidden", "id", $sleepingStockRequestInformation->getId()),
+                    "deliveryRequestTemplate" =>$formService->macro("select", "deliveryRequestTemplate", null, true, [
+                        "type" => "",
+                        "items" => $items,
+                    ]),
+                    "buttonLabel" => $formService->macro("input", "buttonLabel", null, true, $sleepingStockRequestInformation->getButtonActionLabel()),
+                ];
+            })
+            ->toArray();
+
+        return $this->json([
+            "data" => [
+                ...$data,
+                [
+                    "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+                    "deliveryRequestTemplate" => "",
+                    "buttonLabel" => "",
+                ]
+            ]
+        ]);
+    }
+
+    #[Route('/sleeping-stock-request-information/supprimer/{entity}', name: 'settings_delete_sleeping_stock_request_information', options: ['expose' => true], methods: [self::POST])]
+    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
+    public function deleteSleepingStockRequestInformation(EntityManagerInterface          $entityManager,
+                                                          SleepingStockRequestInformation $entity): Response {
+        $entityManager->remove($entity);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La ligne a bien été supprimée",
+        ]);
+    }
+
+
+    #[Route('/sleeping-stock-plan/{type}', name: 'settings_sleeping_stock_plan', options: ['expose' => true], methods: [self::GET])]
+    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
+    public function sleepingStockRequestPlan(EntityManagerInterface $entityManager,
+                                             Type                   $type): JsonResponse {
+        $sleepingStockPlanRepository = $entityManager->getRepository(SleepingStockPlan::class);
+
+        $sleepingStockPlan = $sleepingStockPlanRepository->findOneBy(["type" => $type]) ?? new SleepingStockPlan();
+
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView('settings/stock/articles/sleeping_stock_plan_form.html.twig', [
+                'sleepingStockPlan' => $sleepingStockPlan
+            ]),
+        ]);
     }
 }

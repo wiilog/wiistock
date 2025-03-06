@@ -3,15 +3,10 @@
 namespace App\Entity\RequestTemplate;
 
 use App\Entity\Attachment;
-use App\Entity\Emplacement;
-use App\Entity\ReferenceArticle;
-use App\Repository\RequestTemplate\DeliveryRequestTemplateRepositoryTriggerAction;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
+use App\Repository\RequestTemplate\DeliveryRequestTemplateRepositorySleepingStock;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositoryTriggerAction::class)]
+#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositorySleepingStock::class)]
 class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements DeliveryRequestTemplateInterface {
 
     use DeliveryRequestTemplateTrait;

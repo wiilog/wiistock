@@ -1,0 +1,32 @@
+{% import 'form.html.twig' as form %}
+
+<div class="col-lg-4 col-12 mt-3">
+    {{ form.input("maxStorageTime", "Durée de stockage maximal (j)", false, sleepingStockPlan.maxStorageTime , {
+        type: "number",
+        min: 0,
+        max: 24850,
+        step: 1,
+        tooltip: "Pour envoi d’email au gestionnaire si durée maximale atteinte (max : 24850j)<br> Prend en compte la dernière entrée en stock pour le j1. ",
+    }) }}
+</div>
+<div class="col-12 mt-3">
+    {{ form.label("Fréquence d’interrogation du gestionnaire pour action sur référence") }}
+
+    {% set scheduleRule = sleepingStockPlan.scheduleRule %}
+    {% include 'planner/planner.html.twig' with {
+        dispayedFrequecies : [
+            constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY'),
+            constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY')
+        ] ,
+        withSection: false,
+        frequency: scheduleRule ? scheduleRule.frequency : constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY'),
+        begin: scheduleRule ? scheduleRule.begin,
+        intervalPeriod: scheduleRule ? scheduleRule.intervalPeriod,
+        intervalTime: scheduleRule ? scheduleRule.intervalTime,
+        period: scheduleRule ? scheduleRule.period,
+        weekDays: scheduleRule ? scheduleRule.weekDays,
+        months: scheduleRule ? scheduleRule.months,
+        monthDays: scheduleRule ? scheduleRule.monthDays,
+        intervalTime: scheduleRule ? scheduleRule.intervalTime,
+    } %}
+</div>
