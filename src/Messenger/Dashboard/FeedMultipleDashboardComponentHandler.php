@@ -6,7 +6,6 @@ use App\Entity\Dashboard;
 use App\Exceptions\DashboardException;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
-use App\Service\Dashboard\DashboardService;
 use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -48,7 +47,6 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
         if(empty($components)) {
             return;
         }
-
 
         $groupedComponents = Stream::from($components)
             ->keymap(function (Dashboard\Component $component) {
