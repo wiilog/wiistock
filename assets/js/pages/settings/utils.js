@@ -428,10 +428,10 @@ export function onHeaderPageEditStop($container, apiResult) {
 }
 
 export function toggleFrequencyInput($input) {
-    const $modal = $input.closest('.modal');
-    const $globalFrequencyContainer = $modal.find('.frequency-content');
+    const $container = $input.closest('.frequencies');
+    const $globalFrequencyContainer = $container.find('.frequency-content');
     const inputName = $input.attr('name');
-    const $inputChecked = $modal.find(`[name="${inputName}"]:checked`);
+    const $inputChecked = $container.find(`[name="${inputName}"]:checked`);
     const inputCheckedVal = $inputChecked.val();
 
     $globalFrequencyContainer.addClass('d-none');
@@ -452,7 +452,7 @@ export function toggleFrequencyInput($input) {
             .addClass('data');
     }
 
-    $modal.find('.select-all-options').on('click', onSelectAll);
+    $container.find('.select-all-options').on('click', onSelectAll);
 }
 
 export function onSelectAll() {
