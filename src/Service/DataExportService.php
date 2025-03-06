@@ -88,6 +88,8 @@ class DataExportService {
             'modifié par',
             "date dernier mouvement d'entrée",
             "date dernier mouvement de sortie",
+            "date dernière réponse au stockage",
+            "durée max autorisé en stock",
         ], $freeFieldsConfig["freeFieldsHeader"]);
     }
 
