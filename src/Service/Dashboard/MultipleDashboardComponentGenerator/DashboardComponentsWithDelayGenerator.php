@@ -157,62 +157,87 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
 
             switch ($meterKey) {
                 case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
-                    $subtitle = $this->formatService->locations($locationsFilter);
-
-                    $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
-                    $meter
-                        ->setCount($globalCounter ?? 0)
-                        ->setSubtitle($subtitle ?? null);
+                    $this->persistChart($entityManager, $component, $locationsFilter, $globalCounter);
                     break;
                 case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                    $graphData = $this->dashboardService->getObjectForTimeSpan(
-                        $segments,
-                        static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
-                        $component->getType()->getMeterKey()
-                    );
-                    if (empty($graphData)) {
-                        $graphData = $this->dashboardService->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
-                    }
-
-                    // sum of counters > 1, at least one pack
-                    if (isset($nextElementToDisplay)) {
-                        $packToDisplay = $nextElementToDisplay['pack'] ?? null;
-
-                        $nextElementIdToDisplay = $packToDisplay?->getId();
-                        $config['nextElement'] = $nextElementIdToDisplay;
-
-                        $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
-                    }
-                    else {
-                        $config['nextElement'] = null;
-                        $packToDisplay = null;
-                        $locationToDisplay = null;
-                    }
-
-                    $component->setConfig($config);
-
-                    $totalToDisplay = $globalCounter ?: null;
-                    $chartColors = Stream::from($naturesFilter)
-                        ->filter(fn (Nature $nature) => $nature->getColor())
-                        ->keymap(fn(Nature $nature) => [
-                            $this->formatService->nature($nature),
-                            $nature->getColor()
-                        ])
-                        ->toArray();
-
-                    $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
-
-                    $meter
-                        ->setChartColors($chartColors)
-                        ->setData($graphData)
-                        ->setTotal($totalToDisplay ?: '-')
-                        ->setNextElement($packToDisplay?->getCode() ?: '-')
-                        ->setLocation($locationToDisplay ?: '-');
-
+                    $this->persistIndicator($entityManager, $component, $naturesFilter, $segments, $counterByEndingSpan, $config, $globalCounter, $nextElementToDisplay);
                     break;
                 default:
                     break;
             }
         }
+    }
+
+    /**
+     * @param array<Emplacement> $locationsFilter
+     */
+    private function persistChart(EntityManagerInterface $entityManager,
+                                  Dashboard\Component    $component,
+                                  array                  $locationsFilter,
+                                  int                    $globalCounter): void {
+        $subtitle = $this->formatService->locations($locationsFilter);
+
+        $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter
+            ->setCount($globalCounter ?: 0)
+            ->setSubtitle($subtitle ?? null);
+    }
+
+    /**
+     * @param array<Nature> $naturesFilter
+     * @param array<int> $segments
+     * @param array<int, array<string, int>> $counterByEndingSpan
+     */
+    private function persistIndicator(EntityManagerInterface $entityManager,
+                                      Dashboard\Component    $component,
+                                      array                  $naturesFilter,
+                                      array                  $segments,
+                                      array                  $counterByEndingSpan,
+                                      array                  $config,
+                                      int                    $globalCounter,
+                                      ?array                 $nextElementToDisplay): void {
+        $graphData = $this->dashboardService->getObjectForTimeSpan(
+            $segments,
+            static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
+            $component->getType()->getMeterKey()
+        );
+        if (empty($graphData)) {
+            $graphData = $this->dashboardService->getObjectForTimeSpan([], static fn() => 0, $component->getType()->getMeterKey());
+        }
+
+        // sum of counters > 1, at least one pack
+        if (isset($nextElementToDisplay)) {
+            $packToDisplay = $nextElementToDisplay['pack'] ?? null;
+
+            $nextElementIdToDisplay = $packToDisplay?->getId();
+            $config['nextElement'] = $nextElementIdToDisplay;
+
+            $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
+        }
+        else {
+            $config['nextElement'] = null;
+            $packToDisplay = null;
+            $locationToDisplay = null;
+        }
+
+        $component->setConfig($config);
+
+        $totalToDisplay = $globalCounter ?: null;
+        $chartColors = Stream::from($naturesFilter)
+            ->filter(fn (Nature $nature) => $nature->getColor())
+            ->keymap(fn(Nature $nature) => [
+                $this->formatService->nature($nature),
+                $nature->getColor()
+            ])
+            ->toArray();
+
+        $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+
+        $meter
+            ->setChartColors($chartColors)
+            ->setData($graphData)
+            ->setTotal($totalToDisplay ?: '-')
+            ->setNextElement($packToDisplay?->getCode() ?: '-')
+            ->setLocation($locationToDisplay ?: '-');
     }
 }

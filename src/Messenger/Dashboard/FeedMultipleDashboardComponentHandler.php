@@ -69,7 +69,7 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
                     if ($exception instanceof DashboardException) {
                         $component->setErrorMessage($exception->getMessage());
                     } else {
-                        $component->setErrorMessage($exception->getMessage());
+                        $component->setErrorMessage("Erreur : Impossible de charger le composant");
                     }
                 }
                 $this->entityManager = $this->getEntityManager();
