@@ -76,7 +76,7 @@
                             </div>
                             <div class="wii-small-text">
                                 {% for menu in menus %}
-                                    {{ menu }} {{ not loop.last ? ', '}}
+                                    {{ not loop.first and menu is not same as("") ? ' ,'}} {{ menu }}
                                 {% endfor %}
                             </div>
                         </div>

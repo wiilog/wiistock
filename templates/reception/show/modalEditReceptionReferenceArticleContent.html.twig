@@ -3,7 +3,7 @@
 {% set receptionLine = receptionReferenceArticle.receptionLine %}
 <div class="row">
     <div class="form-group {{ reception.hasPacks ? 'col-xl-6' : 'col-md-6' }} col-12  w-100 mb-3">
-        {{ form.select("referenceArticle", trans('Stock', 'Références', 'référence'), true, {
+        {{ form.select("referenceArticle", trans('Stock', 'Références', 'Général', 'référence'), true, {
             items: [{
                 label: receptionReferenceArticle.referenceArticle.reference,
                 value: receptionReferenceArticle.referenceArticle.id,
