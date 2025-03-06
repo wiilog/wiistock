@@ -43,9 +43,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
-    public function __construct(private EntityManagerInterface  $entityManager,
-                                private MessageBusInterface     $messageBus,
-                                private WiilockService          $wiilockService) {
+    public function __construct(private EntityManagerInterface $entityManager,
+                                private MessageBusInterface    $messageBus,
+                                private WiilockService         $wiilockService) {
         parent::__construct();
     }
 
