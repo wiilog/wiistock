@@ -5,16 +5,18 @@
                 {% if categorieData.menus|length >1 %}
                 <div class="header d-flex p-0 flex-wrap">
                     {% for menu, menuData in menus %}
-                        {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
-                            and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
-                        {% set onChangeCall = isDL
-                            ? "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'), {'hideClass': 'menu-translation', 'hiddenElement': $('.language-choice-menu')})"
-                            : "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))" %}
-                        <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }} {{ isDL ? "menu-translation" }}"
-                             data-menu="{{ menu }}"
-                             onclick="{{ onChangeCall }}">
-                            {{ menu }}
-                        </div>
+                        {% if menu is not same as("") %}
+                            {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
+                                and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
+                            {% set onChangeCall = isDL
+                                ? "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'), {'hideClass': 'menu-translation', 'hiddenElement': $('.language-choice-menu')})"
+                                : "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))" %}
+                            <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }} {{ isDL ? "menu-translation" }}"
+                                 data-menu="{{ menu }}"
+                                 onclick="{{ onChangeCall }}">
+                                {{ menu }}
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -71,7 +73,7 @@
                                 {{ subMenu | capitalize }}
                                 <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
                             </div>
-                            <div class="wii-section collapsible {{ menuData.submenus | length <= 3 ? 'expanded' }}">
+                            <div class="wii-section collapsible">
                                 {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
                                     {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
                                 {% endif %}
