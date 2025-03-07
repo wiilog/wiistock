@@ -1565,6 +1565,7 @@ class ArrivageController extends AbstractController
                 if ($e->getCode() === 400 && $e->getMessage()) {
                     throw new FormException($e->getMessage());
                 }
+                throw $e;
             }
 
             return $this->json([
