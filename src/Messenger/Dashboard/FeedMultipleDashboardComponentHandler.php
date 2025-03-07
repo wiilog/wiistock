@@ -6,11 +6,13 @@ use App\Entity\Dashboard;
 use App\Exceptions\DashboardException;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
+use App\Service\Dashboard\DashboardService;
 use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Container\ContainerInterface;
+use Exception;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
@@ -48,7 +50,7 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
             return;
         }
 
-        $groupedComponents = Stream::from($components)
+        $groupedComponentsByKey = Stream::from($components)
             ->keymap(function (Dashboard\Component $component) {
                 return [
                     $this->getGroupingKey($component),
@@ -57,7 +59,7 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
             }, true)
             ->toArray();
 
-        if(count($groupedComponents) === 1) {
+        if(count($groupedComponentsByKey) === 1) {
             try {
                 $generator = $generatorClass
                     ? $this->container->get($generatorClass)
@@ -69,16 +71,16 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
                     if ($exception instanceof DashboardException) {
                         $component->setErrorMessage($exception->getMessage());
                     } else {
-                        $component->setErrorMessage("Erreur : Impossible de charger le composant");
+                        $component->setErrorMessage(DashboardService::DASHBOARD_ERROR_MESSAGE);
                     }
                 }
                 $this->entityManager = $this->getEntityManager();
+                $this->entityManager->flush();
+                throw new $exception;
             }
-            $this->entityManager->flush();
         } else {
-            // TODO WIIS-12419 renommer $groupedComponent avec pluriel
-            foreach ($groupedComponents as $groupedComponent) {
-                $groupedComponentIds = Stream::from($groupedComponent)
+            foreach ($groupedComponentsByKey as $groupedComponents) {
+                $groupedComponentIds = Stream::from($groupedComponents)
                     ->map(static fn(Dashboard\Component $component) => $component->getId())
                     ->toArray();
                 $this->messageBus->dispatch(new FeedMultipleDashboardComponentMessage($groupedComponentIds, $generatorClass));
@@ -110,8 +112,7 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
 
                 return "natures_$natureStr-locations_$locationStr-$eventType";
             default:
-                // TODO WIIS-12419 voir pour envoyer au logger
-                throw new DashboardException("Unsupported meter key: $meterKey");
+                throw new Exception("Unsupported meter key: $meterKey");
         }
     }
 }

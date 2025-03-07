@@ -6,6 +6,7 @@ use App\Entity\Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use App\Entity\Emplacement;
 use App\Entity\Nature;
+use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingDelay;
 use App\Service\Dashboard\DashboardService;
 use App\Service\FormatService;
@@ -120,7 +121,7 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             }
 
             if(!empty($segments)) {
-                $this->dashboardService->treatPack(
+                $this->treatPack(
                     $pack,
                     $remainingTimeInSeconds,
                     $customSegments,
@@ -138,7 +139,7 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             $pack = $group['pack'];
             $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
 
-            $this->dashboardService->treatPack(
+            $this->treatPack(
                 $group,
                 $remainingTimeInSeconds,
                 $customSegments,
@@ -239,5 +240,40 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             ->setTotal($totalToDisplay ?: '-')
             ->setNextElement($packToDisplay?->getCode() ?: '-')
             ->setLocation($locationToDisplay ?: '-');
+    }
+
+    private function treatPack(Pack   $pack,
+                              int    $remainingTimeInSeconds,
+                              array  $customSegments,
+                              array  &$counterByEndingSpan,
+                              int    &$globalCounter,
+                              ?array &$nextElementToDisplay,
+                              ?Pack  $packToGetNature = null): void {
+        // we save pack with the smallest tracking delay
+        if (!isset($nextElementToDisplay)
+            || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+            $nextElementToDisplay = [
+                'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                'pack' => $pack,
+            ];
+        }
+
+        foreach ($customSegments as $segmentEnd) {
+            $endSpan = match($segmentEnd) {
+                -1 => -1,
+                default => $segmentEnd * 60,
+            };
+
+            if ($remainingTimeInSeconds < $endSpan) {
+                $packToGetNature ??= $pack;
+                $natureLabel = $this->formatService->nature($packToGetNature->getNature());
+
+                $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                $globalCounter++;
+
+                break;
+            }
+        }
     }
 }
