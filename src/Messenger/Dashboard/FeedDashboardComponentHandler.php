@@ -6,11 +6,11 @@ use App\Entity\Dashboard\Component;
 use App\Exceptions\DashboardException;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
+use App\Service\Dashboard\DashboardService;
 use App\Service\ExceptionLoggerService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\ORMException;
-use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Throwable;
@@ -59,16 +59,16 @@ class FeedDashboardComponentHandler extends LoggedHandler
             if ($exception instanceof DashboardException) {
                 $component->setErrorMessage($exception->getMessage());
             } else {
-                $component->setErrorMessage("Erreur : Impossible de charger le composant");
+                $component->setErrorMessage(DashboardService::DASHBOARD_ERROR_MESSAGE);
             }
             $this->entityManager = $this->getEntityManager();
+            $this->entityManager->flush();
+            throw new $exception;
         }
-        $this->entityManager->flush();
     }
 
     /**
      * @return EntityManagerInterface
-     * @throws ORMException
      */
     private function getEntityManager(): EntityManagerInterface {
         return $this->entityManager->isOpen()

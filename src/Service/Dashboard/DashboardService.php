@@ -13,6 +13,27 @@ use App\Entity\Setting;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingEvent;
 use App\Entity\Wiilock;
+use App\Service\Dashboard\DashboardComponentGenerator\ActiveReferenceAlertsComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsAndPacksComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\ArrivalsEmergenciesComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\CarrierTrackingComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyDeliveryOrdersComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyDispatchesComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyHandlingIndicatorComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyHandlingOrOperationsComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DailyProductionsComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DisputeToTreatComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\DropOffDistributedPacksComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\EntriesToHandleComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\HandlingTrackingComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\MonetaryReliabilityComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\MonetaryReliabilityGraphComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\MonetaryReliabilityIndicatorComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\OngoingPackComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\PackToTreatFromComponentGenerator;
+use App\Service\Dashboard\DashboardComponentGenerator\RequestsOrdersToTreatComponentGenerator;
+use App\Service\Dashboard\MultipleDashboardComponentGenerator\DashboardComponentsWithDelayGenerator;
+use App\Service\Dashboard\MultipleDashboardComponentGenerator\LatePackComponentGenerator;
 use App\Service\FormatService;
 use App\Service\TranslationService;
 use App\Service\WorkPeriod\WorkPeriodItem;
@@ -36,6 +57,8 @@ class DashboardService {
         Setting::TREATMENT_DELAY_ON_HOLD => [TrackingEvent::PAUSE],
         Setting::TREATMENT_DELAY_BOTH => [null, TrackingEvent::START, TrackingEvent::PAUSE],
     ];
+
+    public const DASHBOARD_ERROR_MESSAGE = "Erreur : Impossible de charger le composant";
 
     public function __construct(
         private WorkPeriodService       $workPeriodService,
@@ -327,38 +350,31 @@ class DashboardService {
         return $weekCountersToReturn;
     }
 
-    public function treatPack(Pack   $pack,
-                               int    $remainingTimeInSeconds,
-                               array  $customSegments,
-                               array  &$counterByEndingSpan,
-                               int    &$globalCounter,
-                               ?array &$nextElementToDisplay,
-                               ?Pack  $packToGetNature = null): void {
-        // we save pack with the smallest tracking delay
-        if (!isset($nextElementToDisplay)
-            || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
-            $nextElementToDisplay = [
-                'remainingTimeInSeconds' => $remainingTimeInSeconds,
-                'pack' => $pack,
-            ];
-        }
-
-        foreach ($customSegments as $segmentEnd) {
-            $endSpan = match($segmentEnd) {
-                -1 => -1,
-                default => $segmentEnd * 60,
-            };
-
-            if ($remainingTimeInSeconds < $endSpan) {
-                $packToGetNature ??= $pack;
-                $natureLabel = $this->formatService->nature($packToGetNature->getNature());
-
-                $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                $globalCounter++;
-
-                break;
-            }
-        }
+    public function getGeneratorClass(string $meterKey): ?string
+    {
+        return match ($meterKey) {
+            Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY, Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY => DashboardComponentsWithDelayGenerator::class,
+            Dashboard\ComponentType::ONGOING_PACKS => OngoingPackComponentGenerator::class,
+            Dashboard\ComponentType::DAILY_HANDLING_INDICATOR => DailyHandlingIndicatorComponentGenerator::class,
+            Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS => DropOffDistributedPacksComponentGenerator::class,
+            Dashboard\ComponentType::CARRIER_TRACKING => CarrierTrackingComponentGenerator::class,
+            Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS, Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS => ArrivalsAndPacksComponentGenerator::class,
+            Dashboard\ComponentType::ENTRIES_TO_HANDLE => EntriesToHandleComponentGenerator::class,
+            Dashboard\ComponentType::PACK_TO_TREAT_FROM => PackToTreatFromComponentGenerator::class,
+            Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE, Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES => ArrivalsEmergenciesComponentGenerator::class,
+            Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS => ActiveReferenceAlertsComponentGenerator::class,
+            Dashboard\ComponentType::MONETARY_RELIABILITY_GRAPH => MonetaryReliabilityGraphComponentGenerator::class,
+            Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR => MonetaryReliabilityIndicatorComponentGenerator::class,
+            Dashboard\ComponentType::REFERENCE_RELIABILITY => MonetaryReliabilityComponentGenerator::class,
+            Dashboard\ComponentType::DAILY_DISPATCHES => DailyDispatchesComponentGenerator::class,
+            Dashboard\ComponentType::DAILY_PRODUCTION => DailyProductionsComponentGenerator::class,
+            Dashboard\ComponentType::DAILY_HANDLING, Dashboard\ComponentType::DAILY_OPERATIONS => DailyHandlingOrOperationsComponentGenerator::class,
+            Dashboard\ComponentType::DAILY_DELIVERY_ORDERS => DailyDeliveryOrdersComponentGenerator::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT, Dashboard\ComponentType::ORDERS_TO_TREAT => RequestsOrdersToTreatComponentGenerator::class,
+            Dashboard\ComponentType::DISPUTES_TO_TREAT => DisputeToTreatComponentGenerator::class,
+            Dashboard\ComponentType::HANDLING_TRACKING => HandlingTrackingComponentGenerator::class,
+            Dashboard\ComponentType::LATE_PACKS => LatePackComponentGenerator::class,
+            default => null,
+        };
     }
 }
