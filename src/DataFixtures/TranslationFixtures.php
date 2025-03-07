@@ -3066,7 +3066,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                     ],
                 ],
-                "Emails stock dormant" => [
+                "Email stock dormant" => [
                     "content" => [
                         [
                             "fr" => "Libellé",
@@ -3083,18 +3083,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date max de stockage",
                             "en" => "Max storage date"
-                        ],
-                        [
-                            "fr" => "Bonjour,",
-                            "en" => "Hello,",
-                        ],
-                        [
-                            "fr" => "Bonne journée,",
-                            "en" => "Have a nice day,",
-                        ],
-                        [
-                            "fr" => "L'équipe Wiilog.",
-                            "en" => "The Wiilog team",
                         ],
                         [
                             "fr" => "Cliquez ici pour gérer vos articles",
