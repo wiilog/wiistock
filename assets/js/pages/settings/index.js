@@ -62,70 +62,101 @@ const forms = {};
 //keys are from url with / replaced by _
 //http://wiistock/parametrage/afficher/stock/receptions/champs_fixes => stock_receptions_champs_fixes
 const initializers = {
+    // GOBAL
     global_heures_travaillees: initializeWorkingHours,
     global_jours_non_travailles: initializeOffDays,
     global_apparence_site: initializeSiteAppearance,
     global_etiquettes: initializeGlobalLabels,
+
+    // STOCK
+    // articles
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     stock_articles_champs_fixes: initializeArticleFixedFields,
-    stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
-    stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
-    track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
-    track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
-    trace_acheminements_types_champs_libres: createDispatchFreeFieldsPage,
-    trace_arrivages_types_champs_libres: createArrivalsFreeFieldsPage,
-    trace_services_types_champs_libres: createHandlingFreeFieldsPage,
-    trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
-    stock_receptions_champs_libres: initializeReceptionsFreeFields,
-    trace_services_modeles_demande: initializeRequestTemplates,
-    notifications_alertes: initializeAlertTemplate,
-    notifications_notifications_push: initializeNotifications,
-    iot_types_champs_libres: initializeIotFreeFields,
-    donnees_imports: initializeImports,
-    donnees_exports_csv: initializeExports,
-    stock_receptions_champs_fixes: initializeReceptionFixedFields,
-    stock_demandes_champs_fixes: initializeDemandesFixedFields,
-    trace_acheminements_champs_fixes: initializeDispatchFixedFields,
-    trace_production_champs_fixes: initializeProductionFixedFields,
-    trace_arrivages_champs_fixes: initializeArrivalFixedFields,
-    trace_services_champs_fixes: initializeHandlingFixedFields,
-    stock_inventaires_frequences: initializeInventoryFrequenciesTable,
-    stock_inventaires_categories: initializeInventoryCategoriesTable,
-    stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
-    stock_groupes_visibilite: initializeVisibilityGroup,
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
+    stock_articles_alerte_stock_dormant: initializeStockAlertPage,
+    //borne tactile
     stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
-    utilisateurs_utilisateurs: initUserPage,
-    trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
-    trace_acheminements_configurations: initializeDispatchConfiguration,
-    trace_acheminements_statuts: initializeDispatchStatuses,
-    trace_services_statuts: initializeHandlingStatuses,
+    // receptions
+    stock_receptions_champs_libres: initializeReceptionsFreeFields,
+    stock_receptions_champs_fixes: initializeReceptionFixedFields,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
-    utilisateurs_roles: initializeRolesPage,
-    utilisateurs_licences: initializeLicencesPage,
     stock_receptions_types_litiges: initializeReceptionTypesLitige,
-    trace_arrivages_types_litiges: initializeTraceArrivalTypesLitige,
-    trace_arrivages_statuts: initializeArrivalStatuses,
+    // demandes
+    stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
+    stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
+    stock_demandes_champs_fixes: initializeDemandesFixedFields,
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
     stock_demandes_planification_achats: initializePurchaseRequestPlanner,
-    track_tournees: initializeTransportRound,
-    modeles_livraison_lettre_de_voiture: initializeTemplate,
-    modeles_acheminement_lettre_de_voiture: initializeTemplate,
-    modeles_acheminement_compte_rendu: initializeTemplate,
-    modeles_acheminement_bon_de_transport: initializeTemplate,
-    modeles_expedition_bordereau_de_livraison: initializeTemplate,
-    modeles_achats_bon_de_commande: initializeTemplate,
-    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
+    // groupes de visibilité
+    stock_groupes_visibilite: initializeVisibilityGroup,
+    // inventairtes
+    stock_inventaires_frequences: initializeInventoryFrequenciesTable,
+    stock_inventaires_categories: initializeInventoryCategoriesTable,
+    stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
+
+    // TRACE
+    // arrivages camion
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
     trace_arrivages_camion_reserves: initializeTruckArrivalReserves,
+    //arrivages UL
+    trace_arrivages_champs_fixes: initializeArrivalFixedFields,
+    trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    trace_arrivages_types_litiges: initializeTraceArrivalTypesLitige,
+    trace_arrivages_statuts: initializeArrivalStatuses,
+    trace_arrivages_types_champs_libres: createArrivalsFreeFieldsPage,
+    // movements
+    trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
+    // acheminements
+    trace_acheminements_types_champs_libres: createDispatchFreeFieldsPage,
+    trace_acheminements_champs_fixes: initializeDispatchFixedFields,
+    trace_acheminements_configurations: initializeDispatchConfiguration,
+    trace_acheminements_statuts: initializeDispatchStatuses,
+    //services
+    trace_services_types_champs_libres: createHandlingFreeFieldsPage,
+    trace_services_modeles_demande: initializeRequestTemplates,
+    trace_services_champs_fixes: initializeHandlingFixedFields,
+    trace_services_statuts: initializeHandlingStatuses,
+    //urgences
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
+
+    // PRODUCTION
     production_parametrage_complet_statuts: initializeProductionStatuses,
     production_parametrage_complet_types_champs_libres: createProductionFreeFieldsPage,
     production_parametrage_complet_champs_fixes: initializeProductionFixedFields,
     production_parametrage_complet_configurations: initializeProductionConfiguration,
+
+    // TRACK
+    track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
+    track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
+    track_tournees: initializeTransportRound,
+
+    // IOT
+    iot_types_champs_libres: initializeIotFreeFields,
+
+    // MODÈLES DE NOTIFICATIONS
+    notifications_alertes: initializeAlertTemplate,
+    notifications_notifications_push: initializeNotifications,
+
+    // UTILISATEURS
+    utilisateurs_utilisateurs: initUserPage,
+    utilisateurs_roles: initializeRolesPage,
+    utilisateurs_licences: initializeLicencesPage,
+
+    // DONNÉES
+    donnees_imports: initializeImports,
+    donnees_exports_csv: initializeExports,
+
+    // MODÈLES DE DOCUMENT
+    modeles_acheminement_lettre_de_voiture: initializeTemplate,
+    modeles_acheminement_compte_rendu: initializeTemplate,
+    modeles_acheminement_bon_de_transport: initializeTemplate,
+    modeles_livraison_lettre_de_voiture: initializeTemplate,
+    modeles_expedition_bordereau_de_livraison: initializeTemplate,
+    modeles_achats_bon_de_commande: initializeTemplate,
 };
 
 const saveCallbacks = {
@@ -1441,4 +1472,58 @@ function initializeProductionConfiguration($container){
             .val(null)
             .trigger(`change`);
     });
+}
+
+function initializeStockAlertPage($container){
+    EditableDatatable.create('#sleepingStockRequestInformations', {
+        route: Routing.generate('settings_sleeping_stock_request_informations', true),
+        deleteRoute: `settings_delete_sleeping_stock_request_information`,
+        mode: MODE_EDIT,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'deliveryRequestTemplate', title: 'Modèle de la demande de livraison', required: true},
+            {data: 'buttonLabel', title: 'Libellé du bouton d’action', required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            deliveryRequestTemplate: $container.find('template#deliveryRequestTemplate').html(),
+            buttonLabel: $container.find('template#buttonLabel').html(),
+        },
+    });
+
+
+    const typeChangeEvent = 'change.typeOfSleepingStockPlan';
+
+    $container.find('[name="planType"]')
+        .off(typeChangeEvent)
+        .on(typeChangeEvent, function(event) {
+            const typeId = event.target.value;
+            const $sleepingStockPlanContainer = $container.find('.sleeping-stock-plan-setting');
+            wrapLoadingOnActionButton($sleepingStockPlanContainer, () => (
+                AJAX
+                    .route(
+                        GET,
+                        "settings_sleeping_stock_plan",
+                        {
+                            type: typeId
+                        }
+                    )
+                    .json()
+                    .then((response) => {
+                        $sleepingStockPlanContainer.html(response.html);
+                        const $checkedFrequency = $sleepingStockPlanContainer.find('[name=frequency]:checked');
+                        if ($checkedFrequency.exists()) {
+                            toggleFrequencyInput($checkedFrequency);
+                        }
+                    })
+            ));
+        });
+
+    $container.find('[name="planType"]:checked')
+        .trigger(typeChangeEvent)
 }
