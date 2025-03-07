@@ -30,16 +30,16 @@ final class Version20250306123740 extends AbstractMigration
                 'menu_label' => 'Références',
             ]);
 
-            $query = $conn->executeQuery('SELECT id FROM translation_source WHERE category_id = :category_id', [
+            $query = $conn->executeQuery('SELECT id AS sourceId FROM translation_source WHERE category_id = :category_id', [
                 'category_id' => $menuId,
             ])
             ->fetchAllAssociative();
 
-            $translationSourceIds = Stream::from($query)->flatten()->toArray();
+            $translationSourceIds = Stream::from($query)->toArray();
 
             foreach ($translationSourceIds as $translationSourceId) {
-                $this->addSql('DELETE FROM translation where source_id = :source_id', ['source_id' => $translationSourceId]);
-                $this->addSql('DELETE FROM translation_source where id = :source_id', ['source_id' => $translationSourceId]);
+                $this->addSql('DELETE FROM translation where source_id = :source_id', ['source_id' => $translationSourceId["sourceId"]]);
+                $this->addSql('DELETE FROM translation_source where id = :source_id', ['source_id' => $translationSourceId["sourceId"]]);
             }
         }
     }
