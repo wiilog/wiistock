@@ -4,7 +4,7 @@
             {% set menus =  categorieData.menus %}
                 {% if categorieData.menus|length >1 %}
                 <div class="header d-flex p-0 flex-wrap">
-                    {% for menu, menuData in menus|filter(menu => menu != "") %}
+                    {% for menu, menuData in menus|filter((value, key) => key != "") %}
                         {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
                             and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
                         {% set onChangeCall = isDL
