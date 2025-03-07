@@ -4,19 +4,17 @@
             {% set menus =  categorieData.menus %}
                 {% if categorieData.menus|length >1 %}
                 <div class="header d-flex p-0 flex-wrap">
-                    {% for menu, menuData in menus %}
-                        {% if menu is not same as("") %}
-                            {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
-                                and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
-                            {% set onChangeCall = isDL
-                                ? "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'), {'hideClass': 'menu-translation', 'hiddenElement': $('.language-choice-menu')})"
-                                : "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))" %}
-                            <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }} {{ isDL ? "menu-translation" }}"
-                                 data-menu="{{ menu }}"
-                                 onclick="{{ onChangeCall }}">
-                                {{ menu }}
-                            </div>
-                        {% endif %}
+                    {% for menu, menuData in menus|filter(menu => menu != "") %}
+                        {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
+                            and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
+                        {% set onChangeCall = isDL
+                            ? "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'), {'hideClass': 'menu-translation', 'hiddenElement': $('.language-choice-menu')})"
+                            : "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))" %}
+                        <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }} {{ isDL ? "menu-translation" }}"
+                             data-menu="{{ menu }}"
+                             onclick="{{ onChangeCall }}">
+                            {{ menu }}
+                        </div>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -69,11 +67,11 @@
                                 </div>
                             {% endif %}
                         {% else %}
-                            <div class="wii-section-title mb-1 toggle-collapsible">
+                            <div class="wii-section-title mb-1 toggle-collapsible {{ menuData.submenus | length <= 3 ? 'expanded' }}">
                                 {{ subMenu | capitalize }}
                                 <span class="wii-small-text ml-2">{{ subMenuData.subtitle }}</span>
                             </div>
-                            <div class="wii-section collapsible">
+                            <div class="wii-section collapsible {{ menuData.submenus | length <= 3 ? 'expanded' }}">
                                 {% if subMenuData.translations is defined and subMenuData.translations is not empty %}
                                     {% include 'settings/utilisateurs/language/langues_settings_traduction_input.html.twig' with { translations : subMenuData.translations} %}
                                 {% endif %}
