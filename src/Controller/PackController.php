@@ -118,10 +118,7 @@ class PackController extends AbstractController {
         $movements = $trackingMovementRepository->findChildArticleMovementsBy($logisticUnit);
 
         $arrival = $logisticUnit->getArrivage();
-
-        $truckArrival = $arrival
-            ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
-            : null ;
+        $truckArrival = $arrival?->getTruckArrival();
 
         $fields = $packService->getPackListColumnVisibleConfig($this->getUser());
         $lastMessage = $logisticUnit->getLastMessage();

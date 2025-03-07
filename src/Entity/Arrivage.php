@@ -567,9 +567,12 @@ class Arrivage implements AttachmentContainer {
         return $this;
     }
 
-    public function getTruckArrival(): ?TruckArrival
-    {
-        return $this->truckArrival;
+    public function getTruckArrival(): ?TruckArrival {
+        $firstArrivalLine = $this->getTruckArrivalLines()->first();
+
+        return $firstArrivalLine
+            ? $firstArrivalLine->getTruckArrival()
+            : $this->truckArrival;
     }
 
     public function setTruckArrival(?TruckArrival $truckArrival): self

@@ -393,15 +393,21 @@ class TrackingDelayService {
             $arrival = $pack->getArrivage();
             $truckArrival = $arrival?->getTruckArrival();
 
-            $arrivalCreatedAt = $arrival?->getDate();
-            $truckArrivalCreatedAt = $truckArrival?->getCreationDate();
-
-            $timerStartedAt = $truckArrivalCreatedAt ?: $arrivalCreatedAt;
-
-            if ($timerStartedAt) {
-                $timerStartedBy = $truckArrivalCreatedAt ? TrackingTimerEvent::TRUCK_ARRIVAL : TrackingTimerEvent::ARRIVAL;
+            if ($truckArrival) {
+                $timerStartedAt = $truckArrival->getCreationDate();
+                $timerStartedBy = TrackingTimerEvent::TRUCK_ARRIVAL;
             }
-            else {
+            else if ($arrival) {
+                $timerStartedAt = $arrival->getDate();
+                $timerStartedBy = TrackingTimerEvent::ARRIVAL;
+            }
+
+            if (!isset($timerStartedAt)
+                || !isset($timerStartedBy)) {
+                // if not set
+                $timerStartedBy = null;
+                $timerStartedAt = null;
+
                 // if any truck arrival or logistic unit arrival
                 // we get the first tracking movement on pack
                 $firstAction = $pack->getFirstAction();

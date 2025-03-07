@@ -183,9 +183,7 @@ class PackService {
             ->map(fn(ReceiptAssociation $receptionAssociation) => $receptionAssociation->getReceptionNumber())
             ->join(', ');
         $arrival = $pack->getArrivage();
-        $truckArrival = $arrival
-            ? $arrival->getTruckArrival() ?? ($arrival->getTruckArrivalLines()->first() ? $arrival->getTruckArrivalLines()->first()?->getTruckArrival() : null)
-            : null ;
+        $truckArrival = $arrival?->getTruckArrival();
 
         $finalTrackingDelay = $this->formatTrackingDelayData($pack);
 
@@ -361,12 +359,9 @@ class PackService {
                     "location" => $arrival->getDropLocation(),
                 ]);
 
-                if($arrival->getTruckArrival() || $arrival->getTruckArrivalLines()->first()){
-                    $arrivalHasLine = $arrival->getTruckArrivalLines()->first();
-                    $truckArrival = $arrivalHasLine
-                        ? $arrivalHasLine->getTruckArrival()
-                        : $arrival->getTruckArrival();
+                $truckArrival = $arrival->getTruckArrival();
 
+                if ($truckArrival) {
                     $this->persistLogisticUnitHistoryRecord($entityManager, $pack, [
                         "message" => $this->formatService->list($this->truckArrivalService->serialize($truckArrival)),
                         "historyDate" => $truckArrival->getCreationDate(),
@@ -484,8 +479,9 @@ class PackService {
         $now = new DateTime('now');
         $createdPacks = [];
 
-        if (!$arrivage->getTruckArrivalLines()->isEmpty()) {
-            $truckArrivalCreationDate = $arrivage->getTruckArrivalLines()->first()->getTruckArrival()->getCreationDate();
+        $truckArrival = $arrivage->getTruckArrival();
+        if ($truckArrival) {
+            $truckArrivalCreationDate = $truckArrival->getCreationDate();
 
             $interval = $this->dateTimeService->getWorkedPeriodBetweenDates($entityManager, $truckArrivalCreationDate, new DateTime("now"));
             $delay = $this->dateTimeService->convertDateIntervalToMilliseconds($interval);
@@ -648,14 +644,8 @@ class PackService {
 
         $arrival = $pack->getArrivage();
 
-        $dateAndHour = $arrival->getDate()
-            ? $arrival->getDate()->format('d/m/Y H:i')
-            : '';
-
-        $truckArrivalLine = $arrival->getTruckArrivalLines()->first();
-        $truckArrivalDateAndHour = $truckArrivalLine
-            ? $this->formatService->datetime($truckArrivalLine->getTruckArrival()?->getCreationDate())
-            : ($this->formatService->datetime($arrival->getTruckArrival()?->getCreationDate()) ?: '');
+        $dateAndHour = $this->formatService->datetime($arrival->getDate());
+        $truckArrivalDateAndHour = $this->formatService->datetime($arrival->getTruckArrival()?->getCreationDate());
 
         $businessUnit = $businessUnitParam
             ? $arrival->getBusinessUnit()
