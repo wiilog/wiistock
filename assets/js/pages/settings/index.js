@@ -151,7 +151,9 @@ $(function() {
 
     $(document).on(`change`, `.wii-box.settings-content:not(.d-none) *`, function() {
         editing = true;
-    });
+        //alert(editing) //problème ici editing n'est pas toujours mis a vrai lors d'une modification
+    })
+
 
     document.body.addEventListener(`click`, function(event) {
         const $target = $(event.target);
