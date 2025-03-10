@@ -2,7 +2,7 @@
 
 namespace App\Messenger\Dashboard;
 
-use App\Entity\Dashboard\Component;
+use App\Entity\Dashboard;
 use App\Exceptions\DashboardException;
 use App\Messenger\LoggedHandler;
 use App\Messenger\MessageInterface;
@@ -39,7 +39,7 @@ class FeedDashboardComponentHandler extends LoggedHandler
     protected function process(MessageInterface $message): void {
         $componentId = $message->getComponentId();
         $generatorClass = $message->getGeneratorClass();
-        $componentRepository = $this->entityManager->getRepository(Component::class);
+        $componentRepository = $this->entityManager->getRepository(Dashboard\Component::class);
 
         $component = $componentId ? $componentRepository->findOneBy(["id" => $componentId]) : null;
 
@@ -56,23 +56,23 @@ class FeedDashboardComponentHandler extends LoggedHandler
             $generator->persist($this->entityManager, $component);
             $this->entityManager->flush();
         } catch (Throwable $exception) {
-            if ($exception instanceof DashboardException) {
-                $component->setErrorMessage($exception->getMessage());
-            } else {
-                $component->setErrorMessage(DashboardService::DASHBOARD_ERROR_MESSAGE);
-            }
-            $this->entityManager = $this->getEntityManager();
-            $this->entityManager->flush();
-            throw new $exception;
+            $message = $exception instanceof DashboardException
+                ? $exception->getMessage()
+                : DashboardService::DASHBOARD_ERROR_MESSAGE;
+            $this->flushErrorMessage($component, $message);
+
+            throw $exception;
         }
     }
 
-    /**
-     * @return EntityManagerInterface
-     */
-    private function getEntityManager(): EntityManagerInterface {
-        return $this->entityManager->isOpen()
-            ? $this->entityManager
-            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+    private function flushErrorMessage(Dashboard\Component $component,
+                                       ?string             $message): void {
+
+        if (!$this->entityManager->isOpen()) {
+            $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+            $this->entityManager->getUnitOfWork()->addToIdentityMap($component);
+        }
+        $component->setErrorMessage($message);
+        $this->entityManager->flush();
     }
 }
