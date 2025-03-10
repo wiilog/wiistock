@@ -65,7 +65,6 @@ class DashboardFeedCommand extends Command {
                 $this->loggerService->sendLog(new Exception("Component has no generator"));
             }
 
-
             if (is_subclass_of($generatorClass, MultipleDashboardComponentGenerator::class)) {
                 $multipleComponentIds[$generatorClass] ??= [];
                 $multipleComponentIds[$generatorClass][] = $component->getId();

@@ -376,7 +376,7 @@ class DashboardService {
             Dashboard\ComponentType::DISPUTES_TO_TREAT => DisputeToTreatComponentGenerator::class,
             Dashboard\ComponentType::HANDLING_TRACKING => HandlingTrackingComponentGenerator::class,
             Dashboard\ComponentType::LATE_PACKS => LatePackComponentGenerator::class,
-            Dashboard\ComponentType::EXTERNAL_IMAGE, Dashboard\ComponentType::PENDING_REQUESTS => self::NO_GENERATOR,
+            Dashboard\ComponentType::EXTERNAL_IMAGE, Dashboard\ComponentType::PENDING_REQUESTS, Dashboard\ComponentType::DAILY_ARRIVALS, Dashboard\ComponentType::RECEIPT_ASSOCIATION => self::NO_GENERATOR,
             default => null,
         };
     }
