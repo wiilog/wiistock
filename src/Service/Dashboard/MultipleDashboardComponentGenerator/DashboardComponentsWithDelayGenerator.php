@@ -87,10 +87,10 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             $this->treatPack($componentsData, $pack, $remainingTimeInSeconds);
         }
 
-        foreach ($treatedGroups as $group) {
-            $group = $group['group'];
-            $pack = $group['pack'];
-            $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
+        foreach ($treatedGroups as $groupArray) {
+            $group = $groupArray['group'];
+            $pack = $groupArray['pack'];
+            $remainingTimeInSeconds = $groupArray['remainingTimeInSeconds'];
 
             $this->treatPack($componentsData, $group, $remainingTimeInSeconds, $pack);
         }
@@ -151,6 +151,7 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
         $counterByEndingSpan =  $componentData['counterByEndingSpan'] ?? [];
         $globalCounter =  $componentData['globalCounter'] ?? [];
 
+        $config = $component->getConfig();
         $graphData = $this->dashboardService->getObjectForTimeSpan(
             $segments,
             static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
