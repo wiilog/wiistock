@@ -30,11 +30,11 @@ $(function () {
 
 function scanDeliveryNoteFile($input) {
     const $modal = $input.closest('.modal');
-    const $modalBody = $modal.find('.modal-body');
     const $comment = $modal.find('.ql-editor');
+    const $loaderContainer = $modal.find('.modal-body, [data-dismiss="modal"], .modal-footer')
 
 
-    wrapLoadingOnActionButton($modalBody, () => {
+    wrapLoadingOnActionButton($loaderContainer, () => {
         let files = $input[0].files;
         let file = files[0];
         if (!file) {
