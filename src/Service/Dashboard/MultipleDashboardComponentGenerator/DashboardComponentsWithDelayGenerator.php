@@ -85,7 +85,6 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             }
 
             $this->treatPack($componentsData, $pack, $remainingTimeInSeconds);
-
         }
 
         foreach ($treatedGroups as $group) {
