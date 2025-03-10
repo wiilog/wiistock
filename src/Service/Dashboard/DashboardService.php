@@ -60,6 +60,8 @@ class DashboardService {
 
     public const DASHBOARD_ERROR_MESSAGE = "Erreur : Impossible de charger le composant";
 
+    public const NO_GENERATOR = "NO_GENERATOR";
+
     public function __construct(
         private WorkPeriodService       $workPeriodService,
         private TranslationService      $translationService,
@@ -374,6 +376,7 @@ class DashboardService {
             Dashboard\ComponentType::DISPUTES_TO_TREAT => DisputeToTreatComponentGenerator::class,
             Dashboard\ComponentType::HANDLING_TRACKING => HandlingTrackingComponentGenerator::class,
             Dashboard\ComponentType::LATE_PACKS => LatePackComponentGenerator::class,
+            Dashboard\ComponentType::EXTERNAL_IMAGE, Dashboard\ComponentType::PENDING_REQUESTS => self::NO_GENERATOR,
             default => null,
         };
     }

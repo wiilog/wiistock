@@ -12,9 +12,12 @@ use App\Service\Dashboard\DashboardService;
 use App\Service\FormatService;
 use App\Service\Tracking\PackService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use WiiCommon\Helper\Stream;
 
 class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGenerator {
+
+    private const MAX_TRACKING_DELAY_TO_TREAT = 1000;
 
     public function __construct(private PackService      $packService,
                                 private DashboardService $dashboardService,
@@ -42,16 +45,7 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             : [];
 
         $eventTypes = DashboardService::TRACKING_EVENT_TO_TREATMENT_DELAY_TYPE[$eventType];
-        $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, 1000);
-
-        $trackingDelayLessThan = isset($config['trackingDelayLessThan'])
-            ? $config['trackingDelayLessThan'] * 60
-            : null;
-
-        $segments = $config['segments'] ?? [];
-
-        $globalCounter = 0;
-        $alreadySavedGroups = [];
+        $trackingDelayByFilters = $trackingDelayRepository->iterateTrackingDelayByFilters($naturesFilter, $locationsFilter, $eventTypes, self::MAX_TRACKING_DELAY_TO_TREAT);
 
         $countByNatureBase = Stream::from($naturesFilter)
             ->keymap(fn(Nature $nature) => [
@@ -60,30 +54,12 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             ])
             ->toArray();
 
-
-        if(count($components) > 1){
-            foreach($components as $component) {
-
-                if(!$trackingDelayLessThan) {
-                    $trackingDelayLessThan = isset($component->getConfig()['trackingDelayLessThan'])
-                        ? $component->getConfig()['trackingDelayLessThan'] * 60
-                        : null;
-                }
-
-                if(empty($segments)) {
-                    $segments = $component->getConfig()['segments'] ?? [];
-                }
-            }
-        }
-
-        $customSegments = !empty($segments)
-            ? array_merge([-1, 1], $segments)
-            : [];
-        $counterByEndingSpan = Stream::from($customSegments)
-            ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
+        $componentsData = Stream::from($components)
+            ->keymap(fn(Dashboard\Component $component) => [
+                $component->getId(),
+                $this->getInitialComponentData($component, $countByNatureBase)
+            ])
             ->toArray();
-
-        $nextElementToDisplay = null;
 
         $treatedGroups = [];
 
@@ -92,46 +68,24 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             $group = $pack->getGroup();
             $remainingTimeInSeconds = $this->packService->getTrackingDelayRemainingTime($pack);
 
-            if ($trackingDelayLessThan && $remainingTimeInSeconds < $trackingDelayLessThan) {
-                // count group only one time if pack is in a group.
-                if ($group) {
-                    $groupCode = $group->getCode();
-                    $alreadySavedGroup = $alreadySavedGroups[$groupCode] ?? false;
-                    if (!$alreadySavedGroup) {
-                        break;
-                    }
-                    $alreadySavedGroups[$groupCode] = true;
+            if ($group) {
+                $groupId = $group->getId();
+                $oldRemainingTime = $treatedGroups[$groupId]["remainingTimeInSeconds"] ?? null;
+                if (!isset($oldRemainingTime) || $remainingTimeInSeconds < $oldRemainingTime) {
+                    $treatedGroups[$group->getId()] = [
+                        "group" => $group,
+                        "pack" => $pack,
+                        "remainingTimeInSeconds" => $remainingTimeInSeconds,
+                    ];
                 }
-            } else {
-                if ($group) {
-                    $groupId = $group->getId();
-                    $oldRemainingTime = $treatedGroups[$groupId]["remainingTimeInSeconds"] ?? null;
-                    if (!isset($oldRemainingTime) || $remainingTimeInSeconds < $oldRemainingTime) {
-                        $treatedGroups[$group->getId()] = [
-                            "group" => $group,
-                            "pack" => $pack,
-                            "remainingTimeInSeconds" => $remainingTimeInSeconds,
-                        ];
-                    }
 
-                    // We increment counter for group in next foreach
-                    // to do not count two times a same group
-                    break;
-                }
+                // We increment counter for group in next foreach
+                // to do not count two times a same group
+                continue;
             }
 
-            if(!empty($segments)) {
-                $this->treatPack(
-                    $pack,
-                    $remainingTimeInSeconds,
-                    $customSegments,
-                    $counterByEndingSpan,
-                    $globalCounter,
-                    $nextElementToDisplay
-                );
-            } else {
-                $globalCounter++;
-            }
+            $this->treatPack($componentsData, $pack, $remainingTimeInSeconds);
+
         }
 
         foreach ($treatedGroups as $group) {
@@ -139,32 +93,33 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             $pack = $group['pack'];
             $remainingTimeInSeconds = $group['remainingTimeInSeconds'];
 
-            $this->treatPack(
-                $group,
-                $remainingTimeInSeconds,
-                $customSegments,
-                $counterByEndingSpan,
-                $globalCounter,
-                $nextElementToDisplay,
-                $pack
-            );
+            $this->treatPack($componentsData, $group, $remainingTimeInSeconds, $pack);
         }
 
+        $this->persistComponents($entityManager, $componentsData, $naturesFilter, $locationsFilter);
+    }
 
-        foreach ($components as $component) {
-            $config = $component->getConfig();
-            $componentType = $component->getType();
-            $meterKey = $componentType->getMeterKey();
+    /**
+     * @param array<Emplacement> $locationsFilter
+     * @param array<Nature> $naturesFilter
+     */
+    private function persistComponents(EntityManagerInterface $entityManager,
+                                       array                  $componentsData,
+                                       array                  $naturesFilter,
+                                       array                  $locationsFilter): void {
+        foreach ($componentsData as $componentData) {
+            $component = $componentData['component'];
+            $meterKey = $componentData["meterKey"] ?? null;
 
             switch ($meterKey) {
                 case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
-                    $this->persistChart($entityManager, $component, $locationsFilter, $globalCounter);
+                    $this->persistIndicator($entityManager, $component, $componentData, $locationsFilter);
                     break;
                 case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
-                    $this->persistIndicator($entityManager, $component, $naturesFilter, $segments, $counterByEndingSpan, $config, $globalCounter, $nextElementToDisplay);
+                    $this->persistChart($entityManager, $component, $componentData, $naturesFilter);
                     break;
                 default:
-                    break;
+                    throw new Exception('Invalid meter key');
             }
         }
     }
@@ -172,10 +127,11 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
     /**
      * @param array<Emplacement> $locationsFilter
      */
-    private function persistChart(EntityManagerInterface $entityManager,
-                                  Dashboard\Component    $component,
-                                  array                  $locationsFilter,
-                                  int                    $globalCounter): void {
+    private function persistIndicator(EntityManagerInterface $entityManager,
+                                      Dashboard\Component    $component,
+                                      array                  $componentData,
+                                      array                  $locationsFilter): void {
+        $globalCounter = $componentData["globalCounter"] ?? null;
         $subtitle = $this->formatService->locations($locationsFilter);
 
         $meter = $this->dashboardService->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
@@ -186,17 +142,16 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
 
     /**
      * @param array<Nature> $naturesFilter
-     * @param array<int> $segments
-     * @param array<int, array<string, int>> $counterByEndingSpan
      */
-    private function persistIndicator(EntityManagerInterface $entityManager,
-                                      Dashboard\Component    $component,
-                                      array                  $naturesFilter,
-                                      array                  $segments,
-                                      array                  $counterByEndingSpan,
-                                      array                  $config,
-                                      int                    $globalCounter,
-                                      ?array                 $nextElementToDisplay): void {
+    private function persistChart(EntityManagerInterface $entityManager,
+                                  Dashboard\Component    $component,
+                                  array                  $componentData,
+                                  array                  $naturesFilter): void {
+
+        $segments = $componentData['segments'] ?? [];
+        $counterByEndingSpan =  $componentData['counterByEndingSpan'] ?? [];
+        $globalCounter =  $componentData['globalCounter'] ?? [];
+
         $graphData = $this->dashboardService->getObjectForTimeSpan(
             $segments,
             static fn (int $beginSpan, int $endSpan) => $counterByEndingSpan[$endSpan] ?? [],
@@ -242,38 +197,106 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             ->setLocation($locationToDisplay ?: '-');
     }
 
-    private function treatPack(Pack   $pack,
-                              int    $remainingTimeInSeconds,
-                              array  $customSegments,
-                              array  &$counterByEndingSpan,
-                              int    &$globalCounter,
-                              ?array &$nextElementToDisplay,
-                              ?Pack  $packToGetNature = null): void {
-        // we save pack with the smallest tracking delay
-        if (!isset($nextElementToDisplay)
-            || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
-            $nextElementToDisplay = [
-                'remainingTimeInSeconds' => $remainingTimeInSeconds,
-                'pack' => $pack,
-            ];
-        }
+    private function treatPack(array  &$componentsData,
+                               Pack   $pack,
+                               int    $remainingTimeInSeconds,
+                               ?Pack  $packToGetNature = null): void {
 
-        foreach ($customSegments as $segmentEnd) {
-            $endSpan = match($segmentEnd) {
-                -1 => -1,
-                default => $segmentEnd * 60,
-            };
+        foreach ($componentsData as &$componentData) {
+            $meterKey = $componentData['meterKey'] ?? null;
+            switch ($meterKey) {
+                case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
+                    $trackingDelayLessThan = $componentData['trackingDelayLessThan'] ?? null;
+                    if ($remainingTimeInSeconds < $trackingDelayLessThan) {
+                        $componentData["globalCounter"]++;
+                    }
 
-            if ($remainingTimeInSeconds < $endSpan) {
-                $packToGetNature ??= $pack;
-                $natureLabel = $this->formatService->nature($packToGetNature->getNature());
+                    break;
+                case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                    $nextElementToDisplay = $componentData["nextElementToDisplay"] ?? null;
+                    $segments = $componentData["segments"] ?? [];
+                    $customSegments = $componentData["customSegments"] ?? [];
+                    $counterByEndingSpan = $componentData["counterByEndingSpan"] ?? [];
 
-                $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                $counterByEndingSpan[$segmentEnd][$natureLabel]++;
-                $globalCounter++;
+                    if (empty($segments)) {
+                        // if segment config empty for this component we only increment the global counter
+                        $componentData["globalCounter"]++;
+                        break; // we break switch and continue foreach
+                    }
 
-                break;
+                    // we save pack with the smallest tracking delay
+                    if (!isset($nextElementToDisplay)
+                        || ($remainingTimeInSeconds < $nextElementToDisplay['remainingTimeInSeconds'])) {
+                        $componentData["nextElementToDisplay"] = [
+                            'remainingTimeInSeconds' => $remainingTimeInSeconds,
+                            'pack' => $pack,
+                        ];
+                    }
+
+                    // increment right counter according to the pack remainingTime
+                    foreach ($customSegments as $segmentEnd) {
+                        $endSpan = match ($segmentEnd) {
+                            -1 => -1,
+                            default => $segmentEnd * 60,
+                        };
+
+                        if ($remainingTimeInSeconds < $endSpan) {
+                            $packToGetNature ??= $pack;
+                            $natureLabel = $this->formatService->nature($packToGetNature->getNature());
+
+                            $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
+                            $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                            $componentData["globalCounter"]++;
+
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    throw new Exception('Invalid meter key');
             }
+
+        }
+    }
+
+    /**
+     * @param array<string, int> $countByNatureBase
+     */
+    private function getInitialComponentData(Dashboard\Component $component,
+                                             array               $countByNatureBase): array {
+
+        $config = $component->getConfig();
+        $meterKey = $component->getType()->getMeterKey();
+
+        switch ($component->getType()->getMeterKey()) {
+            case Dashboard\ComponentType::ONGOING_PACKS_WITH_TRACKING_DELAY:
+                return [
+                    "meterKey" => $meterKey,
+                    "component" => $component,
+                    "globalCounter" => 0,
+                    "trackingDelayLessThan" => isset($config['trackingDelayLessThan'])
+                        ? $config['trackingDelayLessThan'] * 60
+                        : null,
+                ];
+            case Dashboard\ComponentType::ENTRIES_TO_HANDLE_BY_TRACKING_DELAY:
+                $segments = $config['segments'] ?? [];
+                $customSegments = !empty($config['segments'] ?? [])
+                    ? array_merge([-1, 1], $segments)
+                    : [];
+
+                return [
+                    "meterKey" => $meterKey,
+                    "component" => $component,
+                    "segments" => $segments,
+                    "customSegments" => $customSegments,
+                    "counterByEndingSpan" => Stream::from($customSegments)
+                        ->keymap(fn(string $segmentEnd) => [$segmentEnd, $countByNatureBase])
+                        ->toArray(),
+                    "nextElementToDisplay" => null,
+                    "globalCounter" => 0,
+                ];
+            default:
+                throw new Exception('Invalid meter key');
         }
     }
 }

@@ -8,8 +8,10 @@ use App\Messenger\Dashboard\FeedDashboardComponentMessage;
 use App\Messenger\Dashboard\FeedMultipleDashboardComponentMessage;
 use App\Service\Dashboard\DashboardService;
 use App\Service\Dashboard\MultipleDashboardComponentGenerator\MultipleDashboardComponentGenerator;
+use App\Service\ExceptionLoggerService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,6 +26,7 @@ class DashboardFeedCommand extends Command {
     public const COMMAND_NAME = 'app:feed:dashboards';
 
     public function __construct(private EntityManagerInterface $entityManager,
+                                private ExceptionLoggerService $loggerService,
                                 private MessageBusInterface    $messageBus,
                                 private WiilockService         $wiilockService,
                                 private DashboardService       $dashboardService) {
@@ -49,11 +52,19 @@ class DashboardFeedCommand extends Command {
             $meterKey = $componentType->getMeterKey();
 
             $component->setErrorMessage(null);
+            $this->entityManager->flush();
+
             $generatorClass = $this->dashboardService->getGeneratorClass($meterKey);
 
-            if(!$generatorClass) {
+            if($generatorClass === DashboardService::NO_GENERATOR) {
                 continue;
             }
+            else if (!$generatorClass) {
+                $component->setErrorMessage(DashboardService::DASHBOARD_ERROR_MESSAGE);
+                $this->entityManager->flush();
+                $this->loggerService->sendLog(new Exception("Component has no generator"));
+            }
+
 
             if (is_subclass_of($generatorClass, MultipleDashboardComponentGenerator::class)) {
                 $multipleComponentIds[$generatorClass] ??= [];
@@ -65,9 +76,8 @@ class DashboardFeedCommand extends Command {
 
         foreach($multipleComponentIds as $generatorClass => $componentIds) {
             $this->messageBus->dispatch(new FeedMultipleDashboardComponentMessage($componentIds, $generatorClass));
-            $this->entityManager->flush();
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

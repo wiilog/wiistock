@@ -67,16 +67,26 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
                 $generator->persistAll($this->entityManager, $components);
                 $this->entityManager->flush();
             } catch (Throwable $exception) {
+                $closedEntityManager = !$this->entityManager->isOpen();
+                if ($closedEntityManager) {
+                    $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+                }
+
                 foreach ($components as $component) {
+                    if ($closedEntityManager) {
+                        $this->entityManager->getUnitOfWork()->addToIdentityMap($component);
+                    }
+
                     if ($exception instanceof DashboardException) {
                         $component->setErrorMessage($exception->getMessage());
                     } else {
                         $component->setErrorMessage(DashboardService::DASHBOARD_ERROR_MESSAGE);
                     }
                 }
-                $this->entityManager = $this->getEntityManager();
+
                 $this->entityManager->flush();
-                throw new $exception;
+
+                throw $exception;
             }
         } else {
             foreach ($groupedComponentsByKey as $groupedComponents) {
@@ -86,12 +96,6 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
                 $this->messageBus->dispatch(new FeedMultipleDashboardComponentMessage($groupedComponentIds, $generatorClass));
             }
         }
-    }
-
-    private function getEntityManager(): EntityManagerInterface {
-        return $this->entityManager->isOpen()
-            ? $this->entityManager
-            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 
     private function getGroupingKey(Dashboard\Component $component): string {
