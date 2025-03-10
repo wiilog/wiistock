@@ -51,7 +51,7 @@ function launchSupervisorDaemon(string $mode = MODE_DEFAULT): void {
         throw new Exception("Supervisor mode '$mode' is not allowed");
     }
 
-    $launchCommand = "supervisord -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid";
+    $launchCommand = "supervisord -u root -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid";
 
     echo " -- " . $launchCommand . PHP_EOL;
 
