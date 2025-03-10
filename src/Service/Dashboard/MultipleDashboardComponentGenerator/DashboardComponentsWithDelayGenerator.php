@@ -216,7 +216,6 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
                     $nextElementToDisplay = $componentData["nextElementToDisplay"] ?? null;
                     $segments = $componentData["segments"] ?? [];
                     $customSegments = $componentData["customSegments"] ?? [];
-                    $counterByEndingSpan = $componentData["counterByEndingSpan"] ?? [];
 
                     if (empty($segments)) {
                         // if segment config empty for this component we only increment the global counter
@@ -244,8 +243,8 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
                             $packToGetNature ??= $pack;
                             $natureLabel = $this->formatService->nature($packToGetNature->getNature());
 
-                            $counterByEndingSpan[$segmentEnd][$natureLabel] ??= 0;
-                            $counterByEndingSpan[$segmentEnd][$natureLabel]++;
+                            $componentData["counterByEndingSpan"][$segmentEnd][$natureLabel] ??= 0;
+                            $componentData["counterByEndingSpan"][$segmentEnd][$natureLabel]++;
                             $componentData["globalCounter"]++;
 
                             break;
