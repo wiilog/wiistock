@@ -2,6 +2,7 @@
 
 namespace App\Service\Dashboard\MultipleDashboardComponentGenerator;
 
+use App\Entity\Dashboard;
 use App\Entity\LatePack;
 use App\Service\EnCoursService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,7 +14,10 @@ class LatePackComponentGenerator extends MultipleDashboardComponentGenerator {
     ) {
     }
 
-    public function persistAll(EntityManagerInterface $entityManager): void {
+    /**
+     * @param array<Dashboard\Component> $components
+     */
+    public function persistAll(EntityManagerInterface $entityManager, array $components): void {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
         $lastLates = $this->enCoursService->getLastEnCoursForLate($entityManager);
         $latePackRepository->clearTable();
