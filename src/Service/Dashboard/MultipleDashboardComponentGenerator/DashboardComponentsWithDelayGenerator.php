@@ -149,7 +149,8 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
 
         $segments = $componentData['segments'] ?? [];
         $counterByEndingSpan =  $componentData['counterByEndingSpan'] ?? [];
-        $globalCounter =  $componentData['globalCounter'] ?? [];
+        $globalCounter =  $componentData['globalCounter'] ?? null;
+        $nextElementToDisplay =  $componentData['nextElementToDisplay'] ?? null;
 
         $config = $component->getConfig();
         $graphData = $this->dashboardService->getObjectForTimeSpan(
@@ -168,7 +169,7 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             $nextElementIdToDisplay = $packToDisplay?->getId();
             $config['nextElement'] = $nextElementIdToDisplay;
 
-            $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement() ?? null;
+            $locationToDisplay = $packToDisplay?->getLastOngoingDrop()?->getEmplacement();
         }
         else {
             $config['nextElement'] = null;
@@ -194,7 +195,7 @@ class DashboardComponentsWithDelayGenerator extends MultipleDashboardComponentGe
             ->setData($graphData)
             ->setTotal($totalToDisplay ?: '-')
             ->setNextElement($packToDisplay?->getCode() ?: '-')
-            ->setLocation($locationToDisplay ?: '-');
+            ->setLocation($this->formatService->location($locationToDisplay, '-'));
     }
 
     private function treatPack(array  &$componentsData,
