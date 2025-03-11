@@ -35,6 +35,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
+use App\Service\ExceptionLoggerService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\KeptFieldService;
@@ -58,6 +59,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Attribute\Route;
@@ -1538,8 +1540,9 @@ class ArrivageController extends AbstractController
 
     #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: self::POST, condition: self::IS_XML_HTTP_REQUEST)]
     #[HasPermission([Menu::TRACA, Action::CREATE])]
-    public function apiDeliveryNoteFile(Request             $request,
-                                        HttpClientInterface $client): JsonResponse {
+    public function apiDeliveryNoteFile(Request                $request,
+                                        HttpClientInterface    $client,
+                                        ExceptionLoggerService $loggerService): JsonResponse {
         if ($request->files->has('file')) {
             $dnReaderUrl = $_SERVER['DN_READER_URL'] ?? null;
             if (!$dnReaderUrl) {
@@ -1561,11 +1564,19 @@ class ArrivageController extends AbstractController
                 ]);
 
                 $apiOutput = json_decode($apiRequest->getContent(), true);
-            } catch (\Throwable $e) {
-                if ($e->getCode() === 400 && $e->getMessage()) {
-                    throw new FormException($e->getMessage());
+            } catch (Throwable $exception) {
+                if ($exception->getCode() === 400 && $exception->getMessage()) {
+                    throw new FormException($exception->getMessage());
                 }
-                throw $e;
+                $content = [
+                    'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
+                    'message' => $exception->getMessage(),
+                    'trace' => in_array($_SERVER["APP_ENV"], ['dev', 'preprod'], true)
+                        ? $exception->getTrace()
+                        : [],
+                ];
+                $loggerService->sendLog($exception);
+                return new JsonResponse($content, $content['code']);
             }
 
             return $this->json([
