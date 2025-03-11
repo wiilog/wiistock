@@ -50,6 +50,10 @@ class SleepingStockPlan extends ScheduledTask {
         return $this->maxStorageTime;
     }
 
+    public function getMaxStorageTimeInDays(): ?int {
+        return $this->maxStorageTime/60/60/24;
+    }
+
     public function setMaxStorageTime(int $maxStorageTime): self {
         $this->maxStorageTime = $maxStorageTime;
 

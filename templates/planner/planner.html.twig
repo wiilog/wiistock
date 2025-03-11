@@ -1,17 +1,17 @@
 {% import 'form.html.twig' as form %}
 
-
 {% set withSection = withSection ?? true %}
+{% set displayedFrequencies = displayedFrequencies ?? [
+    constant('App\\Entity\\ScheduledTask\\ScheduleRule::ONCE'),
+    constant('App\\Entity\\ScheduledTask\\ScheduleRule::HOURLY'),
+    constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY'),
+    constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY'),
+    constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY')
+] %}
+
 {% if withSection %}
     <div class="wii-section-title my-3">Fréquence</div>
 {% endif %}
-    {% set dispayedFrequecies = dispayedFrequecies ?? [
-        constant('App\\Entity\\ScheduledTask\\ScheduleRule::ONCE'),
-        constant('App\\Entity\\ScheduledTask\\ScheduleRule::HOURLY'),
-        constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY'),
-        constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY'),
-        constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY')
-    ] %}
 
 <div class="row frequencies {{ withSection ? "mt-3"}}">
     {{ form.radio(
@@ -24,7 +24,7 @@
             {label: 'Chaque jour', value: constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY'), checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY')},
             {label: 'Chaque semaine', value: constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY'), checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY')},
             {label: 'Chaque mois', value: constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY'), checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY')}
-        ] | filter(frequencie => frequencie.value in dispayedFrequecies),
+        ] | filter(frequencie => frequencie.value in displayedFrequencies),
         {
             containerClass: 'col-4 frequencies-container',
             onChange: 'toggleFrequencyInput($(this))'
@@ -32,19 +32,19 @@
     ) }}
 
     <div class="col-8 frequency-content {{ frequency ? '' : 'd-none' }}">
-        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::ONCE') in dispayedFrequecies %}
+        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::ONCE') in displayedFrequencies %}
             {% include 'planner/frequencies/once.html.twig' with {begin, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::ONCE') } %}
         {% endif %}
-        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::HOURLY') in dispayedFrequecies %}
+        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::HOURLY') in displayedFrequencies %}
             {% include 'planner/frequencies/hourly.html.twig' with {begin, intervalPeriod, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::HOURLY')} %}
         {% endif %}
-        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY') in dispayedFrequecies %}
+        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY') in displayedFrequencies %}
             {% include 'planner/frequencies/daily.html.twig' with {begin, period, intervalTime, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::DAILY')} %}
         {% endif %}
-        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY') in dispayedFrequecies %}
+        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY') in displayedFrequencies %}
             {% include 'planner/frequencies/weekly.html.twig' with {begin, period, intervalTime, weekDays, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY')} %}
         {% endif %}
-        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY') in dispayedFrequecies %}
+        {% if constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY') in displayedFrequencies %}
             {% include 'planner/frequencies/monthly.html.twig' with {begin, months, monthDays, intervalTime, checked: frequency == constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY')} %}
         {% endif %}
     </div>

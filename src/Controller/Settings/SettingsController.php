@@ -36,10 +36,8 @@ use App\Entity\Role;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\ScheduleRule;
-use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
-use App\Entity\SleepingStockRequestInformation;
 use App\Entity\Statut;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
@@ -3860,83 +3858,5 @@ class SettingsController extends AbstractController {
         $url = $this->getParameter("nomade_apk");
 
         return $this->redirect($url);
-    }
-
-    #[Route('/sleeping-stock-request-informations-api', name: 'settings_sleeping_stock_request_informations', options: ['expose' => true], methods: [self::GET])]
-    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function sleepingStockRequestInformationApi(EntityManagerInterface $manager,
-                                                       FormService            $formService): JsonResponse {
-        $sleepingStockRequestInformationRepository = $manager->getRepository(SleepingStockRequestInformation::class);
-        $deliveryRequestTemplateSleepingStockRepository = $manager->getRepository(DeliveryRequestTemplateSleepingStock::class);
-
-        $deliveryRequestTemplate = Stream::from($deliveryRequestTemplateSleepingStockRepository->getForSelect())
-            ->keymap(fn(array $deleveryRequestTemplat) => [
-                $deleveryRequestTemplat["id"],
-                [
-                    "value" => $deleveryRequestTemplat["id"],
-                    "label" => $deleveryRequestTemplat["text"],
-                ]
-            ])
-            ->toArray();
-
-        $data = Stream::from($sleepingStockRequestInformationRepository->findAll())
-            ->map(function(SleepingStockRequestInformation $sleepingStockRequestInformation) use ($deliveryRequestTemplate, $formService) {
-                $items = $deliveryRequestTemplate;
-                $items[$sleepingStockRequestInformation->getDeliveryRequestTemplate()->getId()]["selected"] = true;
-                return [
-                    "actions" => "
-                        <button class='btn btn-silent delete-row' data-id='{$sleepingStockRequestInformation->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button>".
-                        $formService->macro("hidden", "id", $sleepingStockRequestInformation->getId()),
-                    "deliveryRequestTemplate" =>$formService->macro("select", "deliveryRequestTemplate", null, true, [
-                        "type" => "",
-                        "items" => $items,
-                    ]),
-                    "buttonLabel" => $formService->macro("input", "buttonLabel", null, true, $sleepingStockRequestInformation->getButtonActionLabel()),
-                ];
-            })
-            ->toArray();
-
-        return $this->json([
-            "data" => [
-                ...$data,
-                [
-                    "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
-                    "deliveryRequestTemplate" => "",
-                    "buttonLabel" => "",
-                ]
-            ]
-        ]);
-    }
-
-    #[Route('/sleeping-stock-request-information/supprimer/{entity}', name: 'settings_delete_sleeping_stock_request_information', options: ['expose' => true], methods: [self::POST])]
-    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function deleteSleepingStockRequestInformation(EntityManagerInterface          $entityManager,
-                                                          SleepingStockRequestInformation $entity): Response {
-        $entityManager->remove($entity);
-        $entityManager->flush();
-
-        return $this->json([
-            "success" => true,
-            "msg" => "La ligne a bien été supprimée",
-        ]);
-    }
-
-
-    #[Route('/sleeping-stock-plan/{type}', name: 'settings_sleeping_stock_plan', options: ['expose' => true], methods: [self::GET])]
-    #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function sleepingStockRequestPlan(EntityManagerInterface $entityManager,
-                                             Type                   $type): JsonResponse {
-        $sleepingStockPlanRepository = $entityManager->getRepository(SleepingStockPlan::class);
-
-        $sleepingStockPlan = $sleepingStockPlanRepository->findOneBy(["type" => $type]) ?? new SleepingStockPlan();
-
-        return $this->json([
-            "success" => true,
-            "html" => $this->renderView('settings/stock/articles/sleeping_stock_plan_form.html.twig', [
-                'sleepingStockPlan' => $sleepingStockPlan
-            ]),
-        ]);
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Entity\RequestTemplate;
 
 use App\Entity\Attachment;
-use App\Repository\RequestTemplate\DeliveryRequestTemplateRepositorySleepingStock;
+use App\Repository\RequestTemplate\DeliveryRequestTemplateSleepingStockRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositorySleepingStock::class)]
+#[ORM\Entity(repositoryClass: DeliveryRequestTemplateSleepingStockRepository::class)]
 class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements DeliveryRequestTemplateInterface {
 
     use DeliveryRequestTemplateTrait;

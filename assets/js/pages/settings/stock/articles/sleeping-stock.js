@@ -1,0 +1,64 @@
+import EditableDatatable, {MODE_EDIT, SAVE_MANUALLY} from "@app/editatable";
+import AJAX, {GET} from "@app/ajax";
+export function initializeSleepingStockSettingPage($container){
+    initializeSleepingStockRequestInformations($container)
+    initializeSleepingSleepingStockPlan($container)
+}
+
+function initializeSleepingStockRequestInformations($container){
+    EditableDatatable.create('#sleepingStockRequestInformations', {
+        route: Routing.generate('settings_sleeping_stock_request_information_api', true),
+        deleteRoute: `settings_sleeping_stock_request_information_delete`,
+        mode: MODE_EDIT,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'deliveryRequestTemplate', title: 'Modèle de la demande de livraison', required: true},
+            {data: 'buttonLabel', title: 'Libellé du bouton d’action', required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            deliveryRequestTemplate: $container.find('template#deliveryRequestTemplate').html(),
+            buttonLabel: $container.find('template#buttonLabel').html(),
+        },
+    });
+}
+
+function initializeSleepingSleepingStockPlan($container) {
+    const $sleepingStockPlanContainer = $container.find('.sleeping-stock-plan-setting');
+    const typeChangeEvent = 'change.typeOfSleepingStockPlan';
+    $container.find('[name="planType"]')
+        .off(typeChangeEvent)
+        .on(typeChangeEvent, function(event) {
+            const typeId = event.target.value;
+            loadSleepingSleepingStockPlan(typeId, $sleepingStockPlanContainer)
+        });
+
+    $container.find('[name="planType"]:checked')
+        .trigger(typeChangeEvent)
+}
+
+function loadSleepingSleepingStockPlan(typeId, $sleepingStockPlanContainer) {
+    wrapLoadingOnActionButton($sleepingStockPlanContainer, () => (
+        AJAX
+            .route(
+                GET,
+                "settings_sleeping_stock_plan_api",
+                {
+                    type: typeId
+                }
+            )
+            .json()
+            .then((response) => {
+                $sleepingStockPlanContainer.html(response.html);
+                const $checkedFrequency = $sleepingStockPlanContainer.find('[name=frequency]:checked');
+                if ($checkedFrequency.exists()) {
+                    toggleFrequencyInput($checkedFrequency);
+                }
+            })
+    ));
+}
