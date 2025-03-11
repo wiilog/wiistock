@@ -81,7 +81,7 @@ export function createManagementPage($container, config) {
         columns: config.tableManagement.columns,
         minimumRows: config.tableManagement.minimumRows,
         onEditStart: () => {
-            //$container.find('.management-header').addClass('d-none'); //le header ne reviens pas
+            $container.find('.management-header').addClass('d-none');
             $boxEditFreeFields.addClass('d-none');
             $managementButtons.removeClass('d-none');
             $editTypeButton.addClass('d-none');
@@ -99,6 +99,7 @@ export function createManagementPage($container, config) {
             }
         },
         onEditStop: (apiResult) => {
+            $container.find('.management-header').removeClass('d-none');
             $boxEditFreeFields.removeClass('d-none');
             $managementButtons.addClass('d-none');
             $editTypeButton.removeClass('d-none');
