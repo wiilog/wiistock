@@ -35,29 +35,29 @@ function scanDeliveryNoteFile($input) {
 
 
     wrapLoadingOnActionButton($loaderContainer, () => {
-        let files = $input[0].files;
-        let file = files[0];
+        const files = $input[0].files;
+        const file = files[0];
         if (!file) {
-            return
+            return;
         }
-        let formData = new FormData();
+        const formData = new FormData();
         formData.append("file", file, file.name);
         return AJAX
             .route(POST, `api_delivery_note_file`, {}).json(formData).then(({success, data}) => {
-            if(success) {
-                $comment.html(
-                    Object
-                    .keys(data)
-                    .map(function(key) {
-                        let value = data[key] || ""
-                        key = KEY_TRANSLATIONS[key] || ""
-                        return `<p><strong>${key}</strong>: ${value.toString()}</p>`
-                    })
-                    .join("")
+                if(success) {
+                    $comment.html(
+                        Object
+                            .keys(data)
+                            .map((key) => {
+                                const value = data[key] || "";
+                                key = KEY_TRANSLATIONS[key] || "";
+                                return `<p><strong>${key}</strong>: ${value.toString()}</p>`;
+                            })
+                            .join("")
                 );
             } else {
                 // TODO : WIIS-12340
             }
-        })
+        });
     });
 }
