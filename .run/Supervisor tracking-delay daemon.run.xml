@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Supervisor launch tracking-delay messenger" type="ShConfigurationType">
+  <configuration default="false" name="Supervisor tracking-delay daemon" type="ShConfigurationType">
     <option name="SCRIPT_TEXT" value="docker exec -it wiistock-php supervisord -n --configuration /project/supervisor.d/tracking-delay.consume.conf --pidfile /tmp/supervisord.tracking-delay-consume.pid" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="/usr/bin/docker" />

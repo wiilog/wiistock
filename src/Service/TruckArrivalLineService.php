@@ -85,7 +85,7 @@ class TruckArrivalLineService
                     ->map(fn(Arrivage $arrivage) => '<a href="/arrivage/voir/'.$arrivage->getId().'"><i class="mr-2 fas fa-external-link-alt"></i>'.$arrivage->getNumeroArrivage().'</a><br>')
                     ->join('')
                 : '',
-            'operator' => $truckArrivalLine->getTruckArrival() ? $this->formatService->user($truckArrivalLine->getTruckArrival()->getOperator()) : '',
+            'operator' => $this->formatService->user($truckArrivalLine->getTruckArrival()?->getOperator()),
             'late' => $this->lineIsLate($truckArrivalLine, $entityManager),
         ];
     }
