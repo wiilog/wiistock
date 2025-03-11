@@ -88,7 +88,8 @@ class SettingsService {
         private StatusService          $statusService,
         private TranslationService     $translationService,
         private UserService            $userService,
-        private CacheService           $cacheService, private readonly ScheduleRuleService $scheduleRuleService,
+        private CacheService           $cacheService,
+        private ScheduleRuleService    $scheduleRuleService,
     ) {
         $reflectionClass = new ReflectionClass(Setting::class);
         $this->settingsConstants = Stream::from($reflectionClass->getConstants())
@@ -1413,27 +1414,27 @@ class SettingsService {
                 ->keymap(fn(SleepingStockRequestInformation $sleepingStockRequestInformation) => [
                     $sleepingStockRequestInformation->getId(),
                     $sleepingStockRequestInformation,
-                ]);
+                ])
+                ->toArray();
 
-            Stream::from($tables["sleepingStockRequestInformations"])
-                ->filter()
-                ->each(function($sleepingStockRequestInformationData) use ($sleepingStockRequestInformations, $entityManager): void {
-                    $sleepingStockRequestInformation = ($id = $sleepingStockRequestInformationData["id"] ?? null)
-                        ? $sleepingStockRequestInformations[$id]
-                        : new SleepingStockRequestInformation;
+            foreach (array_filter($tables["sleepingStockRequestInformations"]) as $sleepingStockRequestInformationData) {
+                $id = $sleepingStockRequestInformationData["id"] ?? null;
+                $sleepingStockRequestInformation = ($id)
+                    ? $sleepingStockRequestInformations[$id]
+                    : new SleepingStockRequestInformation;
 
-                    $sleepingStockRequestInformation
-                        ->setDeliveryRequestTemplate(
-                            $entityManager->getReference(
-                                DeliveryRequestTemplateSleepingStock::class, $sleepingStockRequestInformationData["deliveryRequestTemplate"]
-                            )
-                        )
-                        ->setButtonActionLabel($sleepingStockRequestInformationData["buttonLabel"]);
+                $typeReference = $entityManager->getReference(
+                    DeliveryRequestTemplateSleepingStock::class,
+                    $sleepingStockRequestInformationData["deliveryRequestTemplate"]
+                );
+                $sleepingStockRequestInformation
+                    ->setDeliveryRequestTemplate($typeReference)
+                    ->setButtonActionLabel($sleepingStockRequestInformationData["buttonLabel"]);
 
-                    if (!$sleepingStockRequestInformation->getId()) {
-                        $entityManager->persist($sleepingStockRequestInformation);
-                    }
-                });
+                if (!$sleepingStockRequestInformation->getId()) {
+                    $entityManager->persist($sleepingStockRequestInformation);
+                }
+            }
         }
     }
 

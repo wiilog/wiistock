@@ -41,6 +41,7 @@ import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-req
 import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
 import {onSelectAll} from '@app/pages/settings/utils';
 import {generateRandomNumber} from "@app/utils";
+import {initializeSleepingStockSettingPage} from "@app/pages/settings/stock/articles/sleeping-stock";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.addTypeRow = addTypeRow;
@@ -74,7 +75,7 @@ const initializers = {
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     stock_articles_champs_fixes: initializeArticleFixedFields,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
-    stock_articles_alerte_stock_dormant: initializeStockAlertPage,
+    stock_articles_alerte_stock_dormant: initializeSleepingStockSettingPage,
     //borne tactile
     stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
@@ -1472,58 +1473,4 @@ function initializeProductionConfiguration($container){
             .val(null)
             .trigger(`change`);
     });
-}
-
-function initializeStockAlertPage($container){
-    EditableDatatable.create('#sleepingStockRequestInformations', {
-        route: Routing.generate('settings_sleeping_stock_request_informations', true),
-        deleteRoute: `settings_delete_sleeping_stock_request_information`,
-        mode: MODE_EDIT,
-        save: SAVE_MANUALLY,
-        search: false,
-        paging: false,
-        scrollY: false,
-        scrollX: false,
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'deliveryRequestTemplate', title: 'Modèle de la demande de livraison', required: true},
-            {data: 'buttonLabel', title: 'Libellé du bouton d’action', required: true},
-        ],
-        form: {
-            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            deliveryRequestTemplate: $container.find('template#deliveryRequestTemplate').html(),
-            buttonLabel: $container.find('template#buttonLabel').html(),
-        },
-    });
-
-
-    const typeChangeEvent = 'change.typeOfSleepingStockPlan';
-
-    $container.find('[name="planType"]')
-        .off(typeChangeEvent)
-        .on(typeChangeEvent, function(event) {
-            const typeId = event.target.value;
-            const $sleepingStockPlanContainer = $container.find('.sleeping-stock-plan-setting');
-            wrapLoadingOnActionButton($sleepingStockPlanContainer, () => (
-                AJAX
-                    .route(
-                        GET,
-                        "settings_sleeping_stock_plan",
-                        {
-                            type: typeId
-                        }
-                    )
-                    .json()
-                    .then((response) => {
-                        $sleepingStockPlanContainer.html(response.html);
-                        const $checkedFrequency = $sleepingStockPlanContainer.find('[name=frequency]:checked');
-                        if ($checkedFrequency.exists()) {
-                            toggleFrequencyInput($checkedFrequency);
-                        }
-                    })
-            ));
-        });
-
-    $container.find('[name="planType"]:checked')
-        .trigger(typeChangeEvent)
 }

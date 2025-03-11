@@ -1,13 +1,16 @@
 {% import 'form.html.twig' as form %}
 
+
+{# for the max see \App\Entity\ScheduledTask\SleepingStockPlan::$maxStorageTime #}
 <div class="col-lg-4 col-12 mt-3">
-    {{ form.input("maxStorageTime", "Durée de stockage maximal (j)", false, sleepingStockPlan.maxStorageTime , {
+    {{ form.input("maxStorageTime", "Durée de stockage maximal (j)", false, sleepingStockPlan.maxStorageTimeInDays , {
         type: "number",
         min: 0,
-        max: 24850,
+        max: 24855,
         step: 1,
         tooltip: "Pour envoi d’email au gestionnaire si durée maximale atteinte (max : 24850j)<br> Prend en compte la dernière entrée en stock pour le j1. ",
     }) }}
+
 </div>
 <div class="col-12 mt-3">
     {{ form.label("Fréquence d’interrogation du gestionnaire pour action sur référence") }}

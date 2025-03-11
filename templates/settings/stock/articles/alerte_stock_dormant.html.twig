@@ -24,10 +24,13 @@
         true,
         {
             type: "",
-            items: deleveryRequestTemplatesSleepingStock| map(template => ({
+            items: deleveryRequestTemplatesSleepingStock | map(template => ({
                 label: template.text,
                 value: template.id,
             })),
+            attributes: {
+               "data-parent": "body",
+            }
         }
     ) }}
 </template>
