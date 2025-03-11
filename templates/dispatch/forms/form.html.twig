@@ -318,7 +318,7 @@
                     {
                         label: 'Du',
                         name: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH'),
-                        value: production is defined and production.expectedAt
+                        value: production is not null and production.expectedAt
                                 ? production.expectedAt|date('Y-m-d')
                                 : (dispatch.startDate ? dispatch.startDate|date('Y-m-d') : null),
                         type: 'date',
@@ -332,7 +332,7 @@
                     {
                         label: 'Au',
                         name: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH'),
-                        value: production is defined and production.expectedAt
+                        value: production is not null and production.expectedAt
                                 ? production.expectedAt|date('Y-m-d')
                                 : (dispatch.endDate ? dispatch.endDate|date('Y-m-d') : null),
                         type: 'date',
