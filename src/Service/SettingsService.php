@@ -358,17 +358,6 @@ class SettingsService {
             $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
         }
 
-        if ($request->request->has(Setting::MAILER_PASSWORD)) {
-            $newMailPassword = $request->request->get(Setting::MAILER_PASSWORD);
-            if ($newMailPassword) {
-                $settingMailPassword = $this->persistSetting($entityManager, $settings, Setting::MAILER_PASSWORD)?->setValue($newMailPassword) ?:$settingRepository->findOneBy(["label" => Setting::MAILER_PASSWORD]);
-                if ($settingMailPassword && $settingMailPassword->getValue() != $newMailPassword) {
-                    $settingMailPassword->setValue($newMailPassword);
-                }
-            }
-            $updated[] = Setting::MAILER_PASSWORD;
-        }
-
         if ($request->request->has(Setting::MAX_SESSION_TIME)) {
             $value = $request->request->get(Setting::MAX_SESSION_TIME);
 

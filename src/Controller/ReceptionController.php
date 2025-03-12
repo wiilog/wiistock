@@ -999,7 +999,7 @@ class ReceptionController extends AbstractController {
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
         if($isStatutChange) {
-            $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION, true);
+            $disputeService->sendMailToAcheteursOrDeclarant($entityManager, $dispute, DisputeService::CATEGORY_RECEPTION, true);
         }
         return new JsonResponse([
             'success' => true,
@@ -1084,7 +1084,7 @@ class ReceptionController extends AbstractController {
         $attachmentService->persistAttachments($entityManager, $request->files, ["attachmentContainer" => $dispute]);
         $entityManager->flush();
 
-        $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
+        $disputeService->sendMailToAcheteursOrDeclarant($entityManager, $dispute, DisputeService::CATEGORY_RECEPTION);
 
         return new JsonResponse([
             'success' => true,
@@ -1885,7 +1885,8 @@ class ReceptionController extends AbstractController {
             if(!empty($destinataires)) {
                 // on envoie un mail aux demandeurs
                 $mailerService->sendMail(
-                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Article urgent réceptionné', $mailContent,
+                    $entityManager,
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Article urgent réceptionné', $mailContent,
                     $destinataires
                 );
             }
@@ -1920,7 +1921,7 @@ class ReceptionController extends AbstractController {
 
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
-                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'fournisseur' => $reception->getFournisseur(),

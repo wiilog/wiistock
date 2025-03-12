@@ -318,7 +318,7 @@ class LivraisonsManagerService
             }
 
             $title = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) .
-                MailerService::OBJECT_SERPARATOR .
+                MailerService::OBJECT_SEPARATOR .
                 ( $demandeIsPartial
                     ? $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
                     : $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée'
@@ -327,6 +327,7 @@ class LivraisonsManagerService
 
             $sendMailCallback = function(array $to) use ($title, $demande, $preparation, $bodyTitle, $nextLocation): void {
                 $this->mailerService->sendMail(
+                    $this->entityManager,
                     $title,
                     $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
                         'request' => $demande,

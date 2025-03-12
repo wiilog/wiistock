@@ -944,7 +944,7 @@ class ArrivageController extends AbstractController
             ]);
         }
 
-        $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_ARRIVAGE);
+        $disputeService->sendMailToAcheteursOrDeclarant($entityManager, $dispute, DisputeService::CATEGORY_ARRIVAGE);
 
         $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
         $response['success'] = true;
@@ -1209,7 +1209,7 @@ class ArrivageController extends AbstractController
 
         $entityManager->flush();
         if ($statusHasChanged) {
-            $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_ARRIVAGE, true);
+            $disputeService->sendMailToAcheteursOrDeclarant($entityManager, $dispute, DisputeService::CATEGORY_ARRIVAGE, true);
         }
 
         $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];

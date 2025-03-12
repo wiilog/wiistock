@@ -656,7 +656,8 @@ class IOTService
             $device->setBattery($newBattery);
             if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
                 $this->mailerService->sendMail(
-                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Batterie capteur faible',
+                    $entityManager,
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Batterie capteur faible',
                     $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
                         'sensorCode' => $device->getCode(),
                         'sensorName' => $wrapper->getName(),

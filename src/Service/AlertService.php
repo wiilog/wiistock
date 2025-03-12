@@ -70,7 +70,7 @@ class AlertService {
         }
 
         foreach($managers as $emailConfig) {
-            $this->sendExpiryMails($emailConfig['user'], $emailConfig['articles'], $expiry);
+            $this->sendExpiryMails($entityManager, $emailConfig['user'], $emailConfig['articles'], $expiry);
         }
 
         $entityManager->flush();
@@ -94,11 +94,14 @@ class AlertService {
             'machinePDTValue' => $freeFieldValue
         ]);
 
-        $appName = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR;
-        $this->mailer->sendMail("$appName $type atteint", $content, $reference->getManagers()->toArray());
+        $appName = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR;
+        $this->mailer->sendMail($entityManager, "$appName $type atteint", $content, $reference->getManagers()->toArray());
     }
 
-    public function sendExpiryMails($manager, $articles, $delay): void {
+    public function sendExpiryMails(EntityManagerInterface $entityManager,
+                                    $manager,
+                                    $articles,
+                                    $delay): void {
         if(!is_array($articles)) {
             $articles = [$articles];
         }
@@ -108,7 +111,7 @@ class AlertService {
             "delay" => $delay,
         ]);
 
-        $this->mailer->sendMail($this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Seuil de péremption atteint', $content, $manager);
+        $this->mailer->sendMail($entityManager, $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Seuil de péremption atteint', $content, $manager);
     }
 
     public function putLineAlert(EntityManagerInterface $entityManager,
@@ -199,7 +202,7 @@ class AlertService {
                         ->getReferenceArticle()
                         ->getManagers()
                         ->toArray();
-                    $this->sendExpiryMails($managers, $article, $expiryDelay);
+                    $this->sendExpiryMails($entityManager, $managers, $article, $expiryDelay);
                 }
             } else if ($now < $article->getExpiryDate() && $existing) {
                 $entityManager->remove($existing[0]);

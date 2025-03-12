@@ -40,7 +40,8 @@ class PasswordService
         	$user->setToken($token);
         	$this->entityManager->flush();
 			$this->mailerService->sendMail(
-                $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Mot de passe oublié',
+                $this->entityManager,
+                $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Mot de passe oublié',
 				$this->templating->render('mails/template.html.twig', [
 					'title' => 'Renouvellement de votre mot de passe ' . $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . ".",
 					'urlSuffix' => $this->router->generate('change_password', ['token' => $token]),
