@@ -1543,48 +1543,49 @@ class ArrivageController extends AbstractController
     public function apiDeliveryNoteFile(Request                $request,
                                         HttpClientInterface    $client,
                                         ExceptionLoggerService $loggerService): JsonResponse {
-        if ($request->files->has('file')) {
-            $dnReaderUrl = $_SERVER['DN_READER_URL'] ?? null;
-            if (!$dnReaderUrl) {
-                throw new FormException("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
-            }
-
-            $uploadedFile = $request->files->get('file');
-            $file = DataPart::fromPath($uploadedFile->getRealPath(), $uploadedFile->getClientOriginalName());
-            $formData = new FormDataPart([
-                "file" => $file,
-            ]);
-
-            $headers = $formData->getPreparedHeaders()->toArray();
-
-            try {
-                $apiRequest = $client->request(self::POST, $dnReaderUrl, [
-                    "headers" => $headers,
-                    "body" => $formData->bodyToIterable(),
-                ]);
-
-                $apiOutput = json_decode($apiRequest->getContent(), true);
-            } catch (Throwable $exception) {
-                if ($exception->getCode() === 400 && $exception->getMessage()) {
-                    throw new FormException($exception->getMessage());
-                }
-                $content = [
-                    'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
-                    'message' => $exception->getMessage(),
-                    'trace' => in_array($_SERVER["APP_ENV"], ['dev', 'preprod'], true)
-                        ? $exception->getTrace()
-                        : [],
-                ];
-                $loggerService->sendLog($exception);
-                return new JsonResponse($content, $content['code']);
-            }
-
-            return $this->json([
-                "success" => true,
-                "data" => $apiOutput,
-            ]);
-        } else {
+        if (!$request->files->has('file')) {
             throw new FormException("Aucun fichier n'a été importé");
         }
+
+        $dnReaderUrl = $_SERVER['DN_READER_URL'] ?? null;
+        if (!$dnReaderUrl) {
+            throw new FormException("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
+        }
+
+        $uploadedFile = $request->files->get('file');
+        $file = DataPart::fromPath($uploadedFile->getRealPath(), $uploadedFile->getClientOriginalName());
+        $formData = new FormDataPart([
+            "file" => $file,
+        ]);
+
+        $headers = $formData->getPreparedHeaders()->toArray();
+
+        try {
+            $apiRequest = $client->request(self::POST, $dnReaderUrl, [
+                "headers" => $headers,
+                "body" => $formData->bodyToIterable(),
+            ]);
+
+            $apiOutput = json_decode($apiRequest->getContent(), true);
+        } catch (Throwable $exception) {
+            if ($exception->getCode() === 400 && $exception->getMessage()) {
+                throw new FormException($exception->getMessage());
+            }
+            $content = [
+                "success" => false,
+                'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
+                'message' => $exception->getMessage(),
+                'trace' => in_array($_SERVER["APP_ENV"], ['dev', 'preprod'], true)
+                    ? $exception->getTrace()
+                    : [],
+            ];
+            $loggerService->sendLog($exception, $request);
+            return new JsonResponse($content, $content['code']);
+        }
+
+        return $this->json([
+            "success" => true,
+            "data" => $apiOutput,
+        ]);
     }
 }
