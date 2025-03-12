@@ -54,7 +54,7 @@ function scanDeliveryNoteFile($input) {
                                 return `<p><strong>${key}</strong>: ${value.toString()}</p>`;
                             })
                             .join("")
-                );
+                    );
             } else {
                 // TODO : WIIS-12340
             }
