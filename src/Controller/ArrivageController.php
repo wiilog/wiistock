@@ -35,6 +35,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
+use App\Service\ExceptionLoggerService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
 use App\Service\KeptFieldService;
@@ -58,7 +59,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
@@ -1527,5 +1532,57 @@ class ArrivageController extends AbstractController
 
         $columns = $packService->getArrivalPackColumnVisibleConfig($currentUser);
         return new JsonResponse($columns);
+    }
+
+
+    #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: self::POST, condition: self::IS_XML_HTTP_REQUEST)]
+    #[HasPermission([Menu::TRACA, Action::CREATE])]
+    public function apiDeliveryNoteFile(Request                $request,
+                                        HttpClientInterface    $client,
+                                        ExceptionLoggerService $loggerService): JsonResponse {
+        if (!$request->files->has('file')) {
+            throw new FormException("Aucun fichier n'a été importé");
+        }
+
+        $dnReaderUrl = $_SERVER['DN_READER_URL'] ?? null;
+        if (!$dnReaderUrl) {
+            throw new FormException("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
+        }
+
+        $uploadedFile = $request->files->get('file');
+        $file = DataPart::fromPath($uploadedFile->getRealPath(), $uploadedFile->getClientOriginalName());
+        $formData = new FormDataPart([
+            "file" => $file,
+        ]);
+
+        $headers = $formData->getPreparedHeaders()->toArray();
+
+        try {
+            $apiRequest = $client->request(self::POST, $dnReaderUrl, [
+                "headers" => $headers,
+                "body" => $formData->bodyToIterable(),
+            ]);
+
+            $apiOutput = json_decode($apiRequest->getContent(), true);
+        } catch (Throwable $exception) {
+            if ($exception->getCode() === 400 && $exception->getMessage()) {
+                throw new FormException($exception->getMessage());
+            }
+            $content = [
+                "success" => false,
+                'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
+                'message' => $exception->getMessage(),
+                'trace' => in_array($_SERVER["APP_ENV"], ['dev', 'preprod'], true)
+                    ? $exception->getTrace()
+                    : [],
+            ];
+            $loggerService->sendLog($exception, $request);
+            return $this->json($content, $content['code']);
+        }
+
+        return $this->json([
+            "success" => true,
+            "data" => $apiOutput,
+        ]);
     }
 }
