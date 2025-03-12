@@ -19,7 +19,7 @@ class SleepingStockPlan extends ScheduledTask {
     private ?Type $type = null;
 
     /**
-     * $maxStorageTime in Seconds, so the theoric max storage time is ~= 24855 days
+     * $maxStorageTime in Seconds, so the theoretic max storage time is ~= 24855 days
      */
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $maxStorageTime = null;
