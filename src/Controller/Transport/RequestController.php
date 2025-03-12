@@ -177,7 +177,6 @@ class RequestController extends AbstractController {
                         TranslationService     $translationService,
                         RouterInterface        $router): JsonResponse {
 
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $prefixDeliveryRequest = TransportRequest::NUMBER_PREFIX;
         /** @var Utilisateur $user */
         $user = $this->getUser();
@@ -204,7 +203,8 @@ class RequestController extends AbstractController {
 
             if(!empty($receivers)) {
                 $mailerService->sendMail(
-                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Nouvelle demande de transport à valider',
+                    $entityManager,
+                    $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Nouvelle demande de transport à valider',
                     $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
                         'transportRequest' => $mainTransportRequest,
                         'urlSuffix' => $router->generate("transport_subcontract_index"),

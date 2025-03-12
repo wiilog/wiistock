@@ -537,7 +537,8 @@ class PackService {
             $lastOngoingDrop = $pack->getLastOngoingDrop();
 
             $this->mailerService->sendMail(
-                $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR. "Unité logistique non récupéré$titleSuffix",
+                $entityManager,
+                $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR. "Unité logistique non récupéré$titleSuffix",
                 $this->templating->render('mails/contents/mailPackDeliveryDone.html.twig', [
                     'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),

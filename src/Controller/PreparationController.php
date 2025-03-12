@@ -916,7 +916,8 @@ class PreparationController extends AbstractController
 
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
-                        $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Validation d\'une demande vous concernant',
+                        $manager,
+                        $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             "demande" => $demande,
                             "title" => "La " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " " . $demande->getNumero() . " de type "

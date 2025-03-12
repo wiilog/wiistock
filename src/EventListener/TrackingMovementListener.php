@@ -114,6 +114,7 @@ class TrackingMovementListener implements EventSubscriber
 
     #[AsEventListener(event: 'postFlush')]
     public function postFlush(PostFlushEventArgs $args): void {
+        $objectManager = $args->getObjectManager();
         foreach ($this->flushedTrackingMovementsInserted ?? [] as $trackingMovement) {
             if ($trackingMovement->isDrop()) {
                 $location = $trackingMovement->getEmplacement();
@@ -121,7 +122,6 @@ class TrackingMovementListener implements EventSubscriber
                     $managers = $location->getManagers();
                     if (!$managers->isEmpty()) {
                         if(!isset($this->trackingMovementType)) {
-                            $objectManager = $args->getObjectManager();
                             $typeRepository = $objectManager->getRepository(Type::class);
                             $this->trackingMovementType = $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA);
                         }
@@ -136,7 +136,8 @@ class TrackingMovementListener implements EventSubscriber
                         );
 
                         $this->mailerService->sendMail(
-                            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
+                            $objectManager,
+                            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . "Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
                             [
                                 'name' => 'mails/contents/mailDropLuOnLocation.html.twig',
                                 'context' => [

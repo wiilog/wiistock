@@ -520,6 +520,7 @@ class DispatchService {
             }
             if (!empty($receiverEmailUses)){
                 $this->mailerService->sendMail(
+                    $entityManager,
                     $subject,
                     [
                         "name" => 'mails/contents/mailDispatch.html.twig',
@@ -619,7 +620,7 @@ class DispatchService {
         $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
 
         foreach ($parsedPacks as $pack) {
-            $this->arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
+            $this->arrivalService->sendMailForDeliveredPack($entityManager, $dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
         }
     }
 

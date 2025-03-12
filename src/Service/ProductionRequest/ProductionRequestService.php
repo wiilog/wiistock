@@ -848,7 +848,7 @@ class ProductionRequestService
         $isTreatedStatus = $status->isTreated();
         $isNew = $productionRequest->getStatusHistory()->count() === 1;
 
-        $subject = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR;
+        $subject = $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR;
         $subject .= $isNew && !$isTreatedStatus
             ? "Notification de création d'une demande de production"
             : (!$isTreatedStatus
@@ -887,6 +887,7 @@ class ProductionRequestService
         }
 
         $this->mailerService->sendMail(
+            $this->entityManager,
             $subject,
             $this->templating->render("mails/production_request/updated-status.html.twig", [
                 "productionRequest" => $productionRequest,

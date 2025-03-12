@@ -128,7 +128,10 @@ class DisputeService {
         ];
     }
 
-    public function sendMailToAcheteursOrDeclarant(Dispute $dispute, string $category, $isUpdate = false) {
+    public function sendMailToAcheteursOrDeclarant(EntityManagerInterface $entityManager,
+                                                   Dispute                $dispute,
+                                                   string                 $category,
+                                                                          $isUpdate = false) {
         $wantSendToBuyersMailStatusChange = $dispute->getStatus()->getSendNotifToBuyer();
         $wantSendToDeclarantMailStatusChange = $dispute->getStatus()->getSendNotifToDeclarant();
         $recipients = [];
@@ -168,6 +171,7 @@ class DisputeService {
             );
 
             $this->mailerService->sendMail(
+                $entityManager,
                 $subject,
                 [
                     "name" => 'mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig',

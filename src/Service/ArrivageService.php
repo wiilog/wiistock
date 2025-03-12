@@ -234,6 +234,7 @@ class ArrivageService {
             }
 
             $this->mailerService->sendMail(
+                $entityManager,
                 ($isUrgentArrival
                     ? ['Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Arrivage UL urgent', false]
                     : ['Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Arrivage UL', false]
@@ -656,7 +657,8 @@ class ArrivageService {
         return $this->fieldModesService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    public function sendMailForDeliveredPack(Emplacement            $location,
+    public function sendMailForDeliveredPack(EntityManagerInterface $entityManager,
+                                             Emplacement            $location,
                                              Pack                   $pack,
                                              Utilisateur            $user,
                                              string                 $trackingType,
@@ -670,6 +672,7 @@ class ArrivageService {
             $pack->setIsDeliveryDone(true);
             if (!empty($receivers)) {
                 $this->mailerService->sendMail(
+                    $entityManager,
                     ['Traçabilité', 'Général', 'Dépose effectuée', false],
                     [
                         "name" => "mails/contents/mailPackDeliveryDone.html.twig",

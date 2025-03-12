@@ -86,7 +86,7 @@ class AlertService
                 $data = "data:image/$type;base64,$imageContent";
                 $content = '<img height="50px" width="50px" src="' . $data . '"><br>' . $content;
             }
-            return $this->mailerService->sendMail($config["subject"], $content, explode(",", $config["receivers"]));
+            return $this->mailerService->sendMail($entityManager, $config["subject"], $content, explode(",", $config["receivers"]));
         } else if ($template->getType() == AlertTemplate::PUSH) {
             $src = null;
             if (isset($config['image']) && !empty($config['image'])) {
