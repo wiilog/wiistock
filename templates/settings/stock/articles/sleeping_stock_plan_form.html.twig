@@ -17,7 +17,7 @@
 
     {% set scheduleRule = sleepingStockPlan.scheduleRule %}
     {% include 'planner/planner.html.twig' with {
-        dispayedFrequecies : [
+        dispayedFrequencies: [
             constant('App\\Entity\\ScheduledTask\\ScheduleRule::WEEKLY'),
             constant('App\\Entity\\ScheduledTask\\ScheduleRule::MONTHLY')
         ] ,

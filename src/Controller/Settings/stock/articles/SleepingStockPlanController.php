@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/parametrage/planification-alerte-stock-dormant', name: "settings_sleeping_stock_plan")]
 class SleepingStockPlanController extends AbstractController {
+
     #[Route('/api/{type}', name: '_api', options: ['expose' => true], methods: [self::GET])]
     #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
     public function sleepingStockRequestPlan(EntityManagerInterface $entityManager,
