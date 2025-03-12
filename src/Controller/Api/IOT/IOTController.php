@@ -26,6 +26,7 @@ class IOTController extends AbstractController {
             $frame = json_decode($request->getContent(), true);
             $message = $frame;
             $IOTService->onMessageReceived($message, $entityManager, $loRaWANServer);
+            // TODO WIIS-10053 return json response
             return new Response();
         } else {
             throw new BadRequestHttpException();

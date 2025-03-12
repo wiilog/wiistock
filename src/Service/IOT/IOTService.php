@@ -773,6 +773,11 @@ class IOTService
                                              ArticleRepository $articleRepository,
                                              PackRepository $packRepository): void {
         $location->addSensorMessage($sensorMessage);
+
+
+        /**
+         * TODO WIIS-10053
+         *
         $packs = $packRepository->getCurrentPackOnLocations(
             [$location->getId()],
             [
@@ -790,6 +795,7 @@ class IOTService
         foreach ($packs as $pack) {
             $this->treatAddMessagePack($pack, $sensorMessage);
         }
+         * */
     }
 
     private function treatAddMessagePack(Pack $pack, SensorMessage $sensorMessage): void {
@@ -1291,7 +1297,7 @@ class IOTService
                 ->toArray();
 
             /*
-             * TODO WIIS-9988
+             * TODO WIIS-10053
              $packs = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 [
@@ -1324,7 +1330,7 @@ class IOTService
             }
 
             /*
-             * TODO WIIS-9988
+             * TODO WIIS-10053
             if (!empty($packs)) {
                 $linked[] = [
                     'type' => 'pack_sensor_message',
