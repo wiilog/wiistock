@@ -30,8 +30,8 @@ function initializeSleepingStockRequestInformations($container){
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            deliveryRequestTemplate: $container.find('template#deliveryRequestTemplate').html(),
-            buttonLabel: $container.find('template#buttonLabel').html(),
+            deliveryRequestTemplate: $container.find('template#article_sleepingStock_deliveryRequestTemplate').html(),
+            buttonLabel: $container.find('template#article_sleepingStock_buttonLabel').html(),
         },
     });
 }
