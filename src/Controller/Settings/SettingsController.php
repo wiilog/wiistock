@@ -153,11 +153,6 @@ class SettingsController extends AbstractController {
                     "label" => "Jours non travaillés",
                     "right" => Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS,
                 ],
-                self::MENU_MAIL_SERVER => [
-                    "label" => "Serveur email",
-                    "right" => Action::SETTINGS_DISPLAY_MAIL_SERVER,
-                    "save" => true,
-                ],
             ],
         ],
         self::CATEGORY_STOCK => [
@@ -721,7 +716,6 @@ class SettingsController extends AbstractController {
     public const MENU_CLIENT = "client";
     public const MENU_OFF_DAYS = "jours_non_travailles";
     public const MENU_LABELS = "etiquettes";
-    public const MENU_MAIL_SERVER = "serveur_email";
 
     public const MENU_CONFIGURATIONS = "configurations";
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
@@ -3739,12 +3733,12 @@ class SettingsController extends AbstractController {
             $packService->launchPackDeliveryReminder($manager);
             $response = [
                 'success' => true,
-                'msg' => "Les mails de relance ont bien été envoyés",
+                'msg' => "Les emails de relance ont bien été envoyés",
             ];
         } catch (Throwable $exception) {
             $response = [
                 'success' => false,
-                'msg' => "Une erreur est survenue lors de l'envoi des mails de relance",
+                'msg' => "Une erreur est survenue lors de l'envoi des emails de relance",
             ];
             $loggerService->sendLog($exception, $request);
         }

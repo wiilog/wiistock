@@ -1008,7 +1008,7 @@ class RefArticleDataService
             "Votre référence vient d'être validée avec les informations suivantes :";
 
         $this->mailerService->sendMail(
-            $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
+            $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
                 [
@@ -1026,7 +1026,7 @@ class RefArticleDataService
         $supplierArticles = $refArticle->getArticlesFournisseur();
 
         $this->mailerService->sendMail(
-            $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Entrée de stock',
+            $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Entrée de stock',
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
                 [

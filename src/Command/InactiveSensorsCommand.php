@@ -41,7 +41,8 @@ class InactiveSensorsCommand extends Command {
             if (!$wrapper->isInactivityAlertSent() && $wrapper->getManager() && $wrapper->getInactivityAlertThreshold()) {
                 $sensor = $wrapper->getSensor();
                 $this->mailerService->sendMail(
-                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Aucune donnée capteur détectée',
+                    $this->entityManager,
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Aucune donnée capteur détectée',
                     $this->templating->render('mails/contents/iot/mailSensorInactive.html.twig', [
                         'sensorCode' => $sensor->getCode(),
                         'sensorName' => $wrapper->getName(),

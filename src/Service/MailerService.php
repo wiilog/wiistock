@@ -8,53 +8,45 @@ use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Mailer\Mailer;
-use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
-use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Traversable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
-class MailerService
-{
+class MailerService {
 
     private const TEST_EMAIL = 'recette@wiilog.fr';
-    public const PORT_SSL = 587;
+
     public const NO_MAIL_DOMAINS = [
         "nomail.fr",
         "nomail.com",
     ];
 
-    public const OBJECT_SERPARATOR = ' // ';
+    public const OBJECT_SEPARATOR = ' // ';
 
     // visit https://i.stack.imgur.com/dmsiJ.png for the details
     public const EMAIL_SLICING_REGEX = "/^(?<Email>.*@)?(?<Protocol>\w+:\/\/)?(?<SubDomain>(?:[\w-]{2,63}\.){0,127}?)?(?<DomainWithTLD>(?<Domain>[\w-]{2,63})\.(?<TopLevelDomain>[\w-]{2,63}?)(?:\.(?<CountryCode>[a-z]{2}))?)(?:[:](?<Port>\d+))?(?<Path>(?:[\/]\w*)+)?(?<QString>(?<QSParams>(?:[?&=][\w-]*)+)?(?:[#](?<Anchor>\w*))*)?$/";
 
-    #[Required]
-    public Environment $templating;
+    public function __construct(
+        private SettingsService        $settingsService,
+        private Environment            $templating,
+        private LanguageService        $languageService,
+        private TranslationService     $translationService,
+        private KernelInterface        $kernel,
+        private MailerInterface        $mailer,
+        private ExceptionLoggerService $exceptionLoggerService,
+    ) {
+    }
 
-    #[Required]
-    public LanguageService $languageService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public KernelInterface $kernel;
-
-    #[Required]
-    public ?EntityManagerInterface $entityManager = null;
-
-    #[Required]
-    public ExceptionLoggerService $exceptionLoggerService;
 
     /**
      * @param string|array $template string|['path' => string, 'options' => array]
      */
-    public function sendMail(callable|string|array    $subject,
+    public function sendMail(EntityManagerInterface   $entityManager,
+                             callable|string|array    $subject,
                              string|array             $template,
                              array|string|Utilisateur $to,
                              array                    $attachments = []): bool {
@@ -71,35 +63,8 @@ class MailerService
             return false;
         }
 
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $mailerServerSettings = $settingRepository->findByLabel([
-            Setting::MAILER_URL,
-            Setting::MAILER_PORT,
-            Setting::MAILER_USER,
-            Setting::MAILER_PASSWORD,
-            Setting::MAILER_IS_TLS_PROTOCOL,
-            Setting::MAILER_SENDER_NAME,
-            Setting::MAILER_SENDER_MAIL,
-        ]);
-
-        $user = ($mailerServerSettings[Setting::MAILER_USER] ?? null)?->getValue();
-        $password = ($mailerServerSettings[Setting::MAILER_PASSWORD] ?? null)?->getValue();
-        $host = ($mailerServerSettings[Setting::MAILER_URL] ?? null)?->getValue();
-        $port = ($mailerServerSettings[Setting::MAILER_PORT] ?? null)?->getValue();
-        $isTLSProtocol = ($mailerServerSettings[Setting::MAILER_IS_TLS_PROTOCOL] ?? null)?->getValue();
-        $senderName = ($mailerServerSettings[Setting::MAILER_SENDER_NAME] ?? null)?->getValue();
-        $senderMail = ($mailerServerSettings[Setting::MAILER_SENDER_MAIL] ?? null)?->getValue();
-
-        if (empty($user) || empty($password) || empty($host) || empty($port)) {
-            return false;
-        }
-
         //protection dev
         $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
-
-        $transport = (new EsmtpTransport($host, $port, $isTLSProtocol))
-            ->setUsername($user)
-            ->setPassword($password);
 
         foreach ($contents as $content) {
             $message = new Email();
@@ -107,8 +72,12 @@ class MailerService
             $body = $content['content'];
             $body .= $redirectToTest ? $this->getRecipientsLabel($content['to']) : "";
 
+            $senderName = $this->settingsService->getValue($entityManager, Setting::MAILER_SENDER_NAME);
+            if ($senderName) {
+                $message->from(new Address($_SERVER['MAILER_SENDER'], $senderName));
+            }
+
             $message
-                ->from(new Address($senderMail, $senderName))
                 ->subject($content['subject'])
                 ->html($body);
 
@@ -136,9 +105,8 @@ class MailerService
                 }
             }
 
-            $mailer = (new Mailer($transport));
             try {
-                $mailer->send($message);
+                $this->mailer->send($message);
             } catch (Throwable $e) {
                 $this->exceptionLoggerService->sendLog($e);
             }
@@ -199,7 +167,7 @@ class MailerService
 
                         $subject = match(true) {
                             is_callable($subject) => $this->translationService->translateIn($slug, ...($subject($slug))),
-                            is_array($subject)    => $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translateIn($slug, ...$subject),
+                            is_array($subject)    => $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . $this->translationService->translateIn($slug, ...$subject),
                             default               => $subject
                         };
 

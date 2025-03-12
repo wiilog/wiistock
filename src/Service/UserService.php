@@ -245,7 +245,8 @@ class UserService {
 
         if (!empty($userToSendEmail)) {
             $this->mailerService->sendMail(
-                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Notification de création d\'un compte utilisateur',
+                $entityManager,
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Notification de création d\'un compte utilisateur',
                 $this->templating->render('mails/contents/mailNewUser.html.twig', [
                     'user' => $newUser,
                     'title' => 'Création d\'un nouvel utilisateur'

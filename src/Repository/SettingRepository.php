@@ -6,16 +6,13 @@ use App\Entity\Setting;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
-/**
- * @method Setting|null find($id, $lockMode = null, $lockVersion = null)
- * @method Setting|null findOneBy(array $criteria, array $orderBy = null)
- * @method Setting[]    findAll()
- * @method Setting[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
-class SettingRepository extends EntityRepository
-{
+class SettingRepository extends EntityRepository {
 
-    public function findByLabel($labels) {
+    /**
+     * @param string[]|string $labels
+     * @return array<string, Setting>
+     */
+    public function findByLabel(array|string $labels): array {
         if(!is_array($labels)) {
             $labels = [$labels];
         }

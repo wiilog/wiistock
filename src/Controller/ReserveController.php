@@ -81,11 +81,11 @@ class ReserveController extends AbstractController
 
         if(isset($reserveType) && isset($truckArrivalLine)) {
             $truckArrival = $truckArrivalLine->getTruckArrival();
-            $reserves = $entityManager->getRepository(Reserve::class)->findReservesByLines($truckArrival->getTrackingLines());
+            $reserves = $reserveRepository->findReservesByLines($truckArrival->getTrackingLines());
             $attachments = Stream::from($reserves)
                 ->flatMap(fn(Reserve $reserve) => $reserve->getAttachments())
                 ->toArray();
-            $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+            $reserveService->sendTruckArrivalMail($entityManager, $truckArrival, $reserveType, $reserves, $attachments);
         }
 
         return new JsonResponse([

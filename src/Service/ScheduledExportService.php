@@ -213,7 +213,8 @@ class ScheduledExportService {
                 $exportToRun->setError("L'export est trop volumineux pour être envoyé par mail (maximum 20MO)");
             } else {
                 $this->mailerService->sendMail(
-                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Export des $entity",
+                    $entityManager,
+                    $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . "Export des $entity",
                     $this->templating->render("mails/contents/mailExportDone.twig", [
                         "entity" => $entity,
                         "export" => $exportToRun,

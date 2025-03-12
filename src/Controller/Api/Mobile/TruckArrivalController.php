@@ -184,7 +184,7 @@ class TruckArrivalController extends AbstractController {
             $reserveType = $reserveTypeIdToReserveTypeArray[$reserveTypeId] ?? null;
 
             if ($reserveType) {
-                $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+                $reserveService->sendTruckArrivalMail($entityManager, $truckArrival, $reserveType, $reserves, $attachments);
             }
         }
 

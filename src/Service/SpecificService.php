@@ -41,7 +41,6 @@ class SpecificService
     public function __construct(
         private SettingsService        $settingsService,
         private EntityManagerInterface $entityManager,
-        private CacheService           $cacheService,
     ) {
     }
 

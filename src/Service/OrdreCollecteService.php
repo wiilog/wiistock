@@ -312,7 +312,8 @@ class OrdreCollecteService
                 $to = array_merge([$to], $managers);
             }
             $this->mailerService->sendMail(
-                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Collecte effectuée',
+                $this->entityManager,
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Collecte effectuée',
                 $this->templating->render('mails/contents/mailCollecteDone.html.twig', [
                     "title" => $partialCollect
                         ? "Votre demande de collecte a été partiellement effectuée."

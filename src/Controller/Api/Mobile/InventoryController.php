@@ -280,7 +280,8 @@ class InventoryController extends AbstractController {
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
-                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . "Validation d’une mission d’inventaire",
+                $entityManager,
+                $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . "Validation d’une mission d’inventaire",
                 $templating->render('mails/contents/mailInventoryMissionValidation.html.twig', [
                     'mission' => $mission,
                 ]),

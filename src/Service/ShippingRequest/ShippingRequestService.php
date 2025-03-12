@@ -177,7 +177,7 @@ class ShippingRequestService {
         $title = '';
         //Validation
         if($shippingRequest->isToTreat()) {
-            $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR .  "Création d'une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
+            $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR .  "Création d'une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false));
             $title = "Une " . strtolower($this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " a été créée";
             if($this->settingsService->getValue($entityManager, Setting::SHIPPING_TO_TREAT_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -200,7 +200,7 @@ class ShippingRequestService {
 
         //Planification
         if($shippingRequest->isShipped()) {
-            $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
+            $mailTitle = $this->translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . $this->translationService->translate("Demande", "Expédition", "Demande d'expédition", false) . " effectuée";
             $title = "Vos produits ont bien été expédiés";
             if($this->settingsService->getValue($entityManager, Setting::SHIPPING_SHIPPED_SEND_TO_REQUESTER)){
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
@@ -222,6 +222,7 @@ class ShippingRequestService {
         }
 
         $this->mailerService->sendMail(
+            $entityManager,
             $mailTitle,
             [
                 "name" => "mails/contents/mailShippingRequest.html.twig",

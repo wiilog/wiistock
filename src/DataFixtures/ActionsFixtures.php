@@ -317,7 +317,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_BILL,
                 Action::SETTINGS_DISPLAY_WORKING_HOURS,
                 Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS,
-                Action::SETTINGS_DISPLAY_MAIL_SERVER,
             ],
             self::SUB_MENU_STOCK => [
                 Action::SETTINGS_DISPLAY_CONFIGURATIONS,
