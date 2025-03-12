@@ -5,13 +5,13 @@ namespace App\Entity\RequestTemplate;
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
-use App\Repository\RequestTemplate\DeliveryRequestTemplateRepositoryTriggerAction;
+use App\Repository\RequestTemplate\DeliveryRequestTemplateTriggerActionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DeliveryRequestTemplateRepositoryTriggerAction::class)]
+#[ORM\Entity(repositoryClass: DeliveryRequestTemplateTriggerActionRepository::class)]
 class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements DeliveryRequestTemplateInterface  {
 
     use DeliveryRequestTemplateTrait;

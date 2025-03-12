@@ -10,5 +10,5 @@ use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
  * @method array<int, DeliveryRequestTemplateTriggerAction> findAll()
  * @method array<int, DeliveryRequestTemplateTriggerAction> findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DeliveryRequestTemplateRepositoryTriggerAction extends RequestTemplateRepository {
+class DeliveryRequestTemplateTriggerActionRepository extends RequestTemplateRepository {
 }
