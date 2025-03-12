@@ -1,10 +1,18 @@
 import EditableDatatable, {MODE_EDIT, SAVE_MANUALLY} from "@app/editatable";
 import AJAX, {GET} from "@app/ajax";
+
+
+/**
+ * @param {jQuery} $container
+ */
 export function initializeSleepingStockSettingPage($container){
     initializeSleepingStockRequestInformations($container)
     initializeSleepingSleepingStockPlan($container)
 }
 
+/**
+ * @param {jQuery} $container
+ */
 function initializeSleepingStockRequestInformations($container){
     EditableDatatable.create('#sleepingStockRequestInformations', {
         route: Routing.generate('settings_sleeping_stock_request_information_api', true),
@@ -28,6 +36,9 @@ function initializeSleepingStockRequestInformations($container){
     });
 }
 
+/**
+ * @param {jQuery} $container
+ */
 function initializeSleepingSleepingStockPlan($container) {
     const $sleepingStockPlanContainer = $container.find('.sleeping-stock-plan-setting');
     const typeChangeEvent = 'change.typeOfSleepingStockPlan';
@@ -42,6 +53,10 @@ function initializeSleepingSleepingStockPlan($container) {
         .trigger(typeChangeEvent)
 }
 
+/**
+ * @param {int} typeId
+ * @param {jQuery} $sleepingStockPlanContainer
+ */
 function loadSleepingSleepingStockPlan(typeId, $sleepingStockPlanContainer) {
     wrapLoadingOnActionButton($sleepingStockPlanContainer, () => (
         AJAX

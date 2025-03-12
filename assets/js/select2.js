@@ -88,10 +88,6 @@ export default class Select2 {
         let search = null;
 
         const dropdownParent = $element.is(`[data-parent]`) ? $($element.data(`parent`)) : $element.parent();
-        console.log($element.is(`[data-parent]`))
-        console.log($($element.data(`parent`)))
-        console.log($element.parent())
-        console.log(dropdownParent)
 
         if ($element.is(`[data-simple]`)) {
             $element.select2({dropdownParent})

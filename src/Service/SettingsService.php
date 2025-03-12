@@ -1419,7 +1419,7 @@ class SettingsService {
 
             foreach (array_filter($tables["sleepingStockRequestInformations"]) as $sleepingStockRequestInformationData) {
                 $id = $sleepingStockRequestInformationData["id"] ?? null;
-                $sleepingStockRequestInformation = ($id)
+                $sleepingStockRequestInformation = $id
                     ? $sleepingStockRequestInformations[$id]
                     : new SleepingStockRequestInformation;
 
