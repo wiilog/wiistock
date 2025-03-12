@@ -1580,7 +1580,7 @@ class ArrivageController extends AbstractController
                     : [],
             ];
             $loggerService->sendLog($exception, $request);
-            return new JsonResponse($content, $content['code']);
+            return $this->json($content, $content['code']);
         }
 
         return $this->json([
