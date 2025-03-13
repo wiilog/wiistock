@@ -12,6 +12,7 @@ use App\Entity\Wiilock;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use WiiCommon\Helper\Stream;
 
 class SessionHistoryRecordService{
 
@@ -69,7 +70,11 @@ class SessionHistoryRecordService{
         return intval($_SERVER["SESSION_LIMIT"] ?? self::MAX_SESSIONS_POSSIBLE);
     }
 
-    public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool {
+    /**
+     * WARNING : Ne pas modifier l'utilisateur dasn cette fonction pour que le fonctionnement
+     * de désactivation des sessions au changement de mot de passe fonctionne bien
+     */
+    public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date, bool $needFlush = true): bool {
         if(is_string($sessionHistory)){
             $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
             $sessionHistory = $sessionHistoryRepository->findOneBy([
@@ -86,7 +91,10 @@ class SessionHistoryRecordService{
                 $entityManager->remove($userSession);
             }
 
-            $entityManager->flush();
+            if($needFlush) {
+                $entityManager->flush();
+            }
+
             return true;
         }
         return false;
@@ -105,7 +113,7 @@ class SessionHistoryRecordService{
         }
     }
 
-    public function closeOpenedSessionsByUserAndType(EntityManagerInterface $entityManager, Utilisateur $user, Type $type, ?DateTime $dateTime= null): void{
+    public function closeOpenedSessionsByUserAndType(EntityManagerInterface $entityManager, Utilisateur $user, Type $type, ?DateTime $dateTime = null, string $sessionIdToKeepActive = null): void{
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $dateTime = $dateTime ?? new DateTime();
         $sessionsToClose = $sessionHistoryRepository->findBy([
@@ -114,8 +122,14 @@ class SessionHistoryRecordService{
             "type" => $type,
         ]);
 
+        if($sessionIdToKeepActive) {
+            $sessionsToClose = Stream::from($sessionsToClose)
+                ->filter(static fn(SessionHistoryRecord $sessionHistoryRecord) => $sessionHistoryRecord->getSessionId() !== $sessionIdToKeepActive)
+                ->toArray();
+        }
+
         foreach ($sessionsToClose as $sessionToClose) {
-            $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime);
+            $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime, !isset($sessionIdToKeepActive));
         }
     }
 
