@@ -80,6 +80,7 @@ class MobileController extends AbstractController {
                     $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
                     $apiKey = $this->apiKeyGenerator();
                     $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $loggedUser, $sessionType);
+                    $entityManager->flush();
                     $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $sessionType, $apiKey);
                     $entityManager->flush();
 
