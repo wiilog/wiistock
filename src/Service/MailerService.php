@@ -50,10 +50,6 @@ class MailerService {
                              string|array             $template,
                              array|string|Utilisateur $to,
                              array                    $attachments = []): bool {
-        if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
-            return true;
-        }
-
         $filteredRecipients = Stream::from(!is_array($to) ? [$to] : $to)
             ->filter(static fn($user) => $user && (is_string($user) || $user->getStatus()));
 
