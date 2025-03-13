@@ -309,6 +309,7 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
+        {% set production = production ?? null %}
         <div
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-8 col-12 {{ typeCanChange ? "d-none" : "" }}">
@@ -318,7 +319,9 @@
                     {
                         label: 'Du',
                         name: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH'),
-                        value: dispatch.startDate ? dispatch.startDate|date('Y-m-d') : null,
+                        value: not dispatch.id and production is not null and production.expectedAt
+                                ? production.expectedAt|date('Y-m-d')
+                                : (dispatch.startDate ? dispatch.startDate|date('Y-m-d') : null),
                         type: 'date',
                         autocompleteOff: true,
                         width: '',
@@ -330,7 +333,9 @@
                     {
                         label: 'Au',
                         name: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH'),
-                        value: dispatch.endDate ? dispatch.endDate|date('Y-m-d') : null,
+                        value: not dispatch.id and production is not null and production.expectedAt
+                                ? production.expectedAt|date('Y-m-d')
+                                : (dispatch.endDate ? dispatch.endDate|date('Y-m-d') : null),
                         type: 'date',
                         autocompleteOff: true,
                         width: '',
