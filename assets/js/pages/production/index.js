@@ -117,12 +117,12 @@ function initProductionRequestsTable(dispatchMode = false) {
 
     const fromDashboard = $('[name="fromDashboard"]').val() === '1';
 
-    let pathProduction = Routing.generate('production_request_api', {
+    const pathProduction = Routing.generate('production_request_api', {
         filterStatus: status,
         preFilledTypes: $typeFilter.val(),
         fromDashboard,
         dispatchMode,
-    }, true);
+    });
 
     if (dispatchMode || !initialVisible) {
         return AJAX
