@@ -9,11 +9,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AccessTokenRepository::class)]
+#[ORM\Index(fields: ["type"], name: "IDX_WIILOG_TYPE")]
+
 class AccessToken extends Token {
     #[ORM\Column(type: Types::STRING, enumType: DeliveryRequestTemplateUsageEnum::class)]
     private ?DeliveryRequestTemplateUsageEnum $type = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $owner = null;
 
