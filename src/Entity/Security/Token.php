@@ -3,7 +3,7 @@
 namespace App\Entity\Security;
 
 use App\Repository\Security\TokenRepository;
-use DateTimeImmutable;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -16,11 +16,11 @@ abstract class Token {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false)]
-    private ?DateTimeImmutable $expireAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?DateTime $expireAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: false)]
-    private ?DateTimeImmutable $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?DateTime $createdAt = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $token = null;
@@ -29,21 +29,21 @@ abstract class Token {
         return $this->id;
     }
 
-    public function getExpireAt(): ?DateTimeImmutable {
+    public function getExpireAt(): ?DateTime {
         return $this->expireAt;
     }
 
-    public function setExpireAt(DateTimeImmutable $expireAt): self {
+    public function setExpireAt(DateTime $expireAt): self {
         $this->expireAt = $expireAt;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTimeImmutable {
+    public function getCreatedAt(): ?DateTime {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTimeImmutable $createdAt): self {
+    public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
 
         return $this;
