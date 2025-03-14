@@ -30,14 +30,13 @@ log() {
 #   init_cypress_env
 init_cypress_env() {
     log "Starting ssh daemon"
-    sshd -D > /dev/null &
+    /usr/sbin/sshd -D > /dev/null &
 
     log "Exporting environment variables"
-    rm /etc/environment
     env > /etc/environment
 
     log "Fixing environment variables"
-    sed -i 's/^\([^#]*=[^"].*\\)$/\\1"/; s/=\\([^"].*\\)$/="\\1/' /etc/environment
+    sed -i 's/^\([^#]*=[^\"].*\)$/\1\"/; s/=\([^\"].*\)$/=\"\1/' /etc/environment
 }
 
 # Launch supervisor daemon according to given mode.
