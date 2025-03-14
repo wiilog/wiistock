@@ -3073,8 +3073,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Label"
                         ],
                         [
-                            "fr" => "Références",
-                            "en" => "References"
+                            "fr" => "Référence",
+                            "en" => "Reference"
                         ],
                         [
                             "fr" => "Quantité",
