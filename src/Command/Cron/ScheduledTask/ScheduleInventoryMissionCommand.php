@@ -2,7 +2,7 @@
 // At every minute
 // * * * * *
 
-namespace App\Command\Cron;
+namespace App\Command\Cron\ScheduledTask;
 
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Service\InvMissionService;

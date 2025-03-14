@@ -4,8 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Dispute;
+use App\Entity\MouvementStock;
+use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
@@ -264,8 +268,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
      */
     public function createQueryBuilderMatching(string $alias,
                                                string $regex,
-                                               bool   $active): QueryBuilder
-    {
+                                               bool   $active): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder($alias)
             ->andWhere("REGEXP($alias.email, :email_pattern) = true")
             ->setParameter('email_pattern', $regex);
@@ -276,4 +279,18 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
         return $queryBuilder;
     }
+
+    public function findWithSleepingReferenceArticlesByType(Type $type, DateTime $dateLimit) {
+        $referenceArticleRepository = $this->getEntityManager()->getRepository(ReferenceArticle::class);
+        $referenceArticleAlias = 'reference_article';
+        $queryBuilder = $this->createQueryBuilder('user')
+            ->leftjoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', 'reference_article.type = :type')
+            ->setParameter('type', $type)
+            ->setParameter('dateLimit', $dateLimit);
+
+        return $referenceArticleRepository->filterBySleepingReference($queryBuilder , $dateLimit, $referenceArticleAlias)
+            ->getQuery()
+            ->getResult();
+    }
+
 }
