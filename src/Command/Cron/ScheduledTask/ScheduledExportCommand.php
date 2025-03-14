@@ -2,10 +2,10 @@
 // At every minute
 // * * * * *
 
-namespace App\Command\Cron;
+namespace App\Command\Cron\ScheduledTask;
 
-use App\Entity\ScheduledTask\PurchaseRequestPlan;
-use App\Service\PurchaseRequestPlanService;
+use App\Entity\ScheduledTask\Export;
+use App\Service\ScheduledExportService;
 use App\Service\ScheduledTaskService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
@@ -16,29 +16,31 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
-#[AsCommand(
-    name: ScheduledPurchaseRequestCommand::COMMAND_NAME,
-    description: 'This command executes scheduled purchase resquests.'
-)]
-class ScheduledPurchaseRequestCommand extends Command {
 
-    public const COMMAND_NAME = "app:launch:scheduled-purchase-request";
+#[AsCommand(
+    name: ScheduledExportCommand::COMMAND_NAME,
+    description: 'This command executes scheduled export.'
+)]
+class ScheduledExportCommand extends Command
+{
+    public const COMMAND_NAME = 'app:launch:scheduled-exports';
 
     #[Required]
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public PurchaseRequestPlanService $purchaseRequestPlanService;
+    public ScheduledExportService $exportService;
 
     #[Required]
     public ScheduledTaskService $scheduledTaskService;
 
-    protected function execute(InputInterface $input, OutputInterface $output): int {
+    protected function execute(InputInterface  $input,
+                               OutputInterface $output): int {
         return $this->scheduledTaskService->launchScheduledTasks(
             $this->getEntityManager(),
-            PurchaseRequestPlan::class,
-            function (PurchaseRequestPlan $purchaseRequestPlan, DateTime $taskExecution) {
-                $this->purchaseRequestPlanService->treatRequestPlan($this->getEntityManager(), $purchaseRequestPlan, $taskExecution);
+            Export::class,
+            function (Export $export, DateTime $taskExecution) {
+                $this->exportService->export($this->getEntityManager(), $export, $taskExecution);
             }
         );
     }
@@ -48,4 +50,5 @@ class ScheduledPurchaseRequestCommand extends Command {
             ? $this->entityManager
             : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
+
 }
