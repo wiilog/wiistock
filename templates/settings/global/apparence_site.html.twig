@@ -2,61 +2,50 @@
 
 <div class="wii-section">
     <div class="row">
-        <div class="form-group w-fit-content col-6">
-            <div class="row">
-                <div class="col-auto">
-                    {{ form.image(setting('FILE_WEBSITE_LOGO'), 'Logo sur web entête', false, setting_value('FILE_WEBSITE_LOGO'), {
-                        defaultValue: setting('DEFAULT_WEBSITE_LOGO_VALUE'),
-                    }) }}
-                </div>
-            </div>
+        <div class="form-group col-md-6 col-12">
+            {{ form.image(setting('FILE_WEBSITE_LOGO'), 'Logo sur web entête', false, setting_value('FILE_WEBSITE_LOGO'), {
+                defaultValue: setting('DEFAULT_WEBSITE_LOGO_VALUE'),
+            }) }}
         </div>
 
-        <div class="form-group w-fit-content col-6">
-            <div class="row">
-                <div class="col-auto">
-                    {{ form.image(setting('FILE_MOBILE_LOGO_LOGIN'), 'Logo sur nomade page connexion', false, setting_value('FILE_MOBILE_LOGO_LOGIN'), {
-                        defaultValue: setting('DEFAULT_MOBILE_LOGO_LOGIN_VALUE'),
-                    }) }}
-                </div>
-            </div>
+        <div class="form-group col-md-6 col-12">
+            {{ form.image(setting('FILE_MOBILE_LOGO_LOGIN'), 'Logo sur nomade page connexion', false, setting_value('FILE_MOBILE_LOGO_LOGIN'), {
+                defaultValue: setting('DEFAULT_MOBILE_LOGO_LOGIN_VALUE'),
+            }) }}
         </div>
 
-        <div class="form-group w-fit-content col-6">
-            <div class="row">
-                <div class="col-auto">
-                    {{ form.image(setting('FILE_EMAIL_LOGO'), 'Logo sur les emails', false, setting_value('FILE_EMAIL_LOGO'), {
-                        defaultValue: setting('DEFAULT_EMAIL_LOGO_VALUE'),
-                    }) }}
-                </div>
-            </div>
+        <div class="form-group col-md-6 col-12">
+            {{ form.image(setting('FILE_EMAIL_LOGO'), 'Logo sur les emails', false, setting_value('FILE_EMAIL_LOGO'), {
+                defaultValue: setting('DEFAULT_EMAIL_LOGO_VALUE'),
+            }) }}
         </div>
 
-        <div class="form-group w-fit-content col-6">
-            <div class="row">
-                <div class="col-auto">
-                    {{ form.image(setting('FILE_MOBILE_LOGO_HEADER'), 'Logo sur nomade entête', false, setting_value('FILE_MOBILE_LOGO_HEADER'), {
-                        defaultValue: setting('DEFAULT_MOBILE_LOGO_HEADER_VALUE'),
-                    }) }}
-                </div>
-            </div>
+        <div class="form-group col-md-6 col-12">
+            {{ form.image(setting('FILE_MOBILE_LOGO_HEADER'), 'Logo sur nomade entête', false, setting_value('FILE_MOBILE_LOGO_HEADER'), {
+                defaultValue: setting('DEFAULT_MOBILE_LOGO_HEADER_VALUE'),
+            }) }}
         </div>
     </div>
 
     <div class="row">
-        <div class="form-group w-fit-content col-6">
+        <div class="form-group col-md-6 col-12">
             {{ form.select(setting('FONT_FAMILY'), 'Choix de la police', true, {
                 items: setting('FONTS'),
                 value: setting_value('FONT_FAMILY')
             }) }}
         </div>
 
-        {% set setting = constant('App\\Entity\\Setting::APP_CLIENT_LABEL') %}
-        <div class="form-group w-fit-content col-6">
+        <div class="form-group col-md-6 col-12">
+            {% set setting = constant('App\\Entity\\Setting::APP_CLIENT_LABEL') %}
             {{ form.input(setting, 'Nom du client', true, setting_value(setting)) }}
         </div>
 
-        <div class="form-group w-fit-content col-6">
+        <div class="form-group col-md-6 col-12">
+            {% set setting = constant('App\\Entity\\Setting::MAILER_SENDER_NAME') %}
+            {{ form.input(setting, "Nom d'expéditeur des emails", true, setting_value(setting)) }}
+        </div>
+
+        <div class="form-group col-md-6 col-12">
             {{ form.input(setting('MAX_SESSION_TIME'),
                 '<span class="wii-field-name">Temps de session en minutes&nbsp;</span><span class="wii-small-text">(maximum 24h)</span>',
                 false,
@@ -71,7 +60,7 @@
     </div>
 
     <div class="row">
-        <div class="form-group w-fit-content col-6">
+        <div class="form-group col-md-6 col-12">
             {% set settingShowLoginLogo = setting_value('SHOW_LOGIN_LOGO') %}
             {{ form.switch(setting('SHOW_LOGIN_LOGO'), "Afficher le logo à la connexion sur l'application", false, [
                 {label: 'Oui', value: true, checked: settingShowLoginLogo},

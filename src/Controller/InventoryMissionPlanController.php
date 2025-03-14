@@ -165,13 +165,14 @@ class InventoryMissionPlanController extends AbstractController
 
         $scheduledTaskService->deleteCache(InventoryMissionPlan::class);
 
-        $subject = $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . (
+        $subject = $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . (
             $edit
                 ? 'Modification planification mission d’inventaire'
                 : 'Création planification mission d’inventaire'
             );
 
         $mailerService->sendMail(
+            $entityManager,
             $subject,
             $this->renderView('mails/contents/mailScheduledInventory.html.twig', [
                 'edit' => $edit,

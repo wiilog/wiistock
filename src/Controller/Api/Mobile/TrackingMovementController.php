@@ -232,7 +232,7 @@ class TrackingMovementController extends AbstractController {
                         }
 
                         // envoi de mail si c'est une dépose + l'UL existe + l'emplacement est un point de livraison
-                        $arrivageDataService->sendMailForDeliveredPack($location, $associatedPack, $nomadUser, $type->getNom(), $date);
+                        $arrivageDataService->sendMailForDeliveredPack($entityManager, $location, $associatedPack, $nomadUser, $type->getNom(), $date);
 
                         $entityManager->flush();
 

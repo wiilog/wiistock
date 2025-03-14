@@ -91,9 +91,14 @@ class ReserveService
         ];
     }
 
-    public function sendTruckArrivalMail(TruckArrival $truckArrival, ReserveType $reserveType, array $reserves, array $attachments): void {
+    public function sendTruckArrivalMail(EntityManagerInterface $entityManager,
+                                         TruckArrival           $truckArrival,
+                                         ReserveType            $reserveType,
+                                         array                  $reserves,
+                                         array                  $attachments): void {
         $this->mailerService->sendMail(
-            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . 'Réserve arrivage camion',
+            $entityManager,
+            $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Réserve arrivage camion',
             $this->templating->render('mails/contents/mailTruckArrival.html.twig', [
                 "truckArrival" => $truckArrival,
                 "reserves" => $reserves,

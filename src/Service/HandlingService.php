@@ -173,6 +173,7 @@ class HandlingService {
             $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
             $this->mailerService->sendMail(
+                $entityManager,
                 $subject,
                 [
                     'name' => 'mails/contents/mailHandlingTreated.html.twig',

@@ -86,6 +86,7 @@ class MailsLitigesComand extends Command
             $disputes = $res['disputes'];
             $buyer = $res['buyer'];
             $this->mailerService->sendMail(
+                $this->entityManager,
                 $subject,
                 [
                     'name' => 'mails/contents/mailLitigesArrivage.html.twig',

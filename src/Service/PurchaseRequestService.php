@@ -245,7 +245,8 @@ class PurchaseRequestService {
                 ->toArray();
 
             $this->mailerService->sendMail(
-                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . $subject,
+                $entityManager,
+                $this->translation->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . $subject,
                 $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
                     'title' => $title,
                     'purchaseRequest' => $purchaseRequest,
