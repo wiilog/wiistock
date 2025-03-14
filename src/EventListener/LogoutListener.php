@@ -21,5 +21,6 @@ class LogoutListener
     public function onSymfonyComponentSecurityHttpEventLogoutEvent(LogoutEvent $logoutEvent): void
     {
         $this->sessionService->closeSessionHistoryRecord($this->entityManager, $logoutEvent->getRequest()->getSession()->getId(), new DateTime('now'));
+        $this->entityManager->flush();
     }
 }

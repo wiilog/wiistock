@@ -45,6 +45,7 @@ class CloseSessionsCommand extends Command
             if ($sessionHistoryRecord) {
                 $this->sessionHistoryRecordService->closeSessionHistoryRecord($this->entityManager, $sessionHistoryRecord, $now);
             }
+            $this->entityManager->flush();
             $user =  $this->formatService->user($sessionHistoryRecord->getUser());
             $type = $sessionHistoryRecord->getType()->getLabel();
             $output->writeln(
