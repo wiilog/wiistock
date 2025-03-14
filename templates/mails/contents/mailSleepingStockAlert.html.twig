@@ -1,0 +1,57 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>{{ translateIn(language, 'Général', null, 'Emails', 'Bonjour,', false) }}</p>
+    <p>{{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Les articles suivants approchent du seuil autorisé de stockage.', false) }}</p>
+
+    {% if references is defined and references is not empty %}
+        <table class="table"
+               style="border: 1px solid black;border-collapse: collapse;"
+               role="presentation">
+            <thead>
+            <tr>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Libellé') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Référence') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Quantité') }}
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    {{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Date max de stockage') }}
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for reference in references %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ reference.libelle }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ reference.reference }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ reference.quantiteStock }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ reference.maxStorageDate }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <p>{{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Sans réponse de votre part, nous détruirons les articles concernés dans un délai de 15 jours à partir de ce mail.', false) }}</p>
+{% endblock %}
