@@ -9,6 +9,7 @@ use App\Entity\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
 use App\Entity\Wiilock;
+use App\EventListener\PasswordChangedListener;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -71,10 +72,10 @@ class SessionHistoryRecordService{
     }
 
     /**
-     * WARNING : Ne pas modifier l'utilisateur dasn cette fonction pour que le fonctionnement
-     * de désactivation des sessions au changement de mot de passe fonctionne bien
+     * WARNING : Don't update here the user entity to keep working the password changed listener
+     * @see PasswordChangedListener
      */
-    public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date, bool $needFlush = true): bool {
+    public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool {
         if(is_string($sessionHistory)){
             $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
             $sessionHistory = $sessionHistoryRepository->findOneBy([
@@ -89,10 +90,6 @@ class SessionHistoryRecordService{
             $userSession = $userSessionRepository->find($sessionHistory->getSessionId());
             if ($userSession) {
                 $entityManager->remove($userSession);
-            }
-
-            if($needFlush) {
-                $entityManager->flush();
             }
 
             return true;
@@ -111,6 +108,7 @@ class SessionHistoryRecordService{
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $now);
         }
+        $entityManager->flush();
     }
 
     public function closeOpenedSessionsByUserAndType(EntityManagerInterface $entityManager, Utilisateur $user, Type $type, ?DateTime $dateTime = null, string $sessionIdToKeepActive = null): void{
@@ -131,6 +129,7 @@ class SessionHistoryRecordService{
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime, !isset($sessionIdToKeepActive));
         }
+        $entityManager->flush();
     }
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
