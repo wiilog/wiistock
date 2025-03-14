@@ -469,4 +469,10 @@ class MouvementStockRepository extends EntityRepository
         ];
     }
 
+    public function getMaxMovementDateForReferenceArticleQuery() {
+        return $this->createQueryBuilder('movement')
+            ->select('MAX(movement.date)')
+            ->where('movement.refArticle = reference_article')
+            ->getDQL();
+    }
 }

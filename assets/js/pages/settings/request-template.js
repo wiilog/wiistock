@@ -73,6 +73,10 @@ export function initializeRequestTemplates($container, canEdit) {
         .off('change.deliveryRequestTemplateUsage')
         .on('change.deliveryRequestTemplateUsage', '[name="deliveryRequestTemplateUsage"]', () => onDeliveryRequestTemplateUsageChange($container, $container.find(`[name="deliveryRequestTemplateUsage"]`).val(), table));
 
+    $(document).arrive('[name="deliveryRequestTemplateUsage"]', function() {
+        $(this).trigger('change');
+    });
+
     $container.on(`change`, `[name="reference"]`, function () {
         const $select = $(this);
         const $row = $select.closest(`tr`);

@@ -2,7 +2,7 @@
 // At each minute
 // * * * * *
 
-namespace App\Command\Cron;
+namespace App\Command\Cron\ScheduledTask;
 
 use App\Entity\CategorieStatut;
 use App\Entity\ScheduledTask\Import;

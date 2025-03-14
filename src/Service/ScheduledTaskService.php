@@ -8,6 +8,7 @@ use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\ScheduledTask\PurchaseRequestPlan;
 use App\Entity\ScheduledTask\ScheduledTask;
 use App\Entity\ScheduledTask\ScheduleRule;
+use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Repository\ScheduledTask\ScheduledTaskRepository;
 use DateTime;
 use DateTimeInterface;
@@ -247,6 +248,7 @@ class ScheduledTaskService {
             Export::class               => CacheService::COLLECTION_EXPORTS,
             PurchaseRequestPlan::class  => CacheService::COLLECTION_PURCHASE_REQUEST_PLANS,
             InventoryMissionPlan::class => CacheService::COLLECTION_INVENTORY_MISSION_PLANS,
+            SleepingStockPlan::class    => CacheService::COLLECTION_SLEEPING_STOCK_PLANS,
             default                     => throw new Exception("Not implemented yet")
         };
     }
