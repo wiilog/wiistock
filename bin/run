@@ -77,7 +77,7 @@ if [ -n "$arg_mode" ] \
     exit 1 # exit with error
 fi
 
-# validate arg_mode
+# if arg_mode is cypress then we init cypress env
 if [ "$arg_mode" = "$MODE_CYPRESS" ]; then
     init_cypress_env
     arg_mode="$MODE_LITE"
