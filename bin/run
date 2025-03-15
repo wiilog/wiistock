@@ -50,7 +50,7 @@ launch_supervisor() {
     crontab_content="* * * * * echo -e \"\$(date)\\t\$(php /project/bin/console cron:run)\\n\" 2>> /project/var/log/cron.log"
 
     log "Write crontab content in $crontab_tmp_file:  $crontab_content"
-    echo crontab_content > "$crontab_tmp_file"
+    echo "$crontab_content" > "$crontab_tmp_file"
 
     log "Apply crontab tmp file $crontab_tmp_file"
     crontab "$crontab_tmp_file"
@@ -89,4 +89,3 @@ if [ "$arg_mode" = "$MODE_CYPRESS" ]; then
 fi
 
 launch_supervisor "$arg_mode"
-
