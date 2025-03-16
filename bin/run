@@ -47,12 +47,10 @@ launch_supervisor() {
     arg_mode="$1"
 
     crontab_tmp_file=/tmp/crontab_wiisock
-    crontab_content="* * * * * echo -e \"\$(date)\\t\$(php /project/bin/console cron:run)\\n\" 2>> /project/var/log/cron.log"
-
-    log "Write crontab content in $crontab_tmp_file:  $crontab_content"
+    crontab_content="* * * * * echo -e \"\$(date)\\t\$(php /project/bin/console cron:run)\\n\" 2>> /project/var/log/cron-run.log"
     echo "$crontab_content" > "$crontab_tmp_file"
 
-    log "Apply crontab tmp file $crontab_tmp_file"
+    log "Write crontab content in $crontab_tmp_file:  $crontab_content"
     crontab "$crontab_tmp_file"
     rm "$crontab_tmp_file"
 
