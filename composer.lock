@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d543d6233d89ad3ce133db0f365ed150",
+    "content-hash": "b4e9d885bb514049165085c68b6bea98",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -4611,6 +4611,75 @@
                 "source": "https://github.com/ScientaNL/DoctrineJsonFunctions/tree/5.5.0"
             },
             "time": "2024-03-08T08:39:12+00:00"
+        },
+        {
+            "name": "symfony/amqp-messenger",
+            "version": "v6.4.13",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/amqp-messenger.git",
+                "reference": "4149e8d799f4a69077a1a8813c4ae4ea3819ce3c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/amqp-messenger/zipball/4149e8d799f4a69077a1a8813c4ae4ea3819ce3c",
+                "reference": "4149e8d799f4a69077a1a8813c4ae4ea3819ce3c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-amqp": "*",
+                "php": ">=8.1",
+                "symfony/messenger": "^6.1|^7.0"
+            },
+            "require-dev": {
+                "symfony/event-dispatcher": "^5.4|^6.0|^7.0",
+                "symfony/process": "^5.4|^6.0|^7.0",
+                "symfony/property-access": "^5.4|^6.0|^7.0",
+                "symfony/serializer": "^5.4|^6.0|^7.0"
+            },
+            "type": "symfony-messenger-bridge",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Messenger\\Bridge\\Amqp\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony AMQP extension Messenger Bridge",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/amqp-messenger/tree/v6.4.13"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-09-25T14:18:03+00:00"
         },
         {
             "name": "symfony/asset",
@@ -12493,6 +12562,7 @@
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2",
+        "ext-amqp": "*",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-intl": "*",
