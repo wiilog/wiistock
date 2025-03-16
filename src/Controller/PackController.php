@@ -39,6 +39,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -477,7 +478,13 @@ class PackController extends AbstractController {
     #[Route("/{logisticUnit}/tracking-delay", name: "force_tracking_delay_calculation", options: ['expose' => true], methods: [self::POST])]
     public function postTrackingDelay(MessageBusInterface $messageBus,
                                       Pack                $logisticUnit): JsonResponse {
-        $messageBus->dispatch(new CalculateTrackingDelayMessage($logisticUnit->getCode()));
+        $messageBus->dispatch(new CalculateTrackingDelayMessage($logisticUnit->getCode()), [
+            AmqpStamp::createWithAttributes([
+                'headers' => [
+                    'x-deduplication-header' => $logisticUnit->getCode(),
+                ]
+            ])
+        ]);
 
         return $this->json([
             "success" => true,

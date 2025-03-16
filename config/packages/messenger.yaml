@@ -8,31 +8,22 @@ framework:
       # https://symfony.com/doc/current/messenger.html#transport-configuration
 
       async_tracking_delay:
-        dsn: "doctrine://default"
+        dsn: "%env(MESSENGER_DSN)%"
+        options:
+          queues:
+            "%env(string:key:user:url:MESSENGER_DSN)%_tracking-delay":
+              arguments:
+                x-message-deduplication: true
         retry_strategy:
           max_retries: 0
-        options:
-          queue_name: "tracking-delay"
-          unique_messages: "waiting_queue"
-
-      # message in transport async_tracking_delay are rerouted to this queue
-      # we declare it to get the waiting handler which retry to dispatch original message
-      # see App\Messenger\TrackingDelay\CalculateTrackingDelayWaitingHandler
-      async_tracking_delay_waiting:
-        dsn: "doctrine://default"
-        retry_strategy:
-          max_retries: 0
-        options:
-          queue_name: "tracking-delay_waiting"
-          unique_messages: "queue"
 
       async_dashboard_feeding:
-        dsn: "doctrine://default"
+        dsn: "%env(MESSENGER_DSN)%"
+        options:
+          queues:
+            "%env(string:key:user:url:MESSENGER_DSN)%_dashboard-feeding":
         retry_strategy:
           max_retries: 0
-        options:
-          queue_name: "dashboard-feeding"
-          unique_messages: "queue"
 
     # Route your messages to the transports
     routing:
