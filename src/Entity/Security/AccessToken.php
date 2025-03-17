@@ -11,18 +11,18 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: AccessTokenRepository::class)]
 #[ORM\Index(fields: ["type"], name: "IDX_WIILOG_TYPE")]
 class AccessToken extends Token {
-    #[ORM\Column(type: Types::STRING, enumType: DeliveryRequestTemplateUsageEnum::class)]
-    private ?DeliveryRequestTemplateUsageEnum $type = null;
+    #[ORM\Column(type: Types::STRING, enumType: AccessTokenTypeEnum::class)]
+    private ?AccessTokenTypeEnum $type = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $owner = null;
 
-    public function getType(): ?DeliveryRequestTemplateUsageEnum {
+    public function getType(): ?AccessTokenTypeEnum {
         return $this->type;
     }
 
-    public function setType(DeliveryRequestTemplateUsageEnum $type): self {
+    public function setType(AccessTokenTypeEnum $type): self {
         $this->type = $type;
 
         return $this;
