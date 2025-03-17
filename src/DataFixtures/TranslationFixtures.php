@@ -3096,6 +3096,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Sans réponse de votre part, nous détruirons les articles concernés dans un délai de 15 jours à partir de ce mail",
                             "en" => "If you do not respond, we will destroy the items concerned within 15 days of this email."
                         ],
+                        [
+                            "fr" => "Seuil d’alerte stock dormant atteint",
+                            "en" => "Sleeping stock alert threshold reached"
+                        ],
+                        [
+                            "fr" => "Cette liste n’est pas exhaustive, {1} références sont également en alerte stock dormant.",
+                            "en" => "This list is not exhaustive, {1} references are also on dormant stock alert."
+                        ],
                     ],
                 ],
             ],

@@ -33,7 +33,7 @@
                 <tr>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ reference.libelle }}
+                        {{ reference.label }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -41,16 +41,23 @@
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ reference.quantiteStock }}
+                        {{ reference.quantityStock }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ reference.maxStorageDate }}
+                        {{reference.maxStorageDate }}
                     </td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
+
+        {% if countTotal is defined and countTotal > references|length %}
+            <p>
+                {{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Cette liste n’est pas exhaustive, {1} références sont également en alerte stock dormant.', {1: countTotal}) }}
+            </p>
+        {% endif %}
+
     {% endif %}
 
     <p>{{ translateIn(language, 'Stock', 'Références', 'Email stock dormant', 'Sans réponse de votre part, nous détruirons les articles concernés dans un délai de 15 jours à partir de ce mail.', false) }}</p>

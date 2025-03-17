@@ -64,7 +64,6 @@ use App\Service\FormatService;
 use App\Service\FormService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
-use App\Service\MailerService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
@@ -83,10 +82,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -3786,11 +3783,7 @@ class SettingsController extends AbstractController {
     #[Route('/native-countries-api', name: 'settings_native_countries_api', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
     public function nativeCountriesApi(Request $request,
-                                       EntityManagerInterface $manager,
-                                       MailerService $mailerService,
-                                       TranslationService $translationService,
-                                       Environment $templating,
-                                       RouterInterface $router): JsonResponse {
+                                       EntityManagerInterface $manager): JsonResponse {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
         $nativeCountryRepository = $manager->getRepository(NativeCountry::class);
@@ -3828,20 +3821,6 @@ class SettingsController extends AbstractController {
             "label" => "",
             "active" => "",
         ];
-
-
-
-        $mailerService->sendMail(
-            $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SERPARATOR . '',
-            $templating->render('mails/contents/mailSleepingStockAlert.html.twig', [
-                "urlSuffix" => "",
-                "buttonText" => $translationService->translate("Stock", "Références", "Email stock dormant", "Cliquez ici pour gérer vos articles", false),
-                "references" => [],
-            ]),
-            $this->getUser(),
-        );
-
-
 
         return $this->json([
             "data" => $data,

@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
+use Symfony\Bridge\Twig\TokenParser\DumpTokenParser;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -280,13 +281,15 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $queryBuilder;
     }
 
+    /**
+     * @return array<int, Utilisateur>
+     */
     public function findWithSleepingReferenceArticlesByType(Type $type, DateTime $dateLimit) {
         $referenceArticleRepository = $this->getEntityManager()->getRepository(ReferenceArticle::class);
         $referenceArticleAlias = 'reference_article';
         $queryBuilder = $this->createQueryBuilder('user')
             ->leftjoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', 'reference_article.type = :type')
-            ->setParameter('type', $type)
-            ->setParameter('dateLimit', $dateLimit);
+            ->setParameter('type', $type);
 
         return $referenceArticleRepository->filterBySleepingReference($queryBuilder , $dateLimit, $referenceArticleAlias)
             ->getQuery()
