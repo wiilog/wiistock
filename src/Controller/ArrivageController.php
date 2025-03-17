@@ -1574,7 +1574,9 @@ class ArrivageController extends AbstractController
             $content = [
                 "success" => false,
                 'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
-                'message' => $exception->getMessage(),
+                'message' => in_array($_SERVER["APP_ENV"], ['dev', 'preprod'], true)
+                    ? $exception->getMessage()
+                    : "Une erreur est survenue, veuillez contacter le support.",
                 'trace' => in_array($_SERVER["APP_ENV"], ['dev', 'preprod'], true)
                     ? $exception->getTrace()
                     : [],
