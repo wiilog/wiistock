@@ -2,13 +2,12 @@
 
 namespace App\Entity\OperationHistory;
 
-use App\Entity\StatusHistory;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\MappedSuperclass]
+#[ORM\MappedSuperclass()]
 abstract class OperationHistory {
 
     #[ORM\Id]
