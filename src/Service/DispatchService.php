@@ -20,6 +20,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
+use App\Entity\ProductionRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
@@ -230,6 +231,7 @@ class DispatchService {
             'packs' => $packs,
             'entity' => $entity,
             'isArrival' => $entity instanceof Arrivage,
+            'production' => $entity instanceof ProductionRequest ? $entity : null,
             'entityIds' => Stream::from($entityIds)->json(),
             'existingDispatches' => Stream::from($existingDispatches)
                 ->map(fn(Dispatch $dispatch) => [

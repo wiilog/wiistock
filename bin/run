@@ -1,73 +1,91 @@
-#!/usr/bin/env php
-<?php
+#!/bin/sh
+# Script run as entrypoint of container
+# Usage:
+#   bin/run MODE
+# Available arg MODE: "lite" or "default" or "cypress"
 
-const MODE_LITE = "lite";
-const MODE_CYPRESS = "cypress";
-const MODE_DEFAULT = "default";
 
-const SUPERVISOR_ALLOWED_MODES = [MODE_DEFAULT, MODE_LITE];
+set -e
 
-// check if the script is launched by command line
-if (!isset($argv)) {
-    return;
+MODE_LITE="lite"
+MODE_CYPRESS="cypress"
+MODE_DEFAULT="default"
+
+
+###########################################
+########## Function declarations ##########
+###########################################
+
+
+# Utils method to echo logs with date
+# Usage:
+#   log "Logging action 1"
+log() {
+    text="$1"
+    echo "$(date)    $text"
 }
 
-main($argv[1] ?? null);
+# Initialization of cypress env
+# Usage:
+#   init_cypress_env
+init_cypress_env() {
+    log "Starting ssh daemon"
+    /usr/sbin/sshd -D > /dev/null &
 
+    log "Exporting environment variables"
+    env > /etc/environment
 
+    log "Fixing environment variables"
+    sed -i 's/^\([^#]*=[^\"].*\)$/\1\"/; s/=\([^\"].*\)$/=\"\1/' /etc/environment
+}
 
-///////////////////////////////////////////
-////////// function declarations //////////
-///////////////////////////////////////////
+# Launch supervisor daemon according to given mode.
+# Available mode "lite" or "default"
+# Usage:
+#   launch_supervisor MODE
+launch_supervisor() {
+    arg_mode="$1"
 
+    crontab_tmp_file=/tmp/crontab_wiisock
+    crontab_content="* * * * * echo -e \"\$(date)\\t\$(php /project/bin/console cron:run)\\n\" 2>> /project/var/log/cron.log"
 
-function main(?string $mode): void {
-    echo "Starting instance in " . $mode . " mode" . PHP_EOL;
+    log "Write crontab content in $crontab_tmp_file:  $crontab_content"
+    echo "$crontab_content" > "$crontab_tmp_file"
 
-    switch ($mode) {
-        // mode lite without cron & supervisor
-        case MODE_CYPRESS:
-            initCypressEnvironment();
-            $mode = MODE_LITE;
-            break;
-        case MODE_LITE:
-            break;
-        default:
-            $mode = MODE_DEFAULT;
-            break;
-    }
+    log "Apply crontab tmp file $crontab_tmp_file"
+    crontab "$crontab_tmp_file"
+    rm "$crontab_tmp_file"
 
-    launchSupervisorDaemon($mode);
+    log "Run supervisor on mode $arg_mode"
+    supervisord -n --configuration "/project/supervisord.$arg_mode.conf" --pidfile "/project/var/log/supervisord.pid"
 }
 
 
-/**
- * be careful to launch everything before calling this function
- * otherwise it will fail. This function normally should never end
- * @throws Exception in case of invalid mode
- */
-function launchSupervisorDaemon(string $mode = MODE_DEFAULT): void {
-    if (!in_array($mode, SUPERVISOR_ALLOWED_MODES)) {
-        throw new Exception("Supervisor mode '$mode' is not allowed");
-    }
 
-    $crontabCommand = "crontab /project/crontab.d/run";
-    echo " -- " . $crontabCommand . PHP_EOL;
-    passthru($crontabCommand);
+############################################
+################### MAIN ###################
+############################################
 
-    $launchCommand = "supervisord -n --configuration /project/supervisord.$mode.conf --pidfile /tmp/supervisord.pid";
-    echo " -- " . $launchCommand . PHP_EOL;
-    passthru($launchCommand);
-}
+arg_mode="$1"
 
-function initCypressEnvironment(): void {
-    echo " -- Starting ssh daemon" . PHP_EOL;
-    exec("/usr/sbin/sshd -D > /dev/null &");
+# validate arg_mode
+if [ -n "$arg_mode" ] \
+    && [ "$arg_mode" != "$MODE_LITE" ] \
+    && [ "$arg_mode" != "$MODE_CYPRESS" ] \
+    && [ "$arg_mode" != "$MODE_DEFAULT" ]; then
+    echo "Invalid arg 1. Available value: $MODE_LITE, $MODE_CYPRESS, $MODE_DEFAULT" 1>&2
+    exit 1 # exit with error
+fi
 
-    echo " -- Exporting environment variables" . PHP_EOL;
-    exec("rm /etc/environment");
-    exec("env > /etc/environment");
+# if arg_mode is cypress then we init cypress env
+if [ "$arg_mode" = "$MODE_CYPRESS" ]; then
+    init_cypress_env
+    arg_mode="$MODE_LITE"
+fi
 
-    echo " -- Fixing environment variables" . PHP_EOL;
-    exec("sed -i 's/^\([^#]*=[^\"].*\\)$/\\1\"/; s/=\\([^\"].*\\)$/=\"\\1/' /etc/environment");
-}
+# if arg_mode empty then we set default mode
+if [ "$arg_mode" = "$MODE_CYPRESS" ]; then
+    arg_mode="$MODE_DEFAULT"
+fi
+
+launch_supervisor "$arg_mode"

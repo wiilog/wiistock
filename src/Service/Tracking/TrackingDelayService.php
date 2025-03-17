@@ -273,7 +273,8 @@ class TrackingDelayService {
             if ($firstTracking->getEvent() !== TrackingEvent::START) {
                 $intervalStartRecord = $this->createTrackingDelayRecord([
                     "date" => $start,
-                    "type" => $firstRecordType
+                    "type" => $firstRecordType,
+                    "trackingEvent" => TrackingEvent::START, // display START for each first movement
                 ]);
             }
 
