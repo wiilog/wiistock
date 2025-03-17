@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AccessTokenRepository::class)]
 #[ORM\Index(fields: ["type"], name: "IDX_WIILOG_TYPE")]
-
 class AccessToken extends Token {
     #[ORM\Column(type: Types::STRING, enumType: DeliveryRequestTemplateUsageEnum::class)]
     private ?DeliveryRequestTemplateUsageEnum $type = null;

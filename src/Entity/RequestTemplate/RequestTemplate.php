@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RequestTemplateRepository::class)]
 #[ORM\InheritanceType('JOINED')]
-#[ORM\DiscriminatorColumn(name: 'discr', type: 'string')]
+#[ORM\DiscriminatorColumn(name: 'discr', type: Types::STRING)]
 abstract class RequestTemplate {
 
     use FreeFieldsManagerTrait;
