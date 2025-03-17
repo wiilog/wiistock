@@ -21,7 +21,7 @@ use WiiCommon\Helper\Stream;
 class MailerService
 {
 
-    private const TEST_EMAIL = 'test@wiilog.fr';
+    private const TEST_EMAIL = 'recette@wiilog.fr';
     public const PORT_SSL = 587;
     public const NO_MAIL_DOMAINS = [
         "nomail.fr",
