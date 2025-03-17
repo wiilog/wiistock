@@ -31,11 +31,18 @@ security:
 
     api:
       lazy: true
-      pattern: ^/api
+      pattern: ^/api/mobile
       stateless: true
       provider: db_provider
       custom_authenticators:
-        - App\Security\ApiKeyAuthenticator
+        - App\Security\Authenticator\MobileApiAuthenticator
+
+    sleeping_stock:
+      lazy: true
+      pattern: ^/sleeping-stock
+      provider: db_provider
+      custom_authenticators:
+        - App\Security\Authenticator\SleepingStockAuthenticator
 
     main:
       lazy: true
