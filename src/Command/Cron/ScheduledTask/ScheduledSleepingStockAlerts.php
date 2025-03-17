@@ -36,21 +36,10 @@ class ScheduledSleepingStockAlerts extends Command {
 
     protected function execute(InputInterface  $input,
                                OutputInterface $output): int {
-
-        // TODO : Dev code for testing do not publish
-        $taskExecution = new DateTime();
-        foreach ($this->entityManager->getRepository(SleepingStockPlan::class)->findAll() as $sleepingStockPlan) {
-            $this->sleepingStockPlanService->triggerSleepingStockPlan($this->getEntityManager(), $sleepingStockPlan, $taskExecution);
-        };
-        // TODO : End dev code
-
         return $this->scheduledTaskService->launchScheduledTasks(
             $this->getEntityManager(),
             SleepingStockPlan::class,
             function (SleepingStockPlan $sleepingStockPlan, DateTime $taskExecution): void {
-
-                dump();
-
                 $this->sleepingStockPlanService->triggerSleepingStockPlan(
                     $this->getEntityManager(),
                     $sleepingStockPlan,
