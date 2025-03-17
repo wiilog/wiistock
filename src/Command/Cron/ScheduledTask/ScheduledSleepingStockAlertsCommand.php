@@ -20,10 +20,10 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 
 #[AsCommand(
-    name: ScheduledSleepingStockAlerts::COMMAND_NAME,
+    name: ScheduledSleepingStockAlertsCommand::COMMAND_NAME,
     description: 'This command executes scheduled sleeping stock alerts.'
 )]
-class ScheduledSleepingStockAlerts extends Command {
+class ScheduledSleepingStockAlertsCommand extends Command {
     public const COMMAND_NAME = 'app:launch:sleeping-stock-alerts';
 
     public function __construct(

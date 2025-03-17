@@ -16,7 +16,7 @@ use App\Command\Cron\RemindPackDeliveriesCommand;
 use App\Command\Cron\ScheduledTask\LaunchScheduledImportCommand;
 use App\Command\Cron\ScheduledTask\ScheduledExportCommand;
 use App\Command\Cron\ScheduledTask\ScheduledPurchaseRequestCommand;
-use App\Command\Cron\ScheduledTask\ScheduledSleepingStockAlerts;
+use App\Command\Cron\ScheduledTask\ScheduledSleepingStockAlertsCommand;
 use App\Command\Cron\ScheduledTask\ScheduleInventoryMissionCommand;
 use App\Command\InactiveSensorsCommand;
 use App\Service\SpecificService;
@@ -136,7 +136,7 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'description' => '',
         ],
         [
-            'command' => ScheduledSleepingStockAlerts::COMMAND_NAME,
+            'command' => ScheduledSleepingStockAlertsCommand::COMMAND_NAME,
             'schedule' => '* * * * *',
             'description' => '',
         ]
