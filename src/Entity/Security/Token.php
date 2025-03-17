@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
 abstract class Token {
+    public const TOKEN_DEFAULT_LENGTH = 32;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
