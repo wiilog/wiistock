@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Helper\FileSystem;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Finder\Finder;
@@ -173,9 +174,11 @@ class CacheService
                                          string                 $class,
                                          string|int             ...$keys): mixed {
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         return match ($class) {
             Statut::class => $statusRepository->findOneByCategorieNameAndStatutCode(...$keys),
+            Type::class => $typeRepository->findOneByCategoryLabelAndLabel(...$keys),
             default       => throw new \Exception('Unavailable $class parameter given'),
         };
     }
