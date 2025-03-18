@@ -288,7 +288,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         $referenceArticleRepository = $this->getEntityManager()->getRepository(ReferenceArticle::class);
         $referenceArticleAlias = 'reference_article';
         $queryBuilder = $this->createQueryBuilder('user')
-            ->leftjoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', 'reference_article.type = :type')
+            ->distinct()
+            ->innerJoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', "$referenceArticleAlias.type = :type AND user MEMBER OF $referenceArticleAlias.managers")
             ->setParameter('type', $type);
 
         return $referenceArticleRepository->filterBySleepingReference($queryBuilder , $dateLimit, $referenceArticleAlias)

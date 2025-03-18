@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route("/sleeping-stock", name: "sleeping_stock")]
 class IndexController extends AbstractController {
 
-    #[Route("/", name: "index")]
+    #[Route("/", name: "_index")]
     public function index(): Response {
         // TODO
         return $this->json([

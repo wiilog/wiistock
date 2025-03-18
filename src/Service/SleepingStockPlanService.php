@@ -6,9 +6,11 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
 use App\Entity\Utilisateur;
+use App\Security\Authenticator\SleepingStockAuthenticator;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -20,7 +22,8 @@ class SleepingStockPlanService {
         private Environment        $templating,
         private TranslationService $translationService,
         private FormatService      $formatService,
-        private AccessTokenService $accessTokenService
+        private AccessTokenService $accessTokenService,
+        private RouterInterface    $router,
     ) {}
 
     public const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
@@ -63,9 +66,7 @@ class SleepingStockPlanService {
             $this->mailerService->sendMail(
                 ['Stock', "Références", "Email stock dormant", 'Seuil d’alerte stock dormant atteint', false],
                 $this->templating->render('mails/contents/mailSleepingStockAlert.html.twig', [
-                    "urlSuffix" => "?" . http_build_query([
-                            "access-token" => $accessToken
-                        ]),
+                    "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken]),
                     "countTotal" => $sleepingReferenceArticlesData["countTotal"],
                     "buttonText" => $this->translationService->translate("Stock", "Références", "Email stock dormant", "Cliquez ici pour gérer vos articles", false),
                     "references" => $referenceArticles,
@@ -73,6 +74,7 @@ class SleepingStockPlanService {
                 $manager,
             );
 
+            return;
         }
     }
 
