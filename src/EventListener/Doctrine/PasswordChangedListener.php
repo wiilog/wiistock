@@ -14,6 +14,7 @@ use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
+use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 #[AsEntityListener(event: Events::preUpdate, method: 'preUpdate', lazy: true, entity: Utilisateur::class)]
@@ -40,9 +41,14 @@ class PasswordChangedListener {
         if(empty($this->updatedUsers)) {
             return;
         }
-        $entityManager = $args->getObjectManager();
 
-        $sessionId = $this->requestStack->getSession()->getId();
+        try {
+            $sessionId = $this->requestStack->getSession()->getId();
+        } catch(SessionNotFoundException) {
+            $sessionId = null;
+        }
+
+        $entityManager = $args->getObjectManager();
         $closedAt = new DateTime();
 
         $sessionNomadeType = $this->cacheService->getEntity($entityManager, Type::class, CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);

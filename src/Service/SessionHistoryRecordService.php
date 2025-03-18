@@ -72,7 +72,7 @@ class SessionHistoryRecordService{
     }
 
     /**
-     * WARNING : Don't update here the user entity to keep working the password changed listener
+     * WARNING: Don't update here the user entity to keep working the password changed listener
      * @see PasswordChangedListener
      */
     public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool {
@@ -111,7 +111,11 @@ class SessionHistoryRecordService{
         $entityManager->flush();
     }
 
-    public function closeOpenedSessionsByUserAndType(EntityManagerInterface $entityManager, Utilisateur $user, Type $type, ?DateTime $dateTime = null, string $sessionIdToKeepActive = null): void{
+    public function closeOpenedSessionsByUserAndType(EntityManagerInterface $entityManager,
+                                                     Utilisateur $user,
+                                                     Type $type,
+                                                     ?DateTime $dateTime = null,
+                                                     ?string $sessionIdToKeepActive = null): void{
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $dateTime = $dateTime ?? new DateTime();
         $sessionsToClose = $sessionHistoryRepository->findBy([
@@ -120,14 +124,10 @@ class SessionHistoryRecordService{
             "type" => $type,
         ]);
 
-        if($sessionIdToKeepActive) {
-            $sessionsToClose = Stream::from($sessionsToClose)
-                ->filter(static fn(SessionHistoryRecord $sessionHistoryRecord) => $sessionHistoryRecord->getSessionId() !== $sessionIdToKeepActive)
-                ->toArray();
-        }
-
         foreach ($sessionsToClose as $sessionToClose) {
-            $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime);
+            if(!$sessionIdToKeepActive || $sessionToClose->getSessionId() !== $sessionIdToKeepActive){
+                $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime);
+            }
         }
     }
 
