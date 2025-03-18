@@ -16,6 +16,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
@@ -77,8 +78,6 @@ class ReferenceArticleRepository extends EntityRepository {
         "libelle" => 5,
         // add more columns here with their respective weighting (higher = more relevant)
     ];
-
-    private const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
 
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
@@ -1532,8 +1531,9 @@ class ReferenceArticleRepository extends EntityRepository {
      * }
      */
     public function findSleepingReferenceArticlesByTypeAndManager(Utilisateur $utilisateur,
-                                                                  DateTime $dateLimit,
-                                                                  Type $type): array {
+                                                                  DateTime    $dateLimit,
+                                                                  Type        $type,
+                                                                  int         $maxResults): array {
         $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
         $queryBuilder = $this->createQueryBuilder("reference_article")
             ->select("reference_article.id AS id")
@@ -1545,7 +1545,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
             ->andWhere("reference_article.type = :type")
             ->distinct()
-            ->setMaxResults(self::MAX_REFERENCE_ARTICLES_IN_ALERT)
+            ->setMaxResults($maxResults)
             ->setParameter("type", $type)
             ->setParameter("manager", $utilisateur->getId());
 
@@ -1570,5 +1570,38 @@ class ReferenceArticleRepository extends EntityRepository {
             ->andWhere("$referenceArticleAlias.quantiteStock > 0")
             ->andWhere("$referenceArticleAlias.quantiteDisponible > 0")
             ->setParameter("dateLimit", $dateLimit);
+    }
+
+    public function findSleepingReferenceArticlesByManager(Utilisateur $utilisateur,
+                                                           int         $maxResults): array {
+        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
+        $queryBuilder = $this->createQueryBuilder("reference_article")
+            ->select("reference_article.id AS id")
+            ->addSelect("reference_article.reference AS reference")
+            ->addSelect("reference_article.libelle AS label")
+            ->addSelect("reference_article.quantiteStock AS quantityStock")
+            ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
+            ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery('reference_article')}) AS lastMovementDate")
+            ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
+            ->andWhere("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery("reference_article")}) < DATE_SUB(CURRENT_DATE(), sleepingStockPlan.maxStorageTime, 'second')")
+            ->andWhere("reference_article.quantiteStock > 0")
+            ->andWhere("reference_article.quantiteDisponible > 0")
+            ->innerJoin('reference_article.type', 'type' , Join::WITH, 'reference_article.type = type AND type IS NOT NULL')
+            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type AND type IS NOT NULL')
+            ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
+            ->distinct()
+            ->setMaxResults($maxResults)
+            ->setParameter("manager", $utilisateur->getId());
+
+        $queryResult = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        $countTotal = $queryResult[0]["__query_count"] ?? 0;
+
+        return [
+            "countTotal" => $countTotal,
+            "referenceArticles" => $queryResult
+        ];
     }
 }

@@ -17,6 +17,8 @@ use WiiCommon\Helper\Stream;
 
 class SleepingStockPlanService {
 
+    private const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
+
     public function __construct(
         private MailerService      $mailerService,
         private Environment        $templating,
@@ -48,6 +50,7 @@ class SleepingStockPlanService {
                 $manager,
                 $limitDate,
                 $type,
+                self::MAX_REFERENCE_ARTICLES_IN_ALERT,
             );
 
             // if the user has no sleeping reference articles then we don't need to send an email
