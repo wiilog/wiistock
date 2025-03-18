@@ -3782,7 +3782,7 @@ class SettingsController extends AbstractController {
 
     #[Route('/native-countries-api', name: 'settings_native_countries_api', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function nativeCountriesApi(Request $request,
+    public function nativeCountriesApi(Request                $request,
                                        EntityManagerInterface $manager): JsonResponse {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];

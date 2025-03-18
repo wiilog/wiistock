@@ -139,7 +139,7 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'command' => ScheduledSleepingStockAlertsCommand::COMMAND_NAME,
             'schedule' => '* * * * *',
             'description' => '',
-        ]
+        ],
     ];
 
     public function load(ObjectManager $manager): void {
