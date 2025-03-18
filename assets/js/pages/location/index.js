@@ -12,7 +12,6 @@ global.deleteZone = deleteZone;
 const locationsTableConfig = {
     processing: true,
     serverSide: true,
-    lengthMenu: [10, 25, 50, 100, 1000],
     order: [['name', 'desc']],
     ajax: {
         url: Routing.generate("emplacement_api", true),
