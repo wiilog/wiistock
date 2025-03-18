@@ -19,25 +19,32 @@ class AccessTokenService {
     ) {}
 
 
-    public function persistAccessToken(EntityManagerInterface $entityManager, AccessTokenTypeEnum $type, Utilisateur $owner): AccessToken {
+    public function persistAccessToken(EntityManagerInterface $entityManager,
+                                       AccessTokenTypeEnum    $type,
+                                       Utilisateur            $owner): AccessToken {
         $now = new DateTime();
         $tokenValue = $this->tokenService->generateToken(Token::TOKEN_DEFAULT_LENGTH);
 
-        $tokenApi = (new AccessToken($tokenValue))
+        $accessToken = (new AccessToken($tokenValue))
             ->setType($type)
             ->setCreatedAt($now)
             ->setExpireAt((clone $now)->add(new DateInterval("PT{$type->getExpirationDelay()}S")))
             ->setOwner($owner);
 
-        $entityManager->persist($tokenApi);
+        $entityManager->persist($accessToken);
 
-        return $tokenApi;
+        return $accessToken;
     }
 
-    public function closeActiveTokens(EntityManagerInterface $entityManager, Utilisateur $user, AccessTokenTypeEnum $type): void {
+    public function closeActiveTokens(EntityManagerInterface $entityManager,
+                                      AccessTokenTypeEnum    $type,
+                                      Utilisateur            $user): void {
         $now = new DateTime();
         $tokenRepository = $entityManager->getRepository(AccessToken::class);
-        $tokens = $tokenRepository->findBy(["owner" => $user, "type" => $type]);
+        $tokens = $tokenRepository->findBy([
+            "owner" => $user,
+            "type" => $type,
+        ]);
 
         foreach ($tokens as $token) {
             $token->setExpireAt($now);
