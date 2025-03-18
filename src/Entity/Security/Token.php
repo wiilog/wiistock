@@ -24,6 +24,13 @@ abstract class Token {
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $token = null;
 
+    public function __construct(string $token) {
+        $this->plainToken = $token;
+        $this->token = hash('sha256', $token);
+    }
+
+    private ?string $plainToken = null;
+
     public function getId(): ?int {
         return $this->id;
     }
@@ -52,9 +59,7 @@ abstract class Token {
         return $this->token;
     }
 
-    public function setToken(string $token): self {
-        $this->token = $token;
-
-        return $this;
+    public function getPlainToken(): ?string {
+        return $this->plainToken;
     }
 }

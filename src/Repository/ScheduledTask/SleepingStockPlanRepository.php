@@ -2,9 +2,7 @@
 
 namespace App\Repository\ScheduledTask;
 
-use App\Entity\ScheduledTask\Export;
 use App\Entity\ScheduledTask\SleepingStockPlan;
-use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 
 /**

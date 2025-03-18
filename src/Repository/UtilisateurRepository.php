@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Dispute;
-use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -14,7 +13,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
-use Symfony\Bridge\Twig\TokenParser\DumpTokenParser;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -284,7 +282,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     /**
      * @return array<int, Utilisateur>
      */
-    public function findWithSleepingReferenceArticlesByType(Type $type, DateTime $dateLimit) {
+    public function findWithSleepingReferenceArticlesByType(Type $type, DateTime $dateLimit): array {
         $referenceArticleRepository = $this->getEntityManager()->getRepository(ReferenceArticle::class);
         $referenceArticleAlias = 'reference_article';
         $queryBuilder = $this->createQueryBuilder('user')
@@ -296,5 +294,4 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->getQuery()
             ->getResult();
     }
-
 }
