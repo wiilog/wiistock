@@ -19,18 +19,11 @@ class AccessTokenService {
     ) {}
 
 
-    /**
-     * @return string the value of the access token generated (before the hash),
-     */
-    public function persistAccessToken(EntityManagerInterface $entityManager, AccessTokenTypeEnum $type, Utilisateur $owner): string {
+    public function persistAccessToken(EntityManagerInterface $entityManager, AccessTokenTypeEnum $type, Utilisateur $owner): AccessToken {
         $now = new DateTime();
-        $newToken = $this->tokenService->generateToken(Token::TOKEN_DEFAULT_LENGTH);
-        $newTokenHash = hash('sha256', $newToken);
+        $tokenValue = $this->tokenService->generateToken(Token::TOKEN_DEFAULT_LENGTH);
 
-        $this->closeActiveTokens($entityManager, $now, $owner, $type);
-
-        $tokenApi = (new AccessToken())
-            ->setToken($newTokenHash)
+        $tokenApi = (new AccessToken($tokenValue))
             ->setType($type)
             ->setCreatedAt($now)
             ->setExpireAt((clone $now)->add(new DateInterval("PT{$type->getExpirationDelay()}S")))
@@ -38,10 +31,11 @@ class AccessTokenService {
 
         $entityManager->persist($tokenApi);
 
-        return $newToken;
+        return $tokenApi;
     }
 
-    private function closeActiveTokens(EntityManagerInterface $entityManager, DateTime $now, Utilisateur $user, AccessTokenTypeEnum $type): void {
+    public function closeActiveTokens(EntityManagerInterface $entityManager, Utilisateur $user, AccessTokenTypeEnum $type): void {
+        $now = new DateTime();
         $tokenRepository = $entityManager->getRepository(AccessToken::class);
         $tokens = $tokenRepository->findBy(["owner" => $user, "type" => $type]);
 

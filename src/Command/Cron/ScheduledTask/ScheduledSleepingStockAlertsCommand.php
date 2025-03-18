@@ -37,20 +37,15 @@ class ScheduledSleepingStockAlertsCommand extends Command {
     protected function execute(InputInterface  $input,
                                OutputInterface $output): int {
         return $this->scheduledTaskService->launchScheduledTasks(
-            $this->getEntityManager(),
+            $this->entityManager,
             SleepingStockPlan::class,
             function (SleepingStockPlan $sleepingStockPlan, DateTime $taskExecution): void {
                 $this->sleepingStockPlanService->triggerSleepingStockPlan(
-                    $this->getEntityManager(),
+                    $this->entityManager,
                     $sleepingStockPlan,
-                    $taskExecution);
+                    $taskExecution
+                );
             }
         );
-    }
-
-    private function getEntityManager(): EntityManagerInterface {
-        return $this->entityManager->isOpen()
-            ? $this->entityManager
-            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 }

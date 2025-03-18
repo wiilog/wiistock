@@ -82,6 +82,8 @@ class FormatService
         Role::LANDING_PAGE_TRANSPORT_REQUEST => 'Demande de transport',
     ];
 
+    public const SECONDS_IN_DAY = 86400;
+
     #[Required]
     public LanguageService $languageService;
 

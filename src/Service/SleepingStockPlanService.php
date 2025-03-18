@@ -26,8 +26,6 @@ class SleepingStockPlanService {
         private RouterInterface    $router,
     ) {}
 
-    public const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
-
     public function triggerSleepingStockPlan(EntityManagerInterface $entityManager, SleepingStockPlan $sleepingStockPlan, DateTime $taskExecution): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -56,7 +54,9 @@ class SleepingStockPlanService {
                 continue;
             }
 
-            $accessToken = $this->accessTokenService->persistAccessToken($entityManager, AccessTokenTypeEnum::SLEEPING_STOCK, $manager);
+            $tokenType = AccessTokenTypeEnum::SLEEPING_STOCK;
+            $this->accessTokenService->closeActiveTokens($entityManager, $manager, $tokenType);
+            $accessToken = $this->accessTokenService->persistAccessToken($entityManager, $tokenType, $manager);
             $entityManager->flush();
 
             $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
@@ -66,7 +66,7 @@ class SleepingStockPlanService {
             $this->mailerService->sendMail(
                 ['Stock', "Références", "Email stock dormant", 'Seuil d’alerte stock dormant atteint', false],
                 $this->templating->render('mails/contents/mailSleepingStockAlert.html.twig', [
-                    "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken]),
+                    "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken->getPlainToken()]),
                     "countTotal" => $sleepingReferenceArticlesData["countTotal"],
                     "buttonText" => $this->translationService->translate("Stock", "Références", "Email stock dormant", "Cliquez ici pour gérer vos articles", false),
                     "references" => $referenceArticles,
@@ -84,7 +84,6 @@ class SleepingStockPlanService {
      *   "reference": string,
      *   "label":  string,
      *   "quantityStock":  int,
-     *   "__query_count": int,
      *   "lastMovementDate": string,
      *   "maxStorageDate": string,
      * }

@@ -3064,22 +3064,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Type",
                             "en" => "Type"
                         ],
-                    ],
-                ],
-                "Email stock dormant" => [
-                    "content" => [
                         [
                             "fr" => "Libellé",
                             "en" => "Label"
                         ],
                         [
-                            "fr" => "Référence",
-                            "en" => "Reference"
-                        ],
-                        [
                             "fr" => "Quantité",
                             "en" => "Quantity"
                         ],
+                    ],
+                ],
+                "Email stock dormant" => [
+                    "content" => [
                         [
                             "fr" => "Date max de stockage",
                             "en" => "Max storage date"
@@ -3093,7 +3089,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "The following items are approaching the authorized stocking threshold."
                         ],
                         [
-                            "fr" => "Sans réponse de votre part, nous détruirons les articles concernés dans un délai de 15 jours à partir de ce mail",
+                            "fr" => "Sans réponse de votre part, nous détruirons les articles concernés dans un délai de 15 jours à partir de ce mail.",
                             "en" => "If you do not respond, we will destroy the items concerned within 15 days of this email."
                         ],
                         [

@@ -4,6 +4,7 @@ namespace App\Entity\ScheduledTask;
 
 use App\Entity\Type;
 use App\Repository\ScheduledTask\SleepingStockPlanRepository;
+use App\Service\FormatService;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -51,7 +52,7 @@ class SleepingStockPlan extends ScheduledTask {
     }
 
     public function getMaxStorageTimeInDays(): ?int {
-        return $this->maxStorageTime/60/60/24;
+        return $this->maxStorageTime / FormatService::SECONDS_IN_DAY;
     }
 
     public function setMaxStorageTime(int $maxStorageTime): self {
