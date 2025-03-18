@@ -40,7 +40,7 @@ class SleepingStockPlanService {
             $limitDate
         );
 
-        foreach ($managerWithSleepingReferenceArticles as $index => $manager) {
+        foreach ($managerWithSleepingReferenceArticles as $manager) {
 
             $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByTypeAndManager(
                 $manager,
@@ -73,8 +73,6 @@ class SleepingStockPlanService {
                 ]),
                 $manager,
             );
-
-            return;
         }
     }
 
