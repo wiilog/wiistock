@@ -2,6 +2,7 @@
 
 namespace App\Security\Authenticator;
 
+use App\Entity\Role;
 use App\Entity\Security\AccessToken;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,14 +46,18 @@ class SleepingStockAuthenticator extends AbstractAuthenticator {
         }
 
         $accessToken = $accessTokenRepository->findOneBy([
-            "token" => $tokenValue,
+            "token" => hash("sha256", $tokenValue)
         ]);
 
-        $userIdentifier = $accessToken?->getOwner()?->getEmail();
+        $user = $accessToken?->getOwner();
+        $userIdentifier = $user?->getEmail();
         $now = new DateTime();
 
         // if token as empty expiresAt then it's valid
         if (!$userIdentifier
+            || !$user->getStatus()
+            || !$user->getRole()
+            || $user->getRole()->getLabel() === Role::NO_ACCESS_USER
             || $accessToken->getExpireAt() && $accessToken->getExpireAt() < $now) {
             throw new UnauthorizedHttpException('Invalid access token');
         }
