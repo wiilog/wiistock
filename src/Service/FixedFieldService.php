@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
-use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Type;
 use App\Exceptions\FormException;
@@ -17,26 +16,15 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-class FixedFieldService
-{
-
-    private $entityManager;
-
-    #[Required]
-    public KernelInterface $kernel;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
+class FixedFieldService {
 
     public function isFieldRequired(array $config, string $fieldName, string $action): bool {
         return isset($config[$fieldName]) && isset($config[$fieldName][$action]) && $config[$fieldName][$action];
     }
 
-    public function filterHeaderConfig(array $config, string $entityCode, ?Type $type = null): array {
+    public function filterHeaderConfig(EntityManagerInterface $entityManager, array $config, string $entityCode, ?Type $type = null): array {
         if ($type) {
-            $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
+            $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
             $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                 ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
                     FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($type),
@@ -44,7 +32,7 @@ class FixedFieldService
                 ]])
                 ->toArray();
         } else {
-            $fixedFieldStandardRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+            $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
             $fieldsParam = $fixedFieldStandardRepository->getByEntity($entityCode);
         }
 
@@ -102,22 +90,5 @@ class FixedFieldService
             });
 
         return $inputBag;
-    }
-
-    public function generateJSOutput(): void {
-        $outputDirectory = "{$this->kernel->getProjectDir()}/assets/generated";
-
-        $fixedFields = Stream::from(FixedFieldEnum::cases())
-            ->map(static function(FixedFieldEnum $fixedField) {
-                $name = $fixedField->name;
-                $value = $fixedField->value;
-
-                return "\tstatic $name = {name: \"$name\", value: \"$value\"};";
-            })
-            ->join("\n");
-
-        $content = "export default class FixedFieldEnum { \n$fixedFields\n }\n";
-
-        file_put_contents("$outputDirectory/fixed-field-enum.js", $content);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Security;
+namespace App\Security\Authenticator;
 
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,14 +14,14 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
-use Symfony\Contracts\Service\Attribute\Required;
 
-class ApiKeyAuthenticator extends AbstractAuthenticator {
-
-    #[Required]
-    public EntityManagerInterface $entityManager;
+class MobileApiAuthenticator extends AbstractAuthenticator {
 
     private const AUTHENTICATION_HEADER = "x-authorization";
+
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+    ) {}
 
 
     /**

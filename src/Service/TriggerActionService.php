@@ -3,10 +3,10 @@
 
 namespace App\Service;
 
-use App\Entity\IOT\AlertTemplate;
-use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\RequestTemplate\RequestTemplate;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;

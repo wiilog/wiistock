@@ -26,6 +26,7 @@ class CacheService
     public const COLLECTION_SETTINGS = "settings";
     public const COLLECTION_WORK_PERIOD = "work-period";
     public const COLLECTION_ENTITIES_DICTIONARY = "entities";
+    public const COLLECTION_SLEEPING_STOCK_PLANS = "sleeping-stock-plans";
 
     private FileSystem $filesystem;
 

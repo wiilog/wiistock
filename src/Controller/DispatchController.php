@@ -192,9 +192,9 @@ class DispatchController extends AbstractController {
 
     #[Route("/api", name: "dispatch_api", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
-    public function api(Request         $request,
-                        DispatchService $dispatchService): Response
-    {
+    public function api(Request                $request,
+                        DispatchService        $dispatchService,
+                        EntityManagerInterface $entityManager): Response {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
         $fromDashboard = $request->query->getBoolean('fromDashboard');
 
@@ -241,7 +241,7 @@ class DispatchController extends AbstractController {
             ];
         }
 
-        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode, $fromDashboard, $preFilledFilters ?? []);
+        $data = $dispatchService->getDataForDatatable($entityManager, $request->request, $groupedSignatureMode, $fromDashboard, $preFilledFilters ?? []);
 
         return new JsonResponse($data);
     }
@@ -443,7 +443,7 @@ class DispatchController extends AbstractController {
 
             foreach ($receiverIds as $receiverId) {
                 if (!empty($receiverId)) {
-                    $receiver = $receiverId ? $userRepository->find($receiverId) : null;
+                    $receiver = $userRepository->find($receiverId);
                     if ($receiver) {
                         $dispatch->addReceiver($receiver);
                     }
@@ -545,7 +545,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
-            'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
+            'detailsConfig' => $dispatchService->createHeaderDetailsConfig($entityManager, $dispatch),
             'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
             'newPackConfig' => [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
@@ -563,7 +563,7 @@ class DispatchController extends AbstractController {
             'hasRightToRollbackDraft' => $hasRightToRollbackDraft,
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $settingsService->getValue($entityManager, Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
-            'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
+            'newPackRow' => $dispatchService->packRow($entityManager, $dispatch, null, true, true),
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
             "attachments" => $attachments,
@@ -588,7 +588,7 @@ class DispatchController extends AbstractController {
         $entityManager->persist($dispatchNoteAttachment);
         $entityManager->flush();
 
-        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($entityManager, $dispatch);
 
         return new JsonResponse([
             'success' => true,
@@ -912,9 +912,10 @@ class DispatchController extends AbstractController {
 
     #[Route("/{dispatch}/editable-logistic-units-api", name: "dispatch_editable_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
-    public function apiEditableLogisticUnits(UserService     $userService,
-                                             DispatchService $service,
-                                             Dispatch        $dispatch): Response {
+    public function apiEditableLogisticUnits(UserService            $userService,
+                                             DispatchService        $service,
+                                             Dispatch               $dispatch,
+                                             EntityManagerInterface $entityManager): Response {
         $dispatchStatus = $dispatch->getStatut();
         $edit = (
             $dispatchStatus->isDraft()
@@ -923,11 +924,11 @@ class DispatchController extends AbstractController {
 
         $data = [];
         foreach($dispatch->getDispatchPacks() as $dispatchPack) {
-            $data[] = $service->packRow($dispatch, $dispatchPack, false, $edit);
+            $data[] = $service->packRow($entityManager, $dispatch, $dispatchPack, false, $edit);
         }
         if($edit) {
             if(empty($data)) {
-                $data[] = $service->packRow($dispatch, null, true, true);
+                $data[] = $service->packRow($entityManager, $dispatch, null, true, true);
             }
             $data[] = [
                 'createRow' => true,
@@ -1116,8 +1117,6 @@ class DispatchController extends AbstractController {
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
-                    $settingRepository = $entityManager->getRepository(Setting::class);
-
                     if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
@@ -1172,7 +1171,7 @@ class DispatchController extends AbstractController {
                         )) {
                         $notificationService->toTreat($dispatch);
                     }
-                } catch (Exception $e) {
+                } catch (Exception) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => "L'envoi de l'email ou de la notification a échoué. Veuillez rééssayer."
@@ -1287,8 +1286,7 @@ class DispatchController extends AbstractController {
                                      DispatchService        $dispatchService,
                                      FreeFieldService       $freeFieldService,
                                      CSVExportService       $CSVExportService,
-                                     EntityManagerInterface $entityManager,
-                                     DataExportService      $dataExportService): Response
+                                     EntityManagerInterface $entityManager): Response
     {
 
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMin') . ' 00:00:00');
@@ -1441,7 +1439,7 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
-        $deliveryNoteData = $dispatchService->getDeliveryNoteData($dispatch);
+        $deliveryNoteData = $dispatchService->getDeliveryNoteData($entityManager, $dispatch);
 
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
@@ -1460,11 +1458,11 @@ class DispatchController extends AbstractController {
     }
 
     #[Route("/{dispatch}/delivery-note/{attachment}", name: "print_delivery_note_dispatch", options: ["expose" => true], methods: "GET")]
-    public function printDeliveryNote(TranslationService $translationService,
-                                      Dispatch           $dispatch,
-                                      DispatchService    $dispatchService,
-                                      AttachmentService  $attachmentService): Response
-    {
+    public function printDeliveryNote(TranslationService     $translationService,
+                                      Dispatch               $dispatch,
+                                      DispatchService        $dispatchService,
+                                      AttachmentService      $attachmentService,
+                                      EntityManagerInterface $entityManager): Response {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -1472,7 +1470,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $data = $dispatchService->getDeliveryNoteData($dispatch);
+        $data = $dispatchService->getDeliveryNoteData($entityManager, $dispatch);
 
         $deliveryNote = $dispatch->getAttachments()->last();
 
@@ -1527,7 +1525,7 @@ class DispatchController extends AbstractController {
         $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $entityManager, $data);
         $entityManager->flush();
 
-        $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+        $detailsConfig = $dispatchService->createHeaderDetailsConfig($entityManager, $dispatch);
 
         return new JsonResponse([
             'success' => true,
@@ -1593,12 +1591,11 @@ class DispatchController extends AbstractController {
 
     #[Route("/bon-de-surconsommation/{dispatch}", name: "print_overconsumption_bill", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL])]
-    public function printOverconsumptionBill(Dispatch        $dispatch,
-                                             DispatchService $dispatchService,
-                                             AttachmentService $attachmentService): Response
-    {
-
-        $data = $dispatchService->getOverconsumptionBillData($dispatch);
+    public function printOverconsumptionBill(Dispatch               $dispatch,
+                                             DispatchService        $dispatchService,
+                                             AttachmentService      $attachmentService,
+                                             EntityManagerInterface $entityManager): Response {
+        $data = $dispatchService->getOverconsumptionBillData($entityManager, $dispatch);
 
         $overConsumptionBill = $dispatch->getAttachments()->last();
 
@@ -1996,8 +1993,7 @@ class DispatchController extends AbstractController {
     public function printDispatchLabel(Dispatch                 $dispatch,
                                        DispatchService          $dispatchService,
                                        EntityManagerInterface   $entityManager,
-                                       AttachmentService        $attachmentService): Response
-    {
+                                       AttachmentService        $attachmentService): Response {
         $data = $dispatchService->getDispatchLabelData($dispatch, $entityManager);
 
         $dispatchLabel = $dispatch->getAttachments()->last();

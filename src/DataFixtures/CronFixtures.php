@@ -10,13 +10,14 @@ use App\Command\Cron\GenerateAlertsCommand;
 use App\Command\Cron\InventoryStatusUpdateCommand;
 use App\Command\Cron\KooveaHubsCommand;
 use App\Command\Cron\KooveaTagsCommand;
-use App\Command\Cron\LaunchScheduledImportCommand;
 use App\Command\Cron\LaunchUniqueImportCommand;
 use App\Command\Cron\MailsLitigesComand;
 use App\Command\Cron\RemindPackDeliveriesCommand;
-use App\Command\Cron\ScheduledExportCommand;
-use App\Command\Cron\ScheduledPurchaseRequestCommand;
-use App\Command\Cron\ScheduleInventoryMissionCommand;
+use App\Command\Cron\ScheduledTask\LaunchScheduledImportCommand;
+use App\Command\Cron\ScheduledTask\ScheduledExportCommand;
+use App\Command\Cron\ScheduledTask\ScheduledPurchaseRequestCommand;
+use App\Command\Cron\ScheduledTask\ScheduledSleepingStockAlertsCommand;
+use App\Command\Cron\ScheduledTask\ScheduleInventoryMissionCommand;
 use App\Command\InactiveSensorsCommand;
 use App\Service\SpecificService;
 use Cron\CronBundle\Entity\CronJob;
@@ -133,7 +134,12 @@ class CronFixtures extends Fixture implements FixtureGroupInterface {
             'command' => InactiveSensorsCommand::COMMAND_NAME,
             'schedule' => '*/1 * * * *',
             'description' => '',
-        ]
+        ],
+        [
+            'command' => ScheduledSleepingStockAlertsCommand::COMMAND_NAME,
+            'schedule' => '* * * * *',
+            'description' => '',
+        ],
     ];
 
     public function load(ObjectManager $manager): void {

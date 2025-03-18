@@ -85,7 +85,7 @@ jobs:
                 run: docker exec wiistock-cypress_php php bin/console fos:js-routing:dump
 
             -   name: Convert enums
-                run: docker exec wiistock-cypress_php php bin/console app:update:fixed-fields
+                run: docker exec wiistock-cypress_php php bin/console app:update:enums
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_php yarn

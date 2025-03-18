@@ -88,6 +88,8 @@ class RefArticleDataService
         ["title" => "Inventaire à jour", "name" => "upToDateInventory", "type" => "booleen"],
         ["title" => "Gestion quantité", "name" => "quantityType", "type" => "text"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
+        ["title" => "Dernière réponse au stockage", "name" => "lastSleepingStockAlertAnswer", "type" => "date"],
+        ["title" => "Durée max autorisée en stock", "name" => "maxStorageTime", "type" => "number"]
     ];
 
     private $filtreRefRepository;
@@ -97,6 +99,9 @@ class RefArticleDataService
 
     #[Required]
     public UserService $userService;
+
+    #[Required]
+    public DateTimeService $dateTimeService;
 
     #[Required]
     public CSVExportService $CSVExportService;
@@ -148,8 +153,8 @@ class RefArticleDataService
     private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface  $tokenStorage,
-                                EntityManagerInterface $entityManager)
-    {
+                                EntityManagerInterface $entityManager) {
+
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
     }
@@ -184,7 +189,6 @@ class RefArticleDataService
         $refs = $queryResult['data'];
         $searchParts = $queryResult["searchParts"];
         $searchableFields = $queryResult["searchableFields"];
-
         $rows = [];
         foreach ($refs as $refArticle) {
             $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle, $searchParts, $searchableFields);
@@ -595,6 +599,8 @@ class RefArticleDataService
             'supplierLabel' => implode(",", $providerLabels),
             'supplierCode' => implode(",", $providerCodes),
             "lastInventory" => $formatService->date($refArticle->getDateLastInventory()),
+            "lastSleepingStockAlertAnswer" => $formatService->date($refArticle->getLastSleepingStockAlertAnswer()),
+            "maxStorageTime" => $refArticle->getType()->getSleepingStockPlan()?->getMaxStorageTime(),
             "stockManagement" => $refArticle->getStockManagement(),
             'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur())
                 ->map(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getReference())
@@ -1191,6 +1197,8 @@ class RefArticleDataService
             $reference["editedBy"] ?? "",
             $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
             $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
+            $reference["lastSleepingStockAlertAnswer"] ? $reference["lastSleepingStockAlertAnswer"]->format("d/m/Y H:i:s") : "",
+            $reference["maxStorageTime"] ? $this->dateTimeService->secondsToDateInterval($reference["maxStorageTime"])->format("%a") : "",
         ];
 
         foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {

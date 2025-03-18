@@ -3040,12 +3040,67 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             ]
         ],
         "Stock" => [
+            null => [],
             "Références" => [
-                "content" => [
-                    "Référence" => ["fr" => "Référence"],
-                    "référence" => ["fr" => "référence"],
-                    "références" => ["fr" => "références"],
-                    "Références" => ["fr" => "Références"],
+                "Général" => [
+                    "content" => [
+                        [
+                            "fr" => "Référence",
+                            "en" => "Reference"
+                        ],
+                        [
+                            "fr" => "référence",
+                            "en" => "reference"
+                        ],
+                        [
+                            "fr" => "références",
+                            "en" => "references"
+                        ],
+                        [
+                            "fr" => "Références",
+                            "en" => "References"
+                        ],
+                        [
+                            "fr" => "Type",
+                            "en" => "Type"
+                        ],
+                        [
+                            "fr" => "Libellé",
+                            "en" => "Label"
+                        ],
+                        [
+                            "fr" => "Quantité",
+                            "en" => "Quantity"
+                        ],
+                    ],
+                ],
+                "Email stock dormant" => [
+                    "content" => [
+                        [
+                            "fr" => "Date max de stockage",
+                            "en" => "Max storage date"
+                        ],
+                        [
+                            "fr" => "Cliquez ici pour gérer vos articles",
+                            "en" => "Click here to manage articles",
+                        ],
+                        [
+                            "fr" => "Les articles suivants approchent du seuil autorisé de stockage.",
+                            "en" => "The following items are approaching the authorized stocking threshold."
+                        ],
+                        [
+                            "fr" => "Sans réponse de votre part, nous détruirons les articles concernés dans un délai de 15 jours à partir de ce mail.",
+                            "en" => "If you do not respond, we will destroy the items concerned within 15 days of this email."
+                        ],
+                        [
+                            "fr" => "Seuil d’alerte stock dormant atteint",
+                            "en" => "Sleeping stock alert threshold reached"
+                        ],
+                        [
+                            "fr" => "Cette liste n’est pas exhaustive, {1} références sont également en alerte stock dormant.",
+                            "en" => "This list is not exhaustive, {1} references are also on dormant stock alert."
+                        ],
+                    ],
                 ],
             ],
         ],

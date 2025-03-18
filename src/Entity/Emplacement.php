@@ -6,13 +6,12 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Inventory\InventoryLocationMission;
-use App\Entity\IOT\CollectRequestTemplate;
-use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\LitePropertiesSetterTrait;
@@ -105,9 +104,6 @@ class Emplacement implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'location', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
-    #[ORM\OneToMany(mappedBy: 'destination', targetEntity: DeliveryRequestTemplate::class)]
-    private Collection $deliveryRequestTemplates;
-
     #[ORM\OneToMany(mappedBy: 'collectPoint', targetEntity: CollectRequestTemplate::class)]
     private Collection $collectRequestTemplates;
 
@@ -199,7 +195,6 @@ class Emplacement implements PairedEntity {
         $this->allowedDeliveryTypes = new ArrayCollection();
         $this->allowedCollectTypes = new ArrayCollection();
         $this->pairings = new ArrayCollection();
-        $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->deliveryRequestArticleLines = new ArrayCollection();
@@ -771,34 +766,7 @@ class Emplacement implements PairedEntity {
     }
 
     /**
-     * @return Collection|DeliveryRequestTemplate[]
-     */
-    public function getDeliveryRequestTemplates(): Collection {
-        return $this->deliveryRequestTemplates;
-    }
-
-    public function addDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self {
-        if(!$this->deliveryRequestTemplates->contains($deliveryRequestTemplate)) {
-            $this->deliveryRequestTemplates[] = $deliveryRequestTemplate;
-            $deliveryRequestTemplate->setDestination($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self {
-        if($this->deliveryRequestTemplates->removeElement($deliveryRequestTemplate)) {
-            // set the owning side to null (unless already changed)
-            if($deliveryRequestTemplate->getDestination() === $this) {
-                $deliveryRequestTemplate->setDestination(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|CollectRequestTemplate[]
+     * @return Collection<int, CollectRequestTemplate>
      */
     public function getCollectRequestTemplates(): Collection {
         return $this->collectRequestTemplates;

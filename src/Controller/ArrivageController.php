@@ -85,8 +85,7 @@ class ArrivageController extends AbstractController
                           EntityManagerInterface $entityManager,
                           TagTemplateService     $tagTemplateService,
                           ArrivageService        $arrivageService,
-                          FilterSupService       $filterSupService): Response
-    {
+                          FilterSupService       $filterSupService): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -128,7 +127,7 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
-            "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
+            "initial_arrivals" => $this->api($request, $arrivageService, $entityManager)->getContent(),
             "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
@@ -139,15 +138,16 @@ class ArrivageController extends AbstractController
 
     #[Route("/api", name: "arrivage_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, ArrivageService $arrivageService): Response
-    {
+    public function api(Request                $request,
+                        ArrivageService        $arrivageService,
+                        EntityManagerInterface $entityManager): Response {
         if ($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
             $userId = null;
         } else {
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($arrivageService->getDataForDatatable($request, $userId));
+        return $this->json($arrivageService->getDataForDatatable($entityManager, $request, $userId));
     }
 
     #[Route("/api-columns", name: "arrival_api_columns", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
@@ -179,7 +179,6 @@ class ArrivageController extends AbstractController
                         TranslationService      $translation): JsonResponse {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -342,12 +341,12 @@ class ArrivageController extends AbstractController
 
         $champLibreService->manageFreeFields($arrivage, $data, $entityManager, $this->getUser());
 
-        $supplierEmergencyAlert = $arrivalService->createSupplierEmergencyAlert($arrivage);
+        $supplierEmergencyAlert = $arrivalService->createSupplierEmergencyAlert($entityManager, $arrivage);
         $isArrivalUrgent = isset($supplierEmergencyAlert);
         $alertConfigs = $isArrivalUrgent
             ? [
                 $supplierEmergencyAlert,
-                $arrivalService->createArrivalAlertConfig($arrivage, false)
+                $arrivalService->createArrivalAlertConfig($entityManager, $arrivage, false)
             ]
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
@@ -504,7 +503,7 @@ class ArrivageController extends AbstractController
         $response = [
             'success' => $success,
             'alertConfigs' => $success
-                ? [$arrivageDataService->createArrivalAlertConfig($arrival, false, $urgencesMatching)]
+                ? [$arrivageDataService->createArrivalAlertConfig($entityManager, $arrival, false, $urgencesMatching)]
                 : null
         ];
 
@@ -663,7 +662,7 @@ class ArrivageController extends AbstractController
         $entityManager->flush();
 
         $supplierEmergencyAlert = ($oldSupplierId !== $newSupplierId && $newSupplierId)
-            ? $arrivageDataService->createSupplierEmergencyAlert($arrivage)
+            ? $arrivageDataService->createSupplierEmergencyAlert($entityManager, $arrivage)
             : null;
         $isArrivalUrgent = isset($supplierEmergencyAlert);
 
@@ -671,9 +670,9 @@ class ArrivageController extends AbstractController
         $alertConfig = $isArrivalUrgent
             ? [
                 $supplierEmergencyAlert,
-                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
+                $arrivageDataService->createArrivalAlertConfig($entityManager, $arrivage, false)
             ]
-            : $arrivageDataService->createArrivalAlertConfig($arrivage, $confirmEmergency);
+            : $arrivageDataService->createArrivalAlertConfig($entityManager, $arrivage, $confirmEmergency);
 
         if ($isArrivalUrgent && !$confirmEmergency) {
             $arrivageDataService->setArrivalUrgent($entityManager, $arrivage, true);
@@ -690,7 +689,7 @@ class ArrivageController extends AbstractController
             'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                 'arrivage' => $arrivage,
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
-                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($entityManager, $arrivage),
                 'allPacksAlreadyInDispatch' => $arrivage->getPacks()->count() <= $arrivageRepository->countArrivalPacksInDispatch($arrivage)
             ]),
             'alertConfigs' => $alertConfig
@@ -704,7 +703,6 @@ class ArrivageController extends AbstractController
                            Arrivage               $arrival,
                            EntityManagerInterface $entityManager): Response {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            /** @var Arrivage $arrival */
 
             $canBeDeleted = ($arrivageRepository->countUnsolvedDisputesByArrivage($arrival) == 0);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -855,7 +853,7 @@ class ArrivageController extends AbstractController
             'printArrivage' => $printArrivage,
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
-            'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+            'showDetails' => $arrivageDataService->createHeaderDetailsConfig($entityManager, $arrivage),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             "projects" => $projectRepository->findActive(),
@@ -939,7 +937,7 @@ class ArrivageController extends AbstractController
         try {
             $entityManager->flush();
         } /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
+        catch (UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate('Arrivages UL', 'Divers', 'Un autre litige d\'arrivage est en cours de création, veuillez réessayer') . '.'
@@ -1016,8 +1014,7 @@ class ArrivageController extends AbstractController
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
                                                ArrivageService        $arrivageDataService,
-                                                                      $reloadArrivageId): ?array
-    {
+                                                                      $reloadArrivageId): ?array {
         $response = null;
         if (isset($reloadArrivageId)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -1027,7 +1024,7 @@ class ArrivageController extends AbstractController
                     'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivageToReload) == 0,
-                        'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivageToReload)
+                        'showDetails' => $arrivageDataService->createHeaderDetailsConfig($entityManager, $arrivageToReload)
                     ]),
                 ];
             }
@@ -1315,7 +1312,7 @@ class ArrivageController extends AbstractController
             : null;
 
         $firstCustomIconInclude = $settingsService->getValue($entityManager, Setting::INCLUDE_EMERGENCY_IN_LABEL);
-        $secondCustomIconName = $settingsService->getValue($entityManager, Setting::EMERGENCY_ICON);;
+        $secondCustomIconName = $settingsService->getValue($entityManager, Setting::EMERGENCY_ICON);
         $secondCustomIconText = $settingsService->getValue($entityManager, Setting::EMERGENCY_TEXT_LABEL);
 
         $secondCustomIconConfig = ($firstCustomIconInclude && $secondCustomIconName && $secondCustomIconText)

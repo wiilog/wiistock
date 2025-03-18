@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\IOT;
+namespace App\Entity\RequestTemplate;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\IOT\RequestTemplateLineRepository;
+use App\Repository\RequestTemplate\RequestTemplateLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RequestTemplateLineRepository::class)]
@@ -14,8 +14,8 @@ class RequestTemplateLine {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplate::class, inversedBy: 'lines')]
-    private ?DeliveryRequestTemplate $deliveryRequestTemplate = null;
+    #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplateTriggerAction::class, inversedBy: 'lines')]
+    private ?DeliveryRequestTemplateTriggerAction $deliveryRequestTemplateTriggerAction = null;
 
     #[ORM\ManyToOne(targetEntity: CollectRequestTemplate::class, inversedBy: 'lines')]
     private ?CollectRequestTemplate $collectRequestTemplate = null;
@@ -31,12 +31,12 @@ class RequestTemplateLine {
         return $this->id;
     }
 
-    public function getDeliveryRequestTemplate(): ?DeliveryRequestTemplate {
-        return $this->deliveryRequestTemplate;
+    public function getDeliveryRequestTemplateTriggerAction(): ?DeliveryRequestTemplateTriggerAction {
+        return $this->deliveryRequestTemplateTriggerAction;
     }
 
-    public function setDeliveryRequestTemplate(?DeliveryRequestTemplate $requestTemplate): self {
-        $this->deliveryRequestTemplate = $requestTemplate;
+    public function setDeliveryRequestTemplateTriggerAction(?DeliveryRequestTemplateTriggerAction $requestTemplate): self {
+        $this->deliveryRequestTemplateTriggerAction = $requestTemplate;
 
         return $this;
     }
@@ -52,8 +52,8 @@ class RequestTemplateLine {
     }
 
     public function setRequestTemplate(?RequestTemplate $requestTemplate): self {
-        if($requestTemplate instanceof DeliveryRequestTemplate) {
-            $this->setDeliveryRequestTemplate($requestTemplate);
+        if($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
+            $this->setDeliveryRequestTemplateTriggerAction($requestTemplate);
         } else if($requestTemplate instanceof CollectRequestTemplate) {
             $this->setCollectRequestTemplate($requestTemplate);
         }

@@ -3,20 +3,19 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\Menu;
 use App\Entity\NotificationTemplate;
+use App\Entity\IOT\AlertTemplate;
 use App\Helper\PostHelper;
 
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\Attribute\Route;
 
 
 #[Route('/parametrage/modele-notification')]

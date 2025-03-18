@@ -1,10 +1,16 @@
 <?php
 
-namespace App\Repository\IOT;
+namespace App\Repository\RequestTemplate;
 
-use App\Entity\IOT\RequestTemplate;
+use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
+use App\Entity\RequestTemplate\HandlingRequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplate;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -15,7 +21,7 @@ use Symfony\Component\HttpFoundation\InputBag;
  */
 class RequestTemplateRepository extends EntityRepository {
 
-    public function findByParamsAndFilters(InputBag $params) {
+    public function findByParamsAndFilters(InputBag $params): array {
         $queryBuilder = $this->createQueryBuilder("request_template");
 
         $countTotal = QueryBuilderHelper::count($queryBuilder, "request_template");
@@ -49,17 +55,31 @@ class RequestTemplateRepository extends EntityRepository {
 
         $query = $queryBuilder->getQuery();
         return [
-            'data' => $query ? $query->getResult() : null,
+            'data' => $query?->getResult(),
             'count' => $countFiltered,
             'total' => $countTotal
         ];
     }
 
-    public function getTemplateForSelect(){
+    public function getTemplateForSelect(EntityManagerInterface $entityManager) {
         $qb = $this->createQueryBuilder("request_template");
 
+        $exprBuilder = $qb->expr();
         $qb->select("request_template.id AS id")
-            ->addSelect("request_template.name AS text");
+            ->addSelect("request_template.name AS text")
+            ->leftJoin(DeliveryRequestTemplateTriggerAction::class, 'deliveryRequestTemplate', Join::WITH, 'request_template.id = deliveryRequestTemplate.id')
+            ->leftJoin(CollectRequestTemplate::class, 'collectRequestTemplate', Join::WITH, 'request_template.id = collectRequestTemplate.id')
+            ->leftJoin(HandlingRequestTemplate::class, 'handlingRequestTemplate', Join::WITH, 'request_template.id = handlingRequestTemplate.id')
+            ->andWhere($exprBuilder->orX(
+                "request_template INSTANCE OF :deliveryRequestTemplateClass",
+                "request_template INSTANCE OF :collectRequestTemplateClass",
+                "request_template INSTANCE OF :handlingRequestTemplateClass",
+            ))
+            ->setParameters([
+                'deliveryRequestTemplateClass' => $entityManager->getClassMetadata(DeliveryRequestTemplateTriggerAction::class),
+                'collectRequestTemplateClass' => $entityManager->getClassMetadata(CollectRequestTemplate::class),
+                'handlingRequestTemplateClass' => $entityManager->getClassMetadata(HandlingRequestTemplate::class),
+            ]);
 
         return $qb->getQuery()->getResult();
     }

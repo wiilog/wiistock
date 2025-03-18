@@ -38,7 +38,6 @@ use App\Service\Tracking\PackService;
 use App\Service\Tracking\TrackingMovementService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,7 +60,6 @@ class DispatchService {
     public function __construct(private Twig_Environment $templating,
                                 private UserService $userService,
                                 private RouterInterface $router,
-                                private EntityManagerInterface $entityManager,
                                 private FreeFieldService $freeFieldService,
                                 private TranslationService $translationService,
                                 private LanguageService $languageService,
@@ -71,7 +69,6 @@ class DispatchService {
                                 private FixedFieldService $fieldsParamService,
                                 private FieldModesService $fieldModesService,
                                 private ArrivageService $arrivalService,
-                                private Security $security,
                                 private CSVExportService $CSVExportService,
                                 private KernelInterface $kernel,
                                 private TemplateDocumentService $wordTemplateDocument,
@@ -88,9 +85,9 @@ class DispatchService {
 
     }
 
-    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []): array {
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
+    public function getDataForDatatable(EntityManagerInterface $entityManager, InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []): array {
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         if (!$fromDashboard) {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
@@ -99,8 +96,8 @@ class DispatchService {
         }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
-        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
-        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+        $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->userService->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->fieldModesService,  [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
@@ -112,7 +109,7 @@ class DispatchService {
 
         $rows = [];
         foreach ($dispatchesArray as $dispatch) {
-            $rows[] = $this->dataRowDispatch($dispatch, [
+            $rows[] = $this->dataRowDispatch($entityManager, $dispatch, [
                 'groupedSignatureMode' => $groupedSignatureMode
             ]);
         }
@@ -124,13 +121,13 @@ class DispatchService {
         ];
     }
 
-    public function dataRowDispatch(Dispatch $dispatch, array $options = []): array {
+    public function dataRowDispatch(EntityManagerInterface $entityManager, Dispatch $dispatch, array $options = []): array {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
         $receivers = $dispatch->getReceivers() ?? null;
 
         if (!isset($this->freeFieldsConfig)) {
-            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_DISPATCH, CategoryType::DEMANDE_DISPATCH);
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($entityManager, CategorieCL::DEMANDE_DISPATCH, CategoryType::DEMANDE_DISPATCH);
         }
 
         if ($receivers) {
@@ -248,9 +245,9 @@ class DispatchService {
         ];
     }
 
-    public function createHeaderDetailsConfig(Dispatch $dispatch): array {
+    public function createHeaderDetailsConfig(EntityManagerInterface $entityManager, Dispatch $dispatch): array {
         /** @var Utilisateur $user */
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
 
         $carrier = $dispatch->getCarrier();
         $carrierTrackingNumber = $dispatch->getCarrierTrackingNumber();
@@ -400,11 +397,11 @@ class DispatchService {
             ];
         }
 
-        return $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DISPATCH, $dispatch->getType());
+        return $this->fieldsParamService->filterHeaderConfig($entityManager, $config, FixedFieldStandard::ENTITY_CODE_DISPATCH, $dispatch->getType());
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
-        $user = $this->security->getUser();
+        $user = $this->userService->getUser();
         $date = null;
         foreach ([$user->getDateFormat(), 'Y-m-d', 'd/m/Y'] as $format) {
             $date = (!empty($dateStr) && empty($date) && !empty($format))
@@ -740,13 +737,14 @@ class DispatchService {
         ];
     }
 
-    public function packRow(Dispatch $dispatch,
-                            ?DispatchPack $dispatchPack,
-                            bool $autofocus,
-                            bool $isEdit): array {
+    public function packRow(EntityManagerInterface $entityManager,
+                            Dispatch               $dispatch,
+                            ?DispatchPack          $dispatchPack,
+                            bool                   $autofocus,
+                            bool                   $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
-            $natureRepository = $this->entityManager->getRepository(Nature::class);
-            $this->prefixPackCodeWithDispatchNumber = $this->settingsService->getValue($this->entityManager, Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $this->prefixPackCodeWithDispatchNumber = $this->settingsService->getValue($entityManager, Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $this->natures = $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]);
             $this->defaultNature = $natureRepository->findOneBy(["defaultNature" => true]);
 
@@ -825,7 +823,7 @@ class DispatchService {
                 ],
                 ...$natureOptions
             ];
-            $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFixedField::class);
+            $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
 
             $fieldEntities = $subLineFieldsParamRepository->findBy([
                 'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
@@ -1090,7 +1088,7 @@ class DispatchService {
             $this->packService->persistLogisticUnitHistoryRecord($entityManager, $pack, [
                 "message" => $this->formatService->list($this->serialize($dispatch)),
                 "historyDate" => $dispatch->getCreationDate(),
-                "user" => $dispatch->getTreatedBy() ?? $this->security->getUser(),
+                "user" => $dispatch->getTreatedBy() ?? $this->userService->getUser(),
                 "type" => "Acheminement",
                 "location" => $dispatch->getLocationFrom(),
             ]);
@@ -1163,11 +1161,11 @@ class DispatchService {
         $this->CSVExportService->putLine($handle, $line);
     }
 
-    public function getOverconsumptionBillData(Dispatch $dispatch): array {
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+    public function getOverconsumptionBillData(EntityManagerInterface $entityManager, Dispatch $dispatch): array {
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
-        $appLogo = $this->settingsService->getValue($this->entityManager, Setting::LABEL_LOGO);
-        $overConsumptionLogo = $this->settingsService->getValue($this->entityManager, Setting::FILE_OVERCONSUMPTION_LOGO);
+        $appLogo = $this->settingsService->getValue($entityManager, Setting::LABEL_LOGO);
+        $overConsumptionLogo = $this->settingsService->getValue($entityManager, Setting::FILE_OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_BARBECUE)) {
@@ -1206,8 +1204,8 @@ class DispatchService {
         $attachment->setOriginalName($originalName);
         $attachment->setDispatch($dispatch);
 
-        $this->entityManager->persist($attachment);
-        $this->entityManager->flush();
+        $entityManager->persist($attachment);
+        $entityManager->flush();
 
         return [
             'file' => $pdfContent,
@@ -1215,8 +1213,8 @@ class DispatchService {
         ];
     }
 
-    public function getDeliveryNoteData(Dispatch $dispatch): array {
-        $logo = $this->settingsService->getValue($this->entityManager, Setting::FILE_WAYBILL_LOGO);
+    public function getDeliveryNoteData(EntityManagerInterface $entityManager, Dispatch $dispatch): array {
+        $logo = $this->settingsService->getValue($entityManager, Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
         $client = $this->specificService->getAppClientLabel();
 
@@ -2063,8 +2061,8 @@ class DispatchService {
         $attachment->setOriginalName($originalName);
         $attachment->setDispatch($dispatch);
 
-        $this->entityManager->persist($attachment);
-        $this->entityManager->flush();
+        $entityManager->persist($attachment);
+        $entityManager->flush();
 
         return [
             'file' => $pdfContent,

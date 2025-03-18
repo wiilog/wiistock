@@ -350,7 +350,7 @@ class ReceptionService
         return $this->fieldModesService->getArrayConfig($columns, [], $columnsVisible);
     }
 
-    public function createHeaderDetailsConfig(Reception $reception): array {
+    public function createHeaderDetailsConfig(EntityManagerInterface $entityManager, Reception $reception): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
         $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
@@ -451,7 +451,7 @@ class ReceptionService
             ],
         ];
 
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_RECEPTION);
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($entityManager, $config, FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         return array_merge(
             $configFiltered,

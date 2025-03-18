@@ -22,14 +22,16 @@ use App\Entity\FreeField\FreeFieldManagementRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
-use App\Entity\IOT\AlertTemplate;
-use App\Entity\IOT\RequestTemplate;
 use App\Entity\Kiosk;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
+use App\Entity\RequestTemplate\RequestTemplate;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\InventoryMissionPlan;
@@ -51,7 +53,7 @@ use App\Entity\WorkPeriod\WorkedDay;
 use App\Entity\WorkPeriod\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Repository\IOT\AlertTemplateRepository;
-use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\RequestTemplate\RequestTemplateRepository;
 use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
@@ -198,6 +200,10 @@ class SettingsController extends AbstractController {
                             "label" => "Pays d'origine",
                             "save" => true,
                         ],
+                        self::MENU_SLEEPING_STOCK_ALERT => [
+                            "label" => "Alerte stock dormant",
+                            "save" => true,
+                        ]
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => [
@@ -796,6 +802,7 @@ class SettingsController extends AbstractController {
     public const MENU_TEMPLATE_PURCHASE_ORDER = "bon_de_commande";
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
+    public const MENU_SLEEPING_STOCK_ALERT = "alerte_stock_dormant";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
 
     #[Route('/', name: 'settings_index')]
@@ -1153,9 +1160,9 @@ class SettingsController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
-        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $roleRepository = $entityManager->getRepository(Role::class);
+        $deleveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1191,15 +1198,6 @@ class SettingsController extends AbstractController {
                     ],
                     self::MENU_TYPES_FREE_FIELDS => function() use ($entityManager, $typeRepository) {
                         $categoryType = CategoryType::ARTICLE;
-                        $types = Stream::from($typeRepository->findByCategoryLabels([$categoryType]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
                         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
                         $categories = Stream::from($categorieCLRepository->findByLabel([
                             CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE,
@@ -1208,19 +1206,14 @@ class SettingsController extends AbstractController {
                             ->join("");
 
                         return [
-                            "types" => $types,
+                            "types" => $this->typeGenerator($categoryType),
                             "category" => $categoryType,
                             "categories" => "<select name='category' class='form-control data'>$categories</select>",
                         ];
                     },
-                    self::MENU_NATIVE_COUNTRY => fn() => [
-                        "native_countries" => Stream::from($nativeCountryRepository->findAll())
-                            ->map(fn(NativeCountry $nativeCountry) => [
-                                "code" => $nativeCountry->getCode(),
-                                "label" => $nativeCountry->getLabel(),
-                                "active" => $nativeCountry->isActive(),
-                            ])
-                            ->toArray(),
+                    self::MENU_SLEEPING_STOCK_ALERT => fn () => [
+                        "types" => $this->typeGenerator(CategoryType::ARTICLE),
+                        "deleveryRequestTemplatesSleepingStock" => $deleveryRequestTemplateSleepingStockRepository->getForSelect(),
                     ],
                 ],
                 self::MENU_REQUESTS => [
@@ -3520,6 +3513,11 @@ class SettingsController extends AbstractController {
                 "label" => $template->getName(),
                 "value" => $template->getId(),
                 "selected" => $index === 0,
+                ...($template instanceof DeliveryRequestTemplateInterface
+                    ? [
+                        "delivery-request-usage" => $template->getUsage()->value
+                    ]
+                    : []),
             ])
             ->toArray();
 
@@ -3784,7 +3782,8 @@ class SettingsController extends AbstractController {
 
     #[Route('/native-countries-api', name: 'settings_native_countries_api', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DISPLAY_ARTI], mode: HasPermission::IN_JSON)]
-    public function nativeCountriesApi(Request $request, EntityManagerInterface $manager) {
+    public function nativeCountriesApi(Request                $request,
+                                       EntityManagerInterface $manager): JsonResponse {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $data = [];
         $nativeCountryRepository = $manager->getRepository(NativeCountry::class);

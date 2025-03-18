@@ -18,6 +18,8 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\Setting;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\TransferRequest;
@@ -29,7 +31,6 @@ use App\Service\EmplacementDataService;
 use App\Service\PDFGeneratorService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,9 +42,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 #[Route('/emplacement')]
 class LocationController extends AbstractController {
-
-    #[Required]
-    public UserService $userService;
 
     #[Required]
     public TranslationService $translation;
@@ -154,6 +152,8 @@ class LocationController extends AbstractController {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $arrivalRepository = $entityManager->getRepository(Arrivage::class);
+        $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
+        $deliveryRequestTemplateTriggerActionRepository = $entityManager->getRepository(DeliveryRequestTemplateTriggerAction::class);
 
         $location = $locationRepository->find($locationId);
 
@@ -217,6 +217,16 @@ class LocationController extends AbstractController {
         $arrivals = $arrivalRepository->countByLocation($location);
         if($arrivals > 0) {
             $usedBy[] = "arrivages";
+        }
+
+        $requestTemplates = $deliveryRequestTemplateSleepingStockRepository->count(["destination" => $location]);
+        if($requestTemplates > 0) {
+            $usedBy[] = "modèles de demande de livraison pour le stock dormant";
+        }
+
+        $requestTemplates = $deliveryRequestTemplateTriggerActionRepository->count(["destination" => $location]);
+        if($requestTemplates > 0) {
+            $usedBy[] = "modèles de demande de livraison pour les actionneurs IOT";
         }
 
         return $usedBy;

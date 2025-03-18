@@ -11,18 +11,21 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
+use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FormatService;
 use App\Service\FieldModesService;
+use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
@@ -57,6 +60,7 @@ class ReferenceArticleRepository extends EntityRepository {
     ];
 
     private const FIELDS_TYPE_DATE = [
+        "lastSleepingStockAlertAnswer",
         "dateLastInventory",
         "createdAt",
         "editedAt",
@@ -73,6 +77,8 @@ class ReferenceArticleRepository extends EntityRepository {
         "libelle" => 5,
         // add more columns here with their respective weighting (higher = more relevant)
     ];
+
+    private const MAX_REFERENCE_ARTICLES_IN_ALERT = 10;
 
     public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
@@ -298,9 +304,11 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.lastStockExit')
             ->addSelect('categoryRef.label as category')
             ->addSelect('referenceArticle.dateLastInventory')
+            ->addSelect('referenceArticle.lastSleepingStockAlertAnswer')
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
+            ->addSelect('sleeping_stock_plan.maxStorageTime')
             ->addSelect('join_visibilityGroup.label AS visibilityGroup')
             ->addSelect("GROUP_CONCAT(DISTINCT join_manager.username SEPARATOR ',') AS managers")
             ->addSelect("GROUP_CONCAT(DISTINCT join_supplier.codeReference SEPARATOR ',') AS supplierCodes")
@@ -308,6 +316,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
+            ->leftJoin('typeRef.sleepingStockPlan', 'sleeping_stock_plan')
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->leftJoin('referenceArticle.buyer', 'join_buyer')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
@@ -486,7 +495,9 @@ class ReferenceArticleRepository extends EntityRepository {
             'Créée le' => ['field' => 'createdAt', 'typage' => 'date'],
             'Dernière modification le' => ['field' => 'editedAt', 'typage' => 'date'],
             'Dernière sortie le' => ['field' => 'lastStockExit', 'typage' => 'date'],
-            'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'date']
+            'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'date'],
+            'Dernière réponse au stockage' => ['field' => "lastSleepingStockAlertAnswer", 'typage' => 'date'],
+            'Durée max autorisée en stock' => ['field' => "maxStorageTime", 'typage' => 'number'],
         ];
 
         $queryBuilder = $this->createQueryBuilder("ra");
@@ -1502,5 +1513,62 @@ class ReferenceArticleRepository extends EntityRepository {
         $query->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_TRANSIT], Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
+    }
+
+
+
+    /**
+     * @return array{
+     *   "countTotal": int,
+     *   "referenceArticles": array<
+     *     array{
+     *       "id": int,
+     *       "reference": string,
+     *       "label": string,
+     *       "quantityStock": int,
+     *       "lastMovementDate": string,
+     *     }
+     *   >
+     * }
+     */
+    public function findSleepingReferenceArticlesByTypeAndManager(Utilisateur $utilisateur,
+                                                                  DateTime $dateLimit,
+                                                                  Type $type): array {
+        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
+        $queryBuilder = $this->createQueryBuilder("reference_article")
+            ->select("reference_article.id AS id")
+            ->addSelect("reference_article.reference AS reference")
+            ->addSelect("reference_article.libelle AS label")
+            ->addSelect("reference_article.quantiteStock AS quantityStock")
+            ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
+            ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery("reference_article")}) AS lastMovementDate")
+            ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
+            ->andWhere("reference_article.type = :type")
+            ->distinct()
+            ->setMaxResults(self::MAX_REFERENCE_ARTICLES_IN_ALERT)
+            ->setParameter("type", $type)
+            ->setParameter("manager", $utilisateur->getId());
+
+        $queryBuilder = $this->filterBySleepingReference($queryBuilder, $dateLimit, "reference_article");
+
+        $queryResult = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        $countTotal = $queryResult[0]["__query_count"] ?? 0;
+
+        return [
+            "countTotal" => $countTotal,
+            "referenceArticles" => $queryResult
+        ];
+    }
+
+    public function filterBySleepingReference(QueryBuilder $queryBuilder, DateTime $dateLimit, string $referenceArticleAlias): QueryBuilder {
+        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
+        return $queryBuilder
+            ->andWhere("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery($referenceArticleAlias)}) < :dateLimit")
+            ->andWhere("$referenceArticleAlias.quantiteStock > 0")
+            ->andWhere("$referenceArticleAlias.quantiteDisponible > 0")
+            ->setParameter("dateLimit", $dateLimit);
     }
 }
