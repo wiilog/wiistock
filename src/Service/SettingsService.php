@@ -1298,23 +1298,22 @@ class SettingsService {
 
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
-            if($template instanceof DeliveryRequestTemplateTriggerAction && $template->getUsage() !== DeliveryRequestTemplateUsageEnum::TRIGGER_ACTION) {
-                $tables["requestTemplates"] = [];
-            }
-            $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
-            $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
-                ->keymap(fn($line) => [$line->getId(), $line])
-                ->toArray();
+            if(!($template instanceof DeliveryRequestTemplateSleepingStock)) {
+                $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
+                $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
+                    ->keymap(fn($line) => [$line->getId(), $line])
+                    ->toArray();
 
-            foreach (array_filter($tables["requestTemplates"]) as $item) {
-                /** @var FreeField $freeField */
-                $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
+                foreach (array_filter($tables["requestTemplates"]) as $item) {
+                    /** @var FreeField $freeField */
+                    $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
 
-                $line->setRequestTemplate($template);
+                    $line->setRequestTemplate($template);
 
-                $this->requestTemplateService->updateRequestTemplateLine($line, $item);
+                    $this->requestTemplateService->updateRequestTemplateLine($line, $item);
 
-                $entityManager->persist($line);
+                    $entityManager->persist($line);
+                }
             }
         }
 

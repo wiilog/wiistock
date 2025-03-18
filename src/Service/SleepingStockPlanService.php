@@ -26,7 +26,9 @@ class SleepingStockPlanService {
         private RouterInterface    $router,
     ) {}
 
-    public function triggerSleepingStockPlan(EntityManagerInterface $entityManager, SleepingStockPlan $sleepingStockPlan, DateTime $taskExecution): void {
+    public function triggerSleepingStockPlan(EntityManagerInterface $entityManager,
+                                             SleepingStockPlan      $sleepingStockPlan,
+                                             DateTime               $taskExecution): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -55,7 +57,7 @@ class SleepingStockPlanService {
             }
 
             $tokenType = AccessTokenTypeEnum::SLEEPING_STOCK;
-            $this->accessTokenService->closeActiveTokens($entityManager, $manager, $tokenType);
+            $this->accessTokenService->closeActiveTokens($entityManager, $tokenType, $manager);
             $accessToken = $this->accessTokenService->persistAccessToken($entityManager, $tokenType, $manager);
             $entityManager->flush();
 

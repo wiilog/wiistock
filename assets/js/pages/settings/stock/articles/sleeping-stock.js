@@ -1,6 +1,6 @@
 import EditableDatatable, {MODE_EDIT, SAVE_MANUALLY} from "@app/editatable";
 import AJAX, {GET, POST} from "@app/ajax";
-import Flash, {ERROR, INFO, SUCCESS} from "@app/flash";
+import {wrapLoadingOnActionButton} from "@app/loading";
 
 /**
  * @param {jQuery} $container
@@ -9,21 +9,20 @@ export function initializeSleepingStockSettingPage($container){
     initializeSleepingStockRequestInformations($container)
     initializeSleepingSleepingStockPlan($container)
 
-    const sleepingStockForceSendAlertbuttonClickEvent = 'click.sleepingStockForceSendAlertbuttonClickEvent';
+    const sleepingStockForceSendAlertButtonClickEvent = 'click.sleepingStockForceSendAlertButtonClickEvent';
     $container
         .find('.sleeping-stock-force-send-alert-button')
-        .off(sleepingStockForceSendAlertbuttonClickEvent)
-        .on(sleepingStockForceSendAlertbuttonClickEvent, () => {
-            AJAX
-                .route(
-                    POST,
-                    'settings_sleeping_stock_plan_force_trigger',
-                )
-                .json()
-                .then(({success, message}) => {
-                    Flash.add(succes ? SUCCESS : ERROR, message)
-                });
-        })
+        .off(sleepingStockForceSendAlertButtonClickEvent)
+        .on(sleepingStockForceSendAlertButtonClickEvent, function() {
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX
+                    .route(
+                        POST,
+                        'settings_sleeping_stock_plan_force_trigger',
+                    )
+                    .json()
+            ));
+        });
 }
 
 /**
