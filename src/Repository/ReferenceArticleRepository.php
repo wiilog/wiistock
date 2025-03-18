@@ -1520,37 +1520,36 @@ class ReferenceArticleRepository extends EntityRepository {
     /**
      * @return array{
      *   "countTotal": int,
-     *   "referenceArticles": array{
-     *     int: array{
+     *   "referenceArticles": array<
+     *     array{
      *       "id": int,
      *       "reference": string,
      *       "label": string,
      *       "quantityStock": int,
      *       "lastMovementDate": string,
      *     }
-     *   }
+     *   >
      * }
      */
     public function findSleepingReferenceArticlesByTypeAndManager(Utilisateur $utilisateur,
                                                                   DateTime $dateLimit,
                                                                   Type $type): array {
         $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
-        $referenceArticleAlias = "reference_article";
-        $queryBuilder = $this->createQueryBuilder($referenceArticleAlias)
+        $queryBuilder = $this->createQueryBuilder("reference_article")
             ->select("reference_article.id AS id")
             ->addSelect("reference_article.reference AS reference")
             ->addSelect("reference_article.libelle AS label")
             ->addSelect("reference_article.quantiteStock AS quantityStock")
             ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
-            ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery($referenceArticleAlias)}) AS lastMovementDate")
-            ->innerJoin('reference_article.managers', "manager", Join::WITH, 'manager.id = :manager')
+            ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery("reference_article")}) AS lastMovementDate")
+            ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
             ->andWhere("reference_article.type = :type")
-            ->addGroupBy("reference_article.id")
+            ->distinct()
             ->setMaxResults(self::MAX_REFERENCE_ARTICLES_IN_ALERT)
             ->setParameter("type", $type)
             ->setParameter("manager", $utilisateur->getId());
 
-        $queryBuilder = $this->filterBySleepingReference($queryBuilder, $dateLimit, $referenceArticleAlias);
+        $queryBuilder = $this->filterBySleepingReference($queryBuilder, $dateLimit, "reference_article");
 
         $queryResult = $queryBuilder
             ->getQuery()
