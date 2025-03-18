@@ -1545,7 +1545,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
             ->addGroupBy("reference_article.id")
             ->andWhere("reference_article.type = :type")
-            ->leftJoin('reference_article.managers', "manager", Join::WITH, 'manager.id = :manager')
+            ->innerJoin('reference_article.managers', "manager", Join::WITH, 'manager.id = :manager')
             ->setParameter("type", $type)
             ->setParameter("manager", $utilisateur->getId());
 

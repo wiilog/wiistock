@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class SleepingStockAuthenticator extends AbstractAuthenticator {
 
-    private const ACCESS_TOKEN_PARAMETER = "access-token";
+    public const ACCESS_TOKEN_PARAMETER = "access-token";
 
     public function __construct(
         private EntityManagerInterface $entityManager,
