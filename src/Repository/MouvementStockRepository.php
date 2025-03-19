@@ -495,8 +495,9 @@ class MouvementStockRepository extends EntityRepository
      *       "reference": string,
      *       "label": string,
      *       "quantityStock": int,
-     *       "lastMovementDate": string,
-     *       "maxStorageTime": int
+     *       "lastMovementDate": DateTime,
+     *       "maxStorageTime": int,
+     *       "maxStorageDate": DateTime
      *     }
      *   >
      * }
@@ -518,8 +519,12 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
             ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
-            ->addSelect("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') AS maxMovementDate")
+            ->addSelect("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') AS maxStorageDate")
+
+            // TODO COMMUN
             ->andWhere("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') < CURRENT_DATE()")
+            // TODO END COMMUN
+
             ->andWhere(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->andX(
@@ -538,12 +543,17 @@ class MouvementStockRepository extends EntityRepository
             ->leftJoin(ReferenceArticle::class, 'reference_article', 'WITH', 'reference_article.lastMovement = movement')
             ->leftJoin(Article::class, 'article', 'WITH', 'article.lastMovement = movement')
             ->leftJoin("article.articleFournisseur" , "articles_fournisseur")
+
+            // TODO COMMUN
+
             ->leftJoin("articles_fournisseur.referenceArticle" , "article_reference_article")
             ->leftJoin(Type::class, 'type', 'WITH', 'type.id = reference_article.type OR type.id = article.type')
             ->leftJoin("reference_article.managers", "reference_article_managers")
             ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
-
             ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type')
+            // TODO END COMMUN
+
+
             ->setParameter("user", $user->getId());
 
         if ($type) {
@@ -573,6 +583,7 @@ class MouvementStockRepository extends EntityRepository
                     "quantityStock" => $item["referenceQuantityStock"] ?? $item["articleQuantityStock"],
                     "lastMovementDate" => $item["lastMovementDate"],
                     "maxStorageTime" => $item["maxStorageTime"],
+                    "maxStorageDate" => $item["maxStorageDate"],
                 ];
             })
             ->toArray();
