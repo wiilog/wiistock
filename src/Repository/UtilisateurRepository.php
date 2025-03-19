@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Dispute;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
@@ -287,7 +288,14 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         $referenceArticleAlias = 'reference_article';
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
-            ->innerJoin(ReferenceArticle::class, $referenceArticleAlias, 'WITH', "$referenceArticleAlias.type = :type AND user MEMBER OF $referenceArticleAlias.managers")
+
+
+            ->innerJoin(ReferenceArticle::class, "reference_article", 'WITH', "reference_article.type = :type AND user MEMBER OF reference_article.managers")
+            ->leftJoin("reference_article.articlesFournisseur", "articles_fournisseur")
+            ->leftJoin("articles_fournisseur.articles", "article")
+
+            // TODO FILTERS SLEEPING
+
             ->setParameter('type', $type);
 
         return $referenceArticleRepository->filterBySleepingReferenceArticles($queryBuilder , $referenceArticleAlias, $type)
