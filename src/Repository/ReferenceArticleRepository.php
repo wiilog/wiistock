@@ -26,10 +26,10 @@ use App\Helper\AdvancedSearchHelper;
 use App\Helper\QueryBuilderHelper;
 use App\Service\FormatService;
 use App\Service\FieldModesService;
-use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -1514,55 +1514,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->execute();
     }
 
-
-
-    /**
-     * @return array{
-     *   "countTotal": int,
-     *   "referenceArticles": array<
-     *     array{
-     *       "id": int,
-     *       "reference": string,
-     *       "label": string,
-     *       "quantityStock": int,
-     *       "lastMovementDate": string,
-     *     }
-     *   >
-     * }
-     */
-    public function findSleepingReferenceArticlesByTypeAndManager(Utilisateur $utilisateur,
-                                                                  DateTime    $dateLimit,
-                                                                  Type        $type,
-                                                                  int         $maxResults): array {
-        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
-        $queryBuilder = $this->createQueryBuilder("reference_article")
-            ->select("reference_article.id AS id")
-            ->addSelect("reference_article.reference AS reference")
-            ->addSelect("reference_article.libelle AS label")
-            ->addSelect("reference_article.quantiteStock AS quantityStock")
-            ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
-            ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery("reference_article")}) AS lastMovementDate")
-            ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
-            ->andWhere("reference_article.type = :type")
-            ->distinct()
-            ->setMaxResults($maxResults)
-            ->setParameter("type", $type)
-            ->setParameter("manager", $utilisateur->getId());
-
-        $queryBuilder = $this->filterBySleepingReference($queryBuilder, $dateLimit, "reference_article");
-
-        $queryResult = $queryBuilder
-            ->getQuery()
-            ->getResult();
-
-        $countTotal = $queryResult[0]["__query_count"] ?? 0;
-
-        return [
-            "countTotal" => $countTotal,
-            "referenceArticles" => $queryResult
-        ];
-    }
-
     public function filterBySleepingReference(QueryBuilder $queryBuilder, DateTime $dateLimit, string $referenceArticleAlias): QueryBuilder {
         $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
         return $queryBuilder
@@ -1588,7 +1539,8 @@ class ReferenceArticleRepository extends EntityRepository {
      * }
      */
     public function findSleepingReferenceArticlesByManager(Utilisateur $utilisateur,
-                                                           int         $maxResults): array {
+                                                           int         $maxResults,
+                                                           ?Type       $type = null): array {
         $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
         $queryBuilder = $this->createQueryBuilder("reference_article")
             ->select("reference_article.id AS id")
@@ -1598,15 +1550,12 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect("COUNT_OVER(reference_article.id) AS __query_count")
             ->addSelect("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery('reference_article')}) AS lastMovementDate")
             ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
-            ->andWhere("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery("reference_article")}) < DATE_SUB(CURRENT_DATE(), sleepingStockPlan.maxStorageTime, 'second')")
-            ->andWhere("reference_article.quantiteStock > 0")
-            ->andWhere("reference_article.quantiteDisponible > 0")
-            ->innerJoin('reference_article.type', 'type' )
-            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type')
             ->innerJoin("reference_article.managers", "manager", Join::WITH, 'manager.id = :manager')
             ->distinct()
             ->setMaxResults($maxResults)
             ->setParameter("manager", $utilisateur->getId());
+
+        $queryBuilder = $this->filterBySleepingReferenceArticles($queryBuilder, "reference_article", $type);
 
         $queryResult = $queryBuilder
             ->getQuery()
@@ -1618,5 +1567,21 @@ class ReferenceArticleRepository extends EntityRepository {
             "countTotal" => $countTotal,
             "referenceArticles" => $queryResult
         ];
+    }
+
+    public function filterBySleepingReferenceArticles(QueryBuilder $queryBuilder, string $refArticleAlias, ?Type $type): QueryBuilder {
+        $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
+        $queryBuilder
+            ->andWhere("({$stockMovementRepository->getMaxMovementDateForReferenceArticleQuery($refArticleAlias)}) < DATE_SUB(CURRENT_DATE(), sleepingStockPlan.maxStorageTime, 'second')")
+            ->andWhere("$refArticleAlias.quantiteStock > 0")
+            ->andWhere("$refArticleAlias.quantiteDisponible > 0")
+            ->innerJoin("$refArticleAlias.type", 'type' , ...$type ? [ Join::WITH, 'type.id = :type'] : [])
+            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type');
+
+        if ($type) {
+            $queryBuilder->setParameter("type", $type);
+        }
+
+        return $queryBuilder;
     }
 }
