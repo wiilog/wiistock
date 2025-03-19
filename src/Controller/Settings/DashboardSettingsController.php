@@ -18,30 +18,23 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\DashboardSettingsService;
 use App\Service\TranslationService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 #[Route('/parametrage-global/dashboard')]
 class DashboardSettingsController extends AbstractController {
 
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public TranslationService $translationService;
-
     #[Route('/', name: 'dashboard_settings', methods: ['GET'])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD])]
     public function settings(DashboardSettingsService $dashboardSettingsService,
-                             EntityManagerInterface $entityManager): Response {
+                             EntityManagerInterface   $entityManager): Response {
         $componentTypeRepository = $entityManager->getRepository(Dashboard\ComponentType::class);
         $componentTypes = $componentTypeRepository->findAll();
 
@@ -89,31 +82,34 @@ class DashboardSettingsController extends AbstractController {
      */
     #[Route('/save', name: 'save_dashboard_settings', options: ['expose' => true], methods: ['POST'])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
-    public function save(Request $request,
-                         EntityManagerInterface $entityManager,
+    public function save(Request                  $request,
+                         EntityManagerInterface   $entityManager,
                          DashboardSettingsService $dashboardSettingsService): Response {
         $dashboards = json_decode($request->request->get("dashboards"), true);
         try {
             $dashboardSettingsService->save($entityManager, $dashboards);
         } catch(InvalidArgumentException $exception) {
             $message = $exception->getMessage();
-            $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
-            if(preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
-                $unknownComponentLabel = $matches[1] ?? '';
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Type de composant {$unknownComponentLabel} inconnu"
-                ]);
-            } else {
-                $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
-                if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
-                    $title = $matches[1] ?? '';
-                    return $this->json([
-                        "success" => false,
-                        "msg" => 'Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides'
-                    ]);
-                } else {
-                    throw $exception;
+            $componentCountExceededCode = DashboardSettingsService::COMPONENT_COUNT_EXCEEDED;
+            if (preg_match("/$componentCountExceededCode-(.*)/", $message, $matches)) {
+                $componentLimit = $matches[1] ?? '';
+                throw new FormException("Vous avez un trop grand nombre de composant sur vos dashboards, la limite est de $componentLimit");
+            }
+            else {
+                $unknownComponentCode = DashboardSettingsService::UNKNOWN_COMPONENT;
+                if (preg_match("/$unknownComponentCode-(.*)/", $message, $matches)) {
+                    $unknownComponentLabel = $matches[1] ?? '';
+                    throw new FormException("Type de composant {$unknownComponentLabel} inconnu");
+                }
+                else {
+                    $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;
+                    if (preg_match("/$invalidSegmentsEntry-(.*)/", $message, $matches)) {
+                        $title = $matches[1] ?? '';
+                        throw new FormException('Les valeurs de segments renseignées pour le composant "' . $title . '" ne sont pas valides');
+                    }
+                    else {
+                        throw $exception;
+                    }
                 }
             }
         }
@@ -137,9 +133,10 @@ class DashboardSettingsController extends AbstractController {
      */
     #[Route('/api-component-type/{componentType}', name: 'dashboard_component_type_form', methods: ['POST'], options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
-    public function apiComponentTypeForm(Request $request,
-                                         EntityManagerInterface $entityManager,
-                                         Dashboard\ComponentType $componentType): Response {
+    public function apiComponentTypeForm(Request                 $request,
+                                         EntityManagerInterface  $entityManager,
+                                         Dashboard\ComponentType $componentType,
+                                         TranslationService      $translationService): Response {
         $templateName = $componentType->getTemplate();
 
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -376,7 +373,7 @@ class DashboardSettingsController extends AbstractController {
         }
 
         if (!empty($values['dispatchEmergencies'])) {
-            $values['dispatchEmergencies'] = Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
+            $values['dispatchEmergencies'] = Stream::from([$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                 ->filter(static fn($emergency) => in_array($emergency, $values['dispatchEmergencies']))
                 ->toArray();
         }
@@ -415,10 +412,10 @@ class DashboardSettingsController extends AbstractController {
             foreach($values['chartColorsLabels'] as $legend){
                 $values['legends'][$legend] = [];
                 Stream::from($values)
-                    ->each(function ($conf, $arrayKey) use ($displayLegend, $legend, $countLegend, &$values) {
+                    ->each(function ($conf, $arrayKey) use ($displayLegend, $legend, $countLegend, &$values, $translationService) {
                         if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
                             $explode = explode('_', $arrayKey);
-                            $values['legends'][$legend][$explode[1]] = $displayLegend ? $conf : $this->translationService->translate('Dashboard', $conf);
+                            $values['legends'][$legend][$explode[1]] = $displayLegend ? $conf : $translationService->translate('Dashboard', $conf);
                             unset($values[$arrayKey]);
                         }
                     });
@@ -430,10 +427,10 @@ class DashboardSettingsController extends AbstractController {
                 $values['legends'][$key] = [];
 
                 Stream::from($values)
-                    ->each(function ($conf, $arrayKey) use ($displayLegend, $countLegend, $key, &$values) {
+                    ->each(function ($conf, $arrayKey) use ($displayLegend, $countLegend, $key, &$values, $translationService) {
                         if (str_starts_with($arrayKey, 'legend') && str_contains($arrayKey, '_') && str_contains($arrayKey, $countLegend)) {
                             $explode = explode('_', $arrayKey);
-                            $values['legends'][$key][$explode[1]] = $displayLegend ? $conf : $this->translationService->translate('Dashboard', $conf);
+                            $values['legends'][$key][$explode[1]] = $displayLegend ? $conf : $translationService->translate('Dashboard', $conf);
                             unset($values[$arrayKey]);
                         }
                     });
@@ -485,7 +482,7 @@ class DashboardSettingsController extends AbstractController {
                     'entityStatuses' => $entityStatuses,
                     'natures' => $natures,
                     'values' => $values,
-                    'dispatchEmergencies' => Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
+                    'dispatchEmergencies' => Stream::from([$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                         ->map(static fn(string $emergency) => [
                             'label' => $emergency,
                             'value' => $emergency,
@@ -503,20 +500,13 @@ class DashboardSettingsController extends AbstractController {
         }
     }
 
-    /**
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @param Dashboard\ComponentType $componentType
-     * @return Response
-     */
     #[Route('/api-component-type/{componentType}/example-values', name: 'dashboard_component_type_example_values', options: ['expose' => true], methods: ['POST'])]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_DASHBOARD], mode: HasPermission::IN_JSON)]
-    public function apiComponentTypeExample(Request $request,
-                                            EntityManagerInterface $entityManager,
+    public function apiComponentTypeExample(Request                  $request,
+                                            EntityManagerInterface   $entityManager,
                                             DashboardSettingsService $dashboardSettingsService,
-                                            Dashboard\ComponentType $componentType): Response {
-        if($request->request->has("values")) {
+                                            Dashboard\ComponentType  $componentType): Response {
+        if ($request->request->has("values")) {
             $values = json_decode($request->request->get("values"), true);
             if (isset($values['jsonConfig'])) {
                 $valuesDecoded = json_decode($values['jsonConfig'], true);

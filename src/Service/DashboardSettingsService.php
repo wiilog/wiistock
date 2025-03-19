@@ -21,17 +21,17 @@ use App\Entity\Tracking\Pack;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\Dashboard\DashboardService;
 use App\Service\ProductionRequest\ProductionRequestService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class DashboardSettingsService {
+
+    private const DEFAULT_COMPONENT_LIMIT = 75;
 
     const MODE_EDIT = 0;
     const MODE_DISPLAY = 1;
@@ -39,55 +39,32 @@ class DashboardSettingsService {
 
     const MAX_REQUESTS_TO_DISPLAY = 50;
 
-    const UNKNOWN_COMPONENT = 'unknown_component';
-    const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
+    public const UNKNOWN_COMPONENT = 'unknown_component';
+    public const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
+    public const COMPONENT_COUNT_EXCEEDED = 'component_count_exceeded';
 
     const COMPONENTS_NEEDING_LEGEND_TRANSLATION = [
         Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS,
         Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS
     ];
 
-    #[Required]
-    public DashboardService $dashboardService;
+    public function __construct(
+        private DashboardService         $dashboardService,
+        private DateTimeService          $dateTimeService,
+        private DeliveryRequestService   $demandeLivraisonService,
+        private DemandeCollecteService   $demandeCollecteService,
+        private HandlingService          $handlingService,
+        private DispatchService          $dispatchService,
+        private ProductionRequestService $productionRequestService,
+        private TransferRequestService   $transferRequestService,
+        private UserService              $userService,
+        private RouterInterface          $router,
+        private FormatService            $formatService,
+        private TranslationService       $translationService,
+        private LanguageService          $languageService,
+    ) {
 
-    #[Required]
-    public TruckArrivalLineService $truckArrivalLineService;
-
-    #[Required]
-    public DateTimeService $dateTimeService;
-
-    #[Required]
-    public DeliveryRequestService $demandeLivraisonService;
-
-    #[Required]
-    public DemandeCollecteService $demandeCollecteService;
-
-    #[Required]
-    public HandlingService $handlingService;
-
-    #[Required]
-    public DispatchService $dispatchService;
-
-    #[Required]
-    public ProductionRequestService $productionRequestService;
-
-    #[Required]
-    public TransferRequestService $transferRequestService;
-
-    #[Required]
-    public UserService $userService;
-
-    #[Required]
-    public RouterInterface $router;
-
-    #[Required]
-    public FormatService $formatService;
-
-    #[Required]
-    public TranslationService $translationService;
-
-    #[Required]
-    public LanguageService $languageService;
+    }
 
     public function serialize(EntityManagerInterface $entityManager, ?Utilisateur $user, int $mode): string {
         $pageRepository = $entityManager->getRepository(Dashboard\Page::class);
@@ -642,7 +619,7 @@ class DashboardSettingsService {
             if ($shouldShowLocationLabels && !empty($config['locations'])) {
                 $locationRepository = $manager->getRepository(Emplacement::class);
                 $locations = $locationRepository->findBy(['id' => $config['locations']]);
-                $values['subtitle'] = FormatHelper::locations($locations);
+                $values['subtitle'] = $this->formatService->locations($locations);
             }
         } else {
             if ($meter) {
@@ -1175,6 +1152,17 @@ class DashboardSettingsService {
         $pagesToDelete = $this->byId($pageRepository->findAll());
         $pageRowsToDelete = $this->byId($pageRowRepository->findAll());
         $componentsToDelete = $this->byId($componentRepository->findAll());
+
+        $componentCount = Stream::from($jsonDashboard)
+            ->flatMap(static fn(array $jsonPage) => $jsonPage['rows'])
+            ->flatMap(static fn(array $jsonRow) => $jsonRow["components"])
+            ->count();
+
+        $componentLimit = $_SERVER['APP_DASHBOARD_COMPONENT_LIMIT'] ?? self::DEFAULT_COMPONENT_LIMIT;
+        if ($componentCount > $componentLimit) {
+            throw new InvalidArgumentException(self::COMPONENT_COUNT_EXCEEDED . "-$componentLimit");
+        }
+
         foreach ($jsonDashboard as $jsonPage) {
             [$updatePage, $page] = $this->getEntity($entityManager, Dashboard\Page::class, $jsonPage);
             if ($page) {
