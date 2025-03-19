@@ -5,7 +5,9 @@ namespace App\Repository;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Dispute;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -286,19 +288,26 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     public function findWithSleepingReferenceArticlesByType(Type $type, DateTime $dateLimit): array {
         $referenceArticleRepository = $this->getEntityManager()->getRepository(ReferenceArticle::class);
         $referenceArticleAlias = 'reference_article';
+
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
-
-
             ->innerJoin(ReferenceArticle::class, "reference_article", 'WITH', "reference_article.type = :type AND user MEMBER OF reference_article.managers")
             ->leftJoin("reference_article.articlesFournisseur", "articles_fournisseur")
             ->leftJoin("articles_fournisseur.articles", "article")
 
-            // TODO FILTERS SLEEPING
+            ->innerJoin(MouvementStock::class, 'movement', 'WITH', 'movement = reference_article.lastMovement OR movement = article.lastMovement')
+
+            // METTRE EN COMMU DESSOUS
+            ->andWhere("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') < CURRENT_DATE()")
+            ->leftJoin("articles_fournisseur.referenceArticle" , "article_reference_article")
+            ->leftJoin(Type::class, 'type', 'WITH', 'type.id = reference_article.type OR type.id = article.type')
+            ->leftJoin("reference_article.managers", "reference_article_managers")
+            ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
+            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type')
 
             ->setParameter('type', $type);
 
-        return $referenceArticleRepository->filterBySleepingReferenceArticles($queryBuilder , $referenceArticleAlias, $type)
+        return $queryBuilder
             ->getQuery()
             ->getResult();
     }
