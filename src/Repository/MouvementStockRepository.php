@@ -518,6 +518,9 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
             ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
+
+            // TODO  Filter By manager
+
             ->addSelect("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') AS maxMovementDate")
             ->andWhere("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') < CURRENT_DATE()")
             ->andWhere(
