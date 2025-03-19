@@ -48,8 +48,8 @@ class IndexController extends AbstractController {
         });
 
         $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
-            ->map(fn(array $referenceArticle) => [
-                "actions" => $formService->macro(
+            ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
+                $switchs = $formService->macro(
                     "switch",
                     "choice-" . $referenceArticle["id"],
                     null,
@@ -58,13 +58,17 @@ class IndexController extends AbstractController {
                     [
                         "labelClass" => "full-width",
                     ]
-                ) . $formService->macro("hidden", "refId", $referenceArticle["id"]),
-                "maxStorageDate" => $formatService->dateTime(
-                    (new DateTime($referenceArticle["lastMovementDate"]))
-                        ->sub(new DateInterval("PT{$referenceArticle["maxStorageTime"]}S"))
-                ),
-                ...$referenceArticle
-            ])
+                );
+                $inputId = $formService->macro("hidden", "refId", $referenceArticle["id"]);
+                $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary'></i></button>";
+                $lastMovementDate = new DateTime($referenceArticle["lastMovementDate"]);
+                $maxStorageDate = (clone $lastMovementDate)->sub(new DateInterval("PT{$referenceArticle["maxStorageTime"]}S"));
+                return [
+                    "actions" => "<div class='d-flex full-width'> $deleteRowButton  $switchs<div>   $inputId",
+                    "maxStorageDate" => $formatService->dateTime($maxStorageDate),
+                    ...$referenceArticle
+                ];
+            })
             ->toArray();
 
         $countTotal = $sleepingReferenceArticlesData["countTotal"];
