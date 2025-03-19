@@ -23,13 +23,13 @@ class IndexController extends AbstractController {
 
     #[Route("/", name: "_index", methods: [self::GET])]
     public function index(EntityManagerInterface $entityManager,
-                          UserService            $user,
+                          UserService            $userService,
                           FormatService          $formatService,
                           CacheService           $cacheService,
                           FormService            $formService): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $sleepingStockRequestInformationRepository = $entityManager->getRepository(SleepingStockRequestInformation::class);
-        $user = $user->getUser();
+        $user = $userService->getUser();
 
         $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByManager(
             $user,
