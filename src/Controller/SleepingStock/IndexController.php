@@ -19,7 +19,7 @@ use WiiCommon\Helper\Stream;
 
 #[Route("/sleeping-stock", name: "sleeping_stock")]
 class IndexController extends AbstractController {
-    private const MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM = 100;
+    private const MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM = 50;
 
     #[Route("/", name: "_index", methods: [self::GET])]
     public function index(EntityManagerInterface $entityManager,
@@ -33,7 +33,7 @@ class IndexController extends AbstractController {
 
         $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByManager(
             $user,
-            50,
+            $this::MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM,
         );
 
         $actionButtonsItems = $cacheService->get(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class,static function () use ($sleepingStockRequestInformationRepository): array {
