@@ -484,11 +484,27 @@ class MouvementStockRepository extends EntityRepository
     }
 
 
+
+    /**
+     * @return array{
+     *   "countTotal": int,
+     *   "referenceArticles": array<
+     *     array{
+     *       "entity": string,
+     *       "id": int,
+     *       "reference": string,
+     *       "label": string,
+     *       "quantityStock": int,
+     *       "lastMovementDate": string,
+     *       "maxStorageTime": int
+     *     }
+     *   >
+     * }
+     */
     public function findForSleepingStock(Utilisateur $utilisateur,
                                          int         $maxResults,
                                          ?Type       $type = null): array {
-        $queryBuilder =$this->createQueryBuilder('movement');
-
+        $queryBuilder = $this->createQueryBuilder('movement');
         $queryBuilder->distinct()
             ->select("movement.id AS id")
             ->addSelect("reference_article.id AS referenceArticleId")
@@ -502,6 +518,7 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
             ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
+            ->addSelect("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') AS maxMovementDate")
             ->andWhere("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') < CURRENT_DATE()")
             ->andWhere(
                 $queryBuilder->expr()->orX(
@@ -514,13 +531,13 @@ class MouvementStockRepository extends EntityRepository
             )
             ->leftJoin(ReferenceArticle::class, 'reference_article', 'WITH', 'reference_article.lastMovement = movement')
             ->leftJoin(Article::class, 'article', 'WITH', 'article.lastMovement = movement')
-            ->leftJoin("reference_article.type", "reference_type", 'type' , ...$type ? [ Join::WITH, 'type.id = :type'] : [])
-            ->leftJoin("article.type", "article_type", 'type' , ...$type ? [ Join::WITH, 'type.id = :type'] : [])
-            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = article_type OR sleepingStockPlan.type = reference_type');
-        ;
+            ->leftJoin(Type::class, 'type', 'WITH', 'type.id = reference_article.type OR type.id = article.type')
+            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type');
 
         if ($type) {
-            $queryBuilder->setParameter("type", $type);
+            $queryBuilder
+                ->andWhere("type.id = :type")
+                ->setParameter("type", $type);
         }
 
         $queryResult = $queryBuilder
@@ -529,8 +546,6 @@ class MouvementStockRepository extends EntityRepository
             ->getResult();
 
         $countTotal = $queryResult[0]["__query_count"] ?? 0;
-
-        dump($queryResult);
 
         $data = Stream::from($queryResult)
             ->map(function ($item) {
