@@ -501,7 +501,7 @@ class MouvementStockRepository extends EntityRepository
      *   >
      * }
      */
-    public function findForSleepingStock(Utilisateur $utilisateur,
+    public function findForSleepingStock(Utilisateur $user,
                                          int         $maxResults,
                                          ?Type       $type = null): array {
         $queryBuilder = $this->createQueryBuilder('movement');
@@ -518,9 +518,6 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
             ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
-
-            // TODO  Filter By manager
-
             ->addSelect("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') AS maxMovementDate")
             ->andWhere("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') < CURRENT_DATE()")
             ->andWhere(
@@ -532,10 +529,22 @@ class MouvementStockRepository extends EntityRepository
                     "article.quantite > 0"
                 )
             )
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                "reference_article_managers.id = :user",
+                    "article_reference_article_managers.id = :user"
+                )
+            )
             ->leftJoin(ReferenceArticle::class, 'reference_article', 'WITH', 'reference_article.lastMovement = movement')
             ->leftJoin(Article::class, 'article', 'WITH', 'article.lastMovement = movement')
+            ->leftJoin("article.articleFournisseur" , "articles_fournisseur")
+            ->leftJoin("articles_fournisseur.referenceArticle" , "article_reference_article")
             ->leftJoin(Type::class, 'type', 'WITH', 'type.id = reference_article.type OR type.id = article.type')
-            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type');
+            ->leftJoin("reference_article.managers", "reference_article_managers")
+            ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
+
+            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type')
+            ->setParameter("user", $user->getId());
 
         if ($type) {
             $queryBuilder
