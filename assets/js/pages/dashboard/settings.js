@@ -9,7 +9,6 @@ const MODE_EXTERNAL = 2;
 
 const MAX_NUMBER_ROWS = 6;
 const MAX_COMPONENTS_IN_CELL = 2;
-const MAX_NUMBER_PAGES = 8;
 
 global.openModalComponentTypeNextStep = openModalComponentTypeNextStep;
 global.loadDashboards = loadDashboards;
@@ -541,9 +540,6 @@ function renderDashboardPagination() {
             </button>
         `);
     }
-
-    $('[data-target="#add-dashboard-modal"]')
-        .attr(`disabled`, dashboards.length >= MAX_NUMBER_PAGES);
 }
 
 function createDashboardSelectorItem(dashboard) {
@@ -674,24 +670,20 @@ function onPageAdded() {
     if (name) {
         $dashboardNameInput.val(``);
 
-        if (dashboards.length >= MAX_NUMBER_PAGES) {
-            console.error("Too many dashboards");
-        } else {
-            currentDashboard = {
-                updated: true,
-                dashboardIndex: dashboards.length,
-                name,
-                rows: [],
-            };
-            dashboards.push(currentDashboard);
+        currentDashboard = {
+            updated: true,
+            dashboardIndex: dashboards.length,
+            name,
+            rows: [],
+        };
+        dashboards.push(currentDashboard);
 
-            renderDashboardPagination();
-            renderCurrentDashboard();
-            updateAddRowButton();
-            $modal.modal('hide');
+        renderDashboardPagination();
+        renderCurrentDashboard();
+        updateAddRowButton();
+        $modal.modal('hide');
 
-            window.location.hash = `#${currentDashboard.dashboardIndex + 1}`;
-        }
+        window.location.hash = `#${currentDashboard.dashboardIndex + 1}`;
     } else {
         showBSAlert("Veuillez renseigner un nom de dashboard.", "danger");
     }
