@@ -60,7 +60,7 @@ class IndexController extends AbstractController {
                     ]
                 );
                 $inputId = $formService->macro("hidden", "refId", $referenceArticle["id"]);
-                $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary'></i></button>";
+                $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary wii-icon-17px-danger'></i></button>";
                 $lastMovementDate = new DateTime($referenceArticle["lastMovementDate"]);
                 $maxStorageDate = (clone $lastMovementDate)->sub(new DateInterval("PT{$referenceArticle["maxStorageTime"]}S"));
                 return [
