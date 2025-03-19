@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
@@ -31,7 +32,7 @@ class SleepingStockPlanService {
     public function triggerSleepingStockPlan(EntityManagerInterface $entityManager,
                                              SleepingStockPlan      $sleepingStockPlan,
                                              DateTime               $taskExecution): void {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $movementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $maxStorageTime = new DateInterval("PT{$sleepingStockPlan->getMaxStorageTime()}S");
@@ -39,14 +40,14 @@ class SleepingStockPlanService {
         $limitDate = $taskExecution->sub($maxStorageTime);
         $type = $sleepingStockPlan->getType();
 
-        $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType(
+        $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType( //TODO
             $type,
             $limitDate
         );
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
 
-            $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByManager(
+            $sleepingReferenceArticlesData = $movementStockRepository->findForSleepingStock(
                 $manager,
                 self::MAX_REFERENCE_ARTICLES_IN_ALERT,
                 $type,
@@ -63,10 +64,6 @@ class SleepingStockPlanService {
             $accessToken = $this->accessTokenService->persistAccessToken($entityManager, $tokenType, $manager);
             $entityManager->flush();
 
-            $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
-                ->map(fn(array $referenceArticle) => $this->addMaxStorageDate($referenceArticle, $maxStorageTime))
-                ->toArray();
-
             $this->mailerService->sendMail(
                 $entityManager,
                 ['Stock', "Références", "Email stock dormant", 'Seuil d’alerte stock dormant atteint', false],
@@ -74,31 +71,11 @@ class SleepingStockPlanService {
                     "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken->getPlainToken()]),
                     "countTotal" => $sleepingReferenceArticlesData["countTotal"],
                     "buttonText" => $this->translationService->translate("Stock", "Références", "Email stock dormant", "Cliquez ici pour gérer vos articles", false),
-                    "references" => $referenceArticles,
+                    "references" => $sleepingReferenceArticlesData["referenceArticles"],
                 ]),
                 $manager,
             );
         }
-    }
-
-    /**
-     * @return array{
-     *   "id": int,
-     *   "reference": string,
-     *   "label":  string,
-     *   "quantityStock":  int,
-     *   "lastMovementDate": string,
-     *   "maxStorageDate": string,
-     * }
-     */
-    private function addMaxStorageDate(array $referenceArticle, DateInterval $maxStorageTime): array {
-        $lastMovementDate = new DateTime($referenceArticle["lastMovementDate"]);
-        $maxStorageDate = $lastMovementDate->add($maxStorageTime);
-        $this->formatService->dateTime($maxStorageDate);
-        return [
-            ...$referenceArticle,
-            "maxStorageDate" => $this->formatService->dateTime($maxStorageDate),
-        ];
     }
 }
 
