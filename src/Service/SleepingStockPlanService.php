@@ -46,11 +46,10 @@ class SleepingStockPlanService {
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
 
-            $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByTypeAndManager(
+            $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByManager(
                 $manager,
-                $limitDate,
-                $type,
                 self::MAX_REFERENCE_ARTICLES_IN_ALERT,
+                $type,
             );
 
             // if the user has no sleeping reference articles then we don't need to send an email
