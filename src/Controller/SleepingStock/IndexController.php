@@ -33,7 +33,7 @@ class IndexController extends AbstractController {
 
         $sleepingReferenceArticlesData = $referenceArticleRepository->findSleepingReferenceArticlesByManager(
             $user,
-            $this::MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM,
+            self::MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM,
         );
 
         $actionButtonsItems = $cacheService->get(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class,static function () use ($sleepingStockRequestInformationRepository): array {
