@@ -1572,6 +1572,21 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setParameter("dateLimit", $dateLimit);
     }
 
+    /**
+     * @return array{
+     *   "countTotal": int,
+     *   "referenceArticles": array<
+     *     array{
+     *       "id": int,
+     *       "reference": string,
+     *       "label": string,
+     *       "quantityStock": int,
+     *       "lastMovementDate": string,
+     *       "maxStorageTime": int
+     *     }
+     *   >
+     * }
+     */
     public function findSleepingReferenceArticlesByManager(Utilisateur $utilisateur,
                                                            int         $maxResults): array {
         $stockMovementRepository = $this->getEntityManager()->getRepository(MouvementStock::class);
