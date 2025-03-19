@@ -69,6 +69,7 @@ class SleepingStockPlanService {
                 ->toArray();
 
             $this->mailerService->sendMail(
+                $entityManager,
                 ['Stock', "Références", "Email stock dormant", 'Seuil d’alerte stock dormant atteint', false],
                 $this->templating->render('mails/contents/mailSleepingStockAlert.html.twig', [
                     "urlSuffix" => $this->router->generate("sleeping_stock_index", [SleepingStockAuthenticator::ACCESS_TOKEN_PARAMETER => $accessToken->getPlainToken()]),
