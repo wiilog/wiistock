@@ -28,7 +28,6 @@ class IndexController extends AbstractController {
                           FormatService          $formatService,
                           CacheService           $cacheService,
                           FormService            $formService): Response {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $sleepingStockRequestInformationRepository = $entityManager->getRepository(SleepingStockRequestInformation::class);
         $movementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $user = $userService->getUser();
@@ -78,7 +77,6 @@ class IndexController extends AbstractController {
         return $this->render('sleeping_stock/index.html.twig', [
             "datatableInitialData" => json_encode([
                 "data" => $referenceArticles,
-                "recordsFiltered" => $countTotal,
                 "recordsTotal" => $countTotal,
             ]),
         ]);
