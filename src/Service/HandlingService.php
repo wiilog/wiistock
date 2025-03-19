@@ -291,7 +291,7 @@ class HandlingService {
                                     Handling               $handling,
                                     FormatService          $formatService) {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $includeDesiredTime = !$this->settingService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
+        $includeDesiredTime = !$this->settingsService->getValue($entityManager, Setting::REMOVE_HOURS_DATETIME);
         $user = $this->userService->getUser();
         $receiversStr = Stream::from($handling->getReceivers())
             ->map(fn(Utilisateur $receiver) => $formatService->user($receiver))
