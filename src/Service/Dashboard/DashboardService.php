@@ -275,9 +275,9 @@ class DashboardService {
      * @return array ['d/m' => $getCounter return]
      */
     public function getDailyObjectsStatistics(EntityManagerInterface $entityManager,
-                                               int $nbDaysToReturn,
-                                               callable $getCounter,
-                                               string $period = self::DAILY_PERIOD_PREVIOUS_DAYS): array {
+                                              int                    $nbDaysToReturn,
+                                              callable               $getCounter,
+                                              string                 $period = self::DAILY_PERIOD_PREVIOUS_DAYS): array {
 
         if (!in_array($period, [self::DAILY_PERIOD_PREVIOUS_DAYS, self::DAILY_PERIOD_NEXT_DAYS])) {
             throw new InvalidArgumentException();

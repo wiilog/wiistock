@@ -75,16 +75,16 @@ class ArrivalsAndPacksComponentGenerator implements DashboardComponentGenerator 
     }
 
     private function getArrivalPacksData(EntityManagerInterface $entityManager,
-                                         string $getObjectsStatisticsCallable,
-                                         int $scale,
-                                         array $arrivalStatusesFilter,
-                                         array $arrivalTypesFilter,
-                                         bool $displayPackNatures = false): array {
+                                         string                 $getObjectsStatisticsCallable,
+                                         int                    $scale,
+                                         array                  $arrivalStatusesFilter,
+                                         array                  $arrivalTypesFilter,
+                                         bool                   $displayPackNatures = false): array {
 
         $packRepository = $entityManager->getRepository(Pack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
-        $packCountByDay = $this->{$getObjectsStatisticsCallable}(
+        $packCountByDay = $this->dashboardService->{$getObjectsStatisticsCallable}(
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($packRepository, $arrivalStatusesFilter, $arrivalTypesFilter, $displayPackNatures) {
