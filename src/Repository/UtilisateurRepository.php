@@ -296,8 +296,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         $sleepingStockPlanService->findSleepingStock(
             $queryBuilder,
             "sleeping_stock_plan",
-            "movement",
             "type",
+            "movement",
             $type
         );
 
