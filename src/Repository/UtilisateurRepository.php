@@ -284,7 +284,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
      * @return array<int, Utilisateur>
      */
     public function findWithSleepingReferenceArticlesByType(Type                     $type,
-                                                            SleepingStockPlanService $sleepingStockPlanService): array {
+                                                            SleepingStockPlanService $sleepingStockPlanService): array{
         $queryBuilder = $this->createQueryBuilder('user')
             ->distinct()
             ->innerJoin(ReferenceArticle::class, "reference_article", 'WITH', "reference_article.type = :type AND user MEMBER OF reference_article.managers")
