@@ -37,7 +37,7 @@ class QueryBuilderHelper
     public static function countByStatusesAndTypes(EntityManagerInterface $entityManager,
                                                    string $entity,
                                                    array $types = [],
-                                                   array $statuses = [])
+                                                   array $statuses = []): int
     {
         if (!empty($statuses) && !empty($types)) {
             $qb = $entityManager->createQueryBuilder();
@@ -58,7 +58,7 @@ class QueryBuilderHelper
                 ->getSingleScalarResult();
         }
         else {
-            return [];
+            return 0;
         }
     }
 

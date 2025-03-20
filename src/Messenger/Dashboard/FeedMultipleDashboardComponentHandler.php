@@ -19,8 +19,7 @@ use Throwable;
 use WiiCommon\Helper\Stream;
 
 #[AsMessageHandler]
-class FeedMultipleDashboardComponentHandler extends LoggedHandler
-{
+class FeedMultipleDashboardComponentHandler extends LoggedHandler {
 
     public function __construct(
         #[Autowire("@service_container")]
@@ -67,15 +66,10 @@ class FeedMultipleDashboardComponentHandler extends LoggedHandler
                 $generator->persistAll($this->entityManager, $components);
                 $this->entityManager->flush();
             } catch (Throwable $exception) {
-                $closedEntityManager = !$this->entityManager->isOpen();
-                if ($closedEntityManager) {
-                    $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
-                }
+                $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
 
                 foreach ($components as $component) {
-                    if ($closedEntityManager) {
-                        $this->entityManager->getUnitOfWork()->addToIdentityMap($component);
-                    }
+                    $component = $this->entityManager->getReference(Dashboard\Component::class, $component->getId());
 
                     if ($exception instanceof DashboardException) {
                         $component->setErrorMessage($exception->getMessage());

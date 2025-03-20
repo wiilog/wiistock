@@ -67,11 +67,8 @@ class FeedDashboardComponentHandler extends LoggedHandler
 
     private function flushErrorMessage(Dashboard\Component $component,
                                        ?string             $message): void {
-
-        if (!$this->entityManager->isOpen()) {
-            $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
-            $this->entityManager->getUnitOfWork()->addToIdentityMap($component);
-        }
+        $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+        $component = $this->entityManager->getReference(Dashboard\Component::class, $component->getId());
         $component->setErrorMessage($message);
         $this->entityManager->flush();
     }
