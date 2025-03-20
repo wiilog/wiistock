@@ -3,16 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Service\FieldModesService;
+use App\Service\SleepingStockPlanService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -31,8 +30,7 @@ use WiiCommon\Helper\Stream;
  * @method MouvementStock[]    findAll()
  * @method MouvementStock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MouvementStockRepository extends EntityRepository
-{
+class MouvementStockRepository extends EntityRepository {
     private const DtToDbLabels = [
         'date' => 'date',
         'refArticle' => 'refArticle',
@@ -502,9 +500,10 @@ class MouvementStockRepository extends EntityRepository
      *   >
      * }
      */
-    public function findForSleepingStock(Utilisateur $user,
-                                         int         $maxResults,
-                                         ?Type       $type = null): array {
+    public function findForSleepingStock(Utilisateur              $user,
+                                         int                      $maxResults,
+                                         SleepingStockPlanService $sleepingStockPlanService,
+                                         ?Type                    $type = null): array {
         $queryBuilder = $this->createQueryBuilder('movement');
         $queryBuilder->distinct()
             ->select("movement.id AS id")
@@ -518,13 +517,8 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect("reference_article.quantiteStock AS referenceQuantityStock")
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
-            ->addSelect("sleepingStockPlan.maxStorageTime AS maxStorageTime")
-            ->addSelect("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') AS maxStorageDate")
-
-            // TODO COMMUN
-            ->andWhere("DATE_ADD(movement.date, sleepingStockPlan.maxStorageTime, 'second') < CURRENT_DATE()")
-            // TODO END COMMUN
-
+            ->addSelect("sleeping_stock_plan.maxStorageTime AS maxStorageTime")
+            ->addSelect("DATE_ADD(movement.date, sleeping_stock_plan.maxStorageTime, 'second') AS maxStorageDate")
             ->andWhere(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->andX(
@@ -540,27 +534,21 @@ class MouvementStockRepository extends EntityRepository
                     "article_reference_article_managers.id = :user"
                 )
             )
-            ->leftJoin(ReferenceArticle::class, 'reference_article', 'WITH', 'reference_article.lastMovement = movement')
-            ->leftJoin(Article::class, 'article', 'WITH', 'article.lastMovement = movement')
+            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement')
+            ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
             ->leftJoin("article.articleFournisseur" , "articles_fournisseur")
-
-            // TODO COMMUN
-
-            ->leftJoin("articles_fournisseur.referenceArticle" , "article_reference_article")
-            ->leftJoin(Type::class, 'type', 'WITH', 'type.id = reference_article.type OR type.id = article.type')
             ->leftJoin("reference_article.managers", "reference_article_managers")
+            ->leftJoin("articles_fournisseur.referenceArticle" , "article_reference_article")
             ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
-            ->innerJoin(SleepingStockPlan::class, 'sleepingStockPlan', Join::WITH, 'sleepingStockPlan.type = type')
-            // TODO END COMMUN
-
-
             ->setParameter("user", $user->getId());
 
-        if ($type) {
-            $queryBuilder
-                ->andWhere("type.id = :type")
-                ->setParameter("type", $type);
-        }
+        $sleepingStockPlanService->findSleepingStock(
+            $queryBuilder,
+            "sleeping_stock_plan",
+            "movement",
+            "type",
+            $type
+        );
 
         $queryResult = $queryBuilder
             ->setMaxResults($maxResults)
