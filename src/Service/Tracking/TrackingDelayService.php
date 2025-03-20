@@ -463,7 +463,6 @@ class TrackingDelayService {
 
         if ($tracking instanceof TrackingMovement) {
             $recordArray = [
-                "pack" => $tracking->getPack(),
                 "location" => $tracking->getEmplacement(),
                 "trackingEvent" => $tracking->getEvent(),
                 "date" => $tracking->getDatetime(),
