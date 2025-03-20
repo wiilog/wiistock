@@ -76,8 +76,8 @@
                step="1"
                style="width: 70px">
         <select class="form-control data w-50" name="period">
-            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" {{  values.period is not defined or constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') == values.period ? 'selected' }}>dernier jours</option>
-            <option value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{  values.period is defined and constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>prochains jours</option>
+            <option value="{{ constant('App\\Service\\Dashboard\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" {{  values.period is not defined or constant('App\\Service\\Dashboard\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') == values.period ? 'selected' }}>dernier jours</option>
+            <option value="{{ constant('App\\Service\\Dashboard\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{  values.period is defined and constant('App\\Service\\Dashboard\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>prochains jours</option>
         </select>
     </div>
     <label class="d-block mb-3 wii-small-text" style="margin-top: -15px;font-size:0.9rem">
