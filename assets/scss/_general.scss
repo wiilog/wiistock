@@ -400,6 +400,10 @@ select.is-invalid {
     overflow: hidden;
 }
 
+.word-break-all {
+    word-break: break-all;
+}
+
 .user-select-none {
     user-select: none;
 }

@@ -343,11 +343,11 @@
                                     <div class="d-flex mt-3">
                                         <div class="col-{{ not isReferenceManagementQuantity ? '4' : '6' }} d-flex flex-column">
                                             <span class="wii-field-name">Ref article fournisseur</span>
-                                            <span class="wii-body-text">{{ providerArticle['reference'] ?? '-' }}</span>
+                                            <span class="wii-body-text word-break-all">{{ providerArticle['reference'] ?? '-' }}</span>
                                         </div>
                                         <div class="col-{{ not isReferenceManagementQuantity ? '4' : '6' }} d-flex flex-column">
                                             <span class="wii-field-name">Label</span>
-                                            <span class="wii-body-text">{{ providerArticle['label'] ?? '-' }}</span>
+                                            <span class="wii-body-text word-break-all">{{ providerArticle['label'] ?? '-' }}</span>
                                         </div>
                                         {% if not isReferenceManagementQuantity %}
                                             <div class="col-4 d-flex flex-column">
