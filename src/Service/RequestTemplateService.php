@@ -10,7 +10,7 @@ use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
@@ -87,7 +87,7 @@ class RequestTemplateService {
     }
 
 
-    public function updateRequestTemplateLine(RequestTemplateLine $line, array $data) {
+    public function updateRequestTemplateLine(RequestTemplateLineReference $line, array $data) {
         $referenceRepository = $this->manager->getRepository(ReferenceArticle::class);
 
         $line->setReference($referenceRepository->find($data["reference"]))
