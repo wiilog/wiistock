@@ -340,7 +340,7 @@ class RequestTemplateController extends AbstractController {
                     $data[] = $template->getButtonIcon()
                         ? [
                             "label" => "Icone du bouton",
-                            "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>",
+                            "value" => "<img src='{$template->getButtonIcon()->getFullPath()}' alt='Icone du bouton' style='max-height: 30px; max-width: 30px;'>",
                         ]
                         : [];
                 }

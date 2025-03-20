@@ -66,7 +66,9 @@ class RequestTemplateService {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
             if ($template instanceof DeliveryRequestTemplateSleepingStock) {
                 $attachments = $this->attachmentService->persistAttachments($this->manager, $files);
-                $template->setButtonIcon(!empty($attachments) ? $attachments[0] : null);
+                if(!empty($attachments)) {
+                    $template->setButtonIcon($attachments[0]);
+                }
             }
             $template->setRequestType($typeRepository->find($data["deliveryType"]))
                 ->setDestination($locationRepository->find($data["destination"]))
