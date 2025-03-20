@@ -3,17 +3,19 @@
 namespace App\Service;
 
 use App\Entity\MouvementStock;
-use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Security\Authenticator\SleepingStockAuthenticator;
 use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
-use WiiCommon\Helper\Stream;
 
 
 class SleepingStockPlanService {
@@ -36,20 +38,18 @@ class SleepingStockPlanService {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $maxStorageTime = new DateInterval("PT{$sleepingStockPlan->getMaxStorageTime()}S");
-
-        $limitDate = $taskExecution->sub($maxStorageTime);
         $type = $sleepingStockPlan->getType();
 
-        $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType( //TODO
+        $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType(
             $type,
-            $limitDate
+            $this,
         );
 
         foreach ($managerWithSleepingReferenceArticles as $manager) {
-
             $sleepingReferenceArticlesData = $movementStockRepository->findForSleepingStock(
                 $manager,
                 self::MAX_REFERENCE_ARTICLES_IN_ALERT,
+                $this,
                 $type,
             );
 
@@ -75,6 +75,24 @@ class SleepingStockPlanService {
                 ]),
                 $manager,
             );
+        }
+    }
+
+    public function findSleepingStock(QueryBuilder $queryBuilder,
+                                      string       $sleepingStockPlanAlias,
+                                      string       $typeAlias,
+                                      string       $movementAlias,
+                                      ?Type        $type = null): void {
+        // TODO WIIS-12522 : and where active = true
+        $queryBuilder
+            ->andWhere("DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()")
+            ->leftJoin(Type::class, $typeAlias, Join::WITH, "$typeAlias = reference_article.type OR $typeAlias = article.type")
+            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH, "$sleepingStockPlanAlias.type = $typeAlias");
+
+        if ($type) {
+            $queryBuilder
+                ->andWhere("$typeAlias = :type")
+                ->setParameter("type", $type);
         }
     }
 }
