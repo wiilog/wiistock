@@ -1921,6 +1921,7 @@ class ReceptionController extends AbstractController {
 
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
+                $entityManager,
                 $translationService->translate('Général', null, 'Header', 'Wiilog', false) . MailerService::OBJECT_SEPARATOR . 'Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
                 $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
