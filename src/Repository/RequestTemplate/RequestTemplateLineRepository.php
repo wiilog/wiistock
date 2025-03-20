@@ -5,15 +5,15 @@ namespace App\Repository\RequestTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\RequestTemplate;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
- * @method RequestTemplateLine|null find($id, $lockMode = null, $lockVersion = null)
- * @method RequestTemplateLine|null findOneBy(array $criteria, array $orderBy = null)
- * @method RequestTemplateLine[]    findAll()
- * @method RequestTemplateLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method RequestTemplateLineReference|null find($id, $lockMode = null, $lockVersion = null)
+ * @method RequestTemplateLineReference|null findOneBy(array $criteria, array $orderBy = null)
+ * @method RequestTemplateLineReference[]    findAll()
+ * @method RequestTemplateLineReference[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class RequestTemplateLineRepository extends EntityRepository {
 

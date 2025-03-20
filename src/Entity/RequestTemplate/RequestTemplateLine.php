@@ -2,13 +2,11 @@
 
 namespace App\Entity\RequestTemplate;
 
-use App\Entity\ReferenceArticle;
-use App\Repository\RequestTemplate\RequestTemplateLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RequestTemplateLineRepository::class)]
-class  RequestTemplateLine {
 
+#[ORM\MappedSuperclass()]
+abstract class RequestTemplateLine {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -19,10 +17,6 @@ class  RequestTemplateLine {
 
     #[ORM\ManyToOne(targetEntity: CollectRequestTemplate::class, inversedBy: 'lines')]
     private ?CollectRequestTemplate $collectRequestTemplate = null;
-
-    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'requestTemplateLines')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?ReferenceArticle $reference = null;
 
     #[ORM\Column(type: 'integer')]
     private ?int $quantityToTake = null;
@@ -57,16 +51,6 @@ class  RequestTemplateLine {
         } else if($requestTemplate instanceof CollectRequestTemplate) {
             $this->setCollectRequestTemplate($requestTemplate);
         }
-
-        return $this;
-    }
-
-    public function getReference(): ?ReferenceArticle {
-        return $this->reference;
-    }
-
-    public function setReference(?ReferenceArticle $reference): self {
-        $this->reference = $reference;
 
         return $this;
     }

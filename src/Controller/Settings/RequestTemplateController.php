@@ -17,7 +17,7 @@ use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Type;
 use App\Service\FixedFieldService;
 use App\Service\FormService;
@@ -495,7 +495,7 @@ class RequestTemplateController extends AbstractController {
 
     #[Route("/modele-demande/ligne/supprimer/{entity}", name: "settings_request_template_line_delete", options: ["expose" => true])]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
-    public function deleteRequestTemplateLine(EntityManagerInterface $manager, RequestTemplateLine $entity): JsonResponse {
+    public function deleteRequestTemplateLine(EntityManagerInterface $manager, RequestTemplateLineReference $entity): JsonResponse {
         $entity->setRequestTemplate(null);
         $manager->remove($entity);
         $manager->flush();

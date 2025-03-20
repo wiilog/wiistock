@@ -29,7 +29,7 @@ use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\ReserveType;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\SleepingStockPlan;
@@ -1288,14 +1288,14 @@ class SettingsService {
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
             if(!($template instanceof DeliveryRequestTemplateSleepingStock)) {
-                $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
+                $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLineReference::class);
                 $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                     ->keymap(fn($line) => [$line->getId(), $line])
                     ->toArray();
 
                 foreach (array_filter($tables["requestTemplates"]) as $item) {
                     /** @var FreeField $freeField */
-                    $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
+                    $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLineReference();
 
                     $line->setRequestTemplate($template);
 
