@@ -54,6 +54,9 @@ export function initializeRequestTemplates($container, canEdit) {
             $entitySelect.removeClass(`d-none`);
         },
         onEditStart: () => {
+            const $typeIdHidden =  $container.find("[name='typeId']");
+            const $deleteButton = $container.find('.delete-main-entity');
+            $deleteButton.toggleClass('d-none', !$typeIdHidden.val())
             $entitySelect.addClass(`d-none`);
         }
     });
