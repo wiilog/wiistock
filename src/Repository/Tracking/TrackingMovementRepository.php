@@ -25,6 +25,7 @@ use Exception;
 use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
+use Iterator;
 
 class TrackingMovementRepository extends EntityRepository
 {
@@ -505,55 +506,7 @@ class TrackingMovementRepository extends EntityRepository
     public function iterateEventTrackingMovementBetween(Pack      $pack,
                                                         DateTime  $timerStartedAt,
                                                         ?DateTime $timerStoppedAt = null): iterable {
-        $previousEventQueryBuilder = $this->createQueryBuilder("tracking_previous");
-        $exprBuilder = $previousEventQueryBuilder->expr();
-        $previousEventQueryBuilder
-            ->select("tracking_previous.event")
-            ->andWhere("tracking_previous.pack = :pack")
-            ->andWhere("tracking_previous.datetime <= tracking.datetime")
-            ->andWhere("type.code IN (:pauseTrackingTypes)")
-            ->andWhere($exprBuilder->orX(
-                "tracking_previous.datetime < tracking.datetime",
-                $exprBuilder->andX(
-                    "tracking_previous.datetime = tracking.datetime",
-                    $exprBuilder->orX(
-                        "tracking_previous.orderIndex < tracking.orderIndex",
-                        $exprBuilder->andX("tracking_previous.orderIndex = tracking.orderIndex", "tracking_previous.id < tracking.id")
-                    )
-                )
-            ))
-            ->andWhere("tracking_previous.id != tracking.id")
-            ->orderBy("tracking_previous.datetime", Order::Descending->value)
-            ->addOrderBy("tracking_previous.orderIndex", Order::Descending->value)
-            ->addOrderBy("tracking_previous.id", Order::Descending->value);
-
-        $trackingMovementsAfterPauseQueryBuilder = $this->createQueryBuilder("tracking")
-            ->innerJoin("tracking.type", "type")
-            ->andWhere("tracking.pack = :pack")
-            ->andWhere("type.code IN (:unpauseTrackingTypes)")
-            ->andWhere("tracking.datetime >= :timerStartedAt")
-            ->andWhere("FIRST({$previousEventQueryBuilder->getQuery()->getDQL()}) = :eventPause")
-            ->orderBy("tracking.datetime", Order::Ascending->value)
-            ->addOrderBy("tracking.orderIndex", Order::Ascending->value)
-            ->addOrderBy("tracking.id", Order::Ascending->value)
-            ->setParameter("unpauseTrackingTypes", [
-                TrackingMovement::TYPE_PRISE,
-                TrackingMovement::TYPE_DEPOSE,
-            ])
-            ->setParameter("pauseTrackingTypes", [
-                TrackingMovement::TYPE_PRISE,
-                TrackingMovement::TYPE_DEPOSE,
-            ])
-            ->setParameter("eventPause", TrackingEvent::PAUSE->value)
-            ->setParameter("timerStartedAt", $timerStartedAt)
-            ->setParameter("pack", $pack);
-
-        if ($timerStoppedAt) {
-            $trackingMovementsAfterPauseQueryBuilder
-                ->andWhere("tracking.datetime <= :timerStoppedAt")
-                ->setParameter("timerStoppedAt", $timerStoppedAt);
-        }
-
+        // Request 1: main request to get movements which modify tracking delay
         $eventTrackingMovementsQueryBuilder = $this->createQueryBuilder("tracking")
             ->andWhere("tracking.pack = :pack")
             ->andWhere("tracking.datetime >= :timerStartedAt")
@@ -570,15 +523,52 @@ class TrackingMovementRepository extends EntityRepository
                 ->setParameter("timerStoppedAt", $timerStoppedAt);
         }
 
-        $trackingMovementAfterPauseIterator = $trackingMovementsAfterPauseQueryBuilder
-            ->getQuery()
-            ->toIterable();
-
+        /** @var Iterator<TrackingMovement> $eventTrackingMovementIterator */
         $eventTrackingMovementIterator = $eventTrackingMovementsQueryBuilder
             ->getQuery()
             ->toIterable();
 
-        /** @var TrackingMovement $trackingMovement */
+        // Request 2: Sub request to get next unpause movement after a pause movement
+        $eventAfterPauseQueryBuilder = $this->createQueryBuilder("tracking_after");
+        $exprBuilder = $eventAfterPauseQueryBuilder->expr();
+        $eventAfterPauseQueryBuilder
+            ->select("tracking_after.id")
+            ->innerJoin("tracking_after.type", "after_type")
+            ->andWhere("tracking_after.pack = tracking.pack")
+            ->andWhere("after_type.code IN (:unpauseTrackingTypes)")
+            ->andWhere($exprBuilder->orX(
+                "tracking_after.datetime > tracking.datetime",
+                $exprBuilder->andX(
+                    "tracking_after.datetime = tracking.datetime",
+                    $exprBuilder->orX(
+                        "tracking_after.orderIndex > tracking.orderIndex",
+                        $exprBuilder->andX("tracking_after.orderIndex = tracking.orderIndex", "tracking_after.id > tracking.id")
+                    )
+                )
+            ))
+            ->andWhere("tracking_after.id != tracking.id")
+            ->orderBy("tracking_after.datetime", Order::Ascending->value)
+            ->addOrderBy("tracking_after.orderIndex", Order::Ascending->value)
+            ->addOrderBy("tracking_after.id", Order::Ascending->value);
+
+
+        // Request 3: Same request than Request 1 to get only unpause tracking movement associated to pause movement
+        // We reused Request 1
+        $eventTrackingMovementsQueryBuilder
+            ->select("tracking_after_pause")
+            ->andWhere("tracking.event = :eventPause")
+            ->innerJoin(TrackingMovement::class, 'tracking_after_pause', Join::WITH, "tracking_after_pause.id = FIRST({$eventAfterPauseQueryBuilder->getQuery()->getDQL()})")
+            ->setParameter("eventPause", TrackingEvent::PAUSE->value)
+            ->setParameter("unpauseTrackingTypes", [
+                TrackingMovement::TYPE_PRISE,
+                TrackingMovement::TYPE_DEPOSE,
+            ]);
+
+        /** @var Iterator<TrackingMovement> $trackingMovementAfterPauseIterator */
+        $trackingMovementAfterPauseIterator = $eventTrackingMovementsQueryBuilder
+            ->getQuery()
+            ->toIterable();
+
         foreach ($eventTrackingMovementIterator as $trackingMovement) {
             yield $trackingMovement;
 
