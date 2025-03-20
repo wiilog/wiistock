@@ -482,7 +482,6 @@ class MouvementStockRepository extends EntityRepository {
     }
 
 
-
     /**
      * @return array{
      *   "countTotal": int,
@@ -530,15 +529,15 @@ class MouvementStockRepository extends EntityRepository {
             )
             ->andWhere(
                 $queryBuilder->expr()->orX(
-                "reference_article_managers.id = :user",
+                    "reference_article_managers.id = :user",
                     "article_reference_article_managers.id = :user"
                 )
             )
             ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement')
             ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
-            ->leftJoin("article.articleFournisseur" , "articles_fournisseur")
+            ->leftJoin("article.articleFournisseur", "articles_fournisseur")
             ->leftJoin("reference_article.managers", "reference_article_managers")
-            ->leftJoin("articles_fournisseur.referenceArticle" , "article_reference_article")
+            ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
             ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
             ->setParameter("user", $user->getId());
 
@@ -562,7 +561,7 @@ class MouvementStockRepository extends EntityRepository {
                 return [
                     "entity" => match (true) {
                         isset($item["referenceArticleId"]) => ReferenceArticle::class,
-                        isset($item["articleId"])  => Article::class,
+                        isset($item["articleId"]) => Article::class,
                         default => throw new RuntimeException("Unknown entity, invalid id"),
                     },
                     "id" => $item["referenceArticleId"] ?? $item["articleId"],

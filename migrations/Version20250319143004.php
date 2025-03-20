@@ -11,11 +11,11 @@ use Doctrine\Migrations\AbstractMigration;
  * Auto-generated Migration: Please modify to your needs!
  */
 final class Version20250319143004 extends AbstractMigration {
-    public function getDescription(): string{
+    public function getDescription(): string {
         return '';
     }
 
-    public function up(Schema $schema): void{
+    public function up(Schema $schema): void {
         $this->addSql('ALTER TABLE article ADD last_movement_id INT DEFAULT NULL');
         $this->addSql('
             UPDATE article
