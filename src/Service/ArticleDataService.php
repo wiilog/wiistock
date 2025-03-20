@@ -39,7 +39,7 @@ class ArticleDataService
 {
     private ?bool $wantCLOnLabel = null;
 
-    private ?bool $clWantedOnLabel = null;
+    private ?string $clWantedOnLabel = null;
 
     private ?int $clIdWantedOnLabel = null;
 
@@ -521,7 +521,6 @@ class ArticleDataService
     public function getBarcodeConfig(Article   $article,
                                      Reception $reception = null,
                                      bool      $fromKiosk = false): array {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
         if (!isset($this->wantCLOnLabel)
@@ -530,10 +529,10 @@ class ArticleDataService
 
             $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-            $this->clWantedOnLabel = (bool) $this->settingsService->getValue($this->entityManager,Setting::CL_USED_IN_LABELS);
+            $this->clWantedOnLabel = $this->settingsService->getValue($this->entityManager,Setting::CL_USED_IN_LABELS);
             $this->wantCLOnLabel = (bool) $this->settingsService->getValue($this->entityManager,Setting::INCLUDE_BL_IN_LABEL);
 
-            if (isset($this->clWantedOnLabel)) {
+            if ($this->wantCLOnLabel) {
                 $champLibre = $champLibreRepository->findOneBy([
                     'categorieCL' => $categoryCLRepository->findOneBy(['label' => CategoryType::ARTICLE]),
                     'label' => $this->clWantedOnLabel
