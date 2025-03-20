@@ -42,6 +42,8 @@ class TrackingMovement implements AttachmentContainer {
 
     const DEFAULT_QUANTITY = 1;
 
+    const GROUPING_LIMIT = 300;
+
     const TYPE_PRISE = 'prise';
     const TYPE_DEPOSE = 'depose';
     const TYPE_GROUP = 'groupage';

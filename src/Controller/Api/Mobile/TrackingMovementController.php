@@ -12,6 +12,7 @@ use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Repository\Tracking\TrackingMovementRepository;
 use App\Serializer\SerializerUsageEnum;
 use App\Service\ArrivageService;
@@ -608,6 +609,11 @@ class TrackingMovementController extends AbstractController {
         $groupDate = $datetimeFromDate($dateStr);
 
         if ($isNewGroupInstance && !empty($packs)) {
+            if(count($parentPack->getContent()) > TrackingMovement::GROUPING_LIMIT) {
+                $limit = TrackingMovement::GROUPING_LIMIT;
+                throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
+            }
+
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
@@ -649,6 +655,11 @@ class TrackingMovementController extends AbstractController {
             }
 
             if (!$pack->getGroup()) {
+                if(count($parentPack->getContent()) > TrackingMovement::GROUPING_LIMIT) {
+                    $limit = TrackingMovement::GROUPING_LIMIT;
+                    throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
+                }
+
                 $pack->setGroup($parentPack);
 
                 $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
