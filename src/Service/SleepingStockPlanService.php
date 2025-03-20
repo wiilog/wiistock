@@ -36,8 +36,6 @@ class SleepingStockPlanService {
                                              DateTime               $taskExecution): void {
         $movementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-
-        $maxStorageTime = new DateInterval("PT{$sleepingStockPlan->getMaxStorageTime()}S");
         $type = $sleepingStockPlan->getType();
 
         $managerWithSleepingReferenceArticles = $userRepository->findWithSleepingReferenceArticlesByType(

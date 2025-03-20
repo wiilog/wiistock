@@ -40,7 +40,7 @@ class IndexController extends AbstractController {
             $sleepingStockPlanService
         );
 
-        $actionButtonsItems = $cacheService->get(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class,static function () use ($sleepingStockRequestInformationRepository): array {
+        $actionButtonsItems = $cacheService->get(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class, static function () use ($sleepingStockRequestInformationRepository): array {
             return Stream::from($sleepingStockRequestInformationRepository->findAll())
                 ->map(fn(SleepingStockRequestInformation $sleepingStockRequestInformation, int $index) => [
                     "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
@@ -67,9 +67,8 @@ class IndexController extends AbstractController {
                 $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary wii-icon-17px-danger'></i></button>";
                 $maxStorageDate = $referenceArticle["lastMovementDate"]->sub(new DateInterval("PT{$referenceArticle["maxStorageTime"]}S"));
                 return [
-                    "actions" => "<div class='d-flex full-width'> $deleteRowButton  $switchs</div>$inputId",
+                    "actions" => "<div class='d-flex full-width'> $deleteRowButton $switchs</div>$inputId",
                     "maxStorageDate" => $formatService->dateTime($maxStorageDate),
-
                     ...$referenceArticle
                 ];
             })

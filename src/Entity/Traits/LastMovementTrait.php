@@ -10,14 +10,11 @@ trait LastMovementTrait {
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?MouvementStock $lastMovement = null;
 
-
-    public function getLastMovement(): ?MouvementStock
-    {
+    public function getLastMovement(): ?MouvementStock {
         return $this->lastMovement;
     }
 
-    public function setLastMovement(?MouvementStock $lastMovement): static
-    {
+    public function setLastMovement(?MouvementStock $lastMovement): static {
         $this->lastMovement = $lastMovement;
 
         return $this;
