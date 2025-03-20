@@ -545,8 +545,8 @@ class MouvementStockRepository extends EntityRepository {
         $sleepingStockPlanService->findSleepingStock(
             $queryBuilder,
             "sleeping_stock_plan",
-            "movement",
             "type",
+            "movement",
             $type
         );
 
