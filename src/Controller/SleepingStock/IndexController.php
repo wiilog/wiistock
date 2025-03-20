@@ -4,16 +4,18 @@ namespace App\Controller\SleepingStock;
 
 use App\Controller\AbstractController;
 use App\Entity\MouvementStock;
-use App\Entity\ReferenceArticle;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\SleepingStockRequestInformation;
 use App\Service\CacheService;
 use App\Service\FormatService;
 use App\Service\FormService;
+use App\Service\IOT\IOTService;
 use App\Service\SleepingStockPlanService;
 use App\Service\UserService;
 use DateInterval;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
@@ -21,7 +23,7 @@ use WiiCommon\Helper\Stream;
 
 #[Route("/sleeping-stock", name: "sleeping_stock")]
 class IndexController extends AbstractController {
-    private const MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM = 50;
+    private const MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM = 1000;
 
     #[Route("/", name: "_index", methods: [self::GET])]
     public function index(EntityManagerInterface   $entityManager,
@@ -55,7 +57,7 @@ class IndexController extends AbstractController {
             ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
                 $switchs = $formService->macro(
                     "switch",
-                    "choice-" . $referenceArticle["id"],
+                    "template-" . $referenceArticle["id"],
                     null,
                     true,
                     $actionButtonsItems,
@@ -63,11 +65,12 @@ class IndexController extends AbstractController {
                         "labelClass" => "full-width",
                     ]
                 );
-                $inputId = $formService->macro("hidden", "refId", $referenceArticle["id"]);
+                $inputId = $formService->macro("hidden", "id", $referenceArticle["id"]);
+                $inputEntity = $formService->macro("hidden", "entity", $referenceArticle["entity"]);
                 $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary wii-icon-17px-danger'></i></button>";
                 $maxStorageDate = $referenceArticle["lastMovementDate"]->sub(new DateInterval("PT{$referenceArticle["maxStorageTime"]}S"));
                 return [
-                    "actions" => "<div class='d-flex full-width'> $deleteRowButton $switchs</div>$inputId",
+                    "actions" => "<div class='d-flex full-width'> $deleteRowButton $switchs</div>$inputId $inputEntity",
                     "maxStorageDate" => $formatService->dateTime($maxStorageDate),
                     ...$referenceArticle
                 ];
@@ -81,6 +84,38 @@ class IndexController extends AbstractController {
                 "data" => $referenceArticles,
                 "recordsTotal" => $countTotal,
             ]),
+        ]);
+    }
+
+    #[Route("/", name: "_submit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
+    public function submit(EntityManagerInterface $entityManager,
+                           Request $request,
+                           IOTService $IOTService): JsonResponse {
+        $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
+
+        $actions =  Stream::from(json_decode($request->request->get("actions"), true))
+            ->reduce(
+                static function (array $carry, array $action): array {
+                    $carry[$action["templateId"]][$action["entity"]] = $action;
+                    return $carry;
+                },
+                []
+            );
+
+        // TODO GERAX les droit de creation de demance avec des articles dedans
+
+        foreach ($actions as $templateId => $action) {
+            $deliveryRequestTemplateSleepingStockRepository->find($templateId);
+//            $IOTService // TODO bouger la fonction dans un utre service
+//                ->treatRequestTemplateTriggerType(
+//                    $deliveryRequestTemplateSleepingStockRepository,
+//                    $entityManager,
+//                )
+        }
+
+        return new JsonResponse([
+            "success" => true,
+            "msg" => "Votre demande a bien été prise en compte."
         ]);
     }
 }

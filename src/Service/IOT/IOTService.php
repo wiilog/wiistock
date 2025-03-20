@@ -324,11 +324,13 @@ class IOTService
         }
     }
 
-    private function treatRequestTemplateTriggerType(RequestTemplate $requestTemplate, EntityManagerInterface $entityManager, SensorWrapper $wrapper) {
+    public function treatRequestTemplateTriggerType(RequestTemplate        $requestTemplate,
+                                                    EntityManagerInterface $entityManager,
+                                                    ?SensorWrapper         $wrapper = null): void {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         if ($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
-            $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
+            $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $requestTemplate, $wrapper);
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
@@ -423,8 +425,8 @@ class IOTService
 
     private function cleanCreateDeliveryRequest(StatutRepository                     $statutRepository,
                                                 EntityManagerInterface               $entityManager,
-                                                SensorWrapper                        $wrapper,
-                                                DeliveryRequestTemplateTriggerAction $requestTemplate): Demande {
+                                                DeliveryRequestTemplateTriggerAction $requestTemplate,
+                                                ?SensorWrapper                       $wrapper = null): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $date = new DateTime('now');
 

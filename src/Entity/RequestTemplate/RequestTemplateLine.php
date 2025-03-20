@@ -7,7 +7,7 @@ use App\Repository\RequestTemplate\RequestTemplateLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RequestTemplateLineRepository::class)]
-class RequestTemplateLine {
+class  RequestTemplateLine {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
