@@ -9,7 +9,7 @@ use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
@@ -221,9 +221,9 @@ class ReferenceArticle implements AttachmentContainer {
     private Collection $purchaseRequestLines;
 
     /**
-     * @return Collection<int, RequestTemplateLine>
+     * @return Collection<int, RequestTemplateLineReference>
      */
-    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: RequestTemplateLine::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: RequestTemplateLineReference::class, orphanRemoval: true)]
     private Collection $requestTemplateLines;
 
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
@@ -1054,13 +1054,13 @@ class ReferenceArticle implements AttachmentContainer {
     }
 
     /**
-     * @return Collection<int, RequestTemplateLine>
+     * @return Collection<int, RequestTemplateLineReference>
      */
     public function getRequestTemplateLines(): Collection {
         return $this->requestTemplateLines;
     }
 
-    public function addRequestTemplateLine(RequestTemplateLine $requestTemplateLine): self {
+    public function addRequestTemplateLine(RequestTemplateLineReference $requestTemplateLine): self {
         if(!$this->requestTemplateLines->contains($requestTemplateLine)) {
             $this->requestTemplateLines[] = $requestTemplateLine;
             $requestTemplateLine->setReference($this);
@@ -1069,7 +1069,7 @@ class ReferenceArticle implements AttachmentContainer {
         return $this;
     }
 
-    public function removeRequestTemplateLine(RequestTemplateLine $requestTemplateLine): self {
+    public function removeRequestTemplateLine(RequestTemplateLineReference $requestTemplateLine): self {
         if($this->requestTemplateLines->removeElement($requestTemplateLine)) {
             // set the owning side to null (unless already changed)
             if($requestTemplateLine->getReference() === $this) {

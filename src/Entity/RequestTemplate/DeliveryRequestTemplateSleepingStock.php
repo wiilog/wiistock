@@ -25,7 +25,7 @@ class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements De
     }
 
     /**
-     * @return Collection<RequestTemplateLine>
+     * @return Collection<RequestTemplateLineReference>
      */
     public function getLines(): Collection {
         return $this->lines;

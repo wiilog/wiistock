@@ -24,7 +24,7 @@ class CollectRequestTemplate extends RequestTemplate {
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\OneToMany(targetEntity: RequestTemplateLine::class, mappedBy: 'collectRequestTemplate', cascade: ["remove"])]
+    #[ORM\OneToMany(targetEntity: RequestTemplateLineReference::class, mappedBy: 'collectRequestTemplate', cascade: ["remove"])]
     private Collection $lines;
 
     public function __construct() {
@@ -87,7 +87,7 @@ class CollectRequestTemplate extends RequestTemplate {
     }
 
     /**
-     * @return Collection|RequestTemplateLine[]
+     * @return Collection|RequestTemplateLineReference[]
      */
     public function getLines(): Collection {
         return $this->lines;
