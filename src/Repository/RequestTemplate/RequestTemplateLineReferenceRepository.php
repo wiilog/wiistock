@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method RequestTemplateLineReference[]    findAll()
  * @method RequestTemplateLineReference[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class RequestTemplateLineRepository extends EntityRepository {
+class RequestTemplateLineReferenceRepository extends EntityRepository {
 
     public function findByParams(RequestTemplate $requestTemplate,
                                  InputBag $params) {

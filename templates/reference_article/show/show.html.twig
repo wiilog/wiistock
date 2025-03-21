@@ -296,20 +296,24 @@
                                     <span class="wii-body-text">{{ referenceArticle.limitSecurity ?? '-' }}</span>
                                 </div>
                             </div>
-                            <div class="col-sm-6 col-12 d-flex">
-                                <img src="{{ asset('svg/clock-blue.svg') }}" alt="Icône durée max" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Durée max autorisée en stock (j)</span>
-                                    <span class="wii-body-text">{{ maxStorageTime ?? '-' }}</span>
-                                </label>
-                            </div>
-                            <div class="col-sm-6 col-12 d-flex">
-                                <span class="wii-icon fa-solid fa-calendar-check mt-2 text-primary fa-lg"></span>
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière réponse au stockage</span>
-                                    <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
-                                </label>
-                            </div>
+                            {% set sleepingStockPlan = referenceArticle.type.sleepingStockPlan  %}
+                            {% if sleepingStockPlan is not empty %} {# TODO WIIS-12522 : and where active = true #}
+                                <div class="col-sm-6 col-12 d-flex">
+                                    <img src="{{ asset('svg/clock-blue.svg') }}" alt="Icône durée max" width="20px">
+                                    <label class="box-item ml-3">
+                                        <span class="wii-field-name">Durée max autorisée en stock (j)</span>
+                                        <span class="wii-body-text">{{ sleepingStockPlan.getMaxStorageTimeInDays ?? '-' }}</span>
+                                    </label>
+                                </div>
+
+                                <div class="col-sm-6 col-12 d-flex">
+                                    <span class="wii-icon fa-solid fa-calendar-check mt-2 text-primary fa-lg"></span>
+                                    <label class="box-item ml-3">
+                                        <span class="wii-field-name">Dernière réponse au stockage</span>
+                                        <span class="wii-body-text">{{ referenceArticle.lastSleepingStockAlertAnswer|format_helper('longDate') }}</span>
+                                    </label>
+                                </div>
+                            {% endif %}
                             {% if referenceArticle.isUrgent %}
                                 <div class="col-sm-6 col-12 my-2 d-flex align-items-center">
                                     <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">

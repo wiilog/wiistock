@@ -32,7 +32,7 @@ $(function() {
                     actions.push({
                         id: id,
                         entity: $row.find('[name="entity"]').val(),
-                        templateId: $row.find(`[name="template-${id}"]`).val(),
+                        templateId: $row.find(`[name="template-${id}"]:checked`).val(),
                     });
                 }
             })

@@ -248,6 +248,13 @@ class Demande implements PairedEntity {
         return $this;
     }
 
+    public function addLine(DeliveryRequestLine $line): self {
+        return match (true) {
+            $line instanceof DeliveryRequestReferenceLine => $this->addReferenceLine($line),
+            $line instanceof DeliveryRequestArticleLine => $this->addArticleLine($line)
+        };
+    }
+
     public function removeReferenceLine(DeliveryRequestReferenceLine $line): self {
         if($this->referenceLines->contains($line)) {
             $this->referenceLines->removeElement($line);

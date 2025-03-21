@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -25,9 +26,12 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\RequestTemplate\CollectRequestTemplate;
+use App\Entity\RequestTemplate\DeliveryRequestTemplateInterface;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
+use App\Entity\RequestTemplate\RequestTemplateLineArticle;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Statut;
 use App\Entity\Tracking\Pack;
 use App\Entity\Tracking\TrackingMovement;
@@ -329,7 +333,7 @@ class IOTService
                                                     ?SensorWrapper         $wrapper = null): void {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        if ($requestTemplate instanceof DeliveryRequestTemplateTriggerAction) {
+        if ($requestTemplate instanceof DeliveryRequestTemplateInterface) {
             $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $requestTemplate, $wrapper);
 
             $this->uniqueNumberService->createWithRetry(
@@ -346,8 +350,16 @@ class IOTService
 
             $valid = true;
             foreach ($request->getReferenceLines() as $ligneArticle) {
-                $reference = $ligneArticle->getReference();
-                if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantityToPick()) {
+                $article = $ligneArticle->getReference();
+                if ($article->getQuantiteDisponible() < $ligneArticle->getQuantityToPick()) {
+                    $valid = false;
+                    break;
+                }
+            }
+
+            foreach ($request->getArticleLines() as $ligneArticle) {
+                $article = $ligneArticle->getArticle();
+                if ($article->getQuantite() < $ligneArticle->getQuantityToPick()) {
                     $valid = false;
                     break;
                 }
@@ -423,11 +435,12 @@ class IOTService
 
     }
 
-    private function cleanCreateDeliveryRequest(StatutRepository                     $statutRepository,
-                                                EntityManagerInterface               $entityManager,
-                                                DeliveryRequestTemplateTriggerAction $requestTemplate,
-                                                ?SensorWrapper                       $wrapper = null): Demande {
+    private function cleanCreateDeliveryRequest(StatutRepository                 $statutRepository,
+                                                EntityManagerInterface           $entityManager,
+                                                DeliveryRequestTemplateInterface $requestTemplate,
+                                                ?SensorWrapper                   $wrapper = null): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+
         $date = new DateTime('now');
 
         $request = new Demande();
@@ -441,13 +454,18 @@ class IOTService
             ->setFreeFields($requestTemplate->getFreeFields());
 
         foreach ($requestTemplate->getLines() as $requestTemplateLine) {
-            $ligneArticle = new DeliveryRequestReferenceLine();
-            $ligneArticle
-                ->setReference($requestTemplateLine->getReference())
+            $line = match (true) {
+                $requestTemplateLine Instanceof RequestTemplateLineReference => (new DeliveryRequestReferenceLine())
+                    ->setReference($requestTemplateLine->getReference()),
+                $requestTemplateLine Instanceof RequestTemplateLineArticle => (new DeliveryRequestArticleLine())
+                    ->setArticle($requestTemplateLine->getArticle()),
+            };
+            $line
                 ->setRequest($request)
                 ->setQuantityToPick($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
-            $entityManager->persist($ligneArticle);
-            $request->addReferenceLine($ligneArticle);
+            $entityManager->persist($line);
+
+            $request->addLine($line);
         }
         return $request;
     }
