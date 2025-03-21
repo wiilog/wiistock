@@ -1342,7 +1342,7 @@ function onEntityChange($select, onInit = false) {
     const $redirectHandlingLabel = $modal.find(`label.redirect-handling`);
 
     const disabledTypeSelect = (!categoryType || $correspondingTypes.length === 0);
-    const disabledStatusSelect = (!categoryStatus || $correspondingStatuses.length === 0);
+    const disabledStatusSelect = !categoryStatus;
 
     $selectType.prop('disabled', disabledTypeSelect);
     $selectStatus.prop('disabled', disabledStatusSelect);
