@@ -31,6 +31,16 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements De
         return $this->lines;
     }
 
+    public function setLines(Collection $lines): self {
+        foreach ($this->lines as $line) {
+            $this->removeLine($line);
+        }
+
+        foreach ($lines as $line) {
+            $this->addLine($line);
+        }
+    }
+
     public function addLine(ReferenceArticle $ref): self {
         if(!$this->lines->contains($ref)) {
             $this->lines[] = $ref;

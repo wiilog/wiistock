@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
@@ -82,10 +83,27 @@ class SleepingStockPlanService {
                                       string       $movementAlias,
                                       ?Type        $type = null): void {
         // TODO WIIS-12522 : and where active = true
+
+        // TODO more aliases ?
+
         $queryBuilder
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->andX(
+                        "reference_article.quantiteStock > 0",
+                        "reference_article.quantiteDisponible > 0"
+                    ),
+                    $queryBuilder->expr()->andX(
+                        "article.quantite > 0",
+                        "article_statut.code = :statutActif"
+                    )
+                )
+            )
             ->andWhere("DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()")
             ->leftJoin(Type::class, $typeAlias, Join::WITH, "$typeAlias = reference_article.type OR $typeAlias = article.type")
-            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH, "$sleepingStockPlanAlias.type = $typeAlias");
+            ->leftJoin("article.statut", "article_statut")
+            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH, "$sleepingStockPlanAlias.type = $typeAlias")
+            ->setParameter("statutActif", Article::STATUT_ACTIF);
 
         if ($type) {
             $queryBuilder

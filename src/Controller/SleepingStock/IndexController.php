@@ -3,8 +3,12 @@
 namespace App\Controller\SleepingStock;
 
 use App\Controller\AbstractController;
+use App\Entity\Article;
 use App\Entity\MouvementStock;
+use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
+use App\Entity\RequestTemplate\RequestTemplateLineArticle;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\SleepingStockRequestInformation;
 use App\Service\CacheService;
 use App\Service\FormatService;
@@ -13,7 +17,10 @@ use App\Service\IOT\IOTService;
 use App\Service\SleepingStockPlanService;
 use App\Service\UserService;
 use DateInterval;
+use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,7 +53,7 @@ class IndexController extends AbstractController {
             return Stream::from($sleepingStockRequestInformationRepository->findAll())
                 ->map(fn(SleepingStockRequestInformation $sleepingStockRequestInformation, int $index) => [
                     "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
-                    "value" => $sleepingStockRequestInformation->getId(),
+                    "value" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()->getId(),
                     "iconUrl" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getButtonIcon()?->getFullPath(),
                     "checked" => $index === 0
                 ])
@@ -91,12 +98,20 @@ class IndexController extends AbstractController {
     public function submit(EntityManagerInterface $entityManager,
                            Request $request,
                            IOTService $IOTService): JsonResponse {
-        $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
 
+        // TODO GERAX LE TOKEN
+
+        $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
+        $now = new DateTime();
         $actions =  Stream::from(json_decode($request->request->get("actions"), true))
             ->reduce(
-                static function (array $carry, array $action): array {
-                    $carry[$action["templateId"]][$action["entity"]] = $action;
+                function (array $carry, array $action) use ($now, $entityManager): array {
+                    $requestTemplateLine = match ($action["entity"]) {
+                        ReferenceArticle::class => $this->createRequestTemplateLineReference($entityManager, $action, $now),
+                        Article::class => $this->createRequestTemplateLineArticle($entityManager, $action, $now),
+                        default => throw new Exception("Unknown entity type " . $action["entity"]),
+                    };
+                    $carry[$action["templateId"]][] = $requestTemplateLine;
                     return $carry;
                 },
                 []
@@ -104,18 +119,35 @@ class IndexController extends AbstractController {
 
         // TODO GERAX les droit de creation de demance avec des articles dedans
 
-        foreach ($actions as $templateId => $action) {
-            $deliveryRequestTemplateSleepingStockRepository->find($templateId);
-//            $IOTService // TODO bouger la fonction dans un utre service
-//                ->treatRequestTemplateTriggerType(
-//                    $deliveryRequestTemplateSleepingStockRepository,
-//                    $entityManager,
-//                )
+        foreach ($actions as $templateId => $lines) {
+            $lines = new ArrayCollection($lines);
+            $deliveryRequestTemplateSleepingStock = $deliveryRequestTemplateSleepingStockRepository->find($templateId);
+            $deliveryRequestTemplateSleepingStock->setLines($lines);
+            $IOTService // TODO bouger la fonction dans un utre service
+                ->treatRequestTemplateTriggerType(
+                    $deliveryRequestTemplateSleepingStock,
+                    $entityManager
+               );
         }
 
         return new JsonResponse([
             "success" => true,
             "msg" => "Votre demande a bien été prise en compte."
         ]);
+    }
+
+    private function createRequestTemplateLineReference(EntityManagerInterface $entityManager, array $action, DateTime $now): RequestTemplateLineReference { // TODO move
+        $referenceArticle = $entityManager->getReference(ReferenceArticle::class, $action["id"]);
+        $referenceArticle->setLastSleepingStockAlertAnswer($now);
+        return (New RequestTemplateLineReference())
+            ->setReference($referenceArticle)
+            ->setQuantityToTake($referenceArticle->getQuantiteDisponible());
+    }
+    private function createRequestTemplateLineArticle(EntityManagerInterface $entityManager, array $action, DateTime $now): RequestTemplateLineArticle { // TODO move
+        $article = $entityManager->find(Article::class, $action["id"]);
+        $article->getReferenceArticle()->setLastSleepingStockAlertAnswer($now);
+        return (New RequestTemplateLineArticle())
+            ->setArticle($article)
+            ->setQuantityToTake($article->getQuantite());
     }
 }

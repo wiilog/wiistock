@@ -3,10 +3,10 @@
 namespace App\Entity\RequestTemplate;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\RequestTemplate\RequestTemplateLineRepository;
+use App\Repository\RequestTemplate\RequestTemplateLineReferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RequestTemplateLineRepository::class)]
+#[ORM\Entity(repositoryClass: RequestTemplateLineReferenceRepository::class)]
 class RequestTemplateLineReference extends RequestTemplateLine {
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'requestTemplateLines')]
     #[ORM\JoinColumn(nullable: false)]

@@ -11,7 +11,9 @@ class RequestTemplateLineArticle extends RequestTemplateLine{
         return $this->article;
     }
 
-    public function setArticle(?Article $article): void{
+    public function setArticle(?Article $article): self {
         $this->article = $article;
+
+        return $this;
     }
 }
