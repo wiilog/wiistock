@@ -393,9 +393,14 @@ class SettingsService {
             $sleepingStockPlan = $sleepingStockPlanRepository->findOneBy(["type" => $type])
                 ?: (new SleepingStockPlan())->setType($type);
 
-            $sleepingStockPlan->setMaxStorageTime(
-                $request->request->getInt("maxStorageTime") * 24 * 60 * 60
-            );
+            $sleepingStockPlan
+                ->setMaxStorageTime(
+                    $request->request->getInt("maxStorageTime") * 24 * 60 * 60
+                )
+                ->setMaxStationaryTime(
+                    $request->request->getInt("maxStationaryTime") * 24 * 60 * 60
+                )
+                ->setEnabled($request->request->getBoolean("enabled"));
 
             $sleepingStockPlan->setScheduleRule(
                 $this->scheduleRuleService->updateRule($sleepingStockPlan->getScheduleRule(), $request->request)
