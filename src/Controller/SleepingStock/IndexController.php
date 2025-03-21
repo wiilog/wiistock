@@ -7,14 +7,12 @@ use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
-use App\Entity\RequestTemplate\RequestTemplateLineArticle;
-use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\SleepingStockRequestInformation;
-use App\Exceptions\FormException;
 use App\Service\CacheService;
 use App\Service\FormatService;
 use App\Service\FormService;
-use App\Service\IOT\IOTService;
+use App\Service\RequestTemplateLineService;
+use App\Service\RequestTemplateService;
 use App\Service\SleepingStockPlanService;
 use App\Service\UserService;
 use DateInterval;
@@ -96,19 +94,21 @@ class IndexController extends AbstractController {
     }
 
     #[Route("/", name: "_submit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
-    public function submit(EntityManagerInterface $entityManager,
-                           Request                $request,
-                           UserService            $userService,
-                           IOTService             $IOTService): JsonResponse {
+    public function submit(EntityManagerInterface     $entityManager,
+                           Request                    $request,
+                           UserService                $userService,
+                           RequestTemplateService     $requestTemplateService,
+                           RequestTemplateLineService $requestTemplateLineService): JsonResponse {
         $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
         $now = new DateTime();
         $hasRoleToCreateArticleLine = $userService->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
         $actions =  Stream::from(json_decode($request->request->get("actions"), true))
             ->reduce(
-                function (array $carry, array $action) use ($hasRoleToCreateArticleLine, $now, $entityManager): array {
+                function (array $carry, array $action) use ($requestTemplateLineService, $hasRoleToCreateArticleLine, $now, $entityManager): array {
+                    $id = $action["id"];
                     $requestTemplateLine = match ($action["entity"]) {
-                        ReferenceArticle::class => $this->createRequestTemplateLineReference($entityManager, $action, $now),
-                        Article::class => $this->createRequestTemplateLineArticle($entityManager, $action, $now, $hasRoleToCreateArticleLine),
+                        ReferenceArticle::class => $requestTemplateLineService->createRequestTemplateLineReference($entityManager, $id, $now),
+                        Article::class => $requestTemplateLineService->createRequestTemplateLineArticle($entityManager, $id, $now, $hasRoleToCreateArticleLine),
                         default => throw new Exception("Unknown entity type " . $action["entity"]),
                     };
                     $carry[$action["templateId"]][] = $requestTemplateLine;
@@ -121,39 +121,16 @@ class IndexController extends AbstractController {
             $lines = new ArrayCollection($lines);
             $deliveryRequestTemplateSleepingStock = $deliveryRequestTemplateSleepingStockRepository->find($templateId);
             $deliveryRequestTemplateSleepingStock->setLines($lines);
-            $IOTService // TODO bouger la fonction dans un utre service
+            $requestTemplateService
                 ->treatRequestTemplateTriggerType(
                     $deliveryRequestTemplateSleepingStock,
                     $entityManager
-               );
+                );
         }
 
         return new JsonResponse([
             "success" => true,
             "msg" => "Votre demande a bien été prise en compte."
         ]);
-    }
-
-    private function createRequestTemplateLineReference(EntityManagerInterface $entityManager, array $action, DateTime $now): RequestTemplateLineReference { // TODO move
-        $referenceArticle = $entityManager->getReference(ReferenceArticle::class, $action["id"]);
-        $referenceArticle->setLastSleepingStockAlertAnswer($now);
-        return (New RequestTemplateLineReference())
-            ->setReference($referenceArticle)
-            ->setQuantityToTake($referenceArticle->getQuantiteDisponible());
-    }
-
-    private function createRequestTemplateLineArticle(EntityManagerInterface $entityManager,
-                                                      array                  $action,
-                                                      DateTime               $now,
-                                                      bool                   $hasRoleToCreateArticleLine): RequestTemplateLineArticle { // TODO move
-        if (!$hasRoleToCreateArticleLine) {
-            throw new FormException("Vous n'avez pas le droit d'ajouter des articles a une demande.");
-        }
-
-        $article = $entityManager->find(Article::class, $action["id"]);
-        $article->getReferenceArticle()->setLastSleepingStockAlertAnswer($now);
-        return (New RequestTemplateLineArticle())
-            ->setArticle($article)
-            ->setQuantityToTake($article->getQuantite());
     }
 }

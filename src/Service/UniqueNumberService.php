@@ -107,7 +107,6 @@ class UniqueNumberService
         do {
             try {
                 $number = $this->create($entityManager, $prefix, $entity, $format);
-
                 $nbTry++;
                 $flush($number);
                 $stopTrying = true;

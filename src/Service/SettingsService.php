@@ -1257,6 +1257,7 @@ class SettingsService {
         }
 
         if (isset($tables["requestTemplates"])) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class);
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
             $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
             $typeRepository = $entityManager->getRepository(Type::class);
