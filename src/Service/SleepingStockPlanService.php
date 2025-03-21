@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Security\Authenticator\SleepingStockAuthenticator;
@@ -81,27 +82,24 @@ class SleepingStockPlanService {
                                       string       $sleepingStockPlanAlias,
                                       string       $typeAlias,
                                       string       $movementAlias,
+                                      string       $referenceArticleAlias,
+                                      string       $articleAlias,
                                       ?Type        $type = null): void {
         // TODO WIIS-12522 : and where active = true
-
-        // TODO more aliases ?
-
         $queryBuilder
             ->andWhere(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->andX(
-                        "reference_article.quantiteStock > 0",
-                        "reference_article.quantiteDisponible > 0"
+                        "$referenceArticleAlias.quantiteStock > 0",
+                        "$referenceArticleAlias.quantiteDisponible > 0"
                     ),
-                    $queryBuilder->expr()->andX(
-                        "article.quantite > 0",
-                        "article_statut.code = :statutActif"
-                    )
+                    "$articleAlias.quantite > 0",
                 )
             )
+            ->andWhere("statut.code = :statutActif")
             ->andWhere("DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()")
-            ->leftJoin(Type::class, $typeAlias, Join::WITH, "$typeAlias = reference_article.type OR $typeAlias = article.type")
-            ->leftJoin("article.statut", "article_statut")
+            ->leftJoin(Type::class, $typeAlias, Join::WITH, "$typeAlias = $referenceArticleAlias.type OR $typeAlias = $articleAlias.type")
+            ->leftJoin(Statut::class , "statut", Join::WITH, "statut = reference_article.statut OR statut = article.statut")
             ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH, "$sleepingStockPlanAlias.type = $typeAlias")
             ->setParameter("statutActif", Article::STATUT_ACTIF);
 
