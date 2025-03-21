@@ -537,6 +537,8 @@ class MouvementStockRepository extends EntityRepository {
             "sleeping_stock_plan",
             "type",
             "movement",
+            "reference_article",
+            "article",
             $type
         );
 

@@ -1,7 +1,15 @@
 import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
 
+
+
 $(function() {
+
+    const url = new URL(window.location.href);
+    const ACCESS_TOKEN = url.searchParams.get("access-token");
+    url.searchParams.delete("access-token");
+    window.history.replaceState({}, document.title, url);
+
     const table = initDataTable('tableSleepingStockForm', {
         serverSide: false,
         processing: false,
@@ -46,9 +54,9 @@ $(function() {
 
                     // wait 500ms before reloading
                     setTimeout(() => {
-                        window.location.reload();
+                   // window.location.reload();
                     }, 5000);
-                }
+                },
             }
         )
 
