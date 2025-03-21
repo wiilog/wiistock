@@ -10,6 +10,7 @@ use App\Entity\RequestTemplate\DeliveryRequestTemplateSleepingStock;
 use App\Entity\RequestTemplate\RequestTemplateLineArticle;
 use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\SleepingStockRequestInformation;
+use App\Exceptions\FormException;
 use App\Service\CacheService;
 use App\Service\FormatService;
 use App\Service\FormService;
@@ -96,19 +97,18 @@ class IndexController extends AbstractController {
 
     #[Route("/", name: "_submit", options: ["expose" => true], methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     public function submit(EntityManagerInterface $entityManager,
-                           Request $request,
-                           IOTService $IOTService): JsonResponse {
-
-        // TODO GERAX LE TOKEN
-
+                           Request                $request,
+                           UserService            $userService,
+                           IOTService             $IOTService): JsonResponse {
         $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
         $now = new DateTime();
+        $hasRoleToCreateArticleLine = $userService->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
         $actions =  Stream::from(json_decode($request->request->get("actions"), true))
             ->reduce(
-                function (array $carry, array $action) use ($now, $entityManager): array {
+                function (array $carry, array $action) use ($hasRoleToCreateArticleLine, $now, $entityManager): array {
                     $requestTemplateLine = match ($action["entity"]) {
                         ReferenceArticle::class => $this->createRequestTemplateLineReference($entityManager, $action, $now),
-                        Article::class => $this->createRequestTemplateLineArticle($entityManager, $action, $now),
+                        Article::class => $this->createRequestTemplateLineArticle($entityManager, $action, $now, $hasRoleToCreateArticleLine),
                         default => throw new Exception("Unknown entity type " . $action["entity"]),
                     };
                     $carry[$action["templateId"]][] = $requestTemplateLine;
@@ -116,8 +116,6 @@ class IndexController extends AbstractController {
                 },
                 []
             );
-
-        // TODO GERAX les droit de creation de demance avec des articles dedans
 
         foreach ($actions as $templateId => $lines) {
             $lines = new ArrayCollection($lines);
@@ -143,7 +141,15 @@ class IndexController extends AbstractController {
             ->setReference($referenceArticle)
             ->setQuantityToTake($referenceArticle->getQuantiteDisponible());
     }
-    private function createRequestTemplateLineArticle(EntityManagerInterface $entityManager, array $action, DateTime $now): RequestTemplateLineArticle { // TODO move
+
+    private function createRequestTemplateLineArticle(EntityManagerInterface $entityManager,
+                                                      array                  $action,
+                                                      DateTime               $now,
+                                                      bool                   $hasRoleToCreateArticleLine): RequestTemplateLineArticle { // TODO move
+        if (!$hasRoleToCreateArticleLine) {
+            throw new FormException("Vous n'avez pas le droit d'ajouter des articles a une demande.");
+        }
+
         $article = $entityManager->find(Article::class, $action["id"]);
         $article->getReferenceArticle()->setLastSleepingStockAlertAnswer($now);
         return (New RequestTemplateLineArticle())
