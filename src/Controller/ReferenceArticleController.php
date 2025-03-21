@@ -681,8 +681,6 @@ class ReferenceArticleController extends AbstractController
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
         $articleRepository = $entityManager->getRepository(Article::class);
 
-        $maxStorageTimeInSecond = $referenceArticle->getType()->getSleepingStockPlan()?->getMaxStorageTime();
-
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle, $articleRepository) {
                 $carry[] = [
@@ -696,7 +694,6 @@ class ReferenceArticleController extends AbstractController
                 }, []);
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
-            'maxStorageTime' => $dateTimeService->secondsToDateInterval($maxStorageTimeInSecond)?->format("%a"), //not decimal : 60H -> 2 days
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,

@@ -31,6 +31,12 @@ class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements De
         return $this->lines;
     }
 
+    public function setLines(Collection $lines): self {
+        $this->lines = $lines;
+
+        return $this;
+    }
+
     public function getButtonIcon(): ?Attachment {
         return $this->buttonIcon;
     }

@@ -513,20 +513,11 @@ class MouvementStockRepository extends EntityRepository {
             ->addSelect("article.reference AS articleReference")
             ->addSelect("reference_article.libelle AS referenceLabel")
             ->addSelect("article.label AS articleLabel")
-            ->addSelect("reference_article.quantiteStock AS referenceQuantityStock")
+            ->addSelect("reference_article.quantiteDisponible AS referenceQuantityStock")
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
             ->addSelect("sleeping_stock_plan.maxStorageTime AS maxStorageTime")
             ->addSelect("DATE_ADD(movement.date, sleeping_stock_plan.maxStorageTime, 'second') AS maxStorageDate")
-            ->andWhere(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->andX(
-                        "reference_article.quantiteStock > 0",
-                        "reference_article.quantiteDisponible > 0"
-                    ),
-                    "article.quantite > 0"
-                )
-            )
             ->andWhere(
                 $queryBuilder->expr()->orX(
                     "reference_article_managers.id = :user",
