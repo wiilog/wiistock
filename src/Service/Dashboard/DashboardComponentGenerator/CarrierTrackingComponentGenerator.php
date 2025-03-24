@@ -4,6 +4,7 @@ namespace App\Service\Dashboard\DashboardComponentGenerator;
 
 use App\Entity\Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
+use App\Entity\Emplacement;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrivalLine;
 use App\Service\Dashboard\DashboardService;
@@ -25,6 +26,7 @@ class CarrierTrackingComponentGenerator implements DashboardComponentGenerator {
                             Dashboard\Component    $component): void {
         $config = $component->getConfig();
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $lineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers'] ?? []);
 
@@ -32,7 +34,13 @@ class CarrierTrackingComponentGenerator implements DashboardComponentGenerator {
         $meter->setSubtitle($this->formatService->carriers($carriers) ?: '-');
         $meter->setCount(0);
         if (isset($config['displayUnassociatedLines']) && $config['displayUnassociatedLines']) {
-            $unassociatedLines = $lineRepository->getUnassociatedLines();
+            $locations = $locationRepository->findBy(["id" => $config['locations']]);
+
+            $unassociatedLines = $lineRepository->getUnassociatedLines([
+                'locations' => Stream::from($locations)
+                    ->map(static fn(Emplacement $location) => $location->getId())
+                    ->toArray(),
+            ]);
             $meter->setCount(count($unassociatedLines));
 
             if (isset($config['displayLateLines']) && $config['displayLateLines']) {

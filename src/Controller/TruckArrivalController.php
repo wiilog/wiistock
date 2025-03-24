@@ -35,6 +35,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use WiiCommon\Helper\Stream;
+use App\Entity\Dashboard;
 
 #[Route('/arrivage-camion', name: "truck_arrival_")]
 class TruckArrivalController extends AbstractController
@@ -42,15 +43,35 @@ class TruckArrivalController extends AbstractController
     #[Route('/', name: 'index', methods: self::GET)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
     public function index(TruckArrivalService       $truckArrivalService,
+                          Request                   $request,
                           EntityManagerInterface    $entityManager,
                           SettingsService           $settingsService,
                           FilterSupService          $filterSupService ): Response {
+        $data = $request->query;
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
 
         $defaultLocationId = $settingsService->getValue($entityManager, Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
         $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
+
+        $dashboardComponentId = $data->get("dashboardComponentId");
+
+        /** @var Dashboard\Component $dashboardComponent */
+        $dashboardComponent = $dashboardComponentId
+            ? $dashboardComponentRepository->find($dashboardComponentId)
+            : null;
+
+        if(isset($dashboardComponent)) {
+            $fromDashboard = true;
+            $config = $dashboardComponent->getConfig();
+            $locationsFilter = !empty($config["locations"])
+                ? $locationRepository->findBy(["id" => $config["locations"]])
+                : [];
+            $countNoLinkedTruckArrival = $config["countNoLinkedTruckArrival"] ?? false;
+            $carrierTrackingNumberNotAssigned = true;
+        }
 
         return $this->render('truck_arrival/index.html.twig', [
             'controller_name' => 'TruckArrivalController',
@@ -60,6 +81,10 @@ class TruckArrivalController extends AbstractController
             'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL),
             'newTruckArrival' => new TruckArrival(),
             'defaultLocation' => $defaultLocation,
+            'fromDashboard' => $fromDashboard ?? false,
+            'locationsFilter' => $locationsFilter ?? [],
+            'carrierTrackingNumberNotAssigned' => $carrierTrackingNumberNotAssigned ?? false,
+            'countNoLinkedTruckArrival' => $countNoLinkedTruckArrival ?? false,
         ]);
     }
 
