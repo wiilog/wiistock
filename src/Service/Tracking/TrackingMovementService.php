@@ -361,7 +361,8 @@ class TrackingMovementService {
                 $countContent = $parentPack->getContent()->count() + count($packCodes);
                 if($countContent > Pack::GROUPING_LIMIT) {
                     $limit = Pack::GROUPING_LIMIT;
-                    throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
+                    $packParentCode = $parentPack->getCode();
+                    throw new FormException("Le groupe $packParentCode ne peut pas contenir plus de $limit unités logistiques.");
                 }
 
                 foreach ($packCodes as $packCode) {
