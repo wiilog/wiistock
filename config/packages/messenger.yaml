@@ -8,7 +8,12 @@ framework:
       # https://symfony.com/doc/current/messenger.html#transport-configuration
 
       async_tracking_delay:
-        dsn: "amqp://user1:pass1@mq-server:5672/%2f/tracking_delay"
+        dsn: "amqp://user1:pass1@mq-server:5672/%2f/user1-tracking_delay"
+        options:
+          queues:
+            user1-tracking_delay:
+              arguments:
+                x-message-deduplication: true
         retry_strategy:
           max_retries: 0
 
