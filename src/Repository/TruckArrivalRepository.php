@@ -168,8 +168,24 @@ class TruckArrivalRepository extends EntityRepository
                             ->leftJoin('filter_reserve.reserveType', 'filter_reserveType');
                     }
                     break;
+                case 'countNoLinkedTruckArrival':
+                    if ($filter['value'] == '1') {
+                        $qb
+                            ->andWhere('filter_arrival_notAssigned IS NULL')
+                            ->andWhere($qb->expr()->orX(
+                                "filter_reserveType.disableTrackingNumber IS NULL",
+                                "filter_reserveType.disableTrackingNumber = 0"
+                            ))
+                            ->leftJoin('truckArrival.trackingLines', 'filter_trackingLines_notAssigned')
+                            ->leftJoin('filter_trackingLines_notAssigned.arrivals', 'filter_arrival_notAssigned')
+                            ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
+                            ->leftJoin('filter_reserve.reserveType', 'filter_reserveType');
+                    }
+                    break;
                 case 'unloadingLocation':
-                    $value = explode(',', $filter['value']);
+                    $value = !is_array($filter['value'])
+                        ? explode(',', $filter['value'])
+                        : $filter['value'];
                     $qb
                         ->andWhere('filter_location.id IN (:filter_value_filteredLocation)')
                         ->leftJoin('truckArrival.unloadingLocation', 'filter_location')

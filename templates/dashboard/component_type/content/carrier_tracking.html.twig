@@ -1,4 +1,5 @@
 {% extends 'dashboard/component_type/content/base_form.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block content %}
     <div class="row">
@@ -14,6 +15,19 @@
             </select>
         </div>
     </div>
+    <div class="form-group">
+        {{ form.select('locations', 'Emplacement(s)', false, {
+            type: 'location',
+            items: values.locations
+                ? values.locations|map((location) => {
+                    label: location.label,
+                    value: location.id,
+                    selected: true,
+                })
+                : [],
+            multiple: true,
+        }) }}
+    </div>
     <div class="row form-group align-items-center no-gutters">
         <div class="col-auto">
             <input class="checkbox filter-checkbox" type="checkbox" name="displayUnassociatedLines" {{ values.displayUnassociatedLines ?? false ? 'checked' }}>
@@ -22,6 +36,9 @@
             <span class="wii-field-text">Afficher le nombre de n° de tracking transporteur non associés
             </span>
         </div>
+    </div>
+    <div class="form-group">
+        {{ form.checkbox('countNoLinkedTruckArrival', 'Compter les arrivages camions sans tracking tant que non associé à un arrivage UL', false, values.countNoLinkedTruckArrival ?? false) }}
     </div>
     <div class="row form-group align-items-center no-gutters">
         <div class="col-auto">
