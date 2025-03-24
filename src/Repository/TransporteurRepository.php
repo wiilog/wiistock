@@ -42,7 +42,8 @@ class TransporteurRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function getDailyArrivalCarriersLabel(array $filterIds = []) {
+    public function getDailyArrivalCarriersLabel(array $filterIds = []): array
+    {
         $now = new DateTime('now');
         $beginDayDate = clone $now;
         $beginDayDate->setTime(0, 0, 0);

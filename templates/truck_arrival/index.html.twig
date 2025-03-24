@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Traçabilité | Arrivages camion{% endblock %}
 {% block title_tooltip %}Traçabilité | Arrivages camion{% endblock %}
@@ -6,7 +7,9 @@
 {% block page_filter %}
     {% include 'filters/filtersTruckArrival.html.twig' with {
         page: 'PAGE_TRUCK_ARRIVAL',
-        tableSelector: '#truckArrivalsTable'
+        tableSelector: '#truckArrivalsTable',
+        locationsFilter,
+        carrierTrackingNumberNotAssigned,
     } %}
 {% endblock %}
 
@@ -48,6 +51,8 @@
     </div>
 
     <input id="truck-arrival-filters" value="{{ initial_filters }}" hidden>
+    {{ form.hidden('fromDashboard', fromDashboard) }}
+    {{ form.hidden('countNoLinkedTruckArrival', countNoLinkedTruckArrival) }}
 
     {% include "utils/fields-modes.html.twig" with {
         fields,
