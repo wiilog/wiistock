@@ -166,10 +166,8 @@ function displayFilterValue(elem) {
             break;
         case 'number':
         case 'list':
-            label = 'Valeur';
-            break;
         case 'list multiple':
-            label = 'Contient';
+            label = 'Valeur';
             break;
         case 'date':
             label = 'Date';
