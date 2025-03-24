@@ -46,6 +46,7 @@ class TrackingMovementController extends AbstractController {
     #[Route("/tracking-movements", methods: [self::POST], condition: self::IS_XML_HTTP_REQUEST)]
     #[Wii\RestVersionChecked]
     public function postTrackingMovements(Request                 $request,
+                                          NormalizerInterface     $normalizer,
                                           CacheService            $cacheService,
                                           MailerService           $mailerService,
                                           ArrivageService         $arrivageDataService,
@@ -57,10 +58,6 @@ class TrackingMovementController extends AbstractController {
                                           AttachmentService       $attachmentService,
                                           EntityManagerInterface  $entityManager): Response {
         $successData = [];
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'POST');
 
         $nomadUser = $this->getUser();
 
@@ -91,6 +88,8 @@ class TrackingMovementController extends AbstractController {
                 ->toArray()
             : [];
 
+        $persistedMovements = [];
+
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
@@ -120,7 +119,8 @@ class TrackingMovementController extends AbstractController {
                     $arrivageDataService,
                     &$mustReloadLocation,
                     $alreadySavedMovements,
-                    $cacheService
+                    $cacheService,
+                    &$persistedMovements,
                 ) {
 
                     $trackingTypes = [
@@ -240,6 +240,8 @@ class TrackingMovementController extends AbstractController {
                         if ($type->getNom() === TrackingMovement::TYPE_DEPOSE) {
                             $finishMouvementTraca[] = $mvt['ref_article'];
                         }
+
+                        $persistedMovements[] = $createdMvt;
                     }
                 });
             } catch (Throwable $throwable) {
@@ -272,13 +274,13 @@ class TrackingMovementController extends AbstractController {
             ? 'Aucun mouvement à synchroniser.'
             : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
         $successData['data']['movementCounter'] = $numberOfRowsInserted;
+        $successData['data']['persistedMovements'] = $normalizer->normalize($persistedMovements, null, ["usage" => SerializerUsageEnum::MOBILE_DROP_MENU]);
 
         if (!empty($emptyGroups)) {
             $successData['data']['emptyGroups'] = $emptyGroups;
         }
 
-        $response->setContent(json_encode($successData));
-        return $response;
+        return $this->json($successData);
     }
 
 
