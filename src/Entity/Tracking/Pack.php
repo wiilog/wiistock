@@ -41,6 +41,8 @@ class Pack implements PairedEntity {
 
     public const MAX_SPLIT_LEVEL = 3;
 
+    public const GROUPING_LIMIT = 300;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]

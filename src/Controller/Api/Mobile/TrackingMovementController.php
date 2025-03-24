@@ -609,11 +609,6 @@ class TrackingMovementController extends AbstractController {
         $groupDate = $datetimeFromDate($dateStr);
 
         if ($isNewGroupInstance && !empty($packs)) {
-            if(count($parentPack->getContent()) > TrackingMovement::GROUPING_LIMIT) {
-                $limit = TrackingMovement::GROUPING_LIMIT;
-                throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
-            }
-
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
@@ -625,6 +620,12 @@ class TrackingMovementController extends AbstractController {
             );
 
             $entityManager->persist($groupingTrackingMovement);
+        }
+
+        $countContent = $parentPack->getContent()->count() + count($packs);
+        if($countContent > Pack::GROUPING_LIMIT) {
+            $limit = Pack::GROUPING_LIMIT;
+            throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
         }
 
         foreach ($packs as $data) {
@@ -655,11 +656,6 @@ class TrackingMovementController extends AbstractController {
             }
 
             if (!$pack->getGroup()) {
-                if(count($parentPack->getContent()) > TrackingMovement::GROUPING_LIMIT) {
-                    $limit = TrackingMovement::GROUPING_LIMIT;
-                    throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
-                }
-
                 $pack->setGroup($parentPack);
 
                 $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(

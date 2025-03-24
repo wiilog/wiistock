@@ -343,11 +343,6 @@ class TrackingMovementService {
                 }
 
                 if ($isNewGroupInstance) {
-                    if(count($parentPack->getContent()) > TrackingMovement::GROUPING_LIMIT) {
-                        $limit = TrackingMovement::GROUPING_LIMIT;
-                        throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
-                    }
-
                     $groupingTrackingMovement = $this->createTrackingMovement(
                         $parentPack,
                         null,
@@ -361,6 +356,12 @@ class TrackingMovementService {
 
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
+                }
+
+                $countContent = $parentPack->getContent()->count() + count($packCodes);
+                if($countContent > Pack::GROUPING_LIMIT) {
+                    $limit = Pack::GROUPING_LIMIT;
+                    throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
                 }
 
                 foreach ($packCodes as $packCode) {
@@ -382,11 +383,6 @@ class TrackingMovementService {
                         }
 
                         $movedPack = $this->packService->persistPack($entityManager, $packCode, 1);
-                    }
-
-                    if(count($parentPack->getContent()) > TrackingMovement::GROUPING_LIMIT) {
-                        $limit = TrackingMovement::GROUPING_LIMIT;
-                        throw new FormException("Votre groupe contient déjà $limit UL, vous ne pouvez plus ajouter d'UL.");
                     }
 
                     $groupingTrackingMovement = $this->createTrackingMovement(
