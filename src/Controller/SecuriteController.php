@@ -37,9 +37,9 @@ class SecuriteController extends AbstractController {
     public Twig_Environment $templating;
 
     const ALLMESSAGES = [
-        'Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.',
-        'Votre mot de passe a bien été modifié.',
-        'Un lien pour réinitialiser votre mot de passe vient d\'être envoyé sur votre adresse email si elle correspond à un compte valide.'
+        'message_1' => 'Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.',
+        'message_2' => 'Votre mot de passe a bien été modifié.',
+        'message_3' => 'Un lien pour réinitialiser votre mot de passe vient d\'être envoyé sur votre adresse email si elle correspond à un compte valide.'
     ];
 
     #[Route("/", name: "default")]
@@ -51,7 +51,9 @@ class SecuriteController extends AbstractController {
     public function login(AuthenticationUtils $authenticationUtils,
                           string $success = ''): Response {
 
-        if(!in_array($success, $this::ALLMESSAGES)){
+        if(in_array($success, array_keys($this::ALLMESSAGES))){
+            $success = $this::ALLMESSAGES[$success];
+        }else{
             $success = '';
         }
         $loggedUser = $this->getUser();
@@ -141,7 +143,7 @@ class SecuriteController extends AbstractController {
         if(!$user) {
             $response = [
                 'success' => false,
-                'msg' => 'Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.'
+                'msg' => 'message_1',
             ];
         } else if($user->getStatus()) {
             $password = $data['password'];
@@ -159,7 +161,7 @@ class SecuriteController extends AbstractController {
 
                     $response = [
                         'success' => true,
-                        'msg' => 'Votre mot de passe a bien été modifié.'
+                        'msg' => 'message_2',
                     ];
                 }
             } else {
@@ -202,7 +204,7 @@ class SecuriteController extends AbstractController {
 
         return $this->json([
             'success' => true,
-            'msg' => "Un lien pour réinitialiser votre mot de passe vient d'être envoyé sur votre adresse email si elle correspond à un compte valide.",
+            'msg' => 'message_3',
         ]);
     }
 
