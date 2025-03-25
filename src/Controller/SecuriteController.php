@@ -41,7 +41,7 @@ class SecuriteController extends AbstractController {
         return $this->redirectToRoute('login');
     }
 
-    #[Route("/login/{success}", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
+    #[Route("/login", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
     public function login(AuthenticationUtils $authenticationUtils,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
@@ -64,7 +64,6 @@ class SecuriteController extends AbstractController {
         return $this->render('securite/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
-            'success' => $success
         ]);
     }
 
