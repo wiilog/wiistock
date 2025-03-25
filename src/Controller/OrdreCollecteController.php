@@ -21,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
+use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
 use App\Service\NotificationService;
@@ -290,7 +291,9 @@ class OrdreCollecteController extends AbstractController
 
     #[Route("/supprimer/{id}", name: "ordre_collecte_delete", options: ["expose" => true], methods: [self::POST, self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
-    public function delete(OrdreCollecte $ordreCollecte, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(OrdreCollecte $ordreCollecte,
+                           EntityManagerInterface $entityManager,
+                           CacheService $cacheService): JsonResponse
     {
         if ($ordreCollecte->getStatut()?->getCode() === OrdreCollecte::STATUT_A_TRAITER) {
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -300,12 +303,14 @@ class OrdreCollecteController extends AbstractController
 
             $statusName = $isOnlyOrdreCollecte ? Collecte::STATUT_BROUILLON : Collecte::STATUT_COLLECTE;
             $collecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, $statusName));
+            $consumedStatus = $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::DEM_COLLECTE, $statusName);
 
             foreach ($ordreCollecte->getArticles() as $article) {
                 if (!$isOnlyOrdreCollecte) {
                     $article->removeCollecte($collecte);
                 }
                 $article->removeOrdreCollecte($ordreCollecte);
+                $article->setStatut($consumedStatus);
             }
             foreach ($ordreCollecte->getOrdreCollecteReferences() as $cr) {
                 if (!$isOnlyOrdreCollecte) {
