@@ -36,14 +36,24 @@ class SecuriteController extends AbstractController {
     #[Required]
     public Twig_Environment $templating;
 
+    const ALLMESSAGES = [
+        'Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.',
+        'Votre mot de passe a bien été modifié.',
+        'Un lien pour réinitialiser votre mot de passe vient d\'être envoyé sur votre adresse email si elle correspond à un compte valide.'
+    ];
+
     #[Route("/", name: "default")]
     public function index(): Response {
         return $this->redirectToRoute('login');
     }
 
-    #[Route("/login", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
+    #[Route("/login/{success}", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
     public function login(AuthenticationUtils $authenticationUtils,
                           string $success = ''): Response {
+
+        if(!in_array($success, $this::ALLMESSAGES)){
+            $success = '';
+        }
         $loggedUser = $this->getUser();
         $securityContext = $this->container->get('security.authorization_checker');
         if ($loggedUser instanceof Utilisateur && $securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
@@ -64,6 +74,7 @@ class SecuriteController extends AbstractController {
         return $this->render('securite/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
+            'success' => $success,
         ]);
     }
 
