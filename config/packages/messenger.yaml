@@ -13,7 +13,7 @@ framework:
           max_retries: 0
         options:
           queue_name: "tracking-delay"
-          unique_messages: "waiting_queue"
+          unique_messages: "waiting_queue_2_test"
 
       # message in transport async_tracking_delay are rerouted to this queue
       # we declare it to get the waiting handler which retry to dispatch original message

@@ -22,6 +22,9 @@ class CalculateTrackingDelayHandler extends LoggedHandler
         parent::__construct($this->loggerService);
     }
 
+
+
+
     public function __invoke(CalculateTrackingDelayMessage $message): void {
         $this->handle($message);
     }
