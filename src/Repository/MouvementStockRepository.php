@@ -494,7 +494,8 @@ class MouvementStockRepository extends EntityRepository {
      *       "quantityStock": int,
      *       "lastMovementDate": DateTime,
      *       "maxStorageTime": int,
-     *       "maxStorageDate": DateTime
+     *       "maxStorageDate": DateTime,
+     *       "isSleeping": bool
      *     }
      *   >
      * }
@@ -510,9 +511,11 @@ class MouvementStockRepository extends EntityRepository {
             ->addSelect("article.id AS articleId")
             ->addSelect("COUNT_OVER(movement.id) AS __query_count")
             ->addSelect("reference_article.reference AS referenceReference")
-            ->addSelect("article.reference AS articleReference")
+            ->addSelect("article_reference_article.reference AS articleReference")
             ->addSelect("reference_article.libelle AS referenceLabel")
             ->addSelect("article.label AS articleLabel")
+            ->addSelect("reference_article.barCode AS referenceBarCode")
+            ->addSelect("article.barCode AS articleBarCode")
             ->addSelect("reference_article.quantiteDisponible AS referenceQuantityStock")
             ->addSelect("article.quantite AS articleQuantityStock")
             ->addSelect("movement.date AS lastMovementDate")
@@ -524,13 +527,20 @@ class MouvementStockRepository extends EntityRepository {
                     "article_reference_article_managers.id = :user"
                 )
             )
-            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH, 'reference_article.lastMovement = movement')
+            ->leftJoin(ReferenceArticle::class, 'reference_article', Join::WITH,
+                $queryBuilder->expr()->andX(
+                    'reference_article.lastMovement = movement',
+                    'reference_article.typeQuantite = :quantityTypeReference',
+                )
+            )
             ->leftJoin(Article::class, 'article', Join::WITH, 'article.lastMovement = movement')
             ->leftJoin("article.articleFournisseur", "articles_fournisseur")
             ->leftJoin("reference_article.managers", "reference_article_managers")
             ->leftJoin("articles_fournisseur.referenceArticle", "article_reference_article")
             ->leftJoin("article_reference_article.managers", "article_reference_article_managers")
-            ->setParameter("user", $user->getId());
+            ->setParameter("user", $user->getId())
+            ->setParameter("quantityTypeReference", ReferenceArticle::QUANTITY_TYPE_REFERENCE)
+        ;
 
         $sleepingStockPlanService->findSleepingStock(
             $queryBuilder,
@@ -540,7 +550,7 @@ class MouvementStockRepository extends EntityRepository {
             "reference_article",
             "article",
             $type
-        );
+        );;
 
         $queryResult = $queryBuilder
             ->setMaxResults($maxResults)
@@ -549,8 +559,10 @@ class MouvementStockRepository extends EntityRepository {
 
         $countTotal = $queryResult[0]["__query_count"] ?? 0;
 
+        $now = new DateTime();
         $data = Stream::from($queryResult)
-            ->map(function ($item) {
+            ->map(function ($item) use ($now) {
+                $maxStorageDate = new DateTime($item["maxStorageDate"]);
                 return [
                     "entity" => match (true) {
                         isset($item["referenceArticleId"]) => ReferenceArticle::class,
@@ -560,10 +572,12 @@ class MouvementStockRepository extends EntityRepository {
                     "id" => $item["referenceArticleId"] ?? $item["articleId"],
                     "reference" => $item["referenceReference"] ?? $item["articleReference"],
                     "label" => $item["referenceLabel"] ?? $item["articleLabel"],
+                    "barCode" => $item["referenceBarCode"] ?? $item["articleBarCode"],
                     "quantityStock" => $item["referenceQuantityStock"] ?? $item["articleQuantityStock"],
                     "lastMovementDate" => $item["lastMovementDate"],
                     "maxStorageTime" => $item["maxStorageTime"],
-                    "maxStorageDate" => $item["maxStorageDate"],
+                    "maxStorageDate" => $maxStorageDate,
+                    "isSleeping" => $now > $maxStorageDate,
                 ];
             })
             ->toArray();

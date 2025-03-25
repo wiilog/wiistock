@@ -15,11 +15,11 @@ $(function() {
         processing: false,
         searching: false,
         paging: false,
-        order: [['maxStorageDate', "desc"]],
         columns: [
             {data: 'actions', name: 'actions', title: 'Actions', orderable: false,  className: 'full-width'},
             {data: 'label', name: 'label', title: Translation.of('Stock', 'Références', 'Général', 'Libellé')},
             {data: 'reference', name: 'reference', title: Translation.of('Stock', 'Références', 'Général', 'Référence')},
+            {data: 'barCode', name: 'barCode', title: Translation.of('Stock', 'Références', 'Général', 'Code barre')},
             {data: 'quantityStock', name: 'quantityStock', title: Translation.of('Stock', 'Références', 'Général', 'Quantité')},
             {data: 'maxStorageDate', name: 'maxStorageDate', title: Translation.of('Stock', 'Références', 'Email stock dormant', 'Date max de stockage')},
         ],
@@ -51,10 +51,9 @@ $(function() {
             'sleeping_stock_submit',
             {
                 success: (data) => {
-
                     // wait 500ms before reloading
                     setTimeout(() => {
-                   // window.location.reload();
+                        window.location.reload();
                     }, 5000);
                 },
             }

@@ -40,7 +40,7 @@ function initializeSleepingStockRequestInformations($container){
         scrollX: false,
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'deliveryRequestTemplate', title: 'Modèle de la demande de livraison', required: true},
+            {data: 'deliveryRequestTemplate', title: 'Modèle de la demande de livraison', required: false},
             {data: 'buttonLabel', title: 'Libellé du bouton d’action', required: true},
         ],
         form: {

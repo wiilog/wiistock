@@ -29,13 +29,15 @@
     {{ form.select(
         "deliveryRequestTemplate",
         null,
-        true,
+        false,
         {
-            type: "",
             items: deleveryRequestTemplatesSleepingStock | map(template => ({
                 label: template.text,
                 value: template.id,
             })),
+            emptyOption: {
+                label: "Aucune demande de livraison",
+            },
             attributes: {
                "data-parent": "body",
             }

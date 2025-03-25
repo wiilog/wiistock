@@ -32,6 +32,7 @@ class RequestTemplateLineService {
 
         $article = $entityManager->getReference(Article::class, $articleId);
         $article->getReferenceArticle()->setLastSleepingStockAlertAnswer($now);
+        $article->setLastSleepingStockAlertAnswer($now);
         return (New RequestTemplateLineArticle())
             ->setArticle($article)
             ->setQuantityToTake($article->getQuantite());

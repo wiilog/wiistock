@@ -4,18 +4,17 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\MouvementStock;
+use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\SleepingStockPlan;
 use App\Entity\Security\AccessTokenTypeEnum;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Security\Authenticator\SleepingStockAuthenticator;
-use DateInterval;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 
@@ -85,7 +84,6 @@ class SleepingStockPlanService {
                                       string       $referenceArticleAlias,
                                       string       $articleAlias,
                                       ?Type        $type = null): void {
-        // TODO WIIS-12522 : and where active = true
         $queryBuilder
             ->andWhere(
                 $queryBuilder->expr()->orX(
@@ -96,12 +94,54 @@ class SleepingStockPlanService {
                     "$articleAlias.quantite > 0",
                 )
             )
-            ->andWhere("statut.code = :statutActif")
-            ->andWhere("DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()")
-            ->leftJoin(Type::class, $typeAlias, Join::WITH, "$typeAlias = $referenceArticleAlias.type OR $typeAlias = $articleAlias.type")
-            ->leftJoin(Statut::class , "statut", Join::WITH, "statut = reference_article.statut OR statut = article.statut")
-            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH, "$sleepingStockPlanAlias.type = $typeAlias")
-            ->setParameter("statutActif", Article::STATUT_ACTIF);
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    "DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()",
+                    "DATE_ADD(
+                        IF(
+                            $referenceArticleAlias.lastSleepingStockAlertAnswer IS NULL
+                            OR $movementAlias.date > $referenceArticleAlias.lastSleepingStockAlertAnswer,
+                            $movementAlias.date,
+                            $referenceArticleAlias.lastSleepingStockAlertAnswer
+                        ),
+                        $sleepingStockPlanAlias.maxStationaryTime,
+                         'second'
+                    ) < CURRENT_DATE()",
+                    "DATE_ADD(
+                        IF(
+                            $articleAlias.lastSleepingStockAlertAnswer IS NULL
+                            OR $movementAlias.date > $articleAlias.lastSleepingStockAlertAnswer,
+                            $movementAlias.date,
+                            $articleAlias.lastSleepingStockAlertAnswer
+                        ),
+                        $sleepingStockPlanAlias.maxStationaryTime,
+                         'second'
+                    ) < CURRENT_DATE()",
+                )
+            )
+            ->andWhere(
+                $queryBuilder->expr()->orX(
+                    "statut.code = :articleStatutActif",
+                    "statut.code = :referenceStatutActif",
+                )
+            )
+            ->leftJoin(Type::class, $typeAlias, Join::WITH, $queryBuilder->expr()->orX(
+                "$typeAlias = $referenceArticleAlias.type",
+                "$typeAlias = $articleAlias.type",
+            ))
+            ->leftJoin(Statut::class , "statut", Join::WITH, $queryBuilder->expr()->orX(
+                "statut = reference_article.statut",
+                "statut = article.statut",
+            ))
+            ->innerJoin(SleepingStockPlan::class, "$sleepingStockPlanAlias", Join::WITH,
+                $queryBuilder->expr()->andX(
+                    "$sleepingStockPlanAlias.type = $typeAlias",
+                    "$sleepingStockPlanAlias.enabled = true"
+                )
+            )
+            ->setParameter("articleStatutActif", Article::STATUT_ACTIF)
+            ->setParameter("referenceStatutActif", ReferenceArticle::STATUT_ACTIF)
+        ;
 
         if ($type) {
             $queryBuilder
