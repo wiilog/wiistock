@@ -89,7 +89,6 @@ class IndexController extends AbstractController {
                         "labelClass" => "full-width",
                     ]
                 );
-
                 $inputId = $formService->macro("hidden", "id", $referenceArticle["id"]);
                 $inputEntity = $formService->macro("hidden", "entity", $referenceArticle["entity"]);
                 $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary wii-icon-17px-danger'></i></button>";
