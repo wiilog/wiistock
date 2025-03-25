@@ -118,14 +118,17 @@ class SecuriteController extends AbstractController {
     #[Route("/change-password", name: "change_password", options: ["expose" => true], methods: [ self::GET, self::POST])]
     public function change_password(Request $request): Response {
         $token = $request->get('token');
-        return $this->render('securite/change_password.html.twig', ['token' => $token]);
+
+        return $token
+            ? $this->render('securite/change_password.html.twig', ['token' => $token])
+            : $this->redirectToRoute('login');
     }
 
     #[Route("/change-password-in-bdd", name: "change_password_in_bdd", options: ["expose" => true], methods: [ self::POST], condition: "request.isXmlHttpRequest()")]
     public function change_password_in_bdd(Request $request,
                                            EntityManagerInterface $entityManager): Response {
         $data = $request->request->all();
-        $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['token' => $data['token']]);
+        $user = $data['token'] !== null ? $entityManager->getRepository(Utilisateur::class)->findOneBy(['token' => $data['token']]) : null;
 
         $response = [];
         if(!$user) {
