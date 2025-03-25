@@ -8,10 +8,10 @@
 
     <div class="container-fluid">
         <div id="alerts-container">
-            {% if error %}
+            {% if error or success %}
                 {% include 'utils/alert.html.twig' with {
                     id: 'alert-template',
-                    content: error and error != '' ? error,
+                    content: error and error != '' ? error : success,
                     color: error ? 'danger' : 'success'
                 } %}
             {% endif %}
