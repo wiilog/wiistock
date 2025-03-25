@@ -303,7 +303,7 @@ class OrdreCollecteController extends AbstractController
 
             $statusName = $isOnlyOrdreCollecte ? Collecte::STATUT_BROUILLON : Collecte::STATUT_COLLECTE;
             $collecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, $statusName));
-            $consumedStatus = $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::DEM_COLLECTE, $statusName);
+            $consumedStatus = $cacheService->getEntity($entityManager, Statut::class, CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
             foreach ($ordreCollecte->getArticles() as $article) {
                 if (!$isOnlyOrdreCollecte) {
