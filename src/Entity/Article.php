@@ -175,6 +175,12 @@ class Article implements PairedEntity {
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Kiosk $kiosk = null;
 
+    /**
+     * the null value mean 'never responded'.
+     */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTimeInterface $lastSleepingStockAlertAnswer = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->preparationOrderLines = new ArrayCollection();
@@ -903,5 +909,16 @@ class Article implements PairedEntity {
         return $this;
     }
 
+    public function getLastSleepingStockAlertAnswer(): ?DateTimeInterface {
+        return $this->lastSleepingStockAlertAnswer;
+    }
 
+    /**
+     * @param DateTimeInterface $lastSleepingStockAlertAnswer cannot be null, because if a user has responded once, it cannot be reset to 'never responded'.
+     */
+    public function setLastSleepingStockAlertAnswer(DateTimeInterface $lastSleepingStockAlertAnswer): self {
+        $this->lastSleepingStockAlertAnswer = $lastSleepingStockAlertAnswer;
+
+        return $this;
+    }
 }
