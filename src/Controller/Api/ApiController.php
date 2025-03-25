@@ -11,7 +11,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class ApiController extends AbstractController {
 
     #[Route("/ping", name: 'ping', options: ["expose" => true], methods: [self::GET])]
-    public function ping(): JsonResponse {
+    public function ping(): JsonResponse
+    {
+        dump("OK");
         return $this->json([
             'success' => true,
         ]);
