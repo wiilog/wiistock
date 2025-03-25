@@ -48,37 +48,57 @@ class IndexController extends AbstractController {
             $sleepingStockPlanService
         );
 
-        $actionButtonsItems = $cacheService->get(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class, static function () use ($sleepingStockRequestInformationRepository): array {
-            return Stream::from($sleepingStockRequestInformationRepository->findAll())
-                ->map(fn(SleepingStockRequestInformation $sleepingStockRequestInformation, int $index) => [
-                    "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
-                    "value" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()->getId(),
-                    "iconUrl" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getButtonIcon()?->getFullPath(),
-                    "checked" => $index === 0
-                ])
-                ->toArray();
-        });
+
+        /**
+         * @var array{
+         *     "withTemplate": array<string, string>,
+         *     "withoutTemplate": array<string, string>,
+         * }
+         */
+        $actionButtonsItems = $cacheService->get(
+            CacheService::COLLECTION_SETTINGS,
+            SleepingStockRequestInformation::class,
+            static function () use ($sleepingStockRequestInformationRepository): array {
+                return Stream::from($sleepingStockRequestInformationRepository->findAll())
+                    ->reduce(function(array $accumulator,SleepingStockRequestInformation $sleepingStockRequestInformation): array {
+                        $deliveryRequestTemplateId = $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getId();
+                        $accumulator[$deliveryRequestTemplateId ? "withTemplate" : "withoutTemplate"][] = [
+                            "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
+                            "value" => $deliveryRequestTemplateId ?: -1,
+                            "iconUrl" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getButtonIcon()?->getFullPath(),
+                        ];
+                        return $accumulator;
+                    }, []);
+            }
+        );
 
         $referenceArticles = Stream::from($sleepingReferenceArticlesData["referenceArticles"])
             ->map(static function (array $referenceArticle) use ($formatService, $actionButtonsItems, $formService) {
-                $switchs = $formService->macro(
+                $switchesItems =  array_merge(
+                    !$referenceArticle["isSleeping"] ? $actionButtonsItems["withoutTemplate"] : [],
+                    $actionButtonsItems["withTemplate"]
+                );
+                $switchesItems[0]["checked"] = true;
+                $switches = $formService->macro(
                     "switch",
                     "template-" . $referenceArticle["id"],
                     null,
                     true,
-                    $actionButtonsItems,
+                    $switchesItems,
                     [
                         "labelClass" => "full-width",
                     ]
                 );
+
                 $inputId = $formService->macro("hidden", "id", $referenceArticle["id"]);
                 $inputEntity = $formService->macro("hidden", "entity", $referenceArticle["entity"]);
                 $deleteRowButton = "<button class='btn btn-silent delete-row mr-2' data-id='{$referenceArticle["id"]}'><i class='wii-icon wii-icon-trash text-primary wii-icon-17px-danger'></i></button>";
-                $maxStorageDate = $referenceArticle["lastMovementDate"]->sub(new DateInterval("PT{$referenceArticle["maxStorageTime"]}S"));
+                $maxStorageDate = $referenceArticle["maxStorageDate"];
                 return [
-                    "actions" => "<div class='d-flex full-width'> $deleteRowButton $switchs</div>$inputId $inputEntity",
+                    ...$referenceArticle,
+                    "actions" => "<div class='d-flex full-width'> $deleteRowButton $switches</div>$inputId $inputEntity",
                     "maxStorageDate" => $formatService->dateTime($maxStorageDate),
-                    ...$referenceArticle
+
                 ];
             })
             ->toArray();
@@ -118,14 +138,16 @@ class IndexController extends AbstractController {
             );
 
         foreach ($actions as $templateId => $lines) {
-            $lines = new ArrayCollection($lines);
-            $deliveryRequestTemplateSleepingStock = $deliveryRequestTemplateSleepingStockRepository->find($templateId);
-            $deliveryRequestTemplateSleepingStock->setLines($lines);
-            $requestTemplateService
-                ->treatRequestTemplateTriggerType(
-                    $deliveryRequestTemplateSleepingStock,
-                    $entityManager
-                );
+            if ($templateId > 0) {
+                $lines = new ArrayCollection($lines);
+                $deliveryRequestTemplateSleepingStock = $deliveryRequestTemplateSleepingStockRepository->find($templateId);
+                $deliveryRequestTemplateSleepingStock->setLines($lines);
+                $requestTemplateService
+                    ->treatRequestTemplateTriggerType(
+                        $deliveryRequestTemplateSleepingStock,
+                        $entityManager
+                    );
+            }
         }
 
         return new JsonResponse([

@@ -14,7 +14,7 @@ class SleepingStockPlanRepository extends EntityRepository {
      */
     public function findScheduled(): array {
         return $this->createQueryBuilder("sleeping_stock_plan")
-            // TODO WIIS-12522 : and where active = true
+            ->andWhere("sleeping_stock_plan.enabled = true")
             ->getQuery()
             ->getResult();
     }

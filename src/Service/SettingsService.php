@@ -1419,10 +1419,13 @@ class SettingsService {
                     ? $sleepingStockRequestInformations[$id]
                     : new SleepingStockRequestInformation;
 
-                $typeReference = $entityManager->getReference(
-                    DeliveryRequestTemplateSleepingStock::class,
-                    $sleepingStockRequestInformationData["deliveryRequestTemplate"]
-                );
+                $deliveryRequestTemplateId = $sleepingStockRequestInformationData["deliveryRequestTemplate"];
+                $typeReference = $deliveryRequestTemplateId
+                    ? $entityManager->getReference(
+                        DeliveryRequestTemplateSleepingStock::class,
+                        $sleepingStockRequestInformationData["deliveryRequestTemplate"]
+                    )
+                    : null;
                 $sleepingStockRequestInformation
                     ->setDeliveryRequestTemplate($typeReference)
                     ->setButtonActionLabel($sleepingStockRequestInformationData["buttonLabel"]);

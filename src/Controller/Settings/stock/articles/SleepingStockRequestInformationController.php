@@ -38,16 +38,21 @@ class SleepingStockRequestInformationController extends AbstractController {
         $data = Stream::from($sleepingStockRequestInformationRepository->findAll())
             ->map(function(SleepingStockRequestInformation $sleepingStockRequestInformation) use ($deliveryRequestTemplate, $formService) {
                 $items = $deliveryRequestTemplate;
-                $items[$sleepingStockRequestInformation->getDeliveryRequestTemplate()->getId()]["selected"] = true;
+                $deliveryRequestTemplate = $sleepingStockRequestInformation->getDeliveryRequestTemplate();
+                if ($deliveryRequestTemplate) {
+                    $items[$deliveryRequestTemplate->getId()]["selected"] = true;
+                }
                 return [
                     "actions" => "
                         <button class='btn btn-silent delete-row' data-id='{$sleepingStockRequestInformation->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>".
                         $formService->macro("hidden", "id", $sleepingStockRequestInformation->getId()),
-                    "deliveryRequestTemplate" =>$formService->macro("select", "deliveryRequestTemplate", null, true, [
-                        "type" => "",
+                    "deliveryRequestTemplate" =>$formService->macro("select", "deliveryRequestTemplate", null, false, [
                         "items" => $items,
+                        "emptyOption" => [
+                            "label" => "Aucune demande de livraison",
+                        ],
                         "attributes" => [
                             "data-parent" => "body"
                         ],

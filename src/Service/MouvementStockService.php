@@ -221,11 +221,6 @@ class MouvementStockService
         } else { // if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
         }
-
-        if (!$article->getLastMovement() || $article->getLastMovement()->getDate() < $newMouvement->getDate()) {
-            $article->setLastMovement($newMouvement);
-        }
-
         $from = $options['from'] ?? null;
         $locationTo = $options['locationTo'] ?? null;
         $comment = $options['comment'] ?? null;
@@ -233,6 +228,10 @@ class MouvementStockService
 
         if($date){
             $this->updateMovementDates($newMouvement, $date);
+        }
+
+        if(in_array($newMouvement->getType(), [MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE], true)) {
+            $article->setLastMovement($newMouvement);
         }
 
         if ($from) {
