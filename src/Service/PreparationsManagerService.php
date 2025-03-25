@@ -75,6 +75,7 @@ class PreparationsManagerService
     #[Required]
     public MouvementStockService $stockMovementService;
 
+    private int $countCreatedNumber = 0;
 
 
     public function __construct(Security $security,
@@ -805,12 +806,15 @@ class PreparationsManagerService
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $preparationNumber = ('P-' . $date->format('YmdHis'));
-        $preparationWithSameNumber = $preparationRepository->countByNumero($preparationNumber);
+        $preparationWithSameNumber = $preparationRepository->countByNumero($preparationNumber) + $this->countCreatedNumber;
         $preparationWithSameNumber++;
 
         $currentCounterStr = $preparationWithSameNumber < 10
             ? ('0' . $preparationWithSameNumber)
             : $preparationWithSameNumber;
+
+
+        $this->countCreatedNumber++;
 
         return ($preparationNumber . '-' . $currentCounterStr);
     }

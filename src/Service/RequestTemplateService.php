@@ -37,6 +37,7 @@ class RequestTemplateService {
         private NotificationService    $notificationService,
         private UniqueNumberService    $uniqueNumberService,
         private StatusHistoryService   $statusHistoryService,
+        private DeliveryRequestService $deliveryRequestService
     ) {}
 
     public function getType(string $type): ?Type {
@@ -130,8 +131,7 @@ class RequestTemplateService {
             }
 
             if ($valid) {
-                // TODO REPARER CA
-                // $this->deliveryRequestService->validateDLAfterCheck($entityManager, $request, false, true, false);
+                $this->deliveryRequestService->validateDLAfterCheck($entityManager, $request, false, true, false);
             }
 
             $this->uniqueNumberService->createWithRetry(
