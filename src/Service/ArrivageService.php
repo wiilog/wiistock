@@ -255,12 +255,8 @@ class ArrivageService {
                                      bool                   $urgent,
                                      array                  $emergencies = []): void {
         if ($urgent) {
-            $locationRepository = $entityManager->getRepository(Emplacement::class);
-
-            $dropLocationId = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
-            $dropLocation = $dropLocationId ? $locationRepository->find($dropLocationId) : null;
-
             $arrivage->setIsUrgent(true);
+            $dropLocation = $this->getDefaultDropLocation($entityManager, $arrivage, $arrivage->getDropLocation());
 
             if ($dropLocation) {
                 $arrivage->setDropLocation($dropLocation);
@@ -918,30 +914,29 @@ class ArrivageService {
     public function getDefaultDropLocation(EntityManagerInterface $entityManager,
                                            Arrivage               $arrivage,
                                            ?Emplacement           $enteredLocation): ?Emplacement {
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $customsArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+        if($arrivage->getCustoms() && $customsArrivalsLocation) {
+            return $entityManager->getReference(Emplacement::class, $customsArrivalsLocation);
+        }
 
         $emergenciesArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
         if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
-            return $locationRepository->find($emergenciesArrivalsLocation);
+            return $entityManager->getReference(Emplacement::class, $emergenciesArrivalsLocation);
         }
 
         if ($enteredLocation) {
             return $enteredLocation;
         }
 
-        $customsArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
-        if($arrivage->getCustoms() && $customsArrivalsLocation) {
-            return $locationRepository->find($customsArrivalsLocation);
-        }
-
         $receiverDefaultLocation = $this->settingsService->getValue($entityManager, Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
         if (!$arrivage->getReceivers()->isEmpty() && $receiverDefaultLocation) {
-            return $locationRepository->find($receiverDefaultLocation);
+            return $entityManager->getReference(Emplacement::class, $receiverDefaultLocation);
         }
 
         $defaultArrivalsLocation = $this->settingsService->getValue($entityManager, Setting::MVT_DEPOSE_DESTINATION);
         if($defaultArrivalsLocation) {
-            return $locationRepository->find($defaultArrivalsLocation);
+            return $entityManager->getReference(Emplacement::class, $defaultArrivalsLocation);
         }
 
         return null;
