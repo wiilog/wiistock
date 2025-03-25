@@ -94,40 +94,6 @@ class SleepingStockPlanService {
                     "$articleAlias.quantite > 0",
                 )
             )
-
-            ->addSelect("
-            DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second')
-            AS test1
-            ")
-
-            ->addSelect("
-            DATE_ADD(
-                        IF(
-                            $referenceArticleAlias.lastSleepingStockAlertAnswer IS NULL
-                            OR $movementAlias.date > $referenceArticleAlias.lastSleepingStockAlertAnswer,
-                            $movementAlias.date,
-                            $referenceArticleAlias.lastSleepingStockAlertAnswer
-                        ),
-                        $sleepingStockPlanAlias.maxStationaryTime,
-                         'second'
-                    )
-            AS test2
-            ")
-
-            ->addSelect("
-            DATE_ADD(
-                        IF(
-                            $articleAlias.lastSleepingStockAlertAnswer IS NULL
-                            OR $movementAlias.date > $articleAlias.lastSleepingStockAlertAnswer,
-                            $movementAlias.date,
-                            $articleAlias.lastSleepingStockAlertAnswer
-                        ),
-                        $sleepingStockPlanAlias.maxStationaryTime,
-                         'second'
-                    )
-            AS test3
-            ")
-
             ->andWhere(
                 $queryBuilder->expr()->orX(
                     "DATE_ADD($movementAlias.date, $sleepingStockPlanAlias.maxStorageTime, 'second') < CURRENT_DATE()",
