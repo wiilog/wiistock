@@ -9,7 +9,7 @@ $(function() {
             `change_password_in_bdd`,
             {
                 success: (response) => {
-                    window.location.href = Routing.generate('login', {success: response.msg});
+                    window.location.href = Routing.generate('login');
                 },
                 error: (response) => {
                     $(`.error-msg`).removeClass(`d-none`).html(response.msg);
