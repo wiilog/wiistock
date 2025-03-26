@@ -38,6 +38,15 @@ class Role {
     #[ORM\Column(type: 'boolean')]
     private ?bool $isMailSendAccountCreation = false;
 
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $isShowNotification = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $isShowBasket = false;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $isShowFLag = false;
+
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
 
@@ -143,6 +152,34 @@ class Role {
     public function setIsMailSendAccountCreation(bool $isMailSendAccountCreation): self {
         $this->isMailSendAccountCreation = $isMailSendAccountCreation;
 
+        return $this;
+    }
+
+    public function getIsShowNotification(): ?bool {
+        return $this->isShowNotification;
+    }
+
+    public function setIsShowNotification(bool $isShowNotification): self {
+        $this->isShowNotification = $isShowNotification;
+        return $this;
+    }
+
+    public function getIsShowBasket(): ?bool {
+        return $this->isShowBasket;
+    }
+
+    public function setIsShowBasket(bool $isShowBasket): self {
+        $this->isShowBasket = $isShowBasket;
+        return $this;
+    }
+
+    public function getIsShowFLag(): ?bool
+    {
+        return $this->isShowFLag;
+    }
+
+    public function setIsShowFLag(bool $isShowFLag): self {
+        $this->isShowFLag = $isShowFLag;
         return $this;
     }
 
