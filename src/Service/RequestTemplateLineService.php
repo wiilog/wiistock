@@ -24,12 +24,7 @@ class RequestTemplateLineService {
 
     public function createRequestTemplateLineArticle(EntityManagerInterface $entityManager,
                                                      int                    $articleId,
-                                                     DateTime               $now,
-                                                     bool                   $hasRoleToCreateArticleLine): RequestTemplateLineArticle {
-        if (!$hasRoleToCreateArticleLine) {
-            throw new FormException("Vous n'avez pas le droit d'ajouter des articles a une demande.");
-        }
-
+                                                     DateTime               $now): RequestTemplateLineArticle {
         $article = $entityManager->getReference(Article::class, $articleId);
         $article->getReferenceArticle()->setLastSleepingStockAlertAnswer($now);
         $article->setLastSleepingStockAlertAnswer($now);

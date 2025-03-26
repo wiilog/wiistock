@@ -1,8 +1,6 @@
 import {initDataTable} from "@app/datatable";
 import {POST} from "@app/ajax";
 
-
-
 $(function() {
 
     const url = new URL(window.location.href);
