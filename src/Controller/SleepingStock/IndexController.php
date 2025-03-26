@@ -15,7 +15,6 @@ use App\Service\RequestTemplateLineService;
 use App\Service\RequestTemplateService;
 use App\Service\SleepingStockPlanService;
 use App\Service\UserService;
-use DateInterval;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,7 +28,7 @@ use WiiCommon\Helper\Stream;
 
 #[Route("/sleeping-stock", name: "sleeping_stock")]
 class IndexController extends AbstractController {
-    private const MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM = 1000;
+    private const MAX_SLEEPING_REFERENCE_ARTICLES_ON_FORM = 50;
 
     #[Route("/", name: "_index", methods: [self::GET])]
     public function index(EntityManagerInterface   $entityManager,
@@ -120,14 +119,13 @@ class IndexController extends AbstractController {
                            RequestTemplateLineService $requestTemplateLineService): JsonResponse {
         $deliveryRequestTemplateSleepingStockRepository = $entityManager->getRepository(DeliveryRequestTemplateSleepingStock::class);
         $now = new DateTime();
-        $hasRoleToCreateArticleLine = $userService->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
         $actions =  Stream::from(json_decode($request->request->get("actions"), true))
             ->reduce(
-                function (array $carry, array $action) use ($requestTemplateLineService, $hasRoleToCreateArticleLine, $now, $entityManager): array {
+                function (array $carry, array $action) use ($requestTemplateLineService, $now, $entityManager): array {
                     $id = $action["id"];
                     $requestTemplateLine = match ($action["entity"]) {
                         ReferenceArticle::class => $requestTemplateLineService->createRequestTemplateLineReference($entityManager, $id, $now),
-                        Article::class => $requestTemplateLineService->createRequestTemplateLineArticle($entityManager, $id, $now, $hasRoleToCreateArticleLine),
+                        Article::class => $requestTemplateLineService->createRequestTemplateLineArticle($entityManager, $id, $now),
                         default => throw new Exception("Unknown entity type " . $action["entity"]),
                     };
                     $carry[$action["templateId"]][] = $requestTemplateLine;
