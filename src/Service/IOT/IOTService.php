@@ -471,9 +471,13 @@ class IOTService {
                     ->setContent($value)
                     ->setContentType($type)
                     ->setEvent($this->extractEventTypeFromMessage($message, $device->getProfile()->getName(), $payload))
-                    ->setLinkedSensorLastMessage($device)
                     ->setSensor($device);
 
+                $device->setLastMessage($received);
+
+                return $received;
+            })
+            ->toArray();
                 $messages[] = $received;
             }
         }
