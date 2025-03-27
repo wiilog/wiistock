@@ -366,7 +366,7 @@ class ReferenceArticleController extends AbstractController
             $entityManager->flush();
 
             if ($refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS){
-                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $userRepository->getUserMailByReferenceValidatorAction(), true);
+                $refArticleDataService->sendMailCreateDraftOrDraftToActive($entityManager, $refArticle, $userRepository->getUserMailByReferenceValidatorAction(), true);
             }
 
             return $this->json([
@@ -1142,7 +1142,7 @@ class ReferenceArticleController extends AbstractController
             $referenceSuccessMessage = str_replace('@reference', '<span style="color: #3353D7;">'.$data->get('reference').'</span>', $referenceSuccessMessage);
             $message = strip_tags(str_replace('@reference', $data->get('reference'), $referenceSuccessMessage));
         }
-        $refArticleDataService->sendMailEntryStock($reference, $to, $message);
+        $refArticleDataService->sendMailEntryStock($entityManager, $reference, $to, $message);
         return new JsonResponse([
                 'success' => true,
                 'msg' => "Validation d'entrée de stock",
