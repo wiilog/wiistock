@@ -39,13 +39,13 @@ class Role {
     private ?bool $isMailSendAccountCreation = false;
 
     #[ORM\Column(type: 'boolean')]
-    private ?bool $isShowNotification = false;
+    private ?bool $showNotification = false;
 
     #[ORM\Column(type: 'boolean')]
-    private ?bool $isShowBasket = false;
+    private ?bool $showBasket = false;
 
     #[ORM\Column(type: 'boolean')]
-    private ?bool $isShowFLag = false;
+    private ?bool $showFlag = false;
 
     #[ORM\Column(type: 'string', options: ["default" => self::LANDING_PAGE_DASHBOARD])]
     private ?string $landingPage = self::LANDING_PAGE_DASHBOARD;
@@ -155,31 +155,31 @@ class Role {
         return $this;
     }
 
-    public function getIsShowNotification(): ?bool {
-        return $this->isShowNotification;
+    public function isShowNotification(): ?bool {
+        return $this->showNotification;
     }
 
-    public function setIsShowNotification(bool $isShowNotification): self {
-        $this->isShowNotification = $isShowNotification;
+    public function setShowNotification(bool $showNotification): self {
+        $this->showNotification = $showNotification;
         return $this;
     }
 
-    public function getIsShowBasket(): ?bool {
-        return $this->isShowBasket;
+    public function isShowBasket(): ?bool {
+        return $this->showBasket;
     }
 
-    public function setIsShowBasket(bool $isShowBasket): self {
-        $this->isShowBasket = $isShowBasket;
+    public function setShowBasket(bool $showBasket): self {
+        $this->showBasket = $showBasket;
         return $this;
     }
 
-    public function getIsShowFLag(): ?bool
+    public function isShowFlag(): ?bool
     {
-        return $this->isShowFLag;
+        return $this->showFlag;
     }
 
-    public function setIsShowFLag(bool $isShowFLag): self {
-        $this->isShowFLag = $isShowFLag;
+    public function setShowFlag(bool $showFlag): self {
+        $this->showFlag = $showFlag;
         return $this;
     }
 
