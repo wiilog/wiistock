@@ -1,5 +1,5 @@
 import Form from "@app/form";
-import {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 
 $(function() {
     Form
