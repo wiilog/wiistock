@@ -71,24 +71,6 @@ function initDatatableLitiges() {
         drawConfig: {
             needsColumnShow: true
         },
-        columns: [
-            {data: 'actions', title: '', orderable: false, className: 'noVis'},
-            {data: 'type', title: Translation.of(`Qualité`, `Litiges`, 'Type')},
-            {data: 'disputeNumber', title: Translation.of(`Qualité`, `Litiges`, `Numéro de litige`)},
-            {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Arrivages unités logistiques`, `Divers`, `N° d'arrivage UL`)},
-            {data: 'receptionNumber', title: Translation.of(`Traçabilité`, `Association BR`, `N° de réception`)},
-            {data: 'buyers', title: Translation.of(`Qualité`, `Litiges`, `Acheteur`), orderable: false},
-            {data: 'reporter', title: Translation.of(`Qualité`, `Litiges`, `Déclarant`)},
-            {data: 'numCommandeBl', title: Translation.of(`Qualité`, `Litiges`, `N° commande / BL`)},
-            {data: 'command', title: 'N° ligne', orderable: false},
-            {data: 'provider', title: Translation.of(`Qualité`, `Litiges`, `Fournisseur`)},
-            {data: 'references', title: Translation.of(`Traçabilité`, `Mouvements`, `Référence`), orderable: false},
-            {data: 'lastHistoryRecord', title: Translation.of(`Qualité`, `Litiges`, `Dernier historique`), orderable: false},
-            {data: 'creationDate', title: Translation.of(`Qualité`, `Litiges`, `Créé le`)},
-            {data: 'updateDate', title: Translation.of(`Qualité`, `Litiges`, `Modifié le`)},
-            {data: 'status', title: Translation.of(`Qualité`, `Litiges`, 'Statut')},
-            {data: 'urgence', title: 'urgence', visible: false, class: 'noVis'},
-        ],
         domConfig: {
             needsFullDomOverride: true
         },
