@@ -17,8 +17,8 @@ class SleepingStockRequestInformation {
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $buttonActionLabel = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: DeliveryRequestTemplateSleepingStock::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?DeliveryRequestTemplateSleepingStock $deliveryRequestTemplate = null;
 
     public function getId(): ?int {

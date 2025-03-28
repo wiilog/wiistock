@@ -5,6 +5,8 @@ namespace App\Entity\ScheduledTask;
 use App\Entity\Type;
 use App\Repository\ScheduledTask\SleepingStockPlanRepository;
 use App\Service\FormatService;
+use DateInterval;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -23,7 +25,16 @@ class SleepingStockPlan extends ScheduledTask {
      * $maxStorageTime in Seconds, so the theoretic max storage time is ~= 24855 days
      */
     #[ORM\Column(type: Types::INTEGER)]
-    private ?int $maxStorageTime = null;
+    private int $maxStorageTime = 0;
+
+    /**
+     * $maxStorageTime in Seconds, so the theoretic max storage time is ~= 24855 days
+     */
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $maxStationaryTime = 0;
+
+    #[ORM\Column(type: Types::BOOLEAN)]
+    private bool $enabled = false;
 
     public function getId(): ?int {
         return $this->id;
@@ -47,16 +58,44 @@ class SleepingStockPlan extends ScheduledTask {
         return $this;
     }
 
-    public function getMaxStorageTime(): ?int {
+    public function getMaxStorageTime(): int {
         return $this->maxStorageTime;
     }
 
     public function getMaxStorageTimeInDays(): ?int {
-        return $this->maxStorageTime / FormatService::SECONDS_IN_DAY;
+        $now = new DateTime();
+        $dateTime = (clone $now)->modify("+$this->maxStorageTime seconds");
+        return $dateTime->diff($now)->days;
     }
 
     public function setMaxStorageTime(int $maxStorageTime): self {
         $this->maxStorageTime = $maxStorageTime;
+
+        return $this;
+    }
+
+    public function getMaxStationaryTime(): int {
+        return $this->maxStationaryTime;
+    }
+
+    public function getMaxStationaryTimeInDays(): ?int {
+        $now = new DateTime();
+        $dateTime = (clone $now)->modify("+$this->maxStationaryTime seconds");
+        return $dateTime->diff($now)->days;
+    }
+
+    public function setMaxStationaryTime(int $maxStationaryTime): self {
+        $this->maxStationaryTime = $maxStationaryTime;
+
+        return $this;
+    }
+
+    public function isEnabled(): bool {
+        return $this->enabled;
+    }
+
+    public function setEnabled(bool $enabled): self {
+        $this->enabled = $enabled;
 
         return $this;
     }

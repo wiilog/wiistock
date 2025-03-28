@@ -453,11 +453,11 @@ class DeliveryRequestService
                                          bool                   $simpleValidation = false,
                                          bool                   $flush = true,
                                          bool                   $settingNeedPlanningValidation = true,
-                                         array                  $options = []): array
-    {
+                                         array                  $options = []): array {
         $response = [];
         $response['success'] = true;
         $response['msg'] = '';
+
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);

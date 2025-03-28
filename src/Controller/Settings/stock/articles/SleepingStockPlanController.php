@@ -39,7 +39,8 @@ class SleepingStockPlanController extends AbstractController {
                                  SleepingStockPlanService $sleepingStockPlanService): JsonResponse {
         $taskExecution = new DateTime();
         $sleepingStockPlanRepository = $entityManager->getRepository(SleepingStockPlan::class);
-        foreach ($sleepingStockPlanRepository->findAll() as $sleepingStockPlan) { // TODO WIIS-12522 : and where active = true
+        $sleepingStockPlans = $sleepingStockPlanRepository->findBy(["enabled" => true]);
+        foreach ($sleepingStockPlans as $sleepingStockPlan) {
             $sleepingStockPlanService->triggerSleepingStockPlan($entityManager, $sleepingStockPlan, $taskExecution);
         };
 

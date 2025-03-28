@@ -9,7 +9,7 @@ use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\Tracking\Pack;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
@@ -219,12 +219,6 @@ class ReferenceArticle implements AttachmentContainer {
      */
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PurchaseRequestLine::class)]
     private Collection $purchaseRequestLines;
-
-    /**
-     * @return Collection<int, RequestTemplateLine>
-     */
-    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: RequestTemplateLine::class, orphanRemoval: true)]
-    private Collection $requestTemplateLines;
 
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
@@ -1050,33 +1044,6 @@ class ReferenceArticle implements AttachmentContainer {
 
     public function setOrderState(?string $orderState): self {
         $this->orderState = $orderState;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, RequestTemplateLine>
-     */
-    public function getRequestTemplateLines(): Collection {
-        return $this->requestTemplateLines;
-    }
-
-    public function addRequestTemplateLine(RequestTemplateLine $requestTemplateLine): self {
-        if(!$this->requestTemplateLines->contains($requestTemplateLine)) {
-            $this->requestTemplateLines[] = $requestTemplateLine;
-            $requestTemplateLine->setReference($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRequestTemplateLine(RequestTemplateLine $requestTemplateLine): self {
-        if($this->requestTemplateLines->removeElement($requestTemplateLine)) {
-            // set the owning side to null (unless already changed)
-            if($requestTemplateLine->getReference() === $this) {
-                $requestTemplateLine->setReference(null);
-            }
-        }
-
         return $this;
     }
 

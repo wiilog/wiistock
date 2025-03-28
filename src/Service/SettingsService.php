@@ -29,7 +29,7 @@ use App\Entity\RequestTemplate\DeliveryRequestTemplateTriggerAction;
 use App\Entity\RequestTemplate\DeliveryRequestTemplateUsageEnum;
 use App\Entity\RequestTemplate\HandlingRequestTemplate;
 use App\Entity\RequestTemplate\RequestTemplate;
-use App\Entity\RequestTemplate\RequestTemplateLine;
+use App\Entity\RequestTemplate\RequestTemplateLineReference;
 use App\Entity\ReserveType;
 use App\Entity\Role;
 use App\Entity\ScheduledTask\SleepingStockPlan;
@@ -393,9 +393,14 @@ class SettingsService {
             $sleepingStockPlan = $sleepingStockPlanRepository->findOneBy(["type" => $type])
                 ?: (new SleepingStockPlan())->setType($type);
 
-            $sleepingStockPlan->setMaxStorageTime(
-                $request->request->getInt("maxStorageTime") * 24 * 60 * 60
-            );
+            $sleepingStockPlan
+                ->setMaxStorageTime(
+                    $request->request->getInt("maxStorageTime") * FormatService::SECONDS_IN_DAY
+                )
+                ->setMaxStationaryTime(
+                    $request->request->getInt("maxStationaryTime") * FormatService::SECONDS_IN_DAY
+                )
+                ->setEnabled($request->request->getBoolean("enabled"));
 
             $sleepingStockPlan->setScheduleRule(
                 $this->scheduleRuleService->updateRule($sleepingStockPlan->getScheduleRule(), $request->request)
@@ -1257,6 +1262,7 @@ class SettingsService {
         }
 
         if (isset($tables["requestTemplates"])) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, SleepingStockRequestInformation::class);
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
             $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -1288,14 +1294,14 @@ class SettingsService {
             $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
             if(!($template instanceof DeliveryRequestTemplateSleepingStock)) {
-                $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLine::class);
+                $requestTemplateLineRepository = $entityManager->getRepository(RequestTemplateLineReference::class);
                 $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                     ->keymap(fn($line) => [$line->getId(), $line])
                     ->toArray();
 
                 foreach (array_filter($tables["requestTemplates"]) as $item) {
                     /** @var FreeField $freeField */
-                    $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
+                    $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLineReference();
 
                     $line->setRequestTemplate($template);
 
@@ -1413,10 +1419,13 @@ class SettingsService {
                     ? $sleepingStockRequestInformations[$id]
                     : new SleepingStockRequestInformation;
 
-                $typeReference = $entityManager->getReference(
-                    DeliveryRequestTemplateSleepingStock::class,
-                    $sleepingStockRequestInformationData["deliveryRequestTemplate"]
-                );
+                $deliveryRequestTemplateId = $sleepingStockRequestInformationData["deliveryRequestTemplate"];
+                $typeReference = $deliveryRequestTemplateId
+                    ? $entityManager->getReference(
+                        DeliveryRequestTemplateSleepingStock::class,
+                        $sleepingStockRequestInformationData["deliveryRequestTemplate"]
+                    )
+                    : null;
                 $sleepingStockRequestInformation
                     ->setDeliveryRequestTemplate($typeReference)
                     ->setButtonActionLabel($sleepingStockRequestInformationData["buttonLabel"]);

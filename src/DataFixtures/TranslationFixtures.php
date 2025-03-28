@@ -3072,6 +3072,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Quantité",
                             "en" => "Quantity"
                         ],
+                        [
+                            "fr" => "Code barre",
+                            "en" => "Bar code"
+                        ]
                     ],
                 ],
                 "Email stock dormant" => [

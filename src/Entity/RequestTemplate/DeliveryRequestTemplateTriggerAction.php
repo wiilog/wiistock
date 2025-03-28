@@ -16,7 +16,7 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements De
 
     use DeliveryRequestTemplateTrait;
 
-    #[ORM\OneToMany(mappedBy: 'deliveryRequestTemplateTriggerAction', targetEntity: RequestTemplateLine::class, cascade: ["remove"])]
+    #[ORM\OneToMany(mappedBy: 'deliveryRequestTemplateTriggerAction', targetEntity: RequestTemplateLineReference::class, cascade: ["remove"])]
     private Collection $lines;
 
     public function __construct() {
@@ -25,10 +25,20 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements De
     }
 
     /**
-     * @return Collection<RequestTemplateLine>
+     * @return Collection<RequestTemplateLineReference>
      */
     public function getLines(): Collection {
         return $this->lines;
+    }
+
+    public function setLines(iterable $lines): self {
+        foreach ($this->lines as $line) {
+            $this->removeLine($line);
+        }
+
+        foreach ($lines as $line) {
+            $this->addLine($line);
+        }
     }
 
     public function addLine(ReferenceArticle $ref): self {

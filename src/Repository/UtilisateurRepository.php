@@ -298,6 +298,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             "sleeping_stock_plan",
             "type",
             "movement",
+            "reference_article",
+            "article",
             $type
         );
 
