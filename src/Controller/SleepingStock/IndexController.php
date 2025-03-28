@@ -61,13 +61,17 @@ class IndexController extends AbstractController {
                 return Stream::from($sleepingStockRequestInformationRepository->findAll())
                     ->reduce(function(array $accumulator,SleepingStockRequestInformation $sleepingStockRequestInformation): array {
                         $deliveryRequestTemplateId = $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getId();
-                        $accumulator[$deliveryRequestTemplateId ? "withTemplate" : "withoutTemplate"][] = [
+                        $arrayKey = $deliveryRequestTemplateId ? "withTemplate" : "withoutTemplate";
+                        $accumulator[$arrayKey][] = [
                             "label" => $sleepingStockRequestInformation->getButtonActionLabel(),
                             "value" => $deliveryRequestTemplateId ?: -1,
                             "iconUrl" => $sleepingStockRequestInformation->getDeliveryRequestTemplate()?->getButtonIcon()?->getFullPath(),
                         ];
                         return $accumulator;
-                    }, []);
+                    }, [
+                        "withTemplate"=>[],
+                        "withoutTemplate" => []
+                    ]);
             }
         );
 
@@ -77,7 +81,9 @@ class IndexController extends AbstractController {
                     !$referenceArticle["isSleeping"] ? $actionButtonsItems["withoutTemplate"] : [],
                     $actionButtonsItems["withTemplate"]
                 );
-                $switchesItems[0]["checked"] = true;
+                if (!empty($switchesItems)) {
+                    $switchesItems[0]["checked"] = true;
+                }
                 $switches = $formService->macro(
                     "switch",
                     "template-" . $referenceArticle["id"],

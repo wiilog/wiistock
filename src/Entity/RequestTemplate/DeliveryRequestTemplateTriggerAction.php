@@ -31,7 +31,7 @@ class DeliveryRequestTemplateTriggerAction extends RequestTemplate implements De
         return $this->lines;
     }
 
-    public function setLines(Collection $lines): self {
+    public function setLines(iterable $lines): self {
         foreach ($this->lines as $line) {
             $this->removeLine($line);
         }

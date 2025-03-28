@@ -30,7 +30,7 @@ final class Version20250319143004 extends AbstractMigration {
             ',
             [
                 "movementTypeEntree" => MouvementStock::TYPE_ENTREE,
-                "movementTypeSortie" => MouvementStock::TYPE_INVENTAIRE_SORTIE,
+                "movementTypeSortie" => MouvementStock::TYPE_SORTIE,
             ]
         );
 
@@ -47,7 +47,7 @@ final class Version20250319143004 extends AbstractMigration {
             ',
             [
                 "movementTypeEntree" => MouvementStock::TYPE_ENTREE,
-                "movementTypeSortie" => MouvementStock::TYPE_INVENTAIRE_SORTIE,
+                "movementTypeSortie" => MouvementStock::TYPE_SORTIE,
             ]
         );
     }

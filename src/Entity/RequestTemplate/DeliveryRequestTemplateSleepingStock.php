@@ -13,7 +13,10 @@ class DeliveryRequestTemplateSleepingStock extends RequestTemplate implements De
     use DeliveryRequestTemplateTrait;
 
     /**
-     * @var Collection<RequestTemplateLine>
+     * Not managed by the ORM, because we dont know the lines in advance
+     * the line corresponding to the choice of the user in the sleeping stock form
+     * @see \IndexController::submit
+     * @var Collection<int, RequestTemplateLine>
      */
     private Collection $lines;
 
