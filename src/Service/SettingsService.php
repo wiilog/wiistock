@@ -395,10 +395,10 @@ class SettingsService {
 
             $sleepingStockPlan
                 ->setMaxStorageTime(
-                    $request->request->getInt("maxStorageTime") * 24 * 60 * 60
+                    $request->request->getInt("maxStorageTime") * FormatService::SECONDS_IN_DAY
                 )
                 ->setMaxStationaryTime(
-                    $request->request->getInt("maxStationaryTime") * 24 * 60 * 60
+                    $request->request->getInt("maxStationaryTime") * FormatService::SECONDS_IN_DAY
                 )
                 ->setEnabled($request->request->getBoolean("enabled"));
 

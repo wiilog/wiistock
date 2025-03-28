@@ -220,12 +220,6 @@ class ReferenceArticle implements AttachmentContainer {
     #[ORM\OneToMany(mappedBy: 'reference', targetEntity: PurchaseRequestLine::class)]
     private Collection $purchaseRequestLines;
 
-    /**
-     * @return Collection<int, RequestTemplateLineReference>
-     */
-    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: RequestTemplateLineReference::class, orphanRemoval: true)]
-    private Collection $requestTemplateLines;
-
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
@@ -1050,33 +1044,6 @@ class ReferenceArticle implements AttachmentContainer {
 
     public function setOrderState(?string $orderState): self {
         $this->orderState = $orderState;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, RequestTemplateLineReference>
-     */
-    public function getRequestTemplateLines(): Collection {
-        return $this->requestTemplateLines;
-    }
-
-    public function addRequestTemplateLine(RequestTemplateLineReference $requestTemplateLine): self {
-        if(!$this->requestTemplateLines->contains($requestTemplateLine)) {
-            $this->requestTemplateLines[] = $requestTemplateLine;
-            $requestTemplateLine->setReference($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRequestTemplateLine(RequestTemplateLineReference $requestTemplateLine): self {
-        if($this->requestTemplateLines->removeElement($requestTemplateLine)) {
-            // set the owning side to null (unless already changed)
-            if($requestTemplateLine->getReference() === $this) {
-                $requestTemplateLine->setReference(null);
-            }
-        }
-
         return $this;
     }
 

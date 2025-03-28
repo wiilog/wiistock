@@ -457,6 +457,7 @@ class DeliveryRequestService
         $response = [];
         $response['success'] = true;
         $response['msg'] = '';
+
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $preparedUponValidationSetting = $this->settingsService->getValue($entityManager, Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION);
